@@ -26,8 +26,8 @@ public class TokenizerTest {
     [TestCase(
         "o = if (a>b)  1 else x",
         TokType.Id, TokType.Def,
-        TokType.If, TokType.Obr, TokType.Id, TokType.More, TokType.Id,
-        TokType.Cbr, TokType.IntNumber,
+        TokType.If, TokType.ParenthObr, TokType.Id, TokType.More, TokType.Id,
+        TokType.ParenthCbr, TokType.IntNumber,
         TokType.Else, TokType.Id)]
     [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
     [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
@@ -40,7 +40,7 @@ public class TokenizerTest {
     [TestCase("x.y", TokType.Id, TokType.Dot, TokType.Id)]
     [TestCase(
         "x.y(1).z", TokType.Id,
-        TokType.Dot, TokType.Id, TokType.Obr, TokType.IntNumber, TokType.Cbr,
+        TokType.Dot, TokType.Id, TokType.ParenthObr, TokType.IntNumber, TokType.ParenthCbr,
         TokType.Dot, TokType.Id)]
     [TestCase("[0..1]", TokType.ArrOBr, TokType.IntNumber, TokType.TwoDots, TokType.IntNumber, TokType.ArrCBr)]
     [TestCase(
@@ -59,7 +59,7 @@ public class TokenizerTest {
     [TestCase(@"true #comment", TokType.True)]
     [TestCase(
         "0.foo()",
-        TokType.IntNumber, TokType.Dot, TokType.Id, TokType.Obr, TokType.Cbr)]
+        TokType.IntNumber, TokType.Dot, TokType.Id, TokType.ParenthObr, TokType.ParenthCbr)]
     [TestCase("1.y", TokType.IntNumber, TokType.Dot, TokType.Id)]
     [TestCase(
         "y = 1; z = 2.0",
@@ -84,9 +84,9 @@ public class TokenizerTest {
     [TestCase(";;;", TokType.NewLine, TokType.NewLine, TokType.NewLine)]
     [TestCase(
         "f(x) = x*x; y = f(10); z = y",
-        TokType.Id, TokType.Obr, TokType.Id, TokType.Cbr, TokType.Def, TokType.Id, TokType.Mult, TokType.Id,
+        TokType.Id, TokType.ParenthObr, TokType.Id, TokType.ParenthCbr, TokType.Def, TokType.Id, TokType.Mult, TokType.Id,
         TokType.NewLine,
-        TokType.Id, TokType.Def, TokType.Id, TokType.Obr, TokType.IntNumber, TokType.Cbr,
+        TokType.Id, TokType.Def, TokType.Id, TokType.ParenthObr, TokType.IntNumber, TokType.ParenthCbr,
         TokType.NewLine,
         TokType.Id, TokType.Def, TokType.Id)]
     [TestCase(
@@ -147,14 +147,14 @@ public class TokenizerTest {
         TokType.NewLine,
         TokType.Id, TokType.Def, TokType.IntNumber,
         TokType.FiCbr)]
-    [TestCase("0x)", TokType.NotAToken, TokType.Cbr)]
-    [TestCase("0b)", TokType.NotAToken, TokType.Cbr)]
-    [TestCase("0bFF)", TokType.NotAToken, TokType.Cbr)]
-    [TestCase("0xGG)", TokType.NotAToken, TokType.Cbr)]
-    [TestCase("(0x)", TokType.Obr, TokType.NotAToken, TokType.Cbr)]
-    [TestCase("(0b)", TokType.Obr, TokType.NotAToken, TokType.Cbr)]
-    [TestCase("(0bFF)", TokType.Obr, TokType.NotAToken, TokType.Cbr)]
-    [TestCase("(0xGG)", TokType.Obr, TokType.NotAToken, TokType.Cbr)]
+    [TestCase("0x)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0b)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0bFF)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0xGG)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("(0x)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("(0b)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("(0bFF)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("(0xGG)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
     public void GeneralTokenFlow_ExpectEof(string exp, params TokType[] expected) {
         var tokens = new List<TokType>();
@@ -289,14 +289,14 @@ public class TokenizerTest {
     [TestCase("0b001.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
     [TestCase("0b001_0.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
     
-    [TestCase("0xFF)", TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("0xFF_01)", TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("0b001)", TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("0b001_0)", TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("(0xFF)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("(0xFF_01)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("(0b001)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
-    [TestCase("(0b001_0)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
+    [TestCase("0xFF)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("0xFF_01)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("0b001)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("0b001_0)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("(0xFF)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("(0xFF_01)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("(0b001)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("(0b001_0)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
     
     [TestCase("0x", TokType.NotAToken)]
     [TestCase("0b", TokType.NotAToken)]
@@ -354,7 +354,7 @@ public class TokenizerTest {
     [TestCase("-", TokType.Minus, 0, 1)]
     [TestCase("else", TokType.Else, 0, 4)]
     [TestCase("if", TokType.If, 0, 2)]
-    [TestCase("(2+3)", TokType.Obr, 0, 1)]
+    [TestCase("(2+3)", TokType.ParenthObr, 0, 1)]
     [TestCase("if(2+3)", TokType.If, 0, 2)]
     public void ToTokens_FirstTokenIsCorrectAndContainsCorrectBounds(
         string expression, TokType type, int start, int end)
@@ -378,7 +378,7 @@ public class TokenizerTest {
     [TestCase("else  if ", TokType.If, 6, 8)]
     [TestCase(" +if", TokType.If, 2, 4)]
     [TestCase("(2+3)", TokType.IntNumber, 1, 2)]
-    [TestCase("if(2+3)", TokType.Obr, 2, 3)]
+    [TestCase("if(2+3)", TokType.ParenthObr, 2, 3)]
     [TestCase("if", TokType.Eof, 2, 2)]
     [TestCase("x", TokType.Eof, 1, 1)]
     public void ToTokens_secondTokenIsCorrectAndContainsCorrectBounds(

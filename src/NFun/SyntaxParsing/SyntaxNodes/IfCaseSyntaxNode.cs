@@ -12,7 +12,7 @@ public class IfCaseSyntaxNode : ISyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public ISyntaxNode Condition { get; }
     public ISyntaxNode Expression { get; }
     public Interval Interval { get; set; }

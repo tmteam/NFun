@@ -12,7 +12,7 @@ public class ResultFunCallSyntaxNode : IFunCallSyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public ISyntaxNode ResultExpression { get; }
     public ISyntaxNode[] Args { get; }
     public Interval Interval { get; set; }

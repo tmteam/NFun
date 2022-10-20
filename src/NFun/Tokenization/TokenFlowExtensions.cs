@@ -37,7 +37,7 @@ public static class TokenFlowExtensions {
         if (!flow.MoveIf(TokType.Id, out var id))
             throw Errors.ItIsNotAnAttribute(start, flow.Current);
         object val = null;
-        if (flow.MoveIf(TokType.Obr))
+        if (flow.MoveIf(TokType.ParenthObr))
         {
             var next = flow.Current;
             switch (next.Type)
@@ -61,7 +61,7 @@ public static class TokenFlowExtensions {
             }
 
             flow.MoveNext();
-            if (!flow.MoveIf(TokType.Cbr))
+            if (!flow.MoveIf(TokType.ParenthCbr))
                 throw Errors.AttributeCbrMissed(start, flow);
         }
 

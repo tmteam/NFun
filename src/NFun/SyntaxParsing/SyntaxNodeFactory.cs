@@ -43,8 +43,8 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode Array(IList<ISyntaxNode> elements, int start, int end)
         => new ArraySyntaxNode(elements, new Interval(start, end));
 
-    public static ISyntaxNode ListOf(IList<ISyntaxNode> elements, Interval interval, int bracketsCount)
-        => new ListOfExpressionsSyntaxNode(elements, bracketsCount, interval);
+    public static ISyntaxNode ListOf(IList<ISyntaxNode> elements, Interval interval, int parenthesesCount)
+        => new ListOfExpressionsSyntaxNode(elements, parenthesesCount, interval);
 
     public static TypedVarDefSyntaxNode TypedVar(string name, FunnyType type, int start, int end)
         => new(name, type, new Interval(start, end));

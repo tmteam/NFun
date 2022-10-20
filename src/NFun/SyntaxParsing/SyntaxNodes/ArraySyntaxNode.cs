@@ -11,7 +11,7 @@ public class ArraySyntaxNode : ISyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public IList<ISyntaxNode> Expressions { get; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);

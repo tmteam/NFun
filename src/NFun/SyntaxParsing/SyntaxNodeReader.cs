@@ -27,7 +27,7 @@ public static class SyntaxNodeReader {
     
     static SyntaxNodeReader() {
         var priorities = new List<TokType[]>(13) {
-            new[] { TokType.ArrOBr, TokType.Dot, TokType.Obr },
+            new[] { TokType.ArrOBr, TokType.Dot, TokType.ParenthObr },
             new[] { TokType.Pow },
             new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
             new[] { TokType.Plus, TokType.Minus},
@@ -230,7 +230,7 @@ public static class SyntaxNodeReader {
         {
             //fun call
             // 'id(1,2)'
-            if (flow.IsCurrent(TokType.Obr))
+            if (flow.IsCurrent(TokType.ParenthObr))
                 return ReadFunctionCall(flow, headToken);
 
             // variable with type definition
@@ -246,8 +246,8 @@ public static class SyntaxNodeReader {
         if (flow.IsCurrent(TokType.TextOpenInterpolation))
             return ReadInterpolationText(flow);
         
-        if (flow.IsCurrent(TokType.Obr))
-            return ReadBrackedNodeList(flow);
+        if (flow.IsCurrent(TokType.ParenthObr))
+            return ReadParenthNodeList(flow);
         
         if (flow.IsCurrent(TokType.If))
             return ReadIfThenElseNode(flow);
@@ -293,7 +293,7 @@ public static class SyntaxNodeReader {
             //if current token is not an operation
             //than expression is done
             //example:
-            // 1*2 \r{return expression} y=...
+            // 1*2 \r{stops here} y=...
             if (!BinaryPriorities.TryGetValue(opToken.Type, out var opPriority))
                 return leftNode;
 
@@ -322,18 +322,18 @@ public static class SyntaxNodeReader {
                 flow.MoveNext();
                 if (!flow.MoveIf(TokType.Id, out var id))
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
-                // Open bracket. It means call
+                // Open parenthesis. It means call
                 var next = flow.Current?.Type;
-                if (next == TokType.Obr || next == TokType.FiObr)
+                if (next == TokType.ParenthObr || next == TokType.FiObr)
                     leftNode = ReadFunctionCall(flow, id, leftNode);
                 else //else it is struct field
                     leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
             }
-            else if (opToken.Type == TokType.Obr)
+            else if (opToken.Type == TokType.ParenthObr)
             {
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
-                if (!flow.IsPrevious(TokType.Cbr) && !flow.IsPrevious(TokType.FiCbr) &&!flow.IsPrevious(TokType.Default))
+                if (!flow.IsPrevious(TokType.ParenthCbr) && !flow.IsPrevious(TokType.FiCbr) &&!flow.IsPrevious(TokType.Default))
                     return leftNode;
                 //call result of previous expression:
                 // (expr)(arg1, ... argN)
@@ -381,7 +381,7 @@ public static class SyntaxNodeReader {
         var returnType = TryReadTypeDef(flow);
         if (flow.Current.Is(TokType.Def))
         {
-            if (bodyOrTypeNotation.BracketsCount!=1)
+            if (bodyOrTypeNotation.ParenthesesCount!=1)
                 throw Errors.UnexpectedTokenEqualAfterRule(flow.Current.Interval);
 
             flow.MoveNext();
@@ -597,7 +597,7 @@ public static class SyntaxNodeReader {
     /// <summary>
     /// Read array initialization node.
     /// [a..b]
-    /// [a..b..c]
+    /// [a..b step c]
     /// [a,b,c,d]
     /// </summary>
     /// <param name="flow"></param>
@@ -628,8 +628,7 @@ public static class SyntaxNodeReader {
                     missedVal = default;
                 }
 
-                throw Errors.ArrayInitializeSecondIndexMissed(
-                    openBracket, lastToken, missedVal);
+                throw Errors.ArrayInitializeSecondIndexMissed(openBracket, lastToken, missedVal);
             }
 
             if (flow.MoveIf(TokType.Step, out var step))
@@ -649,9 +648,8 @@ public static class SyntaxNodeReader {
                         lastToken = flow.Current;
                         missedVal = default;
                     }
-
-                    throw Errors.ArrayInitializeStepMissed(
-                        openBracket, lastToken, missedVal);
+                    
+                    throw Errors.ArrayInitializeStepMissed(openBracket, lastToken, missedVal);
                 }
 
                 if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
@@ -681,22 +679,22 @@ public static class SyntaxNodeReader {
     }
 
     /// <summary>
-    /// Read nodes enlisted in the brackets
+    /// Read nodes enlisted in parenthesis
     /// (a,b,c)
     /// </summary>
-    private static ISyntaxNode ReadBrackedNodeList(TokFlow flow) {
+    private static ISyntaxNode ReadParenthNodeList(TokFlow flow) {
         int start = flow.Current.Start;
-        int obrId = flow.CurrentTokenPosition;
+        int obrPos = flow.CurrentTokenPosition;
         flow.MoveNext();
         var nodeList = ReadNodeList(flow);
             
-        if (!flow.MoveIf(TokType.Cbr, out var cbr))
-            throw Errors.BracketExpressionListError(obrId, flow);
+        if (!flow.MoveIf(TokType.ParenthCbr, out var cbr))
+            throw Errors.ParenthesisExpressionListError(obrPos, flow);
         var interval = new Interval(start, cbr.Finish);
         if (nodeList.Count == 1)
         {
             nodeList[0].Interval = interval;
-            nodeList[0].BracketsCount++;
+            nodeList[0].ParenthesesCount++;
             return nodeList[0] ?? throw new NullReferenceException();
         }
         else
@@ -722,22 +720,22 @@ public static class SyntaxNodeReader {
                 throw Errors.NewLineMissedBeforeRepeatedIf(flow.Previous.Interval);
 
             //(condition)
-            if (!flow.MoveIf(TokType.Obr))
+            if (!flow.MoveIf(TokType.ParenthObr))
             {
                 var failedExpr = ReadNodeOrNull(flow);
                 if (failedExpr != null)
-                    throw Errors.IfConditionIsNotInBrackets(
+                    throw Errors.IfConditionIsNotInParenthesis(
                         failedExpr.Interval.Start,
                         failedExpr.Interval.Finish);
                 else
-                    throw Errors.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
+                    throw Errors.IfConditionIsNotInParenthesis(ifElseStart, flow.Position);
             }
 
             var condition = ReadNodeOrNull(flow);
             if (condition == null)
                 throw Errors.ConditionIsMissing(conditionStart, flow.Position);
-            if (!flow.MoveIf(TokType.Cbr))
-                throw Errors.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
+            if (!flow.MoveIf(TokType.ParenthCbr))
+                throw Errors.IfConditionIsNotInParenthesis(ifElseStart, flow.Position);
 
             //then
             var thenResult = ReadNodeOrNull(flow);
@@ -764,12 +762,12 @@ public static class SyntaxNodeReader {
     private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null) {
         var obrId = flow.CurrentTokenPosition;
         var start = pipedVal?.Interval.Start ?? head.Start;
-        if (!flow.MoveIf(TokType.Obr))
+        if (!flow.MoveIf(TokType.ParenthObr))
             throw Errors.FunctionCallObrMissed(start, head.Value, flow.Position, pipedVal);
 
         var arguments = ReadNodeList(flow);
 
-        if (!flow.MoveIf(TokType.Cbr, out _))
+        if (!flow.MoveIf(TokType.ParenthCbr, out _))
            throw Errors.FunctionArgumentError(head.Value, obrId, flow);
 
         if (pipedVal == null)
@@ -783,11 +781,11 @@ public static class SyntaxNodeReader {
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {
         var obrId = flow.CurrentTokenPosition;
-        if(!flow.MoveIf(TokType.Obr))
+        if(!flow.MoveIf(TokType.ParenthObr))
             AssertChecks.Panic("Panic. Something wrong in parser");
 
         var arguments = ReadNodeList(flow);
-        if (!flow.MoveIf(TokType.Cbr, out var cbr))
+        if (!flow.MoveIf(TokType.ParenthCbr, out var cbr))
             throw Errors.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
 
         return SyntaxNodeFactory.ResultFunCall(functionResultNode, arguments, cbr.Finish);

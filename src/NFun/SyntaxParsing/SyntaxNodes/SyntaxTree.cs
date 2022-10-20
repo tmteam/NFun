@@ -10,7 +10,7 @@ public class SyntaxTree : ISyntaxNode {
 
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public int BracketsCount
+    public int ParenthesesCount
     {
         get => 0;
         set => throw new System.InvalidOperationException();

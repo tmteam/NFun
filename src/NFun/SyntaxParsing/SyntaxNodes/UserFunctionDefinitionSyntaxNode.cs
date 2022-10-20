@@ -17,7 +17,7 @@ public class UserFunctionDefinitionSyntaxNode : ISyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public FunnyType ReturnType { get; }
     public FunCallSyntaxNode Head { get; }
     public bool IsRecursive { get; set; } = true;

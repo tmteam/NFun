@@ -10,7 +10,7 @@ public interface ISyntaxNode {
     /// <summary>
     /// The number of parenthesis in which the node is wrapped
     /// </summary>
-    int BracketsCount { get; set; }
+    int ParenthesesCount { get; set; }
     Interval Interval { get; set; }
     T Accept<T>(ISyntaxNodeVisitor<T> visitor);
     IEnumerable<ISyntaxNode> Children { get; }

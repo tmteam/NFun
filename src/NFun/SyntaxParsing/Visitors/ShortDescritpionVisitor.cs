@@ -24,7 +24,7 @@ internal class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
         else 
             msg = $"{node.Id}(...)";
         
-        return node.BracketsCount > 0 ? $"({msg})" : msg;
+        return node.ParenthesesCount > 0 ? $"({msg})" : msg;
     }
     
     public string Visit(IfThenElseSyntaxNode node) => "if (...) ... else ...";

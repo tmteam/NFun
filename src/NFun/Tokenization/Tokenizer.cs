@@ -319,8 +319,8 @@ public class Tokenizer {
             case '/': return Tok.New(TokType.Div, position, position + 1);
             case '+': return Tok.New(TokType.Plus, position, position + 1);
             case '%': return Tok.New(TokType.Rema, position, position + 1);
-            case '(': return Tok.New(TokType.Obr, position, position + 1);
-            case ')': return Tok.New(TokType.Cbr, position, position + 1);
+            case '(': return Tok.New(TokType.ParenthObr, position, position + 1);
+            case ')': return Tok.New(TokType.ParenthCbr, position, position + 1);
             case '[': return Tok.New(TokType.ArrOBr, position, position + 1);
             case ']': return Tok.New(TokType.ArrCBr, position, position + 1);
             case ':': return Tok.New(TokType.Colon, position, position + 1);

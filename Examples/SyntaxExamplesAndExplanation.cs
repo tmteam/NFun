@@ -67,7 +67,7 @@ public class SyntaxExamplesAndExplanation {
             1. **
             2. / * % //
             3. + -
-         Brackets are used to indicate precedences */
+         Parenthesis are used to indicate precedences */
         Assert.AreEqual(9, Funny.Calc<double>("(10//2 + (1-12) %3) ** 2"));
     }
 

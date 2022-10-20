@@ -19,7 +19,7 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public string Id { get; }
     public ISyntaxNode[] Args { get; }
     public IFunctionSignature FunctionSignature { get; set; } = null;

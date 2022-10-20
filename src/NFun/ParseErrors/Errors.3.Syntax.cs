@@ -111,7 +111,7 @@ internal static partial class Errors {
     internal static FunnyParseException IfKeywordIsMissing(int ifelseStart, int end) => new(
         390, $"if (a) b (if) ...  'if' is missing{Nl} Example: if (a) b if (c) d else c ", ifelseStart, end);
 
-    internal static FunnyParseException IfConditionIsNotInBrackets(int ifelseStart, int end) => new(
+    internal static FunnyParseException IfConditionIsNotInParenthesis(int ifelseStart, int end) => new(
         393, $"If condition is not in brackets{Nl} Example: if (a) b  else c ", ifelseStart, end);
 
     #endregion
@@ -161,11 +161,11 @@ internal static partial class Errors {
         actual.Start, actual.Finish);
 
 
-    internal static FunnyParseException UnexpectedBracketsOnFunDefinition(FunCallSyntaxNode headNode, int start, int finish) => new(
+    internal static FunnyParseException UnexpectedParenthesisOnFunDefinition(FunCallSyntaxNode headNode, int start, int finish) => new(
         453, $"Unexpected brackets on function definition ({headNode.Id}(...))=... {Nl}Example: {headNode.Id}(...)=...", start, finish);
 
-    internal static FunnyParseException FunctionArgumentError(string id, int openBracketTokenPos, TokFlow flow) {
-        var res = GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
+    internal static FunnyParseException FunctionArgumentError(string id, int openParenthTokenPos, TokFlow flow) {
+        var res = GetExpressionListError(openParenthTokenPos, flow, TokType.ParenthObr, TokType.ParenthCbr);
         var list = res.Parsed;
         var argStubs = CreateArgumentsStub(list);
         return res.Type switch {
@@ -176,13 +176,13 @@ internal static partial class Errors {
                    ExprListErrorType.TotallyWrongDefinition => new(
                        460, "Wrong function call", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
-                       462, $"{id}( ??? <- Close bracket ')' is missing", res.Interval),
+                       462, $"{id}( ??? <- Сlosing parenthesis ')' is missing", res.Interval),
                    ExprListErrorType.SepIsMissing => new(
                        464, $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)", res.Interval),
                    ExprListErrorType.ArgumentIsInvalid => new(
                        466, $"{id}({argStubs}, ??? , ...  <- Seems like function call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)", res.Interval),
                    ExprListErrorType.CloseBracketIsMissing => new(
-                       468, $"{id}({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example: {id}({argStubs})", res.Interval),
+                       468, $"{id}({argStubs}, ??? <- Сlosing parenthesis ')' is missing{Nl} Example: {id}({argStubs})", res.Interval),
                    ExprListErrorType.LastArgumentIsInvalid => new(
                        470, $"{id}({CreateArgumentsStub(list.Take(list.Length - 1))} ??? ) <- Seems like call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)", res.Interval),
                    _ => throw new ArgumentOutOfRangeException()
@@ -192,8 +192,8 @@ internal static partial class Errors {
     internal static FunnyParseException WrongFunctionArgumentDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild) => new(
         476, $"{headNode.Id}({ToFailureFunString(headNode, headNodeChild)}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", headNodeChild.Interval);
 
-    internal static FunnyParseException FunctionArgumentInBracketDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild) => new(
-        479, $"{headNode.Id}({ToFailureFunString(headNode, headNodeChild)}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", headNodeChild.Interval);
+    internal static FunnyParseException FunctionArgumentDefinitionIsInParenthesis(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild) => new(
+        479, $"{headNode.Id}({ToFailureFunString(headNode, headNodeChild)}) = ... {Nl} Function argument is in parentheses. Variable name (with optional type) without brackets expected", headNodeChild.Interval);
 
     internal static FunnyParseException InvalidArgTypeDefinition(ISyntaxNode argumentNode) => new(
         482, $"{argumentNode.ToShortText()} is  not valid fun arg", argumentNode.Interval);
@@ -222,7 +222,7 @@ internal static partial class Errors {
         510, $"Field value is missed '{id} = ???'", id.Interval);
 
     internal static FunnyParseException StructIsUndone(int position) => new(
-        510, "Struct definition is undone. Close bracket '}' is missed", Interval.Position(position));
+        510, "Struct definition is undone. Closing bracket '}' is missed", Interval.Position(position));
     
     
     #endregion
@@ -237,7 +237,7 @@ internal static partial class Errors {
         523, "Invalid anonymous fun argument", node.Interval);
 
     internal static FunnyParseException UnexpectedTokenEqualAfterRule(Interval nodeInterval) => new(
-        526, "Unexpected '=' symbol. Did you forgot brackets after 'rule' keyword?", nodeInterval);
+        526, "Unexpected '=' symbol. Did you forgot parentheses after 'rule' keyword?", nodeInterval);
 
     #endregion
 
@@ -268,17 +268,17 @@ internal static partial class Errors {
     internal static FunnyParseException FunctionCallObrMissed(int funStart, string name, int position, ISyntaxNode pipedVal) {
         if (pipedVal == null)
             return new(
-                561, $"{name}( ???. Close bracket ')' is missed{Nl} Example: {name}()", funStart, position);
+                561, $"{name}( ???. Closing parenthesis ')' is missed{Nl} Example: {name}()", funStart, position);
 
         return new(
-            564, $"{pipedVal.ToShortText()}.{name}( ???. Close bracket ')' is missed{Nl} Example: {pipedVal.ToShortText()}.{name}() or {name}({pipedVal.ToShortText()})", funStart, position);
+            564, $"{pipedVal.ToShortText()}.{name}( ???. Closing parenthesis ')' is missed{Nl} Example: {pipedVal.ToShortText()}.{name}() or {name}({pipedVal.ToShortText()})", funStart, position);
     }
 
     internal static FunnyParseException VarExpressionIsMissed(int start, string id, Tok flowCurrent) => new(
         573, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", start, flowCurrent.Finish);
 
-    internal static FunnyParseException BracketExpressionListError(int openBracketTokenPos, TokFlow flow) {
-        var res = GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
+    internal static FunnyParseException ParenthesisExpressionListError(int openParenthesisTokenPos, TokFlow flow) {
+        var res = GetExpressionListError(openParenthesisTokenPos, flow, TokType.ParenthObr, TokType.ParenthCbr);
         var list = res.Parsed;
         var argStubs = CreateArgumentsStub(list);
         return res.Type switch {
@@ -289,13 +289,13 @@ internal static partial class Errors {
                    ExprListErrorType.TotallyWrongDefinition => new(
                        583, "Wrong expression", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
-                       585, $"( <- unexpected open bracket without closing bracket", res.Interval),
+                       585, $"( <- unexpected opening parenthesis without closing parenthesis", res.Interval),
                    ExprListErrorType.SepIsMissing => new(
                        587, $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)", res.Interval),
                    ExprListErrorType.ArgumentIsInvalid => new(
                        589, $"({argStubs}, ??? , ...  <- Seems like invalid expressions{Nl} Example: ({argStubs}, myArgument, ...)", res.Interval),
                    ExprListErrorType.CloseBracketIsMissing => new(
-                       591, $"({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example:({argStubs})", res.Interval),
+                       591, $"({argStubs}, ??? <- Close parenthesis ')' is missing{Nl} Example:({argStubs})", res.Interval),
                    ExprListErrorType.LastArgumentIsInvalid => new(
                        593, $"({CreateArgumentsStub(list.Take(list.Length - 1))} ??? ) <- Seems like invalid expression{Nl} Example: ({argStubs}, myArgument, ...)", res.Interval),
                    _ => throw new ArgumentOutOfRangeException()

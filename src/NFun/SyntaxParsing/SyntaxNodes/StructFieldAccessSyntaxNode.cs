@@ -14,7 +14,7 @@ public class StructFieldAccessSyntaxNode : ISyntaxNode {
     public string FieldName { get; }
     public ISyntaxNode Source { get; }
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => new[] { Source };

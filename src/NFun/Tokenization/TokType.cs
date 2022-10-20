@@ -42,11 +42,11 @@ public enum TokType {
     /// <summary>
     /// (
     /// </summary>
-    Obr,
+    ParenthObr,
     /// <summary>
     /// )
     /// </summary>
-    Cbr,
+    ParenthCbr,
     /// <summary>
     ///  [ 
     /// </summary>

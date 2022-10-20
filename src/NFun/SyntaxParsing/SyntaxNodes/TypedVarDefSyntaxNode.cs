@@ -13,7 +13,7 @@ public class TypedVarDefSyntaxNode : ISyntaxNode {
     }
 
     public int OrderNumber { get; set; }
-    public int BracketsCount { get; set; }
+    public int ParenthesesCount { get; set; }
     public FunnyType OutputType { get; set; }
     public string Id { get; }
     public FunnyType FunnyType { get; }

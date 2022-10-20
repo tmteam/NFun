@@ -167,15 +167,15 @@ public class StructBodyTest {
         "a = {b = 1.0}; y = -a.b".AssertResultHas("y", -1.0);
 
     [Test]
-    public void NegateFieldAccessWithBrackets() =>
+    public void NegateFieldAccessWithParenthesis() =>
         "a = {b = 1}; y = -(a.b)".AssertResultHas("y", -1);
 
     [Test]
-    public void DoubleNegateIntFieldAccessWithBrackets() =>
+    public void DoubleNegateIntFieldAccessWithParenthesis() =>
         "a = {b = 1}; y = -(-a.b)".AssertResultHas("y", 1);
 
     [Test]
-    public void DoubleNegateRealFieldAccessWithBrackets() =>
+    public void DoubleNegateRealFieldAccessWithParenthesis() =>
         "a = {b = 1.0}; y = -(-a.b)".AssertResultHas("y", 1.0);
 
     [Test]
