@@ -43,8 +43,10 @@ public static class TestHelper {
     public static FunnyRuntime BuildWithDialect(this string expr, 
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble)
-        => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType).Build(expr);
+        RealClrType realClrType = RealClrType.IsDouble, 
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked,
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
+        => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
     

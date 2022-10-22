@@ -53,5 +53,5 @@ internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
         base(name, argumentSources, expression, argTypes) { }
     
     public override string ToString() => $"FUN-req-user {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
-
+    public override FunctionRecursionKind RecursionKind => FunctionRecursionKind.SelfRecursion;
 }

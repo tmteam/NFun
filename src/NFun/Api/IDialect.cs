@@ -8,18 +8,23 @@ internal static class Dialects {
             ifExpressionSetup: IfExpressionSetup.IfIfElse, 
             integerPreferredType: IntegerPreferredType.I32, 
             funnyConverter: FunnyConverter.RealIsDouble, 
-            allowIntegerOverflow: false);
+            allowIntegerOverflow: false, 
+            allowUserFunctions: AllowUserFunctions.AllowAll);
     
     public static DialectSettings ModifyOrigin(
         IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble, 
-        IntegerOverflow integerOverflow = IntegerOverflow.Checked)
-        => new(ifExpressionSetup, integerPreferredType,
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked,
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
+        => new(
+            ifExpressionSetup, 
+            integerPreferredType,
             realClrType == RealClrType.IsDouble
                 ? FunnyConverter.RealIsDouble
                 : FunnyConverter.RealIsDecimal,
-            integerOverflow == IntegerOverflow.Unchecked);
+            integerOverflow == IntegerOverflow.Unchecked, 
+            allowUserFunctions);
 }
 
 
@@ -29,16 +34,24 @@ public interface IFunctionSelectorContext {
 }
 
 internal sealed class DialectSettings : IFunctionSelectorContext {
-    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow) {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
         AllowIntegerOverflow = allowIntegerOverflow;
+        AllowUserFunctions = allowUserFunctions;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
     public IntegerPreferredType IntegerPreferredType { get; }
     public bool AllowIntegerOverflow { get; }
+    public AllowUserFunctions AllowUserFunctions { get; }
+}
+
+public enum AllowUserFunctions {
+    AllowAll,
+    DenyRecursive,
+    DenyUserFunctions
 }
 
 public enum IntegerPreferredType {
@@ -55,7 +68,7 @@ public enum IfExpressionSetup {
 
 public enum IntegerOverflow {
     /// <summary>
-    /// Allow integer overflow
+    /// AllowAll integer overflow
     /// </summary>
     Unchecked,
     /// <summary>

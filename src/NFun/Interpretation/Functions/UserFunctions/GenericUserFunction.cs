@@ -9,7 +9,7 @@ using NFun.TypeInferenceAdapter;
 
 namespace NFun.Interpretation.Functions; 
 
-public class GenericUserFunction : GenericFunctionBase {
+public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     private readonly TypeInferenceResults _typeInferenceResults;
     private readonly UserFunctionDefinitionSyntaxNode _syntaxNode;
     private readonly IFunctionDictionary _dictionary;
@@ -75,8 +75,7 @@ public class GenericUserFunction : GenericFunctionBase {
         GenericConstrains[] constrains,
         FunnyType returnType,
         FunnyType[] argTypes,
-        DialectSettings dialect
-    ) : base(syntaxNode.Id, constrains, returnType, argTypes) {
+        DialectSettings dialect) : base(syntaxNode.Id, constrains, returnType, argTypes) {
         _typeInferenceResults = typeInferenceResults;
         _constrainsMap = _typeInferenceResults.Generics;
         _syntaxNode = syntaxNode;
@@ -118,10 +117,15 @@ public class GenericUserFunction : GenericFunctionBase {
             results: _typeInferenceResults,
             converter: converter,
             dialect: _dialect);
-
+        
         concretePrototype.SetActual(function);
+        //It is only place where we can figure out - is the function recursive or not
+        RecursionKind = function.RecursionKind;
         return function;
     }
-    
+    //todo - remove it from here
     protected override object Calc(object[] args) => throw new NotImplementedException();
+    
+    public bool IsGeneric => true;
+    public FunctionRecursionKind RecursionKind { get; private set; }
 }

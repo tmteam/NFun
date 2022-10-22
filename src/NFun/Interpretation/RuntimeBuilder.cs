@@ -52,22 +52,28 @@ internal static class RuntimeBuilder {
         //Then those functions will be compiled
         //that refer to already compiled functions
         var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
-        IFunctionSignature[] userFunctions;
+        IUserFunction[] userFunctions;
         IFunctionDictionary functionDictionary;
         if (functionSolveOrder.Length == 0)
         {
             functionDictionary = functionsDictionary;
-            userFunctions = Array.Empty<IFunctionSignature>();
+            userFunctions = Array.Empty<IUserFunction>();
         }
         else
         {
-            userFunctions = new IFunctionSignature[functionSolveOrder.Length];
+            userFunctions = new IUserFunction[functionSolveOrder.Length];
 
             var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary, functionSolveOrder.Length);
             functionDictionary = scopeFunctionDictionary;
             //build user functions
             for (var i = 0; i < functionSolveOrder.Length; i++)
             {
+                if (dialect.AllowUserFunctions == AllowUserFunctions.DenyUserFunctions)
+                    throw Errors.UserFunctionIsDenied(functionSolveOrder[i].Interval);
+                
+                if(dialect.AllowUserFunctions == AllowUserFunctions.DenyRecursive && functionSolveOrder[i].IsRecursive)
+                    throw Errors.RecursiveUserFunctionIsDenied(functionSolveOrder[i].Interval);
+                
                 userFunctions[i] = BuildFunctionAndPutItToDictionary(
                     functionSolveOrder[i],
                     constants,
@@ -149,7 +155,7 @@ internal static class RuntimeBuilder {
             if (userFunction is GenericUserFunction generic && generic.BuiltCount == 0)
             {
                 // Generic function is declared but concrete was not built.
-                // We have to build it at least once to search all possible errors
+                // We have to build it at least once to search all possible errors and figure out - is it recursive or not
                 GenericUserFunction.CreateSomeConcrete(generic);
             }
 
@@ -160,8 +166,8 @@ internal static class RuntimeBuilder {
                 throw Errors.FunctionNameAndVariableNameConflict(source, usage);
             }
         }
-
-        return new FunnyRuntime(equations, variables, dialect.Converter);
+        
+        return new FunnyRuntime(equations, variables, userFunctions, dialect.Converter);
     }
     
     private static TypeInferenceResults SolveBodyTypes(
@@ -238,7 +244,7 @@ internal static class RuntimeBuilder {
     }
 
 
-    private static IFunctionSignature BuildFunctionAndPutItToDictionary(
+    private static IUserFunction BuildFunctionAndPutItToDictionary(
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
         IConstantList constants,
         ScopeFunctionDictionary functionsDictionary,

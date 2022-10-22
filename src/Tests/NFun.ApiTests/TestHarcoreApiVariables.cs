@@ -1,11 +1,10 @@
 using System.Linq;
 using NFun.TestTools;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.ApiTests; 
 
-public class HardcoreVariablesTest {
+public class TestHardcoreApiVariables {
     [Test]
     public void GetAllVariables_CheckValues() =>
         "out1 = (10.0*x).toText()".AssertRuntimes(runtime =>

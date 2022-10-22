@@ -12,4 +12,10 @@ internal static partial class Errors {
 
     internal static FunnyParseException StructFieldSpecificationIsNotSupportedYet(Interval interval) => new(
         222, $"Struct field type specification is not supported yet", interval);
+    
+    internal static FunnyParseException UserFunctionIsDenied(Interval interval) => new(
+        228, "The use of user functions is prohibited in the dialect settings", interval);
+    
+    internal static FunnyParseException RecursiveUserFunctionIsDenied(Interval interval) => new(
+        234, "The use of recursive functions is prohibited in the dialect settings", interval);
 }

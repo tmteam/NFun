@@ -37,10 +37,13 @@ public class HardcoreBuilder {
     /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
     /// <param name="realClrType">Which clr type is used for funny type real</param>
     /// <param name="integerOverflow">overflow behaviour for integer arithmetics</param>
-    public HardcoreBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+    public HardcoreBuilder WithDialect(
+        IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Checked) 
-        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
+        RealClrType realClrType = RealClrType.IsDouble, 
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked, 
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll) 
+        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions));
     
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
         new(_constants, _mutableApriori, dialect, _customFunctions);

@@ -3,11 +3,9 @@ using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions; 
+namespace NFun.Interpretation.Functions;
 
-internal class ConcreteUserFunction : FunctionWithManyArguments {
-    internal VariableSource[] ArgumentSources { get; }
-    internal readonly IExpressionNode Expression;
+internal class ConcreteUserFunction : FunctionWithManyArguments, IUserFunction {
 
     internal static ConcreteUserFunction Create(
         string name,
@@ -35,6 +33,14 @@ internal class ConcreteUserFunction : FunctionWithManyArguments {
         Expression = expression;
     }
 
+    internal readonly IExpressionNode Expression;
+
+    internal VariableSource[] ArgumentSources { get; }
+
+    public bool IsGeneric => false;
+    
+    public virtual FunctionRecursionKind RecursionKind => FunctionRecursionKind.NoRecursion;
+    
     protected void SetVariables(object[] args) {
         for (int i = 0; i < args.Length; i++)
             ArgumentSources[i].SetFunnyValueUnsafe(args[i]);

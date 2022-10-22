@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 using NFun.Interpretation.Nodes;
 using NFun.Types;
 
@@ -8,19 +9,25 @@ namespace NFun.Runtime;
 
 public class FunnyRuntime {
 
-    private readonly IList<Equation> _equations;
-    internal readonly IReadonlyVariableDictionary VariableDictionary;
-
-    internal FunnyRuntime(IList<Equation> equations, IReadonlyVariableDictionary variableDictionary, FunnyConverter converter) {
+   
+    internal FunnyRuntime(IList<Equation> equations, IReadonlyVariableDictionary variableDictionary, IReadOnlyList<IUserFunction> userFunctions, FunnyConverter converter) {
+        UserFunctions = userFunctions;
         Converter = converter;
         _equations = equations;
         VariableDictionary = variableDictionary;
         _variables = new Lazy<IReadOnlyList<IFunnyVar>>(() => VariableDictionary.GetAllAsArray());
     }
+    private readonly IList<Equation> _equations;
+    private readonly Lazy<IReadOnlyList<IFunnyVar>> _variables;
+    internal readonly IReadonlyVariableDictionary VariableDictionary;
 
+    /// <summary>
+    /// List of all user functions defined in the script
+    /// </summary>
+    public IReadOnlyList<IUserFunction> UserFunctions { get; }
+    
     public FunnyConverter Converter { get; }
 
-    private readonly Lazy<IReadOnlyList<IFunnyVar>> _variables;
     /// <summary>
     /// All inputs and outputs of current runtime
     /// </summary>
@@ -44,6 +51,7 @@ public class FunnyRuntime {
         var dictionaryCopy = VariableDictionary.Clone();
         var context = new CloneContext(dictionaryCopy);
         var equations = _equations.SelectToArray(e => e.Clone(context));
-        return new FunnyRuntime(equations, dictionaryCopy, Converter);
+        //origin user functions are used here as they are used only in info puprposes. 
+        return new FunnyRuntime(equations, dictionaryCopy, UserFunctions, Converter);
     }
 }
