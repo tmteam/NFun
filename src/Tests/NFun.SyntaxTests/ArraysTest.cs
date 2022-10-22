@@ -349,8 +349,8 @@ x: int[]
 filt: int
 concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
-possum   = x.filter(fun it>0).fold(fun it1+it2)
-filtrat   = x.filter(fun it> filt) # filt - input variable
+possum   = x.filter(rule it>0).fold(rule it1+it2)
+filtrat   = x.filter(rule it> filt) # filt - input variable
 ";
         expr.Calc(("x", new[] { 5, 6, 7, 8 }), ("filt", 2));
     }

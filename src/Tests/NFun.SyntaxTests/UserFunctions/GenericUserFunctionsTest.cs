@@ -39,10 +39,10 @@ public class GenericUserFunctionsTest {
     [TestCase("first(a) = a[0]\r y = [5,4,3].first()", 5)]
     [TestCase("first(a) = a[0]\r y = [[5,4],[3,2],[1]].first()", new[] { 5, 4 })]
     [TestCase("first(a) = a[0]\r y = [[5.0,4.0],[3.0,2.0],[1.0]].first().first()", 5.0)]
-    [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first(fun it>1)", 2)]
-    [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first(fun it>1)", 2.0)]
+    [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first(rule it>1)", 2)]
+    [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first(rule it>1)", 2.0)]
     [TestCase(
-        "filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat(fun it>1)",
+        "filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat(rule it>1)",
         new[] { 2.0, 3.0, 2.0, 3.0 })]
     [TestCase(
         "concat(a, b,c) = a.concat(b).concat(c) \r y:int[] = concat([1,2],[3,4],[5,6])",
@@ -160,7 +160,7 @@ public class GenericUserFunctionsTest {
                           onelineSort(input) =  
   	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
 
-                          bubbleSort(input)= [0..input.count()-1].fold(input, fun onelineSort(it1))
+                          bubbleSort(input)= [0..input.count()-1].fold(input, rule onelineSort(it1))
 
                           i:int[]  = [1,4,3,2,5].bubbleSort()
                           r:real[] = [1,4,3,2,5].bubbleSort()"

@@ -34,8 +34,8 @@ public class PipeForwardTest {
     [TestCase(
         @"
                      y = [11.0,20.0,1.0,2.0] 
-                            . filter(fun it>10.0)
-                            . map(fun it*it)
+                            . filter(rule it>10.0)
+                            . map(rule it*it)
                             . max()", 400.0)]
     [TestCase("y = [1.0,2,3].max()", 3.0)]
     [TestCase("  f(x:int):int = x*x \r y = 4.f()", 16)]

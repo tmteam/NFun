@@ -165,7 +165,7 @@ public static class SyntaxNodeReader {
                 new[] { node }, start, node.Interval.Finish);
         }
 
-        if (flow.MoveIf(TokType.FunRule))
+        if (flow.MoveIf(TokType.Rule))
             return ReadFunAnonymousFunction(flow);
         
         if (flow.MoveIf(TokType.FiObr))
@@ -387,7 +387,7 @@ public static class SyntaxNodeReader {
             flow.MoveNext();
             flow.SkipNewLines();
             //full typed defentionion like:
-            // TokType.FunRule (a[:type], b[:type]...)[:type] = body 
+            // TokType.Rule (a[:type], b[:type]...)[:type] = body 
             //so body is just a type definition
             var definition = bodyOrTypeNotation;
             bodyOrTypeNotation = ReadNodeOrNull(flow);

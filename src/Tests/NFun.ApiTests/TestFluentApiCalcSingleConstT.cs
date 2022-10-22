@@ -13,8 +13,8 @@ public class TestFluentApiCalcSingleConstT {
         Assert.AreEqual(true, result);
     }
 
-    [TestCase("{id = 13; items = [1,2,3,4].map(fun '{it}'); price = 21*2; taxes = 0}")]
-    // Todo: Ignore cases in structs: [TestCase("{Id = 13; Items = [1,2,3,4].map(fun '{it}'); Price = 21*2}")]
+    [TestCase("{id = 13; items = [1,2,3,4].map(rule '{it}'); price = 21*2; taxes = 0}")]
+    // Todo: Ignore cases in structs: [TestCase("{Id = 13; Items = [1,2,3,4].map(rule '{it}'); Price = 21*2}")]
     public void IoComplexTypeTransforms(string expr) {
         var result = Funny.Calc<ContractOutputModel>(expr);
         var expected = new ContractOutputModel {
@@ -28,13 +28,13 @@ public class TestFluentApiCalcSingleConstT {
 
     [Test]
     public void ArrayTransforms() {
-        var result = Funny.Calc<int>("[1,2,3,4].count(fun it>2)");
+        var result = Funny.Calc<int>("[1,2,3,4].count(rule it>2)");
         Assert.AreEqual(2, result);
     }
 
     [Test]
     public void ReturnsRealArray() {
-        var result = Funny.Calc<double[]>("[1..4].filter(fun it>1).map(fun it**2)");
+        var result = Funny.Calc<double[]>("[1..4].filter(rule it>1).map(rule it**2)");
         Assert.AreEqual(new[] { 4, 9, 16 }, result);
     }
 
@@ -64,7 +64,7 @@ public class TestFluentApiCalcSingleConstT {
 
     [Test]
     public void ReturnsArrayOfTexts() {
-        var result = Funny.Calc<string[]>("[1..4].map(fun it.toText())");
+        var result = Funny.Calc<string[]>("[1..4].map(rule it.toText())");
         Assert.AreEqual(new[] { "1", "2", "3", "4" }, result);
     }
 
@@ -106,12 +106,12 @@ public class TestFluentApiCalcSingleConstT {
             () => Funny.Calc<UserInputModel>(
                 "{name = 'alaska'}"));
 
-    [TestCase("[1..4].filter(fun it>age).map(fun it**2)")]
+    [TestCase("[1..4].filter(rule it>age).map(rule it**2)")]
     [TestCase("age>someUnknownvariable")]
     public void UseUnknownInput_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc<object>(expression));
 
-    [TestCase("[1..4].filter(fun it>age).map(fun it*it).any(fun it>12}")]
+    [TestCase("[1..4].filter(rule it>age).map(rule it*it).any(rule it>12}")]
     [TestCase("age>someUnknownvariable")]
     public void UseUnknownInputWithWrongIntOutputType_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc<bool>(expression));

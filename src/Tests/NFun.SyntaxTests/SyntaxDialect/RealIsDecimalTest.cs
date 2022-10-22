@@ -11,11 +11,11 @@ namespace NFun.SyntaxTests.SyntaxDialect;
 public class RealIsDecimalTest {
 
     [TestCase("[0.0,2.0,3.0].avg() == 5/3", true)]
-    [TestCase("[1.0,2.0,3.0].any(fun(i)= i == 1.0)", true)]
-    [TestCase("[1.0,2.0,3.0].any(fun(i)= i == 0.0)", false)]
-    [TestCase("[1.0,2.0,3.0].all(fun(i)= i >0)", true)]
-    [TestCase("[1.0,2.0,3.0].all(fun(i)= i >1.0)", false)]
-    [TestCase("f(m:real[], p):bool = m.all(fun(i)= i>p) \r f([1.0,2.0,3.0],1.0)", false)]
+    [TestCase("[1.0,2.0,3.0].any(rule(i)= i == 1.0)", true)]
+    [TestCase("[1.0,2.0,3.0].any(rule(i)= i == 0.0)", false)]
+    [TestCase("[1.0,2.0,3.0].all(rule(i)= i >0)", true)]
+    [TestCase("[1.0,2.0,3.0].all(rule(i)= i >1.0)", false)]
+    [TestCase("f(m:real[], p):bool = m.all(rule(i)= i>p) \r f([1.0,2.0,3.0],1.0)", false)]
     [TestCase("toText([1.1,2.2,3.3]) == '[1.1,2.2,3.3]'", true)]
     [TestCase("toText(0.2+0.3) == '0.5'", true)]
 
@@ -104,27 +104,27 @@ public class RealIsDecimalTest {
     
     
 
-    [TestCase("[1.0,2.0,3.0] . fold(fun(i,j)=i+j)", 6.0)]
-    [TestCase("[1.0,2.0,3.0] . fold(fun(i:real,j)=i+j)", 6.0)]
-    [TestCase("[1.0,2.0,3.0] . fold(fun(i,j:real):real=i+j)", 6.0)]
-    [TestCase("[1.0,2.0,3.0] . fold(fun(i,j):real=i+j)", 6.0)]
-    [TestCase("fold([1.0,2.0,3.0],fun(i,j)=i+j)", 6.0)]
-    [TestCase("[1,2,3] . fold(fun(i:real, j:real)=i+j)", 6)]
-    [TestCase("out:real = [-1,-2,0,1,2,3].filter(fun it>0).fold(fun(a:int,b)= a+b)", 6)]
-    [TestCase("out:real = [-1,-2,0,1,2,3].filter((fun it>0)).fold(fun(i,j)= i+j)", 6)]
-    [TestCase("out:real = [-1,-2,0,1,2,3].filter((fun it>0)).fold(fun(a,b)= a+b)", 6)]
-    [TestCase("car3(g) = g(2);   out:real = car3(fun(x)=x-1)   ", 1)]
-    [TestCase("car4(g) = g(2);   out:real = car4(fun it)   ", 2)]
-    [TestCase("call5(f, x) = f(x); out:real = call5(fun(x)=x+1,  1)", 2)]
-    [TestCase("call6(f, x) = f(x); out:real = call6(fun(x)=x+1.0, 1.0)", 2.0)]
-    [TestCase("call7(f, x) = f(x); out:real = call7(fun(x:real)=x+1.0, 1.0)", 2.0)]
-    [TestCase("call8(f) = fun(i)=f(i); out:real = call8(fun(x)=x+1)(2)", 3)]
-    [TestCase("call9(f) = fun(i)=f(i); out:real = (fun(x)=x+1).call9()(2)", 3)]
-    [TestCase("mult(x)= fun(y)=x*y;    out:real = mult(2)(3)", 6)]
-    [TestCase("mult(x)= fun(y)=fun(z)=x*y*z;    mult(2.0)(3)(4)", 24.0)]
-    [TestCase("(fun(x)=x+1)(3.0)", 4.0)]
+    [TestCase("[1.0,2.0,3.0] . fold(rule(i,j)=i+j)", 6.0)]
+    [TestCase("[1.0,2.0,3.0] . fold(rule(i:real,j)=i+j)", 6.0)]
+    [TestCase("[1.0,2.0,3.0] . fold(rule(i,j:real):real=i+j)", 6.0)]
+    [TestCase("[1.0,2.0,3.0] . fold(rule(i,j):real=i+j)", 6.0)]
+    [TestCase("fold([1.0,2.0,3.0],rule(i,j)=i+j)", 6.0)]
+    [TestCase("[1,2,3] . fold(rule(i:real, j:real)=i+j)", 6)]
+    [TestCase("out:real = [-1,-2,0,1,2,3].filter(rule it>0).fold(rule(a:int,b)= a+b)", 6)]
+    [TestCase("out:real = [-1,-2,0,1,2,3].filter((rule it>0)).fold(rule(i,j)= i+j)", 6)]
+    [TestCase("out:real = [-1,-2,0,1,2,3].filter((rule it>0)).fold(rule(a,b)= a+b)", 6)]
+    [TestCase("car3(g) = g(2);   out:real = car3(rule(x)=x-1)   ", 1)]
+    [TestCase("car4(g) = g(2);   out:real = car4(rule it)   ", 2)]
+    [TestCase("call5(f, x) = f(x); out:real = call5(rule(x)=x+1,  1)", 2)]
+    [TestCase("call6(f, x) = f(x); out:real = call6(rule(x)=x+1.0, 1.0)", 2.0)]
+    [TestCase("call7(f, x) = f(x); out:real = call7(rule(x:real)=x+1.0, 1.0)", 2.0)]
+    [TestCase("call8(f) = rule(i)=f(i); out:real = call8(rule(x)=x+1)(2)", 3)]
+    [TestCase("call9(f) = rule(i)=f(i); out:real = (rule(x)=x+1).call9()(2)", 3)]
+    [TestCase("mult(x)= rule(y)=x*y;    out:real = mult(2)(3)", 6)]
+    [TestCase("mult(x)= rule(y)=rule(z)=x*y*z;    mult(2.0)(3)(4)", 24.0)]
+    [TestCase("(rule(x)=x+1)(3.0)", 4.0)]
     [TestCase("(rule it+1)(3.0)", 4.0)]
-    [TestCase("(fun(a)=fun(b)=a+b)(3.0)(5.0)", 8.0)]
+    [TestCase("(rule(a)=rule(b)=a+b)(3.0)(5.0)", 8.0)]
     [TestCase("sum([1.0,2.5,6.0])", 9.5)]
     [TestCase("[1.0..3.0].sum()", 6.0)]
     [TestCase("[3.5..1.5].sum()", 7.5)]
@@ -240,17 +240,17 @@ public class RealIsDecimalTest {
                   .Calc(number))
         .ToString(CultureInfo.InvariantCulture));
 
-    [Test] public void ConstDecimalArrayCalc_1() => AssertConstDecimalArrayCalc("out:real[] = [11.0,20.0,1.0,2.0].filter(fun(i)= i>10)", (decimal)11.0, (decimal)20.0);
-    [Test] public void ConstDecimalArrayCalc_2() => AssertConstDecimalArrayCalc("out:real[] = map([1,2,3], fun(i:int):real  =i*i)", (decimal)1.0, 4, 9);
-    [Test] public void ConstDecimalArrayCalc_3() => AssertConstDecimalArrayCalc("out:real[] = [1.0,2.0,3.0] . map(fun(i)=i*i)", (decimal)1.0, 4, 9);
-    [Test] public void ConstDecimalArrayCalc_4() => AssertConstDecimalArrayCalc("out:real[] = [-7,-2,0,1,2,3].filter(fun it>0)", 1, 2, 3);
-    [Test] public void ConstDecimalArrayCalc_5() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((fun it>0)).filter(fun(i)=i>2)", 3);
-    [Test] public void ConstDecimalArrayCalc_6() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((fun it>0)).map(fun(i)=i*i).map(fun(i:int)=i*i)", 1, 16, 81);
-    [Test] public void ConstDecimalArrayCalc_7() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((fun it>0)).map(fun(i)=i*i).map(fun(i)=i*i)", 1, 16, 81);
-    [Test] public void ConstDecimalArrayCalc_8() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0.0,1,2,3].filter((fun it>0)).map(fun(i)=i*i).map(fun(i)=i*i)", 1, 16, 81);
-    [Test] public void ConstDecimalArrayCalc_9() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((fun it>0)).filter(fun(a)=a>2)", 3);
-    [Test] public void ConstDecimalArrayCalc_10() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((fun it>0)).map(fun(a)=a*a).map(fun(b)=b*b)", 1, 16, 81);
-    [Test] public void ConstDecimalArrayCalc_11() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter(fun it>0).map(fun(a)=a*a).map(fun(b:int)=b*b)", 1, 16, 81);
+    [Test] public void ConstDecimalArrayCalc_1() => AssertConstDecimalArrayCalc("out:real[] = [11.0,20.0,1.0,2.0].filter(rule(i)= i>10)", (decimal)11.0, (decimal)20.0);
+    [Test] public void ConstDecimalArrayCalc_2() => AssertConstDecimalArrayCalc("out:real[] = map([1,2,3], rule(i:int):real  =i*i)", (decimal)1.0, 4, 9);
+    [Test] public void ConstDecimalArrayCalc_3() => AssertConstDecimalArrayCalc("out:real[] = [1.0,2.0,3.0] . map(rule(i)=i*i)", (decimal)1.0, 4, 9);
+    [Test] public void ConstDecimalArrayCalc_4() => AssertConstDecimalArrayCalc("out:real[] = [-7,-2,0,1,2,3].filter(rule it>0)", 1, 2, 3);
+    [Test] public void ConstDecimalArrayCalc_5() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((rule it>0)).filter(rule(i)=i>2)", 3);
+    [Test] public void ConstDecimalArrayCalc_6() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((rule it>0)).map(rule(i)=i*i).map(rule(i:int)=i*i)", 1, 16, 81);
+    [Test] public void ConstDecimalArrayCalc_7() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((rule it>0)).map(rule(i)=i*i).map(rule(i)=i*i)", 1, 16, 81);
+    [Test] public void ConstDecimalArrayCalc_8() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0.0,1,2,3].filter((rule it>0)).map(rule(i)=i*i).map(rule(i)=i*i)", 1, 16, 81);
+    [Test] public void ConstDecimalArrayCalc_9() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((rule it>0)).filter(rule(a)=a>2)", 3);
+    [Test] public void ConstDecimalArrayCalc_10() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter((rule it>0)).map(rule(a)=a*a).map(rule(b)=b*b)", 1, 16, 81);
+    [Test] public void ConstDecimalArrayCalc_11() => AssertConstDecimalArrayCalc("out:real[] = [-1,-2,0,1,2,3].filter(rule it>0).map(rule(a)=a*a).map(rule(b:int)=b*b)", 1, 16, 81);
 
     private void AssertConstDecimalArrayCalc(string expr, params Decimal[] expected)
         => expr

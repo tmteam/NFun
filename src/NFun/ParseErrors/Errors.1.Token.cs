@@ -17,6 +17,9 @@ internal partial class Errors {
     internal static FunnyParseException ClosingQuoteIsMissed(char quoteSymbol, int start, int end) => new(
         119, $"Closing {quoteSymbol} is missed at end of string", start, end);
 
+    internal static FunnyParseException TokenIsReserved(Interval interval, string word, string wordToReplace) => new(
+        121, $"Symbol '{word}' is outdated but reserved for future use. Use '{wordToReplace}' instead of '{word}'", interval);
+    
     internal static FunnyParseException TokenIsReserved(Interval interval, string word) => new(
         122, $"Symbol '{word}' is reserved for future use and cannot be used in script", interval);
 

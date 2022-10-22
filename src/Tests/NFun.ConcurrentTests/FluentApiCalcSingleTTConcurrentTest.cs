@@ -16,7 +16,7 @@ public class FluentApiCalcSingleTTConcurrentTest {
 
     [Test]
     public void IoComplexTypeTransforms()
-        => "{id = age; items = ids.map(fun '{it}'); price = size*2 + balance; taxes = balance}"
+        => "{id = age; items = ids.map(rule '{it}'); price = size*2 + balance; taxes = balance}"
             .CalcSingleTypedInDifferentWays(
                 input: new UserInputModel("vasa", 13, size: 21, balance: new Decimal(1.5), iq: 12, 1, 2, 3, 4),
                 expected: new ContractOutputModel {
@@ -26,17 +26,17 @@ public class FluentApiCalcSingleTTConcurrentTest {
                     Taxes = new decimal(1.5)
                 });
 
-    [TestCase("ids.count(fun it>2)", 2)]
+    [TestCase("ids.count(rule it>2)", 2)]
     [TestCase("1", 1)]
     public void ReturnsInt(string expr, int expected)
         => expr.CalcSingleTypedInDifferentWays(
             new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), 
             expected);
 
-    [TestCase("IDS.filter(fun it>aGe).map(fun it*it)", new[] { 10201, 10404 })]
-    [TestCase("ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
-    [TestCase("ids.filter(fun it>2)", new[] { 101, 102 })]
-    [TestCase("out:int[]=ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
+    [TestCase("IDS.filter(rule it>aGe).map(rule it*it)", new[] { 10201, 10404 })]
+    [TestCase("ids.filter(rule it>age).map(rule it*it)", new[] { 10201, 10404 })]
+    [TestCase("ids.filter(rule it>2)", new[] { 101, 102 })]
+    [TestCase("out:int[]=ids.filter(rule it>age).map(rule it*it)", new[] { 10201, 10404 })]
     public void ReturnsIntArray(string expr, int[] expected)
         => expr.CalcSingleTypedInDifferentWays(new UserInputModel("vasa", 2, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102), 
             expected);
@@ -59,7 +59,7 @@ public class FluentApiCalcSingleTTConcurrentTest {
             new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4), 
             expected);
 
-    [TestCase("ids.map(fun it.toText())", new[] { "1", "2", "101", "102" })]
+    [TestCase("ids.map(rule it.toText())", new[] { "1", "2", "101", "102" })]
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
     public void ReturnsArrayOfTexts(string expr, string[] expected)
         => expr.CalcSingleTypedInDifferentWays(

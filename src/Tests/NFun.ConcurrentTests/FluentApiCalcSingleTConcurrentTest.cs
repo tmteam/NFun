@@ -14,12 +14,12 @@ public class FluentApiCalcSingleTConcurrentTest {
     [TestCase("'mama'=='{name}{age}'.reverse()", false)]
     [TestCase("out:any ='hello world'", "hello world")]
     [TestCase("1", 1)]
-    [TestCase("ids.count(fun it>2)", 2)]
-    [TestCase("ids.filter(fun it>2)", new[] { 101, 102 })]
-    [TestCase("out:int[]=ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
+    [TestCase("ids.count(rule it>2)", 2)]
+    [TestCase("ids.filter(rule it>2)", new[] { 101, 102 })]
+    [TestCase("out:int[]=ids.filter(rule it>age).map(rule it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.reverse().join(',')", "102,101,2,1")]
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
-    [TestCase("ids.map(fun it.toText())", new[] { "1", "2", "101", "102" })]
+    [TestCase("ids.map(rule it.toText())", new[] { "1", "2", "101", "102" })]
     public void GeneralUserInputModelTest(string expr, object expected) =>
         expr.CalcSingleUntypedInDifferentWays(expected, new UserInputModel(
             name: "vasa",

@@ -45,13 +45,13 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase("y = 2", 2)]
     [TestCase("y = 1111  ", 1111)]
     [TestCase("y = 11_11  ", 1111)]
-    [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10, fun it1+ it2.sum())", 11)]
-    [TestCase(@"car3(g) = g(2); y = car3((fun it-1))   ", 1)]
-    [TestCase(@"car4(g) = g(2); y =   car4(fun it)   ", 2)]
-    [TestCase(@"car41(g) = g(2); y =   car41 (fun it)   ", 2)]
-    [TestCase("y = [1,2,3,4].fold(fun it1+it2)", 10)]
-    [TestCase("y = [1,2,3,4].fold(0,(fun it1+it2))", 10)]
-    [TestCase("y = [1,2,3,4].fold(-10,(fun it1+it2))", 0)]
+    [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10, rule it1+ it2.sum())", 11)]
+    [TestCase(@"car3(g) = g(2); y = car3((rule it-1))   ", 1)]
+    [TestCase(@"car4(g) = g(2); y =   car4(rule it)   ", 2)]
+    [TestCase(@"car41(g) = g(2); y =   car41 (rule it)   ", 2)]
+    [TestCase("y = [1,2,3,4].fold(rule it1+it2)", 10)]
+    [TestCase("y = [1,2,3,4].fold(0,(rule it1+it2))", 10)]
+    [TestCase("y = [1,2,3,4].fold(-10,(rule it1+it2))", 0)]
     [TestCase("y = median([1,-10,0])", 0)]
     [TestCase(
         @"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
@@ -59,29 +59,29 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase("first(a) = a[0]\r y = [5,4,3].first()", 5)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,true)", 1)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,false)", 2)]
-    [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10, fun it1+ it2.sum())", 11)]
-    [TestCase(@"mult(x)= fun(y)=fun(z)=x*y*z;    y = mult(2)(3)(4)", 24)]
+    [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10, rule it1+ it2.sum())", 11)]
+    [TestCase(@"mult(x)= rule(y)=rule(z)=x*y*z;    y = mult(2)(3)(4)", 24)]
     public void ConstantCalcReturnsTargetType(string expression, int expected)
         => Calc(expression).AssertResultHas("y", Convert(expected));
 
     [TestCase("y = 0.2", 0.2)]
     [TestCase("y = 11.222  ", 11.222)]
     [TestCase("y = 1.1_11  ", 1.111)]
-    [TestCase(@"f = (fun it+1); y = f(3.0)", 4.0)]
-    [TestCase(@"f = ((fun it+1)); y = f(3.0)", 4.0)]
-    [TestCase(@"y = ((fun it+1))(3.0)", 4.0)]
-    [TestCase(@"y = (((fun it+1)))(3.0)", 4.0)]
+    [TestCase(@"f = (rule it+1); y = f(3.0)", 4.0)]
+    [TestCase(@"f = ((rule it+1)); y = f(3.0)", 4.0)]
+    [TestCase(@"y = ((rule it+1))(3.0)", 4.0)]
+    [TestCase(@"y = (((rule it+1)))(3.0)", 4.0)]
     [TestCase("y=median([1.0,10.5,6.0])", 6.0)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2.0,true)", 1.0)]
     [TestCase(
         @"y = [1..3]
-                        .map(fun [1..5]
-                                .map(fun 10/it)
+                        .map(rule [1..5]
+                                .map(rule 10/it)
                                 .sum())
                         .sum()", 68.5)]
     [TestCase(
         @"y = [1..3]
-                        .map(fun it/2)
+                        .map(rule it/2)
                         .sum()", 3.0)]
     public void NumericConstantReturnsAlwaysReal(string expression, double expected) =>
         Calc(expression).AssertResultHas("y", expected);
@@ -105,9 +105,9 @@ public abstract class GenericIntConstantTestBase<T> {
         "mkarr(a,b,c,d,takefirst) = if(takefirst) [a,b] else [c,d]\r y = mkarr(1,2,3,4,false)",
         new[] { 3, 4 })]
     [TestCase("repeat(a) = a.concat(a)\r y = [1,2,3].repeat()", new[] { 1, 2, 3, 1, 2, 3 })]
-    [TestCase("y = [-1,-2,0,1,2,3].filter(fun it>0).map(fun(i)=i*i).map(fun(i)=i*i)", new[] { 1, 16, 81 })]
+    [TestCase("y = [-1,-2,0,1,2,3].filter(rule it>0).map(rule(i)=i*i).map(rule(i)=i*i)", new[] { 1, 16, 81 })]
     [TestCase("y = range(7,10)", new[] { 7, 8, 9, 10 })]
-    [TestCase(@"y = [[1,2],[3,4],[5,6]].map(fun  it.map(fun it+1).sum())", new[] { 5, 9, 13 })]
+    [TestCase(@"y = [[1,2],[3,4],[5,6]].map(rule  it.map(rule it+1).sum())", new[] { 5, 9, 13 })]
     public void ConstantCalcReturnsArrayOfTargetType(string expression, int[] expected)
         => Calc(expression).AssertResultHas("y", expected.Select(Convert).ToArray());
 
@@ -147,10 +147,10 @@ public abstract class GenericIntConstantTestBase<T> {
         Build(expression).Calc(("x1", x1), ("x2", x2)).AssertResultHas("y", expected);
 
 
-    [TestCase(@"y = map([1,2,3], fun(i:int):real  =i*i)", new[] { 1.0, 4, 9 })]
-    [TestCase(@"y = map([1,2,3], fun(i:int):int64  =i*i)", new long[] { 1, 4, 9 })]
-    [TestCase(@"y = [1,2,3] . map(fun(i:int)=i*i)", new[] { 1, 4, 9 })]
-    [TestCase(@"y = [1.0,2.0,3.0] . map(fun(i)=i*i)", new[] { 1.0, 4.0, 9.0 })]
+    [TestCase(@"y = map([1,2,3], rule(i:int):real  =i*i)", new[] { 1.0, 4, 9 })]
+    [TestCase(@"y = map([1,2,3], rule(i:int):int64  =i*i)", new long[] { 1, 4, 9 })]
+    [TestCase(@"y = [1,2,3] . map(rule(i:int)=i*i)", new[] { 1, 4, 9 })]
+    [TestCase(@"y = [1.0,2.0,3.0] . map(rule(i)=i*i)", new[] { 1.0, 4.0, 9.0 })]
     public void SuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");
@@ -187,23 +187,23 @@ public abstract class GenericIntConstantTestBase<T> {
 
     [TestCase(
         @"y = [1..7]
-                        .map(fun it+1)
+                        .map(rule it+1)
                         .sum()")]
     [TestCase(
         @"y = [1..8]
-                        .map(fun [it,1].sum())
+                        .map(rule [it,1].sum())
                         .sum()")]
     [TestCase(
         @"y = [1..9]
-                        .map(fun [1,it].sum())
+                        .map(rule [1,it].sum())
                         .sum()")]
     [TestCase(
         @"y = [1..10]
-                        .map(fun [1..it].sum())
+                        .map(rule [1..it].sum())
                         .sum()")]
     [TestCase(
         @"y = [1..11]
-                        .map(fun [1..it].sum())
+                        .map(rule [1..it].sum())
                         .sum()")]
     [TestCase(
         @"fibrec(n, iter, p1,p2) =

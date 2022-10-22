@@ -156,7 +156,7 @@ public class TrickyTest {
     public void GenericCallWithFunVar() {
         //fun = i->i
         //    1   0   
-        //x = fun(2)
+        //x = rule(2)
 
         var graph = new GraphBuilder();
         var generic = graph.InitializeVarNode();
@@ -173,7 +173,7 @@ public class TrickyTest {
     public void GenericCallWithStates() {
         //fun = i->i
         //    1   0   
-        //x = fun(2)
+        //x = rule(2)
 
         var graph = new GraphBuilder();
         var generic = graph.InitializeVarNode();

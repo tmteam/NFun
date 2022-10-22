@@ -170,7 +170,7 @@ public class BodyTypeInferenceTests {
 
     [Test]
     public void MapWithLambda() {
-        var result = TestHelper.Solve("y  = a.map(fun(i:int)=i+1)");
+        var result = TestHelper.Solve("y  = a.map(rule(i:int)=i+1)");
         result.AssertNoGenerics();
         result.AssertNamed(StateArray.Of(StatePrimitive.I32), "y");
         result.AssertNamed(StateArray.Of(StatePrimitive.I32), "a");
@@ -261,7 +261,7 @@ public class BodyTypeInferenceTests {
 
     [Test]
     public void FilterComparable() {
-        var result = TestHelper.Solve("y:int[]= [1,2,3].filter(fun it>2)");
+        var result = TestHelper.Solve("y:int[]= [1,2,3].filter(rule it>2)");
         result.AssertNoGenerics();
         result.AssertNamed(StateArray.Of(StatePrimitive.I32), "y");
     }

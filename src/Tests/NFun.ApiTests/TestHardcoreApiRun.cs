@@ -115,7 +115,7 @@ class TestHardcoreApiRun {
     public void RuntimeWithSimpleTypes_VariablesEnumerationTest() =>
             @"
                     out1 = in1-1
-                    out2:int = in2.filter(fun it>out1).map(fun it*it)[1]
+                    out2:int = in2.filter(rule it>out1).map(rule it*it)[1]
             ".AssertRuntimes(runtime =>
             {
                 runtime["in1"].Value = 2;

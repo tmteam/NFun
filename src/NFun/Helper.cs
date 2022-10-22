@@ -189,7 +189,7 @@ static class QueueExtensions
 }
 static class DictionaryExtensions
 {
-    public static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
+    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
     {
         //perfomance hit, double key retrieving.
         if (!dictionary.ContainsKey(key))

@@ -409,7 +409,7 @@ public class StructBodyTest {
     [Test]
     [Ignore("Syntax collision with pipe forward")]
     public void GenericLambdaInStruct() =>
-        "a = {dec = (fun it-1); inc = (fun it+1);}; y = a.inc(1) + a.inc(2) + a.dec(3)"
+        "a = {dec = (rule it-1); inc = (rule it+1);}; y = a.inc(1) + a.inc(2) + a.dec(3)"
             .AssertResultHas("y", 7);
 
     [TestCase("y = {a = 1}; z = y.b")]

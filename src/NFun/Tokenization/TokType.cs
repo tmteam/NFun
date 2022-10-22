@@ -160,7 +160,7 @@ public enum TokType {
     /// <summary>
     /// 'rule' 
     /// </summary>
-    FunRule,
+    Rule,
     /// <summary>
     /// 'default'
     /// </summary>

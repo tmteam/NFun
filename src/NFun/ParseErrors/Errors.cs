@@ -91,7 +91,7 @@ internal static partial class Errors {
                    TokType.CharType      => "char",
                    TokType.AnythingType  => "any",
                    TokType.Dot           => ".",
-                   TokType.FunRule       => "rule",
+                   TokType.Rule       => "rule",
                    _                     => tok.Type.ToString().ToLower()
                };
     }

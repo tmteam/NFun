@@ -73,7 +73,7 @@ public class ConcreteUserFunctionsTest {
   	                        [0..input.count()-1]
   		                        .fold(
   			                        input, 
-  			                        fun onelineSort(it1))
+  			                        rule onelineSort(it1))
 
                           
                           i:int[]  = [1,4,3,2,5].bubbleSort()";

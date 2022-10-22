@@ -38,8 +38,7 @@ public class Tokenizer {
     private static readonly Dictionary<string, TokType> Keywords = new() {
         { "step", TokType.Step },
         { "in", TokType.In },
-        { "fun", TokType.FunRule },
-        { "rule", TokType.FunRule },
+        { "rule", TokType.Rule },
 
         { "and", TokType.And },
         { "or", TokType.Or },
@@ -72,8 +71,8 @@ public class Tokenizer {
 
 
         //Reserved keywords:
+        { "fun", TokType.Reserved },
         { "the", TokType.Reserved },
-
         { "_", TokType.Reserved },
 
         { "async", TokType.Reserved },
@@ -159,7 +158,12 @@ public class Tokenizer {
         if (Keywords.TryGetValue(word, out var tok))
         {
             if (tok == TokType.Reserved)
-                throw Errors.TokenIsReserved(new Interval(position, finish), word);
+            {
+                if (word == "fun")
+                    throw Errors.TokenIsReserved(new Interval(position, finish), word, "rule");
+                else
+                    throw Errors.TokenIsReserved(new Interval(position, finish), word);
+            }
             return Tok.New(tok, word, position, finish);
         }
         else

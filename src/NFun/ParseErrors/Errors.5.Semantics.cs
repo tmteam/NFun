@@ -62,10 +62,10 @@ internal static partial class Errors {
         new(843, $"'{variableName}' is invalid rule argument name. Allowed names are: 'it', 'it1', 'it2', 'it3'", interval);
 
     internal static FunnyParseException AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode, ISyntaxNode funDefinition) => new(
-        845, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", argNode.Interval);
+        845, $"'Argument name '{argNode.Name}' of rule duplicates ", argNode.Interval);
 
     internal static FunnyParseException AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval) => new(
-        847, $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defInterval);
+        847, $"'Argument name '{argName}' of rule conflicts with outer scope variable. It is denied for your safety.", defInterval);
     
     internal static FunnyParseException CannotUseSuperAnonymousVariableHereBecauseHasNumberedVariables(Interval interval) => new(
         849, "'it' variable can be used only as single argument in rules. Rename it to 'it1'", interval);
