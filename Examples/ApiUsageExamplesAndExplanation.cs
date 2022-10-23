@@ -160,7 +160,8 @@ public class ApiUsageExamples {
 
     [Test]
     // FluentApi. Syntax and semantic customization 
-    public void FluentApi_Dialects() {
+    public void FluentApi_Dialects()
+    {
         //Also you may override fun-dialect for your needs
 
         //Let's deny if expression at all! 
@@ -172,23 +173,37 @@ public class ApiUsageExamples {
         //Default type of numbers '1' and '2' - is Integer
         // let's make them Real!
         object sumResult = Funny
-                           .WithDialect(integerPreferredType: IntegerPreferredType.Real)
-                           .Calc("1 + 2");
+            .WithDialect(integerPreferredType: IntegerPreferredType.Real)
+            .Calc("1 + 2");
         Assert.IsInstanceOf<double>(sumResult); //now preferred type of INTEGER constants is REAL
 
 
         //lets turn all 'real' arithmetics to decimal
         object decimalResult = Funny
-                               .WithDialect(realClrType: RealClrType.IsDecimal)
-                               .Calc("0.2 + 0.3");
+            .WithDialect(realClrType: RealClrType.IsDecimal)
+            .Calc("0.2 + 0.3");
         Assert.AreEqual(new decimal(0.5), decimalResult);
 
-
-        //now lets allow integer "overflow" operations
+        // now lets allow integer "overflow" operations
         var uintResult = Funny
-                         .WithDialect(integerOverflow: IntegerOverflow.Unchecked)
-                         .Calc<uint>("0xFFFF_FFFF + 1");
+            .WithDialect(integerOverflow: IntegerOverflow.Unchecked)
+            .Calc<uint>("0xFFFF_FFFF + 1");
         Assert.AreEqual((uint)0, uintResult);
+
+        
+        // deny user recursive functions as they are quite dangerous!
+        Assert.Throws<FunnyParseException>(() => {
+            Funny
+                .WithDialect(allowUserFunctions: AllowUserFunctions.DenyRecursive)
+                .Calc("f(x) = f(x-1); f(42)");
+        });
+
+        // or deny user functions at all because of because
+        Assert.Throws<FunnyParseException>(() => {
+            Funny
+                .WithDialect(allowUserFunctions: AllowUserFunctions.DenyUserFunctions)
+                .Calc("f(x) = x+1; f(42)");
+        });
     }
 
     [Test]

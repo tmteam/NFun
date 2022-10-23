@@ -19,7 +19,7 @@ public class FunnyCalculatorBuilder {
         _dialect = dialect;
         return this;
     }
-    
+
     /// <summary>
     /// Allows to setup syntax and semantics
     /// </summary>
@@ -27,11 +27,13 @@ public class FunnyCalculatorBuilder {
     /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
     /// <param name="realClrType">Which clr type is used for funny type real</param>
     /// <param name="integerOverflow">Checked or Unchecked arithmetic operations</param>
+    /// <param name="allowUserFunctions">Allow or deny regular or recursive user functions</param>
     public FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble, 
-        IntegerOverflow integerOverflow = IntegerOverflow.Checked) 
-        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked,
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll) 
+        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions));
 
     public FunnyCalculatorBuilder WithConstant(string id, object value) {
         _constantList.Add((id, value));

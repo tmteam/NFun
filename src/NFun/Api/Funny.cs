@@ -108,12 +108,14 @@ public static class Funny {
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble, 
-        IntegerOverflow integerOverflow = IntegerOverflow.Checked)
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked,
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
         => new FunnyCalculatorBuilder().WithDialect(
             ifExpressionSyntax, 
             integerPreferredType, 
             realClrType, 
-            integerOverflow);
+            integerOverflow, 
+            allowUserFunctions);
 
     #endregion
 }
