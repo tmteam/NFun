@@ -80,7 +80,7 @@ internal static partial class Errors {
             if (path.TryPeek(out var parent))
             {
                 if (parent is FunCallSyntaxNode functionCall)
-                    return InvalidFunctionArgument(failed, functionCall, stateException.State);
+                    return InvalidFunctionArgument(failed, functionCall, stateException.State, stateException.Node);
 
                 if (parent is StructFieldAccessSyntaxNode f)
                 {
@@ -232,15 +232,20 @@ internal static partial class Errors {
         return null;
     }
 
-    private static FunnyParseException InvalidFunctionArgument(ISyntaxNode failed, FunCallSyntaxNode functionCall, ITicNodeState failedState = null) {
+    private static FunnyParseException InvalidFunctionArgument(ISyntaxNode failed, FunCallSyntaxNode functionCall, ITicNodeState failedState = null, TicNode stateExceptionNode = null)
+    {
         var argNum = functionCall.Args.IndexOf(failed);
+        var argumentType = functionCall.FunctionSignature.ArgTypes[argNum];
 
         if (functionCall.IsOperator)
-            return new(780, $"Invalid operator argument: {functionCall.Id}({string.Join(",", functionCall.FunctionSignature.ArgTypes)})", failed.Interval);
+            return new(780,
+                $"Invalid operator call argument: {Signature(functionCall.FunctionSignature)}. Expected: {argumentType}" +
+                (stateExceptionNode == null ? "" : $", but was: {ToNFunString(stateExceptionNode.State)}"),
+                failed.Interval);
         else
-            return new(783, "Invalid function argument: " +
-                            $"{functionCall.Id}({string.Join(",", functionCall.FunctionSignature.ArgTypes)})->{functionCall.FunctionSignature.ReturnType}. " +
-                            (failedState == null ? "" : $"Expected: {functionCall.FunctionSignature.ArgTypes[argNum]}, but was: {failedState}"),
+            return new(783,
+                $"Invalid function call argument: {Signature(functionCall.FunctionSignature)}. Expected: {argumentType}" +
+                (stateExceptionNode == null ? "" : $", but was: {ToNFunString(stateExceptionNode.State)}"),
                 failed.Interval);
     }
 
@@ -253,5 +258,42 @@ internal static partial class Errors {
             ? "recursive type"
             : TicTypesConverter.Concrete.Convert(concrete.State).ToString();
     }
-
+    
+    private static string ToNFunString(ITicNodeState state)
+    {
+        var concrete = state.GetNonReferenceSafeOrNull();
+        return TicTypesConverter.Concrete.Convert(concrete).ToString();
+    }
+    
+    private static TicNode GetNonReferenceSafeOrNull(this  TicNode ticNode) {
+        var result = ticNode;
+        var visited = new HashSet<TicNode>();
+        while (true)
+        {
+            if (result.State is StateRefTo r)
+            {
+                if (!visited.Add(result))
+                    return null;
+                result = r.Node;
+            }
+            else
+                return result;
+        }
+    }
+    
+    private static ITicNodeState GetNonReferenceSafeOrNull(this  ITicNodeState state) {
+        var result = state;
+        var visited = new HashSet<ITicNodeState>();
+        while (true)
+        {
+            if (result is StateRefTo r)
+            {
+                if (!visited.Add(result))
+                    return null;
+                result = r.Node.State;
+            }
+            else
+                return result;
+        }
+    }
 }

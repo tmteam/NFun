@@ -305,13 +305,16 @@ public class GraphBuilder {
 
         if (allTypesAreSolved)
             return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
-
-        return SolvingFunctions.Finalize(
+        
+        var results =  SolvingFunctions.Finalize(
             toposortedNodes: sorted,
             outputNodes: _outputNodes,
             inputNodes: _inputNodes,
             syntaxNodes: _syntaxNodes,
             namedNodes: _variables);
+        PrintTrace("4. Finalizing");
+        
+        return results;
     }
     public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s=>s!=null)).ToArray();
     private TicNode[] Toposort() {

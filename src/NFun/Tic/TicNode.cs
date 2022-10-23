@@ -176,7 +176,7 @@ public class TicNode {
 
         return false;
     }
-
+    
     public TicNode GetNonReference() {
         var result = this;
         if (result.State is StateRefTo referenceA)
@@ -187,22 +187,6 @@ public class TicNode {
         }
 
         return result;
-    }
-
-    public TicNode GetNonReferenceSafeOrNull() {
-        var result = this;
-        var visited = new HashSet<TicNode>();
-        while (true)
-        {
-            if (result.State is StateRefTo r)
-            {
-                if (!visited.Add(result))
-                    return null;
-                result = r.Node;
-            }
-            else
-                return result;
-        }
     }
 
     public override int GetHashCode() => _uid;

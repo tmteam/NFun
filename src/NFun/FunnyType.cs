@@ -286,7 +286,7 @@ public readonly struct FunnyType {
             BaseFunnyType.Fun     => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
             BaseFunnyType.Struct =>
                 $"{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
-            BaseFunnyType.Generic => "T_" + GenericId,
+            BaseFunnyType.Generic => "T" + GenericId,
             _                     => BaseType.ToString()
         };
 

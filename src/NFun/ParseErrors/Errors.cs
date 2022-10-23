@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -37,9 +38,16 @@ internal static partial class Errors {
 
     private static string Signature(string funName, IEnumerable<ISyntaxNode> arguments)
         => $"{funName}({Join(arguments)})";
+    
+    private static string Signature(IFunctionSignature signature)
+        => $"{signature.Name}({Join(signature.ArgTypes)})->{signature.ReturnType}";
+
+    private static string Join(FunnyType[] arguments)
+        => string.Join(", ", arguments);
+
 
     private static string Join(IEnumerable<ISyntaxNode> arguments)
-        => string.Join(",", arguments.Select(a=>a.ToShortText()));
+        => string.Join(", ", arguments.Select(a=>a.ToShortText()));
     
     private static string ToText(Tok tok) {
         if (!string.IsNullOrWhiteSpace(tok.Value))

@@ -85,6 +85,9 @@ internal static class RuntimeBuilder {
         #endregion
 
 
+        if(TraceLog.IsEnabled)
+            TraceLog.WriteLine($"\r\n==== BUILD BODY ====");
+        
         var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypes, dialect);
 
 
@@ -176,6 +179,7 @@ internal static class RuntimeBuilder {
         IFunctionDictionary functionDictionary,
         IAprioriTypesMap aprioriTypes,
         DialectSettings dialect) {
+        
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
             syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
         
@@ -200,6 +204,9 @@ internal static class RuntimeBuilder {
         VariableDictionary mutableVariables,
         TypeInferenceResults typeInferenceResults,
         DialectSettings dialect) {
+        if(TraceLog.IsEnabled)
+            TraceLog.WriteLine($"\r\n==== BUILD EQUATION '{equation.Id}' ====");
+
         var expression = ExpressionBuilderVisitor.BuildExpression(
             node: equation.Expression,
             functions: functionsDictionary,
@@ -251,7 +258,7 @@ internal static class RuntimeBuilder {
         DialectSettings dialect) {
 
         if(TraceLog.IsEnabled)
-            TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
+            TraceLog.WriteLine($"\r\n==== BUILD {functionSyntaxNode.Id}(..) ====");
         
         ////introduce function variable
         var graph = new GraphBuilder();
