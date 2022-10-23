@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -92,7 +93,7 @@ public abstract class TicTypesConverter {
                     case StateStruct str:
                         return ConvertToFunnyStruct(str);
                     default:
-                        throw new NotSupportedException();
+                        throw new NFunImpossibleException($"Type {type?.ToString()??"<null>"} is not supported for convertion");
                 }
             }
         }

@@ -467,7 +467,8 @@ public static class SolvingFunctions {
         IReadOnlyList<TicNode> outputNodes,
         IReadOnlyList<TicNode> inputNodes,
         IReadOnlyList<TicNode> syntaxNodes,
-        Dictionary<string, TicNode> namedNodes) {
+        Dictionary<string, TicNode> namedNodes,
+        bool ignorePreferred) {
         var typeVariables = new List<TicNode>();
 
         int genericNodesCount = 0;
@@ -495,7 +496,7 @@ public static class SolvingFunctions {
         if (genericNodesCount == 0)
             return new TicResultsWithoutGenerics(namedNodes, syntaxNodes);
 
-        SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
+        SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes, ignorePreferred);
         return new TicResultsWithGenerics(typeVariables, namedNodes, syntaxNodes);
     }
 
@@ -527,7 +528,8 @@ public static class SolvingFunctions {
     private static void SolveUselessGenerics(
         IEnumerable<TicNode> toposortedNodes,
         IReadOnlyList<TicNode> outputNodes,
-        IEnumerable<TicNode> inputNodes) {
+        IEnumerable<TicNode> inputNodes,
+        bool ignorePreferred) {
         //We have to solve all generic types that are not output
 
         const int outputTypeMark = 77;
@@ -559,7 +561,7 @@ public static class SolvingFunctions {
                 }
             }
         }
-
+        
         //Input covariant types that NOT referenced and are not members of any output types
         foreach (var node in toposortedNodes)
         {
@@ -567,7 +569,8 @@ public static class SolvingFunctions {
                 continue;
             if (node.State is not ConstrainsState c)
                 continue;
-            node.State = c.SolveCovariant();
+            // we have to ignore prefered type as we need last common ancestor
+            node.State = c.SolveCovariant(ignorePreferred);
         }
     }
 

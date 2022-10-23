@@ -252,8 +252,8 @@ public class ConstrainsState : ITicNodeState {
     ///
     /// For most cases it means that ancestor type will be used
     /// </summary>
-    public ITicNodeState SolveCovariant() {
-        if (Preferred != null && Fits(Preferred))
+    public ITicNodeState SolveCovariant(bool ignorePreferred = false) {
+        if (!ignorePreferred && Preferred != null && Fits(Preferred))
             return Preferred;
         var ancestor = Ancestor ?? StatePrimitive.Any;
         if (IsComparable)

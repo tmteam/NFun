@@ -285,7 +285,7 @@ public class GraphBuilder {
     #endregion
 
 
-    public ITicResults Solve() {
+    public ITicResults Solve(bool ignorePrefered = false) {
         PrintTrace("0. Solving");
 
         var sorted = Toposort();
@@ -311,8 +311,9 @@ public class GraphBuilder {
             outputNodes: _outputNodes,
             inputNodes: _inputNodes,
             syntaxNodes: _syntaxNodes,
-            namedNodes: _variables);
-        PrintTrace("4. Finalizing");
+            namedNodes: _variables, 
+            ignorePrefered);
+        PrintTrace("4. Finalized");
         
         return results;
     }

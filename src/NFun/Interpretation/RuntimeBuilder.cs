@@ -275,8 +275,8 @@ internal static class RuntimeBuilder {
                 results: resultsBuilder,
                 dialect: dialect))
                 AssertChecks.Panic($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
-            // solve the types
-            types = graph.Solve();
+            // solve the types. We ignore prefered types to get most common ancestor for function argument types instead of preferred type
+            types = graph.Solve(ignorePrefered: true);
         }
         catch (TicException e)
         {
