@@ -31,11 +31,11 @@ public class FluentApiCalcSingleTConcurrentTest {
     [Test]
     public void InputFieldIsCharArray() =>
         "[letters.reverse()]".CalcSingleUntypedInDifferentWays(new[] { "test" }
-          , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
-    
+            , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
+
     [Test]
     public void InputStructFieldsAreNotCaseSensitive()
-        =>  "imOdeL.nAMe".CalcSingleTypedInDifferentWays(
+        => "imOdeL.nAMe".CalcSingleTypedInDifferentWays(
             expected: "peter",
             input: new ContextModel1(42, imodel: new UserInputModel(name: "peter")));
 }

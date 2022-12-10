@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests; 
+namespace NFun.Tic.Tests;
 
 public class IncorrectNodesOrderTest {
     [Test]

@@ -2,7 +2,7 @@ using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators; 
+namespace NFun.SyntaxTests.Operators;
 
 public class ArithmeticalOperatorsTest {
     [TestCase("y = 2*3", 6)]
@@ -282,7 +282,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y = 0/0")]
     [TestCase("y:uint32 = 0-100")]
     public void Oops(string expression) => expression.AssertObviousFailsOnRuntime();
-    
+
     [TestCase("y = /2")]
     [TestCase("y = *2")]
     [TestCase("y = 2++")]

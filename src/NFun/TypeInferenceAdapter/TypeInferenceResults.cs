@@ -32,14 +32,13 @@ public class TypeInferenceResultsBuilder {
 
     public void SetResults(ITicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
 
-    public TypeInferenceResults Build() {
-        return new TypeInferenceResults(
+    public TypeInferenceResults Build() =>
+        new TypeInferenceResults(
             bodyTypeSolving: _bodyTypeSolving,
             genericFunctionTypes: _genericFunctionTypes.ToArray(),
             functionalVariables: _functionalVariable,
             recursiveCalls: _recursiveCalls
         );
-    }
 
     public void RememberRecursiveCall(int id, StateFun userFunction)
         => _recursiveCalls.EnlargeAndSet(id, userFunction);

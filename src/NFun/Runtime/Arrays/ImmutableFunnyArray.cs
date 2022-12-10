@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NFun.Types;
 
-namespace NFun.Runtime.Arrays; 
+namespace NFun.Runtime.Arrays;
 
 public class ImmutableFunnyArray : IFunnyArray {
     public FunnyType ElementType { get; }

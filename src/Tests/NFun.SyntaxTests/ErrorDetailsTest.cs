@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class ErrorDetailsTest {
@@ -44,24 +44,24 @@ public class ErrorDetailsTest {
     [TestCase("z = x+1 \r y = ", "y", "\rj = i+1")]
     [TestCase("z(x) = x+1 \ry = ", "y", "\rj = z(i)")]
     [TestCase("if ", "1+2", " 1 else 2")]
-    [TestCase("x:int[]; y = x[","true and false","]")]
+    [TestCase("x:int[]; y = x[", "true and false", "]")]
     [TestCase("y(x) = x + ", "z", "")]
     [TestCase("y(x) = ", "z", " + x")]
-    [TestCase("x:bool;y=sin(","x",")")]
+    [TestCase("x:bool;y=sin(", "x", ")")]
     [TestCase("y(x:int):bool = if (true) true else ", "x", "")]
     [TestCase("y(x) = ", "z", " +x")]
     [TestCase("", "y(x,x)=", "x+1")]
     [TestCase("", "y(x,x,z)=", "x+1")]
-    [TestCase("m =[1.0,6.0]",".foold","(rule(i,x)=i+1)")]
-    [TestCase("[1.0,7.0].fold(rule(i,","i",")=i+1)")]
-    [TestCase("[1.0,8.0].map(rule","(i,j)=i+j",")")]
+    [TestCase("m =[1.0,6.0]", ".foold", "(rule(i,x)=i+1)")]
+    [TestCase("[1.0,7.0].fold(rule(i,", "i", ")=i+1)")]
+    [TestCase("[1.0,8.0].map(rule", "(i,j)=i+j", ")")]
     [TestCase("foo(x) = x +1\r y=", "foo", "*3")]
     [TestCase("\r y=", "foo", "*3 \r foo(x) = x +1")]
     [TestCase("foo(x) = x +1\r ", "foo", "*3 ")]
     [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
     [TestCase("y = 1 ", "z=", "2")]
     [TestCase("", "set", " x=1")]
-    [TestCase("{a = 1","","")]
+    [TestCase("{a = 1", "", "")]
     public void ErrorPosition(string beforeError, string errorBody, string afterError) =>
         AssertErrorPosition(beforeError, errorBody, afterError);
 
@@ -126,7 +126,7 @@ public class ErrorDetailsTest {
     [TestCase("out = true and if(true) 1 else 2")]
     [TestCase("out = true and (1,2,3)")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-    
+
     private static void AssertErrorPosition(string beforeError, string errorBody, string afterError) {
         var value = beforeError + errorBody + afterError;
         Console.WriteLine(value);

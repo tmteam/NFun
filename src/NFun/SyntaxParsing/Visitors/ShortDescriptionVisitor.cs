@@ -4,31 +4,53 @@ using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Types;
 
-namespace NFun.SyntaxParsing.Visitors; 
+namespace NFun.SyntaxParsing.Visitors;
 
-internal class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
-    private static readonly HashSet<String> UnaryOperators = new() 
-        { "+", "-", "*", "/", "//", "%", "**", "<<", ">>", "|", "&", "^", "in", ">", "<", ">=", "<=", "==", "!=", "and", "xor", "or" };
-    
-    public string Visit(AnonymFunctionSyntaxNode node) 
-        => $"rule({string.Join(",",node.ArgumentsDefinition.Select(a=>a.Accept(this)))})=..";
-    
+internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
+    private static readonly HashSet<String> UnaryOperators = new() {
+        "+",
+        "-",
+        "*",
+        "/",
+        "//",
+        "%",
+        "**",
+        "<<",
+        ">>",
+        "|",
+        "&",
+        "^",
+        "in",
+        ">",
+        "<",
+        ">=",
+        "<=",
+        "==",
+        "!=",
+        "and",
+        "xor",
+        "or"
+    };
+
+    public string Visit(AnonymFunctionSyntaxNode node) =>
+        $"rule({string.Join(",", node.ArgumentsDefinition.Select(a => a.Accept(this)))})=..";
+
     public string Visit(ArraySyntaxNode node) => "[...]";
-    
+
     public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
-    
+
     public string Visit(FunCallSyntaxNode node) {
         string msg;
         if (node.IsOperator && UnaryOperators.Contains(node.Id))
-            msg =  $"...{node.Id}...";
-        else 
+            msg = $"...{node.Id}...";
+        else
             msg = $"{node.Id}(...)";
-        
+
         return node.ParenthesesCount > 0 ? $"({msg})" : msg;
     }
-    
+
     public string Visit(IfThenElseSyntaxNode node) => "if (...) ... else ...";
-    
+
     public string Visit(IfCaseSyntaxNode node) => "if (...) ...";
 
     public string Visit(ListOfExpressionsSyntaxNode node) {
@@ -47,32 +69,33 @@ internal class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
     }
 
     public string Visit(IpAddressConstantSyntaxNode node) => node.Value.ToString();
-    
+
     public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
 
     public string Visit(SyntaxTree node) => "Fun equations";
 
-    public string Visit(TypedVarDefSyntaxNode node)
-        => node.FunnyType.BaseType == BaseFunnyType.Empty
+    public string Visit(TypedVarDefSyntaxNode node) =>
+        node.FunnyType.BaseType == BaseFunnyType.Empty
             ? node.Id
             : $"{node.Id}:{node.FunnyType}";
 
     public string Visit(UserFunctionDefinitionSyntaxNode node) => $"{node.Id}(...) = ...";
-    
-    public string Visit(VarDefinitionSyntaxNode node) => node.FunnyType.BaseType == BaseFunnyType.Empty
-        ? node.Id
-        : $"{node.Id}:{node.FunnyType}";
-    
+
+    public string Visit(VarDefinitionSyntaxNode node) =>
+        node.FunnyType.BaseType == BaseFunnyType.Empty
+            ? node.Id
+            : $"{node.Id}:{node.FunnyType}";
+
     public string Visit(NamedIdSyntaxNode node) => node.Id;
-    
+
     public string Visit(ResultFunCallSyntaxNode node) => $"{node.ResultExpression.Accept(this)}(...)";
-    
+
     public string Visit(SuperAnonymFunctionSyntaxNode node) => "{" + node.Body.Accept(this) + "}";
-    
+
     public string Visit(StructFieldAccessSyntaxNode node) => $".{node.FieldName}";
 
-    public string Visit(StructInitSyntaxNode node)
-        => $"{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
-    
+    public string Visit(StructInitSyntaxNode node) =>
+        $"{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
+
     public string Visit(DefaultValueSyntaxNode node) => "default";
 }

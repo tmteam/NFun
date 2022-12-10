@@ -1,10 +1,10 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 
-namespace NFun.SyntaxParsing.Visitors; 
+namespace NFun.SyntaxParsing.Visitors;
 
 public abstract class EnterVisitorBase : ISyntaxNodeVisitor<DfsEnterResult> {
-    protected virtual DfsEnterResult DefaultVisitEnter(ISyntaxNode node)
-        => DfsEnterResult.Continue;
+    protected virtual DfsEnterResult DefaultVisitEnter(ISyntaxNode node) =>
+        DfsEnterResult.Continue;
 
     public virtual DfsEnterResult Visit(AnonymFunctionSyntaxNode node) =>
         DefaultVisitEnter(node);

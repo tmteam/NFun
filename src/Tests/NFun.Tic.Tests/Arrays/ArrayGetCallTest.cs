@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Arrays; 
+namespace NFun.Tic.Tests.Arrays;
 
 public class ArrayGetCallTest {
     [Test(Description = "y = x[0]")]

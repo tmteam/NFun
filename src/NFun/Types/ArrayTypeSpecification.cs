@@ -3,8 +3,8 @@ namespace NFun.Types;
 internal class ArrayTypeSpecification {
     public readonly FunnyType FunnyType;
 
-    public ArrayTypeSpecification(FunnyType funnyType) { FunnyType = funnyType; }
-    
+    public ArrayTypeSpecification(FunnyType funnyType) => FunnyType = funnyType;
+
     private bool Equals(ArrayTypeSpecification other) => FunnyType.Equals(other.FunnyType);
 
     public override bool Equals(object obj)

@@ -5,7 +5,7 @@ using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Runtime; 
+namespace NFun.Runtime;
 
 public interface IFunnyVar {
     /// <summary>
@@ -66,7 +66,11 @@ public class VariableSource : IFunnyVar {
         => new(name, type, typeSpecificationIntervalOrNull, access, typeBehaviour, attributes);
 
     internal static VariableSource CreateWithoutStrictTypeLabel(
-        string name, FunnyType type, FunnyVarAccess access, FunnyConverter typeBehaviour, FunnyAttribute[] attributes = null)
+        string name,
+        FunnyType type,
+        FunnyVarAccess access,
+        FunnyConverter typeBehaviour,
+        FunnyAttribute[] attributes = null)
         => new(name, type, access, typeBehaviour, attributes);
 
     private VariableSource(
@@ -75,10 +79,9 @@ public class VariableSource : IFunnyVar {
         Interval typeSpecificationIntervalOrNull,
         FunnyVarAccess access,
         FunnyConverter funnyConverter,
-        FunnyAttribute[] attributes = null)
-    {
+        FunnyAttribute[] attributes = null) {
         _id = Interlocked.Increment(ref _usedCount);
-        
+
         _access = access;
         _funnyConverter = funnyConverter;
         _funnyValue = GetDefaultValueOrNullFor(type);
@@ -88,9 +91,13 @@ public class VariableSource : IFunnyVar {
         Type = type;
     }
 
-    private VariableSource(string name, FunnyType type, FunnyVarAccess access, FunnyConverter funnyConverter, FunnyAttribute[] attributes = null) {
+    private VariableSource(
+        string name, FunnyType type,
+        FunnyVarAccess access,
+        FunnyConverter funnyConverter,
+        FunnyAttribute[] attributes = null) {
         _id = Interlocked.Increment(ref _usedCount);
-        
+
         _access = access;
         _funnyConverter = funnyConverter;
         _funnyValue = GetDefaultValueOrNullFor(type);
@@ -109,14 +116,12 @@ public class VariableSource : IFunnyVar {
     private bool _outputConverterLoaded;
     private IOutputFunnyConverter _outputConverter;
     private readonly int _id;
-    
-    public object Value
-    {
-        get
-        {
-            if (_outputConverterLoaded) 
+
+    public object Value {
+        get {
+            if (_outputConverterLoaded)
                 return _outputConverter.ToClrObject(_funnyValue);
-            
+
             _outputConverterLoaded = true;
             _outputConverter = _funnyConverter.GetOutputConverterFor(Type);
             return _outputConverter.ToClrObject(_funnyValue);
@@ -127,7 +132,7 @@ public class VariableSource : IFunnyVar {
     public void SetFunnyValueUnsafe(object funnyValue) => _funnyValue = funnyValue;
 
     internal VariableSource Clone() => new(Name, Type, _access, _funnyConverter, Attributes);
-    
+
     public Func<T> CreateGetterOf<T>() {
         if (!IsOutput)
             throw new NotSupportedException("Cannot create value getter for non output variable");
@@ -154,8 +159,8 @@ public class VariableSource : IFunnyVar {
     }
 
     public override string ToString() => $"{(IsOutput ? "Output" : "Input")} {Name}@{_id}:{Type} = {FunnyValue}";
-    
-    
+
+
     private object GetDefaultValueOrNullFor(FunnyType type) {
         var defaultValue = _funnyConverter.TypeBehaviour.GetDefaultPrimitiveValueOrNull(type.BaseType);
         if (defaultValue != null)

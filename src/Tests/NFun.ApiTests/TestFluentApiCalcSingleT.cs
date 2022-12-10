@@ -4,7 +4,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestFluentApiCalcSingleT {
     [TestCase("age", 13)]
@@ -39,8 +39,8 @@ public class TestFluentApiCalcSingleT {
     [Test]
     public void InputFieldIsCharArray() =>
         CalcInDifferentWays("[letters.reverse()]", new[] { "test" }
-          , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
-        
+            , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
+
     [Test]
     public void OutputTypeIsStruct_returnsFunnyStruct() {
         var str = Funny.Calc("{name = 'alaska'}", new UserInputModel());
@@ -49,24 +49,23 @@ public class TestFluentApiCalcSingleT {
         Assert.AreEqual(1, rs.Count);
         Assert.AreEqual("alaska", rs["name"]);
     }
-    
+
     [Test]
     public void OutputTypeIsText_returnsString() {
         var str = Funny.Calc("'Text'", new UserInputModel());
         Assert.IsInstanceOf<string>(str);
         Assert.AreEqual("Text", str);
     }
-    
+
 
     [Test]
     public void ReturnsComplexIntArrayConstant() {
         var result = Funny.Calc(
-            "[[[1,2],[]],[[3,4]],[[]]]", new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4));
+            "[[[1,2],[]],[[3,4]],[[]]]",
+            new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4));
         Assert.AreEqual(
             new[] {
-                new[] { new[] { 1, 2 }, Array.Empty<int>() },
-                new[] { new[] { 3, 4 } },
-                new[] { Array.Empty<int>() }
+                new[] { new[] { 1, 2 }, Array.Empty<int>() }, new[] { new[] { 3, 4 } }, new[] { Array.Empty<int>() }
             }, result);
     }
 
@@ -95,7 +94,7 @@ public class TestFluentApiCalcSingleT {
     [TestCase("age>AGE")]
     public void UseDifferentInputCase_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc(expression, new UserInputModel(age: 22)));
-    
+
     private static void CalcInDifferentWays<TInput>(string expr, object expected, TInput input) {
         //CALC
         var result1 = Funny.Calc<TInput>(expr, input);
@@ -105,9 +104,9 @@ public class TestFluentApiCalcSingleT {
         var result3 = calculator.Calc(expr, input);
         var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).Calc(expr, input);
         var result5 = Funny
-                      .WithConstant("SomeNotUsedConstant", 42)
-                      .BuildForCalc<TInput>()
-                      .Calc(expr, input);
+            .WithConstant("SomeNotUsedConstant", 42)
+            .BuildForCalc<TInput>()
+            .Calc(expr, input);
 
         //lambda
         var lambda1 = calculator.ToLambda(expr);

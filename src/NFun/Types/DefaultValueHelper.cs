@@ -53,9 +53,7 @@ internal  static class DefaultValueHelper {
     class DefaultHiOrderFunction : FunctionWithManyArguments {
         private readonly object _returnValue;
 
-        public DefaultHiOrderFunction(FunnyType returnType, params FunnyType[] argTypes) : base("default", returnType, argTypes) {
-            _returnValue = returnType.GetDefaultFunnyValue();
-        }
+        public DefaultHiOrderFunction(FunnyType returnType, params FunnyType[] argTypes) : base("default", returnType, argTypes) => _returnValue = returnType.GetDefaultFunnyValue();
         public override object Calc(object[] args) => _returnValue;
     }
 }

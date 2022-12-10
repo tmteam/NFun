@@ -3,15 +3,15 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestFluentApiWithDialect {
     [Test]
     public void PreferredIntTypeIsI32() {
         var result = Funny
-                     .WithDialect(integerPreferredType: IntegerPreferredType.I32)
-                     .BuildForCalc<ModelWithInt, Object>()
-                     .Calc("42", new ModelWithInt());
+            .WithDialect(integerPreferredType: IntegerPreferredType.I32)
+            .BuildForCalc<ModelWithInt, Object>()
+            .Calc("42", new ModelWithInt());
         Assert.IsInstanceOf<int>(result);
         Assert.AreEqual(42, result);
     }
@@ -19,9 +19,9 @@ public class TestFluentApiWithDialect {
     [Test]
     public void PreferredIntTypeIsI64() {
         var result = Funny
-                     .WithDialect(integerPreferredType: IntegerPreferredType.I64)
-                     .BuildForCalc<ModelWithInt, Object>()
-                     .Calc("42", new ModelWithInt());
+            .WithDialect(integerPreferredType: IntegerPreferredType.I64)
+            .BuildForCalc<ModelWithInt, Object>()
+            .Calc("42", new ModelWithInt());
         Assert.IsInstanceOf<long>(result);
         Assert.AreEqual(42L, result);
     }
@@ -29,9 +29,9 @@ public class TestFluentApiWithDialect {
     [Test]
     public void PreferredIntTypeIsReal() {
         var result = Funny
-                     .WithDialect(integerPreferredType: IntegerPreferredType.Real)
-                     .BuildForCalc<ModelWithInt, Object>()
-                     .Calc("42", new ModelWithInt());
+            .WithDialect(integerPreferredType: IntegerPreferredType.Real)
+            .BuildForCalc<ModelWithInt, Object>()
+            .Calc("42", new ModelWithInt());
         Assert.IsInstanceOf<double>(result);
         Assert.AreEqual(42.0, result);
     }
@@ -40,17 +40,17 @@ public class TestFluentApiWithDialect {
     public void DenyIf_EquationWithIfThrows() =>
         Assert.Throws<FunnyParseException>(
             () => Funny
-                  .WithDialect(IfExpressionSetup.Deny)
-                  .BuildForCalc<ModelWithInt, Object>()
-                  .Calc("if(true) false else true", new ModelWithInt()));
+                .WithDialect(IfExpressionSetup.Deny)
+                .BuildForCalc<ModelWithInt, Object>()
+                .Calc("if(true) false else true", new ModelWithInt()));
 
     [Test]
     public void DenyIfIfElse_EquationWithIfIfElseThrows() =>
         Assert.Throws<FunnyParseException>(
             () => Funny
-                  .WithDialect(ifExpressionSyntax: IfExpressionSetup.IfIfElse)
-                  .BuildForCalc<ModelWithInt, Object>()
-                  .Calc("if(true) false if(false) true else true", new ModelWithInt()));
+                .WithDialect(ifExpressionSyntax: IfExpressionSetup.IfIfElse)
+                .BuildForCalc<ModelWithInt, Object>()
+                .Calc("if(true) false if(false) true else true", new ModelWithInt()));
 
 
     [TestCase(IfExpressionSetup.Deny)]
@@ -68,7 +68,7 @@ public class TestFluentApiWithDialect {
     public void EquationWithIfCalculates(IfExpressionSetup setup) =>
         Assert.AreEqual(
             false, Funny
-                   .WithDialect(setup)
-                   .BuildForCalc<ModelWithInt, Object>()
-                   .Calc("if(true) false else true", new ModelWithInt()));
+                .WithDialect(setup)
+                .BuildForCalc<ModelWithInt, Object>()
+                .Calc("if(true) false else true", new ModelWithInt()));
 }

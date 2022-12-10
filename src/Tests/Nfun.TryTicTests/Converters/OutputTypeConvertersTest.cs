@@ -7,7 +7,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters; 
+namespace NFun.UnitTests.Converters;
 
 public class OutputTypeConvertersTest {
     [TestCase((byte)1, BaseFunnyType.UInt8)]
@@ -32,7 +32,7 @@ public class OutputTypeConvertersTest {
     [TestCase(1.5)]
     [TestCase(-0.5)]
     public void ConvertFloatType(double origin) => ConvertRealTypes((float)origin, origin);
-    
+
     [TestCase(0.0)]
     [TestCase(1.0)]
     [TestCase(1.5)]
@@ -46,7 +46,7 @@ public class OutputTypeConvertersTest {
         var convertedValue = converter.ToClrObject(origin);
         Assert.AreEqual(primitiveValue, convertedValue);
     }
-    
+
     [TestCase(new byte[] { 1, 2, 3 }, BaseFunnyType.UInt8)]
     [TestCase(new UInt16[] { 1, 2, 3 }, BaseFunnyType.UInt16)]
     [TestCase(new UInt32[] { 1, 2, 3 }, BaseFunnyType.UInt32)]
@@ -91,11 +91,7 @@ public class OutputTypeConvertersTest {
 
     [Test]
     public void ArrayOfArrayOfAnything() {
-        object[][] inputValue = {
-            new object[] { 1, 2, "kate" },
-            new object[] { 2, 1, "kate" },
-            new object[] { }
-        };
+        object[][] inputValue = { new object[] { 1, 2, "kate" }, new object[] { 2, 1, "kate" }, new object[] { } };
         var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(inputValue.GetType());
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
     }
@@ -115,8 +111,7 @@ public class OutputTypeConvertersTest {
     [Test]
     public void ArrayOfStructTypesWithoutNewContructor() {
         var inputUsers = new[] {
-            new UserMoqType("vasa", 42, 17.1,  new Decimal(31.1)),
-            new UserMoqType("peta", 41, 17.0,  new Decimal(31)),
+            new UserMoqType("vasa", 42, 17.1, new Decimal(31.1)), new UserMoqType("peta", 41, 17.0, new Decimal(31)),
             new UserMoqType("kata", 40, -17.1, new Decimal(0))
         };
         Assert.Catch(() => FunnyConverter.RealIsDouble.GetOutputConverterFor(inputUsers.GetType()));
@@ -125,8 +120,7 @@ public class OutputTypeConvertersTest {
     [Test]
     public void ArrayOfStructTypes() {
         var inputUsers = new[] {
-            new UserMoqOutputType("vasa", 42, 17.1, Decimal.One),
-            new UserMoqOutputType("peta", 41, 17.0, Decimal.Zero),
+            new UserMoqOutputType("vasa", 42, 17.1, Decimal.One), new UserMoqOutputType("peta", 41, 17.0, Decimal.Zero),
             new UserMoqOutputType("kata", 40, -17.1, new decimal(42.2))
         };
 
@@ -145,9 +139,8 @@ public class OutputTypeConvertersTest {
     public void RequrisiveType_Throws()
         => Assert.Catch(() => FunnyConverter.RealIsDouble.GetOutputConverterFor(typeof(NodeMoqRecursiveOutputType)));
 
-    [Test]    
-    public void PrimitiveTypeCreateNoItemInCache()
-    {
+    [Test]
+    public void PrimitiveTypeCreateNoItemInCache() {
         var converter = FunnyConverter.RealIsDouble;
         converter.ClearCaches();
         Assert.AreEqual(0, converter.CacheSize);
@@ -171,32 +164,37 @@ public class OutputTypeConvertersTest {
 
     [Test]
     public void Text_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.Text);
-    
+
     [Test]
     public void Array_1_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.Any));
-    
+
     [Test]
-    public void Array_2_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)));
-    
+    public void Array_2_TypeCreatedOnce() =>
+        AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)));
+
     [Test]
-    public void Array_3_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Text)));
-    
+    public void Array_3_TypeCreatedOnce() =>
+        AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Text)));
+
     [Test]
     public void Struct_1_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(
         FunnyType.StructOf(
-            ("a", FunnyType.Int16), 
-            ("b", FunnyType.FunOf(FunnyType.Int32, FunnyType.FunOf(FunnyType.Int16, FunnyType.Bool), FunnyType.ArrayOf(FunnyType.Text)))));
-    
+            ("a", FunnyType.Int16),
+            ("b",
+                FunnyType.FunOf(FunnyType.Int32, FunnyType.FunOf(FunnyType.Int16, FunnyType.Bool),
+                    FunnyType.ArrayOf(FunnyType.Text)))));
+
     [Test]
     public void Struct_2_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(
         FunnyType.StructOf(
             ("a", FunnyType.StructOf(("c", FunnyType.Bool))),
             ("b", FunnyType.StructOf(("c", FunnyType.Bool))),
-            ("c", FunnyType.FunOf(FunnyType.Int32, FunnyType.FunOf(FunnyType.Int16, FunnyType.Bool), FunnyType.ArrayOf(FunnyType.Text)))));
-    
+            ("c",
+                FunnyType.FunOf(FunnyType.Int32, FunnyType.FunOf(FunnyType.Int16, FunnyType.Bool),
+                    FunnyType.ArrayOf(FunnyType.Text)))));
 
-    private void AssertCreatesItemInCacheOnce(FunnyType type)
-    {
+
+    private void AssertCreatesItemInCacheOnce(FunnyType type) {
         var converter = FunnyConverter.RealIsDouble;
         converter.ClearCaches();
         Assert.AreEqual(0, converter.CacheSize);
@@ -206,6 +204,7 @@ public class OutputTypeConvertersTest {
         {
             converter.GetOutputConverterFor(type);
         }
+
         Assert.AreEqual(size, converter.CacheSize);
     }
 }
@@ -213,6 +212,7 @@ public class OutputTypeConvertersTest {
 class NodeMoqRecursiveOutputType {
     // ReSharper disable once UnusedMember.Global
     public string Name { get; set; }
+
     // ReSharper disable once UnusedMember.Global
     public NodeMoqRecursiveOutputType[] Children { get; set; }
 }
@@ -234,6 +234,7 @@ class UserMoqOutputType {
     public int Age { get; set; }
     public double Size { get; set; }
     public decimal Balance { get; set; }
+
     // ReSharper disable once UnassignedGetOnlyAutoProperty
     // ReSharper disable once UnusedMember.Global
     public bool State { get; }

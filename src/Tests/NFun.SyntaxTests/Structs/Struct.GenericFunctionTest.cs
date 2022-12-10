@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Structs; 
+namespace NFun.SyntaxTests.Structs;
 
 public class StructGenericFunctionTest {
     [Test]
@@ -93,7 +93,7 @@ public class StructGenericFunctionTest {
         ("f(x) = {res = x}; " +
          "r = f(42).res;" +
          "txt = f('try').res").AssertResultHas("r", 42)
-                              .AssertResultHas("txt", "try");
+        .AssertResultHas("txt", "try");
 
     [Test]
     public void SingleGenericStructFunctionReturn() =>
@@ -110,7 +110,7 @@ public class StructGenericFunctionTest {
         ("f(x) = {twice = x+x; dec = x-1}; " +
          "t = f(42).twice;" +
          "d = f(123).dec").AssertResultHas("t", 84)
-                          .AssertResultHas("d", 122);
+        .AssertResultHas("d", 122);
 
     [TestCase(1, 1)]
     [TestCase(3, 6)]
@@ -118,7 +118,7 @@ public class StructGenericFunctionTest {
     public void GenericFactorialReq_ReturnStruct(double x, double y) =>
         @"fact(n) = if(n<=1) {res = 1} else {res = fact(n-1).res*n}
                   y = fact(x).res".Calc("x", x)
-                                  .AssertReturns("y", y);
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(3, 6)]
@@ -126,7 +126,7 @@ public class StructGenericFunctionTest {
     public void GenericFactorialReq_ArgIsStruct(double x, double y) =>
         @"fact(n) = if(n.field<=1) 1 else fact({field=n.field-1})*n.field
                   y = fact({field=x})".Calc("x", x)
-                                      .AssertReturns("y", y);
+            .AssertReturns("y", y);
 
     [TestCase("f(x) = x.a; y = f({nonExistField = 1})")]
     [TestCase("f(x) = x.a; y = f({})")]

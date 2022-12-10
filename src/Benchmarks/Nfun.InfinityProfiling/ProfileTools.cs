@@ -28,15 +28,14 @@ public static class ProfileTools {
         while (list.Count > maxSize) list.RemoveFirst();
     }
 
-    public static Action<IProfileSet> GetSet(ProfileSet set) {
-        return set switch {
-                   ProfileSet.Primitives => RunPrimitiveExamples,
-                   ProfileSet.Middle     => RunMiddleExamples,
-                   ProfileSet.Complex    => RunComplexExamples,
-                   ProfileSet.All        => RunAllExamples,
-                   _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
-               };
-    }
+    public static Action<IProfileSet> GetSet(ProfileSet set) =>
+        set switch {
+            ProfileSet.Primitives => RunPrimitiveExamples,
+            ProfileSet.Middle     => RunMiddleExamples,
+            ProfileSet.Complex    => RunComplexExamples,
+            ProfileSet.All        => RunAllExamples,
+            _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+        };
 
     public static void RunPrimitiveExamples(IProfileSet set) {
         set.PrimitiveConstIntSimpleArithmetics();

@@ -69,8 +69,7 @@ public class GenericUserFunctionsTest {
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(0x1,2.0,false)", 2.0)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,true)", 1)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,false)", false)]
-    public void ConstantEquationWithUpcast(string expr, object expected)
-    {
+    public void ConstantEquationWithUpcast(string expr, object expected) {
         var result = expr.Calc().Get("y");
         Assert.IsTrue(TestHelper.AreSame(result, expected), $"result: {result} expected: {expected}");
     }
@@ -107,8 +106,7 @@ public class GenericUserFunctionsTest {
             .AssertResultHas("res", new[] { 0, 1, 2, 6, 24 });
 
     [Test]
-    public void TwinGenericFunCall()
-    {
+    public void TwinGenericFunCall() =>
         @"maxOfArray(t) = t.fold(max)
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
@@ -120,12 +118,10 @@ public class GenericUserFunctionsTest {
              ] 
 
   res:int = origin.maxOfMatrix()".AssertResultHas("res", 42);
-    }
 
     [Ignore("UB")]
     [Test]
-    public void TwinGenericWrongOrderFunCall()
-    {
+    public void TwinGenericWrongOrderFunCall() {
         var expr = @"
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
@@ -143,8 +139,7 @@ public class GenericUserFunctionsTest {
     }
 
     [Test]
-    public void GenericBubbleSort()
-    {
+    public void GenericBubbleSort() =>
         @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
@@ -165,38 +160,29 @@ public class GenericUserFunctionsTest {
                           i:int[]  = [1,4,3,2,5].bubbleSort()
                           r:real[] = [1,4,3,2,5].bubbleSort()"
             .AssertReturns(("i", new[] { 1, 2, 3, 4, 5 }), ("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
-    }
 
-    
+
     [TestCase("f(x)= 1; f(x):int = 2; out = 1")]
     [TestCase("f(x)= 1; f(x) = x; out = 1")]
     [TestCase("f(x:int)= 1; f(x:real) = 2; out = 1")]
-    
     [TestCase("f(x)= 1; out = 1; f(x):int = 2; ")]
     [TestCase("f(x)= 1; out = 1; f(x) = x; ")]
     [TestCase("f(x:int)= 1; out = 1; f(x:real) = 2; ")]
-
     [TestCase("f(x)= 1; f(x):int = 2; out = f(1)")]
     [TestCase("f(x)= 1; f(x) = x; out = f(1)")]
     [TestCase("f(x:int)= 1; f(x:real) = 2; out = f(1)")]
-    
-    
     [TestCase("F(x)= 1; out = f(1); f(x):int = 2; ")]
     [TestCase("out = f(1); F(x)= 1; f(x) = x; ")]
     [TestCase("f(x:int)= 1; out = f(1); F(x:real) = 2; ")]
-    
     [TestCase("f(x)= 1; F(x):int = 2; out = 1")]
     [TestCase("F(x)= 1; f(x) = x; out = 1")]
     [TestCase("f(x:int)= 1; F(x:real) = 2; out = 1")]
-    
     [TestCase("F(x)= 1; out = 1; f(x):int = 2; ")]
     [TestCase("f(x)= 1; out = 1; F(x) = x; ")]
     [TestCase("f(x:int)= 1; out = 1; F(x:real) = 2; ")]
-
     [TestCase("f(x)= 1; F(x):int = 2; out = f(1)")]
     [TestCase("F(x)= 1; f(x) = x; out = f(1)")]
     [TestCase("f(x:int)= 1; F(x:real) = 2; out = f(1)")]
-    
     [TestCase("f(x)= 1; out = f(1); F(x):int = 2; ")]
     [TestCase("out = f(1); F(x)= 1; f(x) = x; ")]
     [TestCase("F(x:int)= 1; out = f(1); f(x:real) = 2; ")]

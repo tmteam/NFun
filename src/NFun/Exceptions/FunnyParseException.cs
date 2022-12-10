@@ -1,7 +1,7 @@
 using System;
 using NFun.Tokenization;
 
-namespace NFun.Exceptions; 
+namespace NFun.Exceptions;
 
 public class FunnyParseException : Exception {
     public int ErrorCode { get; }
@@ -20,5 +20,4 @@ public class FunnyParseException : Exception {
     }
 
     public override string ToString() => $"[FU{ErrorCode}] {Message}";
-    
 }

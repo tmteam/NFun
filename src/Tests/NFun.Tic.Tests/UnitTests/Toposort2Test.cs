@@ -5,7 +5,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.ModuleTests; 
+namespace NFun.ModuleTests;
 
 public class Toposort2Test {
     /* Test is ok, but cannot be launched in debug environment
@@ -134,8 +134,9 @@ public class Toposort2Test {
         i16.State = new StateRefTo(v2);
         v3.AddAncestor(n);
 
-        var ancestors = new[]
-            { CreateNode("anc1"), CreateNode("anc2"), CreateNode("anc3"), CreateNode("anc4"), CreateNode("anc5") };
+        var ancestors = new[] {
+            CreateNode("anc1"), CreateNode("anc2"), CreateNode("anc3"), CreateNode("anc4"), CreateNode("anc5")
+        };
         v2.AddAncestor(ancestors[0]);
         n.AddAncestor(ancestors[1]);
         i13.AddAncestor(ancestors[2]);

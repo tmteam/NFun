@@ -1,7 +1,7 @@
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.UnitTests; 
+namespace NFun.UnitTests;
 
 public class FunctionDictionaryTest {
     //todo FunDicTests

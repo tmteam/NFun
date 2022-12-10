@@ -20,9 +20,7 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
         foreach (var generic in generics) TryAdd(generic);
     }
 
-    private ImmutableFunctionDictionary(Dictionary<string, IFunctionSignature> functions) {
-        _functions = functions;
-    }
+    private ImmutableFunctionDictionary(Dictionary<string, IFunctionSignature> functions) => _functions = functions;
 
     private readonly Dictionary<string, IFunctionSignature> _functions;
 

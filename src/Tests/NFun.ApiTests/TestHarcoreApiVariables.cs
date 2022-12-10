@@ -2,13 +2,12 @@ using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestHardcoreApiVariables {
     [Test]
     public void GetAllVariables_CheckValues() =>
-        "out1 = (10.0*x).toText()".AssertRuntimes(runtime =>
-        {
+        "out1 = (10.0*x).toText()".AssertRuntimes(runtime => {
             var allVariables = runtime.Variables;
             Assert.AreEqual(2, allVariables.Count);
 
@@ -20,15 +19,13 @@ public class TestHardcoreApiVariables {
 
             Assert.AreEqual(true, out1Var.IsOutput);
             Assert.AreEqual("", out1Var.Value);
-            Assert.AreEqual(FunnyType.Text, out1Var.Type);    
+            Assert.AreEqual(FunnyType.Text, out1Var.Type);
         });
 
     [Test]
     public void TryGetVariables_CheckValues() =>
         "out1 = (10.0*x).toText()".AssertRuntimes(
-            runtime =>
-            {
-
+            runtime => {
                 var xVar = runtime["x"];
                 Assert.IsNotNull(xVar);
                 var out1Var = runtime["out1"];
@@ -50,8 +47,7 @@ public class TestHardcoreApiVariables {
 
     [Test]
     public void SetClrValue_OutputVariableChanged() =>
-        "out1 = (10.0*x).toText()".AssertRuntimes(runtime =>
-        {
+        "out1 = (10.0*x).toText()".AssertRuntimes(runtime => {
             var xVar = runtime["x"];
             var out1Var = runtime["out1"];
             xVar.Value = 42.0;
@@ -69,16 +65,15 @@ public class TestHardcoreApiVariables {
     [TestCase("some = 1\r\r@foo(0)\r \r y = x*3", "y", "foo", 0)]
     public void AttributeWithValue_ValueIsCorrect(
         string expression
-      , string variable,
+        , string variable,
         string attribute, object value) =>
-        expression.AssertRuntimes(runtime =>
-        {
+        expression.AssertRuntimes(runtime => {
             var varInfo = runtime[variable];
             Assert.IsNotNull(varInfo);
 
             var actual = varInfo.Attributes.SingleOrDefault(v => v.Name == attribute);
             Assert.IsNotNull(actual);
-            Assert.AreEqual(value, actual.Value);    
+            Assert.AreEqual(value, actual.Value);
         });
 
     [TestCase("@private\r x:int\r    y = x", "x", new[] { "private" })]
@@ -97,13 +92,12 @@ public class TestHardcoreApiVariables {
     [TestCase("1*x", "out", new string[0])]
     public void ValuelessAttributeOnVariables(
         string expression
-      , string variable,
+        , string variable,
         string[] attribute) =>
-        expression.AssertRuntimes(runtime =>
-        {
+        expression.AssertRuntimes(runtime => {
             var varInfo = runtime[variable];
             Assert.IsNotNull(varInfo);
             CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v => v.Name));
-            Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));      
+            Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));
         });
 }

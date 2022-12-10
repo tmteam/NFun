@@ -108,95 +108,95 @@ public class ProfileUpdateSet : IProfileSet {
     }
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveConstIntSimpleArithmetics() { _primitiveConstIntSimpleArithmetics.Run(); }
+    public void PrimitiveConstIntSimpleArithmetics() => _primitiveConstIntSimpleArithmetics.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveConstRealSimpleArithmetics() { _primitiveConstRealSimpleArithmetics.Run(); }
+    public void PrimitiveConstRealSimpleArithmetics() => _primitiveConstRealSimpleArithmetics.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveConstBoolSimpleArithmetics() { _primitiveConstBoolSimpleArithmetics.Run(); }
+    public void PrimitiveConstBoolSimpleArithmetics() => _primitiveConstBoolSimpleArithmetics.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcReal2Var() { _primitiveCalcReal2Var.Run(); }
+    public void PrimitiveCalcReal2Var() => _primitiveCalcReal2Var.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcInt2Var() { _primitiveCalcInt2Var.Run(); }
+    public void PrimitiveCalcInt2Var() => _primitiveCalcInt2Var.Run();
 
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitivesConstTrue() { _constTrue.Run(); }
+    public void PrimitivesConstTrue() => _constTrue.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitivesConstBool() { _constBool.Run(); }
+    public void PrimitivesConstBool() => _constBool.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitivesConst1() { _const1.Run(); }
+    public void PrimitivesConst1() => _const1.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ConstText() { _constSingleText.Run(); }
+    public void ConstText() => _constSingleText.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ConstBoolArray() { _constBoolArray.Run(); }
+    public void ConstBoolArray() => _constBoolArray.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ConstRealArray() { _constRealArray.Run(); }
+    public void ConstRealArray() => _constRealArray.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ConstInterpolation() { _constInterpolation.Run(); }
+    public void ConstInterpolation() => _constInterpolation.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ConstGenericFunc() { _constGenericFunc.Run(); }
+    public void ConstGenericFunc() => _constGenericFunc.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ConstSquareEquation() { _constSquareEquation.Run(); }
+    public void ConstSquareEquation() => _constSquareEquation.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcSingleBool() { _calcSingleBool.Run(); }
+    public void PrimitiveCalcSingleBool() => _calcSingleBool.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcSingleReal() { _calcSingleReal.Run(); }
+    public void PrimitiveCalcSingleReal() => _calcSingleReal.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcSingleText() { _calcSingleText.Run(); }
+    public void CalcSingleText() => _calcSingleText.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcIntOp() { _calcIntOp.Run(); }
+    public void PrimitiveCalcIntOp() => _calcIntOp.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcRealOp() { _calcRealOp.Run(); }
+    public void PrimitiveCalcRealOp() => _calcRealOp.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitiveCalcBoolOp() { _calcBoolOp.Run(); }
+    public void PrimitiveCalcBoolOp() => _calcBoolOp.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcTextOp() { _calcTextOp.Run(); }
+    public void CalcTextOp() => _calcTextOp.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcInterpolation() { _calcInterpolation.Run(); }
+    public void CalcInterpolation() => _calcInterpolation.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcGenericFunc() { _calcGenericFunc.Run(); }
+    public void CalcGenericFunc() => _calcGenericFunc.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcSquareEquation() { _calcSquareEquation.Run(); }
+    public void CalcSquareEquation() => _calcSquareEquation.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void PrimitivesCalcKxb() { _calcKxb.Run(); }
+    public void PrimitivesCalcKxb() => _calcKxb.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcRealArray() { _calcRealArray.Run(); }
+    public void CalcRealArray() => _calcRealArray.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void CalcFourArgs() { _calcFourArgs.Run(); }
+    public void CalcFourArgs() => _calcFourArgs.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ComplexConstMultiArrays() { _constMultiplyArrayItems.Run(); }
+    public void ComplexConstMultiArrays() => _constMultiplyArrayItems.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ComplexDummyBubble() { _constDummyBubbleSort.Run(); }
+    public void ComplexDummyBubble() => _constDummyBubbleSort.Run();
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
-    public void ComplexConstEverything() { _constEverything.Run(); }
+    public void ComplexConstEverything() => _constEverything.Run();
 
-    private FunnyRuntime Build(string expr) { return Funny.Hardcore.Build(expr); }
+    private FunnyRuntime Build(string expr) => Funny.Hardcore.Build(expr);
 }

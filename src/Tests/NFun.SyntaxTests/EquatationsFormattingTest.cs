@@ -2,7 +2,7 @@ using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class EquationsFormattingTest {
@@ -39,21 +39,20 @@ public class EquationsFormattingTest {
     [TestCase("y:int = ;(;2;+;3;)*(;3;)", 15)]
     public void SeveralLinesBetweenNodes_Calculates(string expr, int expected) => expr.AssertReturns("y", expected);
 
-    [TestCase("[1,]", new []{1})]
+    [TestCase("[1,]", new[] { 1 })]
     [TestCase("sqrt(4)", 2.0)]
     [TestCase("foo(a,) = -a; foo(1)", -1)]
     [TestCase("foo(a) = -a; foo(1,)", -1)]
     [TestCase("{a=42,}.a", 42)]
-    [TestCase("foo() = rule it; foo()(2,)",2)]
-    
-    [TestCase("[1,2,3,]", new []{1,2,3})]
+    [TestCase("foo() = rule it; foo()(2,)", 2)]
+    [TestCase("[1,2,3,]", new[] { 1, 2, 3 })]
     [TestCase("max(4,2,)", 4)]
     [TestCase("foo(a,b,) = a+b; foo(1,2)", 3)]
     [TestCase("foo(a,b) = a+b; foo(1,2,)", 3)]
     [TestCase("{a=42,b=12,}.a", 42)]
-    [TestCase("foo() = rule it1*it2; foo()(2,4,)",8)]
-    [TestCase("foo() = rule(a,b)= a*b; foo()(2,4,)",8)]
-    [TestCase("[0,1,2,3].fold(rule(a,b,) =a+b)",6)]
+    [TestCase("foo() = rule it1*it2; foo()(2,4,)", 8)]
+    [TestCase("foo() = rule(a,b)= a*b; foo()(2,4,)", 8)]
+    [TestCase("[0,1,2,3].fold(rule(a,b,) =a+b)", 6)]
     public void TrailingComaInTheList(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
     [TestCase("{,}")]
@@ -68,7 +67,7 @@ public class EquationsFormattingTest {
     [TestCase("y = [0,1,2,3].fold(rule(,) =a+b)")]
     public void TrailingComaInTheListFails(string expr) => expr.AssertObviousFailsOnParse();
 
-    
+
     [TestCase(
         @"y:int = 1
 
@@ -96,7 +95,7 @@ public class EquationsFormattingTest {
     [Test]
     public void TwoEquationsOnOneLine() =>
         Assert.DoesNotThrow(() => "y=1; z=5".Build());
-    
+
     [TestCase("y=1 z=5")]
     public void ObviousFails(String expr) =>
         expr.AssertObviousFailsOnParse();

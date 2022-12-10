@@ -4,10 +4,9 @@ using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 class TestHardcoreApiRun {
-    
     [TestCase("y = 2*x", 3, 6)]
     [TestCase("y = 2.0*x", 3.5, 7.0)]
     [TestCase("y = 4/x", 2, 2)]
@@ -31,12 +30,11 @@ class TestHardcoreApiRun {
     [TestCase(@"
         fact(n) = if(n==0) 1 else n * fact(n-1)
         y = fact(x)
-        ",5,120)]
+        ", 5, 120)]
     [TestCase(@"f(x) = x*2; z = f(x); y = f(x)", 1, 2)]
-    [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);",1,2)]
+    [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);", 1, 2)]
     public void SingleVariableEquation(string expr, double arg, double expected) =>
-        expr.AssertRuntimes(runtime =>
-        {
+        expr.AssertRuntimes(runtime => {
             var ySource = runtime["y"];
             var xSource = runtime["x"];
             Assert.IsTrue(ySource.IsOutput);
@@ -44,39 +42,38 @@ class TestHardcoreApiRun {
 
             xSource.Value = arg;
             runtime.Run();
-            Assert.AreEqual(expected, ySource.FunnyValue);    
+            Assert.AreEqual(expected, ySource.FunnyValue);
         });
-    
-    
+
+
     [Test]
     public void GenericRecursionFunctionBuildAndClone() =>
         "f() = f(); y = f()".AssertRuntimes(_ => { });
-    
+
     [Test]
     public void GenericRecursionFunctionBuildAndCloneForManyUsages() =>
         "f() = f(); x1:int = f(); x2:int = f(); z:real = f()".AssertRuntimes(_ => { });
-    
+
     [Test]
     public void ConcreteRecursionFunctionBuildAndClone() =>
         "f():int = f(); y = f()".AssertRuntimes(_ => { });
-    
+
     [Test]
     public void ConcreteRecursionFunctionBuildAndCloneForManyUsages() =>
         "f():int = f(); x1:int = f(); x2:int = f()".AssertRuntimes(_ => { });
-    
-    
+
+
     [TestCase("y = 4.0 + x", 3, 7)]
     [TestCase("y = (x + 4/x)", 2, 4)]
     [TestCase("y = x**3", 2, 8)]
     public void TypedSingleVariableEquation(string expr, double arg, double expected) =>
-        expr.AssertRuntimes(runtime =>
-        {
+        expr.AssertRuntimes(runtime => {
             var ySource = runtime["y"];
             var xSource = runtime["x"];
 
             xSource.CreateSetterOf<double>()(arg);
             runtime.Run();
-            Assert.AreEqual(expected, ySource.CreateGetterOf<double>()());    
+            Assert.AreEqual(expected, ySource.CreateGetterOf<double>()());
         });
 
     [TestCase("y = 2*x", 0.0)]
@@ -103,48 +100,41 @@ class TestHardcoreApiRun {
     [TestCase("x:text[][]; y = x.count()", 0)]
     [TestCase("y = -(-(-x))", 0.0)]
     public void InputNotSet_SingleVariableEquation(string expr, object expected) =>
-        expr.AssertRuntimes(runtime =>
-        {
+        expr.AssertRuntimes(runtime => {
             var ySource = runtime["y"];
             Assert.IsNotNull(ySource);
             runtime.Run();
-            Assert.AreEqual(expected, ySource.Value);    
+            Assert.AreEqual(expected, ySource.Value);
         });
 
     [Test]
     public void RuntimeWithSimpleTypes_VariablesEnumerationTest() =>
-            @"
+        @"
                     out1 = in1-1
                     out2:int = in2.filter(rule it>out1).map(rule it*it)[1]
-            ".AssertRuntimes(runtime =>
-            {
-                runtime["in1"].Value = 2;
-                runtime["in2"].Value = new[] { 0, 1, 2, 3, 4 };
+            ".AssertRuntimes(runtime => {
+            runtime["in1"].Value = 2;
+            runtime["in2"].Value = new[] { 0, 1, 2, 3, 4 };
 
-                runtime.Run();
+            runtime.Run();
 
 
-                foreach (var v in runtime.Variables)
-                    Console.WriteLine($"Variable '{v.Name}'' of type {v.Type} equals {v.Value}");
-                Assert.AreEqual(2, runtime.Variables.FirstOrDefault(i => i.Name == "in1")?.Value);
-                Assert.AreEqual(2, runtime["in1"].Value);         
-            });
+            foreach (var v in runtime.Variables)
+                Console.WriteLine($"Variable '{v.Name}'' of type {v.Type} equals {v.Value}");
+            Assert.AreEqual(2, runtime.Variables.FirstOrDefault(i => i.Name == "in1")?.Value);
+            Assert.AreEqual(2, runtime["in1"].Value);
+        });
 
     [Test]
     public void RuntimeWithCompositeTypes_VariablesEnumerationTest() =>
-            @"
+        @"
                     out3 = {age = 1, name = 'vasa'}    
                     out4 = in3.field1
                     out5 = in3.field2.child    
             ".AssertRuntimes(
-            runtime =>
-            {
+            runtime => {
                 runtime["in3"].Value = new Dictionary<string, object> {
-                    { "field1", 123 }, {
-                        "field2", new Dictionary<string, object> {
-                            { "child", "kavabanga" }
-                        }
-                    }
+                    { "field1", 123 }, { "field2", new Dictionary<string, object> { { "child", "kavabanga" } } }
                 };
 
                 runtime.Run();
@@ -165,43 +155,37 @@ class TestHardcoreApiRun {
 
     [Test]
     public void TypedRuntimeWithCompositeTypes_VariablesEnumerationTest() =>
-            @"
+        @"
                     out3 = {age = 1, name = 'vasa'}    
                     out4 = in3.field1 + 1
                     out5:text = in3.field2.child    
-            ".AssertRuntimes( runtime =>
-            {
-                runtime["in3"].CreateSetterOf<Dictionary<string, object>>()
-                (
-                    new Dictionary<string, object> {
-                        { "field1", 123 }, {
-                            "field2", new Dictionary<string, object> {
-                                { "child", "kavabanga" }
-                            }
-                        }
-                    });
+            ".AssertRuntimes(runtime => {
+            runtime["in3"].CreateSetterOf<Dictionary<string, object>>()
+            (
+                new Dictionary<string, object> {
+                    { "field1", 123 }, { "field2", new Dictionary<string, object> { { "child", "kavabanga" } } }
+                });
 
-                runtime.Run();
+            runtime.Run();
 
-                Assert.AreEqual(124, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.CreateGetterOf<int>()());
-                Assert.AreEqual(124, runtime["out4"]?.CreateGetterOf<int>()());
+            Assert.AreEqual(124, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.CreateGetterOf<int>()());
+            Assert.AreEqual(124, runtime["out4"]?.CreateGetterOf<int>()());
 
-                Assert.AreEqual(
-                    "kavabanga",
-                    runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.CreateGetterOf<string>()());
-                Assert.AreEqual("kavabanga", runtime["out5"]?.CreateGetterOf<string>()());
+            Assert.AreEqual(
+                "kavabanga",
+                runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.CreateGetterOf<string>()());
+            Assert.AreEqual("kavabanga", runtime["out5"]?.CreateGetterOf<string>()());
 
-                Assert.IsNotNull(runtime["out3"].CreateGetterOf<Dictionary<string, object>>());
-                Assert.IsNotNull(
-                    runtime.Variables.FirstOrDefault(i => i.Name == "out3")
-                        ?.CreateGetterOf<Dictionary<string, object>>());
-            });
+            Assert.IsNotNull(runtime["out3"].CreateGetterOf<Dictionary<string, object>>());
+            Assert.IsNotNull(
+                runtime.Variables.FirstOrDefault(i => i.Name == "out3")
+                    ?.CreateGetterOf<Dictionary<string, object>>());
+        });
 
     [Test]
     public void RuntimeWithVeryComplexCompositeTypes_VariablesEnumerationTest() =>
         "{age = 1, items = [{f1 = 1, f2 = 'hi', f3 = [1,2,3]}]}".AssertRuntimes(
-            runtime =>
-            {
+            runtime => {
                 runtime.Run();
 
                 foreach (var v in runtime.Variables)
@@ -223,12 +207,9 @@ class TestHardcoreApiRun {
         );
 
     [Test]
-    public void TypedRuntimeWithVeryComplexCompositeTypes_VariablesEnumerationTest()
-    {
+    public void TypedRuntimeWithVeryComplexCompositeTypes_VariablesEnumerationTest() {
         "{age = 1, items = [{f1 = 1, f2 = 'hi', f3 = [1,2,3]}]}".AssertRuntimes(
-            runtime =>
-            {
-
+            runtime => {
                 runtime.Run();
 
                 var value = runtime.Variables.FirstOrDefault(i => i.Name == "out")

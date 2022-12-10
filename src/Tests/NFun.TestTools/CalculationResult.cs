@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun.TestTools; 
+namespace NFun.TestTools;
 
 public sealed class CalculationResult {
     internal CalculationResult(VariableTypeAndValue[] rawResults, FunnyConverter converter) {
@@ -28,8 +28,8 @@ public sealed class CalculationResult {
         foreach (var equationResult in _rawResults)
         {
             if (String.Equals(
-                equationResult.Name, name,
-                StringComparison.CurrentCultureIgnoreCase))
+                    equationResult.Name, name,
+                    StringComparison.CurrentCultureIgnoreCase))
             {
                 var converter = Converter.GetOutputConverterFor(equationResult.Type);
                 return converter.ToClrObject(equationResult.Value);

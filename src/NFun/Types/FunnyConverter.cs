@@ -19,10 +19,7 @@ public class FunnyConverter {
     public static readonly FunnyConverter RealIsDouble = new(TypeBehaviour.RealIsDouble);
     public static readonly FunnyConverter RealIsDecimal = new(TypeBehaviour.RealIsDecimal);
     
-    private FunnyConverter(TypeBehaviour typeBehaviour)
-    {
-        TypeBehaviour = typeBehaviour;
-    }
+    private FunnyConverter(TypeBehaviour typeBehaviour) => TypeBehaviour = typeBehaviour;
 
     /// <summary>
     /// Test GAP

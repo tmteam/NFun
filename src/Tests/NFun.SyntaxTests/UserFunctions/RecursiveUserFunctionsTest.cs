@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.UserFunctions; 
+namespace NFun.SyntaxTests.UserFunctions;
 
 [TestFixture]
 public class RecursiveUserFunctionsTest {
@@ -88,12 +88,12 @@ public class RecursiveUserFunctionsTest {
     [TestCase("g(x) = if(x>0) g(x-1)+1 else 0; y:real = g(42.5)", 43.0)]
     public void ConstantEquationOfReal_RecFunctions(string expr, object expected) =>
         expr.AssertReturns("y", expected);
-    
+
     [Ignore("Todo. Save generic function input type info, to have preferred type as result")]
     [Test]
     public void UserFunctionPreferedTypeIsUsedInBody() =>
         "g(x) = g(x-1); out = g(x)".Build().AssertContains("x", FunnyType.Int32);
-    
+
     [TestCase(1, 1)]
     [TestCase(2, 2)]
     [TestCase(3, 6)]
@@ -122,7 +122,7 @@ public class RecursiveUserFunctionsTest {
                     
                    fib(n:int) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)".Calc("x", x)
-                              .AssertReturns("y", y);
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -138,7 +138,7 @@ public class RecursiveUserFunctionsTest {
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)".Calc("x", x)
-                              .AssertReturns("y", y);
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -160,9 +160,7 @@ public class RecursiveUserFunctionsTest {
     [TestCase("g(x) = g(x); y = g(1.0)")]
     [TestCase("g(x) = g(x-1); g(1.0)")]
     [TestCase("g(x) = g([x[0]-1])-1; [1.0].g()")]
-
-    public void BuildsSomehow(string expr)
-    {
+    public void BuildsSomehow(string expr) {
         TraceLog.IsEnabled = true;
         expr.Build();
         TraceLog.IsEnabled = false;

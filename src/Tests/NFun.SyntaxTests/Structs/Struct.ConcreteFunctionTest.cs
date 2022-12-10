@@ -2,7 +2,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Structs; 
+namespace NFun.SyntaxTests.Structs;
 
 public class StructConcreteFunctionsTest {
     [Test]
@@ -89,7 +89,7 @@ public class StructConcreteFunctionsTest {
     public void ConcreteFactorialReq_ReturnStruct(int x, int y) =>
         @"fact(n:int) = if(n<=1) {res = 1} else {res = fact(n-1).res*n }
                   y = fact(x).res".Calc("x", x)
-                                  .AssertReturns("y", y);
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(3, 6)]
@@ -97,7 +97,7 @@ public class StructConcreteFunctionsTest {
     public void ConcreteFactorialReq_ArgIsStruct(int x, int y) =>
         @"fact(n):int = if(n.field<=1) 1 else fact({field=n.field-1}) * n.field;
                   y = fact({field=x})".Calc("x", x)
-                                      .AssertReturns("y", y);
+            .AssertReturns("y", y);
 
     [Test]
     public void SingleStructFunction_WithConcrete_ReturnsCouncrete() =>

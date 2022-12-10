@@ -5,14 +5,13 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.SyntaxDialect; 
+namespace NFun.SyntaxTests.SyntaxDialect;
 
 public abstract class GenericIntConstantTestBase<T> {
     private readonly IntegerPreferredType _integerPreferredType;
 
-    protected GenericIntConstantTestBase(IntegerPreferredType integerPreferredType) {
+    protected GenericIntConstantTestBase(IntegerPreferredType integerPreferredType) =>
         _integerPreferredType = integerPreferredType;
-    }
 
     [TestCase("y = 2+3", 5)]
     [TestCase("y = -2+-4", -6)]
@@ -160,9 +159,9 @@ public abstract class GenericIntConstantTestBase<T> {
     [Test]
     public void OverrideConstantWithOutputVariable_constantNotUsed() {
         var runtime = Funny.Hardcore
-                           .WithDialect(integerPreferredType: _integerPreferredType)
-                           .WithConstant("pi", Math.PI)
-                           .Build("pi = 3; y = pi");
+            .WithDialect(integerPreferredType: _integerPreferredType)
+            .WithConstant("pi", Math.PI)
+            .Build("pi = 3; y = pi");
 
         runtime.AssertInputsCount(0);
         runtime.Calc().AssertReturns(("y", Convert(3)), ("pi", Convert(3)));

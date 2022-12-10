@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Funs; 
+namespace NFun.Tic.Tests.Funs;
 
 public class MapTests {
     [Test]

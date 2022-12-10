@@ -8,7 +8,7 @@ using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters; 
+namespace NFun.UnitTests.Converters;
 
 public class VarTypeConverterTest {
     [TestCase((int)1, (double)1, BaseFunnyType.Int32, BaseFunnyType.Real)]
@@ -20,7 +20,8 @@ public class VarTypeConverterTest {
             VarTypeConverter.CanBeConverted(
                 @from: FunnyType.PrimitiveOf(typeFrom),
                 to: FunnyType.PrimitiveOf(typeTo)));
-        var converter = VarTypeConverter.GetConverterOrNull(TypeBehaviour.RealIsDouble, FunnyType.PrimitiveOf(typeFrom), FunnyType.PrimitiveOf(typeTo));
+        var converter = VarTypeConverter.GetConverterOrNull(TypeBehaviour.RealIsDouble, FunnyType.PrimitiveOf(typeFrom),
+            FunnyType.PrimitiveOf(typeTo));
         var converted = converter(from);
         Assert.AreEqual(converted, expected);
     }
@@ -71,11 +72,12 @@ public class VarTypeConverterTest {
         public FunnyType[] ArgTypes { get; }
         public FunnyType ReturnType { get; }
         public object Calc(object[] parameters) => _func((Tin)parameters[0]);
-        public IConcreteFunction Clone(ICloneContext context) 
+
+        public IConcreteFunction Clone(ICloneContext context)
             => throw new NotImplementedException();
 
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour,
+            Interval interval)
             => throw new NotImplementedException();
-
     }
 }

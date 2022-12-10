@@ -33,9 +33,8 @@ public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
 
         public ConcreteImplementationWithTwoArgs(
             Func<object, object, object> calc,
-            string name, FunnyType returnType, params FunnyType[] argTypes) : base(name, returnType, argTypes) {
+            string name, FunnyType returnType, params FunnyType[] argTypes) : base(name, returnType, argTypes) =>
             _calc = calc;
-        }
 
         public override object Calc(object a, object b) => _calc(a, b);
         

@@ -11,8 +11,7 @@ public class TestHardcoreApiAddConstant {
         Funny.Hardcore
             .WithConstants(("pipi", Math.PI))
             .WithFunction(new LogFunction())
-            .Build("y = pipi").AssertRuntimes(r =>
-            {
+            .Build("y = pipi").AssertRuntimes(r => {
                 Assert.IsTrue(r.Variables.All(v => v.IsOutput));
                 r.Calc().AssertReturns("y", Math.PI);
             });
@@ -34,13 +33,12 @@ public class TestHardcoreApiAddConstant {
             .WithFunction(new LogFunction())
             .Build("y = pipi")
             .AssertRuntimes(
-                r =>
-                {
+                r => {
                     r.AssertInputsCount(0);
                     r.Calc().AssertReturns("y", Math.PI);
                 });
 
-[Test]
+    [Test]
     public void UseTwoClrConstants() =>
         Funny.Hardcore
             .WithConstant("one", 1)
@@ -48,19 +46,17 @@ public class TestHardcoreApiAddConstant {
             .WithFunction(new LogFunction())
             .Build("y = one+two")
             .AssertRuntimes(
-                r =>
-                {
+                r => {
                     r.AssertInputsCount(0);
                     r.Calc().AssertReturns("y", 3);
                 });
 
-        [Test]
+    [Test]
     public void UseTwoNfunConstants() =>
         Funny.Hardcore
             .WithConstants(("one", 1), ("two", 2))
             .Build("y = one+two")
-            .AssertRuntimes(r =>
-            {
+            .AssertRuntimes(r => {
                 r.AssertInputsCount(0);
                 r.Calc().AssertReturns("y", 3);
             });
@@ -71,8 +67,7 @@ public class TestHardcoreApiAddConstant {
             .WithConstant("pi", Math.PI)
             .WithFunction(new LogFunction())
             .Build("pi = 3; y = pi")
-            .AssertRuntimes(r =>
-            {
+            .AssertRuntimes(r => {
                 r.AssertInputsCount(0);
                 r.Calc().AssertReturns(("y", 3), ("pi", 3));
             });
@@ -82,8 +77,7 @@ public class TestHardcoreApiAddConstant {
         Funny.Hardcore
             .WithConstant("pi", Math.PI)
             .Build("pi:int; y = pi")
-            .AssertRuntimes(r =>
-            {
+            .AssertRuntimes(r => {
                 r.AssertInputsCount(1);
                 r.Calc("pi", 2).AssertReturns("y", 2);
             });

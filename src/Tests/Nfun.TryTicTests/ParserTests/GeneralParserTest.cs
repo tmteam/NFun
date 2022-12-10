@@ -5,11 +5,10 @@ using NFun.TestTools;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.ParserTests; 
+namespace NFun.UnitTests.ParserTests;
 
 [TestFixture]
 public class GeneralParserTest {
-
     [TestCase("y(x) = 1+x", "1+x", "x")]
     [TestCase("y() = 1", "1")]
     [TestCase("y(x,z) = x+z*(x-z)", "x+z*(x-z)", "x", "z")]
@@ -56,25 +55,22 @@ public class GeneralParserTest {
         AssertParsed("max3(x,y,z)", y1Equation.Expression);
         AssertParsed("max(x,y)+1", y2Equation.Expression);
     }
-    
-    
-    [Test]
-    public void ParenthesisTest() {
-        AssertParsed("()", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), 1));
-    }
-    
-    [Test]
-    public void NestedParenthesisTest() {
-        AssertParsed("(())", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), 2));
-    }
 
-    private void AssertParsed(UserFunctionDefinitionSyntaxNode fun, string expectedExpr, params string[] variables) {
+
+    [Test]
+    public void ParenthesisTest() =>
+        AssertParsed("()", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), 1));
+
+    [Test]
+    public void NestedParenthesisTest() =>
+        AssertParsed("(())", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), 2));
+
+    private void AssertParsed(UserFunctionDefinitionSyntaxNode fun, string expectedExpr, params string[] variables) =>
         Assert.Multiple(
             () => {
                 CollectionAssert.AreEqual(variables, fun.Args.Select(a => a.Id));
                 AssertParsed(expectedExpr, fun.Body);
             });
-    }
 
     private void AssertParsed(string expr, ISyntaxNode node) {
         var expectedExpression = SyntaxNodeReader.ReadNodeOrNull(Tokenizer.ToFlow(expr));
@@ -84,6 +80,6 @@ public class GeneralParserTest {
     private void AssertEquals(ISyntaxNode expected, ISyntaxNode actual) {
         var expectedText = expected?.ToStringSmart();
         var actualText = actual?.ToStringSmart();
-        Assert.AreEqual(expectedText, actualText ,$"\r\nExpected:\r\n{expectedText}\r\n\r\nActual:\r\n{actualText}");
+        Assert.AreEqual(expectedText, actualText, $"\r\nExpected:\r\n{expectedText}\r\n\r\nActual:\r\n{actualText}");
     }
 }

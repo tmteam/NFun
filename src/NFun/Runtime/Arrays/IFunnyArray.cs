@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.Runtime.Arrays; 
+namespace NFun.Runtime.Arrays;
 
 public interface IFunnyArray : IEnumerable<object> {
     FunnyType ElementType { get; }

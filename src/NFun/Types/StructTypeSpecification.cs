@@ -5,8 +5,7 @@ namespace NFun.Types;
 
 internal class StructTypeSpecification: Dictionary<string, FunnyType>{
     public StructTypeSpecification(int capacity)
-        : base(capacity, StringComparer.InvariantCultureIgnoreCase)
-    {
+        : base(capacity, StringComparer.InvariantCultureIgnoreCase) =>
         _hashCode = new Lazy<int>(() =>
         {
             var hash = 17;
@@ -16,7 +15,6 @@ internal class StructTypeSpecification: Dictionary<string, FunnyType>{
             }
             return hash;
         });
-    }
 
 
     private readonly Lazy<int> _hashCode;

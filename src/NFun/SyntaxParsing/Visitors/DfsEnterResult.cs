@@ -1,4 +1,4 @@
-namespace NFun.SyntaxParsing.Visitors; 
+namespace NFun.SyntaxParsing.Visitors;
 
 public enum DfsEnterResult {
     Continue,

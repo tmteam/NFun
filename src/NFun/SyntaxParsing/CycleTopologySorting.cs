@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.SyntaxParsing; 
+namespace NFun.SyntaxParsing;
 
 public class CycleTopologySorting {
     /// <summary>
@@ -70,7 +70,7 @@ public class CycleTopologySorting {
                 throw new ArgumentOutOfRangeException($"node state {_nodeStates[node]}");
         }
     }
-    
+
     enum NodeState {
         NotProcessed,
         Checked,

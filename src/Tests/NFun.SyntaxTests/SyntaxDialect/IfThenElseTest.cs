@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.SyntaxDialect; 
+namespace NFun.SyntaxTests.SyntaxDialect;
 
 [TestFixture]
 public class IfThenElseTest {
@@ -98,10 +98,10 @@ public class IfThenElseTest {
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
             Funny.Hardcore
-                 .WithDialect(setup)
-                 .Build(expr)
-                 .Calc(("x1", x1), ("x2", x2), ("x3", x3))
-                 .AssertReturns("y", expected);
+                .WithDialect(setup)
+                .Build(expr)
+                .Calc(("x1", x1), ("x2", x2), ("x3", x3))
+                .AssertReturns("y", expected);
         }
     }
 
@@ -154,11 +154,11 @@ else 'not supported' ", 2, "two")]
     [TestCase("if (x==1) [1,2,3] else []", 0, new int[0])]
     public void SingleVariableEquatation_ififelse(string expression, int x, object expected)
         => Funny.Hardcore
-                .WithApriori<int>("x")
-                .WithDialect(ifExpressionSyntax: IfExpressionSetup.IfIfElse)
-                .Build(expression)
-                .Calc("x", x)
-                .AssertAnonymousOut(expected);
+            .WithApriori<int>("x")
+            .WithDialect(ifExpressionSyntax: IfExpressionSetup.IfIfElse)
+            .Build(expression)
+            .Calc("x", x)
+            .AssertAnonymousOut(expected);
 
 
     [TestCase(
@@ -191,11 +191,11 @@ else 'not supported' ", 2, "two")]
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
             Funny.Hardcore
-                 .WithApriori<int>("x")
-                 .WithDialect(setup)
-                 .Build(expression)
-                 .Calc("x", x)
-                 .AssertAnonymousOut(expected);
+                .WithApriori<int>("x")
+                .WithDialect(setup)
+                .Build(expression)
+                .Calc("x", x)
+                .AssertAnonymousOut(expected);
         }
     }
 
@@ -216,11 +216,10 @@ else 'not supported' ", 2, "two")]
 
     [TestCase("y = if (2<1 )10.0\r if (2>1) -10.0 else 0", -10.0)]
     [TestCase("y = if (1>2 )10.0\r if (1<2)-10.0\r else 0.0", -10.0)]
-    public void ConstantRealEquation_ififelse(string expr, double expected) {
+    public void ConstantRealEquation_ififelse(string expr, double expected) =>
         expr.BuildWithDialect(IfExpressionSetup.IfIfElse)
             .Calc()
             .AssertReturns(expected);
-    }
 
     [Test]
     public void IfElseAsExpression() {
@@ -254,8 +253,7 @@ else 'not supported' ", 2, "two")]
     [TestCase("y = if (2>1)  3 if 2<1 then true else 1")]
     [TestCase("y = if (2>1)  false if 2<1 then true else 1")]
     public void ObviouslyFails(string expr) {
-        foreach (var setup in new[]
-            { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf, IfExpressionSetup.Deny })
+        foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf, IfExpressionSetup.Deny })
         {
             expr.AssertObviousFailsOnParse(setup);
         }

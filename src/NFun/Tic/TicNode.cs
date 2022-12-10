@@ -117,11 +117,10 @@ public class TicNode {
 
     public object Name { get; }
 
-    public override string ToString() {
-        return Name.Equals(_state.ToString())
+    public override string ToString() =>
+        Name.Equals(_state.ToString())
             ? Name.ToString()
             : $"{Name}:{_state}";
-    }
 
     public void PrintToConsole() {
         if (!TraceLog.IsEnabled)
@@ -191,5 +190,5 @@ public class TicNode {
 
     public override int GetHashCode() => _uid;
 
-    public void ClearAncestors() { _ancestors.Clear(); }
+    public void ClearAncestors() => _ancestors.Clear();
 }

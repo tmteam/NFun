@@ -4,10 +4,9 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestFluentApiCalcSingleTT {
-
     [TestCase("(Age == 13) and (NAME == 'vasa')", true)]
     [TestCase("(age == 13) and (name == 'vasa')", true)]
     [TestCase("(age != 13) or (name != 'vasa')", false)]
@@ -43,36 +42,36 @@ public class TestFluentApiCalcSingleTT {
             expr: "{id = age; items = ids.map(rule '{it}'); price = size*2 + balance; taxes = balance}",
             input: new UserInputModel("vasa", 13, size: 21, balance: new Decimal(1.5), iq: 12, 1, 2, 3, 4),
             expected: new ContractOutputModel {
-                Id = 13,
-                Items = new[] { "1", "2", "3", "4" },
-                Price = 21 * 2 + 1.5,
-                Taxes = new decimal(1.5)
+                Id = 13, Items = new[] { "1", "2", "3", "4" }, Price = 21 * 2 + 1.5, Taxes = new decimal(1.5)
             });
 
     [TestCase("ids.count(rule it>2)", 2)]
     [TestCase("1", 1)]
     public void ReturnsInt(string expr, int expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), expected);
+        => CalcInDifferentWays(expr,
+            new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), expected);
 
     [TestCase("default", "0.0.0.0")]
     [TestCase("127.1.2.24", "127.1.2.24")]
     public void ReturnsIp(string expr, string expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), IPAddress.Parse(expected));
-    
+        => CalcInDifferentWays(expr,
+            new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4),
+            IPAddress.Parse(expected));
+
     [TestCase("IDS.filter(rule it>aGe).map(rule it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.filter(rule it>age).map(rule it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.filter(rule it>2)", new[] { 101, 102 })]
     [TestCase("out:int[]=ids.filter(rule it>age).map(rule it*it)", new[] { 10201, 10404 })]
-    [TestCase("out:int[]=127.0.0.1.convert()", new[] { 127, 0,0,1 })]
+    [TestCase("out:int[]=127.0.0.1.convert()", new[] { 127, 0, 0, 1 })]
     public void ReturnsIntArray(string expr, int[] expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 2, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102), expected);
+        => CalcInDifferentWays(expr,
+            new UserInputModel("vasa", 2, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102), expected);
 
     [Test]
     public void InputFieldIsCharArray()
         => CalcInDifferentWays(
-            "[letters.reverse()]", new ModelWithCharArray2 {
-                Letters = new[] { 't', 'e', 's', 't' }
-            }, new[] { "tset" });
+            "[letters.reverse()]", new ModelWithCharArray2 { Letters = new[] { 't', 'e', 's', 't' } },
+            new[] { "tset" });
 
     [TestCase("IDS.reverse().join(',')", "4,3,2,1")]
     [TestCase("Ids.reverse().join(',')", "4,3,2,1")]
@@ -82,7 +81,8 @@ public class TestFluentApiCalcSingleTT {
     [TestCase("'{Name}{Age}'.reverse()", "31asav")]
     [TestCase("name.reverse()", "asav")]
     public void ReturnsText(string expr, string expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4), expected);
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4),
+            expected);
 
     [TestCase("ids.map(rule it.toText())", new[] { "1", "2", "101", "102" })]
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
@@ -104,20 +104,26 @@ public class TestFluentApiCalcSingleTT {
         var result6 = lambda2(input);
         var result7 = lambda2(input);
         var result8 = Funny
-                      .WithConstant("SomeNotUsedConstant", 42)
-                      .BuildForCalc<TInput, TOutput>()
-                      .Calc(expr, input);
+            .WithConstant("SomeNotUsedConstant", 42)
+            .BuildForCalc<TInput, TOutput>()
+            .Calc(expr, input);
 
-        Assert.IsTrue(TestHelper.AreSame(expected, result1), $"Funny.Calc<TInput, TOutput>. \r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result2), $"Funny.BuildForCalc<TInput, TOutput>().Calc() #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()} ");
-        Assert.IsTrue(TestHelper.AreSame(expected, result3), $"Funny.BuildForCalc<TInput, TOutput>().Calc() #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result4), $"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result5), $"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result1),
+            $"Funny.Calc<TInput, TOutput>. \r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result2),
+            $"Funny.BuildForCalc<TInput, TOutput>().Calc() #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()} ");
+        Assert.IsTrue(TestHelper.AreSame(expected, result3),
+            $"Funny.BuildForCalc<TInput, TOutput>().Calc() #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result4),
+            $"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result5),
+            $"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
         Assert.IsTrue(TestHelper.AreSame(expected, result6),
             $"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
         Assert.IsTrue(TestHelper.AreSame(expected, result7),
             $"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result8), $"WithConstant(SomeNotUsedConstant, 42)\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result8),
+            $"WithConstant(SomeNotUsedConstant, 42)\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
     }
 
     [Test]
@@ -126,9 +132,7 @@ public class TestFluentApiCalcSingleTT {
             expr: "[[[1,2],[]],[[3,4]],[[]]]",
             input: new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4),
             expected: new[] {
-                new[] { new[] { 1, 2 }, Array.Empty<int>() },
-                new[] { new[] { 3, 4 } },
-                new[] { Array.Empty<int>() }
+                new[] { new[] { 1, 2 }, Array.Empty<int>() }, new[] { new[] { 3, 4 } }, new[] { Array.Empty<int>() }
             }
         );
 
@@ -152,7 +156,7 @@ public class TestFluentApiCalcSingleTT {
         => Assert.Throws<FunnyInvalidUsageException>(
             () => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
                 "{name = name}"
-              , new UserInputModel("vasa")));
+                , new UserInputModel("vasa")));
 
     [TestCase("age>someUnknownvariable")]
     [TestCase("x:int;")]

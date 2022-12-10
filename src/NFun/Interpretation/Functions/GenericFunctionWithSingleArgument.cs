@@ -21,9 +21,8 @@ public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase {
 
         public ConcreteImplementationWithSingleArg(
             Func<object, object> calc,
-            string name, FunnyType returnType, FunnyType argType) : base(name, returnType, argType) {
+            string name, FunnyType returnType, FunnyType argType) : base(name, returnType, argType) =>
             _calc = calc;
-        }
 
         public override object Calc(object a) => _calc(a);
 

@@ -41,7 +41,7 @@ class RefCycleSearchAlgorithm {
 
     private Stack<TicNode> _refRoute = null;
 
-    public RefCycleSearchAlgorithm(int nodeInListMark) { _nodeInListMark = nodeInListMark; }
+    public RefCycleSearchAlgorithm(int nodeInListMark) => _nodeInListMark = nodeInListMark;
 
     private TicNode GetNonReferenceNodeOrNull(TicNode node) {
         if (node.VisitMark == _nodeInListMark)

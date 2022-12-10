@@ -6,12 +6,11 @@ using NFun.Runtime.Arrays;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestHardcoreApiAddFunction {
     [Test]
-    public void CustomNonGenericFunction_CallsWell()
-    {
+    public void CustomNonGenericFunction_CallsWell() {
         string customName = "lenofstr";
         string arg = "some very good string";
         Funny.Hardcore
@@ -147,9 +146,8 @@ public class GenericFunctionMock : GenericFunctionBase {
 
     public GenericFunctionMock(
         Func<object[], object> calc, string name, FunnyType returnType,
-        params FunnyType[] argTypes) : base(name, returnType, argTypes) {
+        params FunnyType[] argTypes) : base(name, returnType, argTypes) =>
         _calc = calc;
-    }
 
     protected override object Calc(object[] args) => _calc(args);
 }
@@ -158,9 +156,8 @@ public class FunctionMock : FunctionWithManyArguments {
     private readonly Func<object[], object> _calc;
 
     public FunctionMock(Func<object[], object> calc, string name, FunnyType returnType, params FunnyType[] argTypes)
-        : base(name, returnType, argTypes) {
+        : base(name, returnType, argTypes) =>
         _calc = calc;
-    }
 
     public override object Calc(object[] args) => _calc(args);
 }

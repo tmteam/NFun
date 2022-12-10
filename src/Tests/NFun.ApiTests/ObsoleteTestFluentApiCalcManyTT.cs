@@ -2,57 +2,47 @@ using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
+
 #pragma warning disable CS0618
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class ObsoleteTestFluentApiCalcManyTT {
     [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1 + balance")]
     [TestCase("ID = age*2; Items = iDs.map(toText);  price = 42.1 + balAncE")]
-    public void MapContracts(string expr) 
+    public void MapContracts(string expr)
         => CalcInDifferentWays(
             expr,
             input: new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }, balance: new Decimal(100.1)),
             expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 142.2 });
 
     [Test]
-    public void FullConstInitialization() 
+    public void FullConstInitialization()
         => CalcInDifferentWays(
             "id = 42; items = ['vasa','kate']; price = 42.1; taxes = 42.2", new UserInputModel(),
             new ContractOutputModel {
-                Id = 42,
-                Price = 42.1,
-                Taxes = new decimal(42.2),
-                Items = new[] { "vasa", "kate" }
+                Id = 42, Price = 42.1, Taxes = new decimal(42.2), Items = new[] { "vasa", "kate" }
             }
         );
 
 
     [Test]
-    public void OutputFieldIsConstCharArray() 
+    public void OutputFieldIsConstCharArray()
         => CalcInDifferentWays(
-            "chars = 'test'", new UserInputModel(), new ModelWithCharArray {
-                Chars = new[] { 't', 'e', 's', 't' }
-            });
+            "chars = 'test'", new UserInputModel(), new ModelWithCharArray { Chars = new[] { 't', 'e', 's', 't' } });
 
 
     [Test]
-    public void InputAndOutputFieldsAreCharArrays() 
+    public void InputAndOutputFieldsAreCharArrays()
         => CalcInDifferentWays(
-            "Chars = letters.reverse()", new ModelWithCharArray2 {
-                Letters = new[] { 't', 'e', 's', 't' }
-            }, new ModelWithCharArray {
-                Chars = new[] { 't', 's', 'e', 't' }
-            });
+            "Chars = letters.reverse()", new ModelWithCharArray2 { Letters = new[] { 't', 'e', 's', 't' } },
+            new ModelWithCharArray { Chars = new[] { 't', 's', 'e', 't' } });
 
     [Test]
-    public void InputFieldIsCharArray() 
+    public void InputFieldIsCharArray()
         => CalcInDifferentWays(
-            "items = [letters.reverse()]", new ModelWithCharArray2 {
-                Letters = new[] { 't', 'e', 's', 't' }
-            }, new ContractOutputModel {
-                Items = new[] { "tset" }
-            });
+            "items = [letters.reverse()]", new ModelWithCharArray2 { Letters = new[] { 't', 'e', 's', 't' } },
+            new ContractOutputModel { Items = new[] { "tset" } });
 
     [Test]
     public void NoFieldsInitialized_throws()
@@ -86,7 +76,7 @@ public class ObsoleteTestFluentApiCalcManyTT {
 
     [TestCase("Id = age*Age; ")]
     [TestCase("Id = 321; Price = ID;")]
-    public void UseDifferentInputCase_throws(string expression) 
+    public void UseDifferentInputCase_throws(string expression)
         => Assert.Throws<FunnyParseException>(
             () => Funny.CalcMany<UserInputModel, ContractOutputModel>(expression, new UserInputModel()));
 

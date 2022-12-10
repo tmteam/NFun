@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class AnonymousFunTest {
@@ -145,53 +145,48 @@ public class AnonymousFunTest {
     [TestCase(
         "ids:int[]=[1,2,3,4]; age:int = 1;  ;y:int[] = ids.filter(rule it>age).map(rule it+1)",
         new[] { 3, 4, 5 })]
-    [TestCase("y = [-1,-2,0,1,2,3].fold(rule 42)",42)]
-    [TestCase("y = [0,1,2,3].fold(rule(a,b,) =a+b)",6)]
-    [TestCase("y = (rule() = 42)()",42)]
-    [TestCase("y = (rule( ) = 42)()",42)]
-    [TestCase("y = (rule ( ) = 42)()",42)]
-    [TestCase("y = (rule (  ) = 42)()",42)]
-    [TestCase("y = (rule ( ; ) = 42)()",42)]
-    [TestCase("y = (rule; ( ; ); = 42)()",42)]
-
+    [TestCase("y = [-1,-2,0,1,2,3].fold(rule 42)", 42)]
+    [TestCase("y = [0,1,2,3].fold(rule(a,b,) =a+b)", 6)]
+    [TestCase("y = (rule() = 42)()", 42)]
+    [TestCase("y = (rule( ) = 42)()", 42)]
+    [TestCase("y = (rule ( ) = 42)()", 42)]
+    [TestCase("y = (rule (  ) = 42)()", 42)]
+    [TestCase("y = (rule ( ; ) = 42)()", 42)]
+    [TestCase("y = (rule; ( ; ); = 42)()", 42)]
     public void SuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");
         runtime.Calc().AssertResultHas("y", expected);
     }
-    [TestCase("foo() = (rule it1*it2); y = foo()(2,4)",8)]
-    [TestCase("foo() = rule it1*it2; y = foo()(2,4)",8)]
-    [TestCase("foo() = rule it1*it2; x = foo(); y = x(2,4)",8)]
-    [TestCase("foo() = (rule it1+it2+it3); y = foo()(2,3,4)",9)]
-    [TestCase("foo() = rule it1+it2+it3; y = foo()(2,3,4)",9)]
-    [TestCase("foo() = (rule it1+it2+it3); x = foo(); y = x(2,3,4)",9)]
 
-    [TestCase("x = (rule it1*it2);     y = x(2,4)",8)]
-    [TestCase("x = rule it1*it2;       y = x(2,4)",8)]
-    [TestCase("x = (rule it1+it2+it3); y = x(2,3,4)",9)]
-    [TestCase("x = rule it1+it2+it3;   y = x(2,3,4)",9)]
-    
-    [TestCase("x = (rule it); y = x(2)",2)]
-    [TestCase("x = rule it;   y = x(2)",2)]
-    
-    [TestCase("y = (rule it)(2)",2)]
-    [TestCase("y = (rule it)(2)",2)]
-    
-    [TestCase("x = (rule it); y = x(2)",2)]
-    [TestCase("x = rule it;   y = x(2)",2)]
-    
-    [TestCase("y = (rule it)(2)",2)]
-    [TestCase("x = rule 42;   y = x()",42)]
-    [TestCase("x = rule (42);   y = x()",42)]
-    [TestCase("y = (rule 42)()",42)]
-    [TestCase("x = rule rule it1+it2;  y = x()(1,2)",3)]
-    [TestCase("x = rule rule rule 42;   y = x()()()",42)]
-    [TestCase("x = rule it1  + (rule it1+it2)(it2,it3);  y = x(1,2,3)",6)]
-    [TestCase("x = rule it + (rule it + (rule it2+it1)(1,2))(3);  y = x(4)",10)]
-    [TestCase("x = rule it + (rule(a) = a + (rule it2+it1)(1,2))(3);  y = x(4)",10)]
-    [TestCase("x = rule(b)= b + (rule(a) = a + (rule it2+it1)(1,2))(3);  y = x(4)",10)]
-    [TestCase("x = rule rule rule it1+it2;  y = x()()(1,2)",3)]
-    [TestCase("a = 1; b = 2; y = (rule(a+b))()",3)]
+    [TestCase("foo() = (rule it1*it2); y = foo()(2,4)", 8)]
+    [TestCase("foo() = rule it1*it2; y = foo()(2,4)", 8)]
+    [TestCase("foo() = rule it1*it2; x = foo(); y = x(2,4)", 8)]
+    [TestCase("foo() = (rule it1+it2+it3); y = foo()(2,3,4)", 9)]
+    [TestCase("foo() = rule it1+it2+it3; y = foo()(2,3,4)", 9)]
+    [TestCase("foo() = (rule it1+it2+it3); x = foo(); y = x(2,3,4)", 9)]
+    [TestCase("x = (rule it1*it2);     y = x(2,4)", 8)]
+    [TestCase("x = rule it1*it2;       y = x(2,4)", 8)]
+    [TestCase("x = (rule it1+it2+it3); y = x(2,3,4)", 9)]
+    [TestCase("x = rule it1+it2+it3;   y = x(2,3,4)", 9)]
+    [TestCase("x = (rule it); y = x(2)", 2)]
+    [TestCase("x = rule it;   y = x(2)", 2)]
+    [TestCase("y = (rule it)(2)", 2)]
+    [TestCase("y = (rule it)(2)", 2)]
+    [TestCase("x = (rule it); y = x(2)", 2)]
+    [TestCase("x = rule it;   y = x(2)", 2)]
+    [TestCase("y = (rule it)(2)", 2)]
+    [TestCase("x = rule 42;   y = x()", 42)]
+    [TestCase("x = rule (42);   y = x()", 42)]
+    [TestCase("y = (rule 42)()", 42)]
+    [TestCase("x = rule rule it1+it2;  y = x()(1,2)", 3)]
+    [TestCase("x = rule rule rule 42;   y = x()()()", 42)]
+    [TestCase("x = rule it1  + (rule it1+it2)(it2,it3);  y = x(1,2,3)", 6)]
+    [TestCase("x = rule it + (rule it + (rule it2+it1)(1,2))(3);  y = x(4)", 10)]
+    [TestCase("x = rule it + (rule(a) = a + (rule it2+it1)(1,2))(3);  y = x(4)", 10)]
+    [TestCase("x = rule(b)= b + (rule(a) = a + (rule it2+it1)(1,2))(3);  y = x(4)", 10)]
+    [TestCase("x = rule rule rule it1+it2;  y = x()()(1,2)", 3)]
+    [TestCase("a = 1; b = 2; y = (rule(a+b))()", 3)]
     public void ParentlessSuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");
@@ -347,7 +342,6 @@ public class AnonymousFunTest {
     [TestCase("y = (rule([]) = 42)()")]
     [TestCase("y = (rule({}) = 42)()")]
     [TestCase("y = (rule((())) = 42)()")]
-    
     [TestCase("rule(()) = 42")]
     [TestCase("rule([]) = 42")]
     [TestCase("rule({}) = 42")]

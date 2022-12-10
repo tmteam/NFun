@@ -1,7 +1,7 @@
 ﻿using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.BuiltInFunctions; 
+namespace NFun.SyntaxTests.BuiltInFunctions;
 
 class LinqFunctionsTest {
     [TestCase("y:int = [0,7,1,2,3] . fold(max)", 7)]
@@ -137,7 +137,6 @@ class LinqFunctionsTest {
     [TestCase("y = '12'.map(toText)", new[] { "1", "2" })]
     [TestCase("y = 'c b a'.split(' ').sort().join(' ')", "a b c")]
     [TestCase("y = 'c b a'.split(' ').sortDescending().join(' ')", "c b a")]
-
     [TestCase("y = 123.toText().reverse()", "321")]
     public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) =>
         expr.AssertReturns("y", expected);

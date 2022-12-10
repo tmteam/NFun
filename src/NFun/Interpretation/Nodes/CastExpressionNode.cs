@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Nodes; 
+namespace NFun.Interpretation.Nodes;
 
 internal class CastExpressionNode : IExpressionNode {
-    public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to, TypeBehaviour typeBehaviour) {
+    public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to,
+        TypeBehaviour typeBehaviour) {
         if (origin.Type == to)
             return origin;
         var converter = VarTypeConverter.GetConverterOrThrow(typeBehaviour, origin.Type, to, origin.Interval);
         return new CastExpressionNode(origin, to, converter, origin.Interval);
     }
+
     public CastExpressionNode(
         IExpressionNode origin,
         FunnyType targetType,
@@ -22,7 +24,7 @@ internal class CastExpressionNode : IExpressionNode {
         _converter = converter;
         Interval = interval;
     }
-    
+
     private readonly IExpressionNode _origin;
     private readonly Func<object, object> _converter;
 
@@ -35,6 +37,6 @@ internal class CastExpressionNode : IExpressionNode {
         return _converter(res);
     }
 
-    public IExpressionNode Clone(ICloneContext context) => 
+    public IExpressionNode Clone(ICloneContext context) =>
         new CastExpressionNode(_origin.Clone(context), Type, _converter, Interval);
 }

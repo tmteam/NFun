@@ -5,7 +5,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 public class TypeInferenceTest {
     [TestCase("y = 0x2", BaseFunnyType.Int32)]
@@ -232,9 +232,11 @@ public class TypeInferenceTest {
         string expr, BaseFunnyType ytype, BaseFunnyType ztype) {
         var res = expr.Calc();
         var y = res.Get("y");
-        Assert.AreEqual(y.GetType(), FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(ytype)).ClrType);
+        Assert.AreEqual(y.GetType(),
+            FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(ytype)).ClrType);
         var z = res.Get("z");
-        Assert.AreEqual(z.GetType(), FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(ztype)).ClrType);
+        Assert.AreEqual(z.GetType(),
+            FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(ztype)).ClrType);
     }
 
     [TestCase("x:foo\r y= x and true")]
@@ -286,12 +288,12 @@ public class TypeInferenceTest {
     [Test]
     public void DifferentTypeUsageOfInputVariable() =>
         Funny.Hardcore.Build("i64:int64 = x+1; i32:int32 = x+1")
-             .AssertContains("i32", FunnyType.Int32)
-             .AssertContains("i64", FunnyType.Int64)
-             .AssertContains("x", FunnyType.Int32)
-             .Calc("x", 42)
-             .AssertResultHas("i64", 43L)
-             .AssertResultHas("i32", 43);
+            .AssertContains("i32", FunnyType.Int32)
+            .AssertContains("i64", FunnyType.Int64)
+            .AssertContains("x", FunnyType.Int32)
+            .Calc("x", 42)
+            .AssertResultHas("i64", 43L)
+            .AssertResultHas("i32", 43);
 
     [TestCase("y:int[]= [1,2,3].map(rule it*it)", new[] { 1, 4, 9 })]
     [TestCase("y:int[]= [1,2,3].map(rule it)", new[] { 1, 2, 3 })]

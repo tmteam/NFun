@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Tokenization;
 
-namespace NFun.Interpretation.Nodes; 
+namespace NFun.Interpretation.Nodes;
 
 internal class StructInitExpressionNode : IExpressionNode {
     public StructInitExpressionNode(
@@ -12,7 +12,7 @@ internal class StructInitExpressionNode : IExpressionNode {
         _elements = elements;
         Interval = interval;
     }
-    
+
     private readonly string[] _fieldNames;
     private readonly IExpressionNode[] _elements;
 

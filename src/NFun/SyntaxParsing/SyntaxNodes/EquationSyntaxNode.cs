@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
-namespace NFun.SyntaxParsing.SyntaxNodes; 
+namespace NFun.SyntaxParsing.SyntaxNodes;
 
 public class EquationSyntaxNode : ISyntaxNode {
     public EquationSyntaxNode(string id, int start, ISyntaxNode expression, FunnyAttribute[] attributes) {
@@ -11,6 +11,7 @@ public class EquationSyntaxNode : ISyntaxNode {
         Attributes = attributes;
         Interval = new Interval(start, expression.Interval.Finish);
     }
+
     public string Id { get; }
     public ISyntaxNode Expression { get; }
     public FunnyAttribute[] Attributes { get; }

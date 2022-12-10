@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Structs; 
+namespace NFun.Tic.Tests.Structs;
 
 public class StructTest {
     [Test]
@@ -196,8 +196,7 @@ public class StructTest {
         graph.SetVar("x", 3);
         graph.SetCall(
             new ITicNodeState[] {
-                new StateStruct("field", TicNode.CreateTypeVariableNode(StatePrimitive.I32)),
-                StatePrimitive.Bool
+                new StateStruct("field", TicNode.CreateTypeVariableNode(StatePrimitive.I32)), StatePrimitive.Bool
             }, new[] { 3, 4 });
         graph.SetDef("y", 4);
 
@@ -222,10 +221,7 @@ public class StructTest {
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(
-            new ITicNodeState[] {
-                varnode,
-                new StateStruct("res", varnode.Node)
-            }, new[] { 0, 1 });
+            new ITicNodeState[] { varnode, new StateStruct("res", varnode.Node) }, new[] { 0, 1 });
         graph.SetFieldAccess(1, 2, "res");
         graph.SetDef("y", 2);
 
@@ -246,10 +242,7 @@ public class StructTest {
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(
-            new ITicNodeState[] {
-                varnode,
-                new StateStruct("res", varnode.Node)
-            }, new[] { 0, 1 });
+            new ITicNodeState[] { varnode, new StateStruct("res", varnode.Node) }, new[] { 0, 1 });
         graph.SetFieldAccess(1, 2, "res");
         graph.SetDef("y", 2);
 

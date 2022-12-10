@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using NFun.Types;
 
-namespace NFun.Runtime.Arrays; 
+namespace NFun.Runtime.Arrays;
 
 public static class FunnyArrayTools {
     public static TextFunnyArray AsFunText(this string txt) => new(txt);
@@ -15,9 +15,7 @@ public static class FunnyArrayTools {
         foreach (var item in enumerable)
         {
             if (!first)
-            {
                 sb.Append(",");
-            }
 
             first = false;
             sb.Append(TypeHelper.GetFunText(item));
@@ -52,9 +50,7 @@ public static class FunnyArrayTools {
         foreach (var item in enumerable)
         {
             if (!first)
-            {
                 sb.Append(",");
-            }
 
             first = false;
             sb.Append(TypeHelper.GetFunText(item));
@@ -78,6 +74,7 @@ public static class FunnyArrayTools {
         var end = array.Length - 1;
         if (endIndex.HasValue)
             end = endIndex.Value >= array.Length ? array.Length - 1 : endIndex.Value;
+
         object[] newArr;
         if (step == null || step == 1)
         {

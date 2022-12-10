@@ -78,7 +78,7 @@ public class NCalcPerformance {
         PrintResult(formula, m1, m2);
     }
 
-    private static TimeSpan Measure(Action a) { return BenchHelper.Measure(a, Iterations, out _); }
+    private static TimeSpan Measure(Action a) => BenchHelper.Measure(a, Iterations, out _);
 
     private static void PrintResult(string formula, TimeSpan m1, TimeSpan m2) {
         Console.WriteLine(new string('-', 60));
@@ -95,6 +95,6 @@ public class NCalcPerformance {
         public int Param1 { get; set; }
         public int Param2 { get; set; }
 
-        public int Foo(int a, int b) { return Math.Min(a, b); }
+        public int Foo(int a, int b) => Math.Min(a, b);
     }
 }

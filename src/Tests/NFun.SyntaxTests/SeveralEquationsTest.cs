@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class SeveralEquationsTest {

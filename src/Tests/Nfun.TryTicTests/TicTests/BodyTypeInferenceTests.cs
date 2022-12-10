@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.TicTests; 
+namespace NFun.UnitTests.TicTests;
 
 public class BodyTypeInferenceTests {
     [Test]
@@ -297,8 +297,7 @@ public class BodyTypeInferenceTests {
     }
 
     [Test]
-    public void ReqursiveTypeDefinitionThrows() {
+    public void ReqursiveTypeDefinitionThrows() =>
         Assert.Throws<Tic.Errors.TicRecursiveTypeDefinitionException>(
             () => TestHelper.Solve("y = t.concat(t[0])"));
-    }
 }

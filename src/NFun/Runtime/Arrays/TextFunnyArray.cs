@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NFun.Runtime.Arrays; 
+namespace NFun.Runtime.Arrays;
 
 public class TextFunnyArray : IFunnyArray, IComparable {
     public static readonly TextFunnyArray Empty = new("");
@@ -15,7 +15,7 @@ public class TextFunnyArray : IFunnyArray, IComparable {
     private class FunCharEnumerator : IEnumerator<object> {
         private readonly CharEnumerator _enumerator;
 
-        public FunCharEnumerator(CharEnumerator enumerator) { _enumerator = enumerator; }
+        public FunCharEnumerator(CharEnumerator enumerator) => _enumerator = enumerator;
 
         public bool MoveNext() => _enumerator.MoveNext();
         public void Reset() => _enumerator.Reset();

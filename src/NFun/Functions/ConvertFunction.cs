@@ -318,9 +318,8 @@ public class ConvertFunction : GenericFunctionBase {
 
         public ConcreteConverter(Func<object, object> converter, FunnyType from, FunnyType to) : base(
             "convert", to,
-            from) {
+            from) =>
             _converter = converter;
-        }
 
         public override object Calc(object a) {
             try

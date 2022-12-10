@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.UnitTests; 
+namespace NFun.UnitTests;
 
 public class TicStatesTest {
     [TestCase(PrimitiveTypeName.I16, PrimitiveTypeName.Real)]

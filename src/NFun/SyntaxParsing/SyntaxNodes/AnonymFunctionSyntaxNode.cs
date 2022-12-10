@@ -3,7 +3,7 @@ using System.Linq;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
-namespace NFun.SyntaxParsing.SyntaxNodes; 
+namespace NFun.SyntaxParsing.SyntaxNodes;
 
 public class AnonymFunctionSyntaxNode : ISyntaxNode {
     public AnonymFunctionSyntaxNode(
@@ -20,7 +20,7 @@ public class AnonymFunctionSyntaxNode : ISyntaxNode {
         ReturnType = returnType;
         Interval = interval;
     }
-    
+
     public IList<ISyntaxNode> ArgumentsDefinition { get; }
     public ISyntaxNode Definition { get; }
     public ISyntaxNode Body { get; }

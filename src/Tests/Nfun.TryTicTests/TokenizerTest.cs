@@ -84,7 +84,8 @@ public class TokenizerTest {
     [TestCase(";;;", TokType.NewLine, TokType.NewLine, TokType.NewLine)]
     [TestCase(
         "f(x) = x*x; y = f(10); z = y",
-        TokType.Id, TokType.ParenthObr, TokType.Id, TokType.ParenthCbr, TokType.Def, TokType.Id, TokType.Mult, TokType.Id,
+        TokType.Id, TokType.ParenthObr, TokType.Id, TokType.ParenthCbr, TokType.Def, TokType.Id, TokType.Mult,
+        TokType.Id,
         TokType.NewLine,
         TokType.Id, TokType.Def, TokType.Id, TokType.ParenthObr, TokType.IntNumber, TokType.ParenthCbr,
         TokType.NewLine,
@@ -189,7 +190,6 @@ public class TokenizerTest {
     [TestCase("0.0.0.0.0.0", TokType.IpAddress, TokType.Dot, TokType.RealNumber)]
     [TestCase("0.0.0.0 0.0", TokType.IpAddress, TokType.RealNumber)]
     [TestCase("0.0.0.0.a", TokType.IpAddress, TokType.Dot, TokType.Id)]
-    
     [TestCase("255.", TokType.IntNumber, TokType.Dot)]
     [TestCase("255..", TokType.IntNumber, TokType.TwoDots)]
     [TestCase("255.x", TokType.IntNumber, TokType.Dot, TokType.Id)]
@@ -210,63 +210,72 @@ public class TokenizerTest {
     [TestCase("255.255.255.255.255.255", TokType.IpAddress, TokType.Dot, TokType.RealNumber)]
     [TestCase("255.255.255.255 255.255", TokType.IpAddress, TokType.RealNumber)]
     [TestCase("255.255.255.255.a", TokType.IpAddress, TokType.Dot, TokType.Id)]
-    
     [TestCase("0.0x1", TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("0.0.0x1", TokType.RealNumber,  TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("0.0.0.0x1", TokType.RealNumber,  TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("0.0.0.0.0x1", TokType.RealNumber,  TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.0", TokType.HexOrBinaryNumber,TokType.Dot, TokType.IntNumber)]
-    [TestCase("0x1.0.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.IntNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.0.0.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.RealNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.0.0.0.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.RealNumber,TokType.Dot, TokType.IntNumber, TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.0.0.0.0.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.IpAddress,TokType.Dot, TokType.HexOrBinaryNumber)]
-
-    [TestCase("0.0x1.0", TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber,TokType.Dot,TokType.IntNumber)]
-    [TestCase("0.0.0x1.0", TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber,TokType.Dot,TokType.IntNumber)]
+    [TestCase("0.0.0x1", TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
+    [TestCase("0.0.0.0x1", TokType.RealNumber, TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
+    [TestCase("0.0.0.0.0x1", TokType.RealNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.0", TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0x1.0.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.0.0.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.0.0.0.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.IntNumber, TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.0.0.0.0.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.IpAddress, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0.0x1.0", TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0.0.0x1.0", TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber)]
     [TestCase("0.0.0.0.0x1.0", TokType.IpAddress, TokType.Dot, TokType.HexOrBinaryNumber)]
-    
     [TestCase("0.0x", TokType.IntNumber, TokType.Dot, TokType.NotAToken)]
-    [TestCase("0.0.0x", TokType.RealNumber,  TokType.Dot, TokType.NotAToken)]
-    [TestCase("0.0.0.0x", TokType.RealNumber,  TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.NotAToken)]
-    [TestCase("0.0.0.0.0x", TokType.RealNumber,  TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.NotAToken)]
-    [TestCase("0x.0", TokType.NotAToken,TokType.Dot, TokType.IntNumber)]
-    [TestCase("0x.0.0x", TokType.NotAToken,TokType.Dot, TokType.IntNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x.0.0.0x", TokType.NotAToken,TokType.Dot, TokType.RealNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x.0.0.0.0x", TokType.NotAToken,TokType.Dot, TokType.RealNumber,TokType.Dot, TokType.IntNumber, TokType.HexOrBinaryNumber)]
-    [TestCase("0x.0.0.0.0.0x", TokType.NotAToken,TokType.Dot, TokType.IpAddress,TokType.Dot, TokType.NotAToken)]
-
-    [TestCase("0.0x.0", TokType.IntNumber, TokType.Dot, TokType.NotAToken,TokType.Dot,TokType.IntNumber)]
-    [TestCase("0.0.0x.0", TokType.RealNumber, TokType.Dot, TokType.NotAToken,TokType.Dot,TokType.IntNumber)]
-    [TestCase("0.0.0.0.0x.0.0", TokType.IpAddress, TokType.Dot, TokType.NotAToken,TokType.Dot,TokType.RealNumber)]
-    
+    [TestCase("0.0.0x", TokType.RealNumber, TokType.Dot, TokType.NotAToken)]
+    [TestCase("0.0.0.0x", TokType.RealNumber, TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.NotAToken)]
+    [TestCase("0.0.0.0.0x", TokType.RealNumber, TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.NotAToken)]
+    [TestCase("0x.0", TokType.NotAToken, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0x.0.0x", TokType.NotAToken, TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
+    [TestCase("0x.0.0.0x", TokType.NotAToken, TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
+    [TestCase("0x.0.0.0.0x", TokType.NotAToken, TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.IntNumber,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x.0.0.0.0.0x", TokType.NotAToken, TokType.Dot, TokType.IpAddress, TokType.Dot, TokType.NotAToken)]
+    [TestCase("0.0x.0", TokType.IntNumber, TokType.Dot, TokType.NotAToken, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0.0.0x.0", TokType.RealNumber, TokType.Dot, TokType.NotAToken, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0.0.0.0.0x.0.0", TokType.IpAddress, TokType.Dot, TokType.NotAToken, TokType.Dot, TokType.RealNumber)]
     [TestCase("255.0x1", TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("255.255.0x1", TokType.RealNumber,  TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("255.255.255.0x1", TokType.RealNumber,  TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("255.255.255.255.0x1", TokType.RealNumber,  TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.0", TokType.HexOrBinaryNumber,TokType.Dot, TokType.IntNumber)]
-    [TestCase("0x1.255.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.IntNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.255.255.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.RealNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.255.255.255.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.RealNumber,TokType.Dot, TokType.IntNumber, TokType.HexOrBinaryNumber)]
-    [TestCase("0x1.255.255.255.255.0x1", TokType.HexOrBinaryNumber,TokType.Dot, TokType.IpAddress,TokType.Dot, TokType.HexOrBinaryNumber)]
-
-    [TestCase("255.0x1.255", TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber,TokType.Dot,TokType.IntNumber)]
-    [TestCase("255.255.0x1.0", TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber,TokType.Dot,TokType.IntNumber)]
+    [TestCase("255.255.0x1", TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
+    [TestCase("255.255.255.0x1", TokType.RealNumber, TokType.Dot, TokType.IntNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("255.255.255.255.0x1", TokType.RealNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.0", TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0x1.255.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.255.255.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.255.255.255.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.IntNumber, TokType.HexOrBinaryNumber)]
+    [TestCase("0x1.255.255.255.255.0x1", TokType.HexOrBinaryNumber, TokType.Dot, TokType.IpAddress, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("255.0x1.255", TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber, TokType.Dot, TokType.IntNumber)]
+    [TestCase("255.255.0x1.0", TokType.RealNumber, TokType.Dot, TokType.HexOrBinaryNumber, TokType.Dot,
+        TokType.IntNumber)]
     [TestCase("255.255.255.255.0x1.0", TokType.IpAddress, TokType.Dot, TokType.HexOrBinaryNumber)]
-    
     [TestCase("255.0x", TokType.IntNumber, TokType.Dot, TokType.NotAToken)]
-    [TestCase("255.255.0x", TokType.RealNumber,  TokType.Dot, TokType.NotAToken)]
-    [TestCase("255.255.255.0x", TokType.RealNumber,  TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.NotAToken)]
-    [TestCase("255.255.255.255.0x", TokType.RealNumber,  TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.NotAToken)]
-    [TestCase("0x.255", TokType.NotAToken,TokType.Dot, TokType.IntNumber)]
-    [TestCase("0x.255.0x", TokType.NotAToken,TokType.Dot, TokType.IntNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x.255.255.0x", TokType.NotAToken,TokType.Dot, TokType.RealNumber,TokType.Dot,TokType.HexOrBinaryNumber)]
-    [TestCase("0x.255.255.255.0x", TokType.NotAToken,TokType.Dot, TokType.RealNumber,TokType.Dot, TokType.IntNumber, TokType.HexOrBinaryNumber)]
-    [TestCase("0x.255.255.255.255.0x", TokType.NotAToken,TokType.Dot, TokType.IpAddress,TokType.Dot, TokType.NotAToken)]
-
-    [TestCase("255.0x.255", TokType.IntNumber, TokType.Dot, TokType.NotAToken,TokType.Dot,TokType.IntNumber)]
-    [TestCase("255.255.0x.255", TokType.RealNumber, TokType.Dot, TokType.NotAToken,TokType.Dot,TokType.IntNumber)]
-    [TestCase("255.255.255.255.0x.255.255", TokType.IpAddress, TokType.Dot, TokType.NotAToken,TokType.Dot,TokType.RealNumber)]
-    
+    [TestCase("255.255.0x", TokType.RealNumber, TokType.Dot, TokType.NotAToken)]
+    [TestCase("255.255.255.0x", TokType.RealNumber, TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.NotAToken)]
+    [TestCase("255.255.255.255.0x", TokType.RealNumber, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.NotAToken)]
+    [TestCase("0x.255", TokType.NotAToken, TokType.Dot, TokType.IntNumber)]
+    [TestCase("0x.255.0x", TokType.NotAToken, TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.HexOrBinaryNumber)]
+    [TestCase("0x.255.255.0x", TokType.NotAToken, TokType.Dot, TokType.RealNumber, TokType.Dot,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x.255.255.255.0x", TokType.NotAToken, TokType.Dot, TokType.RealNumber, TokType.Dot, TokType.IntNumber,
+        TokType.HexOrBinaryNumber)]
+    [TestCase("0x.255.255.255.255.0x", TokType.NotAToken, TokType.Dot, TokType.IpAddress, TokType.Dot,
+        TokType.NotAToken)]
+    [TestCase("255.0x.255", TokType.IntNumber, TokType.Dot, TokType.NotAToken, TokType.Dot, TokType.IntNumber)]
+    [TestCase("255.255.0x.255", TokType.RealNumber, TokType.Dot, TokType.NotAToken, TokType.Dot, TokType.IntNumber)]
+    [TestCase("255.255.255.255.0x.255.255", TokType.IpAddress, TokType.Dot, TokType.NotAToken, TokType.Dot,
+        TokType.RealNumber)]
     [TestCase("0.0m", TokType.RealNumber)]
     [TestCase("0.0.0m", TokType.RealNumber)]
     [TestCase("0.0.0.0m", TokType.RealNumber)]
@@ -279,7 +288,6 @@ public class TokenizerTest {
     [TestCase("0.0.0m.0", TokType.RealNumber)]
     [TestCase("0.0.0.0m.0", TokType.RealNumber)]
     [TestCase("0.0.0.0.0m.0", TokType.RealNumber)]
-    
     [TestCase("0xFF", TokType.HexOrBinaryNumber)]
     [TestCase("0xFF_01", TokType.HexOrBinaryNumber)]
     [TestCase("0b001", TokType.HexOrBinaryNumber)]
@@ -288,7 +296,6 @@ public class TokenizerTest {
     [TestCase("0xFF_01.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
     [TestCase("0b001.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
     [TestCase("0b001_0.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
-    
     [TestCase("0xFF)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
     [TestCase("0xFF_01)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
     [TestCase("0b001)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
@@ -297,7 +304,6 @@ public class TokenizerTest {
     [TestCase("(0xFF_01)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
     [TestCase("(0b001)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
     [TestCase("(0b001_0)", TokType.ParenthObr, TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
-    
     [TestCase("0x", TokType.NotAToken)]
     [TestCase("0b", TokType.NotAToken)]
     [TestCase("0bFF", TokType.NotAToken)]

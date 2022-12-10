@@ -11,7 +11,7 @@ using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
-namespace NFun.Interpretation; 
+namespace NFun.Interpretation;
 
 internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionNode> {
     private readonly IFunctionDictionary _functions;
@@ -43,7 +43,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
         if (result.Type == outputType)
             return result;
-        var converter = VarTypeConverter.GetConverterOrThrow(dialect.Converter.TypeBehaviour, result.Type, outputType, node.Interval);
+        var converter =
+            VarTypeConverter.GetConverterOrThrow(dialect.Converter.TypeBehaviour, result.Type, outputType,
+                node.Interval);
 
         return new CastExpressionNode(result, outputType, converter, node.Interval);
     }
@@ -80,14 +82,15 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         //Prepare local variable scope
         //Capture all outer scope variables
-        var localVariables = new VariableDictionary(_variables.GetAll(),_variables.Count);
+        var localVariables = new VariableDictionary(_variables.GetAll(), _variables.Count);
 
         var arguments = new VariableSource[argNames.Length];
         for (var i = 0; i < argNames.Length; i++)
         {
             var arg = argNames[i];
             var type = outputTypeFunDefinition.Inputs[i];
-            var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type, FunnyVarAccess.Input, _dialect.Converter);
+            var source =
+                VariableSource.CreateWithoutStrictTypeLabel(arg, type, FunnyVarAccess.Input, _dialect.Converter);
             //collect argument
             arguments[i] = source;
             //add argument to local scope
@@ -101,14 +104,14 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(StructFieldAccessSyntaxNode node) {
         var structNode = ReadNode(node.Source);
-        // Funtic allows default values for not specified types 
+        // Funtic allows default values for not specified types
         // so call:
         //  y = {}.missingField
         // is allowed, but it semantically incorrect
 
         if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
             throw Errors.FieldNotExists(node.FieldName, node.Interval);
-        
+
         return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
     }
 
@@ -133,16 +136,17 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
     }
-    public IExpressionNode Visit(DefaultValueSyntaxNode node) => 
+
+    public IExpressionNode Visit(DefaultValueSyntaxNode node) =>
         new DefaultValueExpressionNode(
-            node.OutputType.GetDefaultFunnyValue(), 
-            node.OutputType, 
+            node.OutputType.GetDefaultFunnyValue(),
+            node.OutputType,
             node.Interval);
 
     public IExpressionNode Visit(AnonymFunctionSyntaxNode node) {
-        if(node.Definition==null)
+        if (node.Definition == null)
             AssertChecks.Panic($"{nameof(node.Definition)} is missing");
-        if(node.Body==null)
+        if (node.Body == null)
             AssertChecks.Panic($"{nameof(node.Body)} is missing");
 
         //Anonym fun arguments list
@@ -189,7 +193,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         for (int i = 0; i < node.Expressions.Count; i++)
         {
             var elementNode = ReadNode(node.Expressions[i]);
-            elements[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(elementNode, expectedElementType, _dialect.Converter.TypeBehaviour);
+            elements[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(elementNode, expectedElementType,
+                _dialect.Converter.TypeBehaviour);
         }
 
         return new ArrayExpressionNode(elements, node.Interval, node.OutputType);
@@ -213,7 +218,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         if (someFunc is IConcreteFunction f) //concrete function
             return CreateFunctionCall(node, f);
 
-        
+
         if (someFunc is IGenericFunction genericFunction) //generic function
         {
             FunnyType[] genericArgs;
@@ -221,11 +226,11 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
             if (genericTypes == null)
             {
-                // Generic call arguments are unknown  in case of generic recursion function . 
+                // Generic call arguments are unknown  in case of generic recursion function .
                 // Take them from type inference results
                 var recCallSignature = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                 //if generic call arguments not exist in type inference result - it is NFUN core error
-                if(recCallSignature==null)
+                if (recCallSignature == null)
                     AssertChecks.Panic($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                 var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
@@ -242,7 +247,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var function = genericFunction.CreateConcrete(genericArgs, _dialect);
             return CreateFunctionCall(node, function);
         }
-        
+
         throw new NFunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
     }
 
@@ -258,7 +263,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             throw Errors.IfElseExpressionIsDenied(node.Interval);
 
         //expressions
-        //if (...) {here} 
+        //if (...) {here}
         var expressionNodes = new IExpressionNode[node.Ifs.Length];
         //conditions
         // if ( {here} ) ...
@@ -273,10 +278,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
             conditionNodes[i] = ReadNode(ifCaseNode.Condition);
             var exprNode = ReadNode(ifCaseNode.Expression);
-            expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType, _dialect.Converter.TypeBehaviour);
+            expressionNodes[i] =
+                CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType,
+                    _dialect.Converter.TypeBehaviour);
         }
 
-        var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType, _dialect.Converter.TypeBehaviour);
+        var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType,
+            _dialect.Converter.TypeBehaviour);
 
         return new IfElseExpressionNode(
             expressionNodes, conditionNodes, elseNode,
@@ -287,13 +295,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var (enode, type) = GetConstantNodeOrNull(node.Value, node);
         return enode ?? new ConstantExpressionNode(node.Value, type, node.Interval);
     }
-    
+
     public IExpressionNode Visit(IpAddressConstantSyntaxNode node) =>
         new ConstantExpressionNode(node.Value, FunnyType.Ip, node.Interval);
 
     public IExpressionNode Visit(GenericIntSyntaxNode node) {
         var (enode, _) = GetConstantNodeOrNull(node.Value, node);
-        if(enode==null)
+        if (enode == null)
             AssertChecks.Panic($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
         return enode;
     }
@@ -301,12 +309,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     private (IExpressionNode, FunnyType) GetConstantNodeOrNull(object value, ISyntaxNode node) {
         var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
         return (value switch {
-                    long l  => ConstantExpressionNode.CreateConcrete(type, l, _dialect.Converter.TypeBehaviour, node.Interval),
-                    ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.Converter.TypeBehaviour, node.Interval),
-                    string d => new ConstantExpressionNode(
-                        _dialect.Converter.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval), type, node.Interval),
-                    _ => null
-                }, type);
+            long l => ConstantExpressionNode.CreateConcrete(type, l, _dialect.Converter.TypeBehaviour, node.Interval),
+            ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.Converter.TypeBehaviour, node.Interval),
+            string d => new ConstantExpressionNode(
+                _dialect.Converter.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval),
+                type, node.Interval),
+            _ => null
+        }, type);
     }
 
     public IExpressionNode Visit(NamedIdSyntaxNode node) {
@@ -322,8 +331,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             if (funVariable is IGenericFunction genericFunction)
             {
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
-                if(genericTypes==null)
-                    AssertChecks.Panic($"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
+                if (genericTypes == null)
+                    AssertChecks.Panic(
+                        $"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
 
                 var genericArgs = new FunnyType[genericTypes.Length];
                 for (int i = 0; i < genericTypes.Length; i++)
@@ -339,13 +349,15 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var vType = node.VariableType.BaseType == BaseFunnyType.Empty
             ? node.OutputType
             : node.VariableType;
-        
-        var source =  _variables.GetOrNull(node.Id);
+
+        var source = _variables.GetOrNull(node.Id);
         if (source == null)
         {
-            source = VariableSource.CreateWithoutStrictTypeLabel(node.Id, vType, FunnyVarAccess.Input, _dialect.Converter);
+            source = VariableSource.CreateWithoutStrictTypeLabel(node.Id, vType, FunnyVarAccess.Input,
+                _dialect.Converter);
             _variables.TryAdd(source);
         }
+
         var node1 = new VariableExpressionNode(source, node.Interval);
         if (node1.Source.Name != node.Id)
             throw Errors.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
@@ -395,12 +407,12 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             .GetAll()
             .Where(s => !originVariableNames.Contains(s.Name))
             .ToList();
-        
+
         var wrongItVariable = closured.FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Name));
         if (wrongItVariable != null)
             throw Errors.CannotUseSuperAnonymousVariableHere(
                 expr.FindFirstUsageOrThrow(wrongItVariable).Interval, wrongItVariable.Name);
-        
+
         //Add closured vars to outer-scope dictionary
         foreach (var newVar in closured)
             _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
@@ -418,7 +430,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
         if (converted.Type != node.OutputType)
         {
-            var converter = VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, converted.Type, node.OutputType, node.Interval);
+            var converter = VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, converted.Type,
+                node.OutputType, node.Interval);
             return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
         }
         else
@@ -426,7 +439,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     private static IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
-        =>  throw Errors.NotAnExpression(node);
+        => throw Errors.NotAnExpression(node);
 
     private IExpressionNode ReadNode(ISyntaxNode node)
         => node.Accept(this);

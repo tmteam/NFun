@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tokenization;
 
-namespace NFun.Interpretation.Nodes; 
+namespace NFun.Interpretation.Nodes;
 
 internal class IfElseExpressionNode : IExpressionNode {
     public IfElseExpressionNode(
@@ -18,11 +18,11 @@ internal class IfElseExpressionNode : IExpressionNode {
         Type = type;
         Interval = interval;
     }
-    
+
     private readonly IExpressionNode[] _ifExpressionNodes;
     private readonly IExpressionNode[] _conditionNodes;
     private readonly IExpressionNode _elseNode;
-    
+
     public FunnyType Type { get; }
     public Interval Interval { get; }
     public IEnumerable<IExpressionNode> Children => _conditionNodes.Concat(_ifExpressionNodes).Append(_elseNode);

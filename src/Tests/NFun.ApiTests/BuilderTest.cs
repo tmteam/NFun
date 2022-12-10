@@ -5,11 +5,11 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class BuilderTest {
     [Test]
-    public void WithFunctions_AddTwoConcreteFunctionsWithSameSignature_throws() {
+    public void WithFunctions_AddTwoConcreteFunctionsWithSameSignature_throws() =>
         Assert.Throws<InvalidOperationException>(
             () =>
                 Funny
@@ -17,10 +17,9 @@ public class BuilderTest {
                     .WithFunction(new PapaFunction("mama"))
                     .WithFunction(new MamaFunction("mama"))
                     .Build("x"));
-    }
 
     [Test]
-    public void WithFunctions_ConcreteAndGenericFunctionsWithSameSignature_throws() {
+    public void WithFunctions_ConcreteAndGenericFunctionsWithSameSignature_throws() =>
         Assert.Throws<InvalidOperationException>(
             () =>
                 Funny
@@ -28,7 +27,6 @@ public class BuilderTest {
                     .WithFunction(new PapaFunction("mama"))
                     .WithFunction(new GenericWithNoArgFunction("mama"))
                     .Build("x"));
-    }
 
     [Test]
     public void WithFunctions_functionWithSameSignatureExists_functionIsOverrided() =>

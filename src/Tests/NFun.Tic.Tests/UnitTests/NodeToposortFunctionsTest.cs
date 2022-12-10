@@ -1,4 +1,4 @@
-﻿namespace NFun.Tic.Tests.UnitTests; 
+﻿namespace NFun.Tic.Tests.UnitTests;
 
 class NodeToposortFunctionsTest {
     /*

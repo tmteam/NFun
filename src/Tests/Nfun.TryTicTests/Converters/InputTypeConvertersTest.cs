@@ -6,7 +6,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters; 
+namespace NFun.UnitTests.Converters;
 
 public class InputTypeConvertersTest {
     [TestCase((byte)1, BaseFunnyType.UInt8)]
@@ -31,13 +31,13 @@ public class InputTypeConvertersTest {
     [TestCase(1.5)]
     [TestCase(-0.5)]
     public void ConvertFloatType(double origin) => ConvertRealTypes((float)origin, origin);
-    
+
     [TestCase(0.0)]
     [TestCase(1.0)]
     [TestCase(1.5)]
     [TestCase(-0.5)]
     public void ConvertDecimalType(double origin) => ConvertRealTypes(new Decimal(origin), origin);
-    
+
     private void ConvertRealTypes(object primitiveValue, double expected) {
         var clrType = primitiveValue.GetType();
         var converter = FunnyConverter.RealIsDouble.GetInputConverterFor(clrType);
@@ -45,7 +45,7 @@ public class InputTypeConvertersTest {
         var convertedValue = converter.ToFunObject(primitiveValue);
         Assert.AreEqual(expected, convertedValue);
     }
-    
+
     [TestCase(new byte[] { 1, 2, 3 }, BaseFunnyType.UInt8)]
     [TestCase(new UInt16[] { 1, 2, 3 }, BaseFunnyType.UInt16)]
     [TestCase(new UInt32[] { 1, 2, 3 }, BaseFunnyType.UInt32)]
@@ -76,9 +76,7 @@ public class InputTypeConvertersTest {
 
     [Test]
     public void ConvertArrayOfStrings() {
-        string[] inputValue = {
-            "vasa", "kata", ""
-        };
+        string[] inputValue = { "vasa", "kata", "" };
 
         var converter = FunnyConverter.RealIsDouble.GetInputConverterFor(inputValue.GetType());
 
@@ -91,11 +89,7 @@ public class InputTypeConvertersTest {
 
     [Test]
     public void ArrayOfArrayOfAnything() {
-        object[][] inputValue = {
-            new object[] { 1, 2, "kate" },
-            new object[] { 2, 1, "kate" },
-            new object[] { }
-        };
+        object[][] inputValue = { new object[] { 1, 2, "kate" }, new object[] { 2, 1, "kate" }, new object[] { } };
         var converter = FunnyConverter.RealIsDouble.GetInputConverterFor(inputValue.GetType());
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
         var value = converter.ToFunObject(inputValue);
@@ -125,8 +119,7 @@ public class InputTypeConvertersTest {
     [Test]
     public void ArrayOfStructTypes() {
         var inputUsers = new[] {
-            new UserMoqType("vasa", 42, 17.1,  new Decimal(42.1)),
-            new UserMoqType("peta", 41, 17.0,  new Decimal(42.2)),
+            new UserMoqType("vasa", 42, 17.1, new Decimal(42.1)), new UserMoqType("peta", 41, 17.0, new Decimal(42.2)),
             new UserMoqType("kata", 40, -17.1, new Decimal(0))
         };
 
@@ -150,17 +143,16 @@ public class InputTypeConvertersTest {
         Assert.AreEqual(inputUsers[1].Size, secondElememt.GetValue("size"));
         Assert.AreEqual(inputUsers[1].Balance, secondElememt.GetValue("balance"));
     }
-    
-    
+
+
     [Test]
     public void RequrisiveType_Throws() {
         NodeMoqType obj = new NodeMoqType("vasa", new NodeMoqType("peta"));
         Assert.Throws<ArgumentException>(() => FunnyConverter.RealIsDouble.GetInputConverterFor(obj.GetType()));
     }
-    
+
     [Test]
-    public void PrimitiveType_CreatesItemInCacheOnce()
-    {
+    public void PrimitiveType_CreatesItemInCacheOnce() {
         AssertCreatesItemInCacheOnce(typeof(bool), FunnyType.Bool);
         AssertCreatesItemInCacheOnce(typeof(char), FunnyType.Char);
         AssertCreatesItemInCacheOnce(typeof(byte), FunnyType.UInt8);
@@ -173,11 +165,11 @@ public class InputTypeConvertersTest {
 
         AssertCreatesItemInCacheOnce(typeof(double), FunnyType.Real);
     }
-    
+
     [Test]
     public void Text_CreatesItemInCacheOnce() =>
         AssertCreatesItemInCacheOnce(typeof(string), FunnyType.Text);
-    
+
     [Test]
     public void Array_1_CreatesItemInCacheOnce() =>
         AssertCreatesItemInCacheOnce(typeof(string[]), FunnyType.ArrayOf(FunnyType.Text));
@@ -191,12 +183,9 @@ public class InputTypeConvertersTest {
                     ("age", FunnyType.Int32),
                     ("size", FunnyType.Real),
                     ("balance", FunnyType.Real))));
-    
-    
-    
-        
-    private void AssertCreatesItemInCacheOnce(Type clrType, FunnyType type)
-    {
+
+
+    private void AssertCreatesItemInCacheOnce(Type clrType, FunnyType type) {
         var converter = FunnyConverter.RealIsDouble;
         converter.ClearCaches();
         Assert.AreEqual(0, converter.CacheSize);
@@ -206,6 +195,7 @@ public class InputTypeConvertersTest {
         {
             converter.GetInputConverterFor(clrType, type);
         }
+
         Assert.AreEqual(size, converter.CacheSize);
     }
 }
@@ -231,6 +221,7 @@ class UserMoqType {
     public string Name { get; }
     public int Age { get; }
     public double Size { get; }
+
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
     public bool State { set; private get; }
     public Decimal Balance { get; }

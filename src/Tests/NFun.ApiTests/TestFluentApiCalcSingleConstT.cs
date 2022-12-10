@@ -4,7 +4,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestFluentApiCalcSingleConstT {
     [Test]
@@ -18,10 +18,7 @@ public class TestFluentApiCalcSingleConstT {
     public void IoComplexTypeTransforms(string expr) {
         var result = Funny.Calc<ContractOutputModel>(expr);
         var expected = new ContractOutputModel {
-            Id = 13,
-            Items = new[] { "1", "2", "3", "4" },
-            Taxes = Decimal.Zero,
-            Price = 42
+            Id = 13, Items = new[] { "1", "2", "3", "4" }, Taxes = Decimal.Zero, Price = 42
         };
         Assert.IsTrue(TestHelper.AreSame(expected, result));
     }
@@ -43,13 +40,13 @@ public class TestFluentApiCalcSingleConstT {
         var result = Funny.Calc<string>("[1..4].reverse().join(',')");
         Assert.AreEqual("4,3,2,1", result);
     }
-    
+
     [Test]
     public void ReturnsConstantIp() {
         var result = Funny.Calc<IPAddress>("127.0.0.2");
         Assert.AreEqual(new IPAddress(new byte[] { 127, 0, 0, 2 }), result);
     }
-    
+
     [Test]
     public void ReturnsConstantText() {
         var result = Funny.Calc<string>("'Hello world'");
@@ -78,18 +75,16 @@ public class TestFluentApiCalcSingleConstT {
             "[[[1,2],[]],[[3,4]],[[]]]");
         Assert.AreEqual(
             new[] {
-                new[] { new[] { 1, 2 }, Array.Empty<int>() },
-                new[] { new[] { 3, 4 } },
-                new[] { Array.Empty<int>() }
+                new[] { new[] { 1, 2 }, Array.Empty<int>() }, new[] { new[] { 3, 4 } }, new[] { Array.Empty<int>() }
             }, result);
     }
 
     [Test]
     public void CalcWithBuilder() {
         var result = Funny
-                     .WithConstant("pipi", 6)
-                     .WithFunction<double, double>("toto", (d) => d - 1)
-                     .Calc("toto(pipi)");
+            .WithConstant("pipi", 6)
+            .WithFunction<double, double>("toto", (d) => d - 1)
+            .Calc("toto(pipi)");
         Assert.AreEqual(5, result);
     }
 
@@ -115,12 +110,12 @@ public class TestFluentApiCalcSingleConstT {
     [TestCase("age>someUnknownvariable")]
     public void UseUnknownInputWithWrongIntOutputType_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc<bool>(expression));
-    
+
     [Test]
     public void UseDecimalWithoutDialect_throws()
-        => TestHelper.AssertObviousFailsOnApiUsage(()=>Funny.Calc<decimal>("123"));
-    
+        => TestHelper.AssertObviousFailsOnApiUsage(() => Funny.Calc<decimal>("123"));
+
     [Test]
     public void UseDecimalWithBuilderWithoutDialect_throws()
-        => TestHelper.AssertObviousFailsOnApiUsage(()=>Funny.WithConstant("id",42).Calc<decimal>("123"));
+        => TestHelper.AssertObviousFailsOnApiUsage(() => Funny.WithConstant("id", 42).Calc<decimal>("123"));
 }

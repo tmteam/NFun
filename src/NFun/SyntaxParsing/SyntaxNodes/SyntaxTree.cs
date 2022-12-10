@@ -6,7 +6,7 @@ using NFun.Tokenization;
 namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class SyntaxTree : ISyntaxNode {
-    public SyntaxTree(ISyntaxNode[] nodes) { Nodes = nodes; }
+    public SyntaxTree(ISyntaxNode[] nodes) => Nodes = nodes;
 
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }

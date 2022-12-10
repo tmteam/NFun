@@ -7,7 +7,7 @@ namespace NFun.TypeInferenceAdapter;
 /// Variable table. It needs to give special names to variable during TI-setup process
 /// </summary>
 public class VariableScopeAliasTable {
-    public VariableScopeAliasTable() { _variableAliasesStack = new List<Dictionary<string, string>> { new() }; }
+    public VariableScopeAliasTable() => _variableAliasesStack = new List<Dictionary<string, string>> { new() };
 
     private readonly List<Dictionary<string, string>> _variableAliasesStack;
 
@@ -57,7 +57,7 @@ public class VariableScopeAliasTable {
         _variableAliasesStack.Add(dictionary);
     }
 
-    public void ExitScope() { _variableAliasesStack.RemoveAt(_variableAliasesStack.Count - 1); }
+    public void ExitScope() => _variableAliasesStack.RemoveAt(_variableAliasesStack.Count - 1);
 
     private static string MakeAlias(int nodeLayerId, string varName) => nodeLayerId + "::" + varName;
 }

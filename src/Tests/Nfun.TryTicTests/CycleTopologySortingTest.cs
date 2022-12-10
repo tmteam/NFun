@@ -2,37 +2,27 @@ using System;
 using NFun.SyntaxParsing;
 using NUnit.Framework;
 
-namespace NFun.UnitTests; 
+namespace NFun.UnitTests;
 
 [TestFixture]
 public class CycleTopologySortingTest {
     [Test]
     public void OneNodeCycle_CycleIgnored() {
-        var graph = new[] {
-            From(0)
-        };
+        var graph = new[] { From(0) };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 0 }, res);
     }
 
     [Test]
     public void TwoNodesCycle() {
-        var graph = new[] {
-            From(1),
-            From(0)
-        };
+        var graph = new[] { From(1), From(0) };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasCycle(new[] { 0, 1 }, res);
     }
 
     [Test]
     public void ThreeNodesCycle() {
-        var graph = new[] {
-            From(3),
-            From(0),
-            From(1),
-            From(2)
-        };
+        var graph = new[] { From(3), From(0), From(1), From(2) };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasCycle(new[] { 0, 1, 2, 3 }, res);
     }
@@ -42,14 +32,8 @@ public class CycleTopologySortingTest {
         //         |<------|
         //0->1->2->|3->4->5|->6
         var graph = new[] {
-            NoParents,
-            From(0),
-            From(1),
-            From(2, 5), //cycle here
-            From(3),
-            From(4),
-            From(5),
-            From(6)
+            NoParents, From(0), From(1), From(2, 5), //cycle here
+            From(3), From(4), From(5), From(6)
         };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasCycle(new[] { 3, 4, 5 }, res);
@@ -58,10 +42,7 @@ public class CycleTopologySortingTest {
     [Test]
     public void TwoNodesGraphSorting() {
         //1->0
-        var graph = new[] {
-            From(1),
-            NoParents
-        };
+        var graph = new[] { From(1), NoParents };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 1, 0 }, res);
     }
@@ -69,11 +50,7 @@ public class CycleTopologySortingTest {
     [Test]
     public void ThreeNodesInLineSorting() {
         //2->1->0
-        var graph = new[] {
-            From(1),
-            From(2),
-            NoParents
-        };
+        var graph = new[] { From(1), From(2), NoParents };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 2, 1, 0 }, res);
     }
@@ -82,11 +59,7 @@ public class CycleTopologySortingTest {
     public void ThreeNodesInLine_SelfCycle_Sorting() {
         //  |<--|
         //2-|-->1->0
-        var graph = new[] {
-            From(1),
-            From(1, 2),
-            NoParents
-        };
+        var graph = new[] { From(1), From(1, 2), NoParents };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 2, 1, 0 }, res);
     }
@@ -94,11 +67,7 @@ public class CycleTopologySortingTest {
     [Test]
     public void ThreeNodesInLineRevertSorting() {
         //0->1->2
-        var graph = new[] {
-            NoParents,
-            From(0),
-            From(1)
-        };
+        var graph = new[] { NoParents, From(0), From(1) };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 0, 1, 2 }, res);
     }
@@ -107,15 +76,7 @@ public class CycleTopologySortingTest {
     public void ComplexGraphSorting() {
         //{5,3}->|6->|
         //   {1,4} ->|0->2
-        var graph = new[] {
-            From(1, 4, 6),
-            NoParents,
-            From(0),
-            NoParents,
-            NoParents,
-            NoParents,
-            From(5, 3)
-        };
+        var graph = new[] { From(1, 4, 6), NoParents, From(0), NoParents, NoParents, NoParents, From(5, 3) };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 1, 4, 5, 3, 6, 0, 2 }, res);
     }
@@ -150,22 +111,13 @@ public class CycleTopologySortingTest {
 
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(
-            new[] {
-                1, 4, 5, 3, 6, 0, 2,
-                9, 11, 12, 8, 10, 13, 7,
-                14,
-                15, 16
-            }, res);
+            new[] { 1, 4, 5, 3, 6, 0, 2, 9, 11, 12, 8, 10, 13, 7, 14, 15, 16 }, res);
     }
 
     [Test]
     public void ThreeSeparatedNodesSorting() {
         //2,1,0
-        var graph = new[] {
-            Array.Empty<int>(),
-            Array.Empty<int>(),
-            Array.Empty<int>()
-        };
+        var graph = new[] { Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>() };
         var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 0, 1, 2 }, res);
     }
@@ -173,7 +125,7 @@ public class CycleTopologySortingTest {
     private int[] NoParents => Array.Empty<int>();
     private int[] From(params int[] routes) => routes;
 
-    private string ArrayToString(int[] arr) { return $"[{string.Join(",", arr)}]"; }
+    private string ArrayToString(int[] arr) => $"[{string.Join(",", arr)}]";
 
     private void AssertHasCycle(int[] cycle, TopologySortResults actual) {
         Assert.IsTrue(actual.HasCycle, "Cycle not found");

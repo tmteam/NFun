@@ -168,9 +168,8 @@ public abstract class GenericFunctionBase : IGenericFunction {
 
         public ConcreteGenericFunction(
             Func<object[], object> calc, string name, FunnyType returnType, params FunnyType[] argTypes)
-            : base(TypeHelper.GetFunSignature(name, returnType, argTypes), returnType, argTypes) {
+            : base(TypeHelper.GetFunSignature(name, returnType, argTypes), returnType, argTypes) =>
             _calc = calc;
-        }
 
         public override object Calc(object[] args) => _calc(args);
         public override IConcreteFunction Clone(ICloneContext context) => new ConcreteGenericFunction(_calc, Name, ReturnType, ArgTypes);

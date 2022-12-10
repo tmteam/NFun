@@ -278,7 +278,7 @@ public static class ProfileModes {
         Console.WriteLine("          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
     }
 
-    private static void PrintFooter() { Console.WriteLine("\r\nPress [esc] to stop"); }
+    private static void PrintFooter() => Console.WriteLine("\r\nPress [esc] to stop");
 
     private static void PrintResults(
         string name, TimeSpan ratioTime, LinkedList<double> history,

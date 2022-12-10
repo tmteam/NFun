@@ -6,7 +6,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 // <summary>
 // Confirmation of betta syntax document examples
@@ -104,8 +104,8 @@ y = tostring(x)", "y", "not supported")]
     [TestCase("y = ['a','b','foo']# ['a','b','foo'] type: text[]", "y", new[] { "a", "b", "foo" })]
     [TestCase("y:int[] = [1,2,3,4]#Int[]", "y", new[] { 1, 2, 3, 4 })]
     [TestCase("y:int[] = [1..4] #[1,2,3,4]", "y", new[] { 1, 2, 3, 4 })]
-    [TestCase("y:int[] = [1..7 step 2]  #[1,3,5,7]", "y", new[] {1, 3, 5, 7})]
-    [TestCase("y = [1..2.5 step 0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] {1.0, 1.5, 2.0, 2.5})]
+    [TestCase("y:int[] = [1..7 step 2]  #[1,3,5,7]", "y", new[] { 1, 3, 5, 7 })]
+    [TestCase("y = [1..2.5 step 0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] { 1.0, 1.5, 2.0, 2.5 })]
     [TestCase("y = [1.0, 2.0, 3.5] #Real[]", "y", new[] { 1.0, 2.0, 3.5 })]
     [TestCase(
         "y:int[] = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y",
@@ -132,7 +132,7 @@ y = tostring(x)", "y", "not supported")]
     [TestCase("y:int[] = 1.repeat(3) # [1,1,1]", "y", new[] { 1, 1, 1 })]
     [TestCase(
         "y = ['foo','bar'].repeat(3).flat()#['foo','bar','foo','bar','foo','bar'] "
-      , "y", new[] { "foo", "bar", "foo", "bar", "foo", "bar" })]
+        , "y", new[] { "foo", "bar", "foo", "bar", "foo", "bar" })]
     [TestCase("y:int = [0..10][0]  #0", "y", 0)]
     [TestCase("y:int = [0..10][1]  #1", "y", 1)]
     [TestCase("y:int[] = [0..10][1:3] #[1,2,3]", "y", new[] { 1, 2, 3 })]
@@ -214,14 +214,14 @@ y4 = not(x1 and x2 or x3)
         runtime.AssertInputsCount(3);
         runtime.AssertOutputsCount(4);
         runtime.Calc(
-                   ("x1", true),
-                   ("x2", false),
-                   ("x3", true))
-               .AssertReturns(
-                   ("y1", false),
-                   ("y2", true),
-                   ("y3", false),
-                   ("y4", false));
+                ("x1", true),
+                ("x2", false),
+                ("x3", true))
+            .AssertReturns(
+                ("y1", false),
+                ("y2", true),
+                ("y3", false),
+                ("y4", false));
     }
 
     [TestCase("y = a / b", BaseFunnyType.Real)]
@@ -281,8 +281,8 @@ yPublic   = yprivate + xpublic"
         Assert.AreEqual("barbarbar", h);
 
         var f = Funny.BuildForCalcMany<MyIn, MyOut>()
-                     .ToLambda(
-                         @"
+            .ToLambda(
+                @"
                             id = count - 1
                             flag = name != 'test'");
         MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}

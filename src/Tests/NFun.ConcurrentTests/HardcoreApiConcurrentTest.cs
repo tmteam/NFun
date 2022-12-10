@@ -5,10 +5,9 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ConcurrentTests; 
+namespace NFun.ConcurrentTests;
 
 public class HardcoreApiConcurrentTest {
-    
     [TestCase("y = 2*x", 3, 6)]
     [TestCase("y = 2.0*x", 3.5, 7.0)]
     [TestCase("y = x/4", 10, 2.5)]
@@ -24,23 +23,22 @@ public class HardcoreApiConcurrentTest {
     [TestCase(@"
         fact(n) = if(n==0) 1 else n * fact(n-1)
         y = fact(x)
-        ",5,120)]
+        ", 5, 120)]
     [TestCase(@"f(x) = x*2; z = f(x); y = f(x)", 1, 2)]
-    [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);",1,2)]
+    [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);", 1, 2)]
     public void SingleVariableEquation(string expr, double arg, double expected) =>
-        expr.AssertConcurrentHardcore(runtime =>
-        {
+        expr.AssertConcurrentHardcore(runtime => {
             var ySource = runtime["y"];
             var xSource = runtime["x"];
             Assert.IsTrue(ySource.IsOutput);
             Assert.IsFalse(xSource.IsOutput);
             xSource.Value = arg;
             runtime.Run();
-            Assert.AreEqual(expected, ySource.FunnyValue);    
+            Assert.AreEqual(expected, ySource.FunnyValue);
         });
-    
-    
-        [Test]
+
+
+    [Test]
     public void CustomForeachi() {
         var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
@@ -79,7 +77,6 @@ public class HardcoreApiConcurrentTest {
         "'res: '.concat((n >5).toText())".AssertConcurrentHardcore(
             e => e.Calc("n", 1.0).AssertAnonymousOut("res: False"));
 
-   
 
     [Test]
     public void TwinArrayWithUpcast_lambdaSum() =>

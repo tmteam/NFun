@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.UserFunctions; 
+namespace NFun.SyntaxTests.UserFunctions;
 
 [TestFixture]
 public class ConcreteUserFunctionsTest {
@@ -26,13 +26,11 @@ public class ConcreteUserFunctionsTest {
             f(x:int, y:int) = y
             y = f(1) + f(1,2)
         ", 3)]
-    
     [TestCase(@"
             max(x:int) = x
             max(x:int, y:int) = y
             y = max(1) + max(3,2) # user functions return 1 + 2 as a result
         ", 3)]
-    
     public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 
@@ -97,17 +95,13 @@ public class ConcreteUserFunctionsTest {
     [TestCase("1y(x, l) =x+l")]
     [TestCase("(tom(x, l)) =x+l")]
     [TestCase("(tom(x)) =x")]
-    
     [TestCase("(xtom()) =default")]
-    
     [TestCase("((tom(x, l))) =x+l")]
     [TestCase("((tom(x))) =x")]
     [TestCase("((tom())) =42")]
-    
     [TestCase("((tom(x, l)),z) =x+l")]
     [TestCase("((tom(x)),z) =x")]
     [TestCase("((tom()),z) =42")]
-
     [TestCase("(y(x, l)) =x+g(c)=12")]
     [TestCase("y(x, l) = y(x)")]
     [TestCase("y(x, l) = y(1,2")]

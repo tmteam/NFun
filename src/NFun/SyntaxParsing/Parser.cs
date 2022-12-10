@@ -4,7 +4,7 @@ using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.SyntaxParsing; 
+namespace NFun.SyntaxParsing;
 
 public class Parser {
     private readonly TokFlow _flow;
@@ -22,7 +22,7 @@ public class Parser {
     private int _exprStartPosition = 0;
     private FunnyAttribute[] _attributes;
 
-    private Parser(TokFlow flow) { _flow = flow; }
+    private Parser(TokFlow flow) => _flow = flow;
 
     private SyntaxTree ParseTree(TokFlow flow) {
         while (true)
@@ -84,7 +84,7 @@ public class Parser {
             throw Errors.AnonymousExpressionHasToStartFromNewLine(_exprStartPosition, e, _flow.Current);
 
         //anonymous
-        var equation = SyntaxNodeFactory.Equation(AnonymousEquationId,e,_exprStartPosition, _attributes);
+        var equation = SyntaxNodeFactory.Equation(AnonymousEquationId, e, _exprStartPosition, _attributes);
         _hasAnonymousEquation = true;
         _equationNames.Add(equation.Id);
         _nodes.Add(equation);
@@ -101,7 +101,7 @@ public class Parser {
             throw Errors.AttributeOnFunction(fun);
 
         var id = fun.Id;
-        if (fun.ParenthesesCount!=0)
+        if (fun.ParenthesesCount != 0)
             throw Errors.UnexpectedParenthesisOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
 
         var arguments = new List<TypedVarDefSyntaxNode>(fun.Args.Length);
@@ -117,7 +117,7 @@ public class Parser {
             else
                 throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
-            if (headNodeChild.ParenthesesCount!=0)
+            if (headNodeChild.ParenthesesCount != 0)
                 throw Errors.FunctionArgumentDefinitionIsInParenthesis(fun, headNodeChild);
         }
 

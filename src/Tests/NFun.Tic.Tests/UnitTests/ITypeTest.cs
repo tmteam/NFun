@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.UnitTests; 
+namespace NFun.Tic.Tests.UnitTests;
 
 public class ITypeTest {
     [Test]

@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators; 
+namespace NFun.SyntaxTests.Operators;
 
 public class IntegerBitOperatorsTest {
     [TestCase("y:int64 = 1 & 1", (Int64)1)]
@@ -152,26 +152,23 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:int64 = 8 >> 3", (Int64)1)]
     [TestCase("y:int32 = 1 << 3", (Int32)8)]
     [TestCase("y:int32 = 8 >> 3", (Int32)1)]
-    [TestCase("y:int32 = 12345 >> 3",(Int32)0b0110_0000_0111)]
+    [TestCase("y:int32 = 12345 >> 3", (Int32)0b0110_0000_0111)]
     [TestCase("y:uint64 = 1 << 3", (UInt64)8)]
     [TestCase("y:uint64 = 8 >> 3", (UInt64)1)]
-    [TestCase("y:uint64 = 12345 >> 3",(UInt64)0b0110_0000_0111)]
-
+    [TestCase("y:uint64 = 12345 >> 3", (UInt64)0b0110_0000_0111)]
     [TestCase("y:uint32 = 1 << 3", (UInt32)8)]
     [TestCase("y:uint32 = 8 >> 3", (UInt32)1)]
-    [TestCase("y:uint32 = 12345 >> 3",(UInt32)0b0110_0000_0111)]
-
-    [TestCase("y:int16 = 1 << 3",(Int16)8)]
-    [TestCase("y:int16 = 8 >> 3",(Int16)1)]
-    [TestCase("y:int16 = 12345 >> 3",(Int16)0b0110_0000_0111)]
-
-    [TestCase("y:uint16 = 1 << 3",(UInt16)8)]
-    [TestCase("y:uint16 = 8 >> 3",(UInt16)1)]
-    [TestCase("y:uint16 = 255 >> 3",(UInt16)0b0001_1111)]
-    [TestCase("y:uint16 = 12345 >> 3",(UInt16)0b0110_0000_0111)]
-    [TestCase("y:byte = 1 << 3",(byte)0b0000_1000)]
-    [TestCase("y:byte = 8 >> 3",(byte)0b0000_0001)]
-    [TestCase("y:byte = 255 >> 3",(byte)0b0001_1111)]
+    [TestCase("y:uint32 = 12345 >> 3", (UInt32)0b0110_0000_0111)]
+    [TestCase("y:int16 = 1 << 3", (Int16)8)]
+    [TestCase("y:int16 = 8 >> 3", (Int16)1)]
+    [TestCase("y:int16 = 12345 >> 3", (Int16)0b0110_0000_0111)]
+    [TestCase("y:uint16 = 1 << 3", (UInt16)8)]
+    [TestCase("y:uint16 = 8 >> 3", (UInt16)1)]
+    [TestCase("y:uint16 = 255 >> 3", (UInt16)0b0001_1111)]
+    [TestCase("y:uint16 = 12345 >> 3", (UInt16)0b0110_0000_0111)]
+    [TestCase("y:byte = 1 << 3", (byte)0b0000_1000)]
+    [TestCase("y:byte = 8 >> 3", (byte)0b0000_0001)]
+    [TestCase("y:byte = 255 >> 3", (byte)0b0001_1111)]
     [TestCase("y:byte  = 60 << 3", (byte)0b1110_0000)]
     [TestCase("y:byte  = 60 << 1", (byte)0b0111_1000)]
     public void ConstantBitShift(string expression, object expected)
@@ -209,7 +206,7 @@ public class IntegerBitOperatorsTest {
     [TestCase("y = -0xABCD_EF01 == ~~-0xABCD_EF01", true)]
     public void ConstantBitInvert(string expression, object expected)
         => expression.AssertReturns("y", expected);
-    
+
 
     [TestCase("y:uint64 = 0xF000_0000_0000_0000<<8", (ulong)0)]
     [TestCase("y:uint64 = 0xFEC0_0000_0000_0000<<16", (ulong)0)]
@@ -222,7 +219,7 @@ public class IntegerBitOperatorsTest {
     public void BitShiftOverflow(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
-    
+
     [Ignore("Overflow behaviour is not implemented for bitshifts")]
     [TestCase("y:uint32 = 0xFFFF_ffff<<1")]
     [TestCase("y:uint32 = 0x1<<33")]

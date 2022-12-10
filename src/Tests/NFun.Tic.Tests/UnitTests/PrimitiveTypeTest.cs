@@ -1,7 +1,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.UnitTests; 
+namespace NFun.Tic.Tests.UnitTests;
 
 public class PrimitiveTypeTest {
     [TestCase(PrimitiveTypeName.Any)]
@@ -373,9 +373,8 @@ public class PrimitiveTypeTest {
     [TestCase(PrimitiveTypeName.U64, PrimitiveTypeName.U64)]
     [TestCase(PrimitiveTypeName.U8, PrimitiveTypeName.U64)]
     [TestCase(PrimitiveTypeName.Char, PrimitiveTypeName.Any)]
-    public void CanBeImplicitlyConverted_returnsTrue(PrimitiveTypeName from, PrimitiveTypeName to) {
+    public void CanBeImplicitlyConverted_returnsTrue(PrimitiveTypeName from, PrimitiveTypeName to) =>
         Assert.IsTrue(new StatePrimitive(from).CanBeImplicitlyConvertedTo(new StatePrimitive(to)));
-    }
 
     [TestCase(PrimitiveTypeName.Real, PrimitiveTypeName.U48)]
     [TestCase(PrimitiveTypeName.I32, PrimitiveTypeName.U64)]
@@ -389,7 +388,6 @@ public class PrimitiveTypeTest {
     [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.I24)]
     [TestCase(PrimitiveTypeName.U64, PrimitiveTypeName.I16)]
     [TestCase(PrimitiveTypeName.Char, PrimitiveTypeName.Bool)]
-    public void CanBeImplicitlyConverted_returnsFalse(PrimitiveTypeName from, PrimitiveTypeName to) {
+    public void CanBeImplicitlyConverted_returnsFalse(PrimitiveTypeName from, PrimitiveTypeName to) =>
         Assert.IsFalse(new StatePrimitive(from).CanBeImplicitlyConvertedTo(new StatePrimitive(to)));
-    }
 }

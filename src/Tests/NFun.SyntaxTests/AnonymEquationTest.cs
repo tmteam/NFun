@@ -1,7 +1,7 @@
 ﻿using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 class AnonymEquationTest {
     [TestCase("1", 1)]

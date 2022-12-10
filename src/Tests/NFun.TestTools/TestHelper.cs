@@ -11,7 +11,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.TestTools; 
+namespace NFun.TestTools;
 
 public static class TestHelper {
     public static CalculationResult Calc(this FunnyRuntime runtime, string id, object clrValue) =>
@@ -19,7 +19,7 @@ public static class TestHelper {
 
     public static CalculationResult Calc(this string expr, string id, object val) =>
         Funny.Hardcore.Build(expr).Calc((id, val));
-    
+
     public static CalculationResult Calc(this FunnyRuntime runtime, params (string id, object clrValue)[] values) {
         foreach (var (id, clrValue) in values)
         {
@@ -28,36 +28,36 @@ public static class TestHelper {
 
         runtime.Run();
         var vals = runtime.Variables.Where(v => v.IsOutput)
-                          .Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
-                          .ToArray();
+            .Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
+            .ToArray();
         return new CalculationResult(vals, runtime.Converter);
     }
 
 
     public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
         Funny.Hardcore.Build(expr).Calc(values);
-    
+
     public static object CalcAnonymousOut(this string expr, params (string id, object val)[] values) =>
         Calc(expr, values).Get(Parser.AnonymousEquationId);
 
-    public static FunnyRuntime BuildWithDialect(this string expr, 
+    public static FunnyRuntime BuildWithDialect(this string expr,
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, 
+        RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
-        => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions).Build(expr);
+        => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow,
+            allowUserFunctions).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
-    
-    public static void AssertRuntimes(this string expression) 
+
+    public static void AssertRuntimes(this string expression)
         => expression.Build().AssertRuntimes(_ => { });
-    
-    public static void AssertRuntimes(this string expression, Action<FunnyRuntime> action) 
+
+    public static void AssertRuntimes(this string expression, Action<FunnyRuntime> action)
         => expression.Build().AssertRuntimes(action);
 
-    public static void AssertRuntimes(this FunnyRuntime origin, Action<FunnyRuntime> action)
-    {
+    public static void AssertRuntimes(this FunnyRuntime origin, Action<FunnyRuntime> action) {
         var runtime = origin;
         Console.WriteLine("Origin");
         action(runtime);
@@ -74,9 +74,9 @@ public static class TestHelper {
         Console.WriteLine("Origin Grandclone");
         action(grandClone);
     }
-    
-    public static void AssertStringTemplates(this StringTemplateCalculator origin, Action<StringTemplateCalculator> action)
-    {
+
+    public static void AssertStringTemplates(this StringTemplateCalculator origin,
+        Action<StringTemplateCalculator> action) {
         var runtime = origin;
         Console.WriteLine("Origin");
         action(runtime);
@@ -93,7 +93,7 @@ public static class TestHelper {
         Console.WriteLine("Origin Grandclone");
         action(grandClone);
     }
-    
+
     public static void AssertAnonymousOut(this CalculationResult result, object expected) =>
         AssertReturns(result, Parser.AnonymousEquationId, expected);
 
@@ -130,7 +130,7 @@ public static class TestHelper {
 
     public static CalculationResult AssertResultHas(this string expr, string id, object val) =>
         expr.Calc().AssertResultHas((id, val));
-    
+
     public static void AssertResultHas(this string expr, params (string id, object val)[] values) =>
         expr.Calc().AssertResultHas(values);
 
@@ -164,7 +164,8 @@ public static class TestHelper {
         AssertResultIs(result, (res.Item1, type));
     }
 
-    public static CalculationResult AssertResultHas(this CalculationResult result, params (string id, object val)[] values) {
+    public static CalculationResult AssertResultHas(this CalculationResult result,
+        params (string id, object val)[] values) {
         foreach (var value in values)
         {
             var resultValue = result.Get(value.id);
@@ -197,11 +198,11 @@ public static class TestHelper {
 
     public static string ToStringSmart(this object v) =>
         v switch {
-            char[] c       => new string(c),
-            string         => v.ToString(),
-            IPAddress      => v.ToString(),
+            char[] c => new string(c),
+            string => v.ToString(),
+            IPAddress => v.ToString(),
             IEnumerable en => "[" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "]",
-            _              => v.GetType().IsClass ? JsonSerializer.Serialize(v) : v.ToString()
+            _ => v.GetType().IsClass ? JsonSerializer.Serialize(v) : v.ToString()
         };
 
     public static bool AreSame(object a, object b) {
@@ -209,7 +210,8 @@ public static class TestHelper {
             return false;
         if (a.GetType() != b.GetType())
             return false;
-        if (a is bool || a is byte || a is sbyte || a is short || a is ushort || a is int || a is uint || a is ulong || a is long)
+        if (a is bool || a is byte || a is sbyte || a is short || a is ushort || a is int || a is uint || a is ulong ||
+            a is long)
             return a.Equals(b);
 
         switch (a)
@@ -268,7 +270,7 @@ public static class TestHelper {
         }
     }
 
-    public static void AssertObviousFailsOnParse(this string expression, 
+    public static void AssertObviousFailsOnParse(this string expression,
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble) {
@@ -276,8 +278,8 @@ public static class TestHelper {
         try
         {
             var runtime = Funny.Hardcore
-                               .WithDialect(ifExpressionSyntax, integerPreferredType, realClrType)
-                               .Build(expression);
+                .WithDialect(ifExpressionSyntax, integerPreferredType, realClrType)
+                .Build(expression);
             if (runtime.Variables.Any(v => !v.IsOutput))
             {
                 Assert.Fail($"Expression parsed without any errors");
@@ -296,13 +298,13 @@ public static class TestHelper {
         }
         catch (FunnyParseException ex)
         {
-            if(ex.Interval.Finish<ex.Interval.Start)
+            if (ex.Interval.Finish < ex.Interval.Start)
                 Assert.Pass($"Start interval is less then finish interval: {ex}");
             Assert.Pass($"Fun parse error: {ex}");
         }
     }
 
-    
+
     public static void AssertObviousFailsOnApiUsage(Action action) {
         TraceLog.IsEnabled = true;
         try
@@ -316,7 +318,7 @@ public static class TestHelper {
             return;
         }
     }
-    
+
     public static void AssertObviousFailsOnParse(Action action) {
         TraceLog.IsEnabled = true;
         try

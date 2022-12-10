@@ -3,7 +3,7 @@ using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests; 
+namespace NFun.UnitTests;
 
 [TestFixture]
 public class TokenHelperTest {
@@ -92,13 +92,11 @@ public class TokenHelperTest {
         var flow = Tokenizer.ToFlow(expr);
         Assert.Catch(() => flow.ReadType());
     }
-   
+
     [TestCase("int8")]
     [TestCase("async")]
-    public void ReservedWord_Throw(string expr) {
-        TestHelper.AssertObviousFailsOnParse(()=> Tokenizer.ToFlow(expr));
-    }
-    
+    public void ReservedWord_Throw(string expr) => TestHelper.AssertObviousFailsOnParse(() => Tokenizer.ToFlow(expr));
+
     [TestCase("text")]
     [TestCase("text=")]
     [TestCase("text:")]

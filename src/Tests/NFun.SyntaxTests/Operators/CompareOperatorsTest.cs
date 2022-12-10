@@ -2,7 +2,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators; 
+namespace NFun.SyntaxTests.Operators;
 
 public class CompareOperatorsTest {
     [TestCase("true == false", false)]
@@ -85,7 +85,6 @@ public class CompareOperatorsTest {
     [TestCase("'F'[0] <= '1'[0]", false)]
     [TestCase("'1'[0] <= 'a'[0]", true)]
     [TestCase("cmp(a,b) = a>b; 'a'[0].cmp('b'[0])", false)]
-
     [TestCase("'avatar'< 'bigben' ", true)]
     [TestCase("'avatar'<= 'bigben' ", true)]
     [TestCase("'avatar'>= 'bigben' ", false)]

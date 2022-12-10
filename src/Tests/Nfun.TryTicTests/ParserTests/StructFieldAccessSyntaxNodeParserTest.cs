@@ -1,7 +1,7 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.ParserTests; 
+namespace NFun.UnitTests.ParserTests;
 
 public class StructFieldAccessSyntaxNodeParserTest {
     [Test]

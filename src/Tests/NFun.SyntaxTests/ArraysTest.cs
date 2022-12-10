@@ -5,7 +5,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class ArraysTest {
@@ -15,9 +15,9 @@ public class ArraysTest {
     [TestCase("y:uint[] = [4..1]", new uint[] { 4, 3, 2, 1 })]
     [TestCase("y:int[] = [1..1]", new[] { 1 })]
     [TestCase("y:int[] = [1,2,3,4]", new[] { 1, 2, 3, 4 })]
-    [TestCase("y = [1.2 .. 3]",new []{1.2,2.2})]
-    [TestCase("y = [1.2 .. 3.2]",new []{1.2,2.2,3.2})]
-    [TestCase("y = [3.2 .. 1.2]",new []{3.2,2.2,1.2})]
+    [TestCase("y = [1.2 .. 3]", new[] { 1.2, 2.2 })]
+    [TestCase("y = [1.2 .. 3.2]", new[] { 1.2, 2.2, 3.2 })]
+    [TestCase("y = [3.2 .. 1.2]", new[] { 3.2, 2.2, 1.2 })]
     [TestCase("y = [0x1]", new[] { 1 })]
     [TestCase("y = ['foo','bar']", new[] { "foo", "bar" })]
     [TestCase("y:int = [0..10][0]", 0)]
@@ -92,14 +92,7 @@ public class ArraysTest {
     public void CompositeArrayOfAnyTest() =>
         "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertAnonymousOut(
             new object[] {
-                1,
-                "23",
-                Array.Empty<object>(),
-                new[] { "a", "bc" },
-                new[] { Array.Empty<object>() },
-                4.0,
-                5,
-                false
+                1, "23", Array.Empty<object>(), new[] { "a", "bc" }, new[] { Array.Empty<object>() }, 4.0, 5, false
             });
 
     [Test]
@@ -144,8 +137,8 @@ public class ArraysTest {
     [TestCase(3, "y:int[]= [x,2,3]", new[] { 3, 2, 3 })]
     [TestCase(3, "y= [1..5][x]", 4)]
     [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1)]
-    [TestCase(2, "x:int; y= [1..6 step x]", new[] {1, 3, 5})]
-    [TestCase(0.5, "y= [1.0..3.0 step x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
+    [TestCase(2, "x:int; y= [1..6 step x]", new[] { 1, 3, 5 })]
+    [TestCase(0.5, "y= [1.0..3.0 step x]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
     public void SingleInputEquation_CheckOutputValues(object val, string expr, object expected) =>
         expr.Calc("x", val).AssertResultHas("y", expected);
 
@@ -161,7 +154,7 @@ public class ArraysTest {
     [TestCase("y:real = [0x1].avg()", 1.0)]
     [TestCase("y = [0x1,0x3].avg()", 2.0)]
     [TestCase("y = [1,3].avg()", 2.0)]
-    public void ArrayWithElementConvertion(string expr, object expected) { expr.Calc().AssertResultHas("y", expected); }
+    public void ArrayWithElementConvertion(string expr, object expected) => expr.Calc().AssertResultHas("y", expected);
 
     [Test]
     public void ConstantTwinAnyArray_WithTypeSpecification() {
@@ -262,11 +255,7 @@ public class ArraysTest {
 
         var res = expr.Calc("x", 42.0).Get("y");
 
-        var expected = new[] {
-            new[] { 1.0 },
-            new[] { 2.0, 3.0, 42.0 },
-            new[] { 42.0 }
-        };
+        var expected = new[] { new[] { 1.0 }, new[] { 2.0, 3.0, 42.0 }, new[] { 42.0 } };
         AssertArraysDeepEquiualent(expected, res);
     }
 
@@ -357,8 +346,8 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
 
     private static void AssertMultiDimentionalEquals<T>(T[][] result, int[][] expectedOutput) {
         for (int i = 0; i < expectedOutput.Length; i++)
-            for (int j = 0; j < expectedOutput[i].Length; j++)
-                Assert.AreEqual(result[i][j], expectedOutput[i][j]);
+        for (int j = 0; j < expectedOutput[i].Length; j++)
+            Assert.AreEqual(result[i][j], expectedOutput[i][j]);
     }
 
     [TestCase("y = [")]

@@ -5,7 +5,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.ParserTests; 
+namespace NFun.UnitTests.ParserTests;
 
 public class StructSyntaxNodeParserTest {
     [Test]

@@ -3,9 +3,10 @@ using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
-namespace NFun.UnitTests.Converters; 
+namespace NFun.UnitTests.Converters;
 
 public class IOTypeConvertersTest {
     [TestCase((byte)24)]
@@ -40,10 +41,7 @@ public class IOTypeConvertersTest {
 
     [Test]
     public void ComplexArrayConverts() => AssertFunnyConvert(
-        new[] {
-            new[] { new[] { 1, 2 }, Array.Empty<int>() },
-            new[] { new[] { 3 }, new[] { 4, 5, 6 } }
-        });
+        new[] { new[] { new[] { 1, 2 }, Array.Empty<int>() }, new[] { new[] { 3 }, new[] { 4, 5, 6 } } });
 
     [Test]
     public void ObjectConverts() => AssertFunnyConvert(new object());
@@ -81,21 +79,20 @@ public class IOTypeConvertersTest {
         public string[] lOveRs { get; set; }
     }
 
-    private void AssertFunnyConvert(object originClrObject)
-    {
+    private void AssertFunnyConvert(object originClrObject) {
         var converter = FunnyConverter.RealIsDouble;
         converter.ClearCaches();
-        var inputConverter =  FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
+        var inputConverter = FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
         var outputConverter = FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
         var size = converter.CacheSize;
         var funObject = inputConverter.ToFunObject(originClrObject);
         var clrObject = outputConverter.ToClrObject(funObject);
         Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));
-        
+
         FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
         FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
         FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
         FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
-        Assert.AreEqual(size, converter.CacheSize);        
+        Assert.AreEqual(size, converter.CacheSize);
     }
 }

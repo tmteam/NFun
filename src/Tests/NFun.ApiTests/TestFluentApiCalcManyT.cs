@@ -3,12 +3,13 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestFluentApiCalcManyT {
     [Test]
     public void FullInitialization() {
-        var result = Funny.CalcMany<ContractOutputModel>("id = 42; items = ['vasa','kate']; price = 42.1; taxes = 123.5");
+        var result =
+            Funny.CalcMany<ContractOutputModel>("id = 42; items = ['vasa','kate']; price = 42.1; taxes = 123.5");
         Assert.AreEqual(42, result.Id);
         Assert.AreEqual(42.1, result.Price);
         Assert.AreEqual(new Decimal(123.5), result.Taxes);
@@ -17,12 +18,11 @@ public class TestFluentApiCalcManyT {
     }
 
     [Test]
-    public void OutputFieldIsConstCharArray() 
+    public void OutputFieldIsConstCharArray()
         => Assert.IsTrue(
             TestHelper.AreSame(
-                new ModelWithCharArray {
-                    Chars = new[] { 't', 'e', 's', 't' }
-                }, Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
+                new ModelWithCharArray { Chars = new[] { 't', 'e', 's', 't' } },
+                Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
 
 
     [Test]
@@ -41,7 +41,7 @@ public class TestFluentApiCalcManyT {
 
     [TestCase("id = 42; price = ID")]
     [TestCase("id = 42; ID = 13")]
-    public void UseDifferentInputCase_throws(string expression) 
+    public void UseDifferentInputCase_throws(string expression)
         => Assert.Throws<FunnyParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
 
     [Test]

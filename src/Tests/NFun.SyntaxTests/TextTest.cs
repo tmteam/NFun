@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class TextTest {
@@ -39,10 +39,10 @@ public class TextTest {
     [TestCase("y = '{0}'", "0")]
     [TestCase("y = 'hi {42}'", "hi 42")]
     [TestCase("y = '{42}hi'", "42hi")]
-    [TestCase("y =  ‘some \"figure\" quotes‘","some \"figure\" quotes")]
-    [TestCase("y =  “some \"figure\" quotes“","some \"figure\" quotes")]
-    [TestCase("y =  ‘some 'figure' quotes‘","some 'figure' quotes")]
-    [TestCase("y =  “some 'figure' quotes“","some 'figure' quotes")]
+    [TestCase("y =  ‘some \"figure\" quotes‘", "some \"figure\" quotes")]
+    [TestCase("y =  “some \"figure\" quotes“", "some \"figure\" quotes")]
+    [TestCase("y =  ‘some 'figure' quotes‘", "some 'figure' quotes")]
+    [TestCase("y =  “some 'figure' quotes“", "some 'figure' quotes")]
     [TestCase("y = 'hello {42} world'", "hello 42 world")]
     [TestCase("y = 'hello {42+1} world'", "hello 43 world")]
     [TestCase("y = '{''}'", "")]
@@ -50,10 +50,11 @@ public class TextTest {
     [TestCase("y = 'hi {42+13} and {21-1}'", "hi 55 and 20")]
     [TestCase("y = '{0+1} {1+2} {2+3}'", "1 3 5")]
     [TestCase("y = 'pre {'p{42-1*2}m{21-1+10*3}a'} mid {'p{42-2}m{21-1}a'} fin'", "pre p40m50a mid p40m20a fin")]
-    [TestCase("y = 'pre \"{'p\"{42-1*2}\"m{21-1+10*3}a\"'} mid\" {'p{42-2}\"m{21-1}a'}\"fin\"'", "pre \"p\"40\"m50a\" mid\" p40\"m20a\"fin\"")]
+    [TestCase("y = 'pre \"{'p\"{42-1*2}\"m{21-1+10*3}a\"'} mid\" {'p{42-2}\"m{21-1}a'}\"fin\"'",
+        "pre \"p\"40\"m50a\" mid\" p40\"m20a\"fin\"")]
     [TestCase("y = \"pre {\"p{42-1*2}m{21-1+10*3}a\"} mid {\"p{42-2}m{21-1}a\"} fin\"", "pre p40m50a mid p40m20a fin")]
-    [TestCase("y = \"pre4' '{\"'p'{42-1*2}'m'{21-1+10*3}'a'\"}'m'i'd'{\"'p'{42-2}'m'{21-1}'a'\"}''fin'\"", "pre4' ''p'40'm'50'a''m'i'd''p'40'm'20'a'''fin'")]
-
+    [TestCase("y = \"pre4' '{\"'p'{42-1*2}'m'{21-1+10*3}'a'\"}'m'i'd'{\"'p'{42-2}'m'{21-1}'a'\"}''fin'\"",
+        "pre4' ''p'40'm'50'a''m'i'd''p'40'm'20'a'''fin'")]
     [TestCase("y = 'pre1{'pre2{2-2}after2'}after1'", "pre1pre20after2after1")]
     [TestCase("y = 'pre1 {'inside'} after1'", "pre1 inside after1")]
     [TestCase("y = 'pre'.concat((1+2).toText())", "pre3")]
@@ -95,12 +96,12 @@ public class TextTest {
     [TestCase("y=' \\r\r'", " \r\r")]
     [TestCase("y='\t \\n\n'", "\t \n\n")]
     [TestCase("y='pre \\{lalala\\} after'", "pre {lalala} after")]
-    [TestCase("y='hello1\"{0}world'","hello1\"0world")]
-    [TestCase("y='hello2{0}\"world'","hello20\"world")]
-    [TestCase("y='hello3{0}\"world{0}'","hello30\"world0")]
-    [TestCase("y=\"hello4'{0}world\"","hello4'0world")]
-    [TestCase("y=\"hello5{0}'world\"","hello50'world")]
-    [TestCase("y=\"hello6{0}'world{0}\"","hello60'world0")]
+    [TestCase("y='hello1\"{0}world'", "hello1\"0world")]
+    [TestCase("y='hello2{0}\"world'", "hello20\"world")]
+    [TestCase("y='hello3{0}\"world{0}'", "hello30\"world0")]
+    [TestCase("y=\"hello4'{0}world\"", "hello4'0world")]
+    [TestCase("y=\"hello5{0}'world\"", "hello50'world")]
+    [TestCase("y=\"hello6{0}'world{0}\"", "hello60'world0")]
     public void EscapedTest(string expr, string expected) => expr.AssertReturns(expected);
 
     [Test]

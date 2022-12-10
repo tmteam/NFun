@@ -3,14 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFun.Runtime; 
+namespace NFun.Runtime;
 
 public class FunnyStruct : IReadOnlyDictionary<string, object> {
-    internal class FieldsDictionary: Dictionary<string,object> {
-        public FieldsDictionary(int capacity): base(capacity, StringComparer.InvariantCultureIgnoreCase) {
-            
-        }
+    internal class FieldsDictionary : Dictionary<string, object> {
+        public FieldsDictionary(int capacity) : base(capacity, StringComparer.InvariantCultureIgnoreCase) { }
     }
+
     public static FunnyStruct Create(params (string, object)[] fields) {
         var values = new FieldsDictionary(fields.Length);
         foreach (var field in fields)
@@ -19,12 +18,21 @@ public class FunnyStruct : IReadOnlyDictionary<string, object> {
     }
 
     private readonly Dictionary<string, object> _values;
+
     internal FunnyStruct(FieldsDictionary values) => _values = values;
-     
+
+    public object this[string key] => _values[key];
+
+    public IEnumerable<string> Keys => _values.Keys;
+
+    public IEnumerable<object> Values => _values.Values;
+
+    public int Count => _values.Count;
+
     public object GetValue(string field) => _values[field];
 
-    public override string ToString()
-        => "{ " + string.Join(", ", _values.Select(v => $"{v.Key}={v.Value}")) + " }";
+    public override string ToString() =>
+        "{ " + string.Join(", ", _values.Select(v => $"{v.Key}={v.Value}")) + " }";
 
     IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
@@ -45,13 +53,7 @@ public class FunnyStruct : IReadOnlyDictionary<string, object> {
         return true;
     }
 
-    public int Count => _values.Count;
     public bool ContainsKey(string key) => _values.ContainsKey(key);
 
-
     public bool TryGetValue(string key, out object value) => _values.TryGetValue(key, out value);
-
-    public object this[string key] => _values[key];
-    public IEnumerable<string> Keys => _values.Keys;
-    public IEnumerable<object> Values => _values.Values;
 }

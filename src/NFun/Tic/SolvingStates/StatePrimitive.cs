@@ -14,7 +14,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     }
 
 
-    public StatePrimitive(PrimitiveTypeName name) { Name = name; }
+    public StatePrimitive(PrimitiveTypeName name) => Name = name;
 
     public PrimitiveTypeName Name { get; }
     public bool IsSolved => true;

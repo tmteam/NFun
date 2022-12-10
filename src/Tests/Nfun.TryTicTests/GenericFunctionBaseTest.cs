@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests; 
+namespace NFun.UnitTests;
 
 [TestFixture]
 public class GenericFunctionBaseTest {
@@ -62,8 +62,7 @@ public class GenericFunctionBaseTest {
                     actual: function.ReturnType);
                 CollectionAssert.AreEqual(
                     expected: new[] {
-                        FunnyType.ArrayOf(FunnyType.Int32),
-                        FunnyType.FunOf(FunnyType.Text, FunnyType.Int32)
+                        FunnyType.ArrayOf(FunnyType.Int32), FunnyType.FunOf(FunnyType.Text, FunnyType.Int32)
                     },
                     actual: function.ArgTypes);
             });
@@ -160,7 +159,8 @@ public class GenericFunctionBaseTest {
 public class GetRandomElementFuncDefinition : GenericFunctionBase {
     public GetRandomElementFuncDefinition() : base(
         "__retSelf",
-        FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0)) { }
+        FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0)) {
+    }
 
     protected override object Calc(object[] args) => throw new NotImplementedException();
 }

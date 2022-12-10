@@ -4,7 +4,7 @@ using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests; 
+namespace NFun.Tic.Tests;
 
 public static class TestHelper {
     public static void AssertThrowsRecursiveTicTypedDefinition(Action delegateCode) {
@@ -18,7 +18,8 @@ public static class TestHelper {
             Console.WriteLine(e);
         }
         catch (AssertionException)
-        { }
+        {
+        }
         catch (Exception e)
         {
             Assert.Fail(
@@ -37,7 +38,8 @@ public static class TestHelper {
             Console.WriteLine(e);
         }
         catch (AssertionException)
-        { }
+        {
+        }
         catch (Exception e)
         {
             Assert.Fail($"Invalid exception. {e.GetType().Name} was thrown. TicExcpetion expected.\r\n{e}");
@@ -65,9 +67,8 @@ public static class TestHelper {
         return genericNode;
     }
 
-    public static void AssertGenericTypeIsArith(this TicNode node) {
+    public static void AssertGenericTypeIsArith(this TicNode node) =>
         AssertGenericType(node, StatePrimitive.U24, StatePrimitive.Real, false);
-    }
 
     public static void AssertGenericType(
         this ITicNodeState state, StatePrimitive desc, StatePrimitive anc,

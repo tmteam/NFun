@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators; 
+namespace NFun.SyntaxTests.Operators;
 
 public class BooleanOperatorsTest {
     [TestCase("y = true", true)]

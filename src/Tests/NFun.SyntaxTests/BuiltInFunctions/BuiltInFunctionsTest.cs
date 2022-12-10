@@ -2,8 +2,7 @@ using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.BuiltInFunctions; 
-
+namespace NFun.SyntaxTests.BuiltInFunctions;
 
 [TestFixture]
 public class BuiltInFunctionsTest {
@@ -97,7 +96,7 @@ public class BuiltInFunctionsTest {
     [TestCase("any([])", false)]
     [TestCase("[0x4,0x3,0x5,0x1].sort()", new[] { 1, 3, 4, 5 })]
     [TestCase("[4.0,3.0,5.0,1.0].sort()", new[] { 1.0, 3.0, 4.0, 5.0 })]
-    [TestCase("['a','hey','what','up'].sort(rule it.count())", new[] { "a", "up", "hey","what" })]
+    [TestCase("['a','hey','what','up'].sort(rule it.count())", new[] { "a", "up", "hey", "what" })]
     [TestCase("['a','hey','what','up'].sortDescending(rule it.count())", new[] { "what", "hey", "up", "a", })]
     [TestCase("[4.0,3.0,5.0,1.0].sort(rule it%2)", new[] { 4.0, 3.0, 5.0, 1.0 })]
     [TestCase("[4.0,3.0,5.0,1.0].sortDescending(rule it%2)", new[] { 3.0, 5.0, 1.0, 4.0 })]
@@ -109,7 +108,6 @@ public class BuiltInFunctionsTest {
     [TestCase("out:uint16[] = [4,3,5,1].sort()", new UInt16[] { 1, 3, 4, 5 })]
     [TestCase("out:uint8[]  = [4,3,5,1].sort()", new Byte[] { 1, 3, 4, 5 })]
     [TestCase("['4.0','3.0','5.0','1.0'].sort()", new[] { "1.0", "3.0", "4.0", "5.0" })]
-    
     [TestCase("out:real[]   = range(0,5)", new[] { 0.0, 1, 2, 3, 4, 5 })]
     [TestCase("out:int64[]  = range(0,5)", new long[] { 0, 1, 2, 3, 4, 5 })]
     [TestCase("out:uint64[] = range(0,5)", new ulong[] { 0, 1, 2, 3, 4, 5 })]
@@ -118,73 +116,66 @@ public class BuiltInFunctionsTest {
     [TestCase("out:int16[]  = range(0,5)", new Int16[] { 0, 1, 2, 3, 4, 5 })]
     [TestCase("out:uint16[] = range(0,5)", new UInt16[] { 0, 1, 2, 3, 4, 5 })]
     [TestCase("out:uint8[]  = range(0,5)", new Byte[] { 0, 1, 2, 3, 4, 5 })]
-    [TestCase("out:real[]   = range(-2.5,2.4)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5})]
-    [TestCase("out:real[]   = range(-2.5,2.5)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5})]
-    [TestCase("out:real[]   = range(-2.5,2.6)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5})]
-
-    [TestCase("out:real[]   = range(-2.4,2.4)", new[] { -2.4, -1.4, -1.4+1, -1.4+2, -1.4+3})]
-    [TestCase("out:real[]   = range(-2.4,2.5)", new[] { -2.4, -1.4, -1.4+1, -1.4+2, -1.4+3})]
-    [TestCase("out:real[]   = range(-2.4,2.6)", new[] { -2.4, -1.4, -1.4+1, -1.4+2, -1.4+3, -1.4+4})]
-    [TestCase("out:real[]   = range(-2.4,2.7)", new[] { -2.4, -1.4, -1.4+1, -1.4+2, -1.4+3, -1.4+4})]
-    
+    [TestCase("out:real[]   = range(-2.5,2.4)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5 })]
+    [TestCase("out:real[]   = range(-2.5,2.5)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5 })]
+    [TestCase("out:real[]   = range(-2.5,2.6)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5 })]
+    [TestCase("out:real[]   = range(-2.4,2.4)", new[] { -2.4, -1.4, -1.4 + 1, -1.4 + 2, -1.4 + 3 })]
+    [TestCase("out:real[]   = range(-2.4,2.5)", new[] { -2.4, -1.4, -1.4 + 1, -1.4 + 2, -1.4 + 3 })]
+    [TestCase("out:real[]   = range(-2.4,2.6)", new[] { -2.4, -1.4, -1.4 + 1, -1.4 + 2, -1.4 + 3, -1.4 + 4 })]
+    [TestCase("out:real[]   = range(-2.4,2.7)", new[] { -2.4, -1.4, -1.4 + 1, -1.4 + 2, -1.4 + 3, -1.4 + 4 })]
     [TestCase("out:real[]   = range(-5,5)", new double[] { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
-    [TestCase("out:int64[]  = range(-5,5)", new long[]   { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
-    [TestCase("out:int32[]  = range(-5,5)", new int[]    { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
-    [TestCase("out:int16[]  = range(-5,5)", new Int16[]  { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:int64[]  = range(-5,5)", new long[] { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:int32[]  = range(-5,5)", new int[] { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:int16[]  = range(-5,5)", new Int16[] { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
     [TestCase("out:real[]   = range(5,0)", new[] { 5, 4, 3, 2, 1, 0.0 })]
     [TestCase("out:int64[]  = range(5,0)", new long[] { 5, 4, 3, 2, 1, 0 })]
     [TestCase("out:uint64[] = range(5,0)", new ulong[] { 5, 4, 3, 2, 1, 0 })]
     [TestCase("out:int32[]  = range(5,0)", new int[] { 5, 4, 3, 2, 1, 0 })]
     [TestCase("out:uint32[] = range(5,0)", new UInt32[] { 5, 4, 3, 2, 1, 0 })]
-    [TestCase("out:int16[]  = range(5,0)", new Int16[]  { 5, 4, 3, 2, 1, 0 })]
+    [TestCase("out:int16[]  = range(5,0)", new Int16[] { 5, 4, 3, 2, 1, 0 })]
     [TestCase("out:uint16[] = range(5,0)", new UInt16[] { 5, 4, 3, 2, 1, 0 })]
-    [TestCase("out:uint8[]  = range(5,0)", new Byte[]   { 5, 4, 3, 2, 1, 0 })]
+    [TestCase("out:uint8[]  = range(5,0)", new Byte[] { 5, 4, 3, 2, 1, 0 })]
     [TestCase("out:real[]   = range(5,-5)", new double[] { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
-    [TestCase("out:real[]   = range(2.5,-2.4)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5})]
-    [TestCase("out:real[]   = range(2.5,-2.5)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5, -2.5})]
-    [TestCase("out:real[]   = range(2.5,-2.6)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5, -2.5})]
-
-    [TestCase("out:real[]   = range(2.4,-2.4)", new[] { 2.4, 1.4, 1.4-1, 1.4-2, 1.4-3})]
-    [TestCase("out:real[]   = range(2.4,-2.5)", new[] { 2.4, 1.4, 1.4-1, 1.4-2, 1.4-3})]
-    [TestCase("out:real[]   = range(2.4,-2.6)", new[] { 2.4, 1.4, 1.4-1, 1.4-2, 1.4-3, 1.4-4})]
-    [TestCase("out:real[]   = range(2.4,-2.7)", new[] { 2.4, 1.4, 1.4-1, 1.4-2, 1.4-3, 1.4-4})]
-
+    [TestCase("out:real[]   = range(2.5,-2.4)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5 })]
+    [TestCase("out:real[]   = range(2.5,-2.5)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5, -2.5 })]
+    [TestCase("out:real[]   = range(2.5,-2.6)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5, -2.5 })]
+    [TestCase("out:real[]   = range(2.4,-2.4)", new[] { 2.4, 1.4, 1.4 - 1, 1.4 - 2, 1.4 - 3 })]
+    [TestCase("out:real[]   = range(2.4,-2.5)", new[] { 2.4, 1.4, 1.4 - 1, 1.4 - 2, 1.4 - 3 })]
+    [TestCase("out:real[]   = range(2.4,-2.6)", new[] { 2.4, 1.4, 1.4 - 1, 1.4 - 2, 1.4 - 3, 1.4 - 4 })]
+    [TestCase("out:real[]   = range(2.4,-2.7)", new[] { 2.4, 1.4, 1.4 - 1, 1.4 - 2, 1.4 - 3, 1.4 - 4 })]
     [TestCase("out:int64[]  = range(5,-5)", new long[] { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
-    [TestCase("out:int32[]  = range(5,-5)", new int[]    { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
-    [TestCase("out:int16[]  = range(5,-5)", new Int16[]  { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
-
-    
+    [TestCase("out:int32[]  = range(5,-5)", new int[] { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
+    [TestCase("out:int16[]  = range(5,-5)", new Int16[] { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
     [TestCase("range(7,10)", new[] { 7, 8, 9, 10 })]
     [TestCase("range(7,10.0)", new[] { 7.0, 8, 9, 10 })]
     [TestCase("range(7.0,10.0)", new[] { 7.0, 8, 9, 10 })]
     [TestCase("range(1,10,2.0)", new[] { 1.0, 3.0, 5.0, 7.0, 9.0 })]
-    public void ConstantEquationWithPredefinedFunction(string expr, object expected) 
+    public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
     [Ignore("TODO ceil, floor, sign functions are not implemented")]
-    [TestCase("ceil(7.03)",  8)]
-    [TestCase("ceil(7.64)",  8)]
-    [TestCase("ceil(0.12)",  1)]
+    [TestCase("ceil(7.03)", 8)]
+    [TestCase("ceil(7.64)", 8)]
+    [TestCase("ceil(0.12)", 1)]
     [TestCase("ceil(-0.12)", 0)]
     [TestCase("ceil(-7.1)", -7)]
     [TestCase("ceil(-7.6)", -7)]
-    [TestCase("floor(7.03)",  7)]
-    [TestCase("floor(7.64)",  7)]
-    [TestCase("floor(0.12)",  0)]
+    [TestCase("floor(7.03)", 7)]
+    [TestCase("floor(7.64)", 7)]
+    [TestCase("floor(0.12)", 0)]
     [TestCase("floor(-0.12)", -1)]
     [TestCase("floor(-7.1)", -8)]
     [TestCase("floor(-7.6)", -8)]
-
     [TestCase("sign(-5)", -1)]
     [TestCase("sign(-5.0)", -1)]
     [TestCase("sign(5)", 1)]
     [TestCase("sign(5.2)", 1)]
-    public void TODOConstantEquationWithPredefinedFunction(string expr, object expected) 
+    public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
     [Ignore("Lca merge")]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
-    public void MergeComparableArray(string expr, object expected) { expr.AssertAnonymousOut(expected); }
+    public void MergeComparableArray(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
     [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
     [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
@@ -221,18 +212,17 @@ public class BuiltInFunctionsTest {
     [TestCase("y = abs(x-4.0)", 1.0, 3.0)]
     [TestCase("y = abs(x-4)", 1, 3)]
     [TestCase("y = abs(x-4.0)", 1.0, 3.0)]
-    
     public void EquationWithPredefinedFunction(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
-    
+
     [Ignore("TODO: toXXX functions are not implemented")]
-    [TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
-    [TestCase("y = abs(x-toInt(4))",1,3)]
-    [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
+    [TestCase("y = abs(toInt(x)-toInt(4))", 1, 3)]
+    [TestCase("y = abs(x-toInt(4))", 1, 3)]
+    [TestCase("x:int; y = abs(toInt(x)-toInt(4))", 1, 3)]
     public void TODOEquationWithPredefinedFunction(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 
-    
+
     [Ignore(" TODO: converts funct")]
     [TestCase("toInt(1.2)", 1)]
     [TestCase("toInt(-1.2)", -1)]
@@ -249,22 +239,21 @@ public class BuiltInFunctionsTest {
     [TestCase("toReal(1)", 1.0)]
     [TestCase("toReal(-1)", -1.0)]
     [TestCase(
-        "toBits(123)", new[] {
-            true, true, false, true, true, true, true, false,
-            false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false
+        "toBits(123)",
+        new[] {
+            true, true, false, true, true, true, true, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+            false
         })]
     [TestCase("toBytes(123)", new[] { 123, 0, 0, 0 })]
     [TestCase("toBytes(1_192_737)", new[] { 0x21, 0x33, 0x12, 0 })]
     [TestCase(
         "toUnicode('hi there')",
         new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
-    
     [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
     public void TODOConstWithPredefinedFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
-    
+
     [TestCase("y = pi(")]
     [TestCase("y = pi(1)")]
     [TestCase("y = abs(")]
@@ -296,5 +285,4 @@ public class BuiltInFunctionsTest {
     [TestCase("y= max([])")]
     [TestCase("y = [1,2] in [1,2,3,4]")]
     public void MayBeFails(string expr) => expr.AssertObviousFailsOnParse();
-
 }

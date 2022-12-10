@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.SyntaxDialect; 
+namespace NFun.SyntaxTests.SyntaxDialect;
 
 [TestFixture]
 public class GenericIntConstantIsI32Test : GenericIntConstantTestBase<int> {

@@ -5,7 +5,7 @@ using NFun.Tic.Stages;
 namespace NFun.Tic.SolvingStates; 
 
 public class StateArray : ICompositeState, ITypeState, ITicNodeState {
-    public StateArray(TicNode elementNode) { ElementNode = elementNode; }
+    public StateArray(TicNode elementNode) => ElementNode = elementNode;
 
     public static StateArray Of(ITicNodeState state) =>
         state switch {

@@ -1,6 +1,6 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 
-namespace NFun.SyntaxParsing.Visitors; 
+namespace NFun.SyntaxParsing.Visitors;
 
 public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(AnonymFunctionSyntaxNode node) => true;

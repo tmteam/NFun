@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests; 
+namespace NFun.ApiTests;
 
 public class TestFluentApiCalcSingleObjectConst {
     [TestCase("(13 == 13) and ('vasa' == 'vasa')", true)]
@@ -17,7 +17,7 @@ public class TestFluentApiCalcSingleObjectConst {
     [TestCase("[1..4].map(rule it.toText())", new[] { "1", "2", "3", "4" })]
     public void GeneralCalcTest(string expr, object expected) =>
         Assert.AreEqual(expected, Funny.Calc(expr));
-    
+
     [Test]
     public void ReturnsComplexIntArrayConstant() {
         var result = Funny.Calc(
@@ -25,12 +25,10 @@ public class TestFluentApiCalcSingleObjectConst {
         Assert.IsInstanceOf<object[]>(result);
         Assert.AreEqual(
             new[] {
-                new[] { new[] { 1, 2 }, Array.Empty<int>() },
-                new[] { new[] { 3, 4 } },
-                new[] { Array.Empty<int>() }
+                new[] { new[] { 1, 2 }, Array.Empty<int>() }, new[] { new[] { 3, 4 } }, new[] { Array.Empty<int>() }
             }, result);
     }
-    
+
     [Test]
     public void OutputTypeIsStruct_returnsFunnyStruct() {
         var str = Funny.Calc(
@@ -46,25 +44,25 @@ public class TestFluentApiCalcSingleObjectConst {
     [TestCase("a = 12; b = 32; x = a*b")]
     public void NoOutputSpecified_throws(string expr)
         => Assert.Throws<FunnyParseException>(() => Funny.Calc(expr));
-    
+
     [TestCase("{id = age; items = [1,2,3,4].map(rule '{it}'); price = 21*2}")]
     [TestCase("[1..4].filter(rule it>age).map(rule it**2)")]
     [TestCase("age>someUnknownvariable")]
     [TestCase("x:int;")]
     public void UseUnknownInput_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc(expression));
-    
+
     [Test]
     public void ConstOfDecimalTest() {
         var result = Funny.WithDialect(realClrType: RealClrType.IsDecimal)
-                          .Calc("13.5");
+            .Calc("13.5");
         Assert.AreEqual(result, (decimal)13.5);
     }
-    
+
     [Test]
     public void ConstOfDecimalStructsTest() {
         var result = Funny.WithDialect(realClrType: RealClrType.IsDecimal)
-                          .Calc("{name = 'test', price = 13.5}");
+            .Calc("{name = 'test', price = 13.5}");
         Assert.IsInstanceOf<Dictionary<string, object>>(result);
         var dic = (Dictionary<string, object>)result;
         Assert.AreEqual(dic["name"], "test");

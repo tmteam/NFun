@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 public class NameConflictsTest {
     [TestCase("concat = 1+2.0", "concat", 3.0)]

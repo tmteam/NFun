@@ -8,7 +8,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors; 
+namespace NFun.ParseErrors;
 
 internal static partial class Errors {
 
@@ -34,11 +34,11 @@ internal static partial class Errors {
 
 
     private static string CreateArgumentsStub(IEnumerable<ISyntaxNode> arguments)
-        => string.Join(",", arguments.Select(a=>a.ToShortText()));
+        => string.Join(",", arguments.Select(a => a.ToShortText()));
 
     private static string Signature(string funName, IEnumerable<ISyntaxNode> arguments)
         => $"{funName}({Join(arguments)})";
-    
+
     private static string Signature(IFunctionSignature signature)
         => $"{signature.Name}({Join(signature.ArgTypes)})->{signature.ReturnType}";
 
@@ -47,61 +47,61 @@ internal static partial class Errors {
 
 
     private static string Join(IEnumerable<ISyntaxNode> arguments)
-        => string.Join(", ", arguments.Select(a=>a.ToShortText()));
-    
+        => string.Join(", ", arguments.Select(a => a.ToShortText()));
+
     private static string ToText(Tok tok) {
         if (!string.IsNullOrWhiteSpace(tok.Value))
             return tok.Value;
         return tok.Type switch {
-                   TokType.If            => "if",
-                   TokType.Else          => "else",
-                   TokType.Then          => "then",
-                   TokType.Plus          => "+",
-                   TokType.Minus         => "-",
-                   TokType.Div           => "/",
-                   TokType.DivInt        => "//",
-                   TokType.Rema          => "%",
-                   TokType.Mult          => "*",
-                   TokType.Pow           => "**",
-                   TokType.ParenthObr           => "(",
-                   TokType.ParenthCbr           => ")",
-                   TokType.ArrOBr        => "[",
-                   TokType.ArrCBr        => "]",
-                   TokType.MetaInfo      => "@",
-                   TokType.In            => "in",
-                   TokType.BitOr         => "|",
-                   TokType.BitAnd        => "&",
-                   TokType.BitXor        => "^",
-                   TokType.BitShiftLeft  => "<<",
-                   TokType.BitShiftRight => ">>",
-                   TokType.BitInverse    => "~",
-                   TokType.Def           => "=",
-                   TokType.Equal         => "==",
-                   TokType.NotEqual      => "!=",
-                   TokType.And           => "and",
-                   TokType.Or            => "or",
-                   TokType.Xor           => "xor",
-                   TokType.Not           => "not",
-                   TokType.Less          => "<",
-                   TokType.More          => ">",
-                   TokType.LessOrEqual   => "<=",
-                   TokType.MoreOrEqual   => ">=",
-                   TokType.Sep           => ",",
-                   TokType.True          => "true",
-                   TokType.False         => "false",
-                   TokType.Colon         => ":",
-                   TokType.TwoDots       => "..",
-                   TokType.TextType      => "text",
-                   TokType.Int32Type     => "int32",
-                   TokType.Int64Type     => "int64",
-                   TokType.RealType      => "real",
-                   TokType.BoolType      => "bool",
-                   TokType.CharType      => "char",
-                   TokType.AnythingType  => "any",
-                   TokType.Dot           => ".",
-                   TokType.Rule       => "rule",
-                   _                     => tok.Type.ToString().ToLower()
-               };
+            TokType.If => "if",
+            TokType.Else => "else",
+            TokType.Then => "then",
+            TokType.Plus => "+",
+            TokType.Minus => "-",
+            TokType.Div => "/",
+            TokType.DivInt => "//",
+            TokType.Rema => "%",
+            TokType.Mult => "*",
+            TokType.Pow => "**",
+            TokType.ParenthObr => "(",
+            TokType.ParenthCbr => ")",
+            TokType.ArrOBr => "[",
+            TokType.ArrCBr => "]",
+            TokType.MetaInfo => "@",
+            TokType.In => "in",
+            TokType.BitOr => "|",
+            TokType.BitAnd => "&",
+            TokType.BitXor => "^",
+            TokType.BitShiftLeft => "<<",
+            TokType.BitShiftRight => ">>",
+            TokType.BitInverse => "~",
+            TokType.Def => "=",
+            TokType.Equal => "==",
+            TokType.NotEqual => "!=",
+            TokType.And => "and",
+            TokType.Or => "or",
+            TokType.Xor => "xor",
+            TokType.Not => "not",
+            TokType.Less => "<",
+            TokType.More => ">",
+            TokType.LessOrEqual => "<=",
+            TokType.MoreOrEqual => ">=",
+            TokType.Sep => ",",
+            TokType.True => "true",
+            TokType.False => "false",
+            TokType.Colon => ":",
+            TokType.TwoDots => "..",
+            TokType.TextType => "text",
+            TokType.Int32Type => "int32",
+            TokType.Int64Type => "int64",
+            TokType.RealType => "real",
+            TokType.BoolType => "bool",
+            TokType.CharType => "char",
+            TokType.AnythingType => "any",
+            TokType.Dot => ".",
+            TokType.Rule => "rule",
+            _ => tok.Type.ToString().ToLower()
+        };
     }
 
     private static ExprListError GetExpressionListError(
@@ -123,7 +123,7 @@ internal static partial class Errors {
                         list,
                         new Interval(flow.Current.Start, flow.Current.Finish));
 
-                //[x, ,y] <- element missed 
+                //[x, ,y] <- element missed
                 return new ExprListError(
                     ExprListErrorType.ElementMissed,
                     list,
@@ -174,12 +174,12 @@ internal static partial class Errors {
         flow.SkipNewLines();
 
         var hasAnyBeforeStop = flow.MoveUntilOneOfThe(
-                                       TokType.Sep, openBrack, closeBrack, TokType.NewLine, TokType.Eof)
-                                   .Any();
+                TokType.Sep, openBrack, closeBrack, TokType.NewLine, TokType.Eof)
+            .Any();
 
         if (firstToken.Is(TokType.Sep))
         {
-            //[x,y, {someshit} , ... 
+            //[x,y, {someshit} , ...
             return new ExprListError(
                 ExprListErrorType.ArgumentIsInvalid,
                 arguments,
@@ -190,7 +190,7 @@ internal static partial class Errors {
         var errorStart = lastArgPosition;
         if (flow.Position == errorStart)
             errorStart = arguments.Last().Interval.Start;
-        //[x, {y someshit} , ... 
+        //[x, {y someshit} , ...
         if (!hasAnyBeforeStop)
         {
             //[x,y {no ']' here}

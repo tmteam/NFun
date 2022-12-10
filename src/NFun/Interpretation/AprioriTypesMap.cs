@@ -16,17 +16,15 @@ internal class EmptyAprioriTypesMap : IAprioriTypesMap {
 
 internal class SingleAprioriTypesMap : IAprioriTypesMap {
     private readonly KeyValuePair<string, FunnyType>[] _arr;
-    public SingleAprioriTypesMap(string key, FunnyType type) {
-        _arr = new[] { new KeyValuePair<string, FunnyType>(key, type) };
-    }
+    public SingleAprioriTypesMap(string key, FunnyType type) => _arr = new[] { new KeyValuePair<string, FunnyType>(key, type) };
     public IEnumerator<KeyValuePair<string, FunnyType>> GetEnumerator() => ((IEnumerable<KeyValuePair<string, FunnyType>>)_arr).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => _arr.GetEnumerator();
 }
 
 internal class MutableAprioriTypesMap : IAprioriTypesMap {
-    public MutableAprioriTypesMap() { _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase); }
+    public MutableAprioriTypesMap() => _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
 
-    private MutableAprioriTypesMap(Dictionary<string, FunnyType> items) { _typesMap = items; }
+    private MutableAprioriTypesMap(Dictionary<string, FunnyType> items) => _typesMap = items;
 
     private readonly Dictionary<string, FunnyType> _typesMap;
 

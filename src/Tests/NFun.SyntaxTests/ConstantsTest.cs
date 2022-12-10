@@ -2,7 +2,7 @@ using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.SyntaxTests;
 
 public class ConstantsTest {
     [TestCase("y:int64 = -1", (Int64)(-1.0))]
@@ -122,14 +122,14 @@ public class ConstantsTest {
         lowerExpression.AssertReturns("y", expected);
     }
 
-    [TestCase("1",true)]
-    [TestCase("0.1",true)]
-    [TestCase("-42.21",true)]
-    [TestCase("0.00000000000001234567",false)]
-    [TestCase("12345.666666666",true)]
-    [TestCase("12345.666666666666666666666",false)]
-    [TestCase("0.3333333333333333148296162562473909929394721984863281251",false)]
-    public void PreciseDoubleRealConstantTest(string number, bool isPrecise) 
+    [TestCase("1", true)]
+    [TestCase("0.1", true)]
+    [TestCase("-42.21", true)]
+    [TestCase("0.00000000000001234567", false)]
+    [TestCase("12345.666666666", true)]
+    [TestCase("12345.666666666666666666666", false)]
+    [TestCase("0.3333333333333333148296162562473909929394721984863281251", false)]
+    public void PreciseDoubleRealConstantTest(string number, bool isPrecise)
         => $"({number}).toText()=='{number}'".Calc().AssertAnonymousOut(isPrecise);
 
     [TestCase("y = 91111111111111111111111111111111111111")]

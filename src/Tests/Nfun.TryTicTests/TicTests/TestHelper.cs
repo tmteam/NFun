@@ -11,7 +11,7 @@ using NFun.TypeInferenceAdapter;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.TicTests; 
+namespace NFun.UnitTests.TicTests;
 
 public static class TestHelper {
     public static void AssertAreSame(ITicNodeState expected, ITicNodeState actual) {
@@ -47,12 +47,12 @@ public static class TestHelper {
         TicSetupVisitor.SetupTicForBody(
             tree: tree,
             ticGraph: graph,
-            results: resultsBuilder, 
+            results: resultsBuilder,
             typeBehaviour: TypeBehaviour.RealIsDouble);
 
         return graph.Solve();
     }
-    
+
     public static TypeInferenceResults SolveAndGetResults(string equation) {
         Console.WriteLine(equation);
 
