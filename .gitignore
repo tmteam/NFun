@@ -18,6 +18,7 @@ mono_crash.*
 
 #swag of Rider 
 .idea/
+.DS_Store
 
 # Build results
 [Dd]ebug/
