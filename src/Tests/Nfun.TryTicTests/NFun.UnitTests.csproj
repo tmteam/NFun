@@ -8,7 +8,7 @@
 
         <RootNamespace>NFun.UnitTests</RootNamespace>
 
-        <LangVersion>10</LangVersion>
+        <LangVersion>11</LangVersion>
 
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
