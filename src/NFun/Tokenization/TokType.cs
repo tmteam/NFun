@@ -1,4 +1,4 @@
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 public enum TokType {
     NewLine,
@@ -48,11 +48,11 @@ public enum TokType {
     /// </summary>
     ParenthCbr,
     /// <summary>
-    ///  [ 
+    ///  [
     /// </summary>
     ArrOBr,
     /// <summary>
-    ///  ] 
+    ///  ]
     /// </summary>
     ArrCBr,
     /// <summary>
@@ -158,7 +158,7 @@ public enum TokType {
     /// </summary>
     Dot,
     /// <summary>
-    /// 'rule' 
+    /// 'rule'
     /// </summary>
     Rule,
     /// <summary>
@@ -166,5 +166,5 @@ public enum TokType {
     /// </summary>
     Default,
     Reserved,
-    
+
 }

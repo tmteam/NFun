@@ -42,7 +42,7 @@ as well as complex, with multiple composite inputs and outputs
 ```
 Low-level hardcore API is also supported
 ```cs
-  var runtime = Funny.Hardcore.Build("y = 2*x+1");
+  var runtime = Funny.Hardcore.Build("y = 2x+1");
 
   runtime["x"].Value = 42; //Write input data
   runtime.Run(); //Run script
@@ -59,7 +59,7 @@ Low-level hardcore API is also supported
 - Arithmetic, Bitwise, Discreet operators
 ```py	
   # Arithmetic operators: + - * / % // ** 
-  y1 = 2*(x//2 + 1) / (x % 3 -1)**0.5
+  y1 = 2*(x//2 + 1) / (x % 3 -1)**0.5 + 3x
   
   # Bitwise:     ~ | & ^ << >> 
   y2 = (x | y & 0xF0FF << 2) ^ 0x1234

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using IronPython.Hosting;
 using NCalc;
 
-namespace NFun.CompareToOthers; 
+namespace NFun.CompareToOthers;
 
 internal class Program {
     private static void Main(string[] args) {
@@ -13,7 +13,7 @@ internal class Program {
                 [Param1] * 7 + [Param2]	Constant Values	707,493.27	21,766,101.47	2,976.51%
                 [Param1] * 7 + [Param2]	Dynamic Values	582,832.10	21,400,445.13	3,571.80%
             Foo([Param1] * 7, [Param2])	Dynamic Values and Function Call	594,259.69	17,209,334.34	2,795.93%
-         * 
+         *
          */
 
         var batchIterations = 2_000;
@@ -22,25 +22,8 @@ internal class Program {
 
         var engine = Python.CreateEngine();
 
-        /*
-        var ex1 = "(4 * 12 / 7) + ((9 * 2) / 8)";
-
-        Action buildEva    = () => new Expression(expression: ex1);
-        Action buildLambda = () => new Expression(expression: ex1).ToLambda<object>();
-        Action buildFun    = () => FunBuilder.Build(text: ex1);
-        Action buildNCalcPy     = () => engine.Execute(expression: ex1);
-
-        
-        var expression = new Expression(expression: ex1);
-        var lambda = expression.ToLambda<object>();
-        var funrt = FunBuilder.Build(text: ex1);
-        Action calcEva = () => expression.Evaluate();
-        Action calcLambda = () => lambda();
-        Action calcFun   = () => funrt.Calculate();*/
-
-
         var pyEx1 = "10*x + 1";
-        var funEx1 = "x:real; out:real = 10*x+ 1";
+        var funEx1 = "x:real; out:real = 10x+ 1";
         var ncalcEx1 = "10*[x] + 1";
 
         var pyscope = engine.CreateScope(new Dictionary<string, object> { { "x", 42 } });

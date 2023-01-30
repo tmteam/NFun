@@ -158,3 +158,22 @@ Here we give only a superficial description of them
 | in             | Arrays       | Membership operator. Returns true if the element (left operand) is contained in the array (right operand)                                                                                                         | 1 in [1,2,3]              |
 | []             | Arrays       | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | [1,0,2][2]                |
 | [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          |
+
+## Allow to skip * operator right after the int or real constant
+
+You may skip * operator right after integer or real constant
+
+```
+x = 10y # equiualent to 10 * x
+a = 1.5b # equialent to 1.5 * b
+```
+
+0x,and 0b expressions are denied (as they are similar to hex and bin digits)
+
+```
+a = 0x # error
+b = 0b # error
+a = 0xGG # error
+b = 0b22 # error
+```
+

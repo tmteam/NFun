@@ -20,6 +20,7 @@ public class SpecificationTests {
     [TestCase(10, "y = x%3  #rema", "y", 1)]
     [TestCase(10.0, "y = x**2.0  #exponentiation", "y", 100.0)]
     [TestCase(10, "y = 10*x +1", "y", 101)]
+    [TestCase(5, "y = 10x +1", "y", 51)]
     [TestCase(10.0, "10*x +1", "out", 101)]
     [TestCase(0.0, "y = cos(x)", "y", 1.0)]
     [TestCase(0.0, "y = x.cos()", "y", 1.0)]
@@ -32,24 +33,24 @@ public class SpecificationTests {
     [TestCase(55, "y = if (x < 0) 0 else x", "y", 55)]
     [TestCase(
         -42, @"
-y = if (x < 0) -1 
+y = if (x < 0) -1
 if (x == 0)  0
 else 1", "y", -1)]
     [TestCase(
         -42.2, @"
-if (x < 0) -1 
+if (x < 0) -1
 if (x ==0.0)  0
 else 1.0", "out", -1.0)]
     [TestCase(
         321, @"
-if (x < 0) -1 
+if (x < 0) -1
 else if (x > 0) 1
 else if (x ==0) 0
 else 123
 ", "out", 1)]
     [TestCase(
         -400, @"
-# if это выражение 
+# if это выражение
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
 		  else 0", "y", -14)]
@@ -64,8 +65,8 @@ y = 1+ 15 *  if (x < 0 ) -1
         if (x ==7) 'seven'
         if (x ==8) 'eight'
         if (x ==9) 'nine'
-        if (x > 9) 'ten or more' 
-        if (x.cos()>0)  'cos is positive' 
+        if (x > 9) 'ten or more'
+        if (x.cos()>0)  'cos is positive'
         else 'negative'", "y", "four")]
     [TestCase(
         3, @"
@@ -73,7 +74,7 @@ tostring(v:int):text =
             if (v == 0) 'zero'
 			if (v == 1) 'one'
 			if (v == 2) 'two'
-			else 'not supported' 
+			else 'not supported'
 x:int
 y = tostring(x)", "y", "not supported")]
     [TestCase(2.5, "y = [1.0,2.0,3.0].filter(rule it<x).max()", "y", 2.0)]
@@ -207,7 +208,7 @@ x2: bool
 x3: bool
 y1 = x1 and x2
 y2 = x1 and true # == x1
-y3 = x1 == false 
+y3 = x1 == false
 y4 = not(x1 and x2 or x3)
 ";
         var runtime = expr.Build();
@@ -243,7 +244,7 @@ y4 = not(x1 and x2 or x3)
     [Test]
     public void CalculationWithAttributes() =>
         @"
-yprivate   = 0.1 * xpublic 
+yprivate   = 0.1 * xpublic
 yPublic   = yprivate + xpublic"
             .Calc("xpublic", 10.0)
             .AssertReturns(("yprivate", 1.0), ("yPublic", 11.0));
@@ -270,7 +271,7 @@ yPublic   = yprivate + xpublic"
     [Test]
     public void CheckExamplesInReadme() {
         //Let's make some fun
-        object a = Funny.Calc("42*(3-1)"); // 84 
+        object a = Funny.Calc("42*(3-1)"); // 84
         Assert.AreEqual(84, a);
         int[] e = Funny.Calc<int[]>("[1,3,5].reverse()"); //int[]{5,3,1}
         CollectionAssert.AreEquivalent(new[] { 5, 3, 1 }, e);
@@ -288,7 +289,7 @@ yPublic   = yprivate + xpublic"
         MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}
         TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
 
-        // Hardcore mode 
+        // Hardcore mode
         var runtime = Funny.Hardcore.Build(
             @"
                     out1 = in1-1

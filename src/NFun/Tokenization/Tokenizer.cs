@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 class InterpolationLayer {
     public char OpenQuoteSymbol;
@@ -174,10 +174,10 @@ public class Tokenizer {
 
     private static bool IsDigit(char val) => char.IsDigit(val);
 
-    private static bool IsQuote(char val) =>    val == '\'' 
-                                                || val == '\"' 
-                                                || val == '‘' 
-                                                || val == '“'; //important  to support figure quotes  
+    private static bool IsQuote(char val) =>    val == '\''
+                                                || val == '\"'
+                                                || val == '‘'
+                                                || val == '“'; //important  to support figure quotes
 
     private static Tok ReadNumberOrIp(string str, int position) {
         int lastDotPosition = -1;
@@ -191,14 +191,14 @@ public class Tokenizer {
             var symbol = str[index];
             if (!IsDigit(symbol))
             {
-                if (dotsCount == 3) // it is an ip address. 
+                if (dotsCount == 3) // it is an ip address.
                     break;
                 if (index == position + 1 && str[position] == '0')
                 {
                     if (str[index] == 'x') return ReadHexNumber(str, position);
                     if (str[index] == 'b') return ReadBinNumber(str, position);
                 }
-                
+
                 if (symbol == '.')
                 {
                     if (dotsCount == 1)
@@ -219,15 +219,6 @@ public class Tokenizer {
         {
             index--;
             dotsCount--;
-            //return Tok.New(TokType.IntNumber, str.Substring(position, index - position - 1), position, index - 1);
-        }
-        else if (index < str.Length && IsLetter(str[index]))
-        {
-            // if some letter comes right after the number     
-            var txtToken = ReadIdOrKeyword(str, index);
-            return Tok.New(
-                TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
-                position, txtToken.Finish);
         }
 
         return dotsCount switch {
@@ -235,7 +226,7 @@ public class Tokenizer {
                    1 => Tok.SubString(str, TokType.RealNumber, position, index),
                    2 => Tok.SubString(str, TokType.RealNumber, position, secondDotPosition),
                    3 => Tok.SubString(str, TokType.IpAddress, position, index),
-                   _ => throw  new InvalidOperationException("fuu dot") 
+                   _ => throw  new InvalidOperationException("fuu dot")
                };
     }
 
@@ -250,14 +241,14 @@ public class Tokenizer {
             if (symbol >= 'a' && symbol <= 'f') continue;
             if (symbol >= 'A' && symbol <= 'F') continue;
             if (str[index] == '_') continue;
+
+            if (IsInvalidHexBinEnding(symbol, str, index, position, out var invalidToken))
+                return invalidToken;
             break;
         }
 
-        if (index == position + 2)
-        {
-            var end = ReadIdOrKeyword(str, position + 2).Finish;
-            return Tok.New(TokType.NotAToken, str.Substring(position, end - position), position, end);
-        }
+        if (index - position == 2)
+            return Tok.SubString(str, TokType.NotAToken, position, index);
 
         return Tok.New(TokType.HexOrBinaryNumber, str.Substring(position, index - position), position, index);
     }
@@ -271,17 +262,36 @@ public class Tokenizer {
             var symbol = str[index];
             if (symbol == '1' || symbol == '0' || symbol == '_')
                 continue;
+
+            if (IsInvalidHexBinEnding(symbol, str, index, position, out var invalidToken))
+                return invalidToken;
             break;
         }
 
-        if (index == position + 2)
-        {
-            var end = ReadIdOrKeyword(str, position + 2).Finish;
-            return Tok.SubString(str,TokType.NotAToken,  position, end);
-        }
+        if (index - position == 2)
+            return Tok.SubString(str, TokType.NotAToken, position, index);
 
         return Tok.SubString(str,TokType.HexOrBinaryNumber, position, index);
     }
+
+    private static bool IsInvalidHexBinEnding(char symbol, string str, int index, int position, out Tok o) {
+        if (IsLetter(symbol))
+        {
+            var end = ReadIdOrKeyword(str, index).Finish;
+            o = Tok.SubString(str, TokType.NotAToken, position, end);
+            return true;
+        }
+        else if (IsDigit(symbol))
+        {
+            var end = ReadNumberOrIp(str, index).Finish;
+            o = Tok.SubString(str, TokType.NotAToken, position, end);
+            return true;
+        }
+
+        o = default;
+        return false;
+    }
+
 
     #endregion
 

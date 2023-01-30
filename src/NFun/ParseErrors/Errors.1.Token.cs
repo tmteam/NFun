@@ -1,7 +1,9 @@
 using NFun.Exceptions;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors; 
+namespace NFun.ParseErrors;
+
+using System;
 
 internal partial class Errors {
 
@@ -19,7 +21,7 @@ internal partial class Errors {
 
     internal static FunnyParseException TokenIsReserved(Interval interval, string word, string wordToReplace) => new(
         121, $"Symbol '{word}' is outdated but reserved for future use. Use '{wordToReplace}' instead of '{word}'", interval);
-    
+
     internal static FunnyParseException TokenIsReserved(Interval interval, string word) => new(
         122, $"Symbol '{word}' is reserved for future use and cannot be used in script", interval);
 
@@ -33,8 +35,19 @@ internal partial class Errors {
     internal static FunnyParseException OperatorIsUnknown(Tok token) => new(
         131, $"operator '{ToText(token)}' is unknown", token.Interval);
 
-    internal static FunnyParseException NotAToken(Tok token) => new(
-        133, $"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
+    internal static FunnyParseException NotAToken(Tok token) {
+        if (token.Value.StartsWith("0x", StringComparison.InvariantCulture))
+            return new(134,
+                $"'{token.Value}' is not valid hex number. Also it cannot be used as a multiplication of 0 by {token.Value.Substring(1)} as it looks like hex number",
+                token.Interval);
+        else if (token.Value.StartsWith("0b", StringComparison.InvariantCulture))
+            return new(134,
+                $"'{token.Value}' is not valid binary number. Also it cannot be used as a multiplication of 0 by {token.Value.Substring(1)} as it looks like binary number",
+                token.Interval);
+        else
+            return new(133,
+                $"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
+    }
 
     internal static FunnyParseException NumberOverflow(Interval interval, FunnyType type) => new(
         136, $"{type} overflow", interval);

@@ -289,6 +289,23 @@ public static class SyntaxNodeReader {
                 return leftNode;
 
             var opToken = flow.Current;
+
+            // Check for hidden multiplication
+            // like "10x" or 10(x)
+            if ((leftNode is ConstantSyntaxNode || leftNode is GenericIntSyntaxNode)
+                && leftNode.Interval.Finish == opToken.Interval.Start // should no whitespace symbols between
+                && (opToken.Type == TokType.Id || opToken.Type == TokType.ParenthObr))
+            {
+                var rightNode = ReadAtomicNodeOrNull(flow);
+                if (rightNode == null)
+                    AssertChecks.Panic("error 424");
+                return SyntaxNodeFactory.OperatorFun(
+                    CoreFunNames.Multiply,
+                    new[] { leftNode, rightNode },
+                    leftNode.Interval.Start,
+                    rightNode.Interval.Finish);
+            }
+
             //if current token is not an operation
             //than expression is done
             //example:

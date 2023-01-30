@@ -140,6 +140,7 @@ public class ConstantsTest {
     [TestCase("y = 0x2.3")]
     [TestCase("y = 0x99GG")]
     [TestCase("y = 0bFF")]
+    [TestCase("y = 0b11FF")]
     [TestCase("y=0.")]
     [TestCase("y:uint64 = true")]
     [TestCase("y:int64  = true")]

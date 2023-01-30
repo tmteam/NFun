@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace NFun.Examples; 
 
-// All syntactic constructions are explained here
+// All syntax constructions are explained here
 public class SyntaxExamplesAndExplanation {
     [Test]
     public void Basics() { /*        
@@ -39,15 +39,15 @@ public class SyntaxExamplesAndExplanation {
 
         // NFun is sensitive to the fact that each variable definition starts with a new line.
         // In this case, ';' is the equivalent of a line break
-        var r5 = Funny.Hardcore.Build(
+        var r4 = Funny.Hardcore.Build(
             @"
                 x=1
                 y = 10
             ");
-        Assert.AreEqual(true, r5["x"].IsOutput && r5["y"].IsOutput);
+        Assert.AreEqual(true, r4["x"].IsOutput && r4["y"].IsOutput);
 
-        var r6 = Funny.Hardcore.Build("x=1; y = 10");
-        Assert.AreEqual(true, r6["x"].IsOutput && r6["y"].IsOutput);
+        var r5 = Funny.Hardcore.Build("x=1; y = 10");
+        Assert.AreEqual(true, r5["x"].IsOutput && r5["y"].IsOutput);
 
         Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build("x=1 y = 10"));
     }
@@ -69,6 +69,12 @@ public class SyntaxExamplesAndExplanation {
             3. + -
          Parenthesis are used to indicate precedences */
         Assert.AreEqual(9, Funny.Calc<double>("(10//2 + (1-12) %3) ** 2"));
+        
+        // You can skip * operator right after digit (if it is not hex or bin digit)
+        var r = Funny.Hardcore.Build("10x + 1");
+        r["x"].Value = 5;
+        r.Run();
+        Assert.AreEqual(51, r["out"].Value);
     }
 
     [Test]

@@ -29,7 +29,7 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
     public int ParenthesesCount { get; set; }
     public string Id { get; }
     public ISyntaxNode[] Args { get; }
-    public IFunctionSignature FunctionSignature { get; set; } = null;
+    public IFunctionSignature FunctionSignature { get; set; }
     public Interval Interval { get; set; }
     public bool IsOperator { get; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);

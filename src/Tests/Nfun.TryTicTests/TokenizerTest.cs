@@ -148,15 +148,26 @@ public class TokenizerTest {
         TokType.NewLine,
         TokType.Id, TokType.Def, TokType.IntNumber,
         TokType.FiCbr)]
+    [TestCase("0x99GG)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0x99FF)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
+    [TestCase("0b11GG)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0b1122)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0b22)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0b1100)", TokType.HexOrBinaryNumber, TokType.ParenthCbr)]
     [TestCase("0x)", TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("0b)", TokType.NotAToken, TokType.ParenthCbr)]
+    [TestCase("0z)", TokType.IntNumber, TokType.Id, TokType.ParenthCbr)]
+    [TestCase("0z10)", TokType.IntNumber, TokType.Id, TokType.ParenthCbr)]
     [TestCase("0bFF)", TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("0xGG)", TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("(0x)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("(0b)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("(0bFF)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
     [TestCase("(0xGG)", TokType.ParenthObr, TokType.NotAToken, TokType.ParenthCbr)]
-    [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
+    [TestCase("1y = x", TokType.IntNumber, TokType.Id, TokType.Def, TokType.Id)]
+    [TestCase("x = 1.5y10", TokType.Id, TokType.Def, TokType.RealNumber, TokType.Id)]
+    [TestCase("x = 0x10y10", TokType.Id, TokType.Def, TokType.NotAToken)]
+    [TestCase("123abc", TokType.IntNumber, TokType.Id)]
     public void GeneralTokenFlow_ExpectEof(string exp, params TokType[] expected) {
         var tokens = new List<TokType>();
         foreach (var token in Tokenizer.ToTokens(exp))
@@ -349,7 +360,6 @@ public class TokenizerTest {
     [TestCase("0x00f", TokType.HexOrBinaryNumber)]
     [TestCase("123.4312_1", TokType.RealNumber)]
     [TestCase("false", TokType.False)]
-    [TestCase("123abc", TokType.NotAToken)]
     public void ToTokens_SingleTokenIsCorrectAndContainsCorrectBounds(string expression, TokType type)
         => CheckSingleToken(expression, 0, type, 0, expression.Length);
 
