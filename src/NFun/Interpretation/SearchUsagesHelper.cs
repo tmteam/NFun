@@ -10,8 +10,8 @@ internal static class SearchUsagesHelper {
 
     internal static VariableExpressionNode FindFirstUsageOrThrow(this IExpressionNode node, VariableSource source)
         => node.FindFirstUsageOrNull(source) ?? throw new InvalidOperationException("Sequence contains no matching element");
-    
-    internal static VariableExpressionNode FindFirstUsageOrNull(this IExpressionNode node, VariableSource source) 
+
+    internal static VariableExpressionNode FindFirstUsageOrNull(this IExpressionNode node, VariableSource source)
         => node.Dfs(v => (v as VariableExpressionNode)?.Source == source) as VariableExpressionNode;
 
     internal static VariableExpressionNode FindFirstUsageOrNull(this IList<Equation> equations, VariableSource source)
@@ -22,7 +22,7 @@ internal static class SearchUsagesHelper {
     internal static VariableExpressionNode FindFirstUsageOrThrow(this IList<Equation> equations, VariableSource source)
         => equations.FindFirstUsageOrNull(source) ?? throw new InvalidOperationException("Sequence contains no matching element");
 
-    private static IExpressionNode Dfs(this IExpressionNode root, Func<IExpressionNode, bool> condition)
+    private static IRuntimeNode Dfs(this IRuntimeNode root, Func<IRuntimeNode, bool> condition)
     {
         if (condition(root))
             return root;
@@ -33,5 +33,5 @@ internal static class SearchUsagesHelper {
                 return result;
         }
         return null;
-    }   
+    }
 }

@@ -30,7 +30,7 @@ internal class CastExpressionNode : IExpressionNode {
 
     public Interval Interval { get; }
     public FunnyType Type { get; }
-    public IEnumerable<IExpressionNode> Children => new[] { _origin };
+    public IEnumerable<IRuntimeNode> Children => new[] { _origin };
 
     public object Calc() {
         var res = _origin.Calc();

@@ -8,10 +8,10 @@ internal sealed class Equation {
     public readonly string Id;
     public readonly IExpressionNode Expression;
 
-    internal Equation(string id, IExpressionNode expression, VariableSource outputVariableSource) {
+    internal Equation(string id, IExpressionNode rootExpression, VariableSource outputVariableSource) {
         OutputVariableSource = outputVariableSource;
         Id = id;
-        Expression = expression;
+        Expression = rootExpression;
     }
 
     internal void Run()

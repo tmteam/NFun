@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 
-namespace NFun.Interpretation.Nodes; 
+namespace NFun.Interpretation.Nodes;
 
 internal class FunOfManyArgsExpressionNode : IExpressionNode {
     public FunOfManyArgsExpressionNode(
@@ -17,11 +17,11 @@ internal class FunOfManyArgsExpressionNode : IExpressionNode {
     private readonly int _argsCount;
     private readonly IConcreteFunction _fun;
     private readonly IExpressionNode[] _argsNodes;
-    
+
     public Interval Interval { get; }
     public FunnyType Type => _fun.ReturnType;
-    public IEnumerable<IExpressionNode> Children => _argsNodes;
-    
+    public IEnumerable<IRuntimeNode> Children => _argsNodes;
+
     public object Calc() {
         var args = new object[_argsCount];
         for (int i = 0; i < _argsCount; i++)

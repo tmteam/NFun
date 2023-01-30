@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Nodes; 
+namespace NFun.Interpretation.Nodes;
 
 internal class ConstantExpressionNode : IExpressionNode {
     internal static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, TypeBehaviour typeBehaviour, Interval interval) =>
@@ -42,7 +42,7 @@ internal class ConstantExpressionNode : IExpressionNode {
 
     public FunnyType Type { get; }
     public Interval Interval { get; }
-    public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+    public IEnumerable<IRuntimeNode> Children => Array.Empty<IExpressionNode>();
 
     public object Calc() => _value;
     public IExpressionNode Clone(ICloneContext context) => this;

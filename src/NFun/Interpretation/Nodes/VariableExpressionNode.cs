@@ -14,7 +14,7 @@ internal class VariableExpressionNode : IExpressionNode {
     internal VariableSource Source { get; }
     public Interval Interval { get; }
     public FunnyType Type => Source.Type;
-    public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+    public IEnumerable<IRuntimeNode> Children => Array.Empty<IExpressionNode>();
 
     public object Calc() =>
         Source.FunnyValue;

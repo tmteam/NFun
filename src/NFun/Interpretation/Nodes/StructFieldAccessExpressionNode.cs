@@ -17,7 +17,7 @@ internal class StructFieldAccessExpressionNode : IExpressionNode {
 
     public Interval Interval { get; }
     public FunnyType Type { get; }
-    public IEnumerable<IExpressionNode> Children => new[] { _source };
+    public IEnumerable<IRuntimeNode> Children => new[] { _source };
 
     public object Calc() =>
         ((FunnyStruct)_source.Calc()).GetValue(_fieldName);

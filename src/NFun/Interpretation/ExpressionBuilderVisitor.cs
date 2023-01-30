@@ -161,7 +161,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         foreach (var arg in argumentLexNodes)
         {
             //Convert argument node
-            var varNode = FunArgumentExpressionNode.CreateWith(arg);
+            var varNode = FunArgumentDeclarationRuntimeNode.CreateWith(arg);
             var source = VariableSource.CreateWithStrictTypeLabel(
                 varNode.Name, varNode.Type, arg.Interval,
                 FunnyVarAccess.Input,

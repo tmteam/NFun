@@ -25,7 +25,7 @@ internal class IfElseExpressionNode : IExpressionNode {
 
     public FunnyType Type { get; }
     public Interval Interval { get; }
-    public IEnumerable<IExpressionNode> Children => _conditionNodes.Concat(_ifExpressionNodes).Append(_elseNode);
+    public IEnumerable<IRuntimeNode> Children => _conditionNodes.Concat(_ifExpressionNodes).Append(_elseNode);
 
     public object Calc() {
         for (var index = 0; index < _ifExpressionNodes.Length; index++)

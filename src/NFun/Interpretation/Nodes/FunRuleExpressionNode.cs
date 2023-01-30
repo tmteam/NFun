@@ -15,10 +15,10 @@ internal class FunRuleExpressionNode : IExpressionNode {
 
     public Interval Interval { get; }
     public FunnyType Type { get; }
-    public IEnumerable<IExpressionNode> Children => new []{_value.Expression};
+    public IEnumerable<IRuntimeNode> Children => new []{_value.Expression};
 
     public object Calc() => _value;
 
-    public IExpressionNode Clone(ICloneContext context) => 
+    public IExpressionNode Clone(ICloneContext context) =>
         new FunRuleExpressionNode((ConcreteUserFunction)_value.Clone(context), Interval);
 }

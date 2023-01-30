@@ -11,15 +11,15 @@ internal class FunVariableExpressionNode : IExpressionNode {
         Interval = interval;
         Type = FunnyType.FunOf(_value.ReturnType, _value.ArgTypes);
     }
-    
+
     private readonly IConcreteFunction _value;
 
     public Interval Interval { get; }
     public FunnyType Type { get; }
-    public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+    public IEnumerable<IRuntimeNode> Children => Array.Empty<IExpressionNode>();
 
     public object Calc() => _value;
 
-    public IExpressionNode Clone(ICloneContext context) => 
+    public IExpressionNode Clone(ICloneContext context) =>
         new FunVariableExpressionNode(_value.Clone( context), Interval);
 }

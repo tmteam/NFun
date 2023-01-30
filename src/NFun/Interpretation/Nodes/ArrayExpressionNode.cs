@@ -15,7 +15,7 @@ internal class ArrayExpressionNode : IExpressionNode {
 
     public Interval Interval { get; }
     public FunnyType Type { get; }
-    public IEnumerable<IExpressionNode> Children => _elements;
+    public IEnumerable<IRuntimeNode> Children => _elements;
 
     public object Calc() {
         var arr = new object[_elements.Length];
