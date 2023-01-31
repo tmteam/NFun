@@ -1,6 +1,6 @@
 using System;
 
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 /// <summary>
 /// Nfun lang token
@@ -14,7 +14,7 @@ public class Tok {
 
     public static Tok New(TokType type, int start, int finish)
         => new(type, String.Empty, new Interval(start, finish));
-    
+
     public static Tok New(TokType type, string value, int start, int finish)
         => new(type, value, new Interval(start, finish));
     public static Tok SubString(string allString, TokType type,  int start, int exclusiveFinish)

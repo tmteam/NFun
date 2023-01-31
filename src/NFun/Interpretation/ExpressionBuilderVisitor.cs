@@ -144,10 +144,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             node.Interval);
 
     public IExpressionNode Visit(AnonymFunctionSyntaxNode node) {
-        if (node.Definition == null)
-            AssertChecks.Panic($"{nameof(node.Definition)} is missing");
-        if (node.Body == null)
-            AssertChecks.Panic($"{nameof(node.Body)} is missing");
+        node.Definition.NotNull($"{nameof(node.Definition)} is missing");
+        node.Body.NotNull($"{nameof(node.Body)} is missing");
 
         //Anonym fun arguments list
         var argumentLexNodes = node.ArgumentsDefinition;
@@ -228,10 +226,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             {
                 // Generic call arguments are unknown  in case of generic recursion function .
                 // Take them from type inference results
-                var recCallSignature = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
-                //if generic call arguments not exist in type inference result - it is NFUN core error
-                if (recCallSignature == null)
-                    AssertChecks.Panic($"MJ78. Function {id}`{node.Args.Length} was not found");
+                var recCallSignature = _typeInferenceResults
+                    .GetRecursiveCallOrNull(node.OrderNumber)
+                    //if generic call arguments not exist in type inference result - it is NFUN core error
+                    .NotNull($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                 var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
                 //Calculate generic call arguments by concrete function signature
@@ -301,9 +299,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(GenericIntSyntaxNode node) {
         var (enode, _) = GetConstantNodeOrNull(node.Value, node);
-        if (enode == null)
-            AssertChecks.Panic($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
-        return enode;
+        return enode.NotNull($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
     }
 
     private (IExpressionNode, FunnyType) GetConstantNodeOrNull(object value, ISyntaxNode node) {
@@ -330,10 +326,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         {
             if (funVariable is IGenericFunction genericFunction)
             {
-                var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
-                if (genericTypes == null)
-                    AssertChecks.Panic(
-                        $"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
+                var genericTypes = _typeInferenceResults
+                    .GetGenericCallArguments(node.OrderNumber)
+                    .NotNull($"Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name}");
 
                 var genericArgs = new FunnyType[genericTypes.Length];
                 for (int i = 0; i < genericTypes.Length; i++)

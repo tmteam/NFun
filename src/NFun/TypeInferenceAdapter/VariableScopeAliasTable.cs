@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.TypeInferenceAdapter; 
+namespace NFun.TypeInferenceAdapter;
 
 /// <summary>
 /// Variable table. It needs to give special names to variable during TI-setup process
@@ -17,32 +17,26 @@ public class VariableScopeAliasTable {
             if (_variableAliasesStack[i].ContainsKey(variableName))
                 return true;
         }
-
         return false;
     }
 
     public void AddVariableAlias(string originName, string alias) {
         var currentFrame = _variableAliasesStack[^1];
-        if (currentFrame.ContainsKey(originName)) return;
-        currentFrame.Add(originName, alias);
+        currentFrame.TryAdd(originName, alias);
     }
 
     public void AddVariableAlias(int node, string variableName) {
         var currentFrame = _variableAliasesStack[^1];
         var alias = MakeAlias(node, variableName);
-        if (currentFrame.ContainsKey(variableName))
-        {
+        if(!currentFrame.TryAdd(variableName, alias))
             throw new InvalidOperationException("variable name already exist");
-        }
-
-        currentFrame.Add(variableName, alias);
     }
 
     public string GetVariableAlias(string origin) {
         for (int i = _variableAliasesStack.Count - 1; i >= 0; i--)
         {
-            if (_variableAliasesStack[i].ContainsKey(origin))
-                return _variableAliasesStack[i][origin];
+            if (_variableAliasesStack[i].TryGetValue(origin, out var res))
+                return res;
         }
 
         return origin;

@@ -27,13 +27,7 @@ internal class VariableDictionary : IReadonlyVariableDictionary {
     /// <summary>
     /// Returns false if variable is already registered
     /// </summary>
-    internal bool TryAdd(VariableSource source) {
-        var name = source.Name;
-        if (_variables.ContainsKey(name))
-            return false;
-        _variables.Add(name, source);
-        return true;
-    }
+    internal bool TryAdd(VariableSource source) => _variables.TryAdd(source.Name, source);
 
     public VariableSource GetOrNull(string id) =>
         _variables.TryGetValue(id, out var v) ? v : null;

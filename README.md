@@ -95,7 +95,7 @@ Low-level hardcore API is also supported
 ```
 - Strict type system and type-inference algorithm
 ```py
-  y = 2*x
+  y = 2x
   z:int = y*x
   m:real[] = [1,2,3].map(rule it/2)
 ```

@@ -55,28 +55,42 @@ public class ConcreteUserFunctionsTest {
         var expr = @"twiceSet(arr:int[],i:int,j:int,ival:int,jval:int):int[]
   	                        = arr.set(i,ival).set(j,jval)
 
-                          swap(arr:int[], i:int, j:int):int[] 
+                          swap(arr:int[], i:int, j:int):int[]
                             = arr.twiceSet(i,j,arr[j], arr[i])
-                          
+
                           swapIfNotSorted(c:int[], i:int):int[]
   	                        =	if   (c[i]<c[i+1]) c
   		                        else c.swap(i, i+1)
 
-                          # run thru array 
+                          # run thru array
                           # and swap every unsorted values
-                          onelineSort(input:int[]):int[] =  
-  	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
+                          onelineSort(input:int[]):int[] =
+  	                        [0..input.count()-2].fold(input, swapIfNotSorted)
 
                           bubbleSort(input:int[]):int[]=
   	                        [0..input.count()-1]
   		                        .fold(
-  			                        input, 
+  			                        input,
   			                        rule onelineSort(it1))
 
-                          
+
                           i:int[]  = [1,4,3,2,5].bubbleSort()";
         expr.AssertReturns("i", new[] { 1, 2, 3, 4, 5 });
     }
+
+
+    [TestCase(
+    @"
+        f(x) = false
+        not true
+    ", false)]
+    [TestCase(
+    @"
+        f(x) = false
+        not f(x)
+    ", true)]
+    public void AnonymEquationAfterUserFunction(string expr, object value) => expr.AssertReturns(value);
+
 
     [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
     [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]

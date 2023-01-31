@@ -6,7 +6,7 @@ using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Stages;
 
-namespace NFun.Tic; 
+namespace NFun.Tic;
 
 public static class SolvingFunctions {
     #region Merges
@@ -42,7 +42,7 @@ public static class SolvingFunctions {
             case StateStruct strA when stateB is StateStruct strB:
             {
                 var result = new Dictionary<string, TicNode>();
-                foreach ((var key,var value) in strA.Fields)
+                foreach (var (key, value) in strA.Fields)
                 {
                     var bNode = strB.GetFieldOrNull(key);
                     if (bNode != null)
@@ -51,10 +51,7 @@ public static class SolvingFunctions {
                 }
 
                 foreach (var (key, value) in strB.Fields)
-                {
-                    if (!result.ContainsKey(key))
-                        result.Add(key, value);
-                }
+                    result.TryAdd(key, value);
 
                 return new StateStruct(result);
             }
@@ -561,7 +558,7 @@ public static class SolvingFunctions {
                 }
             }
         }
-        
+
         //Input covariant types that NOT referenced and are not members of any output types
         foreach (var node in toposortedNodes)
         {

@@ -12,21 +12,21 @@ public class GenericUserFunctionsTest {
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,false)", 2)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2.0,true)", 1.0)]
     [TestCase(
-        @"choise(a,b,c,d,con1,con2) = 
-                          if(con1) 
-                                if(con2) a 
+        @"choise(a,b,c,d,con1,con2) =
+                          if(con1)
+                                if(con2) a
                                 else     b
-                          else 
+                          else
                                 if(con2) c
                                 else     d
 
                     y:int = choise(1,2,3,4,false,true)", 3)]
     [TestCase(
-        @"choise(a,b,c,d,con1,con2) = 
-                          if(con1) 
-                                if(con2) a[0] 
+        @"choise(a,b,c,d,con1,con2) =
+                          if(con1)
+                                if(con2) a[0]
                                 else     b
-                          else 
+                          else
                                 if(con2) c
                                 else     d[0]
 
@@ -50,7 +50,7 @@ public class GenericUserFunctionsTest {
     [TestCase(@"car1(g) = g(2); my(x)=x-1; y =  car1(my)   ", 1)]
     [TestCase(@"car1(g) = g(2,3,4); my(a,b,c)=a+b+c; y = car1(my)   ", 9)]
     [TestCase(
-        @"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
+        @"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2);
                    y =  choose(max, min, true, 1,2)", 2)]
     [TestCase(@"car0(g) = g(2,4); y = car0(max)    ", 4)]
     [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2)]
@@ -87,11 +87,11 @@ public class GenericUserFunctionsTest {
 
     [Test]
     public void SelectOverload() =>
-        @"  
+        @"
                 #custom user function max(r r r) overloads
                 #built in function max(r r)
                 max(i, j, k) = i.max(j).max(k)
-  
+
                 userfun = max(1, 2, 3)
                 builtin = max(1, 2)"
             .AssertReturns(("userfun", 3), ("builtin", 2));
@@ -115,7 +115,7 @@ public class GenericUserFunctionsTest {
               [12,05,06],
               [42,33,12],
               [01,15,18]
-             ] 
+             ]
 
   res:int = origin.maxOfMatrix()".AssertResultHas("res", 42);
 
@@ -125,14 +125,14 @@ public class GenericUserFunctionsTest {
         var expr = @"
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
-            
+
             maxOfArray(t) = t.fold(max)
 
   origin = [
               [12,05,06],
               [42,33,12],
               [01,15,18]
-             ] 
+             ]
 
   res:int = origin.maxOfMatrix()";
         expr.AssertResultHas("res", 42);
@@ -143,17 +143,17 @@ public class GenericUserFunctionsTest {
         @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
-                          swap(arr, i, j) 
+                          swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
-                          
+
                           swapIfNotSorted(c, i)
   	                        =	if   (c[i]<c[i+1]) c
   		                        else c.swap(i, i+1)
 
-                          # run thru array 
+                          # run thru array
                           # and swap every unsorted values
-                          onelineSort(input) =  
-  	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
+                          onelineSort(input) =
+  	                        [0..input.count()-2].fold(input, swapIfNotSorted)
 
                           bubbleSort(input)= [0..input.count()-1].fold(input, rule onelineSort(it1))
 

@@ -6,7 +6,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors; 
+namespace NFun.ParseErrors;
 
 internal static partial class Errors {
 
@@ -223,8 +223,8 @@ internal static partial class Errors {
 
     internal static FunnyParseException StructIsUndone(int position) => new(
         510, "Struct definition is undone. Closing bracket '}' is missed", Interval.Position(position));
-    
-    
+
+
     #endregion
 
 

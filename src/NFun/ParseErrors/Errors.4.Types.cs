@@ -10,7 +10,7 @@ using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 
-namespace NFun.ParseErrors; 
+namespace NFun.ParseErrors;
 
 internal static partial class Errors {
 
@@ -142,12 +142,12 @@ internal static partial class Errors {
         else
             return new(738, $"{node.ToShortText()} is not a function or functional variable", node.Interval);
     }
-    
+
     private static ISyntaxNode FindSyntaxNodeOrNull(ISyntaxNode rootToSearch, TicNode node, TicNode[] allTicNodes) {
         var syntaxNode = rootToSearch.FindSyntaxNodePath(node.Name).FirstOrDefault();
         if (syntaxNode != null)
             return syntaxNode;
-        
+
         var concrete = FindConcreteTicNodeForGenericOrNull(node, allTicNodes);
         if(concrete!=null)
             return rootToSearch.FindSyntaxNodePath(concrete.Name).FirstOrDefault();
@@ -258,13 +258,13 @@ internal static partial class Errors {
             ? "recursive type"
             : TicTypesConverter.Concrete.Convert(concrete.State).ToString();
     }
-    
+
     private static string ToNFunString(ITicNodeState state)
     {
         var concrete = state.GetNonReferenceSafeOrNull();
         return TicTypesConverter.Concrete.Convert(concrete).ToString();
     }
-    
+
     private static TicNode GetNonReferenceSafeOrNull(this  TicNode ticNode) {
         var result = ticNode;
         var visited = new HashSet<TicNode>();
@@ -280,7 +280,7 @@ internal static partial class Errors {
                 return result;
         }
     }
-    
+
     private static ITicNodeState GetNonReferenceSafeOrNull(this  ITicNodeState state) {
         var result = state;
         var visited = new HashSet<ITicNodeState>();

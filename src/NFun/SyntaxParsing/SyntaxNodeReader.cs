@@ -79,6 +79,15 @@ public static class SyntaxNodeReader {
         { TokType.In, CoreFunNames.In }
     };
 
+    private static readonly HashSet<TokType> ChainCompareOperators = new() {
+        TokType.More,
+        TokType.MoreOrEqual,
+        TokType.Less,
+        TokType.LessOrEqual,
+        TokType.Equal,
+        TokType.NotEqual
+    };
+
     public static ISyntaxNode ReadNodeOrNull(TokFlow flow) =>
         ReadNodeOrNull(flow, MaxPriority);
 
@@ -136,8 +145,7 @@ public static class SyntaxNodeReader {
                 }
             }
 
-            return SyntaxNodeFactory.OperatorFun(
-                CoreFunNames.Negate, new[] { nextNode }, start, nextNode.Interval.Finish);
+            return SyntaxNodeFactory.UnarOperatorCall(CoreFunNames.Negate, nextNode, start, nextNode.Interval.Finish);
         }
 
         if (flow.MoveIf(TokType.BitInverse))
@@ -145,9 +153,7 @@ public static class SyntaxNodeReader {
             var node = ReadNodeOrNull(flow, OperatorBitInversePriority);
             if (node == null)
                 throw Errors.UnaryArgumentIsMissing(flow.Current);
-            return SyntaxNodeFactory.OperatorFun(
-                CoreFunNames.BitInverse,
-                new[] { node }, start, node.Interval.Finish);
+            return SyntaxNodeFactory.UnarOperatorCall(CoreFunNames.BitInverse, node, start, node.Interval.Finish);
         }
 
         if (flow.MoveIf(TokType.Not))
@@ -155,9 +161,7 @@ public static class SyntaxNodeReader {
             var node = ReadNodeOrNull(flow, OperatorNotPriority);
             if (node == null)
                 throw Errors.UnaryArgumentIsMissing(flow.Current);
-            return SyntaxNodeFactory.OperatorFun(
-                CoreFunNames.Not,
-                new[] { node }, start, node.Interval.Finish);
+            return SyntaxNodeFactory.UnarOperatorCall(CoreFunNames.Not, node, start, node.Interval.Finish);
         }
 
         if (flow.MoveIf(TokType.Rule))
@@ -209,8 +213,8 @@ public static class SyntaxNodeReader {
 
         if (flow.MoveIf(TokType.RealNumber, out var realVal)) //1.0 . Real type cannot be parsed without a type context.
         {
-            return SyntaxNodeFactory.Constant(realVal.Value.Replace("_", String.Empty), FunnyType.Real,
-                realVal.Interval);
+            return
+                SyntaxNodeFactory.Constant(realVal.Value.Replace("_", String.Empty), FunnyType.Real, realVal.Interval);
         }
 
         if (flow.MoveIf(TokType.IpAddress, out var ipVal))
@@ -278,11 +282,13 @@ public static class SyntaxNodeReader {
         //starting with left Node
         var leftNode = ReadNodeOrNull(flow, priority - 1);
 
+        var isInChainCompare = false;
+
         //building the syntax tree
         while (true)
         {
             flow.SkipNewLines();
-            //if flow is done than current node is everything we got
+            // if flow is done than current node is everything we got
             // example:
             // 1*2+3 {return whole expression }
             if (flow.IsDone)
@@ -291,19 +297,11 @@ public static class SyntaxNodeReader {
             var opToken = flow.Current;
 
             // Check for hidden multiplication
-            // like "10x" or 10(x)
-            if ((leftNode is ConstantSyntaxNode || leftNode is GenericIntSyntaxNode)
-                && leftNode.Interval.Finish == opToken.Interval.Start // should no whitespace symbols between
-                && (opToken.Type == TokType.Id || opToken.Type == TokType.ParenthObr))
+            // like "10x" or "10(x)"
+            if (IsHiddenMultiplication(leftNode, opToken))
             {
-                var rightNode = ReadAtomicNodeOrNull(flow);
-                if (rightNode == null)
-                    AssertChecks.Panic("error 424");
-                return SyntaxNodeFactory.OperatorFun(
-                    CoreFunNames.Multiply,
-                    new[] { leftNode, rightNode },
-                    leftNode.Interval.Start,
-                    rightNode.Interval.Finish);
+                var rightNode = ReadAtomicNodeOrNull(flow).NotNull("R node cannot be read in hidden multiplication");
+                return SyntaxNodeFactory.BinOperatorCall(CoreFunNames.Multiply, leftNode, rightNode);
             }
 
             //if current token is not an operation
@@ -365,11 +363,8 @@ public static class SyntaxNodeReader {
                     throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
 
                 //building the tree from the left
-                if (OperatorFunNames.ContainsKey(opToken.Type))
-                    leftNode = SyntaxNodeFactory.OperatorFun(
-                        OperatorFunNames[opToken.Type],
-                        new[] { leftNode, rightNode },
-                        leftNode.Interval.Start, rightNode.Interval.Finish);
+                if (OperatorFunNames.TryGetValue(opToken.Type, out var opFunName))
+                    leftNode = SyntaxNodeFactory.BinOperatorCall( opFunName, leftNode, rightNode );
                 else
                     throw Errors.OperatorIsUnknown(opToken);
 
@@ -386,6 +381,23 @@ public static class SyntaxNodeReader {
                 //8: '+' priority is higter than 3: return l:((4/2)*5)
             }
         }
+    }
+
+    /// <summary>
+    /// Check for hidden multiplication
+    ///  like "10x" or 10(x)
+    /// </summary>
+    private static bool IsHiddenMultiplication(ISyntaxNode leftNode, Tok currentToken) {
+        // left node has to be numeric constant
+        if (leftNode is not ConstantSyntaxNode && leftNode is not GenericIntSyntaxNode)
+            return false;
+
+        // no space between number and variable name allowed
+        if (leftNode.Interval.Finish != currentToken.Interval.Start)
+            return false;
+        // hidden multiplication allowed before 'id' or '(..)'
+
+        return currentToken.Type == TokType.Id || currentToken.Type == TokType.ParenthObr;
     }
 
     private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow) {
@@ -492,8 +504,7 @@ public static class SyntaxNodeReader {
             if (allNext == null)
                 throw Errors.InterpolationExpressionIsMissing(concatenations.Last());
 
-            var toText = SyntaxNodeFactory.FunCall(
-                CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start, allNext.Interval.Finish);
+            var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval);
             concatenations.Add(toText);
 
 
@@ -520,13 +531,11 @@ public static class SyntaxNodeReader {
                     //Here is an optimization for these cases.
                     //
                     case 1:
-                        return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, concatenations.ToArray(), start, finish);
+                        return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, concatenations, start, finish);
                     case 2:
-                        return SyntaxNodeFactory.FunCall(
-                            CoreFunNames.Concat2Texts, concatenations.ToArray(), start, finish);
+                        return SyntaxNodeFactory.FunCall(CoreFunNames.Concat2Texts, concatenations, start, finish);
                     case 3:
-                        return SyntaxNodeFactory.FunCall(
-                            CoreFunNames.Concat3Texts, concatenations.ToArray(), start, finish);
+                        return SyntaxNodeFactory.FunCall(CoreFunNames.Concat3Texts, concatenations, start, finish);
                     default:
                     {
                         var arrayOfTexts = SyntaxNodeFactory.Array(concatenations.ToArray(), start, finish);
@@ -572,7 +581,7 @@ public static class SyntaxNodeReader {
             if (!flow.MoveIf(TokType.ArrCBr))
                 throw Errors.ArrayIndexCbrMissed(openBraket, flow.Current);
 
-            return SyntaxNodeFactory.OperatorFun(
+            return SyntaxNodeFactory.OperatorCall(
                 CoreFunNames.GetElementName,
                 new[] { arrayNode, index }, openBraket.Start,
                 flow.Position);
@@ -587,7 +596,7 @@ public static class SyntaxNodeReader {
         {
             if (!flow.MoveIf(TokType.ArrCBr))
                 throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, false);
-            return SyntaxNodeFactory.OperatorFun(
+            return SyntaxNodeFactory.OperatorCall(
                 CoreFunNames.SliceName, new[] { arrayNode, index, end }, openBraket.Start, flow.Position);
         }
 
@@ -595,10 +604,10 @@ public static class SyntaxNodeReader {
         if (!flow.MoveIf(TokType.ArrCBr))
             throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, true);
         if (step == null)
-            return SyntaxNodeFactory.OperatorFun(
+            return SyntaxNodeFactory.OperatorCall(
                 CoreFunNames.SliceName, new[] { arrayNode, index, end }, openBraket.Start, flow.Position);
 
-        return SyntaxNodeFactory.OperatorFun(
+        return SyntaxNodeFactory.OperatorCall(
             CoreFunNames.SliceName, new[] { arrayNode, index, end, step }, openBraket.Start, flow.Position);
     }
 
@@ -664,9 +673,9 @@ public static class SyntaxNodeReader {
                 if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                     throw Errors.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
 
-                return SyntaxNodeFactory.OperatorFun(
+                return SyntaxNodeFactory.OperatorCall(
                     name: CoreFunNames.RangeName,
-                    children: new[] { list[0], secondArg, thirdArg },
+                    args: new[] { list[0], secondArg, thirdArg },
                     start: openBracket.Start,
                     end: closeBracket.Finish);
             }
@@ -674,9 +683,9 @@ public static class SyntaxNodeReader {
             {
                 if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                     throw Errors.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, false);
-                return SyntaxNodeFactory.OperatorFun(
+                return SyntaxNodeFactory.OperatorCall(
                     name: CoreFunNames.RangeName,
-                    children: new[] { list[0], secondArg },
+                    args: new[] { list[0], secondArg },
                     start: openBracket.Start,
                     end: closeBracket.Finish);
             }
@@ -780,12 +789,9 @@ public static class SyntaxNodeReader {
             throw Errors.FunctionArgumentError(head.Value, obrId, flow);
 
         if (pipedVal == null)
-            return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, flow.Position);
-
-        var args = new ISyntaxNode[arguments.Count + 1];
-        args[0] = pipedVal;
-        arguments.CopyTo(args, 1);
-        return SyntaxNodeFactory.PipedFunCall(head.Value, args, start, flow.Position);
+            return SyntaxNodeFactory.FunCall(head.Value, arguments, start, flow.Position);
+        else
+            return SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, arguments, start, flow.Position);
     }
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {

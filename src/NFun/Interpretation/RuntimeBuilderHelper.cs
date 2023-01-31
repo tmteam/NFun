@@ -14,7 +14,7 @@ using NFun.Tic.Errors;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
-namespace NFun.Interpretation; 
+namespace NFun.Interpretation;
 
 internal static class RuntimeBuilderHelper {
     public static ConcreteUserFunction BuildConcrete(
@@ -30,7 +30,7 @@ internal static class RuntimeBuilderHelper {
         {
             var variableSource = CreateVariableSourceForArgument(
                 argSyntax: functionSyntax.Args[i],
-                actualType: argTypes[i], 
+                actualType: argTypes[i],
                 dialect.Converter);
 
             if (!vars.TryAdd(variableSource))
@@ -78,9 +78,8 @@ internal static class RuntimeBuilderHelper {
                 dialect: dialect))
                 AssertChecks.Panic("Types not solved due unknown reasons");
 
-            var bodyTypeSolving = graph.Solve();
-            if(bodyTypeSolving==null)
-                AssertChecks.Panic("Type graph solve nothing");
+            var bodyTypeSolving = graph.Solve().NotNull("Type graph solve nothing");
+
             resultBuilder.SetResults(bodyTypeSolving);
             return resultBuilder.Build();
         }
@@ -94,7 +93,7 @@ internal static class RuntimeBuilderHelper {
         this IReadonlyVariableDictionary variables,
         IExpressionNode bodyExpression,
         IEnumerable<string> list) {
-        
+
         var hasUnknownVariables = variables.GetAll().Any(u=>!list.Contains(u.Name));
         if (hasUnknownVariables)
         {
@@ -104,7 +103,7 @@ internal static class RuntimeBuilderHelper {
                 .Select(bodyExpression.FindFirstUsageOrNull)
                 .Where(s=>s!=null)
                 .ToList();
-                            
+
             throw Errors.UnknownVariablesInUserFunction(unknownVariableUsages);
         }
     }
@@ -122,9 +121,8 @@ internal static class RuntimeBuilderHelper {
         foreach (var userFunction in userFunctions)
         {
             var alias = userFunction.GetFunAlias();
-            if (userFunctionsNames.ContainsKey(alias))
+            if(!userFunctionsNames.TryAdd(alias, i))
                 throw Errors.UserFunctionWithSameNameAlreadyDeclared(userFunction);
-            userFunctionsNames.Add(alias, i);
             i++;
         }
 
@@ -160,9 +158,9 @@ internal static class RuntimeBuilderHelper {
 
     private static VariableSource CreateVariableSourceForArgument(
         TypedVarDefSyntaxNode argSyntax,
-        FunnyType actualType, 
+        FunnyType actualType,
         FunnyConverter typeBehaviour) {
-        
+
         if (argSyntax.FunnyType != FunnyType.Empty)
             return VariableSource.CreateWithStrictTypeLabel(
                 name: argSyntax.Id,

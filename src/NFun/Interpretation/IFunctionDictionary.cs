@@ -4,7 +4,7 @@ using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 
-namespace NFun.Interpretation; 
+namespace NFun.Interpretation;
 
 public interface IFunctionDictionary {
     IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount);
@@ -61,10 +61,7 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
 
     private bool TryAdd(IFunctionSignature function) {
         var name = GetOverloadName(function.Name, function.ArgTypes.Length);
-        if (_functions.ContainsKey(name))
-            return false;
-        _functions.Add(name, function);
-        return true;
+        return _functions.TryAdd(name, function);
     }
 
     private static string GetOverloadName(string name, int argCount)
@@ -73,7 +70,7 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
 
 
 internal sealed class ScopeFunctionDictionary : IFunctionDictionary {
-    public ScopeFunctionDictionary(IFunctionDictionary origin) { 
+    public ScopeFunctionDictionary(IFunctionDictionary origin) {
         _origin = origin;
         _functions = new();
     }
@@ -87,7 +84,7 @@ internal sealed class ScopeFunctionDictionary : IFunctionDictionary {
 
     private readonly IFunctionDictionary _origin;
     private readonly Dictionary<string, IFunctionSignature> _functions;
-    
+
     public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
         //code used only in error handling. No need to optimize.
         var lowerName = GetOverloadName(name.ToLower(), argCount);

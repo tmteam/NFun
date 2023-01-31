@@ -15,7 +15,7 @@ public class EquationSyntaxNode : ISyntaxNode {
     public string Id { get; }
     public ISyntaxNode Expression { get; }
     public FunnyAttribute[] Attributes { get; }
-    public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; } = null;
+    public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; }
     public bool OutputTypeSpecified => TypeSpecificationOrNull != null;
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }

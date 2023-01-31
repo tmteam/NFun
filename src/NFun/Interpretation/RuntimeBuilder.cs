@@ -13,7 +13,7 @@ using NFun.Tic.Errors;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 
-namespace NFun.Interpretation; 
+namespace NFun.Interpretation;
 
 internal static class RuntimeBuilder {
     internal static FunnyRuntime Build(
@@ -70,10 +70,10 @@ internal static class RuntimeBuilder {
             {
                 if (dialect.AllowUserFunctions == AllowUserFunctions.DenyUserFunctions)
                     throw Errors.UserFunctionIsDenied(functionSolveOrder[i].Interval);
-                
+
                 if(dialect.AllowUserFunctions == AllowUserFunctions.DenyRecursive && functionSolveOrder[i].IsRecursive)
                     throw Errors.RecursiveUserFunctionIsDenied(functionSolveOrder[i].Interval);
-                
+
                 userFunctions[i] = BuildFunctionAndPutItToDictionary(
                     functionSolveOrder[i],
                     constants,
@@ -87,7 +87,7 @@ internal static class RuntimeBuilder {
 
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD BODY ====");
-        
+
         var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypes, dialect);
 
 
@@ -169,20 +169,20 @@ internal static class RuntimeBuilder {
                 throw Errors.FunctionNameAndVariableNameConflict(source, usage);
             }
         }
-        
+
         return new FunnyRuntime(equations, variables, userFunctions, dialect.Converter);
     }
-    
+
     private static TypeInferenceResults SolveBodyTypes(
         SyntaxTree syntaxTree,
         IConstantList constants,
         IFunctionDictionary functionDictionary,
         IAprioriTypesMap aprioriTypes,
         DialectSettings dialect) {
-        
+
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
             syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
-        
+
         var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
         var exitVisitor = new ApplyTiResultsExitVisitor();
         foreach (var syntaxNode in syntaxTree.Nodes)
@@ -234,7 +234,7 @@ internal static class RuntimeBuilder {
                 dialect.Converter,
                 equation.Attributes
             );
-        
+
         var itVariable = mutableVariables
             .GetAll()
             .FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Name));
@@ -243,10 +243,10 @@ internal static class RuntimeBuilder {
             var expressionNode = expression.FindFirstUsageOrNull(itVariable);
             throw Errors.CannotUseSuperAnonymousVariableHere(expressionNode.Interval, itVariable.Name);
         }
-        
+
         if(outputVariableSource.Type != expression.Type)
             AssertChecks.Panic("fitless");
-        
+
         return new Equation(equation.Id, expression, outputVariableSource);
     }
 
@@ -259,7 +259,7 @@ internal static class RuntimeBuilder {
 
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD {functionSyntaxNode.Id}(..) ====");
-        
+
         ////introduce function variable
         var graph = new GraphBuilder();
         var resultsBuilder = new TypeInferenceResultsBuilder();

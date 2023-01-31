@@ -102,6 +102,11 @@ public class CompareOperatorsTest {
     [TestCase("5>3", true)]
     [TestCase("5>=5", true)]
     [TestCase("5<=5", true)]
+    [TestCase("1<2 and 2<3", true)]
+    [TestCase("true or 1>2 and 2<3", true)]
+    [TestCase("true or 1>2 or 2>3", true)]
+    [TestCase("true and 1>2 or 2>3", false)]
+    [TestCase("true and 1>2 or 2<3", true)]
     public void ConstantEquation(string expr, bool expected)
         => expr.AssertReturns("out", expected);
 

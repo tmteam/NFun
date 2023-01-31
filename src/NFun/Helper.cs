@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace NFun; 
+namespace NFun;
 
 internal static class Helper {
     public static bool DoesItLooksLikeSuperAnonymousVariable(string id, out int num) {
@@ -14,12 +14,12 @@ internal static class Helper {
             return false;
         if (id[1] != 't' && id[1] != 'T')
             return false;
-        
+
         if (id.Length == 2) {
             num = -1;
             return true;
         }
-        
+
         num = id[2] switch {
                   '0' => 0,
                   '1' => 1,
@@ -37,13 +37,13 @@ internal static class Helper {
         return num != -1;
     }
     public static bool DoesItLooksLikeSuperAnonymousVariable(string id) => DoesItLooksLikeSuperAnonymousVariable(id, out _);
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this IEnumerable<TIn> input)  => !input.Any();
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this TIn[] input) => input.Length == 0;
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this List<TIn> input) => input.Count == 0;
 
@@ -57,7 +57,7 @@ internal static class Helper {
         }
         return -1;
     }
-    
+
     public static TIn[] ToArray<TIn>(this IEnumerable<TIn> input, int size) {
         var ans = new TIn[size];
         var i = 0;
@@ -68,7 +68,7 @@ internal static class Helper {
         }
         return ans;
     }
-    
+
     public static TOut[] SelectToArray<TIn, TOut>(this IEnumerable<TIn> input, int size, Func<TIn, TOut> mapFunc) {
         var ans = new TOut[size];
         var i = 0;
@@ -78,8 +78,8 @@ internal static class Helper {
             i++;
         }
         return ans;
-    }    
-    
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TOut[] SelectToArray<TIn, TOut>(this TIn[] input, Func<TIn, TOut> mapFunc) {
         var ans = new TOut[input.Length];
@@ -98,7 +98,7 @@ internal static class Helper {
 
         return ans;
     }
-    
+
     public static TOut[] SelectToArray<TIn, TOut>(this IReadOnlyList<TIn> input, Func<TIn, TOut> mapFunc) {
         var ans = new TOut[input.Count];
         for (var i = 0; i < input.Count; i++)
@@ -120,7 +120,7 @@ internal static class Helper {
         ans[input.Length] = tail;
         return ans;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TOut[] AppendTail<TOut>(this TOut[] input, TOut tail) {
         if (input.Length == 0)
@@ -130,18 +130,18 @@ internal static class Helper {
         ans[input.Length] = tail;
         return ans;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TOut[] AppendTail<TOut>(this TOut[] input, TOut[] tail) {
         if (input.Length == 0)
             return  tail;
-        
+
         var ans = new TOut[input.Length + tail.Length];
         Array.Copy(input, ans, input.Length);
         Array.Copy(tail,0, ans, input.Length, tail.Length);
         return ans;
     }
-    
+
     public static bool ValueEquals<TKey, TValue>(this Dictionary<TKey, TValue> dict1, Dictionary<TKey, TValue> dict2)
     {
         if (dict1 == dict2) return true;
@@ -187,20 +187,36 @@ static class QueueExtensions
         return true;
     }
 }
-static class DictionaryExtensions
+
+internal static class DictionaryExtensions
 {
-    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
-    {
-        //perfomance hit, double key retrieving.
-        if (!dictionary.ContainsKey(key))
+    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key) {
+        if (dictionary.TryGetValue(key, out var value))
+            return value;
+        else
             return default;
-        return dictionary[key];
     }
-    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
-    {
-        //perfomance hit, double key retrieving.
+    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue) {
+        if (dictionary.TryGetValue(key, out var value))
+            return value;
+        else
+            return default;
+    }
+
+    //Remove this method when old framework support will be removed, as it is not very fast
+    public static bool TryAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value) {
+#if DEBUG
+        if (dictionary == null)
+            throw new ArgumentNullException(nameof(dictionary));
+#endif
+
         if (!dictionary.ContainsKey(key))
-            return defaultValue;
-        return dictionary[key];
+        {
+            dictionary.Add(key, value);
+            return true;
+        }
+
+        return false;
     }
+
 }

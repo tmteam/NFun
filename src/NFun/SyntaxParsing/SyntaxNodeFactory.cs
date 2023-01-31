@@ -5,6 +5,8 @@ using NFun.Tokenization;
 
 namespace NFun.SyntaxParsing;
 
+using System.Linq;
+
 public static class SyntaxNodeFactory {
 
     public static ISyntaxNode DefaultValue(Interval interval) =>
@@ -51,14 +53,27 @@ public static class SyntaxNodeFactory {
     public static TypedVarDefSyntaxNode TypedVar(string name, FunnyType type, int start, int end) =>
         new(name, type, new Interval(start, end));
 
-    public static ISyntaxNode FunCall(string name, ISyntaxNode[] children, int start, int end) =>
-        new FunCallSyntaxNode(name, children, new Interval(start, end), false, false);
+    public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, int start, int end) =>
+        new FunCallSyntaxNode(name, args.ToArray(), new Interval(start, end), false, false);
 
-    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode[] children, int start, int end) =>
-        new FunCallSyntaxNode(name, children, new Interval(start, end), true, false);
+    public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, Interval interval) =>
+        new FunCallSyntaxNode(name, args.ToArray(), interval, false, false);
 
-    public static ISyntaxNode OperatorFun(string name, ISyntaxNode[] children, int start, int end) =>
-        new FunCallSyntaxNode(name, children, new Interval(start, end), false, true);
+    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode headArg,  IList<ISyntaxNode> addArgs, int start, int end) {
+        var args = new ISyntaxNode[addArgs.Count + 1];
+        args[0] = headArg;
+        addArgs.CopyTo(args, 1);
+        return new FunCallSyntaxNode(name, args, new Interval(start, end), true, false);
+    }
+
+    public static ISyntaxNode OperatorCall(string name, ISyntaxNode[] args, int start, int end) =>
+        new FunCallSyntaxNode(name, args, new Interval(start, end), false, true);
+
+    public static ISyntaxNode UnarOperatorCall(string name, ISyntaxNode arg, int start, int end) =>
+        new FunCallSyntaxNode(name, new []{ arg }, new Interval(start, end), false, true);
+
+    public static ISyntaxNode BinOperatorCall(string name, ISyntaxNode left, ISyntaxNode right) =>
+        new FunCallSyntaxNode(name, new[]{left,right}, left.Interval.Append(right.Interval), false, true);
 
     public static ISyntaxNode Struct(List<EquationSyntaxNode> equations, Interval interval) =>
         new StructInitSyntaxNode(equations, interval);

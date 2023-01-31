@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 public static class TokenFlowExtensions {
     public static bool IsDoneOrEof(this TokFlow flow)

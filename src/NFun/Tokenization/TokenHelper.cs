@@ -3,7 +3,7 @@ using System.Globalization;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 public static class TokenHelper {
     /// <exception cref="SystemException">Throws if string contains invalid format</exception>
@@ -111,10 +111,9 @@ public static class TokenHelper {
     }
 
     public static Tok AssertAndMove(this TokFlow flow, TokType tokType) {
-        var cur = flow.Current;
-        if(cur == null)
-            AssertChecks.Panic($"{tokType}' is missing");
-        if(! cur!.Is(tokType))
+        var cur = flow.Current.NotNull($"{tokType}' is missing");
+
+        if(!cur!.Is(tokType))
             AssertChecks.Panic($"{tokType}' is missing");
         flow.MoveNext();
         return cur;

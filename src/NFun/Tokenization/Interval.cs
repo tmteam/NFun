@@ -1,14 +1,14 @@
 using System;
 
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 public readonly struct Interval {
-    public static Interval Empty => new(0, 0);
+    public static readonly Interval Empty = new(0, 0);
     public static Interval Position(int position) => new(position, position);
-    
+
     public readonly int Start;
     public readonly int Finish;
-    
+
     public Interval(int start, int finish) {
 #if DEBUG
         if (start > finish)
@@ -27,5 +27,5 @@ public readonly struct Interval {
         return origin.Substring(Start, Finish - Start);
     }
 
-    public Interval Append(Interval rightInterval) => new Interval(Start, rightInterval.Finish);
+    public Interval Append(Interval rightInterval) => new(Start, rightInterval.Finish);
 }
