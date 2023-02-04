@@ -8,7 +8,6 @@ namespace NFun.SyntaxParsing;
 using System.Linq;
 
 public static class SyntaxNodeFactory {
-
     public static ISyntaxNode DefaultValue(Interval interval) =>
         new DefaultValueSyntaxNode(interval);
 
@@ -59,7 +58,8 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, Interval interval) =>
         new FunCallSyntaxNode(name, args.ToArray(), interval, false, false);
 
-    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode headArg,  IList<ISyntaxNode> addArgs, int start, int end) {
+    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode headArg, IList<ISyntaxNode> addArgs, int start,
+        int end) {
         var args = new ISyntaxNode[addArgs.Count + 1];
         args[0] = headArg;
         addArgs.CopyTo(args, 1);
@@ -70,10 +70,10 @@ public static class SyntaxNodeFactory {
         new FunCallSyntaxNode(name, args, new Interval(start, end), false, true);
 
     public static ISyntaxNode UnarOperatorCall(string name, ISyntaxNode arg, int start, int end) =>
-        new FunCallSyntaxNode(name, new []{ arg }, new Interval(start, end), false, true);
+        new FunCallSyntaxNode(name, new[] { arg }, new Interval(start, end), false, true);
 
     public static ISyntaxNode BinOperatorCall(string name, ISyntaxNode left, ISyntaxNode right) =>
-        new FunCallSyntaxNode(name, new[]{left,right}, left.Interval.Append(right.Interval), false, true);
+        new FunCallSyntaxNode(name, new[] { left, right }, left.Interval.Append(right.Interval), false, true);
 
     public static ISyntaxNode Struct(List<EquationSyntaxNode> equations, Interval interval) =>
         new StructInitSyntaxNode(equations, interval);
@@ -100,4 +100,7 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode UserFunctionDef(
         List<TypedVarDefSyntaxNode> arguments, FunCallSyntaxNode fun, ISyntaxNode expression, FunnyType outputType) =>
         new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputType);
+
+    public static ISyntaxNode ComparisonChain(IList<ISyntaxNode> operands, IList<Tok> operators) =>
+        new ComparisonChainSyntaxNode(operands, operators);
 }

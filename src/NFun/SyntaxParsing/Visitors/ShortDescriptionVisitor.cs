@@ -49,6 +49,8 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
         return node.ParenthesesCount > 0 ? $"({msg})" : msg;
     }
 
+    public string Visit(ComparisonChainSyntaxNode node) => "a < b < c ...";
+
     public string Visit(IfThenElseSyntaxNode node) => "if (...) ... else ...";
 
     public string Visit(IfCaseSyntaxNode node) => "if (...) ...";

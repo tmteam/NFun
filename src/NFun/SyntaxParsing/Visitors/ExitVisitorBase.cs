@@ -7,6 +7,7 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(ArraySyntaxNode node) => true;
     public virtual bool Visit(EquationSyntaxNode node) => true;
     public virtual bool Visit(FunCallSyntaxNode node) => true;
+    public virtual bool Visit(ComparisonChainSyntaxNode node) => true;
     public virtual bool Visit(ResultFunCallSyntaxNode node) => true;
     public virtual bool Visit(SuperAnonymFunctionSyntaxNode node) => true;
     public virtual bool Visit(StructFieldAccessSyntaxNode node) => true;

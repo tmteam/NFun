@@ -26,7 +26,9 @@ public class SyntaxTreePrinter {
 }
 
 class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
-    public static readonly SyntaxNodePrinterVisitor Instance = new SyntaxNodePrinterVisitor();
+
+    public static readonly SyntaxNodePrinterVisitor Instance = new();
+
     public string Visit(AnonymFunctionSyntaxNode node) => "anonym-fun";
 
     public string Visit(ArraySyntaxNode node) => "array";
@@ -34,6 +36,8 @@ class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(EquationSyntaxNode node) => $"equation '{node.Id}'";
 
     public string Visit(FunCallSyntaxNode node) => $"call '{node.Id}'";
+
+    public string Visit(ComparisonChainSyntaxNode node) => $"chain-comp ";
 
     public string Visit(IfThenElseSyntaxNode node) => "if-else";
 

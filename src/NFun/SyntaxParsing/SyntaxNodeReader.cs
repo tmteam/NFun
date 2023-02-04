@@ -19,14 +19,14 @@ namespace NFun.SyntaxParsing;
 public static class SyntaxNodeReader {
     private const int MinPriority = 0;
     private const int OperatorBitInversePriority = 1;
-    private const int OperatorNotPriority = 9;
+    private const int OperatorNotPriority = 10;
 
     private static readonly int MaxPriority;
 
     private static readonly Dictionary<TokType, byte> BinaryPriorities = new();
 
     static SyntaxNodeReader() {
-        var priorities = new List<TokType[]>(13) {
+        var priorities = new List<TokType[]>(14) {
             new[] { TokType.ArrOBr, TokType.Dot, TokType.ParenthObr },
             new[] { TokType.Pow },
             new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
@@ -36,9 +36,10 @@ public static class SyntaxNodeReader {
             new[] { TokType.BitXor },
             new[] { TokType.BitOr },
             new[] {
-                TokType.In, TokType.Equal, TokType.NotEqual, TokType.More, TokType.Less, TokType.MoreOrEqual,
+                TokType.More, TokType.Less, TokType.MoreOrEqual,
                 TokType.LessOrEqual
             },
+            new [] { TokType.In, TokType.Equal, TokType.NotEqual },
             Array.Empty<TokType>(), // gap for unary 'not x'
             new[] { TokType.And },
             new[] { TokType.Xor },
@@ -53,6 +54,9 @@ public static class SyntaxNodeReader {
 
         MaxPriority = priorities.Count - 1;
     }
+
+    internal static string GetOperatorFunctionName(TokType type) =>
+        OperatorFunNames.TryGetValue(type, out var output) ? output : null;
 
     private static readonly Dictionary<TokType, string> OperatorFunNames = new() {
         { TokType.Plus, CoreFunNames.Add },
@@ -79,13 +83,11 @@ public static class SyntaxNodeReader {
         { TokType.In, CoreFunNames.In }
     };
 
-    private static readonly HashSet<TokType> ChainCompareOperators = new() {
+    private static readonly HashSet<TokType> ComparisonChainOperators = new() {
         TokType.More,
         TokType.MoreOrEqual,
         TokType.Less,
-        TokType.LessOrEqual,
-        TokType.Equal,
-        TokType.NotEqual
+        TokType.LessOrEqual
     };
 
     public static ISyntaxNode ReadNodeOrNull(TokFlow flow) =>
@@ -282,8 +284,6 @@ public static class SyntaxNodeReader {
         //starting with left Node
         var leftNode = ReadNodeOrNull(flow, priority - 1);
 
-        var isInChainCompare = false;
-
         //building the syntax tree
         while (true)
         {
@@ -331,18 +331,6 @@ public static class SyntaxNodeReader {
 
                 leftNode = ReadArraySlice(flow, leftNode);
             }
-            else if (opToken.Type == TokType.Dot)
-            {
-                flow.MoveNext();
-                if (!flow.MoveIf(TokType.Id, out var id))
-                    throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
-                // Open parenthesis. It means call
-                var next = flow.Current?.Type;
-                if (next == TokType.ParenthObr || next == TokType.FiObr)
-                    leftNode = ReadFunctionCall(flow, id, leftNode);
-                else //else it is struct field
-                    leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
-            }
             else if (opToken.Type == TokType.ParenthObr)
             {
                 if (flow.IsPrevious(TokType.NewLine))
@@ -354,33 +342,66 @@ public static class SyntaxNodeReader {
                 // (expr)(arg1, ... argN)
                 leftNode = ReadResultCall(flow, leftNode);
             }
-            else
+            else if (opToken.Type == TokType.Dot)
             {
-                flow.MoveNext();
-
-                var rightNode = ReadNodeOrNull(flow, priority - 1);
-                if (rightNode == null)
-                    throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
-
-                //building the tree from the left
-                if (OperatorFunNames.TryGetValue(opToken.Type, out var opFunName))
-                    leftNode = SyntaxNodeFactory.BinOperatorCall( opFunName, leftNode, rightNode );
-                else
-                    throw Errors.OperatorIsUnknown(opToken);
-
-                //trace:
-                //ReadNodeOrNull(priority: 3 ) // *,/,%,AND
-                //0: {start} 4/2*5+1
-                //1: {l:4} /2*5+1
-                //2: {l:4}{op:/} 2*5+1
-                //3: {l:4}{op:/}{r:2} *5+1
-                //4: {l:(4/2)} *5+1
-                //5: {l:(4/2)}{op:*}5+1
-                //6: {l:(4/2)}{op:*}{r:5}+1
-                //7: {l:((4/2)*5)}{op:+} 1
-                //8: '+' priority is higter than 3: return l:((4/2)*5)
+                flow.MoveNext(); // dot
+                if (!flow.MoveIf(TokType.Id, out var id))
+                    throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
+                // Open parenthesis. It means call
+                if (flow.IsCurrent(TokType.ParenthObr))
+                    leftNode = ReadFunctionCall(flow, id, leftNode);
+                else //else it is struct field
+                    leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
             }
+            else if (ComparisonChainOperators.Contains(opToken.Type))
+                leftNode = ReadComparisonChain(flow, leftNode, priority);
+            else
+                leftNode = ReadBinOperator(flow, leftNode, opToken, priority);
         }
+    }
+
+    private static ISyntaxNode ReadBinOperator(TokFlow flow, ISyntaxNode leftNode, Tok opToken, int priority) {
+        flow.MoveNext();
+        var rightNode = ReadNodeOrNull(flow, priority - 1)
+                        ?? throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
+
+        //building the tree from the left
+        if (!OperatorFunNames.TryGetValue(opToken.Type, out var opFunName))
+            throw Errors.OperatorIsUnknown(opToken);
+
+        return SyntaxNodeFactory.BinOperatorCall(opFunName, leftNode, rightNode);
+        //trace:
+        //ReadNodeOrNull(priority: 3 ) // *,/,%,AND
+        //0: {start} 4/2*5+1
+        //1: {l:4} /2*5+1
+        //2: {l:4}{op:/} 2*5+1
+        //3: {l:4}{op:/}{r:2} *5+1
+        //4: {l:(4/2)} *5+1
+        //5: {l:(4/2)}{op:*}5+1
+        //6: {l:(4/2)}{op:*}{r:5}+1
+        //7: {l:((4/2)*5)}{op:+} 1
+        //8: '+' priority is higter than 3: return l:((4/2)*5)
+    }
+
+    private static ISyntaxNode ReadComparisonChain(TokFlow flow, ISyntaxNode leftNode, int priority) {
+
+        var operators = new List<Tok>();
+        var operands = new List<ISyntaxNode> { leftNode };
+
+        while (ComparisonChainOperators.Contains(flow.Current.Type))
+        {
+            var opToken = flow.Current;
+            flow.MoveNext();
+            var nextNode = ReadNodeOrNull(flow, priority-1)
+                           ?? throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
+            operands.Add(nextNode);
+            operators.Add(opToken);
+        }
+
+        if (operands.Count == 2)
+            return SyntaxNodeFactory.BinOperatorCall(OperatorFunNames[operators[0].Type], operands[0], operands[1]);
+        else
+            return SyntaxNodeFactory.ComparisonChain(operands, operators);
     }
 
     /// <summary>

@@ -12,6 +12,7 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<DfsEnterResult> {
     public virtual DfsEnterResult Visit(ArraySyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(EquationSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(FunCallSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(ComparisonChainSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(ResultFunCallSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(SuperAnonymFunctionSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(StructFieldAccessSyntaxNode node) => DefaultVisitEnter(node);

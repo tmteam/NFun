@@ -10,6 +10,8 @@ public class FluentApiCalcSingleTTConcurrentTest {
     [TestCase("(age != 13) or (name != 'vasa')", false)]
     [TestCase("'{name}{age}'.reverse()=='31asav'", true)]
     [TestCase("'mama'=='{name}{age}'.reverse()", false)]
+    [TestCase("1<2<age>-100>-150 != 1<4<age>-100>-150", false)]
+    [TestCase("(1<2<age>-100>-150) == (1<2<age>-100>-150) == true", true)]
     public void ReturnsBoolean(string expr, bool expected)
         => expr.CalcSingleTypedInDifferentWays(new UserInputModel("vasa", 13), expected);
 

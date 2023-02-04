@@ -13,6 +13,8 @@ using NFun.Types;
 
 namespace NFun.Interpretation;
 
+using System;
+
 internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionNode> {
     private readonly IFunctionDictionary _functions;
     private readonly VariableDictionary _variables;
@@ -245,8 +247,37 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var function = genericFunction.CreateConcrete(genericArgs, _dialect);
             return CreateFunctionCall(node, function);
         }
-
         throw new NFunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
+    }
+
+    public IExpressionNode Visit(ComparisonChainSyntaxNode node) {
+        var expressionNodes = node.Operands.SelectToArray(ReadNode);
+        var functions = new FunctionWithTwoArgs[node.Operators.Count];
+        var converters = new Func<object, object>[functions.Length * 2];
+
+        for (int i = 0; i < functions.Length; i++)
+        {
+            var op = node.Operators[i];
+            var functionName = SyntaxNodeReader.GetOperatorFunctionName(op.Type)
+                               ?? throw new NFunImpossibleException("MJ987");
+            var genericFunction = _functions.GetOrNull(functionName, 2) as IGenericFunction
+                      ?? throw new NFunImpossibleException("MJ989");
+            var ticType = _typeInferenceResults.GetSyntaxNodeTypeOrNull(node.Operands[i].OrderNumber);
+            var gArg = _typesConverter.Convert(ticType);
+            var concreteFunction = genericFunction.CreateConcrete(new[] { gArg }, _dialect);
+            functions[i] = (concreteFunction as FunctionWithTwoArgs).NotNull("Not a two args");
+
+            var l = expressionNodes[i];
+            if (l.Type != gArg)
+                converters[i*2] =
+                    VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, l.Type, gArg, l.Interval);
+
+            var r = expressionNodes[i + 1];
+            if (r.Type != gArg)
+                converters[i*2+1] =
+                    VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, r.Type, gArg, r.Interval);
+        }
+        return new ComparisonChainExpressionNode(expressionNodes, functions, converters, node.Interval);
     }
 
     public IExpressionNode Visit(ResultFunCallSyntaxNode node) {

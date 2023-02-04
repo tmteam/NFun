@@ -7,10 +7,12 @@ using NUnit.Framework;
 namespace NFun.ApiTests;
 
 public class TestFluentApiCalcSingleConstT {
-    [Test]
-    public void Smoke() {
-        var result = Funny.Calc<bool>("(13 == 13) and ('vasa' == 'vasa')");
-        Assert.AreEqual(true, result);
+    [TestCase("(13 == 13) and ('vasa' == 'vasa')", true)]
+    [TestCase("1<2<13>-100>-150 != 1<4<13>-100>-150", false)]
+    [TestCase("(1<2<13>-100>-150) == (1<2<13>-100>-150) == true", true)]
+    public void ReturnsBool(string expr, bool expected) {
+        var result = Funny.Calc<bool>(expr);
+        Assert.AreEqual(expected, result);
     }
 
     [TestCase("{id = 13; items = [1,2,3,4].map(rule '{it}'); price = 21*2; taxes = 0}")]

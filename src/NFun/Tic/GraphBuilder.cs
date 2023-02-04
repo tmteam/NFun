@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic; 
+namespace NFun.Tic;
 
 public class GraphBuilder {
     private readonly Dictionary<string, TicNode> _variables = new(StringComparer.OrdinalIgnoreCase);
@@ -55,9 +55,9 @@ public class GraphBuilder {
         => SetOrCreatePrimitive(id, type);
 
     public void SetIntConst(int id, StatePrimitive desc)
-        => SetGenericConst(id, 
-            desc: desc, 
-            anc: StatePrimitive.Real, 
+        => SetGenericConst(id,
+            desc: desc,
+            anc: StatePrimitive.Real,
             preferred: StatePrimitive.Real);
 
     public void SetGenericConst(int id, StatePrimitive desc = null, StatePrimitive anc = null, StatePrimitive preferred = null) {
@@ -191,7 +191,7 @@ public class GraphBuilder {
         => SetCall(GetNamedNode(name), argThenReturnIds);
 
     /// <summary>
-    /// Set function call, of already known functional type 
+    /// Set function call, of already known functional type
     /// </summary>
     public void SetCall(StateFun funState, params int[] argThenReturnIds) {
         if (funState.ArgsCount != argThenReturnIds.Length - 1)
@@ -216,7 +216,7 @@ public class GraphBuilder {
     /// Set pure generic function call
     /// for signatures like (T,T...):T.
     ///
-    /// Optimized version of setCall([],[]) 
+    /// Optimized version of setCall([],[])
     /// </summary>
     public void SetCall(StateRefTo generic, int[] argThenReturnIds) {
         for (int i = 0; i < argThenReturnIds.Length - 1; i++)
@@ -282,6 +282,17 @@ public class GraphBuilder {
         GetOrCreateStructNode(id, new StateStruct(fields));
     }
 
+    public void SetCompareChain(int nodeOrderNumber, StateRefTo[] generics, int[] ids) {
+        for (int i = 0; i < generics.Length; i++)
+        {
+            var generic = generics[i];
+            SetCallArgument(generic, ids[i]);
+            SetCallArgument(generic, ids[i + 1]);
+        }
+
+        SetOrCreatePrimitive(nodeOrderNumber, StatePrimitive.Bool);
+    }
+
     #endregion
 
 
@@ -305,16 +316,16 @@ public class GraphBuilder {
 
         if (allTypesAreSolved)
             return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
-        
+
         var results =  SolvingFunctions.Finalize(
             toposortedNodes: sorted,
             outputNodes: _outputNodes,
             inputNodes: _inputNodes,
             syntaxNodes: _syntaxNodes,
-            namedNodes: _variables, 
+            namedNodes: _variables,
             ignorePrefered);
         PrintTrace("4. Finalized");
-        
+
         return results;
     }
     public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s=>s!=null)).ToArray();
@@ -399,7 +410,7 @@ public class GraphBuilder {
                 throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
             functionNode.State = newFunVar;
             SetCall(newFunVar, argThenReturnIds);
-        }        
+        }
     }
 
     private TicNode[] GetNamedNodes(string[] names) {

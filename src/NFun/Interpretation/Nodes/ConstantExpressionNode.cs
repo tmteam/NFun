@@ -8,6 +8,7 @@ namespace NFun.Interpretation.Nodes;
 internal class ConstantExpressionNode : IExpressionNode {
     internal static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, TypeBehaviour typeBehaviour, Interval interval) =>
         primitive.BaseType switch {
+            BaseFunnyType.Any    => new ConstantExpressionNode(value,   FunnyType.Any, interval),
             BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value,   FunnyType.Int64, interval),
             BaseFunnyType.Int32  => new ConstantExpressionNode((int)value,    FunnyType.Int32, interval),
@@ -21,6 +22,7 @@ internal class ConstantExpressionNode : IExpressionNode {
 
     internal static ConstantExpressionNode CreateConcrete(FunnyType primitive, long value, TypeBehaviour typeBehaviour, Interval interval) =>
         primitive.BaseType switch {
+            BaseFunnyType.Any    => new ConstantExpressionNode(value,   FunnyType.Any, interval),
             BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value,   FunnyType.Int64, interval),
             BaseFunnyType.Int32  => new ConstantExpressionNode((int)value,    FunnyType.Int32, interval),

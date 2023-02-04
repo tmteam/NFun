@@ -35,23 +35,24 @@ Following list shows operators precedence:
 operators with the highest precedence appear at the top of the list, those with the lowest appear at the bottom.
 Within an expression, higher precedence operators will be evaluated first.
 
-| Operators                        | Explanation                          |
-|----------------------------------|--------------------------------------|
-| `()` `[]` `.` `-`(*unary*)       | *Various*                            |
-| `**` `~`                         | Exponentiation, bitwise NOT          |
-| `*` `/` `//` `%`                 | Multiplication, divisions, remainder | 
-| `+` `-`                          | Addition, subtraction                |
-| `<<`  `>>`                       | Bitwise Shifts                       |
-| `&`                              | Bitwise AND                          |
-| `^`                              | Bitwise XOR                          |
-| &#124;                           | Bitwise OR                           |
-| `in` `==` `!=` `>` `<` `>=` `<=` | Comparisons, membership              |
-| `not`                            | Logical NOT                          |
-| `and`                            | Logical AND                          |
-| `xor`                            | Logical XOR                          |
-| `or`                             | Logical OR                           |
-| `rule`                           | Anonymous function                   |
-| `=`                              | Variable initialization              |
+| Operators                  | Explanation                          |
+|----------------------------|--------------------------------------|
+| `()` `[]` `.` (*unary*)`-` | *Various*                            |
+| `**` `~`                   | Exponentiation, bitwise NOT          |
+| `*` `/` `//` `%`           | Multiplication, divisions, remainder | 
+| `+` `-`                    | Addition, subtraction                |
+| `<<`  `>>`                 | Bitwise Shifts                       |
+| `&`                        | Bitwise AND                          |
+| `^`                        | Bitwise XOR                          |
+| `&#124;`                   | Bitwise OR                           |
+| `>` `<` `>=` `<=`          | Comparisons                          |
+| `==` `!=` `in`             | Equality, membership                 |
+| `not`                      | Logical NOT                          |
+| `and`                      | Logical AND                          |
+| `xor`                      | Logical XOR                          |
+| `or`                       | Logical OR                           |
+| `rule`                     | Anonymous function                   |
+| `=`                        | Variable initialization              |
 
 
 ## Arithmetic Operators
@@ -60,16 +61,16 @@ The following table shows all the arithmetic operators supported by the NFun lan
 
 Assume variable A holds 6 and variable B holds 4 then:
 
-| Operator    | Types       | Description	                                       | Example      |
-|-------------|-------------|----------------------------------------------------|--------------|
-| +           | Arithmetics | Adds two operands.	                                | A + B = 10   |
-| −           | Arithmetics | Subtracts second operand from the first.	          | B − A = -2   |
-| *           | Arithmetics | Multiplies both operands.	                         | A * B = 24   |
-| %           | Arithmetics | Modulus Operator - remainder of after an division. | A % B = 2    |
-| //          | Integers    | Divides integer numerator by de-numerator.	        | A / B = 1.5  |
-| /           | `real`	     | Divides real numerator by de-numerator.	           | A //B = 1    |
-| **          | `real`      | Raising the base A to the power of B               | A**B  = 1296 |
-| − *(unary)* | Signed      | Multiply expression by -1.	                        | −A = -6      |
+| Operator    | Types       | Description	                                       | Example        |
+|-------------|-------------|----------------------------------------------------|----------------|
+| +           | Arithmetics | Adds two operands.	                                | `A + B` = 10   |
+| −           | Arithmetics | Subtracts second operand from the first.	          | `B − A` = -2   |
+| *           | Arithmetics | Multiplies both operands.	                         | `A * B` = 24   |
+| %           | Arithmetics | Modulus Operator - remainder of after an division. | `A % B` = 2    |
+| //          | Integers    | Divides integer numerator by de-numerator.	        | `A / B` = 1.5  |
+| /           | `real`	     | Divides real numerator by de-numerator.	           | `A //B` = 1    |
+| **          | `real`      | Raising the base A to the power of B               | `A**B`  = 1296 |
+| − *(unary)* | Signed      | Multiply expression by -1.	                        | `−A` = -6      |
 
 ## Relational Operators
 The following table shows all the relational operators supported by NFun. 
@@ -77,26 +78,40 @@ All of them returns true if condition is satisfied, and false otherwise
 
 Assume variable A holds 10 and variable B holds 20 then:
 
-| Operator | Types       | Description	                                                                                     | Example            |
-|----------|-------------|--------------------------------------------------------------------------------------------------|--------------------|
-| ==       | All         | Equals true if the values of two operands are equal.	                                            | (A == B) is false. |
-| !=       | All         | Equals true if the values of two operands are not equal.	                                        | (A != B) is true.  |
-| \>       | Comparables | Equals true if the value of left operand is greater than the value of right operand. 	           | (A > B) is false.  |
-| <        | Comparables | Equals true if the value of left operand is less than the value of right operand.                | (A < B) is true.   |
-| \>=      | Comparables | Equals true if the value of left operand is greater than or equal to the value of right operand. | (A >= B) is false. |
-| <=       | Comparables | Equals true if the value of left operand is less than or equal to the value of right operand. 	  | (A <= B) is true.  |
+| Operator | Types       | Description	                                                                                     | Example              |
+|----------|-------------|--------------------------------------------------------------------------------------------------|----------------------|
+| ==       | All         | Equals true if the values of two operands are equal.	                                            | `(A == B)` is false. |
+| !=       | All         | Equals true if the values of two operands are not equal.	                                        | `(A != B)` is true.  |
+| \>       | Comparables | Equals true if the value of left operand is greater than the value of right operand. 	           | `(A > B)` is false.  |
+| <        | Comparables | Equals true if the value of left operand is less than the value of right operand.                | `(A < B)` is true.   |
+| \>=      | Comparables | Equals true if the value of left operand is greater than or equal to the value of right operand. | `(A >= B)` is false. |
+| <=       | Comparables | Equals true if the value of left operand is less than or equal to the value of right operand. 	  | `(A <= B)` is true.  |
+
+### Сomparison chain
+
+Operators `>` `<` `>=` `<=` can be used in comparison chain. 
+This means that the right operand of the comparison can simultaneously be the left operand for the next comparison
+
+So expression 
+
+`a > b >= c < d <= e` 
+
+is equivalent to expression
+
+` (a>b) and (b>=c) and (c<d) and (d<=e)`
+
 
 ## Logical Operators
 The Following table shows all the logical operators supported by NFun language. 
 
 Assume variable A holds true and variable B holds false, then:
 
-| Operator       | Type   | 	  Description	                                                               | Example             |
-|----------------|--------|-------------------------------------------------------------------------------|---------------------|
-| and	           | `bool` | If both the operands are true, then the condition becomes true.			            | (A and B) is false. |
-| or	            | `bool` | If any of the two operands is true, then the condition becomes true.	         | (A or B)  is true.  |
-| xor	           | `bool` | If two operands are not equal to each other, then the condition becomes true. | (A xor B) is true.  |
-| not *(unary)*	 | `bool` | Reverses the logical state of its operand.                                    | (not A)   is false. |
+| Operator       | Type   | 	  Description	                                                               | Example               |
+|----------------|--------|-------------------------------------------------------------------------------|-----------------------|
+| and	           | `bool` | If both the operands are true, then the condition becomes true.			            | `(A and B)` is false. |
+| or	            | `bool` | If any of the two operands is true, then the condition becomes true.	         | `(A or B)`  is true.  |
+| xor	           | `bool` | If two operands are not equal to each other, then the condition becomes true. | `(A xor B)` is true.  |
+| not *(unary)*	 | `bool` | Reverses the logical state of its operand.                                    | `(not A)`   is false. |
 
 The truth tables for 'and', 'or', 'xor' and 'not' is as follows:
 
@@ -115,19 +130,19 @@ The following table lists the bitwise operators supported by NFun.
 Assume variable A has type of **byte** and holds 60 (0b0011_1100) 
 and variable B has type of **byte** holds 13 (0b0000_1101), then:
 
-| Operator     | Type     | Description	                                                                     | Example                       |
-|--------------|----------|----------------------------------------------------------------------------------|-------------------------------|
-| &	           | Integers | Binary AND Operator copies a bit to the result if it exists in both operands.	   | A & B = 12 = 0b0000_1100      |
-| &#124;	      | Integers | Binary OR Operator copies a bit if it exists in either operand.	                 | A &#124; B = 61 = 0b0011_1101 |
-| ^	           | Integers | Binary XOR Operator copies the bit if it is set in one operand but not both.	    | A ^ B = 49 = 0b0011_0001      |
-| ~ *(unary)*	 | Integers | Binary One's Complement Operator is unary and has the effect of 'flipping' bits. | 	~A = ~60 = 0b1100_0011       |
+| Operator     | Type     | Description	                                                                     | Example                     |
+|--------------|----------|----------------------------------------------------------------------------------|-----------------------------|
+| &	           | Integers | Binary AND Operator copies a bit to the result if it exists in both operands.	   | `A & B` = 12 = 0b0000_1100  |
+| &#124;	      | Integers | Binary OR Operator copies a bit if it exists in either operand.	                 | `A \| B` = 61 = 0b0011_1101 |
+| ^	           | Integers | Binary XOR Operator copies the bit if it is set in one operand but not both.	    | `A ^ B` = 49 = 0b0011_0001  |
+| ~ *(unary)*	 | Integers | Binary One's Complement Operator is unary and has the effect of 'flipping' bits. | 	`~A` = ~60 = 0b1100_0011   |
 
 Bitshift operators takes **[Integers]** type as left operand and result. Right operand has type of byte
 
 | Operator | Description	                                                                                                              | Example                       |
 |----------|---------------------------------------------------------------------------------------------------------------------------|-------------------------------|
-| <<	      | Binary Left Shift Operator. The left operands value is moved left by the number of bits specified by the right operand.	  | A << 2 = 240 = 0b1111_0000    |
-| \>\>	    | Binary Right Shift Operator. The left operands value is moved right by the number of bits specified by the right operand. | 	A \>\> 2 = 15  = 0b0000_1111 |
+| <<	      | Binary Left Shift Operator. The left operands value is moved left by the number of bits specified by the right operand.	  | `A << 2` = 240 = 0b1111_0000  |
+| \>\>	    | Binary Right Shift Operator. The left operands value is moved right by the number of bits specified by the right operand. | 	`A >> 2` = 15  = 0b0000_1111 |
 
 Assume A = 60 and B = 13 in binary format, they will be as follows:
 ```

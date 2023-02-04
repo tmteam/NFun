@@ -12,6 +12,8 @@ public class TestFluentApiCalcSingleT {
     [TestCase("(Age == 13) and (Name == 'vasa')", true)]
     [TestCase("(AGE == 13) and (NAME == 'vasa')", true)]
     [TestCase("(age == 13) and (name == 'vasa')", true)]
+    [TestCase("1<2<age>-100>-150 != 1<4<age>-100>-150", false)]
+    [TestCase("(1<2<age>-100>-150) == (1<2<age>-100>-150) == true", true)]
     [TestCase("(age != 13) or (name != 'vasa')", false)]
     [TestCase("name.reverse()", "asav")]
     [TestCase("'{name}{Age}'.reverse()", "31asav")]

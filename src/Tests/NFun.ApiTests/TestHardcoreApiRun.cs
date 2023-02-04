@@ -17,6 +17,8 @@ class TestHardcoreApiRun {
     [TestCase("y = (x + 4/x)", 2, 4)]
     [TestCase("y = x**3", 2, 8)]
     [TestCase("y = x % 3", 2, 2)]
+    [TestCase("y = 1<2<x>-100>-150 != 1<4<x>-100>-150",13, false)]
+    [TestCase("y = (1<2<x>-100>-150) == (1<2<x>-100>-150) == true",13, true)]
     [TestCase("y = x % 4", 5, 1)]
     [TestCase("y = x % -4", 5, 1)]
     [TestCase("y = x % 4", -5, -1)]
@@ -33,7 +35,10 @@ class TestHardcoreApiRun {
         ", 5, 120)]
     [TestCase(@"f(x) = x*2; z = f(x); y = f(x)", 1, 2)]
     [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);", 1, 2)]
-    public void SingleVariableEquation(string expr, double arg, double expected) =>
+
+    //    [TestCase("y = 1<2<x>-100>-150 != 1<4<age>-100>-150",13, false)]
+
+    public void SingleVariableEquation(string expr, double arg, object expected) =>
         expr.AssertRuntimes(runtime => {
             var ySource = runtime["y"];
             var xSource = runtime["x"];
@@ -128,9 +133,9 @@ class TestHardcoreApiRun {
     [Test]
     public void RuntimeWithCompositeTypes_VariablesEnumerationTest() =>
         @"
-                    out3 = {age = 1, name = 'vasa'}    
+                    out3 = {age = 1, name = 'vasa'}
                     out4 = in3.field1
-                    out5 = in3.field2.child    
+                    out5 = in3.field2.child
             ".AssertRuntimes(
             runtime => {
                 runtime["in3"].Value = new Dictionary<string, object> {
@@ -156,9 +161,9 @@ class TestHardcoreApiRun {
     [Test]
     public void TypedRuntimeWithCompositeTypes_VariablesEnumerationTest() =>
         @"
-                    out3 = {age = 1, name = 'vasa'}    
+                    out3 = {age = 1, name = 'vasa'}
                     out4 = in3.field1 + 1
-                    out5:text = in3.field2.child    
+                    out5:text = in3.field2.child
             ".AssertRuntimes(runtime => {
             runtime["in3"].CreateSetterOf<Dictionary<string, object>>()
             (

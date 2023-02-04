@@ -12,6 +12,8 @@ public class FluentApiCalcSingleTConcurrentTest {
     [TestCase("'{name}{age}'.reverse()", "31asav")]
     [TestCase("'{name}{age}'.reverse()=='31asav'", true)]
     [TestCase("'mama'=='{name}{age}'.reverse()", false)]
+    [TestCase("1<2<age>-100>-150 != 1<4<age>-100>-150", false)]
+    [TestCase("(1<2<age>-100>-150) == (1<2<age>-100>-150) == true", true)]
     [TestCase("out:any ='hello world'", "hello world")]
     [TestCase("1", 1)]
     [TestCase("ids.count(rule it>2)", 2)]

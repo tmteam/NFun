@@ -10,6 +10,8 @@ public class TestFluentApiCalcSingleTT {
     [TestCase("(Age == 13) and (NAME == 'vasa')", true)]
     [TestCase("(age == 13) and (name == 'vasa')", true)]
     [TestCase("(age != 13) or (name != 'vasa')", false)]
+    [TestCase("1<2<age>-100>-150 != 1<4<age>-100>-150", false)]
+    [TestCase("(1<2<age>-100>-150) == (1<2<age>-100>-150) == true", true)]
     [TestCase("'{name}{age}'.reverse()=='31asav'", true)]
     [TestCase("'mama'=='{name}{age}'.reverse()", false)]
     public void ReturnsBoolean(string expr, bool expected)

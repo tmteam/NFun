@@ -86,6 +86,35 @@ syntax-tree
             id 'x'
 """);
 
+    [Test]
+    public void Compare1() => AssertSyntaxTree(
+        "a<b",
+"""
+syntax-tree
+   equation 'out'
+      call '<'
+         id 'a'
+         id 'b'
+"""
+    );
+
+
+    [Test]
+    public void Compare2() => AssertSyntaxTree(
+        "a<b == c<d",
+"""
+syntax-tree
+   equation 'out'
+      call '=='
+         call '<'
+            id 'a'
+            id 'b'
+         call '<'
+            id 'c'
+            id 'd'
+"""
+    );
+
     private static void AssertSyntaxTree(string expr, string expectedTree) {
         var tree = Parser.Parse(Tokenizer.ToFlow(expr));
 

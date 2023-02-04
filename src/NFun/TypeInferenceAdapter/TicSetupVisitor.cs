@@ -14,7 +14,7 @@ using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter; 
+namespace NFun.TypeInferenceAdapter;
 
 public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private readonly VariableScopeAliasTable _aliasScope;
@@ -31,7 +31,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         tree, ticGraph,
         BaseFunctions.GetFunctions(typeBehaviour),
         EmptyConstantList.Instance,
-        EmptyAprioriTypesMap.Instance, 
+        EmptyAprioriTypesMap.Instance,
         results, Dialects.Origin);
 
     internal static bool SetupTicForBody(
@@ -213,7 +213,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         _aliasScope.ExitScope();
         return true;
     }
-    
+
     private static string[] GetSuperAnonymousArgNames(int count) {
         var originArgNames = new string[count];
         for (int i = 0; i < count; i++)
@@ -236,7 +236,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             node.Fields.SelectToArray(f => f.Node.OrderNumber), node.OrderNumber);
         return true;
     }
-    
+
     public bool Visit(DefaultValueSyntaxNode node) {
         _ticTypeGraph.SetGenericConst(node.OrderNumber);
         return true;
@@ -340,7 +340,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             Trace(node, $"Call UF{node.Id}({string.Join(",", ids)})");
 #endif
             _ticTypeGraph.SetCall(userFunction, ids);
-            //in the case of generic user function  - we dont know generic arg types yet 
+            //in the case of generic user function  - we dont know generic arg types yet
             //we need to remember generic TIC signature to used it at the end of interpritation
             _resultsBuilder.RememberRecursiveCall(node.OrderNumber, userFunction);
             return true;
@@ -375,7 +375,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // Optimization
             // Remember generic arguments to use it again at the built time
             genericTypes = InitializeGenericTypes(t.Constrains);
-            // save refernces to generic types, for use at 'apply tic results' step 
+            // save refernces to generic types, for use at 'apply tic results' step
             _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
         }
         else genericTypes = Array.Empty<StateRefTo>();
@@ -386,6 +386,21 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         types[^1] = signature.ReturnType.ConvertToTiType(genericTypes);
 
         _ticTypeGraph.SetCall(types, ids);
+        return true;
+    }
+
+    public bool Visit(ComparisonChainSyntaxNode node) {
+        var ids = node.Operands.SelectToArray(o => {
+            o.Accept(this);
+            return o.OrderNumber;
+        });
+        var generics = node.Operators.SelectToArray(o => {
+            var constrains = (o.Type == TokType.Equal || o.Type == TokType.NotEqual)
+                ? GenericConstrains.Any
+                : GenericConstrains.Comparable;
+            return InitializeGenericType(constrains);
+        });
+        _ticTypeGraph.SetCompareChain(node.OrderNumber, generics, ids);
         return true;
     }
 
@@ -547,12 +562,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             IntegerPreferredType.Real => StatePrimitive.Real,
             _                         => null
         };
-    
+
     public bool Visit(IpAddressConstantSyntaxNode node) {
         _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.Ip);
         return true;
     }
-    
+
     public bool Visit(NamedIdSyntaxNode node) {
         var id = node.Id;
 #if DEBUG
@@ -560,7 +575,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         //nfun syntax allows multiple variables to have the same name depending on whether they are functions or not
         //need to know what type of argument is expected - is it variableId, or functionId?
-        //if it is function - how many arguments are expected ? 
+        //if it is function - how many arguments are expected ?
         var argType = _parentFunctionArgType;
         if (argType.BaseType == BaseFunnyType.Fun) // functional argument is expected
         {
@@ -594,14 +609,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         }
         // At this point we are sure - ID is not a function
 
-        // ID can be constant or apriori variable or usual (not apriori) variable 
+        // ID can be constant or apriori variable or usual (not apriori) variable
         // if ID exists in ticTypeGraph - then ID is Variable
         // else if ID exists in constant list - then ID is constant
         // else ID is variable
 
         if (!_ticTypeGraph.HasNamedNode(id) && _constants.TryGetConstant(id, out var constant))
         {
-            //ID is constant 
+            //ID is constant
             node.IdType = NamedIdNodeType.Constant;
             node.IdContent = constant;
 
@@ -616,7 +631,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     break;
                 case StateStruct @struct:
                 {
-                    if (@struct.IsSolved) 
+                    if (@struct.IsSolved)
                         _ticTypeGraph.SetStructConst(node.OrderNumber, @struct);
                     break;
                 }

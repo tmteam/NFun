@@ -15,6 +15,8 @@ public class TestFluentApiCalcSingleObjectConst {
     [TestCase("'Hello world'", "Hello world")]
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
     [TestCase("[1..4].map(rule it.toText())", new[] { "1", "2", "3", "4" })]
+    [TestCase("1<2<13>-100>-150 != 1<4<13>-100>-150", false)]
+    [TestCase("(1<2<13>-100>-150) == (1<2<13>-100>-150) == true", true)]
     public void GeneralCalcTest(string expr, object expected) =>
         Assert.AreEqual(expected, Funny.Calc(expr));
 

@@ -245,6 +245,9 @@ public class SyntaxExamplesAndExplanation {
                     x1= 12; x2 = 24; x3 =-1; x4 = false 
                     out = x1!=0 and (x2>0 or (x3<0 xor not x4))
                 "));
+        
+        // Comparison chain
+        Assert.True(Funny.Calc<bool>("12 >= 11 > 10 < 30 <= 50"));
     }
 
     [Test]

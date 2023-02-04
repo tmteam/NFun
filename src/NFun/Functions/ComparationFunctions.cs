@@ -2,7 +2,7 @@
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.Functions; 
+namespace NFun.Functions;
 
 public class NotEqualFunction : GenericFunctionWithTwoArguments {
     public NotEqualFunction() : base(
@@ -19,26 +19,26 @@ public class EqualFunction : GenericFunctionWithTwoArguments {
         => TypeHelper.AreEqual(a, b);
 }
 
-public class MoreFunction : GenericFunctionBase {
+public class MoreFunction : GenericFunctionWithTwoArguments {
     public MoreFunction() : base(
         CoreFunNames.More, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
         FunnyType.Generic(0)) { }
 
-    protected override object Calc(object[] args) {
-        var a = (IComparable)args[0];
-        var b = (IComparable)args[1];
+    protected override object Calc(object arg1, object arg2) {
+        var a = (IComparable)arg1;
+        var b = (IComparable)arg2;
         return a.CompareTo(b) > 0;
     }
 }
 
-public class MoreOrEqualFunction : GenericFunctionBase {
+public class MoreOrEqualFunction : GenericFunctionWithTwoArguments {
     public MoreOrEqualFunction() : base(
         CoreFunNames.MoreOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
-    protected override object Calc(object[] args) {
-        var a = (IComparable)args[0];
-        var b = (IComparable)args[1];
+    protected override object Calc(object arg1, object arg2) {
+        var a = (IComparable)arg1;
+        var b = (IComparable)arg2;
         return a.CompareTo(b) >= 0;
     }
 }
@@ -55,14 +55,14 @@ public class LessFunction : GenericFunctionWithTwoArguments {
     }
 }
 
-public class LessOrEqualFunction : GenericFunctionBase {
+public class LessOrEqualFunction : GenericFunctionWithTwoArguments {
     public LessOrEqualFunction() : base(
         CoreFunNames.LessOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
-    protected override object Calc(object[] args) {
-        var a = (IComparable)args[0];
-        var b = (IComparable)args[1];
+    protected override object Calc(object arg1, object arg2) {
+        var a = (IComparable)arg1;
+        var b = (IComparable)arg2;
         return a.CompareTo(b) <= 0;
     }
 }
@@ -91,7 +91,7 @@ public class MaxFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var generic = concreteTypesMap[0];
-        FunctionWithTwoArgs function = new MaxConcreteFunction();
+        var function = new MaxConcreteFunction();
         function.Setup(Name, generic);
         return function;
     }

@@ -2,7 +2,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 
-namespace NFun.TypeInferenceAdapter; 
+namespace NFun.TypeInferenceAdapter;
 
 public class ApplyTiResultEnterVisitor : EnterVisitorBase {
     private readonly TypeInferenceResults _solving;
@@ -26,7 +26,7 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
             node.VariableType = _tiToLangTypeConverter.Convert(type);
         return DefaultVisitEnter(node);
     }
-
+    
     protected override DfsEnterResult DefaultVisitEnter(ISyntaxNode node) {
         var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
         node.OutputType = type == null
