@@ -34,6 +34,7 @@ public class FluentApiCalcContextConcurrentTest {
         ContractOutputModel expected = new ContractOutputModel {
             Id = 42, Price = 42.1, Taxes = new decimal(42.2), Items = new[] { "vasa", "kate" }
         };
+
         var context = new ContextModel1(imodel: input);
         var expectedContext = new ContextModel1(context.IntRVal, (UserInputModel)input.Clone()) { OModel = expected };
         "omodel = {id = 42; items = ['vasa','kate']; price = 42.1; taxes = 42.2}"
@@ -53,7 +54,7 @@ public class FluentApiCalcContextConcurrentTest {
 
         @"
             nonExistedStruct = {value = 1}
-            price = inputs.max() + users[0].size; 
+            price = inputs.max() + users[0].size;
             results =  inputs.reverse().map(rule it.toText());
             Contracts = [{Id = 1, Items = ['single'], Price = 456, Taxes = 789}]"
             .CalcContextInDifferentWays(origin, expected);

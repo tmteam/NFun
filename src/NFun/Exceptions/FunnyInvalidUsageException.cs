@@ -1,6 +1,8 @@
 using System;
 
-namespace NFun.Exceptions; 
+namespace NFun.Exceptions;
+
+using System.Reflection;
 
 public class FunnyInvalidUsageException : Exception {
     public static FunnyInvalidUsageException OutputTypeContainsNoParameterlessCtor(Type type)
