@@ -87,19 +87,19 @@ public class AprioriTypesTest {
 
     [Test]
     public void OutputVarSpecifiedWithDifferentAprioriType_throws() =>
-        TestHelper.AssertObviousFailsOnParse(
+        FunnyAssert.ObviousFailsOnParse(
             () =>
                 Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("y:int = x"));
 
     [Test]
     public void InputVarSpecifiedWithAprioriOutputConflict_throws() =>
-        TestHelper.AssertObviousFailsOnParse(
+        FunnyAssert.ObviousFailsOnParse(
             () =>
                 Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("x:int; y = x"));
 
     [Test]
     public void OutputVarSpecifiedHasInputNameWithSameName_throws() =>
-        TestHelper.AssertObviousFailsOnParse(
+        FunnyAssert.ObviousFailsOnParse(
             () =>
                 Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("x:int; y = x"));
 

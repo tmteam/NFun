@@ -289,6 +289,6 @@ public class RealIsDecimalTest {
     [TestCase("-36893488147419103230")]
     [TestCase("36893488147419103230")]
     public void ObviousFails(string expr) =>
-        TestHelper.AssertObviousFailsOnParse(() =>
+        FunnyAssert.ObviousFailsOnParse(() =>
             expr.BuildWithDialect(realClrType: RealClrType.IsDecimal));
 }

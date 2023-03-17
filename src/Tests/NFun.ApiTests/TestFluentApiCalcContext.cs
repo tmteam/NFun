@@ -23,9 +23,7 @@ public class TestFluentApiCalcContext {
     public void Const_OutputFieldIsConstCharArray() {
         var context = new ModelWithCharArray();
         Funny.CalcContext("Chars = 'test'", context);
-        Assert.IsTrue(
-            TestHelper.AreSame(
-                new ModelWithCharArray { Chars = new[] { 't', 'e', 's', 't' } }, context));
+        FunnyAssert.AreSame(new ModelWithCharArray { Chars = new[] { 't', 'e', 's', 't' } }, context);
     }
 
     [Test]
@@ -126,7 +124,7 @@ public class TestFluentApiCalcContext {
 
         CalcInDifferentWays(@"
                             nonExistedStruct = {value = 1}
-                            price = inputs.max() + users[0].size; 
+                            price = inputs.max() + users[0].size;
                             results =  inputs.reverse().map(rule it.toText());
                             Contracts = [{Id = 1, Items = ['single'], Price = 456, Taxes = 789}]",
             origin, expected);
@@ -171,14 +169,14 @@ public class TestFluentApiCalcContext {
         var c9 = (TContext)origin.Clone();
         action2(c9);
 
-        Assert.IsTrue(TestHelper.AreSame(expected, c1));
-        Assert.IsTrue(TestHelper.AreSame(expected, c2));
-        Assert.IsTrue(TestHelper.AreSame(expected, c3));
-        Assert.IsTrue(TestHelper.AreSame(expected, c4));
-        Assert.IsTrue(TestHelper.AreSame(expected, c5));
-        Assert.IsTrue(TestHelper.AreSame(expected, c6));
-        Assert.IsTrue(TestHelper.AreSame(expected, c7));
-        Assert.IsTrue(TestHelper.AreSame(expected, c8));
-        Assert.IsTrue(TestHelper.AreSame(expected, c9));
+        FunnyAssert.AreSame(expected, c1);
+        FunnyAssert.AreSame(expected, c2);
+        FunnyAssert.AreSame(expected, c3);
+        FunnyAssert.AreSame(expected, c4);
+        FunnyAssert.AreSame(expected, c5);
+        FunnyAssert.AreSame(expected, c6);
+        FunnyAssert.AreSame(expected, c7);
+        FunnyAssert.AreSame(expected, c8);
+        FunnyAssert.AreSame(expected, c9);
     }
 }

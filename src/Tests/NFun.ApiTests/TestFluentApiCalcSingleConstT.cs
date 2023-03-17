@@ -22,7 +22,7 @@ public class TestFluentApiCalcSingleConstT {
         var expected = new ContractOutputModel {
             Id = 13, Items = new[] { "1", "2", "3", "4" }, Taxes = Decimal.Zero, Price = 42
         };
-        Assert.IsTrue(TestHelper.AreSame(expected, result));
+        FunnyAssert.AreSame(expected, result);
     }
 
     [Test]
@@ -115,9 +115,9 @@ public class TestFluentApiCalcSingleConstT {
 
     [Test]
     public void UseDecimalWithoutDialect_throws()
-        => TestHelper.AssertObviousFailsOnApiUsage(() => Funny.Calc<decimal>("123"));
+        => FunnyAssert.ObviousFailsOnApiUsage(() => Funny.Calc<decimal>("123"));
 
     [Test]
     public void UseDecimalWithBuilderWithoutDialect_throws()
-        => TestHelper.AssertObviousFailsOnApiUsage(() => Funny.WithConstant("id", 42).Calc<decimal>("123"));
+        => FunnyAssert.ObviousFailsOnApiUsage(() => Funny.WithConstant("id", 42).Calc<decimal>("123"));
 }

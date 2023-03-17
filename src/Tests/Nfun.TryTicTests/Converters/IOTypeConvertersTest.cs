@@ -87,7 +87,7 @@ public class IOTypeConvertersTest {
         var size = converter.CacheSize;
         var funObject = inputConverter.ToFunObject(originClrObject);
         var clrObject = outputConverter.ToClrObject(funObject);
-        Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));
+        FunnyAssert.AreSame(originClrObject, clrObject);
 
         FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
         FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());

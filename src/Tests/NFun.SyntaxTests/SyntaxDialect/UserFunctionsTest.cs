@@ -36,7 +36,7 @@ public class UserFunctionsTest {
     [TestCase("g(x) = if(x>0) g(x-1) else 0;  out1 = g(10)")]
     [TestCase("f(x) = 1; g(x) = if(x>0) g(x-1) else 0;  out1 = g(10)")]
     public void DenyRecursiveUserFunctionsThrows(string expr)
-        => TestHelper.AssertObviousFailsOnParse(() =>
+        => FunnyAssert.ObviousFailsOnParse(() =>
             expr.BuildWithDialect(allowUserFunctions: AllowUserFunctions.DenyRecursive));
 
 
@@ -60,6 +60,6 @@ public class UserFunctionsTest {
     [TestCase("g(x) = if(x>0) g(x-1) else 0;  out1 = g(10)")]
     [TestCase("f(x) = 1; g(x) = if(x>0) g(x-1) else 0;  out1 = g(10)")]
     public void DenyUserFunctionsThrows(string expr)
-        => TestHelper.AssertObviousFailsOnParse(() =>
+        => FunnyAssert.ObviousFailsOnParse(() =>
             expr.BuildWithDialect(allowUserFunctions: AllowUserFunctions.DenyUserFunctions));
 }

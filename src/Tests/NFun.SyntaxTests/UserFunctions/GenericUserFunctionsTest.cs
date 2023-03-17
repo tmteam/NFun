@@ -71,7 +71,7 @@ public class GenericUserFunctionsTest {
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,false)", false)]
     public void ConstantEquationWithUpcast(string expr, object expected) {
         var result = expr.Calc().Get("y");
-        Assert.IsTrue(TestHelper.AreSame(result, expected), $"result: {result} expected: {expected}");
+        FunnyAssert.AreSame(result, expected, $"result: {result} expected: {expected}");
     }
 
     [TestCase(

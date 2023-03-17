@@ -19,10 +19,9 @@ public class TestFluentApiCalcManyT {
 
     [Test]
     public void OutputFieldIsConstCharArray()
-        => Assert.IsTrue(
-            TestHelper.AreSame(
+        => FunnyAssert.AreSame(
                 new ModelWithCharArray { Chars = new[] { 't', 'e', 's', 't' } },
-                Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
+                Funny.CalcMany<ModelWithCharArray>("Chars = 'test'"));
 
 
     [Test]

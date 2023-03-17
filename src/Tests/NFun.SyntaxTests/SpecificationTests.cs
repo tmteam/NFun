@@ -287,7 +287,7 @@ yPublic   = yprivate + xpublic"
                             id = count - 1
                             flag = name != 'test'");
         MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}
-        TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
+        FunnyAssert.AreSame(new MyOut { Id = 99, Flag = true }, result);
 
         // Hardcore mode
         var runtime = Funny.Hardcore.Build(

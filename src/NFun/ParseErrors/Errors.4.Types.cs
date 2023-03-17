@@ -171,7 +171,7 @@ internal static partial class Errors {
             {
                 var start = Math.Min(eq.Expression.Interval.Start, eq.Interval.Start);
                 var finish = Math.Max(eq.Expression.Interval.Start, eq.Interval.Start);
-                return new(740, $"Variable {eq.Id} cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' of expression '{desc.ToShortText()}'", start, finish);
+                return new(740, $"Variable '{eq.Id}' cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' by expression '{desc.ToShortText()}'", start, finish);
             }
 
             return desc switch {

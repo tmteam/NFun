@@ -95,7 +95,7 @@ public class TokenHelperTest {
 
     [TestCase("int8")]
     [TestCase("async")]
-    public void ReservedWord_Throw(string expr) => TestHelper.AssertObviousFailsOnParse(() => Tokenizer.ToFlow(expr));
+    public void ReservedWord_Throw(string expr) => FunnyAssert.ObviousFailsOnParse(() => Tokenizer.ToFlow(expr));
 
     [TestCase("text")]
     [TestCase("text=")]

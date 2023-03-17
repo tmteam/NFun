@@ -110,22 +110,14 @@ public class TestFluentApiCalcSingleTT {
             .BuildForCalc<TInput, TOutput>()
             .Calc(expr, input);
 
-        Assert.IsTrue(TestHelper.AreSame(expected, result1),
-            $"Funny.Calc<TInput, TOutput>. \r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result2),
-            $"Funny.BuildForCalc<TInput, TOutput>().Calc() #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()} ");
-        Assert.IsTrue(TestHelper.AreSame(expected, result3),
-            $"Funny.BuildForCalc<TInput, TOutput>().Calc() #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result4),
-            $"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result5),
-            $"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result6),
-            $"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result7),
-            $"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
-        Assert.IsTrue(TestHelper.AreSame(expected, result8),
-            $"WithConstant(SomeNotUsedConstant, 42)\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        FunnyAssert.AreSame(expected, result1,"Funny.Calc<TInput, TOutput>");
+        FunnyAssert.AreSame(expected, result2,"Funny.BuildForCalc<TInput, TOutput>().Calc() #1");
+        FunnyAssert.AreSame(expected, result3,"Funny.BuildForCalc<TInput, TOutput>().Calc() #2");
+        FunnyAssert.AreSame(expected, result4,"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #1");
+        FunnyAssert.AreSame(expected, result5,"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #2");
+        FunnyAssert.AreSame(expected, result6,"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #1");
+        FunnyAssert.AreSame(expected, result7,"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #2");
+        FunnyAssert.AreSame(expected, result8,"WithConstant(SomeNotUsedConstant, 42)");
     }
 
     [Test]
@@ -169,11 +161,11 @@ public class TestFluentApiCalcSingleTT {
 
     [Test]
     public void UseDecimalWithoutDialect_throws()
-        => TestHelper.AssertObviousFailsOnApiUsage(() =>
+        => FunnyAssert.ObviousFailsOnApiUsage(() =>
             Funny.Calc<UserInputModel, decimal>("123", new UserInputModel(age: 22)));
 
     [Test]
     public void UseDecimalWithBuilderWithoutDialect_throws()
-        => TestHelper.AssertObviousFailsOnApiUsage(() =>
+        => FunnyAssert.ObviousFailsOnApiUsage(() =>
             Funny.WithConstant("id", 42).Calc<UserInputModel, decimal>("123", new UserInputModel(age: 22)));
 }

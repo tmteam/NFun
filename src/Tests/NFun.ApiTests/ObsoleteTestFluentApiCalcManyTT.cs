@@ -93,12 +93,12 @@ public class ObsoleteTestFluentApiCalcManyTT {
         var result6 = lambda2(input);
         var result7 = lambda2(input);
 
-        Assert.IsTrue(TestHelper.AreSame(expected, result1));
-        Assert.IsTrue(TestHelper.AreSame(expected, result2));
-        Assert.IsTrue(TestHelper.AreSame(expected, result3));
-        Assert.IsTrue(TestHelper.AreSame(expected, result4));
-        Assert.IsTrue(TestHelper.AreSame(expected, result5));
-        Assert.IsTrue(TestHelper.AreSame(expected, result6));
-        Assert.IsTrue(TestHelper.AreSame(expected, result7));
+        FunnyAssert.AreSame(expected, result1);
+        FunnyAssert.AreSame(expected, result2);
+        FunnyAssert.AreSame(expected, result3);
+        FunnyAssert.AreSame(expected, result4);
+        FunnyAssert.AreSame(expected, result5);
+        FunnyAssert.AreSame(expected, result6);
+        FunnyAssert.AreSame(expected, result7);
     }
 }
