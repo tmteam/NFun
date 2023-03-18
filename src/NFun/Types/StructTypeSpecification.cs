@@ -1,20 +1,29 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.Types; 
+namespace NFun.Types;
 
-internal class StructTypeSpecification: Dictionary<string, FunnyType>{
-    public StructTypeSpecification(int capacity)
-        : base(capacity, StringComparer.InvariantCultureIgnoreCase) =>
-        _hashCode = new Lazy<int>(() =>
-        {
+public interface IStructTypeSpecification: IReadOnlyDictionary<string,FunnyType> {
+    bool IsFrozen { get; }
+}
+
+internal class StructTypeSpecification:Dictionary<string, FunnyType>, IStructTypeSpecification{
+
+    public bool IsFrozen { get; }
+
+    public StructTypeSpecification(int capacity, bool isFrozen)
+        : base(capacity, StringComparer.InvariantCultureIgnoreCase) {
+        IsFrozen = isFrozen;
+        _hashCode = new Lazy<int>(() => {
             var hash = 17;
             foreach (var (key, value) in this)
             {
                 hash ^= key.GetHashCode() * 23 + value.GetHashCode();
             }
+
             return hash;
         });
+    }
 
 
     private readonly Lazy<int> _hashCode;
@@ -28,4 +37,5 @@ internal class StructTypeSpecification: Dictionary<string, FunnyType>{
             return false;
         return this.ValueEquals(res);
     }
+
 }

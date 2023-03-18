@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types; 
+namespace NFun.Types;
 
 public interface IOutputFunnyConverter {
     public Type ClrType { get; }
@@ -121,7 +121,7 @@ internal class StructOutputFunnyConverter : IOutputFunnyConverter {
             fieldTypes[i] = (property.PropertyName,  property.Converter.FunnyType);
         }
 
-        FunnyType = FunnyType.StructOf(fieldTypes);
+        FunnyType = FunnyType.StructOf(isFrozen: true, fieldTypes);
     }
 
     public FunnyType FunnyType { get; }
@@ -174,7 +174,7 @@ public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConvert
     public Type ClrType { get; } = typeof(Dictionary<string, object>);
 
     public FunnyType FunnyType { get; } =
-        FunnyType.StructOf(new StructTypeSpecification(0));
+        FunnyType.StructOf(new StructTypeSpecification(0, isFrozen:false));
 
     public object ToClrObject(object funObject) {
         var str = funObject as FunnyStruct;

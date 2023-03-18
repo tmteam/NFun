@@ -201,10 +201,10 @@ class SolvingFunctionsTest {
     [Test]
     public void GetMergedStateOrNull_TwoSameConcreteStructs() {
         var res = SolvingFunctions.GetMergedStateOrNull(
-            new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32)),
-            new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32)));
+            new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false),
+            new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false));
 
-        Assert.AreEqual(res, new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32)));
+        Assert.AreEqual(res, new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false));
     }
 
 
@@ -215,19 +215,19 @@ class SolvingFunctionsTest {
                 new Dictionary<string, TicNode> {
                     { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
                     { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
-                }
+                }, false
             ),
             new StateStruct(
                 new Dictionary<string, TicNode> {
                     { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) },
                     { "b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool) }
-                }));
+                }, false));
         var expected = new StateStruct(
             new Dictionary<string, TicNode> {
                 { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
                 { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) },
                 { "b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool) }
-            });
+            }, false);
 
         Assert.AreEqual(res, expected);
     }
@@ -238,7 +238,7 @@ class SolvingFunctionsTest {
             new Dictionary<string, TicNode> {
                 { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
                 { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
-            }
+            }, false
         );
 
         var res = SolvingFunctions.GetMergedStateOrNull(
@@ -248,7 +248,7 @@ class SolvingFunctionsTest {
             new Dictionary<string, TicNode> {
                 { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
                 { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
-            });
+            }, false);
 
         Assert.AreEqual(res, expected);
 

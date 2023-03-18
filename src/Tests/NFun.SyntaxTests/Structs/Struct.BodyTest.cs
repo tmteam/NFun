@@ -429,5 +429,48 @@ public class StructBodyTest {
     [TestCase("y = {a = ()}")]
     [TestCase("y = {a = 1}()")]
     [TestCase("y = (){a = 1}")]
+    [TestCase("foo1 = {}; bar = foo1.id")]
+    [TestCase("foo2 = {a = 1}; bar = foo2.nonExist")]
+    [TestCase("foo3 = {a = 1}; bar = foo3.a.nonExist")]
+    [TestCase("f1() = {a = 42}; bar = f1().nonExist")]
+    [TestCase("f2() = {a = 42}; bar = f2().a.nonExist")]
+    [TestCase("f3() = {a = {id = 42}}; bar = f3().a.nonExist")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
+
+
+   // [Ignore("Bug #68")]
+    [TestCase( @"
+                foo = {a = {id = 42}}
+                baz = foo.b.id
+            ")]
+    [TestCase( @"
+                foo = {a = {id = 42}}
+                bar = foo
+                baz = bar.b.id
+            ")]
+    [TestCase( @"foo.nonExist")]
+    [TestCase( @"foo.nonExist.nonExist")]
+    [TestCase( @"foo.b.nonExist")]
+    [TestCase( @"foo.b.nonExist.nonExist")]
+    [TestCase( @"bar1 = foo; x = bar1.nonExist")]
+    [TestCase( @"bar2 = foo; x = bar2.nonExist.nonExist")]
+    [TestCase( @"bar3 = foo; x = bar3.b.nonExist")]
+    [TestCase( @"bar4 = foo; x = bar4.b.nonExist.nonExist")]
+    [TestCase( @"baz5 = foo; bar = baz5; x = bar.nonExist")]
+    [TestCase( @"baz6 = foo; bar = baz6; x = bar.nonExist.nonExist")]
+    [TestCase( @"baz7 = foo; bar = baz7; x = bar.b.nonExist")]
+    [TestCase( @"baz8 = foo; bar = baz8; x = bar.b.nonExist.nonExist")]
+    [TestCase( @"baz9 = foo; bar = baz9.b; x = bar.nonExist")]
+    [TestCase( @"baz10 = foo; bar = baz10.b; x = bar.nonExist.nonExist")]
+    public void ObviousFailsWithAprioriComplexModel(string expression) =>
+        FunnyAssert.ObviousFailsOnParse(() => {
+            Funny.Hardcore.WithApriori<ComplexModel>("foo").Build(expression);
+        });
+
+    [TestCase(@"foo.nonExist")]
+    [TestCase(@"foo.nonExist.nonExist")]
+    public void ObviousFailsWithAprioriNonStructModel(string expression) =>
+        FunnyAssert.ObviousFailsOnParse(() => {
+            Funny.Hardcore.WithApriori<int>("foo").Build(expression);
+        });
 }

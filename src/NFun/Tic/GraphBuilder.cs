@@ -279,7 +279,7 @@ public class GraphBuilder {
             fields.Add(fieldNames[i], GetOrCreateNode(fieldExpressionIds[i]));
         }
 
-        GetOrCreateStructNode(id, new StateStruct(fields));
+        GetOrCreateStructNode(id, new StateStruct(fields, false));
     }
 
     public void SetCompareChain(int nodeOrderNumber, StateRefTo[] generics, int[] ids) {

@@ -5,7 +5,7 @@ using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types; 
+namespace NFun.Types;
 
 /// <summary>
 /// Converts CLR type and value into NFun type and value
@@ -72,7 +72,7 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
                 fieldTypes[i] = (property.PropertyName, property.Converter.FunnyType);
             }
 
-            FunnyType = FunnyType.StructOf(fieldTypes);
+            FunnyType = FunnyType.StructOf(isFrozen: true, fieldTypes);
         }
         else
         {
@@ -86,7 +86,7 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
         var values = new FunnyStruct.FieldsDictionary(_properties.Length);
         if (clrObject == null)
             return FunnyType.GetDefaultFunnyValue();
-        
+
         for (var i = 0; i < _readPropertiesCount; i++)
         {
             var property = _properties[i];

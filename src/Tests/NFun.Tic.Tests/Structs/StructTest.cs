@@ -47,7 +47,7 @@ public class StructTest {
                 new Dictionary<string, TicNode> {
                     { "name", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
                     { "age", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
-                }),
+                }, false),
             "a");
         result.AssertNamed(StatePrimitive.I32, "y");
         result.AssertNamed(StatePrimitive.Real, "z");
@@ -56,7 +56,7 @@ public class StructTest {
     [Test]
     public void StructConstructor_WithStrictFields() {
         //    2       0       1
-        //y = { a = 12i, b = 1.0} 
+        //y = { a = 12i, b = 1.0}
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.I32);
         graph.SetConst(1, StatePrimitive.Real);
@@ -69,14 +69,14 @@ public class StructTest {
                 new Dictionary<string, TicNode> {
                     { "a", TicNode.CreateNamedNode("a", StatePrimitive.I32) },
                     { "b", TicNode.CreateNamedNode("b", StatePrimitive.Real) }
-                }), "y");
+                }, false), "y");
     }
 
     [Test]
     public void StructConstructor_WithGenericField() {
         TraceLog.IsEnabled = true;
-        //    1      0      
-        //y = { a = x,} 
+        //    1      0
+        //y = { a = x,}
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
         graph.SetStructInit(new[] { "a" }, new[] { 0 }, 1);
@@ -85,7 +85,7 @@ public class StructTest {
         var generic = result.AssertAndGetSingleGeneric(null, null);
         result.AssertAreGenerics(generic, "x");
         result.AssertNamed(
-            new StateStruct("a", generic), "y");
+            new StateStruct("a", generic, false), "y");
     }
 
     [Test]
@@ -114,7 +114,7 @@ public class StructTest {
 
     [Test]
     public void TwinFieldAccess() {
-        //    1 2   0 
+        //    1 2   0
         //y = a . b . c"
 
         var graph = new GraphBuilder();
@@ -131,7 +131,7 @@ public class StructTest {
 
     [Test]
     public void ConcreteTwinFieldAccess() {
-        //         1 2   0 
+        //         1 2   0
         //y:int = a . b . c"
 
         var graph = new GraphBuilder();
@@ -152,7 +152,7 @@ public class StructTest {
         //    1     2      3
         //d = {f = {b= true}};
         //
-        //    5 6   4  
+        //    5 6   4
         //y = d . f . b"
         TraceLog.IsEnabled = true;
         var graph = new GraphBuilder();
@@ -196,7 +196,7 @@ public class StructTest {
         graph.SetVar("x", 3);
         graph.SetCall(
             new ITicNodeState[] {
-                new StateStruct("field", TicNode.CreateTypeVariableNode(StatePrimitive.I32)), StatePrimitive.Bool
+                new StateStruct("field", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false), StatePrimitive.Bool
             }, new[] { 3, 4 });
         graph.SetDef("y", 4);
 
@@ -221,7 +221,7 @@ public class StructTest {
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(
-            new ITicNodeState[] { varnode, new StateStruct("res", varnode.Node) }, new[] { 0, 1 });
+            new ITicNodeState[] { varnode, new StateStruct("res", varnode.Node, false) }, new[] { 0, 1 });
         graph.SetFieldAccess(1, 2, "res");
         graph.SetDef("y", 2);
 
@@ -233,7 +233,7 @@ public class StructTest {
     [Test]
     public void FunCallReturnsGenericStruct_WithConcreteConstant() {
         // f(x) = {res = x}
-        //        1 0     2 
+        //        1 0     2
         //    y = f(42.0).res
         TraceLog.IsEnabled = true;
 
@@ -242,7 +242,7 @@ public class StructTest {
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(
-            new ITicNodeState[] { varnode, new StateStruct("res", varnode.Node) }, new[] { 0, 1 });
+            new ITicNodeState[] { varnode, new StateStruct("res", varnode.Node, false) }, new[] { 0, 1 });
         graph.SetFieldAccess(1, 2, "res");
         graph.SetDef("y", 2);
 
@@ -302,7 +302,7 @@ public class StructTest {
 
     [Test]
     public void ComparableFieldsGenericExpression() {
-        //     1 0   4    3 2 
+        //     1 0   4    3 2
         // y = x.a   <    x.b
 
         TraceLog.IsEnabled = true;

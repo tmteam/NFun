@@ -47,13 +47,15 @@ public static class SolvingFunctions {
                     var bNode = strB.GetFieldOrNull(key);
                     if (bNode != null)
                         MergeInplace(value, bNode);
+                    else if (strA.IsFrozen || strB.IsFrozen)
+                        return null;
                     result.Add(key, value);
                 }
 
                 foreach (var (key, value) in strB.Fields)
                     result.TryAdd(key, value);
 
-                return new StateStruct(result);
+                return new StateStruct(result, isFrozen: false);
             }
             case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
                 return constrainsB.MergeOrNull(constrainsA);
@@ -392,7 +394,7 @@ public static class SolvingFunctions {
                 newFields.Add(key, nrField);
             }
 
-            return new StateStruct(newFields);
+            return new StateStruct(newFields, isFrozen: false);
         }
 
         return null;

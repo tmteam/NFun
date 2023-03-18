@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages; 
+namespace NFun.Tic.Stages;
 
 public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
     public static IStateCombination2dimensionalVisitor Singleton { get; } = new PullConstraintsFunctions();
@@ -109,7 +109,12 @@ public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
             {
                 var descField = descStruct.GetFieldOrNull(ancField.Key);
                 if (descField == null)
-                    descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                {
+                    if (descStruct.IsFrozen)
+                        return false;
+                    else
+                        descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                }
                 else
                 {
                     SolvingFunctions.MergeInplace(ancField.Value, descField);

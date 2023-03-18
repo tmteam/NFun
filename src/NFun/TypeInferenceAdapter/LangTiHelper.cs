@@ -6,7 +6,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter; 
+namespace NFun.TypeInferenceAdapter;
 
 public static class LangTiHelper {
     public static string GetArgAlias(string funAlias, string argId)
@@ -50,7 +50,8 @@ public static class LangTiHelper {
             BaseFunnyType.Struct => StateStruct.Of(
                 origin.StructTypeSpecification.Select(
                     d =>
-                        new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value)))),
+                        new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value))),
+                origin.StructTypeSpecification.IsFrozen),
             _ => throw new ArgumentOutOfRangeException(
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
         };
@@ -68,7 +69,8 @@ public static class LangTiHelper {
                 origin.StructTypeSpecification.Select(
                     s => new KeyValuePair<string, ITicNodeState>(
                         key: s.Key,
-                        value: ConvertToTiType(s.Value, genericMap)))),
+                        value: ConvertToTiType(s.Value, genericMap))),
+                origin.StructTypeSpecification.IsFrozen),
             _ => origin.ConvertToTiType()
         };
 }

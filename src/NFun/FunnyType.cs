@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Types;
 
-namespace NFun; 
+namespace NFun;
 
 /// <summary>
 /// NFun type description
 /// </summary>
 public readonly struct FunnyType {
 
-    internal static readonly FunnyType Empty = new(); 
+    internal static readonly FunnyType Empty = new();
     public static readonly FunnyType Any    = new(BaseFunnyType.Any);
     public static readonly FunnyType Ip     = new(BaseFunnyType.Ip);
     public static readonly FunnyType Bool   = new(BaseFunnyType.Bool);
@@ -26,20 +26,21 @@ public readonly struct FunnyType {
     public static readonly FunnyType Text   = ArrayOf(Char);
 
     public static FunnyType PrimitiveOf(BaseFunnyType baseType) => new(baseType);
-    
+
     public static FunnyType ArrayOf(FunnyType type) => new(type);
 
     internal static FunnyType StructOf(StructTypeSpecification fields) => new(fields);
-    
-    public static FunnyType StructOf(params (string, FunnyType)[] fields) {
-        var specs = new StructTypeSpecification(fields.Length);
+
+    public static FunnyType StructOf(params (string, FunnyType)[] fields) => StructOf(isFrozen: false, fields);
+
+    public static FunnyType StructOf(bool isFrozen, params (string, FunnyType)[] fields) {
+        var specs = new StructTypeSpecification(fields.Length, isFrozen: isFrozen);
         foreach (var field in fields)
         {
             specs.Add(field.Item1, field.Item2);
         }
         return new(specs);
     }
-
     public static FunnyType FunOf(FunnyType returnType, params FunnyType[] inputTypes)
         => new(output: returnType, inputs: inputTypes);
 
@@ -95,7 +96,7 @@ public readonly struct FunnyType {
 
     public readonly BaseFunnyType BaseType;
 
-    public readonly IReadOnlyDictionary<string, FunnyType> StructTypeSpecification;
+    public readonly IStructTypeSpecification StructTypeSpecification;
 
     internal readonly ArrayTypeSpecification ArrayTypeSpecification;
 
@@ -127,7 +128,7 @@ public readonly struct FunnyType {
     }
 
     /// <summary>
-    /// In case of generic base type it shows index of generic variable 
+    /// In case of generic base type it shows index of generic variable
     /// </summary>
     internal readonly int? GenericId;
 
@@ -291,18 +292,18 @@ public readonly struct FunnyType {
         };
 
     // ReSharper disable once MemberCanBePrivate.Global
-    public bool CanBeConvertedTo(FunnyType to) => 
+    public bool CanBeConvertedTo(FunnyType to) =>
         VarTypeConverter.CanBeConverted(this, to);
-    
-    public override bool Equals(object obj) => 
+
+    public override bool Equals(object obj) =>
         obj is FunnyType other && Equals(other);
 
-    public bool Equals(FunnyType obj) => 
-        BaseType == obj.BaseType 
-        && Equals(StructTypeSpecification, obj.StructTypeSpecification) 
-        && Equals(ArrayTypeSpecification, obj.ArrayTypeSpecification) 
-        && Equals(FunTypeSpecification, obj.FunTypeSpecification) 
-        && _genericArgumentsCount == obj._genericArgumentsCount 
+    public bool Equals(FunnyType obj) =>
+        BaseType == obj.BaseType
+        && Equals(StructTypeSpecification, obj.StructTypeSpecification)
+        && Equals(ArrayTypeSpecification, obj.ArrayTypeSpecification)
+        && Equals(FunTypeSpecification, obj.FunTypeSpecification)
+        && _genericArgumentsCount == obj._genericArgumentsCount
         && GenericId == obj.GenericId;
 
     public override int GetHashCode() {

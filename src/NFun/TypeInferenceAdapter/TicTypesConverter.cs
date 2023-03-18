@@ -4,7 +4,7 @@ using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter; 
+namespace NFun.TypeInferenceAdapter;
 
 public abstract class TicTypesConverter {
     public static readonly TicTypesConverter Concrete
@@ -19,7 +19,7 @@ public abstract class TicTypesConverter {
 
     public abstract FunnyType Convert(ITicNodeState type);
     private FunnyType ConvertToFunnyStruct(StateStruct str) {
-        var fields = new StructTypeSpecification(str.FieldsCount);
+        var fields = new StructTypeSpecification(str.FieldsCount, isFrozen: str.IsFrozen);
         foreach (var ticField in str.Fields)
         {
             fields.Add(ticField.Key.ToLower(), Convert(ticField.Value.GetNonReference().State));
@@ -27,11 +27,11 @@ public abstract class TicTypesConverter {
 
         return FunnyType.StructOf(fields);
     }
-    
-    private FunnyType ConvertToFunnyFun(StateFun fun) 
+
+    private FunnyType ConvertToFunnyFun(StateFun fun)
         => FunnyType.FunOf(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a => Convert(a.State)));
 
-    private FunnyType ConvertToFunnyArray(StateArray array) 
+    private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
     class OnlyConcreteTypesConverter : TicTypesConverter {
