@@ -29,7 +29,8 @@ public static class SyntaxNodeExtensions {
         {
             if ((root is TypedVarDefSyntaxNode v && v.Id == named)
                 || (root is VarDefinitionSyntaxNode vd && vd.Id == named)
-                || (root is EquationSyntaxNode en && en.Id == named))
+                || (root is EquationSyntaxNode en && en.Id == named)
+                || (root is NamedIdSyntaxNode n && n.Id == named))
             {
                 return true;
             }

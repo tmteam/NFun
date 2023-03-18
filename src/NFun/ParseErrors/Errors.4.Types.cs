@@ -140,7 +140,7 @@ internal static partial class Errors {
         if (node == null)
             return new(738, $"Node is not a function or functional variable but it was called", rootToSearch.Interval);
         else
-            return new(738, $"{node.ToShortText()} is not a function or functional variable", node.Interval);
+            return new(738, $"`{node.ToShortText()}` is not a function or functional variable", node.Interval);
     }
 
     private static ISyntaxNode FindSyntaxNodeOrNull(ISyntaxNode rootToSearch, TicNode node, TicNode[] allTicNodes) {
@@ -181,9 +181,11 @@ internal static partial class Errors {
                            => new(746, $"Constant '{gint.Value}' cannot be used here due invalid type", desc.Interval),
                        TypedVarDefSyntaxNode tyvardef when ancestor is NamedIdSyntaxNode id && tyvardef.Id == id.Id
                            => new(749, $"Variable '{id.Id}' cannot be used here due invalid type", ancestor.Interval),
-                       VarDefinitionSyntaxNode vardef when ancestor is NamedIdSyntaxNode idd && vardef.Id == idd.Id
-                           => new(752, $"Variable '{idd.Id}' cannot be used here due invalid type", ancestor.Interval),
-                       _ => new(755, $"Expression {desc.ToShortText()} cannot be used here due to type mismatch", ancestor.Interval)
+                       VarDefinitionSyntaxNode vardef when ancestor is NamedIdSyntaxNode id && vardef.Id == id.Id
+                           => new(752, $"Variable '{id.Id}' cannot be used here due invalid type", ancestor.Interval),
+                       NamedIdSyntaxNode nid when ancestor is NamedIdSyntaxNode id && nid.Id == id.Id
+                           => new(752, $"Variable '{id.Id}' cannot be used here due invalid type", ancestor.Interval),
+                       _ => new(755, $"Expression `{desc.ToShortText()}` cannot be used here due to type mismatch", ancestor.Interval)
                    };
         }
 
@@ -194,17 +196,17 @@ internal static partial class Errors {
             return InvalidFunctionArgument(desc, descFunc, ticAncestorOrNull?.State);
 
         return desc switch {
-                   null => new(761, $"Seems like expression {ancestor.ToShortText()} cannot be used here", ancestor.Interval),
+                   null => new(761, $"Seems like expression `{ancestor.ToShortText()}` cannot be used here", ancestor.Interval),
                    NamedIdSyntaxNode id => new(
                        763, $"'the type '{GetDescription(ticDescendantOrNull)}' of '{id}' is not suitable for use here. Do something about it! ",
                        id.Interval),
-                   AnonymFunctionSyntaxNode => new(765, $"Rule signature {desc.ToShortText()} cannot be used here", desc.Interval),
-                   FunCallSyntaxNode        => new(767, $"Seems like function {desc.ToShortText()} cannot be used here as its return type does not fit", desc.Interval),
-                   ConstantSyntaxNode       => new(769, $"Seems like constant {desc.ToShortText()} cannot be used here", desc.Interval),
-                   GenericIntSyntaxNode     => new(771, $"Seems like integer constant {desc.ToShortText()} cannot be used here", desc.Interval),
-                   StructInitSyntaxNode     => new(773, $"Seems like struct {desc.ToShortText()} cannot be used here", desc.Interval),
-                   ArraySyntaxNode          => new(775, $"Seems like array {desc.ToShortText()} cannot be used here", desc.Interval),
-                   _                        => new(777, $"Seems like expression {desc.ToShortText()} cannot be used here", desc.Interval),
+                   AnonymFunctionSyntaxNode => new(765, $"Rule signature `{desc.ToShortText()}` cannot be used here", desc.Interval),
+                   FunCallSyntaxNode        => new(767, $"Seems like function `{desc.ToShortText()}` cannot be used here as its return type does not fit", desc.Interval),
+                   ConstantSyntaxNode       => new(769, $"Seems like constant `{desc.ToShortText()}` cannot be used here", desc.Interval),
+                   GenericIntSyntaxNode     => new(771, $"Seems like integer constant `{desc.ToShortText()}` cannot be used here", desc.Interval),
+                   StructInitSyntaxNode     => new(773, $"Seems like struct `{desc.ToShortText()}` cannot be used here", desc.Interval),
+                   ArraySyntaxNode          => new(775, $"Seems like array `{desc.ToShortText()}` cannot be used here", desc.Interval),
+                   _                        => new(777, $"Seems like expression `{desc.ToShortText()}` cannot be used here", desc.Interval),
                };
 
     }

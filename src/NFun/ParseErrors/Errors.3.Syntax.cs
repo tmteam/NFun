@@ -245,10 +245,10 @@ internal static partial class Errors {
     #region flow
 
     internal static FunnyParseException UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) => new(
-        536, $"Unexpected symbol {ToText(flowCurrent)}. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
+        536, $"Unexpected symbol `{ToText(flowCurrent)}`. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
 
     internal static FunnyParseException ExpressionBeforeTheDefinition(int exprStart, ISyntaxNode expression, Tok flowCurrent) => new(
-        539, $"Unexpected expression {expression.ToShortText()} before definition. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
+        539, $"Unexpected expression `{expression.ToShortText()}` before definition. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
 
     internal static FunnyParseException DefinitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent) => new(
         542, $"Definition has start from new line. {Nl}Example : y:int{Nl}j = y+1", exprStart, flowCurrent.Finish);
@@ -271,7 +271,7 @@ internal static partial class Errors {
                 561, $"{name}( ???. Closing parenthesis ')' is missed{Nl} Example: {name}()", funStart, position);
 
         return new(
-            564, $"{pipedVal.ToShortText()}.{name}( ???. Closing parenthesis ')' is missed{Nl} Example: {pipedVal.ToShortText()}.{name}() or {name}({pipedVal.ToShortText()})", funStart, position);
+            564, $"`{pipedVal.ToShortText()}.{name}( ???` - Closing parenthesis ')' is missed{Nl} Example: {pipedVal.ToShortText()}.{name}() or {name}({pipedVal.ToShortText()})", funStart, position);
     }
 
     internal static FunnyParseException VarExpressionIsMissed(int start, string id, Tok flowCurrent) => new(
@@ -303,13 +303,13 @@ internal static partial class Errors {
     }
 
     internal static FunnyParseException NotAnExpression(ISyntaxNode node) => new(
-        603, $"{node.ToShortText()} is not an expression", node.Interval);
+        603, $"`{node.ToShortText()}` is not an expression", node.Interval);
 
     internal static FunnyParseException LeftBinaryArgumentIsMissing(Tok token) => new(
         606, $"expression is missed before '{ToText(token)}'", token.Interval);
 
     internal static FunnyParseException RightBinaryArgumentIsMissing(ISyntaxNode leftNode, Tok @operator) => new(
-        609, $"{leftNode.ToShortText()} {ToText(@operator)} ???. Right expression is missed{Nl} Example: {leftNode.ToShortText()} {ToText(@operator)} e", leftNode.Interval.Start, @operator.Finish);
+        609, $"`{leftNode.ToShortText()} {ToText(@operator)} ???` - Right expression is missed{Nl} Example: {leftNode.ToShortText()} {ToText(@operator)} e", leftNode.Interval.Start, @operator.Finish);
 
     #endregion
 

@@ -200,7 +200,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        FunnyAssert.AreSame(StateArray.Of(StatePrimitive.Real), state);
+        TestHelper.AssertAreSame(StateArray.Of(StatePrimitive.Real), state);
     }
 
     [Test]
@@ -210,7 +210,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        FunnyAssert.AreSame(StateArray.Of(StatePrimitive.Real), state);
+        TestHelper.AssertAreSame(StateArray.Of(StatePrimitive.Real), state);
     }
 
     [Test]
@@ -219,7 +219,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        FunnyAssert.AreSame(StatePrimitive.Bool, state);
+        TestHelper.AssertAreSame(StatePrimitive.Bool, state);
     }
 
     [Test]
@@ -228,7 +228,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        FunnyAssert.AreSame(StateArray.Of(StatePrimitive.Real), state);
+        TestHelper.AssertAreSame(StateArray.Of(StatePrimitive.Real), state);
     }
 
     [Test]
