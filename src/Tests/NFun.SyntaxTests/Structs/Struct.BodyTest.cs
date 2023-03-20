@@ -435,6 +435,8 @@ public class StructBodyTest {
     [TestCase("f1() = {a = 42}; bar = f1().nonExist")]
     [TestCase("f2() = {a = 42}; bar = f2().a.nonExist")]
     [TestCase("f3() = {a = {id = 42}}; bar = f3().a.nonExist")]
+    [TestCase("y = {}; z = y.nonExist")]
+    [TestCase("y = {id = 'test'}; z = y.id.nonExist")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 
 

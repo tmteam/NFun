@@ -35,9 +35,6 @@ class TestHardcoreApiRun {
         ", 5, 120)]
     [TestCase(@"f(x) = x*2; z = f(x); y = f(x)", 1, 2)]
     [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);", 1, 2)]
-
-    //    [TestCase("y = 1<2<x>-100>-150 != 1<4<age>-100>-150",13, false)]
-
     public void SingleVariableEquation(string expr, double arg, object expected) =>
         expr.AssertRuntimes(runtime => {
             var ySource = runtime["y"];
@@ -50,6 +47,14 @@ class TestHardcoreApiRun {
             Assert.AreEqual(expected, ySource.FunnyValue);
         });
 
+    [Test]
+    public void OutputIsStructure_returnsDictionary() =>
+        "{}".AssertRuntimes(r => {
+            r.Run();
+            var dic = r["out"].Value as IReadOnlyDictionary<string, object>;
+            Assert.IsNotNull(dic);
+            Assert.AreEqual(0, dic.Count);
+        });
 
     [Test]
     public void GenericRecursionFunctionBuildAndClone() =>
@@ -66,7 +71,6 @@ class TestHardcoreApiRun {
     [Test]
     public void ConcreteRecursionFunctionBuildAndCloneForManyUsages() =>
         "f():int = f(); x1:int = f(); x2:int = f()".AssertRuntimes(_ => { });
-
 
     [TestCase("y = 4.0 + x", 3, 7)]
     [TestCase("y = (x + 4/x)", 2, 4)]

@@ -499,9 +499,7 @@ public static class SyntaxNodeReader {
         }
 
         var interval = new Interval(begin, flow.Position);
-        if (equations.Count == 0)
-            throw Errors.EmptyStructsAreNotSupported(interval);
-        return SyntaxNodeFactory.Struct(equations, interval);
+          return SyntaxNodeFactory.Struct(equations, interval);
     }
 
     private static ISyntaxNode ReadInterpolationText(TokFlow flow) {

@@ -1,9 +1,17 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace NFun.Tic; 
+namespace NFun.Tic;
 
+public class FunnyTraceScope : IDisposable {
+    public FunnyTraceScope() => TraceLog.IsEnabled = true;
+
+    public void Dispose() => TraceLog.IsEnabled = false;
+}
 public static class TraceLog {
+
+    public static FunnyTraceScope Scope => new();
+
     public static bool IsEnabled { get; set; } = false;
 
     public static void Write(Func<string> locator) {

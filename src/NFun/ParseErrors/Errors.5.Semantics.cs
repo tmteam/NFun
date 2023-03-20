@@ -40,10 +40,10 @@ internal static partial class Errors {
     #region structs
 
     internal static FunnyParseException FieldNotExists(string name, Interval interval) => new(
-        828, $"Access to non exist field {name}", interval);
+        828, $"Access to non exist field `{name}`", interval);
 
     internal static FunnyParseException FieldIsMissed(string name, Interval interval) => new(
-        831, $"Field {name} is missed in struct", interval);
+        831, $"Field `{name}` is missed in struct", interval);
 
     internal static FunnyParseException EmptyStructsAreNotSupported(Interval interval) => new(
         834, $"Struct has to have at least one field", interval);

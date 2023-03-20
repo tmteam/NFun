@@ -46,6 +46,18 @@ public class AprioriTypesTest {
     }
 
     [Test]
+    public void AprioriInputOfArrayOfStringsSpecified_CalcsWithCorrectType() {
+        var runtime = Funny.Hardcore
+            .WithApriori<string[]>("x")
+            .Build("y = x");
+
+        var res = runtime.Calc("x", new[] { "one", "two", "three" });
+        res.AssertReturns("y", new[] { "one", "two", "three" });
+        Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), runtime["x"].Type);
+        Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), runtime["y"].Type);
+    }
+
+    [Test]
     public void InputVariableSpecifiedAndDoesNotConflict_AprioriInputCalcs() {
         var runtime = Funny.Hardcore
             .WithApriori<string>("x")
@@ -135,4 +147,35 @@ public class AprioriTypesTest {
             .Build("if (count>0) name.repeat(count).flat() else 'none'")
             .Calc(("count", 3), ("name", "foo"))
             .AssertReturns("foofoofoo");
+
+    [Ignore("#69")]
+    [Test]
+    public void ComplexAprioryType() {
+        var result = Funny.Hardcore
+            .WithApriori<ComplexModel>("foo")
+            .Build("foo = {a = {id = 1}, b = {id = 2}}");
+        result.Run();
+
+        FunnyAssert.AreSame(
+            new[] {
+              new ComplexModel{a = new ModelWithInt{id = 1}, b = new ModelWithInt{id = 2}}
+            },
+            result["foo"].Value);
+    }
+
+    [Ignore("#69")]
+    [Test]
+    public void ArrayOfComplexAprioryType() {
+        var result = Funny.Hardcore
+            .WithApriori<ComplexModel[]>("foo")
+            .Build("foo = [{a = {id = 1}, b = {id = 2}},{a = {id = 3}, b = {id = 4}}]");
+        result.Run();
+
+        FunnyAssert.AreSame(
+            new[] {
+                new ComplexModel{a = new ModelWithInt{id = 1}, b = new ModelWithInt{id = 2}},
+                new ComplexModel{a = new ModelWithInt{id = 3}, b = new ModelWithInt{id = 4}}
+            },
+            result["foo"].Value);
+    }
 }

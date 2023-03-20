@@ -213,10 +213,10 @@ internal static partial class Errors {
         501, "There is no separator between the fields of structures. Use ',' or new line to separate fields", interval);
 
     internal static FunnyParseException StructFieldIdIsMissed(Tok tok) => new(
-        504, $"{tok} found instead of the structure field name", tok.Interval);
+        504, $"`{ToText(tok)}` found instead of the structure field name", tok.Interval);
 
     internal static FunnyParseException StructFieldDefinitionTokenIsMissed(Tok tok) => new(
-        507, $"{tok} found instead of the '=' symbol", tok.Interval);
+        507, $"`{ToText(tok)}` found instead of the '=' symbol", tok.Interval);
 
     internal static FunnyParseException StructFieldBodyIsMissed(Tok id) => new(
         510, $"Field value is missed '{id} = ???'", id.Interval);

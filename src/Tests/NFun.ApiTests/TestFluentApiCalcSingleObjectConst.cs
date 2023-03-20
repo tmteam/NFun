@@ -8,6 +8,7 @@ using NUnit.Framework;
 namespace NFun.ApiTests;
 
 public class TestFluentApiCalcSingleObjectConst {
+
     [TestCase("(13 == 13) and ('vasa' == 'vasa')", true)]
     [TestCase("[1,2,3,4].count(rule it>2)", 2)]
     [TestCase("[1..4].filter(rule it>2).map(rule it**2)", new[] { 9.0, 16.0 })]
@@ -39,6 +40,21 @@ public class TestFluentApiCalcSingleObjectConst {
         var rs = str as IReadOnlyDictionary<string, object>;
         Assert.AreEqual(1, rs.Count);
         Assert.AreEqual("alaska", rs["name"]);
+    }
+
+    [Test]
+    public void OutputTypeIsDictionary_returnsStruct() {
+        var dic = Funny.Calc("{a = 1, b = 'test'}") as IReadOnlyDictionary<string, object>;
+        Assert.IsNotNull(dic);
+        Assert.AreEqual(dic["a"], 1);
+        Assert.AreEqual(dic["b"], "test");
+    }
+
+    [Test]
+    public void OutputTypeIsDictionary_returnsEmptyStruct() {
+        var dic = Funny.Calc("{}") as IReadOnlyDictionary<string, object>;
+        Assert.IsNotNull(dic);
+        Assert.AreEqual(0, dic.Count);
     }
 
     [TestCase("")]
