@@ -27,7 +27,7 @@ internal static partial class Errors {
         Interval failedInterval = ifThenElse.Interval;
 
         //Lca defined only in TI. It is kind of hack
-        var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToTiType()).ToArray();
+        var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToTicType()).ToArray();
 
         return new(
             713, $"'If-else expressions contains different type. " +

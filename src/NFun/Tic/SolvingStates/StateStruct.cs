@@ -11,6 +11,27 @@ public class StateStruct : ICompositeState {
 
     public IEnumerable<KeyValuePair<string, TicNode>> Fields => _nodes;
 
+    /// <summary>
+    /// Is it possible to add additional fields to this type
+    /// </summary>
+    public bool IsFrozen { get; }
+
+    /// <summary>
+    /// Is it possible to skip fields in this type
+    /// </summary>
+    public bool AllowDefaultValues { get; }
+
+    public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
+
+    public bool IsMutable => true;
+
+    public string Description =>
+        "{"
+        + (IsFrozen?"-frozen" :"")
+        + (AllowDefaultValues?"-default " :"")
+        + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}"))
+        + "}";
+
     private readonly Dictionary<string, TicNode> _nodes;
 
     public TicNode GetFieldOrNull(string fieldName) {
@@ -18,7 +39,7 @@ public class StateStruct : ICompositeState {
         return res;
     }
 
-    public StateStruct With(string name, TicNode memberNode) {
+    public StateStruct With(string name, TicNode memberNode, bool allowDefaultValues) {
         var newDic = new Dictionary<string, TicNode>(_nodes.Count + 1);
         foreach (var (key, value) in _nodes)
         {
@@ -26,10 +47,10 @@ public class StateStruct : ICompositeState {
         }
 
         newDic.Add(name, memberNode);
-        return new StateStruct(newDic, IsFrozen);
+        return new StateStruct(newDic, isFrozen: IsFrozen, allowDefaultValues: allowDefaultValues);
     }
 
-    public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields, bool isFrozen) {
+    public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields, bool isFrozen, bool allowDefaultValues = false) {
         var nodeFields = new Dictionary<string, TicNode>();
         foreach (var (key, value) in fields)
         {
@@ -40,26 +61,26 @@ public class StateStruct : ICompositeState {
                        };
             nodeFields.Add(key, node);
         }
-
-        return new StateStruct(nodeFields, isFrozen);
+        return new StateStruct(nodeFields, isFrozen, allowDefaultValues);
     }
 
-    public StateStruct(Dictionary<string, TicNode> fields, bool isFrozen) {
+    public StateStruct(Dictionary<string, TicNode> fields, bool isFrozen, bool allowDefaultValues = false) {
         _nodes = fields;
         IsFrozen = isFrozen;
+        AllowDefaultValues = allowDefaultValues;
     }
 
-    public StateStruct() => _nodes = new Dictionary<string, TicNode>();
 
-    public StateStruct(string name, TicNode node, bool isFrozen) {
+    public StateStruct(bool allowDefaultValues = false) {
+        _nodes = new Dictionary<string, TicNode>();
+        AllowDefaultValues = allowDefaultValues;
+    }
+
+    public StateStruct(string name, TicNode node, bool isFrozen, bool allowDefaultValues = false) {
         _nodes = new Dictionary<string, TicNode> { { name, node.GetNonReference() } };
         IsFrozen = isFrozen;
+        AllowDefaultValues = allowDefaultValues;
     }
-
-    public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
-    public bool IsMutable => true;
-    public string Description => "{" + (IsFrozen?" [frozen] " :"") + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) + "}";
-    public bool IsFrozen { get; }
 
     public bool ApplyDescendant(
         IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode,
@@ -83,7 +104,7 @@ public class StateStruct : ICompositeState {
 
     public ICompositeState GetNonReferenced() {
         var nodeCopy = _nodes.ToDictionary(d => d.Key, d => d.Value.GetNonReference());
-        return new StateStruct(nodeCopy, IsFrozen);
+        return new StateStruct(nodeCopy, IsFrozen, AllowDefaultValues);
     }
 
     public bool HasAnyReferenceMember => _nodes.Values.Any(v => v.State is StateRefTo);
@@ -138,5 +159,9 @@ public class StateStruct : ICompositeState {
     }
 
     public override string ToString()
-        => "{" + (IsFrozen?" [frozen] " :"") + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}")) + "}";
+        => "{"
+           + (IsFrozen?"-frozen" :"")
+           + (AllowDefaultValues?"-default " :"")
+           + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}"))
+           + "}";
 }

@@ -14,6 +14,9 @@ using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter;
 
+using System.Collections;
+using System.Collections.Generic;
+
 public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private readonly VariableScopeAliasTable _aliasScope;
     private readonly GraphBuilder _ticTypeGraph;
@@ -40,7 +43,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IAprioriTypesMap aprioriTypes,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect);
+
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, dialect);
+
+        SetupAprioriTypes(tree, aprioriTypes, visitor);
+
 
         foreach (var syntaxNode in tree.Children)
         {
@@ -54,6 +61,28 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return true;
     }
 
+    private static void SetupAprioriTypes(SyntaxTree tree, IAprioriTypesMap aprioriTypes, TicSetupVisitor visitor)
+    {
+        // Collect all output variables
+        var outputVariableNames = new HashSet<string>();
+        foreach (var syntaxNode in tree.Children)
+        {
+            if (syntaxNode is EquationSyntaxNode eq)
+                outputVariableNames.Add(eq.Id);
+        }
+
+        foreach (var apriori in aprioriTypes)
+        {
+            if (outputVariableNames.Contains(apriori.Name))
+            {
+                //if it is struct - we need to allow default values for it
+                visitor.SetAprioriType(apriori.Name, apriori.Type, forceAllowDefaultValues: true);
+            }
+            else
+                visitor.SetAprioriType(apriori.Name, apriori.Type, forceAllowDefaultValues: false);
+        }
+    }
+
     internal static bool SetupTicForUserFunction(
         UserFunctionDefinitionSyntaxNode userFunctionNode,
         GraphBuilder ticGraph,
@@ -61,7 +90,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IConstantList constants,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect);
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, dialect);
         return userFunctionNode.Accept(visitor);
     }
 
@@ -70,7 +99,6 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IFunctionDictionary dictionary,
         IConstantList constants,
         TypeInferenceResultsBuilder resultsBuilder,
-        IAprioriTypesMap aprioriTypesMap,
         DialectSettings dialect) {
         _aliasScope = new VariableScopeAliasTable();
         _dictionary = dictionary;
@@ -78,9 +106,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         _resultsBuilder = resultsBuilder;
         _dialect = dialect;
         _ticTypeGraph = ticTypeGraph;
+    }
 
-        foreach (var apriori in aprioriTypesMap)
-            _ticTypeGraph.SetVarType(apriori.Name, apriori.Type.ConvertToTiType());
+    public void SetAprioriType(string varId, FunnyType type, bool forceAllowDefaultValues) {
+        _ticTypeGraph.SetVarType(varId, type.ConvertToTicType(forceAllowDefaultValues));
     }
 
     public bool Visit(SyntaxTree node) => VisitChildren(node);
@@ -92,10 +121,15 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         if (node.OutputTypeSpecified)
         {
-            var type = node.OutputType.ConvertToTiType();
+            var type = node.OutputType.ConvertToTicType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
+
+        // // if it is output apriori struct type then allow default values for it
+        // if (_aprioriTypesMap.FirstOrDefault(a => a.Key == node.Id) is
+        //     { Value.StructTypeSpecification: { } })
+        //     _ticTypeGraph.AllowDefaultValuesForStruct(node.Id);
 
         _ticTypeGraph.SetDef(node.Id, node.Expression.OrderNumber);
         return true;
@@ -109,12 +143,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             argNames[i] = arg.Id;
             i++;
             if (arg.FunnyType != FunnyType.Empty)
-                _ticTypeGraph.SetVarType(arg.Id, arg.FunnyType.ConvertToTiType());
+                _ticTypeGraph.SetVarType(arg.Id, arg.FunnyType.ConvertToTicType());
         }
 
         ITypeState returnType = null;
         if (node.ReturnType != FunnyType.Empty)
-            returnType = (ITypeState)node.ReturnType.ConvertToTiType();
+            returnType = (ITypeState)node.ReturnType.ConvertToTicType();
 
 #if DEBUG
         TraceLog.WriteLine(
@@ -256,7 +290,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     anonymName = MakeAnonVariableName(node, originName);
                     if (!typed.FunnyType.Equals(FunnyType.Empty))
                     {
-                        var ticType = typed.FunnyType.ConvertToTiType();
+                        var ticType = typed.FunnyType.ConvertToTicType();
                         _ticTypeGraph.SetVarType(anonymName, ticType);
                     }
 
@@ -293,7 +327,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
         else
         {
-            var retType = (ITypeState)node.ReturnType.ConvertToTiType();
+            var retType = (ITypeState)node.ReturnType.ConvertToTicType();
             _ticTypeGraph.CreateLambda(
                 node.Body.OrderNumber,
                 node.OrderNumber,
@@ -380,8 +414,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         var types = new ITicNodeState[signature.ArgTypes.Length + 1];
         for (int i = 0; i < signature.ArgTypes.Length; i++)
-            types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
-        types[^1] = signature.ReturnType.ConvertToTiType(genericTypes);
+            types[i] = signature.ArgTypes[i].ConvertToTicType(genericTypes);
+        types[^1] = signature.ReturnType.ConvertToTicType(genericTypes);
 
         _ticTypeGraph.SetCall(types, ids);
         return true;
@@ -439,7 +473,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"Constant {node.Value}:{node.ClrTypeName}");
 #endif
-        var type = node.OutputType.ConvertToTiType();
+        var type = node.OutputType.ConvertToTicType();
 
         if (type is StatePrimitive p)
             _ticTypeGraph.SetConst(node.OrderNumber, p);
@@ -618,7 +652,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             node.IdType = NamedIdNodeType.Constant;
             node.IdContent = constant;
 
-            var tiType = constant.Type.ConvertToTiType();
+            var tiType = constant.Type.ConvertToTicType();
             switch (tiType)
             {
                 case StatePrimitive primitive:
@@ -659,7 +693,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         if (node.FunnyType != FunnyType.Empty)
         {
-            var type = node.FunnyType.ConvertToTiType();
+            var type = node.FunnyType.ConvertToTicType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
@@ -673,7 +707,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"VarDef {node.Id}:{node.FunnyType}  ");
 #endif
-        var type = node.FunnyType.ConvertToTiType();
+        var type = node.FunnyType.ConvertToTicType();
         if (!_ticTypeGraph.TrySetVarType(node.Id, type))
             throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         return true;

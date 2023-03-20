@@ -6,7 +6,7 @@ using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 
-namespace NFun.Types; 
+namespace NFun.Types;
 
 public static class VarTypeConverter {
     private static readonly bool[,] PrimitiveConvertMap;
@@ -61,13 +61,13 @@ public static class VarTypeConverter {
     Fun = 13,
     Generic = 14,
     Any  = 15,
-         * 
+         *
          */
     }
 
     private static readonly Func<object, object> ToText = o => new TextFunnyArray(o?.ToString() ?? "");
     private static readonly Func<object, object> NoConvertion = o => o;
-    
+
     public static Func<object, object> GetConverterOrNull(TypeBehaviour typeBehaviour, FunnyType @from, FunnyType to) {
         //todo coverage
         if (to.IsText)
@@ -80,7 +80,7 @@ public static class VarTypeConverter {
             return  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
         if (from.BaseType != to.BaseType)
             return null;
-        
+
         if (from.BaseType == BaseFunnyType.ArrayOf)
         {
             if (to == FunnyType.ArrayOf(FunnyType.Any))
@@ -139,7 +139,13 @@ public static class VarTypeConverter {
             foreach (var (key, value) in to.StructTypeSpecification)
             {
                 if (!from.StructTypeSpecification.TryGetValue(key, out var fromFieldType))
-                    return null;
+                {
+                    if(to.StructTypeSpecification.AllowDefaultValues)
+                        continue;
+                    else
+                        return null;
+                }
+
                 if (!value.Equals(fromFieldType))
                     return null;
             }
@@ -147,7 +153,7 @@ public static class VarTypeConverter {
         }
         return null;
     }
-    
+
     public static Func<object, object> GetConverterOrThrow(TypeBehaviour typeBehaviour, FunnyType from, FunnyType to,  Interval interval) {
         var res = GetConverterOrNull(typeBehaviour, @from, to);
         if (res == null)
@@ -167,7 +173,7 @@ public static class VarTypeConverter {
                         @from = @from.ArrayTypeSpecification.FunnyType;
                         to = to.ArrayTypeSpecification.FunnyType;
                         continue;
-                    //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
+                    //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code
                     case BaseFunnyType.Fun:
                         return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                     case BaseFunnyType.Struct:
@@ -211,7 +217,7 @@ public static class VarTypeConverter {
             return convertedResult;
         }
 
-        public IConcreteFunction Clone(ICloneContext context) 
+        public IConcreteFunction Clone(ICloneContext context)
             => new ConcreteFunctionWithConvertion(_origin.Clone(context), _resultType, _inputConverters, _outputConverter);
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)

@@ -1,6 +1,6 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages; 
+namespace NFun.Tic.Stages;
 
 public class DestructionFunctions : IStateCombination2dimensionalVisitor {
     public static DestructionFunctions Singleton { get; } = new();
@@ -114,7 +114,8 @@ public class DestructionFunctions : IStateCombination2dimensionalVisitor {
                         //todo!!
                         //throw new ImpossibleException(
                         //    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{ancField.Key}'");
-                        descendantNode.State = descStruct.With(key, value);
+                        descendantNode.State = descStruct.With(key, value,
+                            ancStruct.AllowDefaultValues || descStruct.AllowDefaultValues);
                     }
                     else
                     {

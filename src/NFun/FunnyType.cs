@@ -30,16 +30,20 @@ public readonly struct FunnyType {
 
     internal static FunnyType StructOf(StructTypeSpecification fields) => new(fields);
 
-    public static FunnyType StructOf(params (string, FunnyType)[] fields) => StructOf(isFrozen: false, fields);
+    public static FunnyType StructOf(params (string, FunnyType)[] fields) => StructOf(
+        isFrozen: false,
+        allowDefaultValues:false,
+        fields);
 
-    public static FunnyType StructOf(bool isFrozen, params (string, FunnyType)[] fields) {
-        var specs = new StructTypeSpecification(fields.Length, isFrozen: isFrozen);
+    public static FunnyType StructOf(bool isFrozen, bool allowDefaultValues, params (string, FunnyType)[] fields) {
+        var specs = new StructTypeSpecification(fields.Length, isFrozen: isFrozen, allowDefaultValues: allowDefaultValues);
         foreach (var field in fields)
         {
             specs.Add(field.Item1, field.Item2);
         }
         return new(specs);
     }
+
     public static FunnyType FunOf(FunnyType returnType, params FunnyType[] inputTypes)
         => new(output: returnType, inputs: inputTypes);
 

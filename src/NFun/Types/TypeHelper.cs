@@ -5,10 +5,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types; 
+namespace NFun.Types;
+
+using Tic.SolvingStates;
 
 internal static class TypeHelper {
-    
+
     internal static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
         => name + "(" + string.Join(",", arguments) + "):" + returnType;
 
@@ -40,7 +42,7 @@ internal static class TypeHelper {
     }
 
     public static T[] ToArrayOf<T>(this IFunnyArray a) => a.As<T>().ToArray(a.Count);
-    
+
     public static bool AreEquivalent(IFunnyArray a, IFunnyArray b) {
         if (a.Count != b.Count)
             return false;

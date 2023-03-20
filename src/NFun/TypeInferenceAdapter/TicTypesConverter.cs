@@ -18,8 +18,9 @@ public abstract class TicTypesConverter {
         => new GenericMapConverter(constrainsMap, genericArgs);
 
     public abstract FunnyType Convert(ITicNodeState type);
+
     private FunnyType ConvertToFunnyStruct(StateStruct str) {
-        var fields = new StructTypeSpecification(str.FieldsCount, isFrozen: str.IsFrozen);
+        var fields = new StructTypeSpecification(str.FieldsCount, isFrozen: str.IsFrozen, str.AllowDefaultValues);
         foreach (var ticField in str.Fields)
         {
             fields.Add(ticField.Key.ToLower(), Convert(ticField.Value.GetNonReference().State));
@@ -34,7 +35,7 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
-    class OnlyConcreteTypesConverter : TicTypesConverter {
+    private class OnlyConcreteTypesConverter : TicTypesConverter {
         public override FunnyType Convert(ITicNodeState type) {
             while (true)
             {

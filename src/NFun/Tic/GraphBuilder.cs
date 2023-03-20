@@ -266,7 +266,7 @@ public class GraphBuilder {
         {
             memberNode = CreateVarType();
             //if origin node is reference node - than we should change
-            node.State = state.With(fieldName, memberNode);
+            node.State = state.With(fieldName, memberNode, state.AllowDefaultValues);
         }
 
         MergeOrSetNode(opId, new StateRefTo(memberNode));

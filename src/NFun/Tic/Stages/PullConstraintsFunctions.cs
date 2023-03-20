@@ -113,7 +113,10 @@ public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
                     if (descStruct.IsFrozen)
                         return false;
                     else
-                        descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                        descendantNode.State = descStruct.With(
+                            name: ancField.Key,
+                            memberNode: ancField.Value,
+                            allowDefaultValues: ancStruct.AllowDefaultValues || descStruct.AllowDefaultValues);
                 }
                 else
                 {
@@ -124,7 +127,8 @@ public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
                         descendantNode.State = descendant.GetNonReferenced();
                 }
             }
-            // descendantNode.RemoveAncestor(ancestorNode);
+            //todo - looks like it mask some bug.
+           // descendantNode.RemoveAncestor(ancestorNode);
         }
         else
         {

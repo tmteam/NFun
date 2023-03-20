@@ -534,12 +534,12 @@ foo = [[[
 
    // [Ignore("Bug #68")]
     [TestCase( @"
-                foo = {a = {id = 42}}
-                baz = foo.b.id
+                foo1 = {a = {id = 42}}
+                baz = foo1.b.id
             ")]
     [TestCase( @"
-                foo = {a = {id = 42}}
-                bar = foo
+                foo2 = {a = {id = 42}}
+                bar = foo2
                 baz = bar.b.id
             ")]
     [TestCase( @"foo.nonExist")]

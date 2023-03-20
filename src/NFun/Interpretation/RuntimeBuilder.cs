@@ -84,7 +84,6 @@ internal static class RuntimeBuilder {
 
         #endregion
 
-
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD BODY ====");
 

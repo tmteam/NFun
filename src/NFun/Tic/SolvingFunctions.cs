@@ -9,105 +9,120 @@ using NFun.Tic.Stages;
 namespace NFun.Tic;
 
 public static class SolvingFunctions {
+
     #region Merges
 
-    public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB) {
-        if (stateB is ConstrainsState c && c.NoConstrains)
-            return stateA;
+    public static ITicNodeState GetMergedStateOrNull(ITicNodeState ancestor, ITicNodeState descendant) {
+        if (descendant is ConstrainsState { NoConstrains: true })
+            return ancestor;
 
-        if (stateA is ITypeState typeA && !typeA.IsMutable)
+        if (ancestor is ITypeState { IsMutable: false } ancestorType)
         {
-            if (stateB is ITypeState typeB && !typeB.IsMutable)
-                return !typeB.Equals(typeA) ? null : typeA;
+            if (descendant is ITypeState { IsMutable: false } descendantType)
+                return !descendantType.Equals(ancestorType) ? null : ancestorType;
 
-            if (stateB is ConstrainsState constrainsB)
-                return !constrainsB.Fits(typeA) ? null : typeA;
+            if (descendant is ConstrainsState constrainsB)
+                return !constrainsB.Fits(ancestorType) ? null : ancestorType;
         }
 
-        switch (stateA)
+        switch (ancestor)
         {
-            case StateArray arrayA when stateB is StateArray arrayB:
-                MergeInplace(arrayA.ElementNode, arrayB.ElementNode);
-                return arrayA;
-            case StateFun funA when stateB is StateFun funB:
-            {
-                if (funA.ArgsCount != funB.ArgsCount)
-                    return null;
-
-                for (int i = 0; i < funA.ArgsCount; i++)
-                    MergeInplace(funA.ArgNodes[i], funB.ArgNodes[i]);
-                MergeInplace(funA.RetNode, funB.RetNode);
-                return funA;
-            }
-            case StateStruct strA when stateB is StateStruct strB:
-            {
-                var result = new Dictionary<string, TicNode>();
-                foreach (var (key, value) in strA.Fields)
-                {
-                    var bNode = strB.GetFieldOrNull(key);
-                    if (bNode != null)
-                        MergeInplace(value, bNode);
-                    else if (strA.IsFrozen || strB.IsFrozen)
-                        return null;
-                    result.Add(key, value);
-                }
-
-                foreach (var (key, value) in strB.Fields)
-                    result.TryAdd(key, value);
-
-                return new StateStruct(result, isFrozen: false);
-            }
-            case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
+            case StateArray arrayA when descendant is StateArray arrayB:
+                return MergeArrays(arrayA, arrayB);
+            case StateFun funA when descendant is StateFun funB:
+                return MergeFuns(funA, funB);
+            case StateStruct strA when descendant is StateStruct strB:
+                return MergeStructs(strA, strB);
+            case ConstrainsState constrainsA when descendant is ConstrainsState constrainsB:
                 return constrainsB.MergeOrNull(constrainsA);
             case ConstrainsState:
-                return GetMergedStateOrNull(stateB, stateA);
+                return GetMergedStateOrNull(descendant, ancestor);
             case StateRefTo refA:
             {
-                var state = GetMergedStateOrNull(refA.Node.State, stateB);
+                var state = GetMergedStateOrNull(refA.Node.State, descendant);
                 if (state == null) return null;
                 refA.Node.State = state;
-                return stateA;
+                return ancestor;
             }
         }
 
-        if (stateB is StateRefTo)
-            return GetMergedStateOrNull(stateB, stateA);
+        if (descendant is StateRefTo)
+            return GetMergedStateOrNull(descendant, ancestor);
 
         return null;
+    }
+
+    private static ITicNodeState MergeStructs(StateStruct ancestor, StateStruct descendant)
+    {
+        var result = new Dictionary<string, TicNode>();
+        foreach (var (key, value) in ancestor.Fields)
+        {
+            var bNode = descendant.GetFieldOrNull(key);
+            if (bNode != null)
+                MergeInplace(value, bNode);
+            //if ancestor allows default values - than it is not a problem if desc got no a field
+            else if (!ancestor.AllowDefaultValues && (ancestor.IsFrozen || descendant.IsFrozen))
+                return null;
+            result.Add(key, value);
+        }
+
+        foreach (var (key, value) in descendant.Fields)
+            result.TryAdd(key, value);
+
+        return new StateStruct(result,
+            isFrozen: ancestor.IsFrozen && descendant.IsFrozen,
+            allowDefaultValues: ancestor.AllowDefaultValues || descendant.AllowDefaultValues);
+    }
+
+    private static ITicNodeState MergeFuns(StateFun ancestor, StateFun descendant)
+    {
+        if (ancestor.ArgsCount != descendant.ArgsCount)
+            return null;
+
+        for (int i = 0; i < ancestor.ArgsCount; i++)
+            MergeInplace(ancestor.ArgNodes[i], descendant.ArgNodes[i]);
+        MergeInplace(ancestor.RetNode, descendant.RetNode);
+        return ancestor;
+    }
+
+    private static ITicNodeState MergeArrays(StateArray ancestor, StateArray descendant)
+    {
+        MergeInplace(ancestor.ElementNode, descendant.ElementNode);
+        return ancestor;
     }
 
     /// <summary>
     /// Merge two nodes. Both of them become equiualent.
     ///
-    /// In complex situation, 'secondary' node becomes reference to 'main' node, if it is possible
+    /// In complex situation, 'descendant' node becomes reference to 'ancestor' node, if it is possible
     /// </summary>
-    public static void MergeInplace(TicNode main, TicNode secondary) {
-        if (main == secondary)
+    public static void MergeInplace(TicNode ancestor, TicNode descendant) {
+        if (ancestor == descendant)
             return;
-        if (main.State is StateRefTo)
+        if (ancestor.State is StateRefTo)
         {
-            var nonreferenceMain = main.GetNonReference();
-            var nonreferenceSecondary = secondary.GetNonReference();
-            MergeInplace(nonreferenceMain, nonreferenceSecondary);
+            var nonRefAncestor = ancestor.GetNonReference();
+            var nonRefDescendant = descendant.GetNonReference();
+            MergeInplace(nonRefAncestor, nonRefDescendant);
             return;
         }
 
-        if (secondary.GetNonReference() == main)
+        if (descendant.GetNonReference() == ancestor)
             return;
-        var res = GetMergedStateOrNull(main.State, secondary.State);
+        var res = GetMergedStateOrNull(ancestor: ancestor.State, descendant: descendant.State);
         if (res == null)
-            throw TicErrors.CannotMerge(main, secondary);
+            throw TicErrors.CannotMerge(ancestor, descendant);
 
-        main.State = res;
+        ancestor.State = res;
         if (res is ITypeState t && t.IsSolved)
         {
-            secondary.State = res;
+            descendant.State = res;
             return;
         }
 
-        main.AddAncestors(secondary.Ancestors.Where(a => a != main));
-        secondary.ClearAncestors();
-        secondary.State = new StateRefTo(main);
+        ancestor.AddAncestors(descendant.Ancestors.Where(a => a != ancestor));
+        descendant.ClearAncestors();
+        descendant.State = new StateRefTo(ancestor);
     }
 
     /// <summary>
@@ -155,7 +170,6 @@ public static class SolvingFunctions {
     }
 
     #endregion
-
 
     public static void PullConstraints(TicNode[] toposortedNodes) {
         foreach (var node in toposortedNodes)
@@ -394,7 +408,7 @@ public static class SolvingFunctions {
                 newFields.Add(key, nrField);
             }
 
-            return new StateStruct(newFields, isFrozen: false);
+            return new StateStruct(newFields, isFrozen: false, ancStruct.AllowDefaultValues || structDesc.AllowDefaultValues);
         }
 
         return null;

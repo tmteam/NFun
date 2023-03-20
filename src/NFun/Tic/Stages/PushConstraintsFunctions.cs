@@ -1,6 +1,6 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages; 
+namespace NFun.Tic.Stages;
 
 public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
     public static IStateCombination2dimensionalVisitor Singleton { get; } = new PushConstraintsFunctions();
@@ -114,10 +114,13 @@ public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
     private static bool TryMergeStructFields(StateStruct ancStruct, StateStruct descStruct) {
         foreach (var ancField in ancStruct.Fields)
         {
-            TicNode descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
+            var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
             if (descFieldNode == null)
-                return false;
-            //  i m not sure why - but it is very important to set descFieldNode as main merge node... 
+                if (ancStruct.AllowDefaultValues)
+                    continue;
+                else
+                    return false;
+            //  i m not sure why - but it is very important to set descFieldNode as main merge node...
             SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
         }
 

@@ -118,7 +118,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(StructInitSyntaxNode node) {
-        var types = new StructTypeSpecification(node.Fields.Count, isFrozen: true);
+        var allowDefaultValues = node.OutputType.StructTypeSpecification.AllowDefaultValues;
+
+        var specification = new StructTypeSpecification(node.Fields.Count, isFrozen: true, allowDefaultValues);
         var names = new string[node.Fields.Count];
         var nodes = new IExpressionNode[node.Fields.Count];
 
@@ -127,16 +129,19 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var field = node.Fields[i];
             nodes[i] = ReadNode(field.Node);
             names[i] = field.Name;
-            types.Add(field.Name, field.Node.OutputType);
+            specification.Add(field.Name, field.Node.OutputType);
         }
 
-        foreach (var (key, _) in node.OutputType.StructTypeSpecification)
+        if (!allowDefaultValues)
         {
-            if (!types.ContainsKey(key))
-                throw Errors.FieldIsMissed(key, node.Interval);
+            foreach (var (key, _) in node.OutputType.StructTypeSpecification)
+            {
+                if (!specification.ContainsKey(key))
+                    throw Errors.FieldIsMissed(key, node.Interval);
+            }
         }
 
-        return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
+        return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(specification));
     }
 
     public IExpressionNode Visit(DefaultValueSyntaxNode node) =>

@@ -64,7 +64,6 @@ public class DoubleToFloatTypeOutputFunnyConverter : IOutputFunnyConverter {
     public object ToClrObject(object funObject) => (float)(double)funObject;
 }
 
-
 public class DoubleToDecimalTypeOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; } = typeof(Decimal);
     public FunnyType FunnyType => FunnyType.Real;
@@ -120,8 +119,8 @@ internal class StructOutputFunnyConverter : IOutputFunnyConverter {
             var property = properties[i];
             fieldTypes[i] = (property.PropertyName,  property.Converter.FunnyType);
         }
-
-        FunnyType = FunnyType.StructOf(isFrozen: true, fieldTypes);
+        // output allows default values
+        FunnyType = FunnyType.StructOf(isFrozen: true, allowDefaultValues: true, fieldTypes);
     }
 
     public FunnyType FunnyType { get; }
@@ -129,10 +128,21 @@ internal class StructOutputFunnyConverter : IOutputFunnyConverter {
     public object ToClrObject(object funObject) {
         var clrObj = Activator.CreateInstance(ClrType);
         var str = funObject as FunnyStruct;
-        foreach (var property in _properties)
+        if (FunnyType.StructTypeSpecification.AllowDefaultValues)
         {
-            var funValue = str.GetValue(property.PropertyName);
-            property.SetValueToTargetProperty(funValue, clrObj);
+            foreach (var property in _properties)
+            {
+                if (str.TryGetValue(property.PropertyName, out var funValue))
+                    property.SetValueToTargetProperty(funValue, clrObj);
+            }
+        }
+        else
+        {
+            foreach (var property in _properties)
+            {
+                var funValue = str.GetValue(property.PropertyName);
+                property.SetValueToTargetProperty(funValue, clrObj);
+            }
         }
 
         return clrObj;
@@ -174,7 +184,10 @@ public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConvert
     public Type ClrType { get; } = typeof(Dictionary<string, object>);
 
     public FunnyType FunnyType { get; } =
-        FunnyType.StructOf(new StructTypeSpecification(0, isFrozen:false));
+        FunnyType.StructOf(new StructTypeSpecification(
+            capacity: 0,
+            isFrozen:false,
+            allowDefaultValues:false));
 
     public object ToClrObject(object funObject) {
         var str = funObject as FunnyStruct;

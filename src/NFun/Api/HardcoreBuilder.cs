@@ -4,14 +4,14 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun; 
+namespace NFun;
 
 public class HardcoreBuilder {
     private readonly (string, object)[] _constants;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly DialectSettings _dialect;
     private readonly IFunctionSignature[] _customFunctions;
-    
+
     internal HardcoreBuilder() {
         _customFunctions = Array.Empty<IFunctionSignature>();
         _mutableApriori = new MutableAprioriTypesMap();
@@ -22,7 +22,7 @@ public class HardcoreBuilder {
     private HardcoreBuilder(
         (string, object)[] constants,
         MutableAprioriTypesMap mutableApriori,
-        DialectSettings dialect, 
+        DialectSettings dialect,
         IFunctionSignature[] customFunctions) {
         _dialect = dialect;
         _customFunctions = customFunctions;
@@ -40,11 +40,11 @@ public class HardcoreBuilder {
     public HardcoreBuilder WithDialect(
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, 
-        IntegerOverflow integerOverflow = IntegerOverflow.Checked, 
-        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll) 
+        RealClrType realClrType = RealClrType.IsDouble,
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked,
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
         => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions));
-    
+
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
         new(_constants, _mutableApriori, dialect, _customFunctions);
 
@@ -63,7 +63,7 @@ public class HardcoreBuilder {
 
     public HardcoreBuilder WithFunction(IFunctionSignature function) =>
         new(_constants, _mutableApriori, _dialect, _customFunctions.AppendTail(function));
-    
+
     public HardcoreBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) =>
         WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
@@ -96,13 +96,13 @@ public class HardcoreBuilder {
 
     public FunnyRuntime Build(string script) =>
         RuntimeBuilder.Build(
-            script, 
-            BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour).CloneWith(_customFunctions), 
+            script,
+            BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour).CloneWith(_customFunctions),
             _dialect, new ConstantList(_dialect.Converter, _constants), _mutableApriori);
 
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
-            script, 
-            BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour).CloneWith(_customFunctions), 
+            script,
+            BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour).CloneWith(_customFunctions),
             _dialect, new ConstantList(_dialect.Converter, _constants), _mutableApriori);
 }

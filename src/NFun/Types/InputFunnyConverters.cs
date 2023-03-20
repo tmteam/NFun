@@ -72,7 +72,7 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
                 fieldTypes[i] = (property.PropertyName, property.Converter.FunnyType);
             }
 
-            FunnyType = FunnyType.StructOf(isFrozen: true, fieldTypes);
+            FunnyType = FunnyType.StructOf(isFrozen: true, allowDefaultValues:false, fieldTypes);
         }
         else
         {
