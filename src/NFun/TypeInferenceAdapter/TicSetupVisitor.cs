@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
 using NFun.Interpretation;
@@ -82,7 +80,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         _ticTypeGraph = ticTypeGraph;
 
         foreach (var apriori in aprioriTypesMap)
-            _ticTypeGraph.SetVarType(apriori.Key, apriori.Value.ConvertToTiType());
+            _ticTypeGraph.SetVarType(apriori.Name, apriori.Type.ConvertToTiType());
     }
 
     public bool Visit(SyntaxTree node) => VisitChildren(node);

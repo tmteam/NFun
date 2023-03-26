@@ -103,6 +103,97 @@ public class TestFluentApiCalcSingleConstT {
             () => Funny.Calc<UserInputModel>(
                 "{name = 'alaska'}"));
 
+    [Test]
+    public void ComplexOutputType() {
+        var res = Funny.Calc<SuperPuperComplexModel[][][]>(
+            @"
+[[[
+    {
+        y = [[
+                    {
+                        x = [
+                            {a = {id = 1}, b = {id = 2}},
+                            {a = {id = 3}, b = {id = 4}}
+                        ],
+                        y = {a = {id = 5}, b = {id = 6}}
+                    },
+                    {
+                        x = [
+                            {a = {id = 7}, b = {id = 8}},
+                            {a = {id = 9}, b = {id = 10}}
+                        ],
+                        y = {a = {id = 11}, b = {id = 12}}
+                    }
+                ],
+                []
+        ]
+        x= [
+            { x = default, y = {a = {id = 13}, b = {id = 14}} },
+            { x = [{a = {id = 15}, b = {id = 16}}], y = default }
+        ]
+        }]]]");
+        FunnyAssert.AreSame(expected:
+            new[] {
+                new[] {
+                    new[] {
+                        new SuperPuperComplexModel {
+                            y = new[] {
+                                new[] {
+                                    new SuperComplexModel {
+                                        x = new[] {
+                                            new ComplexModel {
+                                                a = new ModelWithInt { id = 1 }, b = new ModelWithInt { id = 2 }
+                                            },
+                                            new ComplexModel {
+                                                a = new ModelWithInt { id = 3 }, b = new ModelWithInt { id = 4 }
+                                            }
+                                        },
+                                        y = new ComplexModel {
+                                            a = new ModelWithInt { id = 5 }, b = new ModelWithInt { id = 6 }
+                                        }
+                                    },
+                                    new SuperComplexModel {
+                                        x = new[] {
+                                            new ComplexModel {
+                                                a = new ModelWithInt { id = 7 }, b = new ModelWithInt { id = 8 }
+                                            },
+                                            new ComplexModel {
+                                                a = new ModelWithInt { id = 9 }, b = new ModelWithInt { id = 10 }
+                                            }
+                                        },
+                                        y = new ComplexModel {
+                                            a = new ModelWithInt { id = 11 }, b = new ModelWithInt { id = 12 }
+                                        }
+                                    }
+                                },
+                                new SuperComplexModel[0]
+                            },
+                            x = new[] {
+                                new SuperComplexModel {
+                                    x = new ComplexModel[0],
+                                    y = new ComplexModel {
+                                        a = new ModelWithInt { id = 13 }, b = new ModelWithInt { id = 14 }
+                                    },
+                                },
+                                new SuperComplexModel {
+                                    x = new[] {
+                                        new ComplexModel {
+                                            a = new ModelWithInt { id = 15 }, b = new ModelWithInt { id = 16 }
+                                        }
+                                    },
+                                    y = new ComplexModel {
+                                        a = new ModelWithInt { id = 0 }, b = new ModelWithInt { id = 0 }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                }
+            },
+            res
+            );
+    }
+
     [TestCase("[1..4].filter(rule it>age).map(rule it**2)")]
     [TestCase("age>someUnknownvariable")]
     public void UseUnknownInput_throws(string expression) =>

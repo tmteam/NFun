@@ -2,38 +2,50 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NFun.Interpretation; 
+namespace NFun.Interpretation;
 
-public interface IAprioriTypesMap : IEnumerable<KeyValuePair<string, FunnyType>> { }
+public interface IAprioriTypesMap : IEnumerable<AprioriVarInfo> { }
 
 internal class EmptyAprioriTypesMap : IAprioriTypesMap {
     public static readonly EmptyAprioriTypesMap Instance = new();
-    private readonly KeyValuePair<string, FunnyType>[] _arr = Array.Empty<KeyValuePair<string, FunnyType>>();
+    private readonly AprioriVarInfo[] _arr = Array.Empty<AprioriVarInfo>();
     private EmptyAprioriTypesMap() { }
-    public IEnumerator<KeyValuePair<string, FunnyType>> GetEnumerator() => ((IEnumerable<KeyValuePair<string, FunnyType>>)_arr).GetEnumerator();
+    public IEnumerator<AprioriVarInfo> GetEnumerator() => ((IEnumerable<AprioriVarInfo>)_arr).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => _arr.GetEnumerator();
 }
 
 internal class SingleAprioriTypesMap : IAprioriTypesMap {
-    private readonly KeyValuePair<string, FunnyType>[] _arr;
-    public SingleAprioriTypesMap(string key, FunnyType type) => _arr = new[] { new KeyValuePair<string, FunnyType>(key, type) };
-    public IEnumerator<KeyValuePair<string, FunnyType>> GetEnumerator() => ((IEnumerable<KeyValuePair<string, FunnyType>>)_arr).GetEnumerator();
+    private readonly AprioriVarInfo[] _arr;
+    public SingleAprioriTypesMap(string key, FunnyType type) => _arr = new[] { new AprioriVarInfo(key, type) };
+    public IEnumerator<AprioriVarInfo> GetEnumerator() => ((IEnumerable<AprioriVarInfo>)_arr).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => _arr.GetEnumerator();
 }
 
 internal class MutableAprioriTypesMap : IAprioriTypesMap {
-    public MutableAprioriTypesMap() => _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
+    public MutableAprioriTypesMap() => _typesMap = new Dictionary<string, AprioriVarInfo>(StringComparer.OrdinalIgnoreCase);
 
-    private MutableAprioriTypesMap(Dictionary<string, FunnyType> items) => _typesMap = items;
+    private MutableAprioriTypesMap(Dictionary<string, AprioriVarInfo> items) => _typesMap = items;
 
-    private readonly Dictionary<string, FunnyType> _typesMap;
+    private readonly Dictionary<string, AprioriVarInfo> _typesMap;
 
-    public void Add(string id, FunnyType type) => _typesMap.Add(id, type);
-    public IEnumerator<KeyValuePair<string, FunnyType>> GetEnumerator() => _typesMap.GetEnumerator();
+    public void Add(string name, FunnyType type) => _typesMap.Add(name, new AprioriVarInfo(name, type));
+
+    public IEnumerator<AprioriVarInfo> GetEnumerator() => _typesMap.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => _typesMap.GetEnumerator();
 
     public MutableAprioriTypesMap CloneWith(string name, FunnyType type) {
-        var dicCopy = new Dictionary<string, FunnyType>(_typesMap) { { name, type } };
+        var dicCopy = new Dictionary<string, AprioriVarInfo>(_typesMap) { { name, new AprioriVarInfo(name, type) } };
         return new MutableAprioriTypesMap(dicCopy);
     }
 }
+
+public struct AprioriVarInfo {
+    public string Name;
+    public FunnyType Type;
+
+    public AprioriVarInfo(string name, FunnyType type) {
+        Name = name;
+        Type = type;
+    }
+};
+

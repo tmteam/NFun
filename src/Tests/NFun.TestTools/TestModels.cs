@@ -80,13 +80,26 @@ public class ContextModel2 : ICloneable {
     };
 }
 
-public class ModelWithInt {
-    public int id { get; set; }
+
+
+public class SuperPuperComplexModel {
+    public SuperComplexModel[] x { get; set; }
+    public SuperComplexModel[][] y { get; set; }
+}
+
+
+public class SuperComplexModel {
+    public ComplexModel[] x { get; set; }
+    public ComplexModel y { get; set; }
 }
 
 public class ComplexModel {
     public ModelWithInt a { get; set; }
     public ModelWithInt b { get; set; }
+}
+
+public class ModelWithInt {
+    public int id { get; set; }
 }
 
 public class UserInputModel : ICloneable {

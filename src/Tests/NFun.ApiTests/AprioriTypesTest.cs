@@ -1,6 +1,5 @@
 using System;
 using System.Net;
-using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
@@ -148,34 +147,32 @@ public class AprioriTypesTest {
             .Calc(("count", 3), ("name", "foo"))
             .AssertReturns("foofoofoo");
 
-    [Ignore("#69")]
     [Test]
     public void ComplexAprioryType() {
         var result = Funny.Hardcore
             .WithApriori<ComplexModel>("foo")
             .Build("foo = {a = {id = 1}, b = {id = 2}}");
         result.Run();
+        var foo = result["foo"].CreateGetterOf<ComplexModel>()();
 
         FunnyAssert.AreSame(
-            new[] {
-              new ComplexModel{a = new ModelWithInt{id = 1}, b = new ModelWithInt{id = 2}}
-            },
-            result["foo"].Value);
+            new ComplexModel { a = new ModelWithInt { id = 1 }, b = new ModelWithInt { id = 2 } } ,
+            foo);
     }
 
-    [Ignore("#69")]
     [Test]
     public void ArrayOfComplexAprioryType() {
         var result = Funny.Hardcore
             .WithApriori<ComplexModel[]>("foo")
             .Build("foo = [{a = {id = 1}, b = {id = 2}},{a = {id = 3}, b = {id = 4}}]");
         result.Run();
+        var foo = result["foo"].CreateGetterOf<ComplexModel[]>()();
 
         FunnyAssert.AreSame(
             new[] {
-                new ComplexModel{a = new ModelWithInt{id = 1}, b = new ModelWithInt{id = 2}},
-                new ComplexModel{a = new ModelWithInt{id = 3}, b = new ModelWithInt{id = 4}}
+                new ComplexModel { a = new ModelWithInt { id = 1 }, b = new ModelWithInt { id = 2 } },
+                new ComplexModel { a = new ModelWithInt { id = 3 }, b = new ModelWithInt { id = 4 } }
             },
-            result["foo"].Value);
+            foo);
     }
 }
