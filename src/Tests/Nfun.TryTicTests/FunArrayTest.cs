@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Linq;
 using NFun.Runtime.Arrays;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.UnitTests;

@@ -2,7 +2,6 @@ using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests;
@@ -197,7 +196,7 @@ public class ArraysTest {
         //todo Support type inference
         /*
         var result = FunBuilder.Build(expr).Calculate().Get("out");
-        Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
+        Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);
     */
     }
 

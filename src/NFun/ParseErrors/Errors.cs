@@ -5,7 +5,6 @@ using System.Text;
 using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
-using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.ParseErrors;

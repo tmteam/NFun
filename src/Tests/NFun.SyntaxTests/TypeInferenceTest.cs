@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;

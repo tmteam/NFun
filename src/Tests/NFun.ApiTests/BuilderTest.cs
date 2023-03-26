@@ -2,7 +2,6 @@
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.TestTools;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.ApiTests;

@@ -1,4 +1,3 @@
-using System.Linq;
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 using NFun.Types;

@@ -15,6 +15,7 @@ public interface ICalculator<in TInput> {
     /// Calculates given expression. The operation is thread-safe.
     /// </summary>
     object Calc(string expression, TInput input);
+
     /// <summary>
     /// Creates Func that can be called later. The Func is thread-safe. The operation is thread-safe.
     /// </summary>
@@ -26,6 +27,7 @@ public interface ICalculator<in TInput, out TOutput> {
     /// Calculates given expression. The operation is thread-safe.
     /// </summary>
     TOutput Calc(string expression, TInput inputModel);
+
     /// <summary>
     /// Creates Func that can be called later. The Func is thread-safe. The operation is thread-safe.
     /// </summary>
@@ -37,12 +39,12 @@ public interface IContextCalculator<TContext> {
     /// Calculates given expression. The operation is thread-safe.
     /// </summary>
     void Calc(string expression, TContext context);
+
     /// <summary>
     /// Creates Action that can be called later. The Action is thread-safe. The operation is thread-safe.
     /// </summary>
     Action<TContext> ToLambda(string expression);
 }
-
 
 public interface IConstantCalculator<out TOutput> {
     /// <summary>
@@ -72,23 +74,25 @@ internal class Calculator<TInput> : ICalculator<TInput> {
 
         int isRunning = 0;
         return input => {
-            if (Interlocked.CompareExchange(ref isRunning, 1, 0) !=0) {
+            if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+            {
                 // if runtime is already running - create runtime copy, and run it
                 return Run(runtime.Clone(), input);
             }
 
-            try {
+            try
+            {
                 return Run(runtime, input);
             }
-            finally {
+            finally
+            {
                 isRunning = 0;
             }
         };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private object Run(FunnyRuntime runtime, TInput input)
-    {
+    private object Run(FunnyRuntime runtime, TInput input) {
         FluentApiTools.SetInputValues(runtime, _inputsMap, input);
         runtime.Run();
         return FluentApiTools.GetFunnyOut(runtime).Value;
@@ -119,23 +123,25 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
 
         int isRunning = 0;
         return input => {
-            if (Interlocked.CompareExchange(ref isRunning, 1, 0) !=0) {
+            if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+            {
                 // if runtime already run - create runtime copy, and run it
                 return Run(runtime.Clone(), input);
             }
 
-            try {
+            try
+            {
                 return Run(runtime, input);
             }
-            finally {
+            finally
+            {
                 isRunning = 0;
             }
         };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TOutput Run(FunnyRuntime runtime, TInput input)
-    {
+    private TOutput Run(FunnyRuntime runtime, TInput input) {
         FluentApiTools.SetInputValues(runtime, _inputsMap, input);
         runtime.Run();
         return FluentApiTools.CreateOutputModelFromResults<TOutput>(runtime, _outputsMap);

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 
 namespace NFun.SyntaxParsing.SyntaxNodes; 

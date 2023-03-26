@@ -1,5 +1,4 @@
 using NFun.Interpretation.Functions;
-using NFun.Types;
 
 namespace NFun.UnitTests;
 

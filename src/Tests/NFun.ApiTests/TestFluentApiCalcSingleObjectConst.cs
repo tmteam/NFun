@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using NFun.Exceptions;
-using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 

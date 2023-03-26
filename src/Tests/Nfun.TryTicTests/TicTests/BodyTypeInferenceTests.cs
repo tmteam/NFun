@@ -4,8 +4,6 @@ using NUnit.Framework;
 
 namespace NFun.UnitTests.TicTests;
 
-using TestTools;
-
 public class BodyTypeInferenceTests {
     [Test]
     public void SetGenericConstant() {
