@@ -39,7 +39,7 @@ class BasicArithmetics {
 
     [Test(Description = "x:int; y = 1 + x")]
     public void ConcreteVarType() {
-        //node |           0 2 1 
+        //node |           0 2 1
         //expr |x:int; y = 1 + x;
 
         var graph = new GraphBuilder();
@@ -56,7 +56,7 @@ class BasicArithmetics {
 
     [Test(Description = "x:int; y = x + 1")]
     public void ConcreteVarType2() {
-        //node |           0 2 1 
+        //node |           0 2 1
         //expr |x:int; y = x + 1;
 
         var graph = new GraphBuilder();
@@ -218,8 +218,8 @@ class BasicArithmetics {
 
     [Test]
     public void InputRepeats_simpleGeneric() {
-        //node |3   0 2 1 
-        //expr |y = x + x 
+        //node |3   0 2 1
+        //expr |y = x + x
 
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
@@ -234,7 +234,7 @@ class BasicArithmetics {
 
     [Test]
     public void UpcastArgTypeThatIsAfter_EquationSolved() {
-        //     0 2 1       3 
+        //     0 2 1       3
         // y = a / b;  a = 1i
 
         var graph = new GraphBuilder();
@@ -257,10 +257,10 @@ class BasicArithmetics {
     }
 
     [Test]
-    [Ignore("UB a type")]
+    [Ignore("Prefered type for constant")]
     public void UpcastArgTypeThatIsBefore_EquationSolved() {
         //        0       1 3 2
-        // // a = 1i; y = a / b;   
+        // // a = 1i; y = a / b;
 
         var graph = new GraphBuilder();
 
@@ -380,8 +380,8 @@ class BasicArithmetics {
     [Test]
     public void CircularDependenciesWithEquation_SingleGenericFound() {
         TraceLog.IsEnabled = true;
-        //    021      354   
-        //a = b*c; b = c*a; 
+        //    021      354
+        //a = b*c; b = c*a;
 
         var graph = new GraphBuilder();
         graph.SetVar("b", 0);
@@ -402,8 +402,8 @@ class BasicArithmetics {
     [Test]
     public void CircularDependenciesWithEquation_ReversedInputOrder_SingleGenericFound() {
         TraceLog.IsEnabled = true;
-        //    021      354   
-        //a = b*c; b = c*a; 
+        //    021      354
+        //a = b*c; b = c*a;
 
         var graph = new GraphBuilder();
 

@@ -7,7 +7,7 @@ namespace NFun.Tic.Tests;
 class BitOperations {
     [Test]
     public void InvertConstants() {
-        //y = ~1u 
+        //y = ~1u
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.U32);
         graph.SetBitwiseInvert(0, 1);
@@ -19,7 +19,7 @@ class BitOperations {
 
     [Test]
     public void InvertGenericConstants() {
-        //y = ~1 
+        //y = ~1
         var graph = new GraphBuilder();
         graph.SetIntConst(0, StatePrimitive.U8);
         graph.SetBitwiseInvert(0, 1);

@@ -14,9 +14,9 @@ public class StructGenericFunctionTest {
         .AssertResultHas("b", true);
 
     [Test]
-    [Ignore("Undefined behaviour")]
+    [Ignore("Allow req interfaces. Expected user: {age:Any, child:{Age: Any}[]}")]
     public void CallToAllowedReqTypeDef() =>
-        ("f(x) = x.age; y1 = f(user); y2 = f(user.child[0])").Calc();
+        "f(x) = x.age; y1 = f(user); y2 = f(user.child[0])".Calc();
 
     [Test]
     public void CallGenericFunctionFieldNegate() =>

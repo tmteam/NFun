@@ -183,21 +183,15 @@ public class ArraysTest {
         Assert.IsInstanceOf<object[]>(result);
     }
 
+    [Ignore("Composite upcast is not ready yet")]
     [TestCase("out = [[0x1],[1.0]]")]
     //[TestCase("out = [[1.0],[0x1]]")]
     [TestCase("out = [[0x1],[1.0],[0x1]]")]
     //[TestCase("out = [[1.0],[0x1],[1.0]]")]
     public void ConstantTwinRealArrayWithUpcast_returnsArrayOfReal(string expr) {
-        TraceLog.IsEnabled = true;
-
-        //var results = expr.Build();
-
-        Assert.Throws<FunnyParseException>(() => expr.Build());
-        //todo Support type inference
-        /*
-        var result = FunBuilder.Build(expr).Calculate().Get("out");
-        Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);
-    */
+        using var _ = TraceLog.Scope;
+        var runtime = Funny.Hardcore.Build(expr);
+        Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Real)), runtime["out"].Type);
     }
 
     [Test(Description = "out:real[][] = [[0x1],[1.0]]")]

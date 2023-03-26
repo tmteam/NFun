@@ -8,9 +8,9 @@
 
         <RootNamespace>NFun.Tic.Tests</RootNamespace>
 
-        <TargetFrameworks>net6.0;netcoreapp3.0</TargetFrameworks>
-
         <LangVersion>10</LangVersion>
+
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

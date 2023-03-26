@@ -105,7 +105,7 @@ public class BodyTypeInferenceTests {
 
 
     [Test]
-    [Ignore("UB")]
+    [Ignore("Prefered type for variable that initialized with non generic constant")]
     public void UpcastArgType_ArithmOp_EquationSolved() {
         var result = TestHelper.Solve("a = 1.0; y = a + b;  b = 0x1");
         result.AssertNoGenerics();

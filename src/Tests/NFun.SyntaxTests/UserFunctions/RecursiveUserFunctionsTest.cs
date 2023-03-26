@@ -43,8 +43,8 @@ public class RecursiveUserFunctionsTest {
     public void ClassicRecFibonachi(double x, double y) =>
         @"fibrec(n, iter, p1,p2) =
                       if (n >iter) fibrec(n, iter+1, p1+p2, p1)
-                      else p1+p2  
-                
+                      else p1+p2
+
                fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                y = fib(x)"
             .Calc("x", x)
@@ -70,7 +70,7 @@ public class RecursiveUserFunctionsTest {
     [TestCase(6, 8)]
     [TestCase(9, 34)]
     public void PrimitiveRecFibonachi_Typed(int x, int y) =>
-        @"  
+        @"
                    fib(n:int):int = if (n<3) 1 else fib(n-1)+fib(n-2)
                    x:int
                    y = fib(x)"
@@ -103,7 +103,7 @@ public class RecursiveUserFunctionsTest {
     public void RecFactorial_Concrete(int x, int y) =>
         @"fact(n:int):int = if(n>1) n*fact(n-1)
                                     else 1
-                    
+
               y = fact(x)"
             .Calc("x", x)
             .AssertReturns("y", y);
@@ -118,8 +118,8 @@ public class RecursiveUserFunctionsTest {
     public void ClassicRecFibonachi_AllTypesConcrete(int x, int y) =>
         @"fibrec(n:int, iter:int, p1:int,p2:int):int =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
-                          else p1+p2  
-                    
+                          else p1+p2
+
                    fib(n:int) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)".Calc("x", x)
             .AssertReturns("y", y);
@@ -134,8 +134,8 @@ public class RecursiveUserFunctionsTest {
     public void ClassicRecFibonachi_specifyOutputType(int x, int y) =>
         @"fibrec(n:int, iter, p1,p2):int =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
-                          else p1+p2  
-                    
+                          else p1+p2
+
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)".Calc("x", x)
             .AssertReturns("y", y);
@@ -150,8 +150,8 @@ public class RecursiveUserFunctionsTest {
     public void ClassicRecFibonachi_specifyNType(int x, double y) =>
         @"fibrec(n:int, iter, p1,p2) =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
-                          else p1+p2  
-                    
+                          else p1+p2
+
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)"
             .Calc("x", x)
