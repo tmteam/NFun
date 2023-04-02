@@ -1,6 +1,4 @@
-﻿using NFun.Tic.Stages;
-
-namespace NFun.Tic.SolvingStates; 
+﻿namespace NFun.Tic.SolvingStates;
 
 public class StatePrimitive : ITypeState, ITicNodeState {
     private static readonly StatePrimitive[,] LcaMap;
@@ -67,25 +65,6 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public override int GetHashCode() => (int)Name;
     public string Description => Name.ToString();
 
-    public bool ApplyDescendant(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) =>
-        descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
-
-    public bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        StatePrimitive ancestor)
-        => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-
-    public bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        ConstrainsState ancestor)
-        => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-
-    public bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        ICompositeState ancestor)
-        => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-
     private static void FillLcaFcdMaps() {
         int maxVal = 18;
         var numberToTypeMap = new[] {
@@ -137,7 +116,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         //i96
         for (int i = I96.Order; i < maxVal; i++)
         {
-            //i96 ^ iXX = i96,   i96 ^ uXX = i96 
+            //i96 ^ iXX = i96,   i96 ^ uXX = i96
             LcaMap[i, I96.Order] = I96;
             //i96 _ iXX = iXX,   i96 _ uXX = uXX
             FcdMap[i, I96.Order] = numberToTypeMap[i];
@@ -181,7 +160,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             FcdMap[U12.Order, i] = U12;
         }
 
-        //uXX ^ Ixx 
+        //uXX ^ Ixx
         //U32 ^ I64 = I64...
         LcaMap[U16.Order, I16.Order] = I24;
         LcaMap[U24.Order, I16.Order] = I32;
@@ -213,7 +192,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         LcaMap[U48.Order, I64.Order] = I64;
         LcaMap[U64.Order, I64.Order] = I96;
 
-        //uXX _ Ixx 
+        //uXX _ Ixx
         //U32 _ I64 = U32...
         FcdMap[U16.Order, I16.Order] = U12;
         FcdMap[U24.Order, I16.Order] = U12;

@@ -1,6 +1,6 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages; 
+namespace NFun.Tic.Stages;
 
 /// <summary>
 /// 2-dimentional visitor implement some operation
@@ -18,7 +18,7 @@ namespace NFun.Tic.Stages;
 ///
 /// This visitor implemented for Push, Pull and Destruction stages of tic solving
 /// </summary>
-public interface IStateCombination2dimensionalVisitor {
+public interface IStateFunction {
     bool Apply(
         StatePrimitive ancestor,
         StatePrimitive descendant,
@@ -68,8 +68,20 @@ public interface IStateCombination2dimensionalVisitor {
         TicNode descendantNode);
 
     bool Apply(
-        ICompositeState ancestor,
-        ICompositeState descendant,
+        StateArray ancestor,
+        StateArray descendant,
+        TicNode ancestorNode,
+        TicNode descendantNode);
+
+    bool Apply(
+        StateFun ancestor,
+        StateFun descendant,
+        TicNode ancestorNode,
+        TicNode descendantNode);
+
+    bool Apply(
+        StateStruct ancestor,
+        StateStruct descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 }

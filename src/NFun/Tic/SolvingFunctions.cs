@@ -145,9 +145,9 @@ public static class SolvingFunctions {
         }
 
         var newAncestors = main.Ancestors
-                               .Where(r => !cycleRoute.Contains(r))
-                               .Distinct()
-                               .ToList();
+            .Where(r => !cycleRoute.Contains(r))
+            .Distinct()
+            .ToList();
 
         main.ClearAncestors();
         main.AddAncestors(newAncestors);
@@ -192,7 +192,7 @@ public static class SolvingFunctions {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void PullConstrains(TicNode descendant, TicNode ancestor) {
         if (descendant == ancestor) return;
-        var res = ancestor.State.ApplyDescendant(PullConstraintsFunctions.Singleton, ancestor, descendant);
+        var res = PullConstraintsFunctions.Singleton.Invoke(ancestor, descendant);
         if (!res) throw TicErrors.IncompatibleTypes(ancestor, descendant);
     }
 
@@ -233,7 +233,7 @@ public static class SolvingFunctions {
         if (descendant == ancestor)
             return;
 
-        if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singleton, ancestor, descendant))
+        if (!PushConstraintsFunctions.Singleton.Invoke(ancestor, descendant))
             throw TicErrors.IncompatibleNodes(ancestor, descendant);
     }
 
@@ -282,11 +282,7 @@ public static class SolvingFunctions {
         var nonRefDescendant = descendantNode.GetNonReference();
         if (nonRefDescendant == nonRefAncestor)
             return true;
-
-        return nonRefAncestor.State.ApplyDescendant(
-            DestructionFunctions.Singleton,
-            nonRefAncestor,
-            nonRefDescendant);
+        return DestructionFunctions.Singleton.Invoke(nonRefAncestor, nonRefDescendant);
     }
 
 
@@ -578,25 +574,25 @@ public static class SolvingFunctions {
 
     private static IEnumerable<TicNode> GetAllNotSolvedContravariantLeafs(this StateFun fun) =>
         fun.ArgNodes
-           .SelectMany(n => n.GetAllLeafTypes())
-           .Where(t => t.State is ConstrainsState);
+            .SelectMany(n => n.GetAllLeafTypes())
+            .Where(t => t.State is ConstrainsState);
 
 
     public static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
         node.State switch {
             ICompositeState composite => composite.AllLeafTypes,
-            StateRefTo                => new[] { node.GetNonReference() },
-            _                         => new[] { node }
+            StateRefTo => new[] { node.GetNonReference() },
+            _ => new[] { node }
         };
 
     private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
         //Todo Method is not tested. What about composite reference+ fun + reference cases?
         node.State switch {
-            StateFun fun        => fun.RetNode.GetAllOutputTypes(),
-            StateArray array    => array.AllLeafTypes,
+            StateFun fun => fun.RetNode.GetAllOutputTypes(),
+            StateArray array => array.AllLeafTypes,
             StateStruct @struct => @struct.AllLeafTypes,
-            StateRefTo          => new[] { node.GetNonReference() }, //mb AllLeafType?
-            _                   => new[] { node }
+            StateRefTo => new[] { node.GetNonReference() }, //mb AllLeafType?
+            _ => new[] { node }
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

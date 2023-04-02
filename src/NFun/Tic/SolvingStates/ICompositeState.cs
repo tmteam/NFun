@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates; 
+namespace NFun.Tic.SolvingStates;
 
 public interface ITypeState : ITicNodeState {
     ITypeState GetLastCommonAncestorOrNull(ITypeState otherType);
@@ -23,22 +22,11 @@ public interface ITicNodeState {
     /// This type is not solved or can be changed
     /// </summary>
     bool IsMutable { get; }
+
     /// <summary>
     /// This type and all dependent type are solved.
     /// </summary>
     bool IsSolved { get; }
+
     string Description { get; }
-    bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode);
-
-    bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        StatePrimitive ancestor);
-
-    bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        ConstrainsState ancestor);
-
-    bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        ICompositeState ancestor);
 }

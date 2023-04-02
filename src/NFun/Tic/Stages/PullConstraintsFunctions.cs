@@ -4,8 +4,8 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic.Stages;
 
-public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
-    public static IStateCombination2dimensionalVisitor Singleton { get; } = new PullConstraintsFunctions();
+public class PullConstraintsFunctions : IStateFunction {
+    public static IStateFunction Singleton { get; } = new PullConstraintsFunctions();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __) =>
         descendant.CanBeImplicitlyConvertedTo(ancestor);
@@ -75,64 +75,49 @@ public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
         }
     }
 
-    public bool Apply(
-        ICompositeState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor.GetType() != descendant.GetType())
+    public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.ElementNode != ancestor.ElementNode)
+            descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
+
+    public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.ArgsCount != ancestor.ArgsCount)
             return false;
-        if (ancestor is StateArray ancArray)
-        {
-            var descArray = (StateArray)descendant;
-            if (descArray.ElementNode != ancArray.ElementNode)
-            {
-                descArray.ElementNode.AddAncestor(ancArray.ElementNode);
-            }
+        descendant.RetNode.AddAncestor(ancestor.RetNode);
+        for (int i = 0; i < descendant.ArgsCount; i++)
+            ancestor.ArgNodes[i].AddAncestor(descendant.ArgNodes[i]);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
 
-            descendantNode.RemoveAncestor(ancestorNode);
-        }
-        else if (ancestor is StateFun ancFun)
+    public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // desc node has to have all ancestors fields that has exast same type as desc type
+        // (implicit field convertion is not allowed)
+        foreach (var ancField in ancestor.Fields)
         {
-            var descFun = (StateFun)descendant;
-
-            if (descFun.ArgsCount != ancFun.ArgsCount)
-                return false;
-            descFun.RetNode.AddAncestor(ancFun.RetNode);
-            for (int i = 0; i < descFun.ArgsCount; i++)
-                ancFun.ArgNodes[i].AddAncestor(descFun.ArgNodes[i]);
-            descendantNode.RemoveAncestor(ancestorNode);
-        }
-        else if (ancestor is StateStruct ancStruct)
-        {
-            var descStruct = (StateStruct)descendant;
-            // desc node has to have all ancestors fields that has exast same type as desc type
-            // (implicit field convertion is not allowed)
-            foreach (var ancField in ancStruct.Fields)
+            var descField = descendant.GetFieldOrNull(ancField.Key);
+            if (descField == null)
             {
-                var descField = descStruct.GetFieldOrNull(ancField.Key);
-                if (descField == null)
-                {
-                    if (descStruct.IsFrozen)
-                        return false;
-                    else
-                        descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
-                }
+                if (descendant.IsFrozen)
+                    return false;
                 else
-                {
-                    SolvingFunctions.MergeInplace(ancField.Value, descField);
-                    if (ancField.Value.State is StateRefTo)
-                        ancestorNode.State = ancestor.GetNonReferenced();
-                    if (descField.State is StateRefTo)
-                        descendantNode.State = descendant.GetNonReferenced();
-                }
+                    descendantNode.State = descendant.With(ancField.Key, ancField.Value);
             }
-            // descendantNode.RemoveAncestor(ancestorNode);
-        }
-        else
-        {
-            throw new NotSupportedException($"Composite type {ancestor.GetType().Name} is not supported");
+            else
+            {
+                SolvingFunctions.MergeInplace(ancField.Value, descField);
+                if (ancField.Value.State is StateRefTo)
+                    ancestorNode.State = ancestor.GetNonReferenced();
+                if (descField.State is StateRefTo)
+                    descendantNode.State = descendant.GetNonReferenced();
+            }
         }
 
         return true;
     }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ApplyAncestorConstrains(TicNode ancestorNode, ConstrainsState ancestor, ITypeState typeDesc) {

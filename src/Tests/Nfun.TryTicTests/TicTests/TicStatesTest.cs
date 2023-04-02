@@ -12,8 +12,8 @@ public class TicStatesTest {
     public void ConstrainsTestsAreEqual(PrimitiveTypeName? desc, PrimitiveTypeName? anc) {
         var descState = desc == null ? null : new StatePrimitive(desc.Value);
         var ancState = anc == null ? null : new StatePrimitive(anc.Value);
-        var state1 = new ConstrainsState(descState, ancState);
-        var state2 = new ConstrainsState(descState, ancState);
+        var state1 = new ConstrainsState(descState, ancState, false);
+        var state2 = new ConstrainsState(descState, ancState, false);
         Assert.IsTrue(state1.Equals(state2));
         Assert.AreEqual(state1, state2);
     }

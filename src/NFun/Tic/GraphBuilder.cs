@@ -17,7 +17,7 @@ public class GraphBuilder {
     private readonly List<TicNode> _inputNodes = new();
 
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
-        => new(CreateVarType(new ConstrainsState(desc, anc) { IsComparable = isComparable }));
+        => new(CreateVarType(new ConstrainsState(desc, anc, isComparable)));
 
     public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
     public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);

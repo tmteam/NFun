@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Tic.Stages;
 
 namespace NFun.Tic.SolvingStates;
 
@@ -60,26 +59,6 @@ public class StateStruct : ICompositeState {
     public bool IsMutable => true;
     public string Description => "{" + (IsFrozen?" [frozen] " :"") + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) + "}";
     public bool IsFrozen { get; }
-
-    public bool ApplyDescendant(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode,
-        TicNode descendantNode) =>
-        descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
-
-    public bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        StatePrimitive ancestor)
-        => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-
-    public bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        ConstrainsState ancestor)
-        => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-
-    public bool Apply(
-        IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
-        ICompositeState ancestor)
-        => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
 
     public ICompositeState GetNonReferenced() {
         var nodeCopy = _nodes.ToDictionary(d => d.Key, d => d.Value.GetNonReference());

@@ -1,14 +1,14 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages; 
+namespace NFun.Tic.Stages;
 
-public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
-    public static IStateCombination2dimensionalVisitor Singleton { get; } = new PushConstraintsFunctions();
+public class PushConstraintsFunctions : IStateFunction {
+    public static IStateFunction Singleton { get; } = new PushConstraintsFunctions();
 
-    public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
+    public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
         => descendant.CanBeImplicitlyConvertedTo(ancestor);
 
-    public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode _, TicNode descendantNode) {
+    public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         descendant.AddAncestor(ancestor);
         var result = descendant.GetOptimizedOrNull();
         if (result == null)
@@ -17,7 +17,8 @@ public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
         return true;
     }
 
-    public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __) => true;
+    public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
+        => true;
 
     public bool Apply(
         ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode,
@@ -114,44 +115,30 @@ public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
     private static bool TryMergeStructFields(StateStruct ancStruct, StateStruct descStruct) {
         foreach (var ancField in ancStruct.Fields)
         {
-            TicNode descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
+            var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
             if (descFieldNode == null)
                 return false;
-            //  i m not sure why - but it is very important to set descFieldNode as main merge node... 
+            //  i m not sure why - but it is very important to set descFieldNode as main merge node...
             SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
         }
 
         return true;
     }
 
-    public bool Apply(
-        ICompositeState ancestor, ICompositeState descendant, TicNode ancestorNode,
-        TicNode descendantNode) {
-        if (ancestor.GetType() != descendant.GetType())
-            return false;
-        if (ancestor is StateArray ancArray)
-        {
-            var descArray = (StateArray)descendant;
-            SolvingFunctions.PushConstraints(descArray.ElementNode, ancArray.ElementNode);
-            return true;
-        }
-
-        if (ancestor is StateFun ancFun)
-        {
-            var descFun = (StateFun)descendant;
-            if (descFun.ArgsCount != ancFun.ArgsCount)
-                return false;
-            PushFunTypeArgumentsConstraints(descFun, ancFun);
-            return true;
-        }
-
-        if (ancestor is StateStruct ancStruct)
-        {
-            return TryMergeStructFields(ancStruct, (StateStruct)descendant);
-        }
-
-        return false;
+    public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
+        SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
+        return true;
     }
+
+    public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.ArgsCount != ancestor.ArgsCount)
+            return false;
+        PushFunTypeArgumentsConstraints(descendant, ancestor);
+        return true;
+    }
+
+    public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) =>
+        TryMergeStructFields(ancestor, descendant);
 
     private static void PushFunTypeArgumentsConstraints(StateFun descFun, StateFun ancFun) {
         for (int i = 0; i < descFun.ArgsCount; i++)
