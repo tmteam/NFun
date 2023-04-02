@@ -484,6 +484,108 @@ foo = [[[
             actual: bar);
     }
 
+
+    [Test]
+    public void ComplexOutputTypeConstruction() {
+             var runtime =
+            @"
+yx1a = {id = 1}
+yx1b = {id = 2}
+yx1 = {a = yx1a, b = yx1b}
+yx2a = {id = 3}
+yx2b = {id = 4}
+yx2 = {a = yx2a, b = yx2b}
+yy1a = {id = 5}
+yy1b = {id = 6}
+yy1 = {a = yy1a, b = yy1b}
+y2x1a = {id = 7}
+y2x1b = {id = 8}
+y2x1 = {a = y2x1a, b = y2x1b}
+y2x2a = {id = 9}
+y2x2b = {id = 10}
+y2x2 = {a = y2x2a, b = y2x2b}
+y2ya = {id = 11}
+y2yb = {id = 12}
+y2y = {a = y2ya, b = y2yb}
+y1 = { x = [ yx1,yx2 ], y = yy1 }
+y2 = { x = [ y2x1, y2x2 ], y = y2y }
+x1ya = {id = 13}
+x1yb = {id = 14}
+x1y = {a = x1ya, b = x1yb}
+x1 ={ x = default, y = x1y }
+x2xa = {id = 15}
+x2xb = {id = 16}
+x2x = {a = x2xa, b = x2xb}
+x2 = { x = [x2x], y = default }
+fooinY = [[ y1, y2 ], []]
+fooinX= [ x1,x2 ]
+
+fooin = {y = fooinY, x = fooinX }
+
+foo = [[[fooin]]]; bar = foo;".Build();
+        runtime.Run();
+        var bar = runtime["bar"].CreateGetterOf<SuperPuperComplexModel[][][]>()();
+        FunnyAssert.AreSame(expected:
+            new[] {
+                new[] {
+                    new[] {
+                        new SuperPuperComplexModel {
+                            y = new[] {
+                                new[] {
+                                    new SuperComplexModel {
+                                        x = new[] {
+                                            new ComplexModel {
+                                                a = new ModelWithInt { id = 1 }, b = new ModelWithInt { id = 2 }
+                                            },
+                                                new ComplexModel {
+                                                a = new ModelWithInt { id = 3 }, b = new ModelWithInt { id = 4 }
+                                            }
+                                        },
+                                        y = new ComplexModel {
+                                            a = new ModelWithInt { id = 5 }, b = new ModelWithInt { id = 6 }
+                                        }
+                                    },
+                                        new SuperComplexModel {
+                                        x = new[] {
+                                            new ComplexModel {
+                                                a = new ModelWithInt { id = 7 }, b = new ModelWithInt { id = 8 }
+                                            },
+                                                new ComplexModel {
+                                                a = new ModelWithInt { id = 9 }, b = new ModelWithInt { id = 10 }
+                                            }
+                                        },
+                                        y = new ComplexModel {
+                                            a = new ModelWithInt { id = 11 }, b = new ModelWithInt { id = 12 }
+                                        }
+                                    }
+                                },
+                                    new SuperComplexModel[0]
+                            },
+                            x = new[] {
+                                new SuperComplexModel {
+                                    x = new ComplexModel[0],
+                                    y = new ComplexModel {
+                                        a = new ModelWithInt { id = 13 }, b = new ModelWithInt { id = 14 }
+                                    },
+                                },
+                                    new SuperComplexModel {
+                                    x = new[] {
+                                        new ComplexModel {
+                                            a = new ModelWithInt { id = 15 }, b = new ModelWithInt { id = 16 }
+                                        }
+                                    },
+                                    y = new ComplexModel {
+                                        a = new ModelWithInt { id = 0 }, b = new ModelWithInt { id = 0 }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                }
+            },
+            actual: bar);
+    }
+
     [TestCase("y = {a = 1}; z = y.b")]
     [TestCase("x =  {a = 1}; y = x.b")]
     [TestCase("y = {a = 1}.b")]
