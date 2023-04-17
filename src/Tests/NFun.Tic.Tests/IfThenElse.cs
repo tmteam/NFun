@@ -160,6 +160,42 @@ class IfThenElse {
         result.AssertNamed(Any, "y");
     }
 
+    [Test(Description = "y = if (true) 127.0.0.1 else 12")]
+    public void IfOfIpAndNumeric() {
+        //node |    3   0       1            2
+        //expr |y = if (true) 127.0.0.1 else 12;
+
+        var graph = new GraphBuilder();
+
+        graph.SetConst(0, StatePrimitive.Bool);
+        graph.SetConst(1, StatePrimitive.Ip);
+        graph.SetIntConst(2, StatePrimitive.U8);
+        graph.SetIfElse(new[] { 0 }, new[] { 1, 2 }, 3);
+        graph.SetDef("y", 3);
+        var result = graph.Solve();
+
+        result.AssertNoGenerics();
+        result.AssertNamed(StatePrimitive.Any, "y");
+    }
+
+    [Test(Description = "y = if (true) 127.0.0.1 else 12")]
+    public void IfOfBoolAndNumeric() {
+        //node |    3   0       1        2
+        //expr |y = if (true) true else 12;
+
+        var graph = new GraphBuilder();
+
+        graph.SetConst(0, StatePrimitive.Bool);
+        graph.SetConst(1, StatePrimitive.Bool);
+        graph.SetIntConst(2, StatePrimitive.U8);
+        graph.SetIfElse(new[] { 0 }, new[] { 1, 2 }, 3);
+        graph.SetDef("y", 3);
+        var result = graph.Solve();
+
+        result.AssertNoGenerics();
+        result.AssertNamed(StatePrimitive.Any, "y");
+    }
+
     [Test]
     public void If_withMultipleAncestorRules_EquationSolved() {
         //      3     0   1      2       4        5 7 6
