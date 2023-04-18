@@ -30,6 +30,14 @@ public class TypeIpTest {
     [TestCase("x:any = 253.12.3.7; y:any = 253.12.3.8; out = x == y", false)]
     [TestCase("x:any = 253.12.3.7; y:ip = 254.12.3.7; out = x == y", false)]
     [TestCase("x:ip = 253.12.3.7; y:any = 253.12.3.7; out = x == y", true)]
+    [TestCase("[12, 127.0.0.1][0] == 12", true)]
+    [TestCase("[12.0, 127.0.0.1][0] == 12.0", true)]
+    [TestCase("[127.0.0.1,12.0][0] == 127.0.0.1", true)]
+    [TestCase("[12, 127.0.0.1][0] == 127.0.0.1", false)]
+    [TestCase("[12.0, 127.0.0.1][0] == 127.0.0.1", false)]
+    [TestCase("[ 127.0.0.1,12.0][0] == 12", false)]
+    [TestCase("x:any[] = [127.0.0.1, 12.0]; out = x[0] == 127.0.0.1", true)]
+    [TestCase("x = [127.0.0.1, 12.0]; out = x[0] == 12", false)]
     public void ConstantEquation_2(string expr, object expected) => expr.AssertResultHas("out", expected);
 
     [TestCase("1.2.3.x> default")]

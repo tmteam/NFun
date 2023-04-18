@@ -71,21 +71,21 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             Any, //0
             Char, //1
             Bool, //2
-            Real, //3
-            I96, //4
-            I64, //5
-            I48, //6
-            I32, //7
-            I24, //8
-            I16, //9
-            U64, //10
-            U48, //11
-            U32, //12
-            U24, //13
-            U16, //14
-            U12, //15
-            U8, //16
-            Ip, //17
+            Ip,   //3
+            Real, //4
+            I96, //5
+            I64, //6
+            I48, //7
+            I32, //8
+            I24, //9
+            I16, //10
+            U64, //11
+            U48, //12
+            U32, //13
+            U24, //14
+            U16, //15
+            U12, //16
+            U8, //17
         };
 
         //by default - any lca returns any
