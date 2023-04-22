@@ -132,7 +132,7 @@ public class Parser {
         var expression = SyntaxNodeReader.ReadNodeOrNull(_flow);
         if (expression == null)
         {
-            int finish = _flow.Peek?.Finish ?? _flow.Position;
+            int finish = _flow.Peek?.Finish ?? _flow.CurrentTokenFinishPosition;
 
             throw Errors.FunExpressionIsMissed(
                 id, arguments,
@@ -169,7 +169,7 @@ public class Parser {
 
     private EquationSyntaxNode ReadEquationBody(string id) {
         _flow.SkipNewLines();
-        var start = _flow.Position;
+        var start = _flow.CurrentTokenFinishPosition;
         var exNode = SyntaxNodeReader.ReadNodeOrNull(_flow);
         if (exNode == null)
             throw Errors.VarExpressionIsMissed(start, id, _flow.Current);
