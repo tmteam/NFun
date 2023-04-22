@@ -41,10 +41,11 @@ public class GraphBuilder {
 
     public void SetIfElse(int[] conditions, int[] expressions, int resultId) {
         var result = GetOrCreateNode(resultId);
+
         foreach (var exprId in expressions)
         {
             var expr = GetOrCreateNode(exprId);
-            result.BecomeReferenceFor(expr);
+            expr.AddAncestor(result);
         }
 
         foreach (var condId in conditions)

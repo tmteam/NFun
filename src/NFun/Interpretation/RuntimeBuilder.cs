@@ -184,7 +184,6 @@ internal static class RuntimeBuilder {
             syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
 
         var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
-        var exitVisitor = new ApplyTiResultsExitVisitor();
         foreach (var syntaxNode in syntaxTree.Nodes)
         {
             //function nodes were solved above
@@ -192,7 +191,7 @@ internal static class RuntimeBuilder {
                 continue;
 
             //set types to nodes
-            syntaxNode.ComeOver(enterVisitor, exitVisitor);
+            syntaxNode.ComeOver(enterVisitor);
         }
 
         return bodyTypeSolving;
@@ -294,8 +293,7 @@ internal static class RuntimeBuilder {
             functionSyntaxNode.ComeOver(
                 enterVisitor: new ApplyTiResultEnterVisitor(
                     solving: typeInferenceResuls,
-                    tiToLangTypeConverter: TicTypesConverter.Concrete),
-                exitVisitor: new ApplyTiResultsExitVisitor());
+                    tiToLangTypeConverter: TicTypesConverter.Concrete));
 
             var funType = TicTypesConverter.Concrete.Convert(
                 typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
