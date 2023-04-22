@@ -48,7 +48,7 @@ public class ErrorDetailsTest {
     [TestCase("y(x) = x + ", "z", "")]
     [TestCase("y(x) = ", "z", " + x")]
     [TestCase("x:bool;y=sin(", "x", ")")]
-    [TestCase("y(x:int):bool = if (true) true else ", "x", "")]
+    [TestCase("y(x:int):bool = ","if (true) true else x", "")]
     [TestCase("y(x) = ", "z", " +x")]
     [TestCase("", "y(x,x)=", "x+1")]
     [TestCase("", "y(x,x,z)=", "x+1")]

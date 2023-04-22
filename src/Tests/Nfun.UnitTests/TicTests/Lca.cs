@@ -95,7 +95,7 @@ public class LcaTest {
                     tripple.Item3));
         }
 
-        // a LCA a = a 
+        // a LCA a = a
         foreach (var type in _primitiveTypeNames)
             primitiveTypesLca.Add(
                 t(type, type, type));
@@ -208,9 +208,9 @@ public class LcaTest {
         var result3 = Lca.Calculate(aRef, bRef);
         var result4 = Lca.Calculate(bRefRef, aRefRef);
 
-        Assert.AreEqual(result1, expected, $"1: {a} LCA {b} = {result1}, but was expected {expected}");
-        Assert.AreEqual(result2, expected, $"1: {b} LCA {a} = {result2}, but was expected {expected}");
-        Assert.AreEqual(result3, expected, $"1: {aRef} LCA {bRef} = {result3}, but was expected {expected}");
-        Assert.AreEqual(result4, expected, $"1: {aRefRef} LCA {bRefRef} = {result4}, but was expected {expected}");
+        Assert.AreEqual(expected, result1, $"1: {a} LCA {b} = {result1}, but was expected {expected}");
+        Assert.AreEqual(expected, result2, $"1: {b} LCA {a} = {result2}, but was expected {expected}");
+        Assert.AreEqual(expected, result3, $"1: {aRef} LCA {bRef} = {result3}, but was expected {expected}");
+        Assert.AreEqual(expected, result4, $"1: {aRefRef} LCA {bRefRef} = {result4}, but was expected {expected}");
     }
 }

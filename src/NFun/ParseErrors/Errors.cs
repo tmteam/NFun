@@ -196,7 +196,7 @@ internal static partial class Errors {
 
 
         var errorStart = lastArgPosition;
-        if (flow.CurrentTokenStartPosition == errorStart)
+        if (flow.CurrentTokenFinishPosition == errorStart)
             errorStart = arguments.Last().Interval.Start;
         //[x, {y someshit} , ...
         if (!hasAnyBeforeStop)

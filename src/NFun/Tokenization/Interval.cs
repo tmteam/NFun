@@ -28,4 +28,5 @@ public readonly struct Interval {
     }
 
     public Interval Append(Interval rightInterval) => new(Start, rightInterval.Finish);
+    public override string ToString() => $"[{Start}..{Finish}]";
 }
