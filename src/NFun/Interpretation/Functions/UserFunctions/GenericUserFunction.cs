@@ -6,7 +6,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
 
-namespace NFun.Interpretation.Functions; 
+namespace NFun.Interpretation.Functions;
 
 public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     private readonly TypeInferenceResults _typeInferenceResults;
@@ -106,8 +106,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         _syntaxNode.ComeOver(
             enterVisitor: new ApplyTiResultEnterVisitor(
                 solving: _typeInferenceResults,
-                tiToLangTypeConverter: converter),
-            exitVisitor: new ApplyTiResultsExitVisitor());
+                tiToLangTypeConverter: converter));
 
         var function = _syntaxNode.BuildConcrete(
             argTypes: argTypes,
@@ -116,7 +115,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             results: _typeInferenceResults,
             converter: converter,
             dialect: _dialect);
-        
+
         concretePrototype.SetActual(function);
         //It is only place where we can figure out - is the function recursive or not
         RecursionKind = function.RecursionKind;
@@ -124,7 +123,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     }
     //todo - remove it from here
     protected override object Calc(object[] args) => throw new NotImplementedException();
-    
+
     public bool IsGeneric => true;
     public FunctionRecursionKind RecursionKind { get; private set; }
 }

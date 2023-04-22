@@ -9,9 +9,9 @@ public class IfThenElseTest {
     [TestCase(IfExpressionSetup.IfElseIf)]
     public void Nested2IfThenElseParsing(IfExpressionSetup dialect) =>
         @"y =
-	            if (true) 
+	            if (true)
 		            if (true) 1
-		            else 4 	
+		            else 4
 	            else 5
             ".BuildWithDialect(dialect);
 
@@ -19,11 +19,11 @@ public class IfThenElseTest {
     [TestCase(IfExpressionSetup.IfElseIf)]
     public void Nested3IfThenElseParsing(IfExpressionSetup dialect) =>
         @"y =
-	            if (true) 
+	            if (true)
 		            if (true)
 		 	            if (true) 2
 		 	            else 3
-		            else 4 	
+		            else 4
 	            else 5
             ".BuildWithDialect(dialect);
 
@@ -31,13 +31,13 @@ public class IfThenElseTest {
     [TestCase(IfExpressionSetup.IfElseIf)]
     public void Nested4IfThenElseParsing(IfExpressionSetup dialect) =>
         @"y =
-	            if (true) 
-		            if (true) 
+	            if (true)
+		            if (true)
 		 	            if (true)
-                            if (true) 3		 	
+                            if (true) 3
                             else 4
                         else 5
-		            else 6 	
+		            else 6
 	            else 7
             ".BuildWithDialect(dialect);
 
@@ -53,18 +53,18 @@ public class IfThenElseTest {
     [TestCase(9, 9, 0, 10)]
     public void NestedIfThenElse_ififelse(int x1, int x2, int x3, int expected) =>
         @"
-                y = if (x1 == 1) 1 
+                y = if (x1 == 1) 1
                     if (x1 == 2)
                         if (x2 == 1) 2
                         if (x2 == 2) 3
                         else 4
-                    if (x1 == 3) 
-                        if (x2 == 1) 
+                    if (x1 == 3)
+                        if (x2 == 1)
                             if (x3 ==1) 5
                             else 6
                         if (x2 == 2) 7
-                        else 8 	
-                    else if (x2 == 4) 9 
+                        else 8
+                    else if (x2 == 4) 9
                          else 10"
             .BuildWithDialect(IfExpressionSetup.IfIfElse)
             .Calc(("x1", x1), ("x2", x2), ("x3", x3))
@@ -82,18 +82,18 @@ public class IfThenElseTest {
     [TestCase(9, 9, 0, 10)]
     public void NestedIfThenElse(int x1, int x2, int x3, int expected) {
         var expr = @"
-                y = if (x1 == 1) 1 
+                y = if (x1 == 1) 1
                     else if (x1 == 2)
                         if (x2 == 1) 2
                         else if (x2 == 2) 3
                         else 4
-                    else if (x1 == 3) 
-                        if (x2 == 1) 
+                    else if (x1 == 3)
+                        if (x2 == 1)
                             if (x3 ==1) 5
                             else 6
                         else if (x2 == 2) 7
-                        else 8 	
-                    else if (x2 == 4) 9 
+                        else 8
+                    else if (x2 == 4) 9
                          else 10";
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
@@ -103,6 +103,16 @@ public class IfThenElseTest {
                 .Calc(("x1", x1), ("x2", x2), ("x3", x3))
                 .AssertReturns("y", expected);
         }
+    }
+
+    [Test]
+    public void Lca_of_ip_and_number() {
+        var expr= "if (false) 127.0.0.1 else 1";
+        var runtime = Funny.Hardcore
+            .Build(expr);
+        runtime.Calc();
+        Assert.AreEqual(FunnyType.Any, runtime["out"].Type);
+        Assert.AreEqual(1, runtime["out"].Value);
     }
 
     [TestCase("y = if (1<2 )10 else -10", 10)]
@@ -249,7 +259,6 @@ else 'not supported' ", 2, "two")]
     [TestCase("y = if 3")]
     [TestCase("y = if else 3")]
     [TestCase("y = else then 3")]
-    [TestCase("y = if (2>1)  3 else true")]
     [TestCase("y = if (2>1)  3 if 2<1 then true else 1")]
     [TestCase("y = if (2>1)  false if 2<1 then true else 1")]
     public void ObviouslyFails(string expr) {
@@ -269,19 +278,19 @@ else 'not supported' ", 2, "two")]
     [TestCase("if (true) false else true", IfExpressionSetup.Deny)]
     [TestCase(
         @"
-                y = if (x1 == 1) 1 
+                y = if (x1 == 1) 1
                     else if (x1 == 2)
                         if (x2 == 1) 2
                         else if (x2 == 2) 3
                         else 4
                     #else is missing
-                    if (x1 == 3) 
-                        if (x2 == 1) 
+                    if (x1 == 3)
+                        if (x2 == 1)
                             if (x3 ==1) 5
                             else 6
                         if (x2 == 2) 7
-                        else 8 	
-                    else if (x2 == 4) 9 
+                        else 8
+                    else if (x2 == 4) 9
                          else 10", IfExpressionSetup.IfElseIf)]
     public void ObviouslyFails(string expr, IfExpressionSetup setup) =>
         expr.AssertObviousFailsOnParse(setup);
