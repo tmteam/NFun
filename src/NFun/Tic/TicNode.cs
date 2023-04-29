@@ -9,8 +9,6 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic;
 
-using System.Text;
-
 public enum TicNodeType {
     /// <summary>
     /// input or output variable of expression
@@ -133,20 +131,10 @@ public class TicNode {
             return;
 
 #if DEBUG
-        var sb = new StringBuilder($"{Name}");
-        var nameD = 3 - sb.Length;
-        if (nameD < 0) nameD = 0;
-        sb.Append(new string(' ', nameD));
-        sb.Append($"| {State.Description}");
+        TraceLog.Write($"{Name}:", ConsoleColor.Green);
+        TraceLog.Write(State.Description);
         if (Ancestors.Any())
-            sb.Append(" --> " + string.Join(",", Ancestors.Select(a => a.Name)));
-        var delta = 30 - sb.Length;
-        if (delta < 0)
-            delta = 0;
-        sb.Append(new string(' ', delta));
-        sb.Append("| state: " + State.StateDescription);
-
-        TraceLog.Write(sb.ToString());
+            TraceLog.Write("  <=" + string.Join(",", Ancestors.Select(a => a.Name)));
         TraceLog.WriteLine();
 #endif
     }
@@ -156,7 +144,7 @@ public class TicNode {
             return oldConcrete.Equals(primitiveState);
         if (_state is ConstrainsState constrains)
         {
-            if (constrains.CanBeConvertedTo(primitiveState))
+            if (constrains.Fits(primitiveState))
             {
                 _state = primitiveState;
                 return true;
@@ -175,7 +163,7 @@ public class TicNode {
 
         if (node.State is StatePrimitive oldConcrete)
         {
-            return oldConcrete.CanBePessimisticConvertedTo(anc);
+            return oldConcrete.CanBeImplicitlyConvertedTo(anc);
         }
         else if (node.State is ConstrainsState constrains)
         {

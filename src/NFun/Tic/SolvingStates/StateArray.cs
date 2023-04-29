@@ -14,11 +14,16 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
             _ =>  throw new InvalidOperationException($"Array cannot have state {state}")
         };
 
-    private static StateArray Of(ConstrainsState state) => new(TicNode.CreateInvisibleNode(state));
+    private static StateArray Of(ConstrainsState state)
+        => state.HasDescendant || state.HasAncestor
+            ? throw new InvalidOperationException($"Array cannot have state {state}")
+            : new(TicNode.CreateInvisibleNode(state));
 
-    public static StateArray Of(TicNode node) => new(node);
+    public static StateArray Of(TicNode node)
+        => new(node);
 
-    public static StateArray Of(ITypeState type) => new(TicNode.CreateTypeVariableNode(type));
+    public static StateArray Of(ITypeState type)
+        => new(TicNode.CreateTypeVariableNode(type));
 
     public TicNode ElementNode { get; }
     public bool IsSolved => Element.IsSolved;
@@ -51,8 +56,10 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
             return "arr(...REQ...)";
         return $"arr({Element.PrintState(depth + 1)})";
     }
-
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
+        => type.Equals(StatePrimitive.Any);
+
+    public bool CanBeImplicitlyConvertedTo(StatePrimitive type)
         => type.Equals(StatePrimitive.Any);
 
     public override bool Equals(object obj) {
@@ -77,8 +84,6 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
             return new[] { ElementNode };
         }
     }
-
-    public string StateDescription => PrintState(0);
 
     public string Description => "arr(" + ElementNode.Name + ")";
 }
