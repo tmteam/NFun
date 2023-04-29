@@ -7,7 +7,7 @@ using System.Threading;
 using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic; 
+namespace NFun.Tic;
 
 public enum TicNodeType {
     /// <summary>
@@ -22,7 +22,7 @@ public enum TicNodeType {
     SyntaxNode = 4,
 
     /// <summary>
-    /// Generic type from function/constant signature or created in process of solving. 
+    /// Generic type from function/constant signature or created in process of solving.
     /// </summary>
     TypeVariable = 8
 }
@@ -51,6 +51,10 @@ public class TicNode {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TicNode CreateTypeVariableNode(string name, ITicNodeState state, bool registered = false)
         => new(name, state, TicNodeType.TypeVariable) { Registered = registered };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TicNode CreateInvisibleNode(ITicNodeState state)
+        => new("invisible", state, TicNodeType.TypeVariable) { Registered = false };
 
     private TicNode(object name, ITicNodeState state, TicNodeType type) {
         _uid = Interlocked.Increment(ref _interlockedId);
@@ -175,7 +179,7 @@ public class TicNode {
 
         return false;
     }
-    
+
     public TicNode GetNonReference() {
         var result = this;
         if (result.State is StateRefTo referenceA)
