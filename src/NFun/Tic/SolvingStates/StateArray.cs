@@ -8,10 +8,16 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
 
     public static StateArray Of(ITicNodeState state) =>
         state switch {
-            ITypeState type  => Of(type),
+            ITypeState type => Of(type),
             StateRefTo refTo => Of(refTo.Node),
-            _                => throw new InvalidOperationException()
+            ConstrainsState c => Of(c),
+            _ =>  throw new InvalidOperationException($"Array cannot have state {state}")
         };
+
+    private static StateArray Of(ConstrainsState state)
+        => state.HasDescendant || state.HasAncestor
+            ? throw new InvalidOperationException($"Array cannot have state {state}")
+            : new(TicNode.CreateInvisibleNode(state));
 
     public static StateArray Of(TicNode node)
         => new(node);
