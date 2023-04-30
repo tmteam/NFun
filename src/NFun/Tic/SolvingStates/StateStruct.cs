@@ -28,7 +28,6 @@ public class StateStruct : ICompositeState {
         return new StateStruct(newDic, IsFrozen);
     }
 
-    public static StateStruct Empty(bool isFrozen = true) => Of(isFrozen);
     public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields, bool isFrozen) {
         var nodeFields = new Dictionary<string, TicNode>();
         foreach (var (key, value) in fields)
@@ -38,25 +37,6 @@ public class StateStruct : ICompositeState {
                            StateRefTo aRef => aRef.Node,
                            _               => throw new InvalidOperationException()
                        };
-            nodeFields.Add(key, node);
-        }
-
-        return new StateStruct(nodeFields, isFrozen);
-    }
-
-    public static StateStruct Of(string fieldName, ITicNodeState fieldState) => Of(true, (fieldName, fieldState));
-    public static StateStruct Of(params (string, ITicNodeState)[] fields) => Of(true, fields);
-
-    public static StateStruct Of(bool isFrozen, params (string, ITicNodeState)[] fields) {
-        var nodeFields = new Dictionary<string, TicNode>();
-        foreach (var (key, value) in fields)
-        {
-            var node = value switch {
-                ITypeState at   => TicNode.CreateTypeVariableNode(at),
-                StateRefTo aRef => aRef.Node,
-                ConstrainsState ct => TicNode.CreateInvisibleNode(ct),
-                _               => throw new InvalidOperationException()
-            };
             nodeFields.Add(key, node);
         }
 
@@ -77,7 +57,7 @@ public class StateStruct : ICompositeState {
 
     public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
     public bool IsMutable => true;
-    public string Description => ToString();//"{" + (IsFrozen?"f " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) +*/ "}";
+    public string Description => "{" + (IsFrozen?" [frozen] " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) +*/ "}";
     public bool IsFrozen { get; }
 
     public ICompositeState GetNonReferenced() {
@@ -116,16 +96,6 @@ public class StateStruct : ICompositeState {
             ? new StateStruct()
             : StatePrimitive.Any;
 
-    public string PrintState(int depth) {
-        if (depth > 100)
-            return "{...REQ...}";
-        return
-            "{"
-            + (IsFrozen ? "f " : "")
-            + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State.PrintState(depth + 1)}"))
-            + "}";
-    }
-
     public bool CanBePessimisticConvertedTo(StatePrimitive type) => type.Equals(StatePrimitive.Any);
 
     public static ITypeState WithField(string name, StatePrimitive type)
@@ -146,11 +116,6 @@ public class StateStruct : ICompositeState {
         return true;
     }
 
-    public string StateDescription => PrintState(0);
-
-    public override string ToString() =>
-        "{" + (IsFrozen ? "f " : "") +
-        string.Join("; ",
-            _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : $"..")}"))
-        +"}";
+    public override string ToString()
+        => "{" + (IsFrozen?" [frozen] " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}")) +*/ "}";
 }

@@ -6,39 +6,29 @@ namespace NFun.Tic.SolvingStates;
 
 public class StateFun : ICompositeState, ITypeState, ITicNodeState {
     public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType) {
-        var argNodes = new TicNode[argTypes.Length];
+        TicNode[] argNodes = new TicNode[argTypes.Length];
 
-        var retNode = returnType switch {
-            ITypeState rt => TicNode.CreateTypeVariableNode(rt),
-            StateRefTo retRef => retRef.Node,
-            ConstrainsState c => TicNode.CreateInvisibleNode(c),
-            _ => throw new InvalidOperationException($"Fan cannot return state {returnType}")
-        };
+        TicNode retNode = returnType switch {
+                              ITypeState rt     => TicNode.CreateTypeVariableNode(rt),
+                              StateRefTo retRef => retRef.Node,
+                              _                 => throw new InvalidOperationException()
+                          };
 
         for (int i = 0; i < argTypes.Length; i++)
         {
             argNodes[i] = argTypes[i] switch {
                               ITypeState at   => TicNode.CreateTypeVariableNode(at),
                               StateRefTo aRef => aRef.Node,
-                              ConstrainsState c => TicNode.CreateInvisibleNode(c),
                               _               => throw new InvalidOperationException()
                           };
         }
+
+
         return new StateFun(argNodes, retNode);
     }
 
-    public static StateFun Of(ITicNodeState returnType)
-        => Of(Array.Empty<ITicNodeState>(), returnType);
-
     public static StateFun Of(ITicNodeState argType, ITicNodeState returnType)
         => Of(new[] { argType }, returnType);
-
-    public static StateFun Of(ITicNodeState arg1Type, ITicNodeState arg2Type, ITicNodeState retType) =>
-        Of(new[] { arg1Type, arg2Type }, retType);
-
-
-    public static StateFun Of(ITicNodeState arg1Type, ITicNodeState arg2Type, ITicNodeState arg3Type, ITicNodeState retType) =>
-        Of(new[] { arg1Type, arg2Type, arg3Type }, retType);
 
     public static StateFun Of(ITypeState[] argTypes, ITypeState retType) {
         var argNodes = new TicNode[argTypes.Length];
@@ -115,12 +105,6 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         return Of(retType: returnAnc, argTypes: argTypes);
     }
 
-    public string PrintState(int depth) {
-        if (depth > 100)
-            return "(...REQ...)->REQ";
-        return $"({string.Join(",", ArgNodes.Select(a => a.State.PrintState(depth+1)))})->{ReturnType.PrintState(depth+1)}";
-    }
-
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
         => type.Equals(StatePrimitive.Any);
 
@@ -136,7 +120,7 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
             var myArg = ArgNodes[i];
             if (funArg.IsMutable || myArg.IsMutable)
             {
-                if (!funArg.Equals(myArg))
+                if (funArg != myArg)
                     return false;
             }
             else
@@ -196,8 +180,6 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
             }
         }
     }
-
-    public string StateDescription => PrintState(0);
 
     public override string ToString() {
         if (ArgsCount == 1)

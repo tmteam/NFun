@@ -144,7 +144,7 @@ public class TicNode {
             return oldConcrete.Equals(primitiveState);
         if (_state is ConstrainsState constrains)
         {
-            if (constrains.Fits(primitiveState))
+            if (constrains.CanBeConvertedTo(primitiveState))
             {
                 _state = primitiveState;
                 return true;
@@ -163,7 +163,7 @@ public class TicNode {
 
         if (node.State is StatePrimitive oldConcrete)
         {
-            return oldConcrete.CanBeImplicitlyConvertedTo(anc);
+            return oldConcrete.CanBePessimisticConvertedTo(anc);
         }
         else if (node.State is ConstrainsState constrains)
         {

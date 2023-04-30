@@ -15,7 +15,7 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
         };
 
     private static StateArray Of(ConstrainsState state)
-        => state.HasDescendant || state.HasAncestor
+        => state.HasAncestor
             ? throw new InvalidOperationException($"Array cannot have state {state}")
             : new(TicNode.CreateInvisibleNode(state));
 
@@ -51,15 +51,7 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
         return StateArray.Of(ancestor);
     }
 
-    public string PrintState(int depth) {
-        if (depth > 100)
-            return "arr(...REQ...)";
-        return $"arr({Element.PrintState(depth + 1)})";
-    }
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
-        => type.Equals(StatePrimitive.Any);
-
-    public bool CanBeImplicitlyConvertedTo(StatePrimitive type)
         => type.Equals(StatePrimitive.Any);
 
     public override bool Equals(object obj) {

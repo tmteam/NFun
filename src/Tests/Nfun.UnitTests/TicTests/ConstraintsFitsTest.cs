@@ -4,171 +4,75 @@ using NUnit.Framework;
 using TestTools;
 using Tic;
 using Tic.SolvingStates;
-using static Tic.SolvingStates.StatePrimitive;
 
 public class ConstraintsFitsTest {
-
     [Test]
-    public void PrimitiveFits_returnTrue1() =>
-        Any.FitsInto(EmptyConstrains).AssertTrue();
+    public void Fits_returnTrue() {
+        //[u8..Re] FITS into  [..]
+        var constrains = new ConstrainsState();
+        var target = new ConstrainsState(StatePrimitive.U8, StatePrimitive.Real);
+        constrains.Fits(target).AssertTrue();
+    }
 
-    [Test]
-    public void PrimitiveFits_returnTrue2() =>
-        Ip.FitsInto(EmptyConstrains).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnTrue3() =>
-        U32.FitsInto(Constrains(U32, Real)).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnTrue4() =>
-        U64.FitsInto(Constrains(U32, Real)).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnTrue5() =>
-        U32.FitsInto(Constrains(U32, Real, isComparable:true)).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnTrue6() =>
-        U32.FitsInto(Constrains(isComparable: true)).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnTrue7() =>
-        U32.FitsInto(Constrains(U32, isComparable:true)).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnTrue8() =>
-        U32.FitsInto(Constrains(null, Real, isComparable:true)).AssertTrue();
-
-    [Test]
-    public void PrimitiveFits_returnFalse() =>
-        EmptyConstrains.FitsInto(Constrains(U8, Real)).AssertFalse();
-
-    [Test]
-    public void PrimitiveFits_returnFalse2() =>
-        U32.FitsInto(Constrains(U64, Real)).AssertFalse();
-
-    [Test]
-    public void PrimitiveFits_returnFalse3() =>
-        Bool.FitsInto(Constrains(isComparable: true)).AssertFalse();
-
-    [Test]
-    public void ConstrainsFits_returnTrue() =>
-        Constrains(U8, Real).FitsInto(EmptyConstrains).AssertTrue();
-
-    [Test]
-    public void ConstrainsFits_returnFalse() =>
-        Constrains(U64, Real).FitsInto(U32).AssertFalse();
-
-    [Test]
-    public void ArrayFits_returnFalse() =>
-        Array(Constrains(U8))
-            .FitsInto(Constrains(Array(Any)))
-            .AssertFalse();
-
-    [Test]
-    public void ArrayFits_returnTrue() =>
-        Array(Constrains(U32))
-            .FitsInto(Constrains(Array(U8)))
-            .AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue2() =>
-        Array(Constrains(U8, Real))
-            .FitsInto(Constrains(Array(EmptyConstrains)))
-            .AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue3() =>
-        Array(U32)
-            .FitsInto(Array(EmptyConstrains))
-            .AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue4() =>
-        Array(Constrains(Array(U8)))
-            .FitsInto(Array(EmptyConstrains))
-            .AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue5() =>
-        Array(U32).FitsInto(Constrains(Array(U8))).AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue6() =>
-        Array(U32)
-            .FitsInto(Array(Constrains(U32, Real, isComparable:true)))
-            .AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue7() =>
-        Array(Constrains(U32, Real, isComparable:true))
-            .FitsInto(Array(EmptyConstrains))
-            .AssertTrue();
-
-    [Test]
-    public void ArrayFits_returnTrue8() =>
-        Array(Array(EmptyConstrains))
-            .FitsInto(Array(EmptyConstrains))
-            .AssertTrue();
-
-    [Test]
-    public void FunFits_returnsFalse() =>
-        StateFun.Of(new[] { Any }, Any)
-            .FitsInto(Constrains(Array(EmptyConstrains)))
-            .AssertFalse();
-
-    [Test]
-    public void FunFits_returnsTrue() =>
-        StateFun.Of(new[] { Real }, U24)
-            .FitsInto(Constrains(StateFun.Of(new[] { Any }, U16)))
-            .AssertTrue();
-
-    [Test]
-    public void FunFits_returnsTrue2() {
-        var constrains = Constrains(StateFun.Of(EmptyConstrains, Constrains(U16)));
-        var target = StateFun.Of(new[] { Any }, U16);
-        target.FitsInto(constrains).AssertTrue();
+    [TestCase(PrimitiveTypeName.Any)]
+    [TestCase(PrimitiveTypeName.Ip)]
+    [TestCase(PrimitiveTypeName.U8)]
+    public void Fits_returnTrue2(PrimitiveTypeName primitive) {
+        //primitives FIT into  [..]
+        var constrains = new ConstrainsState();
+        var target = new StatePrimitive(primitive);
+        constrains.Fits(target).AssertTrue();
     }
 
     [Test]
-    public void FunFits_returnsTrue3() {
-        var constrains = Constrains(StateFun.Of(
-            new[] { TicNode.CreateInvisibleNode(Constrains(desc: U16, anc: Real)) },
-            TicNode.CreateInvisibleNode(Constrains(desc: U16, anc: Real))));
-        var target = StateFun.Of(new[] { TicNode.CreateInvisibleNode(Constrains(desc: U32, anc: U64)) },
-            TicNode.CreateInvisibleNode(Constrains(desc: U32, anc: U64)));
-        target.FitsInto(constrains).AssertTrue();
+    public void Fits_returnTrue3() {
+        //u32 Does not FITS into  [u32..Re]
+        var constrains = new ConstrainsState(StatePrimitive.U32, StatePrimitive.Real);
+        var target = StatePrimitive.U32;
+        constrains.Fits(target).AssertTrue();
     }
 
     [Test]
-    public void FunFits_returnsTrue4() {
-        var constrains = Constrains(StateFun.Of(EmptyConstrains, EmptyConstrains));
-        var target = StateFun.Of(new[] { Any }, U16);
-        target.FitsInto(constrains).AssertTrue();
+    public void Fits_returnFalse() {
+        //[...] Does not FITS into  [u8..Re]
+        var constrains = new ConstrainsState(StatePrimitive.U8, StatePrimitive.Real);
+        var target = new ConstrainsState();
+        constrains.Fits(target).AssertFalse();
     }
 
     [Test]
-    public void FunFits_returnsTrue5() {
-        var constrains = Constrains(
-            StateFun.Of(new[] { Any },
-                StateFun.Of(new[] { Any },
-                    StateFun.Of(new[] { Any },
-                        U24))));
+    public void Fits_returnFalse2() {
+        //u32 Does not FITS into  [u64..Re]
+        var constrains = new ConstrainsState(StatePrimitive.U64, StatePrimitive.Real);
+        var target = StatePrimitive.U32;
+        constrains.Fits(target).AssertFalse();
+    }
+
+    [Test]
+    public void ArrayFits_returnFalse() {
+        //arr([u8..]) does not fit in  [arr(any)..]
+        var constrains = new ConstrainsState(StateArray.Of(StatePrimitive.Any));
+        var target = StateArray.Of(TicNode.CreateNamedNode("foo", new ConstrainsState(StatePrimitive.U8)));
+        constrains.Fits(target).AssertFalse();
+    }
+
+    [Test]
+    public void ArrayFits_returnTrue() {
+        //arr([u32..]) FITS in  [arr(u8)..]
+        var constrains = new ConstrainsState(StateArray.Of(StatePrimitive.U8));
+        var target = StateArray.Of(TicNode.CreateNamedNode("foo", new ConstrainsState(StatePrimitive.U32)));
+        constrains.Fits(target).AssertTrue();
+    }
+
+    [Test]
+    public void ArrayFits_returnTrue2() {
+        //arr([u8..Re]) FITS into  [arr([..])..]
+
+        var constrains = new ConstrainsState(
+            StateArray.Of(TicNode.CreateNamedNode("foo", new ConstrainsState())));
         var target =
-            StateFun.Of(Constrains(U24, Real) ,
-                StateFun.Of(Constrains(U24, Real),
-                    StateFun.Of(Constrains(U24, Real),
-                        Constrains(U24, Real))));
-        target.FitsInto(constrains).AssertTrue();
+            StateArray.Of(TicNode.CreateNamedNode("foo", new ConstrainsState(StatePrimitive.U8, StatePrimitive.Real)));
+        constrains.Fits(target).AssertTrue();
     }
 
-    private static ConstrainsState EmptyConstrains => ConstrainsState.Empty;
-
-    private static ITicNodeState Array(ITicNodeState state) => StateArray.Of(state);
-
-    private static ITicNodeState Constrains(ITicNodeState desc = null, StatePrimitive anc = null,
-        bool isComparable = false)
-        => ConstrainsState.Of(desc, anc, isComparable);
 }
-

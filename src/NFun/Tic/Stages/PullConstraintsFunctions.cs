@@ -11,8 +11,7 @@ public class PullConstraintsFunctions : IStateFunction {
         descendant.CanBePessimisticConvertedTo(ancestor);
 
     public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode _, TicNode __)
-    //todo - should we add ancestor to constrains?!
-        => descendant.CanBeConvertedOptimisticTo(ancestor);
+        => !descendant.HasDescendant || descendant.Descendant.CanBePessimisticConvertedTo(ancestor);
 
     public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __)
         => descendant.CanBePessimisticConvertedTo(ancestor);
@@ -61,7 +60,7 @@ public class PullConstraintsFunctions : IStateFunction {
                     return false;
                 result.RetNode.AddAncestor(ancFun.RetNode);
                 for (int i = 0; i < result.ArgsCount; i++)
-                    ancFun.ArgNodes[i].AddAncestor(result.ArgNodes[i]);
+                    result.ArgNodes[i].AddAncestor(ancFun.ArgNodes[i]);
                 descendantNode.State = result;
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;

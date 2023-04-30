@@ -9,6 +9,8 @@ public class StateRefTo : ITicNodeState {
     public TicNode Node { get; }
     public override string ToString() => $"ref({Node.Name})";
     public string Description => Node.Name.ToString();
+    public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
+        primitive.Equals(StatePrimitive.Any);
 
     public string PrintState(int depth) {
         if (depth > 100)
