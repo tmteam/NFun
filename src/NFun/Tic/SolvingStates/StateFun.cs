@@ -105,7 +105,7 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         return Of(retType: returnAnc, argTypes: argTypes);
     }
 
-    public bool CanBeImplicitlyConvertedTo(StatePrimitive type)
+    public bool CanBePessimisticConvertedTo(StatePrimitive type)
         => type.Equals(StatePrimitive.Any);
 
     public override bool Equals(object obj) {
