@@ -17,7 +17,7 @@ public class GraphBuilder {
     private readonly List<TicNode> _inputNodes = new();
 
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
-        => new(CreateVarType(ConstrainsState.Of(desc, anc, isComparable)));
+        => new(CreateVarType(new ConstrainsState(desc, anc, isComparable)));
 
     public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
     public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
@@ -102,7 +102,6 @@ public class GraphBuilder {
         if (node.State is ConstrainsState c)
         {
             var arrayOf = StateArray.Of(eNode);
-            // todo - there were Fits instead of CanBeConvertedTo
             if (c.CanBeConvertedTo(arrayOf))
             {
                 node.State = arrayOf;
@@ -299,13 +298,18 @@ public class GraphBuilder {
 
 
     public ITicResults Solve(bool ignorePrefered = false) {
+        PrintTrace("0. Solving");
+
         var sorted = Toposort();
+        PrintTrace("1. Toposorted");
         PrintTrace("1. Toposorted", sorted);
 
         SolvingFunctions.PullConstraints(sorted);
+        PrintTrace("2. PullConstraints");
         PrintTrace("2. PullConstraints", sorted);
 
         SolvingFunctions.PushConstraints(sorted);
+        PrintTrace("3. PushConstraints");
         PrintTrace("3. PushConstraints", sorted);
 
         bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
@@ -403,7 +407,6 @@ public class GraphBuilder {
                 genericArgs[i] = CreateVarType();
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
-            //todo - there were FITS instead of CanBeConvertedTo. What is right?
             if (state is not ConstrainsState constrains || !constrains.CanBeConvertedTo(newFunVar))
                 throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
             functionNode.State = newFunVar;
@@ -425,7 +428,7 @@ public class GraphBuilder {
             return varnode;
         }
 
-        var ans = TicNode.CreateNamedNode(name, ConstrainsState.Empty);
+        var ans = TicNode.CreateNamedNode(name, new ConstrainsState());
         _variables.Add(name, ans);
         return ans;
     }
@@ -489,7 +492,7 @@ public class GraphBuilder {
         if (alreadyExists != null)
             return alreadyExists;
 
-        var res = TicNode.CreateSyntaxNode(id, ConstrainsState.Empty, true);
+        var res = TicNode.CreateSyntaxNode(id, new ConstrainsState(), true);
         _syntaxNodes[id] = res;
         return res;
     }
@@ -531,7 +534,7 @@ public class GraphBuilder {
 
         var varNode = TicNode.CreateTypeVariableNode(
             name: "V" + _varNodeId,
-            state: state ?? ConstrainsState.Empty,
+            state: state ?? new ConstrainsState(),
             true);
         _varNodeId++;
         _typeVariables.Add(varNode);

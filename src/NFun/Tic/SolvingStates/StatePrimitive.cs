@@ -48,9 +48,6 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public static StatePrimitive U12 { get; } = new(PrimitiveTypeName.U12);
     public static StatePrimitive U8 { get; } = new(PrimitiveTypeName.U8);
     public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
-    public string StateDescription => PrintState(0);
-
-    public string PrintState(int depth) => ToString();
 
     public bool CanBePessimisticConvertedTo(StatePrimitive type) => Equals(LcaMap[this.Order, type.Order], type);
 

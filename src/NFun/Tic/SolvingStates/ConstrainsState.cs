@@ -2,8 +2,6 @@
 
 namespace NFun.Tic.SolvingStates;
 
-using static StatePrimitive;
-
 public class ConstrainsState : ITicNodeState {
     public StatePrimitive Ancestor { get; private set; }
     public ITicNodeState Descendant { get; private set; }
@@ -15,19 +13,60 @@ public class ConstrainsState : ITicNodeState {
     public bool IsComparable { get; }
     public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;
 
-    public static ConstrainsState Empty => new(null, null, false);
-
-    public static ConstrainsState Of(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) =>
-        new(desc, anc, isComparable);
-
-    private ConstrainsState(ITicNodeState desc, StatePrimitive anc, bool isComparable) {
+    public ConstrainsState(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) {
         Descendant = desc;
         Ancestor = anc;
         IsComparable = isComparable;
     }
 
-    public ConstrainsState GetCopy() => new(Descendant, Ancestor, IsComparable) { Preferred = Preferred };
+    public ConstrainsState GetCopy() =>
+        new(Descendant, Ancestor, IsComparable) {
+            Preferred = Preferred,
+        };
 
+    public bool Fits(ITicNodeState type) => CanBeFitConverted(Lca.GetMaxType(this), Lca.GetMaxType(type));
+
+    public bool Fits(ICompositeState type) {
+        if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
+            return false;
+        if (IsComparable)
+        {
+            // the only comparable composite is arr(char)
+            if (!(type is StateArray a))
+                return false;
+            if (!a.Element.Equals(StatePrimitive.Char))
+                return false;
+        }
+
+        if (!HasDescendant)
+            return true;
+        if (Descendant.GetType() != type.GetType())
+            return false;
+        // Descendant can be converted to type, in some scenarious
+        if (Descendant is StateArray stateArray)
+        {
+            var typeArray = (StateArray)type;
+            var bottomDesc = Lca.GetMaxType(stateArray);
+            var bottomAnc = Lca.GetMaxType(typeArray);
+            return CanBeFitConverted(from: bottomDesc, to: bottomAnc);
+        }
+        else
+            throw new NotImplementedException($"Type {type} is not supported yet in FIT");
+    }
+
+    private bool CanBeFitConverted(ITicNodeState from, ITicNodeState to) =>
+        //todo - it is not done. Just superficial implementation
+        from switch {
+            StateArray arrFrom => to is StateArray arrTo
+                ? CanBeFitConverted(arrFrom.Element, arrTo.Element)
+                : to.Equals(StatePrimitive.Any),
+            StatePrimitive => to is ConstrainsState st
+                ? st.HasDescendant && CanBeFitConverted(from, st.Descendant)
+                : to is StatePrimitive p && from.CanBePessimisticConvertedTo(p),
+            ConstrainsState { HasDescendant: true } fc => CanBeFitConverted(fc.Descendant, to),
+            ConstrainsState => true,
+            _ => throw new NotImplementedException($"Type {from}-> {to} is not supported yet in FIT")
+        };
 
     public bool CanBeConvertedTo(ITypeState type) {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
@@ -44,7 +83,7 @@ public class ConstrainsState : ITicNodeState {
         else if (type is ICompositeState)
         {
             if (IsComparable)
-                return type is StateArray a && a.Element.Equals(Char);
+                return type is StateArray a && a.Element.Equals(StatePrimitive.Char);
             if (!HasDescendant)
                 return true;
             if (!type.IsSolved || !Descendant.IsSolved)
@@ -83,8 +122,8 @@ public class ConstrainsState : ITicNodeState {
         if (type == null)
             return;
         Descendant = !HasDescendant
-            ? type.Concretest()
-            : Descendant.Lca(type);
+            ? Lca.GetMaxType(type)
+            : Lca.BottomLca(Descendant, type);
     }
 
     public ITicNodeState MergeOrNull(ConstrainsState constrainsState) {
@@ -106,7 +145,7 @@ public class ConstrainsState : ITicNodeState {
                 return anc;
             }
 
-            if (Descendant != null && !Descendant.CanBePessimisticConvertedTo(anc))
+            if (Descendant!=null && !Descendant.CanBePessimisticConvertedTo(anc))
                 return null;
         }
 
@@ -137,7 +176,7 @@ public class ConstrainsState : ITicNodeState {
     public ITicNodeState SolveCovariant(bool ignorePreferred = false) {
         if (!ignorePreferred && Preferred != null && CanBeConvertedTo(Preferred))
             return Preferred;
-        var ancestor = Ancestor ?? Any;
+        var ancestor = Ancestor ?? StatePrimitive.Any;
         if (IsComparable)
         {
             if (ancestor.IsComparable)
@@ -175,61 +214,42 @@ public class ConstrainsState : ITicNodeState {
     }
 
     public ITicNodeState GetOptimizedOrNull() {
-        if (!HasDescendant) return this;
-
         if (IsComparable)
         {
-            switch (Descendant)
+            if(Descendant is StateArray ar && ar.Element.CanBePessimisticConvertedTo(StatePrimitive.Char))
+                return StateArray.Of(StatePrimitive.Char);
+
+            if (Descendant is ICompositeState)
+                return null;
+            if (Descendant != null)
             {
-                case StateArray a:
+                if (Descendant.Equals(StatePrimitive.Char))
+                    return StatePrimitive.Char;
+
+                if (Descendant is StatePrimitive primitive && primitive.IsNumeric)
                 {
-                    if (a.Element.CanBeConvertedOptimisticTo(Char))
-                        return StateArray.Of(Char);
-                    else
+                    if (!TryAddAncestor(StatePrimitive.Real))
                         return null;
                 }
-                case StatePrimitive primitive:
-                {
-                    if (primitive.Equals(Char)) //it is an endpoint
-                        return Char;
-                    if (primitive.IsNumeric)
-                    {
-                        if (!TryAddAncestor(Real)) return null;
-                    }
-                    else return null;
-
-                    break;
-                }
-                case ICompositeState:
+                else if (Descendant is StateArray a && a.Element.Equals(StatePrimitive.Char))
+                    return Descendant;
+                else
                     return null;
             }
         }
 
-        if (HasAncestor)
+        if (HasAncestor && HasDescendant)
         {
-            var d = Descendant;
-            if (Descendant is ConstrainsState { IsComparable: true } constrains && Ancestor.IsComparable)
-            {
-                d = constrains.Descendant;
-                if (d == null)
-                    return new ConstrainsState(null, Ancestor, false);
-            }
-
-            if (Ancestor.Equals(d))
+            if (Ancestor.Equals(Descendant))
                 return Ancestor;
-            if (!(d is ITypeState descendant))
-                return this;
+            if (!(Descendant is ITypeState descendant))
+                return null;
             if (!descendant.CanBePessimisticConvertedTo(Ancestor))
                 return null;
         }
-        else if (Descendant is ConstrainsState constrainsState)
-        {
-            if (constrainsState.IsComparable && !IsComparable)
-                return this;
-            return new ConstrainsState(constrainsState.Descendant, null, IsComparable);
-        }
-        else if (Descendant.Equals(Any))
-            return Any;
+
+        if (Descendant?.Equals(StatePrimitive.Any) == true)
+            return StatePrimitive.Any;
 
         return this;
     }
@@ -246,7 +266,7 @@ public class ConstrainsState : ITicNodeState {
     public string Description => ToString();
 
     public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
-        Equals(primitive, Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
+        Equals(primitive, StatePrimitive.Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
 
     public override bool Equals(object obj) {
         if (obj is not ConstrainsState constrainsState)
@@ -268,19 +288,5 @@ public class ConstrainsState : ITicNodeState {
             return false;
 
         return IsComparable == constrainsState.IsComparable;
-    }
-
-    public string StateDescription => PrintState(0);
-
-    public string PrintState(int depth) {
-        if (depth > 100)
-            return "[..REQ..]";
-        depth++;
-        var res = $"[{Descendant?.PrintState(depth)}..{Ancestor?.PrintState(depth)}]";
-        if (IsComparable)
-            res += "<>";
-        if (Preferred != null)
-            res += Preferred + "!";
-        return res;
     }
 }
