@@ -102,7 +102,7 @@ public class GraphBuilder {
         if (node.State is ConstrainsState c)
         {
             var arrayOf = StateArray.Of(eNode);
-            if (c.Fits(arrayOf))
+            if (c.CanBeConvertedTo(arrayOf))
             {
                 node.State = arrayOf;
                 return;
@@ -407,7 +407,7 @@ public class GraphBuilder {
                 genericArgs[i] = CreateVarType();
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
-            if (state is not ConstrainsState constrains || !constrains.Fits(newFunVar))
+            if (state is not ConstrainsState constrains || !constrains.CanBeConvertedTo(newFunVar))
                 throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
             functionNode.State = newFunVar;
             SetCall(newFunVar, argThenReturnIds);

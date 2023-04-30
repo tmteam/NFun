@@ -6,6 +6,8 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests;
 
+using Tic;
+
 public class TestFluentApiCalcSingleObjectConst {
 
     [TestCase("(13 == 13) and ('vasa' == 'vasa')", true)]
@@ -22,6 +24,7 @@ public class TestFluentApiCalcSingleObjectConst {
 
     [Test]
     public void ReturnsComplexIntArrayConstant() {
+        using var _ = TraceLog.Scope;
         var result = Funny.Calc(
             "[[[1,2],[]],[[3,4]],[[]]]");
         Assert.IsInstanceOf<object[]>(result);
@@ -29,6 +32,27 @@ public class TestFluentApiCalcSingleObjectConst {
             new[] {
                 new[] { new[] { 1, 2 }, Array.Empty<int>() }, new[] { new[] { 3, 4 } }, new[] { Array.Empty<int>() }
             }, result);
+    }
+
+    [Test]
+    public void ReturnsComplexIntArrayConstant2() {
+        using var _ = TraceLog.Scope;
+        var result = Funny.Calc("[[[1]],[[]]]");
+        Assert.IsInstanceOf<int[][][]>(result);
+        Assert.AreEqual(
+            new[] {
+                new[] { new[] { 1 } }, new[] { Array.Empty<int>() }
+            }, result);
+    }
+
+    [Test]
+    public void ReturnsComplexIntArrayConstant3() {
+        using var _ = TraceLog.Scope;
+        var result = Funny.Calc("[[1],[]]");
+        Assert.IsInstanceOf<int[][]>(result);
+        Assert.AreEqual(
+                new[] { new[] { 1 } ,  Array.Empty<int>() }
+            , result);
     }
 
     [Test]

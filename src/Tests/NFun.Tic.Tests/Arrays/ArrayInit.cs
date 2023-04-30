@@ -3,10 +3,12 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Arrays;
 
+using System.Linq;
+
 class ArrayInit {
     [Test]
     public void ArrayInitWithSpecifiedArrayType() {
-        //           3 0  1  2 
+        //           3 0  1  2
         // y:int[] = [1i,2i,3i]
         var graph = new GraphBuilder();
         graph.SetVarType("y", StateArray.Of(StatePrimitive.I32));
@@ -22,7 +24,7 @@ class ArrayInit {
 
     [Test]
     public void ArrayInitWithSpecifiedArrayTypeAndUpcast() {
-        //            3 0  1  2 
+        //            3 0  1  2
         // y:real[] = [1i,2i,3i]
         var graph = new GraphBuilder();
         graph.SetVarType("y", StateArray.Of(StatePrimitive.Real));
@@ -39,7 +41,7 @@ class ArrayInit {
 
     [Test]
     public void ArrayInitWithSpecifiedArrayTypeAndDowncast_fails() {
-        //            3 0  1  2 
+        //            3 0  1  2
         // y:byte[] = [1i,2i,3i]
         var graph = new GraphBuilder();
         graph.SetVarType("y", StateArray.Of(StatePrimitive.U8));
@@ -56,7 +58,7 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInitWithSpecifiedArrayType() {
-        //          3 0 1 2 
+        //          3 0 1 2
         // y:int[] = [1,2,3]
         var graph = new GraphBuilder();
         graph.SetVarType("y", StateArray.Of(StatePrimitive.I32));
@@ -73,7 +75,8 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInit() {
-        //    3 0 1 2 
+        using var _ = TraceLog.Scope;
+        //    3 0 1 2
         // y = [1,2,3]
         var graph = new GraphBuilder();
         graph.SetIntConst(0, StatePrimitive.U8);
@@ -83,13 +86,15 @@ class ArrayInit {
         graph.SetDef("y", 3);
 
         var result = graph.Solve();
+        var gens = result.GenericNodes.ToList();
+
         var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
         result.AssertNamedEqualToArrayOf(generic, "y");
     }
 
     [Test]
     public void GenericArrayInitWithVariable() {
-        //    3 0 1 2 
+        //    3 0 1 2
         // y = [1,2,x]
         var graph = new GraphBuilder();
         graph.SetIntConst(0, StatePrimitive.U8);
@@ -107,7 +112,7 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInitWithVariable2() {
-        //    3 0 1 2 
+        //    3 0 1 2
         // y = [x,1,2]
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
@@ -126,7 +131,7 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInitWithTwoVariables() {
-        //    2 0 1  
+        //    2 0 1
         // y = [a,b]
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
@@ -142,7 +147,7 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInitWithTwoVariablesOneOfThemHasConcreteType() {
-        //       2 0 1  
+        //       2 0 1
         //a:int; y = [a,b]
         var graph = new GraphBuilder();
         graph.SetVarType("a", StatePrimitive.I32);
@@ -159,7 +164,7 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInitWithComplexVariables() {
-        //    3 0  21  
+        //    3 0  21
         // y = [x,-x]
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
@@ -176,7 +181,7 @@ class ArrayInit {
 
     [Test]
     public void GenericArrayInitWithTwoSameVariables() {
-        //    2 0 1  
+        //    2 0 1
         // y = [x,x]
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
@@ -193,7 +198,7 @@ class ArrayInit {
 
     [Test]
     public void ArrayInitWithConcreteConstant() {
-        //    3 0 1 2 
+        //    3 0 1 2
         // y = [1.0,2,3]
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.Real);
@@ -209,7 +214,7 @@ class ArrayInit {
 
     [Test]
     public void TwoDimention_InitConcrete() {
-        //     4 3 0 1 2 
+        //     4 3 0 1 2
         // y = [[1i,2i,3i]]
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.I32);
@@ -225,7 +230,7 @@ class ArrayInit {
 
     [Test]
     public void TwoDimention_InitConcrete_ConcreteDef() {
-        //             4 3 0 1 2 
+        //             4 3 0 1 2
         // y:int[][] = [[1i,2i,3i]]
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.I32);
@@ -243,7 +248,7 @@ class ArrayInit {
     [Test]
     public void TwoDimention_AnyUpcastArray_ConcreteDef() {
         TraceLog.IsEnabled = true;
-        //           3 0 2 1 
+        //           3 0 2 1
         // y:any[] = [1i,[1r]]
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.I32);

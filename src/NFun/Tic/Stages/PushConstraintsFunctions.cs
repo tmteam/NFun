@@ -6,7 +6,7 @@ public class PushConstraintsFunctions : IStateFunction {
     public static IStateFunction Singleton { get; } = new PushConstraintsFunctions();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
-        => descendant.CanBeImplicitlyConvertedTo(ancestor);
+        => descendant.CanBePessimisticConvertedTo(ancestor);
 
     public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         descendant.AddAncestor(ancestor);
@@ -25,7 +25,7 @@ public class PushConstraintsFunctions : IStateFunction {
         TicNode descendantNode) {
         if (!ancestor.HasAncestor)
             return true;
-        return descendant.CanBeImplicitlyConvertedTo(ancestor.Ancestor);
+        return descendant.CanBePessimisticConvertedTo(ancestor.Ancestor);
     }
 
     public bool Apply(

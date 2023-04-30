@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests.BuiltInFunctions;
 
+using Tic;
+
 [TestFixture]
 public class BuiltInFunctionsTest {
     [TestCase("toText([1,2,3])", "[1,2,3]")]
@@ -150,8 +152,10 @@ public class BuiltInFunctionsTest {
     [TestCase("range(7,10.0)", new[] { 7.0, 8, 9, 10 })]
     [TestCase("range(7.0,10.0)", new[] { 7.0, 8, 9, 10 })]
     [TestCase("range(1,10,2.0)", new[] { 1.0, 3.0, 5.0, 7.0, 9.0 })]
-    public void ConstantEquationWithPredefinedFunction(string expr, object expected)
-        => expr.AssertAnonymousOut(expected);
+    public void ConstantEquationWithPredefinedFunction(string expr, object expected) {
+        using var _ = TraceLog.Scope;
+        expr.AssertAnonymousOut(expected);
+    }
 
     [Ignore("TODO ceil, floor, sign functions are not implemented")]
     [TestCase("ceil(7.03)", 8)]

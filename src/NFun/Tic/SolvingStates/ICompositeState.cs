@@ -4,7 +4,6 @@ namespace NFun.Tic.SolvingStates;
 
 public interface ITypeState : ITicNodeState {
     ITypeState GetLastCommonAncestorOrNull(ITypeState otherType);
-    bool CanBeImplicitlyConvertedTo(StatePrimitive type);
 }
 
 public interface ICompositeState : ITypeState {
@@ -29,4 +28,6 @@ public interface ITicNodeState {
     bool IsSolved { get; }
 
     string Description { get; }
+
+    bool CanBePessimisticConvertedTo(StatePrimitive primitive);
 }

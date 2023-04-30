@@ -2,6 +2,8 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic.Stages;
 
+using System;
+
 public class DestructionFunctions : IStateFunction {
     public static DestructionFunctions Singleton { get; } = new();
 
@@ -10,7 +12,7 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.Fits(ancestor))
+        if (descendant.CanBeConvertedTo(ancestor))
             descendantNode.State = ancestor;
 
         return true;
@@ -21,13 +23,15 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor.Fits(descendant)) ancestorNode.State = descendant;
+        if (ancestor.CanBeConvertedTo(descendant)) ancestorNode.State = descendant;
         return true;
     }
 
     public bool Apply(
         ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        var result = ancestor.MergeOrNull(descendant);
+        ITicNodeState result;
+
+        result = ancestor.MergeOrNull(descendant);
         if (result == null)
             return false;
 
@@ -55,11 +59,14 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        //todo Check all nonrefchildren of constrains?
         if (ancestor.Fits(descendant))
         {
             ancestorNode.State = new StateRefTo(descendantNode);
             descendantNode.RemoveAncestor(ancestorNode);
+        }
+        else
+        {
+            Console.WriteLine($"{descendant} does not fit into {ancestor}");
         }
 
         return true;
@@ -74,6 +81,10 @@ public class DestructionFunctions : IStateFunction {
         {
             descendantNode.State = new StateRefTo(ancestorNode);
             descendantNode.RemoveAncestor(ancestorNode);
+        }
+        else
+        {
+            Console.WriteLine($"{descendant} does not fit into {ancestor}");
         }
 
         return true;

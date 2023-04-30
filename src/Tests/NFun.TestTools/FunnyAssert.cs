@@ -243,4 +243,9 @@ public static class FunnyAssert {
     public static void AreSame(object expected, object actual) =>
         Assert.IsTrue(TestHelper.AreSame(expected, actual),
             $"Expected: {expected.ToStringSmart()} \r\nActual: {actual.ToStringSmart()}");
+
+    public static void AssertTrue(this bool value, string message = "") => Assert.IsTrue(value, message);
+
+    public static void AssertFalse(this bool value, string message = "") => Assert.IsFalse(value, message);
+
 }

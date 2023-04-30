@@ -49,7 +49,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public static StatePrimitive U8 { get; } = new(PrimitiveTypeName.U8);
     public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
 
-    public bool CanBeImplicitlyConvertedTo(StatePrimitive type) => Equals(LcaMap[this.Order, type.Order], type);
+    public bool CanBePessimisticConvertedTo(StatePrimitive type) => Equals(LcaMap[this.Order, type.Order], type);
 
     public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
         => FcdMap[this.Order, other.Order];
