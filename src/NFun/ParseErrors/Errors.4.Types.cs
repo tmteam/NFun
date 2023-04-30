@@ -15,7 +15,7 @@ namespace NFun.ParseErrors;
 internal static partial class Errors {
 
     internal static FunnyParseException ImpossibleCast(FunnyType from, FunnyType to, Interval interval) => new(
-        710, $"Unable to cast from {from} to {to}. Possible recursive type definition", interval);
+        710, $"Unable to cast from {from} to {to}", interval);
 
     internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph) {
         var allTicNodes = graph.GetNodes();

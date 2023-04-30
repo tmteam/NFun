@@ -374,7 +374,7 @@ public class PrimitiveTypeTest {
     [TestCase(PrimitiveTypeName.U8, PrimitiveTypeName.U64)]
     [TestCase(PrimitiveTypeName.Char, PrimitiveTypeName.Any)]
     public void CanBeImplicitlyConverted_returnsTrue(PrimitiveTypeName from, PrimitiveTypeName to) =>
-        Assert.IsTrue(new StatePrimitive(from).CanBeImplicitlyConvertedTo(new StatePrimitive(to)));
+        Assert.IsTrue(new StatePrimitive(from).CanBePessimisticConvertedTo(new StatePrimitive(to)));
 
     [TestCase(PrimitiveTypeName.Real, PrimitiveTypeName.U48)]
     [TestCase(PrimitiveTypeName.I32, PrimitiveTypeName.U64)]
@@ -389,5 +389,5 @@ public class PrimitiveTypeTest {
     [TestCase(PrimitiveTypeName.U64, PrimitiveTypeName.I16)]
     [TestCase(PrimitiveTypeName.Char, PrimitiveTypeName.Bool)]
     public void CanBeImplicitlyConverted_returnsFalse(PrimitiveTypeName from, PrimitiveTypeName to) =>
-        Assert.IsFalse(new StatePrimitive(from).CanBeImplicitlyConvertedTo(new StatePrimitive(to)));
+        Assert.IsFalse(new StatePrimitive(from).CanBePessimisticConvertedTo(new StatePrimitive(to)));
 }
