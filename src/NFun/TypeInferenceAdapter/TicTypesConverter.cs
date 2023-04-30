@@ -61,14 +61,14 @@ public abstract class TicTypesConverter {
                                 case PrimitiveTypeName.I96:
                                 {
                                     if (constrains.HasDescendant &&
-                                        constrains.Descendant.CanBeImplicitlyConvertedTo(StatePrimitive.I32))
+                                        constrains.Descendant.CanBePessimisticConvertedTo(StatePrimitive.I32))
                                         return FunnyType.Int32;
                                     return FunnyType.Int64;
                                 }
                                 case PrimitiveTypeName.I48:
                                 {
                                     if (constrains.HasDescendant &&
-                                        constrains.Descendant.CanBeImplicitlyConvertedTo(StatePrimitive.I32))
+                                        constrains.Descendant.CanBePessimisticConvertedTo(StatePrimitive.I32))
                                         return FunnyType.Int32;
                                     return FunnyType.UInt32;
                                 }

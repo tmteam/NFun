@@ -183,7 +183,6 @@ public class ArraysTest {
         Assert.IsInstanceOf<object[]>(result);
     }
 
-    [Ignore("Composite upcast is not ready yet")]
     [TestCase("out = [[0x1],[1.0]]")]
     //[TestCase("out = [[1.0],[0x1]]")]
     [TestCase("out = [[0x1],[1.0],[0x1]]")]
