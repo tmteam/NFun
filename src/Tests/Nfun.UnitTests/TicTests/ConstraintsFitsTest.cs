@@ -75,4 +75,10 @@ public class ConstraintsFitsTest {
         constrains.Fits(target).AssertTrue();
     }
 
+    [Test]
+    public void HiOrderFun_returnsTrue() {
+        //(Any->(Any->U24))-> (Re->(Re->U24))
+        Assert.Fail("TODO");
+    }
+
 }
