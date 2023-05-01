@@ -6,24 +6,28 @@ namespace NFun.Tic.SolvingStates;
 
 public class StateFun : ICompositeState, ITypeState, ITicNodeState {
     public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType) {
-        TicNode[] argNodes = new TicNode[argTypes.Length];
+        var argNodes = new TicNode[argTypes.Length];
 
-        TicNode retNode = returnType switch {
-                              ITypeState rt     => TicNode.CreateTypeVariableNode(rt),
-                              StateRefTo retRef => retRef.Node,
-                              _                 => throw new InvalidOperationException()
-                          };
+        var retNode = returnType switch {
+            ITypeState rt => TicNode.CreateTypeVariableNode(rt),
+            StateRefTo retRef => retRef.Node,
+            ConstrainsState c => c.HasAncestor
+                ? throw new InvalidOperationException($"Fun cannot return constrains state {c}")
+                : TicNode.CreateInvisibleNode(c),
+            _ => throw new InvalidOperationException($"Fan cannot return state {returnType}")
+        };
 
         for (int i = 0; i < argTypes.Length; i++)
         {
             argNodes[i] = argTypes[i] switch {
                               ITypeState at   => TicNode.CreateTypeVariableNode(at),
                               StateRefTo aRef => aRef.Node,
+                              ConstrainsState c => c.NoConstrains
+                                  ? TicNode.CreateInvisibleNode(c)
+                                  : throw new InvalidOperationException($"Fun arg cannot use constrains state {c}"),
                               _               => throw new InvalidOperationException()
                           };
         }
-
-
         return new StateFun(argNodes, retNode);
     }
 
