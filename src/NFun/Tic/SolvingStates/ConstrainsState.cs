@@ -50,6 +50,28 @@ public class ConstrainsState : ITicNodeState {
             var bottomAnc = Lca.GetMaxType(typeArray);
             return CanBeFitConverted(from: bottomDesc, to: bottomAnc);
         }
+
+        if (Descendant is StateFun stateFun)
+        {
+            var typeFun = (StateFun)type;
+            if (stateFun.ArgsCount != typeFun.ArgsCount)
+                return false;
+            var returnBottomDesc = Lca.GetMaxType(stateFun.ReturnType);
+            var returnBottomAnc = Lca.GetMaxType(typeFun.ReturnType);
+            if (!CanBeFitConverted(from: returnBottomDesc, to: returnBottomAnc))
+                return false;
+            for (int i = 0; i < stateFun.ArgsCount; i++)
+            {
+                var descArg = stateFun.ArgNodes[i].State;
+                var ancArg = typeFun.ArgNodes[i].State;
+                //todo - not sure about it. It is a sketch
+                var dmin = Lca.GetMinType(descArg);
+                var amin = Lca.GetMinType(ancArg);
+                if (!CanBeFitConverted(from: dmin, to: amin))
+                    return false;
+            }
+            return true;
+        }
         else
             throw new NotImplementedException($"Type {type} is not supported yet in FIT");
     }
