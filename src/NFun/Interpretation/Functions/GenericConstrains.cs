@@ -1,6 +1,8 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Interpretation.Functions; 
+namespace NFun.Interpretation.Functions;
+
+using static StatePrimitive;
 
 public readonly struct GenericConstrains {
     public readonly StatePrimitive Ancestor;
@@ -19,22 +21,22 @@ public readonly struct GenericConstrains {
         = new(null, null, false);
 
     public static readonly GenericConstrains Arithmetical
-        = new(StatePrimitive.Real, StatePrimitive.U24, false);
+        = new(Real, U24, false);
 
     public static readonly GenericConstrains Integers
-        = new(StatePrimitive.I96, null, false);
+        = new(I96, null, false);
 
     public static readonly GenericConstrains Integers3264
-        = new(StatePrimitive.I96, StatePrimitive.U24, false);
+        = new(I96, U24, false);
 
     public static readonly GenericConstrains Integers32
-        = new(StatePrimitive.I48, null, false);
+        = new(I48, null, false);
 
     public static readonly GenericConstrains SignedNumber
-        = new(StatePrimitive.Real, StatePrimitive.I16, false);
+        = new(Real, I16, false);
 
     public static readonly GenericConstrains Numbers
-        = new(StatePrimitive.Real, null, false);
+        = new(Real, null, false);
 
     public static GenericConstrains FromTicConstrains(ConstrainsState constrainsState)
         => new(constrainsState.Ancestor, constrainsState.Descendant as StatePrimitive, constrainsState.IsComparable);

@@ -3,11 +3,13 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Arrays;
 
+using static StatePrimitive;
+
 public class ArrayConcatCallTest {
     [Test(Description = "y = concat(a,b)")]
     public void Concat_Generic() {
         //     2     0 1
-        //y = concat(a,b) 
+        //y = concat(a,b)
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
@@ -22,40 +24,40 @@ public class ArrayConcatCallTest {
     [Test(Description = "a:int[]; y = concat(a,b)")]
     public void Concat_LeftConcreteArg() {
         //              2     0 1
-        //a:int[]; y = concat(a,b) 
+        //a:int[]; y = concat(a,b)
         var graph = new GraphBuilder();
-        graph.SetVarType("a", StateArray.Of(StatePrimitive.I32));
+        graph.SetVarType("a", StateArray.Of(I32));
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
         graph.SetConcatCall(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "y", "a", "b");
+        result.AssertNamedEqualToArrayOf(I32, "y", "a", "b");
     }
 
     [Test(Description = "b:int[]; y = concat(a,b)")]
     public void Concat_RightConcreteArg() {
         //              2     0 1
-        //b:int[]; y = concat(a,b) 
+        //b:int[]; y = concat(a,b)
         var graph = new GraphBuilder();
-        graph.SetVarType("b", StateArray.Of(StatePrimitive.I32));
+        graph.SetVarType("b", StateArray.Of(I32));
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
         graph.SetConcatCall(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "y", "a", "b");
+        result.AssertNamedEqualToArrayOf(I32, "y", "a", "b");
     }
 
     [Test(Description = "a:int[]; b:int[] y = concat(a,b)")]
     public void Concat_BothSameConcreteArgs() {
         //              2     0 1
-        //a:int[]; b:int[]; y = concat(a,b) 
+        //a:int[]; b:int[]; y = concat(a,b)
         var graph = new GraphBuilder();
-        graph.SetVarType("a", StateArray.Of(StatePrimitive.I32));
-        graph.SetVarType("b", StateArray.Of(StatePrimitive.I32));
+        graph.SetVarType("a", StateArray.Of(I32));
+        graph.SetVarType("b", StateArray.Of(I32));
 
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
@@ -63,16 +65,16 @@ public class ArrayConcatCallTest {
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "y", "a", "b");
+        result.AssertNamedEqualToArrayOf(I32, "y", "a", "b");
     }
 
     [Test(Description = "a:int[]; b:char[] y = concat(a,b)")]
     public void Concat_BothDifferentConcreteArgs() {
         //              2     0 1
-        //a:int[]; b:char[]; y = concat(a,b) 
+        //a:int[]; b:char[]; y = concat(a,b)
         var graph = new GraphBuilder();
-        graph.SetVarType("a", StateArray.Of(StatePrimitive.I32));
-        graph.SetVarType("b", StateArray.Of(StatePrimitive.Char));
+        graph.SetVarType("a", StateArray.Of(I32));
+        graph.SetVarType("b", StateArray.Of(Char));
 
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
@@ -80,24 +82,24 @@ public class ArrayConcatCallTest {
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.Any, "y");
-        result.AssertNamedEqualToArrayOf(StatePrimitive.Char, "b");
-        result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "a");
+        result.AssertNamedEqualToArrayOf(Any, "y");
+        result.AssertNamedEqualToArrayOf(Char, "b");
+        result.AssertNamedEqualToArrayOf(I32, "a");
     }
 
     [Test(Description = "y:real[] = concat(a,b)")]
     public void Concat_ConcreteDef() {
         //              2     0 1
-        //y:real[] = concat(a,b) 
+        //y:real[] = concat(a,b)
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
         graph.SetConcatCall(0, 1, 2);
-        graph.SetVarType("y", StateArray.Of(StatePrimitive.Real));
+        graph.SetVarType("y", StateArray.Of(Real));
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.Real, "y", "a", "b");
+        result.AssertNamedEqualToArrayOf(Real, "y", "a", "b");
     }
 
     [Test(Description = "y:real[] = concat(a,b)")]
@@ -106,16 +108,16 @@ public class ArrayConcatCallTest {
         //a:real[]; y:real[] = concat(a,b)
 
         var graph = new GraphBuilder();
-        graph.SetVarType("a", StateArray.Of(StatePrimitive.Real));
+        graph.SetVarType("a", StateArray.Of(Real));
 
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
         graph.SetConcatCall(0, 1, 2);
-        graph.SetVarType("y", StateArray.Of(StatePrimitive.Real));
+        graph.SetVarType("y", StateArray.Of(Real));
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.Real, "y", "a", "b");
+        result.AssertNamedEqualToArrayOf(Real, "y", "a", "b");
     }
 
     [Test(Description = "y:real[] = concat(a,b)")]
@@ -124,23 +126,23 @@ public class ArrayConcatCallTest {
         //b:int[]; y:real[] = concat(a,b)
 
         var graph = new GraphBuilder();
-        graph.SetVarType("b", StateArray.Of(StatePrimitive.I32));
+        graph.SetVarType("b", StateArray.Of(I32));
 
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
         graph.SetConcatCall(0, 1, 2);
-        graph.SetVarType("y", StateArray.Of(StatePrimitive.Real));
+        graph.SetVarType("y", StateArray.Of(Real));
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamedEqualToArrayOf(StatePrimitive.Real, "y", "a");
-        result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "b");
+        result.AssertNamedEqualToArrayOf(Real, "y", "a");
+        result.AssertNamedEqualToArrayOf(I32, "b");
     }
 
     [Test(Description = "y = concat(a,concat(b,c))")]
     public void TwinConcat_Generic() {
         //     4     3    2   0 1
-        //y = concat(a,concat(b,c)) 
+        //y = concat(a,concat(b,c))
         var graph = new GraphBuilder();
         graph.SetVar("b", 0);
         graph.SetVar("c", 1);
