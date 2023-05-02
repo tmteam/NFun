@@ -66,7 +66,6 @@ public class AnyElementTests {
     }
 
     [Test]
-    //[Ignore("Upcast for complex types")]
     public void Anything_WithArgUpcastStrictArrayArg() {
         //     6  1 0     5       2 4 3
         //y = Any([ 1i ], x:real->x ==0)
