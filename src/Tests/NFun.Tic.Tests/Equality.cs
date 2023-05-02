@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests;
 
+using static StatePrimitive;
+
 class Equality {
     [Test]
     [Ignore("Not defined behaviour")]
@@ -17,7 +19,7 @@ class Equality {
 
         var result = graph.Solve();
 
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
         var generic = result.AssertAndGetSingleGeneric(null, null);
         result.AssertAreGenerics(generic, "a", "b");
     }
@@ -28,15 +30,15 @@ class Equality {
         // y = a == 1i
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(1, I32);
         graph.SetEquality(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
-        result.AssertNamed(StatePrimitive.I32, "a");
+        result.AssertNamed(Bool, "y");
+        result.AssertNamed(I32, "a");
     }
 
     [Test]
@@ -44,15 +46,15 @@ class Equality {
         //     0  2 1
         // y = 1i == 1i
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(0, I32);
+        graph.SetConst(1, I32);
         graph.SetEquality(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
     }
 
     [Test]
@@ -60,14 +62,14 @@ class Equality {
         //     0   2 1
         // y = 1i == 1.0
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetConst(1, StatePrimitive.Real);
+        graph.SetConst(0, I32);
+        graph.SetConst(1, Real);
         graph.SetEquality(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
     }
 }

@@ -4,6 +4,7 @@ using NUnit.Framework;
 using TestTools;
 using Tic;
 using Tic.SolvingStates;
+using static Tic.SolvingStates.StatePrimitive;
 
 public class PessimisticConvertTest {
 
@@ -21,12 +22,11 @@ public class PessimisticConvertTest {
 
     [Test]
     public void FromAnyToConstraints_returnsFalse() =>
-        SolvingFunctions.CanBeConvertedPessimistic(StatePrimitive.Any,
-                new ConstrainsState(StatePrimitive.I64, StatePrimitive.Real))
+        SolvingFunctions.CanBeConvertedPessimistic(Any, new ConstrainsState(I64, Real))
             .AssertFalse();
 
     [Test]
     public void FromAnyToConstraints_returnsTrue() =>
-        SolvingFunctions.CanBeConvertedPessimistic(StatePrimitive.Any, new ConstrainsState(StatePrimitive.Any))
+        SolvingFunctions.CanBeConvertedPessimistic(Any, new ConstrainsState(Any))
             .AssertTrue();
 }

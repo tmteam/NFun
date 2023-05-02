@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests;
 
+using static StatePrimitive;
+
 class ComparisonChain {
 
     [Test]
@@ -21,7 +23,7 @@ class ComparisonChain {
         graph.SetCompareChain(3, new[] { g1, g2 }, new[] { 0, 1, 2 });
         graph.SetDef("y", 3);
         var result = graph.Solve();
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
         var generic = result.AssertAndGetSingleGeneric(null, null, true);
         result.AssertAreGenerics(generic, "a", "b", "c");
     }
@@ -33,7 +35,7 @@ class ComparisonChain {
         // y = a < 1i < c
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(1, I32);
         graph.SetVar("c", 2);
 
         var g1 = graph.InitializeVarNode(null, null, true);
@@ -43,8 +45,8 @@ class ComparisonChain {
         graph.SetDef("y", 3);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
-        result.AssertNamed(StatePrimitive.I32, "a");
-        result.AssertNamed(StatePrimitive.I32, "c");
+        result.AssertNamed(Bool, "y");
+        result.AssertNamed(I32, "a");
+        result.AssertNamed(I32, "c");
     }
 }

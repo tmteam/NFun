@@ -3,16 +3,18 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests;
 
+using static StatePrimitive;
+
 public class IncorrectNodesOrderTest {
     [Test]
     public void ZeroNodeIsSkipped_Solved() {
         //x = 16i
         var graph = new GraphBuilder();
-        graph.SetConst(2, StatePrimitive.I32);
+        graph.SetConst(2, I32);
         graph.SetDef("x", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "x");
+        result.AssertNamed(I32, "x");
     }
 
     [Test]
@@ -24,7 +26,7 @@ public class IncorrectNodesOrderTest {
         graph.SetVar("a", 4);
         graph.SetVar("x", 5);
         graph.SetVar("z", 7);
-        graph.SetIntConst(8, StatePrimitive.U8);
+        graph.SetIntConst(8, U8);
         graph.SetArith(7, 8, 6);
         graph.SetIfElse(new[] { 4 }, new[] { 5, 6 }, 2);
         graph.SetDef("y", 2);
@@ -33,7 +35,7 @@ public class IncorrectNodesOrderTest {
 
         var generic = result.AssertAndGetSingleArithGeneric();
         result.AssertAreGenerics(generic, "y", "x", "z");
-        result.AssertNamed(StatePrimitive.Bool, "a");
+        result.AssertNamed(Bool, "a");
     }
 
     [Test]
@@ -45,16 +47,16 @@ public class IncorrectNodesOrderTest {
          * Exit:4. VAR a
          * Exit:5. VAR x
          * Exit:7. VAR z
-         * Exit:8. Constant 1 
-Exit:6. Call +(2)  
-Exit:2. if(4): 5 else 6 
-Exit:1. y:Empty = 2 
+         * Exit:8. Constant 1
+Exit:6. Call +(2)
+Exit:2. if(4): 5 else 6
+Exit:1. y:Empty = 2
          */
 
         graph.SetVar("a", 4);
         graph.SetVar("x", 5);
         graph.SetVar("z", 7);
-        graph.SetIntConst(8, StatePrimitive.U8);
+        graph.SetIntConst(8, U8);
         graph.SetArith(7, 8, 6);
         graph.SetIfElse(new[] { 4 }, new[] { 5, 6 }, 2);
         graph.SetDef("y", 2);
@@ -63,6 +65,6 @@ Exit:1. y:Empty = 2
 
         var generic = result.AssertAndGetSingleArithGeneric();
         result.AssertAreGenerics(generic, "y", "x", "z");
-        result.AssertNamed(StatePrimitive.Bool, "a");
+        result.AssertNamed(Bool, "a");
     }
 }

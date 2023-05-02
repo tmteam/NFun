@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Funs;
 
+using static StatePrimitive;
+
 public class MultiArgTests {
     [Test]
     public void Genericfold_GetSum() {
@@ -37,7 +39,7 @@ public class MultiArgTests {
         graph.SetVar("la", 1);
         graph.SetVar("lb", 2);
         graph.SetArith(1, 2, 3);
-        graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
+        graph.CreateLambda(3, 4, I64, "la", "lb");
         graph.SetfoldCall(0, 4, 5);
         graph.SetDef("y", 5);
 
@@ -46,9 +48,9 @@ public class MultiArgTests {
         result.AssertNoGenerics();
 
 
-        result.AssertNamed(StatePrimitive.I64, "y", "la", "lb");
-        result.AssertNamed(StateArray.Of(StatePrimitive.I64), "x");
-        result.AssertNode(StateFun.Of(new[] { StatePrimitive.I64, StatePrimitive.I64 }, StatePrimitive.I64), 4);
+        result.AssertNamed(I64, "y", "la", "lb");
+        result.AssertNamed(StateArray.Of(I64), "x");
+        result.AssertNode(StateFun.Of(new[] { I64, I64 }, I64), 4);
     }
 
 
@@ -64,16 +66,16 @@ public class MultiArgTests {
         graph.SetArith(1, 2, 3);
         graph.CreateLambda(3, 4, "la", "lb");
         graph.SetfoldCall(0, 4, 5);
-        graph.SetVarType("y", StatePrimitive.U32);
+        graph.SetVarType("y", U32);
         graph.SetDef("y", 5);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
 
-        result.AssertNamed(StatePrimitive.U32, "y", "la", "lb");
-        result.AssertNamed(StateArray.Of(StatePrimitive.U32), "x");
-        result.AssertNode(StateFun.Of(new[] { StatePrimitive.U32, StatePrimitive.U32 }, StatePrimitive.U32), 4);
+        result.AssertNamed(U32, "y", "la", "lb");
+        result.AssertNamed(StateArray.Of(U32), "x");
+        result.AssertNode(StateFun.Of(new[] { U32, U32 }, U32), 4);
     }
 
     [Test]
@@ -82,7 +84,7 @@ public class MultiArgTests {
         //x:u32[]; y = fold(x, f(a,b)=a+b)
         var graph = new GraphBuilder();
 
-        graph.SetVarType("y", StatePrimitive.U32);
+        graph.SetVarType("y", U32);
         graph.SetVar("x", 0);
         graph.SetVar("la", 1);
         graph.SetVar("lb", 2);
@@ -95,9 +97,9 @@ public class MultiArgTests {
 
         result.AssertNoGenerics();
 
-        result.AssertNamed(StatePrimitive.U32, "y", "la", "lb");
-        result.AssertNamed(StateArray.Of(StatePrimitive.U32), "x");
-        result.AssertNode(StateFun.Of(new[] { StatePrimitive.U32, StatePrimitive.U32 }, StatePrimitive.U32), 4);
+        result.AssertNamed(U32, "y", "la", "lb");
+        result.AssertNamed(StateArray.Of(U32), "x");
+        result.AssertNode(StateFun.Of(new[] { U32, U32 }, U32), 4);
     }
 
 
@@ -111,7 +113,7 @@ public class MultiArgTests {
         graph.SetVar("x", 0);
         graph.SetVar("la", 1);
         graph.SetVar("lb", 2);
-        graph.SetCall(new[] { StatePrimitive.Real, StatePrimitive.Bool }, new[] { 2, 3 });
+        graph.SetCall(new[] { Real, Bool }, new[] { 2, 3 });
         graph.SetBoolCall(1, 3, 4);
         graph.CreateLambda(4, 5, "la", "lb");
         graph.SetFoldCall(0, 5, 6);
@@ -120,9 +122,9 @@ public class MultiArgTests {
 
         result.AssertNoGenerics();
 
-        result.AssertNamed(StateArray.Of(StatePrimitive.Real), "x");
-        result.AssertNamed(StatePrimitive.Real, "lb");
-        result.AssertNamed(StatePrimitive.Bool, "la", "y");
+        result.AssertNamed(StateArray.Of(Real), "x");
+        result.AssertNamed(Real, "lb");
+        result.AssertNamed(Bool, "la", "y");
     }
 
     [Test]
@@ -133,10 +135,10 @@ public class MultiArgTests {
 
         graph.SetVar("x", 0);
         graph.SetVar("la", 1);
-        graph.SetVarType("lb", StatePrimitive.I32);
+        graph.SetVarType("lb", I32);
         graph.SetVar("lb", 2);
         graph.SetArith(1, 2, 3);
-        graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
+        graph.CreateLambda(3, 4, I64, "la", "lb");
         graph.SetFoldCall(0, 4, 5);
         graph.SetDef("y", 5);
 
@@ -144,10 +146,10 @@ public class MultiArgTests {
 
         result.AssertNoGenerics();
 
-        result.AssertNamed(StatePrimitive.I64, "y", "la");
-        result.AssertNamed(StatePrimitive.I32, "lb");
-        result.AssertNamed(StateArray.Of(StatePrimitive.I32), "x");
-        result.AssertNode(StateFun.Of(new[] { StatePrimitive.I64, StatePrimitive.I32 }, StatePrimitive.I64), 4);
+        result.AssertNamed(I64, "y", "la");
+        result.AssertNamed(I32, "lb");
+        result.AssertNamed(StateArray.Of(I32), "x");
+        result.AssertNode(StateFun.Of(new[] { I64, I32 }, I64), 4);
     }
 
     [Test]
@@ -158,12 +160,12 @@ public class MultiArgTests {
 
         graph.SetVar("x", 0);
         graph.SetVar("la", 1);
-        graph.SetVarType("lb", StatePrimitive.I32);
+        graph.SetVarType("lb", I32);
         graph.SetVar("lb", 2);
         graph.SetArith(1, 2, 3);
         TestHelper.AssertThrowsTicError(
             () => {
-                graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
+                graph.CreateLambda(3, 4, I64, "la", "lb");
                 graph.SetfoldCall(0, 4, 5);
                 graph.SetDef("y", 5);
                 graph.Solve();
