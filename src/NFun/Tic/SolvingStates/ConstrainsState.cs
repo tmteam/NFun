@@ -2,6 +2,8 @@
 
 namespace NFun.Tic.SolvingStates;
 
+using static StatePrimitive;
+
 public class ConstrainsState : ITicNodeState {
     public StatePrimitive Ancestor { get; private set; }
     public ITicNodeState Descendant { get; private set; }
@@ -34,7 +36,7 @@ public class ConstrainsState : ITicNodeState {
             // the only comparable composite is arr(char)
             if (!(type is StateArray a))
                 return false;
-            if (!a.Element.Equals(StatePrimitive.Char))
+            if (!a.Element.Equals(Char))
                 return false;
         }
 
@@ -81,7 +83,7 @@ public class ConstrainsState : ITicNodeState {
         from switch {
             StateArray arrFrom => to is StateArray arrTo
                 ? CanBeFitConverted(arrFrom.Element, arrTo.Element)
-                : to.Equals(StatePrimitive.Any),
+                : to.Equals(Any),
             StatePrimitive => to is ConstrainsState st
                 ? st.HasDescendant && CanBeFitConverted(from, st.Descendant)
                 : to is StatePrimitive p && from.CanBePessimisticConvertedTo(p),
@@ -105,7 +107,7 @@ public class ConstrainsState : ITicNodeState {
         else if (type is ICompositeState)
         {
             if (IsComparable)
-                return type is StateArray a && a.Element.Equals(StatePrimitive.Char);
+                return type is StateArray a && a.Element.Equals(Char);
             if (!HasDescendant)
                 return true;
             if (!type.IsSolved || !Descendant.IsSolved)
@@ -198,7 +200,7 @@ public class ConstrainsState : ITicNodeState {
     public ITicNodeState SolveCovariant(bool ignorePreferred = false) {
         if (!ignorePreferred && Preferred != null && CanBeConvertedTo(Preferred))
             return Preferred;
-        var ancestor = Ancestor ?? StatePrimitive.Any;
+        var ancestor = Ancestor ?? Any;
         if (IsComparable)
         {
             if (ancestor.IsComparable)
@@ -238,22 +240,22 @@ public class ConstrainsState : ITicNodeState {
     public ITicNodeState GetOptimizedOrNull() {
         if (IsComparable)
         {
-            if(Descendant is StateArray ar && ar.Element.CanBePessimisticConvertedTo(StatePrimitive.Char))
-                return StateArray.Of(StatePrimitive.Char);
+            if(Descendant is StateArray ar && ar.Element.CanBePessimisticConvertedTo(Char))
+                return StateArray.Of(Char);
 
             if (Descendant is ICompositeState)
                 return null;
             if (Descendant != null)
             {
-                if (Descendant.Equals(StatePrimitive.Char))
-                    return StatePrimitive.Char;
+                if (Descendant.Equals(Char))
+                    return Char;
 
                 if (Descendant is StatePrimitive primitive && primitive.IsNumeric)
                 {
-                    if (!TryAddAncestor(StatePrimitive.Real))
+                    if (!TryAddAncestor(Real))
                         return null;
                 }
-                else if (Descendant is StateArray a && a.Element.Equals(StatePrimitive.Char))
+                else if (Descendant is StateArray a && a.Element.Equals(Char))
                     return Descendant;
                 else
                     return null;
@@ -270,8 +272,8 @@ public class ConstrainsState : ITicNodeState {
                 return null;
         }
 
-        if (Descendant?.Equals(StatePrimitive.Any) == true)
-            return StatePrimitive.Any;
+        if (Descendant?.Equals(Any) == true)
+            return Any;
 
         return this;
     }
@@ -288,7 +290,7 @@ public class ConstrainsState : ITicNodeState {
     public string Description => ToString();
 
     public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
-        Equals(primitive, StatePrimitive.Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
+        Equals(primitive, Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
 
     public override bool Equals(object obj) {
         if (obj is not ConstrainsState constrainsState)

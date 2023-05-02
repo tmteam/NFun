@@ -4,6 +4,7 @@ using NUnit.Framework;
 using TestTools;
 using Tic;
 using Tic.SolvingStates;
+using static Tic.SolvingStates.StatePrimitive;
 
 public class OptimisticConvertTest {
     [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.Real)]
@@ -20,295 +21,284 @@ public class OptimisticConvertTest {
 
     [Test]
     public void FromAnyToConstraints_returnsFalse() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.Any,
-                new ConstrainsState(StatePrimitive.I64, StatePrimitive.Real))
+        SolvingFunctions.CanBeConvertedOptimistic(Any, new ConstrainsState(I64, Real))
             .AssertFalse();
 
     [Test]
     public void FromAnyToConstraints_returnsTrue() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.Any, new ConstrainsState(StatePrimitive.Any))
+        SolvingFunctions.CanBeConvertedOptimistic(Any, new ConstrainsState(Any))
             .AssertTrue();
 
     [Test]
     public void FromPrimitiveToConstraints_returnsFalse2() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.Char,
-                new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real))
+        SolvingFunctions.CanBeConvertedOptimistic(Char, new ConstrainsState(I32, Real))
             .AssertFalse();
 
     [Test]
     public void FromPrimitiveToConstraints_returnsTrue() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.I32,
-                new ConstrainsState(StatePrimitive.Real, StatePrimitive.Any))
+        SolvingFunctions.CanBeConvertedOptimistic(I32, new ConstrainsState(Real, Any))
             .AssertTrue();
 
     [Test]
     public void FromPrimitiveToConstraints_returnsTrue2() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.I32,
-                new ConstrainsState(StatePrimitive.U8, StatePrimitive.Any))
+        SolvingFunctions.CanBeConvertedOptimistic(I32, new ConstrainsState(U8, Any))
             .AssertTrue();
 
     [Test]
     public void FromPrimitiveToConstraints_returnsTrue3() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.I32,
-                new ConstrainsState(null, StatePrimitive.Any))
+        SolvingFunctions.CanBeConvertedOptimistic(I32,
+                new ConstrainsState(null, Any))
             .AssertTrue();
 
     [Test]
     public void FromPrimitiveToConstraints_returnsTrue4() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StatePrimitive.I32,
-                new ConstrainsState(StatePrimitive.Char)) // `from` can be of `any` type
+                I32,
+                new ConstrainsState(Char)) // `from` can be of `any` type
             .AssertTrue();
 
     [Test]
     public void FromPrimitiveToConstraints_returnsTrue5() =>
-        SolvingFunctions.CanBeConvertedOptimistic(StatePrimitive.I32,
-                new ConstrainsState(StatePrimitive.Char, StatePrimitive.Any))
+        SolvingFunctions.CanBeConvertedOptimistic(I32, new ConstrainsState(Char, Any))
             .AssertTrue();
 
 
     [Test]
     public void ConstrainsToConstraints_returnsFalse() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.I64, StatePrimitive.Real),
-                new ConstrainsState(StatePrimitive.U8, StatePrimitive.I32))
+                new ConstrainsState(I64, Real),
+                new ConstrainsState(U8, I32))
             .AssertFalse();
 
     [Test]
     public void ConstrainsToConstraints_returnsFalse2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.U64),
-                new ConstrainsState(null, StatePrimitive.I32))
+                new ConstrainsState(U64),
+                new ConstrainsState(null, I32))
             .AssertFalse();
 
     [Test]
     public void ConstrainsToConstraints_returnsFalse3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.U64),
-                new ConstrainsState(null, StatePrimitive.I32))
+                new ConstrainsState(U64),
+                new ConstrainsState(null, I32))
             .AssertFalse();
 
     [Test]
     public void ConstrainsToConstraints_returnsTrue() =>
         SolvingFunctions.CanBeConvertedOptimistic(
                 new ConstrainsState(),
-                new ConstrainsState(StatePrimitive.U8, StatePrimitive.Real))
+                new ConstrainsState(U8, Real))
             .AssertTrue();
 
     [Test]
     public void ConstrainsToConstraints_returnsTrue2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.Char),
-                new ConstrainsState(StatePrimitive.U8))
+                new ConstrainsState(Char),
+                new ConstrainsState(U8))
             .AssertTrue();
 
     [Test]
     public void ConstrainsToConstraints_returnsTrue3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.Ip),
+                new ConstrainsState(Ip),
                 new ConstrainsState())
             .AssertTrue();
 
     [Test]
     public void ConstrainsToConstraints_returnsTrue4() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.I32, StatePrimitive.I64),
-                new ConstrainsState(StatePrimitive.I64, StatePrimitive.I96))
+                new ConstrainsState(I32, I64),
+                new ConstrainsState(I64, I96))
             .AssertTrue();
 
     [Test]
     public void FromConstraintsToPrimitive_returnsFalse() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real),
-                StatePrimitive.Char)
+                new ConstrainsState(I32, Real),
+                Char)
             .AssertFalse();
 
     [Test]
     public void FromConstraintsToPrimitive_returnsFalse2() =>
-        SolvingFunctions.CanBeConvertedOptimistic(new ConstrainsState(null, StatePrimitive.Ip), StatePrimitive.Char)
+        SolvingFunctions.CanBeConvertedOptimistic(new ConstrainsState(null, Ip), Char)
             .AssertFalse();
 
     [Test]
     public void FromConstraintsToPrimitive_returnsFalse3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                new ConstrainsState(StatePrimitive.Real, StatePrimitive.Any), StatePrimitive.I32)
+                new ConstrainsState(Real, Any), I32)
             .AssertFalse();
 
     [Test]
     public void FromConstraintsToPrimitive_returnsTrue2() =>
-        SolvingFunctions.CanBeConvertedOptimistic(new ConstrainsState(), StatePrimitive.Ip).AssertTrue();
+        SolvingFunctions.CanBeConvertedOptimistic(new ConstrainsState(), Ip).AssertTrue();
 
     [Test]
     public void FromConstraintsToPrimitive_returnsTrue3() =>
-        SolvingFunctions.CanBeConvertedOptimistic(new ConstrainsState(StatePrimitive.U8), StatePrimitive.Real)
+        SolvingFunctions.CanBeConvertedOptimistic(new ConstrainsState(U8), Real)
             .AssertTrue();
 
     [Test]
     public void FromArrayToArray_returnsFalse() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.Real), StateArray.Of(StatePrimitive.U8))
+                StateArray.Of(Real), StateArray.Of(U8))
             .AssertFalse();
 
     [Test]
     public void FromArrayToArray_returnsTrue() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.U8), StateArray.Of(StatePrimitive.Real))
+                StateArray.Of(U8), StateArray.Of(Real))
             .AssertTrue();
 
 
     [Test]
     public void FromArrayConstraintsToPrimitive_returnsFalse() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.I32, StatePrimitive.Real),
-                StateArray.Of(StatePrimitive.Char))
+                ArrayOfConstrains(I32, Real),
+                StateArray.Of(Char))
             .AssertFalse();
 
     [Test]
     public void FromArrayConstraintsToPrimitive_returnsFalse2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(null, StatePrimitive.Ip),
-                StateArray.Of(StatePrimitive.Char))
+                ArrayOfConstrains(null, Ip),
+                StateArray.Of(Char))
             .AssertFalse();
 
     [Test]
     public void FromArrayConstraintsToPrimitive_returnsFalse3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.Real, StatePrimitive.Any),
-                StateArray.Of(StatePrimitive.I32))
+                ArrayOfConstrains(Real, Any),
+                StateArray.Of(I32))
             .AssertFalse();
 
     [Test]
     public void FromArrayConstraintsToPrimitive_returnsTrue2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
                 ArrayOfConstrains(),
-                StateArray.Of(StatePrimitive.Ip))
+                StateArray.Of(Ip))
             .AssertTrue();
 
     [Test]
     public void FromArrayConstraintsToPrimitive_returnsTrue3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.U8),
-                StateArray.Of(StatePrimitive.Real))
+                ArrayOfConstrains(U8),
+                StateArray.Of(Real))
             .AssertTrue();
 
     //----
     [Test]
     public void FromArrayPrimitiveToConstraints_returnsTrue4() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                ArrayOfConstrains(StatePrimitive.Char, StatePrimitive.Any))
+                StateArray.Of(I32),
+                ArrayOfConstrains(Char, Any))
             .AssertTrue();
 
     [Test]
     public void FromArrayPrimitiveToConstraints_returnsFalse2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.Char),
-                ArrayOfConstrains(StatePrimitive.I32, StatePrimitive.Real))
+                StateArray.Of(Char),
+                ArrayOfConstrains(I32, Real))
             .AssertFalse();
 
     [Test]
     public void FromArrayPrimitiveToConstraints_returnsTrue() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                ArrayOfConstrains(StatePrimitive.Real, StatePrimitive.Any))
+                StateArray.Of(I32),
+                ArrayOfConstrains(Real, Any))
             .AssertTrue();
 
     [Test]
     public void FromArrayPrimitiveToConstraints_returnsTrue2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                ArrayOfConstrains(StatePrimitive.U8, StatePrimitive.Any))
+                StateArray.Of(I32),
+                ArrayOfConstrains(U8, Any))
             .AssertTrue();
 
     [Test]
     public void FromArrayPrimitiveToConstraints_returnsTrue3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                ArrayOfConstrains(null, StatePrimitive.Any))
+                StateArray.Of(I32),
+                ArrayOfConstrains(null, Any))
             .AssertTrue();
 
     [Test]
     public void FromArrayPrimitiveToConstraints_returnsTrue5() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                ArrayOfConstrains(StatePrimitive.Char)) // `from` can be of `any` type
+                StateArray.Of(I32),
+                ArrayOfConstrains(Char)) // `from` can be of `any` type
             .AssertTrue();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsFalse() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.I64, StatePrimitive.Real),
-                ArrayOfConstrains(StatePrimitive.U8, StatePrimitive.I32))
+                ArrayOfConstrains(I64, Real),
+                ArrayOfConstrains(U8, I32))
             .AssertFalse();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsFalse2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.U64),
-                ArrayOfConstrains(null, StatePrimitive.I32))
+                ArrayOfConstrains(U64),
+                ArrayOfConstrains(null, I32))
             .AssertFalse();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsFalse3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.U64),
-                ArrayOfConstrains(null, StatePrimitive.I32))
+                ArrayOfConstrains(U64),
+                ArrayOfConstrains(null, I32))
             .AssertFalse();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsTrue() =>
         SolvingFunctions.CanBeConvertedOptimistic(
                 ArrayOfConstrains(),
-                ArrayOfConstrains(StatePrimitive.U8, StatePrimitive.Real))
+                ArrayOfConstrains(U8, Real))
             .AssertTrue();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsTrue2() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.Char),
-                ArrayOfConstrains(StatePrimitive.U8))
+                ArrayOfConstrains(Char),
+                ArrayOfConstrains(U8))
             .AssertTrue();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsTrue3() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.Ip),
+                ArrayOfConstrains(Ip),
                 ArrayOfConstrains())
             .AssertTrue();
 
     [Test]
     public void ArrayConstrainsToConstraints_returnsTrue4() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                ArrayOfConstrains(StatePrimitive.I32, StatePrimitive.I64),
-                ArrayOfConstrains(StatePrimitive.I64, StatePrimitive.I96))
+                ArrayOfConstrains(I32, I64),
+                ArrayOfConstrains(I64, I96))
             .AssertTrue();
 
     [Test]
     public void ArrayToPrimitive_returnsTrue() =>
-        SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                StatePrimitive.Any)
+        SolvingFunctions.CanBeConvertedOptimistic(StateArray.Of(I32), Any)
             .AssertTrue();
 
     [Test]
     public void ArrayToPrimitive_returnsFalse() =>
-        SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StatePrimitive.I32),
-                StatePrimitive.Ip)
+        SolvingFunctions.CanBeConvertedOptimistic(StateArray.Of(I32), Ip)
             .AssertFalse();
 
     [Test]
     public void PrimitiveToArray_returnsFalse() =>
-        SolvingFunctions.CanBeConvertedOptimistic(
-                StatePrimitive.Ip,
-                StateArray.Of(StatePrimitive.I32))
+        SolvingFunctions.CanBeConvertedOptimistic(Ip, StateArray.Of(I32))
             .AssertFalse();
 
     [Test]
     public void ArrayToArray_returnsTrue() =>
         SolvingFunctions.CanBeConvertedOptimistic(
-                StateArray.Of(StateArray.Of(StateArray.Of(StatePrimitive.U8))),
-                ArrayOfConstrains(StateArray.Of(StatePrimitive.U8)))
+                StateArray.Of(StateArray.Of(StateArray.Of(U8))),
+                ArrayOfConstrains(StateArray.Of(U8)))
             .AssertTrue();
 
     private static StateArray ArrayOfConstrains(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false)
