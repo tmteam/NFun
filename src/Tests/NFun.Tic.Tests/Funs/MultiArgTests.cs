@@ -104,7 +104,6 @@ public class MultiArgTests {
 
 
     [Test]
-    //[Ignore("Input variable generic")]
     public void GenericFold_AllIsNan() {
         //      6  0  5      1  4    3   2
         //y = fold(x, f(a,b)=a and isNan(b))

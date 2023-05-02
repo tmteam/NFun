@@ -6,9 +6,9 @@
 
         <RootNamespace>NFun.Examples</RootNamespace>
 
-        <TargetFrameworks>net6.0;netcoreapp3.1</TargetFrameworks>
-
         <LangVersion>10</LangVersion>
+
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

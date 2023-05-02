@@ -1,6 +1,5 @@
 namespace NFun.UnitTests.TicTests.Lca;
 
-using System;
 using Tic.SolvingStates;
 using NUnit.Framework;
 using static LcaTestTools;
@@ -118,7 +117,7 @@ public class LcaFunsTest {
     }
 
     [Test]
-    public void FunReturnsPrimitiveTypeAndConstrainWithAncType_ReturnsFunThatReturnsFcd() {
+    public void FunPrimitiveTypeAndConstrain() {
         foreach (var types in PrimitiveTypesLca)
         {
             var lcd = types.Left.GetFirstCommonDescendantOrNull(types.Right);
@@ -133,15 +132,41 @@ public class LcaFunsTest {
                     StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
                     StateFun.Of(new[] { lcd }, Any));
         }
+    }
 
-        throw new NotImplementedException("not done");
+    [Test]
+    public void FunConstrainsAndConstrain() {
+        foreach (var types in PrimitiveTypesLca)
+        {
+            var lcd = types.Left.GetFirstCommonDescendantOrNull(types.Right);
+            if (lcd == null)
+                AssertLca(
+                    StateFun.Of(new[] { new ConstrainsState(anc: types.Left) }, Any),
+                    StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
+                    Any);
+            else
+                AssertLca(
+                    StateFun.Of(new[] { new ConstrainsState(anc: types.Left) }, Any),
+                    StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
+                    StateFun.Of(new[] { lcd }, Any));
+        }
+    }
+
+    [Test]
+    public void FunOfFun() {
+        foreach (var types in PrimitiveTypesLca)
+        {
+            AssertLca(
+                StateFun.Of(new[] { StateFun.Of(new[] { types.Left }, I64) }, Any),
+                StateFun.Of(new[] { StateFun.Of(new[] { types.Right }, U64) }, Any),
+                StateFun.Of(new[] { StateFun.Of(new[] { types.Lca }, U48) }, Any));
+        }
     }
 
     [Test]
     public void FunReturnsConstrain_ReturnsFunThatReturnsConstrains() =>
-        //todo i am not sure about it
         AssertLca(
             StateFun.Of(new[] { new ConstrainsState(), new ConstrainsState() }, new ConstrainsState()),
             StateFun.Of(new[] { new ConstrainsState(), new ConstrainsState() }, new ConstrainsState()),
-            StateFun.Of(new[] { new ConstrainsState(), new ConstrainsState() }, new ConstrainsState()));
+            StateFun.Of(new[] { Any, Any }, new ConstrainsState()));
 }
