@@ -345,21 +345,15 @@ public static class SolvingFunctions {
 
         if (descendant.Descendant is StateFun funDesc && funDesc.ArgsCount == ancestor.ArgsCount)
         {
-            if (funDesc.IsSolved)
-                return funDesc;
-
-            // For perfomance
-            bool allArgsAreSolved = true;
+            return funDesc;
+            /*
             var nrArgNodes = new TicNode[funDesc.ArgNodes.Length];
             for (int i = 0; i < funDesc.ArgNodes.Length; i++)
-            {
-                nrArgNodes[i] = funDesc.ArgNodes[i].GetNonReference();
-                allArgsAreSolved = allArgsAreSolved && nrArgNodes[i].IsSolved;
-            }
+                nrArgNodes[i] = funDesc.ArgNodes[i];
 
             var nrRetNode = funDesc.RetNode.GetNonReference();
             if (allArgsAreSolved && nrRetNode.IsSolved)
-                return StateFun.Of(nrArgNodes, nrRetNode);
+                return StateFun.Of(nrArgNodes, nrRetNode);*/
         }
 
         return null;

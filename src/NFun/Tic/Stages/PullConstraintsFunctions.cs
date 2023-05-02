@@ -60,7 +60,7 @@ public class PullConstraintsFunctions : IStateFunction {
                     return false;
                 result.RetNode.AddAncestor(ancFun.RetNode);
                 for (int i = 0; i < result.ArgsCount; i++)
-                    result.ArgNodes[i].AddAncestor(ancFun.ArgNodes[i]);
+                    ancFun.ArgNodes[i].AddAncestor(result.ArgNodes[i]);
                 descendantNode.State = result;
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
