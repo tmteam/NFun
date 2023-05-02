@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests;
 
+using static StatePrimitive;
+
 class TrickyPrimitives {
     [SetUp]
     public void Initialize() => TraceLog.IsEnabled = true;
@@ -15,55 +17,55 @@ class TrickyPrimitives {
     [Test(Description = "y = isNan(1) ")]
     public void SimpleConcreteFunctionWithConstant() {
         //node |    1     0
-        //expr |y = isNan(1) 
+        //expr |y = isNan(1)
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
-        graph.SetCall(new[] { StatePrimitive.Real, StatePrimitive.Bool }, new[] { 0, 1 });
+        graph.SetIntConst(0, U8);
+        graph.SetCall(new[] { Real, Bool }, new[] { 0, 1 });
         graph.SetDef("y", 1);
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
     }
 
     [Test(Description = "y = isNan(x) ")]
     public void SimpleConcreteFunctionWithVariable() {
         //node |    1     0
-        //expr |y = isNan(x) 
+        //expr |y = isNan(x)
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
-        graph.SetCall(new[] { StatePrimitive.Real, StatePrimitive.Bool }, new[] { 0, 1 });
+        graph.SetCall(new[] { Real, Bool }, new[] { 0, 1 });
         graph.SetDef("y", 1);
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Real, "x");
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Real, "x");
+        result.AssertNamed(Bool, "y");
     }
 
     [Test(Description = "x:int; y = isNan(x) ")]
     public void SimpleConcreteFunctionWithVariableOfConcreteType() {
         //node |           1     0
-        //expr |x:int; y = isNan(x) 
+        //expr |x:int; y = isNan(x)
         var graph = new GraphBuilder();
-        graph.SetVarType("x", StatePrimitive.I32);
+        graph.SetVarType("x", I32);
         graph.SetVar("x", 0);
-        graph.SetCall(new[] { StatePrimitive.Real, StatePrimitive.Bool }, new[] { 0, 1 });
+        graph.SetCall(new[] { Real, Bool }, new[] { 0, 1 });
         graph.SetDef("y", 1);
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "x");
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(I32, "x");
+        result.AssertNamed(Bool, "y");
     }
 
     [Test(Description = "y = isNan(1i)")]
     public void SimpleConcreteFunctionWithConstLimit() {
-        //node |    1     0       
+        //node |    1     0
         //expr |y = isNan(1i);
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetCall(new[] { StatePrimitive.Real, StatePrimitive.Bool }, new[] { 0, 1 });
+        graph.SetConst(0, I32);
+        graph.SetCall(new[] { Real, Bool }, new[] { 0, 1 });
         graph.SetDef("y", 1);
 
         var result = graph.Solve();
@@ -73,27 +75,27 @@ class TrickyPrimitives {
     [Test(Description = "y = isNan(x); z = ~x")]
     public void SimpleConcreteFunctionWithVariableThatLimitisAfterwards() {
         //node |    1     0       3        2
-        //expr |y = isNan(x); z = isMaxInt(x) 
+        //expr |y = isNan(x); z = isMaxInt(x)
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
-        graph.SetCall(new[] { StatePrimitive.Real, StatePrimitive.Bool }, new[] { 0, 1 });
+        graph.SetCall(new[] { Real, Bool }, new[] { 0, 1 });
         graph.SetDef("y", 1);
 
         graph.SetVar("x", 2);
-        graph.SetCall(new[] { StatePrimitive.I32, StatePrimitive.Bool }, new[] { 2, 3 });
+        graph.SetCall(new[] { I32, Bool }, new[] { 2, 3 });
         graph.SetDef("z", 3);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "x");
-        result.AssertNamed(StatePrimitive.Bool, "y", "z");
+        result.AssertNamed(I32, "x");
+        result.AssertNamed(Bool, "y", "z");
     }
 
     [Test(Description = "y = x ")]
     public void OutputEqualsInput_simpleGeneric() {
         //node |1   0
-        //expr |y = x 
+        //expr |y = x
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
         graph.SetDef("y", 0);
@@ -146,18 +148,18 @@ class TrickyPrimitives {
         graph.SetDef("r", 2);
 
         graph.SetVar("y", 3);
-        graph.SetIntConst(4, StatePrimitive.U8);
+        graph.SetIntConst(4, U8);
         graph.SetBitShift(3, 4, 5);
         graph.SetDef("i", 5);
 
-        graph.SetIntConst(6, StatePrimitive.U8);
-        graph.SetIntConst(7, StatePrimitive.U8);
-        graph.SetCall(StatePrimitive.Real, 6, 7, 8);
+        graph.SetIntConst(6, U8);
+        graph.SetIntConst(7, U8);
+        graph.SetCall(Real, 6, 7, 8);
         graph.SetDef("x", 8);
 
         var result = graph.Solve();
-        result.AssertNamed(StatePrimitive.Real, "x", "r");
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U24, StatePrimitive.I96);
+        result.AssertNamed(Real, "x", "r");
+        var generic = result.AssertAndGetSingleGeneric(U24, I96);
 
         result.AssertAreGenerics(generic, "y", "i");
     }
@@ -173,34 +175,34 @@ class TrickyPrimitives {
         graph.SetVar("y", 1);
         graph.SetArith(0, 1, 2);
 
-        graph.SetIntConst(3, StatePrimitive.U8);
+        graph.SetIntConst(3, U8);
 
         graph.SetBitShift(2, 3, 4);
         graph.SetDef("out", 4);
 
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U24, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U24, I96);
 
         result.AssertAreGenerics(generic, "x", "y", "out");
     }
 
     [Test]
     public void ConcreteTypeOfArithmetical_ConstantsAreConcrete() {
-        //0 4 1 3 2  
+        //0 4 1 3 2
         //x<<(1 + 2)
 
         var graph = new GraphBuilder();
 
         graph.SetVar("x", 0);
 
-        graph.SetIntConst(1, StatePrimitive.U8);
-        graph.SetIntConst(2, StatePrimitive.U8);
+        graph.SetIntConst(1, U8);
+        graph.SetIntConst(2, U8);
         graph.SetArith(1, 2, 3);
         graph.SetBitShift(0, 3, 4);
         graph.SetDef("out", 4);
 
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U24, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U24, I96);
 
         result.AssertAreGenerics(generic, "x", "out");
     }
@@ -208,15 +210,15 @@ class TrickyPrimitives {
 
     [Test]
     public void TypeSpecified_PutHighterType_EquationSOlved() {
-        //         1    0  
+        //         1    0
         //a:real;  a = 1:int32
         var graph = new GraphBuilder();
-        graph.SetVarType("a", StatePrimitive.Real);
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetVarType("a", Real);
+        graph.SetConst(0, I32);
         graph.SetDef("a", 0);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Real, "a");
+        result.AssertNamed(Real, "a");
     }
 
     [Test]
@@ -224,14 +226,14 @@ class TrickyPrimitives {
         //    0            1
         //a = 1:int;  a = 1.0:int64
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetConst(0, I32);
         graph.SetDef("a", 0);
-        graph.SetConst(1, StatePrimitive.I64);
+        graph.SetConst(1, I64);
         graph.SetDef("a", 1);
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I64, "a");
+        result.AssertNamed(I64, "a");
     }
 
     [Test]
@@ -240,60 +242,60 @@ class TrickyPrimitives {
         //a = 1:int64;  a = 1.0:int32
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I64);
+        graph.SetConst(0, I64);
         graph.SetDef("a", 0);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(1, I32);
         graph.SetDef("a", 1);
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I64, "a");
+        result.AssertNamed(I64, "a");
     }
 
 
     [Test]
     public void EqualtyOnGenerics() {
-        //     0  2  1     
-        //y = 1.0 == x 
+        //     0  2  1
+        //y = 1.0 == x
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Real);
+        graph.SetConst(0, Real);
         graph.SetVar("x", 1);
         var generic = graph.SetEquality(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
-        result.AssertNamed(StatePrimitive.Real, "x");
-        Assert.AreEqual(StatePrimitive.Real, generic.GetNonReference());
+        result.AssertNamed(Bool, "y");
+        result.AssertNamed(Real, "x");
+        Assert.AreEqual(Real, generic.GetNonReference());
     }
 
     [Test]
     public void EqualtyOnGenericsReversed() {
-        //    0  2  1     
-        //y = x == 1.0 
+        //    0  2  1
+        //y = x == 1.0
 
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
-        graph.SetConst(1, StatePrimitive.Real);
+        graph.SetConst(1, Real);
         var generic = graph.SetEquality(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
-        result.AssertNamed(StatePrimitive.Real, "x");
-        Assert.AreEqual(StatePrimitive.Real, generic.GetNonReference());
+        result.AssertNamed(Bool, "y");
+        result.AssertNamed(Real, "x");
+        Assert.AreEqual(Real, generic.GetNonReference());
     }
 
     [Test(Description = "y:int = 1.0")]
     public void Downcast_Throws() {
         //node |         0
-        //expr |y:int = 1.0 
+        //expr |y:int = 1.0
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Real);
-        graph.SetVarType("y", StatePrimitive.I32);
+        graph.SetConst(0, Real);
+        graph.SetVarType("y", I32);
         TestHelper.AssertThrowsTicError(
             () => {
                 graph.SetDef("y", 0);
@@ -306,13 +308,13 @@ class TrickyPrimitives {
         //myFunction(a:u16):u16 = ...
 
         //node |       1        0
-        //expr |y = myFunction(-1) 
+        //expr |y = myFunction(-1)
         var graph = new GraphBuilder();
-        graph.SetGenericConst(0, StatePrimitive.I16, StatePrimitive.Real, StatePrimitive.Real);
+        graph.SetGenericConst(0, I16, Real, Real);
 
         TestHelper.AssertThrowsTicError(
             () => {
-                graph.SetCall(new ITicNodeState[] { StatePrimitive.U16, StatePrimitive.U16 }, new[] { 0, 1 });
+                graph.SetCall(new ITicNodeState[] { U16, U16 }, new[] { 0, 1 });
                 graph.SetDef("y", 1);
                 graph.Solve();
             });
@@ -324,20 +326,20 @@ class TrickyPrimitives {
     public void PreferredIntegerInRealFunction(PrimitiveTypeName preferredType) {
         TraceLog.IsEnabled = true;
         //" 'a' has to prefer Real type, as it used as real argument in cos function"
-        //node |    0         2  1 
-        //expr |a = 0;   b = cos(a) 
+        //node |    0         2  1
+        //expr |a = 0;   b = cos(a)
 
         var graph = new GraphBuilder();
-        graph.SetGenericConst(0, StatePrimitive.U8, StatePrimitive.Real, new StatePrimitive(preferredType));
+        graph.SetGenericConst(0, U8, Real, new StatePrimitive(preferredType));
         graph.SetDef("a", 0);
         graph.SetVar("a", 1);
-        graph.SetCall(StatePrimitive.Real, 1, 2);
+        graph.SetCall(Real, 1, 2);
         graph.SetDef("b", 2);
         graph.Solve();
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Real, "b");
-        result.AssertNamed(StatePrimitive.Real, "a");
+        result.AssertNamed(Real, "b");
+        result.AssertNamed(Real, "a");
     }
 }

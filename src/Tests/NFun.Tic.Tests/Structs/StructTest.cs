@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Structs;
 
+using static StatePrimitive;
+
 public class StructTest {
     [Test]
     public void SingleStrictStructMember() {
@@ -12,14 +14,14 @@ public class StructTest {
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
         graph.SetFieldAccess(0, 2, "name");
-        graph.SetVarType("y", StatePrimitive.I32);
+        graph.SetVarType("y", I32);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StateStruct.WithField("name", StatePrimitive.I32), "a");
-        result.AssertNamed(StatePrimitive.I32, "y");
+        result.AssertNamed(StateStruct.WithField("name", I32), "a");
+        result.AssertNamed(I32, "y");
     }
 
     [Test]
@@ -31,12 +33,12 @@ public class StructTest {
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
         graph.SetFieldAccess(0, 2, "name");
-        graph.SetVarType("y", StatePrimitive.I32);
+        graph.SetVarType("y", I32);
         graph.SetDef("y", 2);
 
         graph.SetVar("a", 3);
         graph.SetFieldAccess(3, 5, "age");
-        graph.SetVarType("z", StatePrimitive.Real);
+        graph.SetVarType("z", Real);
         graph.SetDef("z", 5);
 
         var result = graph.Solve();
@@ -45,12 +47,12 @@ public class StructTest {
         result.AssertNamed(
             new StateStruct(
                 new Dictionary<string, TicNode> {
-                    { "name", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
-                    { "age", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
+                    { "name", TicNode.CreateTypeVariableNode(I32) },
+                    { "age", TicNode.CreateTypeVariableNode(Real) }
                 }, false),
             "a");
-        result.AssertNamed(StatePrimitive.I32, "y");
-        result.AssertNamed(StatePrimitive.Real, "z");
+        result.AssertNamed(I32, "y");
+        result.AssertNamed(Real, "z");
     }
 
     [Test]
@@ -58,8 +60,8 @@ public class StructTest {
         //    2       0       1
         //y = { a = 12i, b = 1.0}
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetConst(1, StatePrimitive.Real);
+        graph.SetConst(0, I32);
+        graph.SetConst(1, Real);
         graph.SetStructInit(new[] { "a", "b" }, new[] { 0, 1 }, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
@@ -67,8 +69,8 @@ public class StructTest {
         result.AssertNamed(
             new StateStruct(
                 new Dictionary<string, TicNode> {
-                    { "a", TicNode.CreateNamedNode("a", StatePrimitive.I32) },
-                    { "b", TicNode.CreateNamedNode("b", StatePrimitive.Real) }
+                    { "a", TicNode.CreateNamedNode("a", I32) },
+                    { "b", TicNode.CreateNamedNode("b", Real) }
                 }, false), "y");
     }
 
@@ -93,9 +95,9 @@ public class StructTest {
         //    4       0        3     1       2
         //y = { a = 12i, b = {c = true,d = 1.0 } }
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetConst(1, StatePrimitive.Bool);
-        graph.SetConst(2, StatePrimitive.Real);
+        graph.SetConst(0, I32);
+        graph.SetConst(1, Bool);
+        graph.SetConst(2, Real);
         graph.SetStructInit(new[] { "c", "d" }, new[] { 1, 2 }, 3);
         graph.SetStructInit(new[] { "a", "b" }, new[] { 0, 3 }, 4);
         graph.SetDef("y", 4);
@@ -104,12 +106,12 @@ public class StructTest {
 
         var yStruct = result.GetVariableNode("y").State as StateStruct;
         var aField = yStruct.GetFieldOrNull("a").State as StatePrimitive;
-        Assert.AreEqual(StatePrimitive.I32.Name, aField.Name);
+        Assert.AreEqual(I32.Name, aField.Name);
         var bField = yStruct.GetFieldOrNull("b").State as StateStruct;
         var cField = bField.GetFieldOrNull("c").State as StatePrimitive;
-        Assert.AreEqual(StatePrimitive.Bool.Name, cField.Name);
+        Assert.AreEqual(Bool.Name, cField.Name);
         var dField = bField.GetFieldOrNull("d").State as StatePrimitive;
-        Assert.AreEqual(StatePrimitive.Real.Name, dField.Name);
+        Assert.AreEqual(Real.Name, dField.Name);
     }
 
     [Test]
@@ -139,12 +141,12 @@ public class StructTest {
         graph.SetVar("a", 1);
         graph.SetFieldAccess(1, 2, "b");
         graph.SetFieldAccess(2, 0, "f");
-        graph.SetVarType("y", StatePrimitive.I32);
+        graph.SetVarType("y", I32);
         graph.SetDef("y", 4);
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "y");
+        result.AssertNamed(I32, "y");
     }
 
     [Test]
@@ -156,7 +158,7 @@ public class StructTest {
         //y = d . f . b"
         TraceLog.IsEnabled = true;
         var graph = new GraphBuilder();
-        graph.SetConst(3, StatePrimitive.Bool);
+        graph.SetConst(3, Bool);
         graph.SetStructInit(new[] { "b" }, new[] { 3 }, 2);
         graph.SetStructInit(new[] { "f" }, new[] { 2 }, 1);
         graph.SetDef("d", 1);
@@ -173,7 +175,7 @@ public class StructTest {
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
     }
 
     [Test]
@@ -189,24 +191,24 @@ public class StructTest {
 
         var graph = new GraphBuilder();
 
-        graph.SetGenericConst(2, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
+        graph.SetGenericConst(2, U8, Real, Real);
         graph.SetStructInit(new[] { "field" }, new[] { 2 }, 1);
         graph.SetDef("x", 1);
 
         graph.SetVar("x", 3);
         graph.SetCall(
             new ITicNodeState[] {
-                new StateStruct("field", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false), StatePrimitive.Bool
+                new StateStruct("field", TicNode.CreateTypeVariableNode(I32), false), Bool
             }, new[] { 3, 4 });
         graph.SetDef("y", 4);
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
 
         var xStruct = result.GetVariableNode("x").State as StateStruct;
         var field = xStruct.GetFieldOrNull("field").State as StatePrimitive;
-        Assert.AreEqual(StatePrimitive.I32, field);
+        Assert.AreEqual(I32, field);
     }
 
     [Test]
@@ -217,7 +219,7 @@ public class StructTest {
         TraceLog.IsEnabled = true;
 
         var graph = new GraphBuilder();
-        graph.SetGenericConst(0, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
+        graph.SetGenericConst(0, U8, Real, Real);
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(
@@ -226,7 +228,7 @@ public class StructTest {
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real, false);
+        var generic = result.AssertAndGetSingleGeneric(U8, Real, false);
         result.AssertAreGenerics(generic, "y");
     }
 
@@ -238,7 +240,7 @@ public class StructTest {
         TraceLog.IsEnabled = true;
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Real);
+        graph.SetConst(0, Real);
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(
@@ -248,7 +250,7 @@ public class StructTest {
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Real, "y");
+        result.AssertNamed(Real, "y");
     }
 
 
@@ -327,6 +329,6 @@ public class StructTest {
 
         Assert.AreEqual(generic, aFieldNode);
         Assert.AreEqual(generic, bFieldNode);
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
     }
 }
