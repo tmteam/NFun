@@ -73,7 +73,6 @@ public class MapTests {
     }
 
     [Test]
-    //[Ignore("Upcast for complex types")]
     public void ArgUpcastStrictArrayArg() {
         //     6  1 0     5       2 4 3
         //y = Map([ 1i ], x:real->x*2)

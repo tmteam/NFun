@@ -194,7 +194,6 @@ public class ArraysTest {
     }
 
     [Test(Description = "out:real[][] = [[0x1],[1.0]]")]
-    [Ignore("Composite upcast is not ready yet")]
     public void ConstantTwinRealArrayWithUpcast_typeIsSpecified() {
         TraceLog.IsEnabled = true;
         var expr = "out:real[][] = [[0x1],[1.0]]";
@@ -203,7 +202,6 @@ public class ArraysTest {
     }
 
     [Test]
-    [Ignore("Composite LCA")]
     public void ConstantTwinAnyArrayWithUpcast() {
         var expr = "out = [[0x1],[1.0],[true]]";
         var result = expr.Calc().Get("out");

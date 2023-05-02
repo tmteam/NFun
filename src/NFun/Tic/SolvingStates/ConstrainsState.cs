@@ -62,16 +62,15 @@ public class ConstrainsState : ITicNodeState {
             var returnBottomAnc = Lca.GetMaxType(typeFun.ReturnType);
             if (!CanBeFitConverted(from: returnBottomDesc, to: returnBottomAnc))
                 return false;
+
             for (int i = 0; i < stateFun.ArgsCount; i++)
             {
-                var descArg = stateFun.ArgNodes[i].State;
-                var ancArg = typeFun.ArgNodes[i].State;
-                //todo - not sure about it. It is a sketch
-                var dmin = Lca.GetMinType(descArg);
-                var amin = Lca.GetMinType(ancArg);
-                if (!CanBeFitConverted(from: dmin, to: amin))
+                var dmin = Lca.GetMinType(stateFun.ArgNodes[i].State);
+                var amin = Lca.GetMinType(typeFun.ArgNodes[i].State);
+                if (!CanBeFitConverted(from: amin, to: dmin))
                     return false;
             }
+
             return true;
         }
         else
@@ -84,6 +83,9 @@ public class ConstrainsState : ITicNodeState {
             StateArray arrFrom => to is StateArray arrTo
                 ? CanBeFitConverted(arrFrom.Element, arrTo.Element)
                 : to.Equals(Any),
+            StateFun funFrom => to is StateFun funTo
+                ? CanBeFitConverted(funFrom, funTo)
+                : to.Equals(Any),
             StatePrimitive => to is ConstrainsState st
                 ? st.HasDescendant && CanBeFitConverted(from, st.Descendant)
                 : to is StatePrimitive p && from.CanBePessimisticConvertedTo(p),
@@ -91,6 +93,19 @@ public class ConstrainsState : ITicNodeState {
             ConstrainsState => true,
             _ => throw new NotImplementedException($"Type {from}-> {to} is not supported yet in FIT")
         };
+
+    private bool CanBeFitConverted(StateFun from, StateFun to) {
+        if (from.ArgsCount != to.ArgsCount)
+            return false;
+        if (!CanBeFitConverted(from.ReturnType, to.ReturnType))
+            return false;
+        for (int i = 0; i < from.ArgsCount; i++)
+        {
+            if (!CanBeFitConverted(to.ArgNodes[i].State, from.ArgNodes[i].State))
+                return false;
+        }
+        return true;
+    }
 
     public bool CanBeConvertedTo(ITypeState type) {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
@@ -147,7 +162,7 @@ public class ConstrainsState : ITicNodeState {
             return;
         Descendant = !HasDescendant
             ? Lca.GetMaxType(type)
-            : Lca.BottomLca(Descendant, type);
+            : Lca.MaxLca(Descendant, type);
     }
 
     public ITicNodeState MergeOrNull(ConstrainsState constrainsState) {

@@ -177,7 +177,6 @@ public class BuiltInFunctionsTest {
     public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
-    [Ignore("Lca merge")]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
     public void MergeComparableArray(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
