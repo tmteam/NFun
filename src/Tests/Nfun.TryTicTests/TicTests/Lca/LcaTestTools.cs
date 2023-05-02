@@ -134,8 +134,8 @@ public static class LcaTestTools {
         if (a.Equals(Real) && b.Equals(Ip))
             Console.WriteLine("dd");
 
-        var result1 = Lca.BottomLca(a, b);
-        var result2 = Lca.BottomLca(b, a);
+        var result1 = Lca.MaxLca(a, b);
+        var result2 = Lca.MaxLca(b, a);
 
         var aRef = new StateRefTo(TicNode.CreateTypeVariableNode("a", a));
         var bRef = new StateRefTo(TicNode.CreateTypeVariableNode("b", b));
@@ -143,8 +143,8 @@ public static class LcaTestTools {
         var aRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("aa", aRef));
         var bRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("bb", bRef));
 
-        var result3 = Lca.BottomLca(aRef, bRef);
-        var result4 = Lca.BottomLca(bRefRef, aRefRef);
+        var result3 = Lca.MaxLca(aRef, bRef);
+        var result4 = Lca.MaxLca(bRefRef, aRefRef);
 
         Assert.AreEqual(expected, result1, $"1: {a} LCA {b} = {result1}, but was expected {expected}");
         Assert.AreEqual(expected, result2, $"1: {b} LCA {a} = {result2}, but was expected {expected}");
