@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests;
 
+using static StatePrimitive;
+
 class Comparation {
     [Test]
     public void CompareTwoVariables() {
@@ -17,7 +19,7 @@ class Comparation {
 
         var result = graph.Solve();
 
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
         var generic = result.AssertAndGetSingleGeneric(null, null, true);
         result.AssertAreGenerics(generic, "a", "b");
     }
@@ -29,15 +31,15 @@ class Comparation {
 
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(1, I32);
         graph.SetComparable(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "a");
+        result.AssertNamed(I32, "a");
     }
 
     [Test]
@@ -46,14 +48,14 @@ class Comparation {
         // y =  2i > 1i
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(0, I32);
+        graph.SetConst(1, I32);
         graph.SetComparable(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
         result.AssertNoGenerics();
     }
 
@@ -63,14 +65,14 @@ class Comparation {
         // y =  2.0 > 1i
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Real);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(0, Real);
+        graph.SetConst(1, I32);
         graph.SetComparable(0, 1, 2);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
 
-        result.AssertNamed(StatePrimitive.Bool, "y");
+        result.AssertNamed(Bool, "y");
         result.AssertNoGenerics();
     }
 
@@ -80,8 +82,8 @@ class Comparation {
         // y =  2.0 > 'v'
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Real);
-        graph.SetConst(1, StatePrimitive.Char);
+        graph.SetConst(0, Real);
+        graph.SetConst(1, Char);
         TestHelper.AssertThrowsTicError(
             () => {
                 graph.SetComparable(0, 1, 2);
@@ -97,8 +99,8 @@ class Comparation {
         // y = 'v'  >  2
 
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Char);
-        graph.SetConst(1, StatePrimitive.Real);
+        graph.SetConst(0, Char);
+        graph.SetConst(1, Real);
 
         TestHelper.AssertThrowsTicError(
             () => {

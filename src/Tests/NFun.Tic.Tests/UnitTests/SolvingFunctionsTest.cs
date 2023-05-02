@@ -5,27 +5,29 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.UnitTests;
 
+using static StatePrimitive;
+
 class SolvingFunctionsTest {
     [Test]
     public void MergeInplace_TwoConstrains_ReturnsMerged() {
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.I16, StatePrimitive.Real));
-        var b = CreateNode("b", new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+        var a = CreateNode("a", new ConstrainsState(I16, Real));
+        var b = CreateNode("b", new ConstrainsState(I24, Real));
         SolvingFunctions.MergeInplace(a, b);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real), a.State);
+        Assert.AreEqual(new ConstrainsState(I24, Real), a.State);
         Assert.AreEqual(new StateRefTo(a), b.State);
     }
 
     [Test]
     public void MergeInplace_TwoPrimitives_Throws() {
-        var a = CreateNode("a", StatePrimitive.I16);
-        var b = CreateNode("b", StatePrimitive.I32);
+        var a = CreateNode("a", I16);
+        var b = CreateNode("b", I32);
         Assert.Catch(() => SolvingFunctions.MergeInplace(a, b));
     }
 
     [Test]
     public void MergeInplace_TwoReferencedPrimitives_Throws() {
-        var a = CreateNode("a", StatePrimitive.I16);
-        var b = CreateNode("b", StatePrimitive.I32);
+        var a = CreateNode("a", I16);
+        var b = CreateNode("b", I32);
         var refA = CreateNode("a", new StateRefTo(a));
         var refB = CreateNode("b", new StateRefTo(b));
 
@@ -34,28 +36,28 @@ class SolvingFunctionsTest {
 
     [Test]
     public void MergeInplace_ConstrainsAndPrimitive_ReturnsPrimitive() {
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.U16, StatePrimitive.Real));
-        var b = CreateNode("b", StatePrimitive.U32);
+        var a = CreateNode("a", new ConstrainsState(U16, Real));
+        var b = CreateNode("b", U32);
         SolvingFunctions.MergeInplace(a, b);
-        Assert.AreEqual(StatePrimitive.U32, a.State);
-        Assert.AreEqual(StatePrimitive.U32, b.State);
+        Assert.AreEqual(U32, a.State);
+        Assert.AreEqual(U32, b.State);
     }
 
     [Test]
     public void MergeInplace_PrimitiveAndConstrains_ReturnsPrimitive() {
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.I16, StatePrimitive.Real));
-        var b = CreateNode("b", StatePrimitive.I64);
+        var a = CreateNode("a", new ConstrainsState(I16, Real));
+        var b = CreateNode("b", I64);
         SolvingFunctions.MergeInplace(b, a);
-        Assert.AreEqual(StatePrimitive.I64, a.State);
-        Assert.AreEqual(StatePrimitive.I64, b.State);
+        Assert.AreEqual(I64, a.State);
+        Assert.AreEqual(I64, b.State);
     }
 
     [Test]
     public void MergeInplace_WhereSecondaryIsReferenced_ReturnsOrigin() {
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.I16, StatePrimitive.Real));
+        var a = CreateNode("a", new ConstrainsState(I16, Real));
         var refToA = CreateNode("b", new StateRefTo(a));
         SolvingFunctions.MergeInplace(a, refToA);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I16, StatePrimitive.Real), a.State);
+        Assert.AreEqual(new ConstrainsState(I16, Real), a.State);
         Assert.AreEqual(new StateRefTo(a), refToA.State);
     }
 
@@ -69,8 +71,8 @@ class SolvingFunctionsTest {
         //a[i32,r]
         //b[i24,r]
         //r ==> a
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
-        var b = CreateNode("b", new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+        var a = CreateNode("a", new ConstrainsState(I32, Real));
+        var b = CreateNode("b", new ConstrainsState(I24, Real));
         var r = CreateNode("r", new StateRefTo(a));
         var group = new TicNode[3];
         group[order[0]] = a;
@@ -79,7 +81,7 @@ class SolvingFunctionsTest {
 
         var merged = SolvingFunctions.MergeGroup(group);
         Assert.AreNotEqual(r, merged);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), merged.State);
+        Assert.AreEqual(new ConstrainsState(I32, Real), merged.State);
     }
 
     [TestCase(0, 1, 2)]
@@ -94,8 +96,8 @@ class SolvingFunctionsTest {
         //a[i32,r]
         //b[i24,r]
         //r ==> a
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
-        var b = CreateNode("b", new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+        var a = CreateNode("a", new ConstrainsState(I32, Real));
+        var b = CreateNode("b", new ConstrainsState(I24, Real));
         var r = CreateNode("r", new StateRefTo(a));
 
         var anc1 = CreateNode("anc1");
@@ -129,12 +131,12 @@ class SolvingFunctionsTest {
     public void MergeGroup_WithSmallCycle_ReturnsSingle(bool reversedOrder) {
         //a[i32,r]
         //r ==> a
-        var a = CreateNode("a", new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
+        var a = CreateNode("a", new ConstrainsState(I32, Real));
         var r = CreateNode("r", new StateRefTo(a));
         var merged = SolvingFunctions.MergeGroup(reversedOrder ? new[] { r, a } : new[] { a, r });
         Assert.AreEqual(a, merged);
         Assert.AreEqual(r.State, new StateRefTo(merged));
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), merged.State);
+        Assert.AreEqual(new ConstrainsState(I32, Real), merged.State);
     }
 
     private static TicNode CreateNode(string name, ITicNodeState state = null)
@@ -142,69 +144,69 @@ class SolvingFunctionsTest {
 
     [Test]
     public void GetMergedStateOrNull_TwoSamePrimitives() {
-        var res = SolvingFunctions.GetMergedStateOrNull(StatePrimitive.I32, StatePrimitive.I32);
-        Assert.AreEqual(res, StatePrimitive.I32);
+        var res = SolvingFunctions.GetMergedStateOrNull(I32, I32);
+        Assert.AreEqual(res, I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_PrimitiveAndEmptyConstrains() {
-        var res = SolvingFunctions.GetMergedStateOrNull(StatePrimitive.I32, new ConstrainsState());
-        Assert.AreEqual(res, StatePrimitive.I32);
+        var res = SolvingFunctions.GetMergedStateOrNull(I32, new ConstrainsState());
+        Assert.AreEqual(res, I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_ConstrainsAndPrimitive_ReturnsPrimitive() {
-        var a = new ConstrainsState(StatePrimitive.U16, StatePrimitive.Real);
-        var b = StatePrimitive.I32;
+        var a = new ConstrainsState(U16, Real);
+        var b = I32;
         var merged = SolvingFunctions.GetMergedStateOrNull(a, b);
-        Assert.AreEqual(StatePrimitive.I32, merged);
+        Assert.AreEqual(I32, merged);
     }
 
     [Test]
     public void GetMergedStateOrNull_EmptyConstrainsAndPrimitive() {
-        var res = SolvingFunctions.GetMergedStateOrNull(new ConstrainsState(), StatePrimitive.I32);
-        Assert.AreEqual(res, StatePrimitive.I32);
+        var res = SolvingFunctions.GetMergedStateOrNull(new ConstrainsState(), I32);
+        Assert.AreEqual(res, I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_PrimitiveAndConstrainsThatFit() {
         var res = SolvingFunctions.GetMergedStateOrNull(
-            StatePrimitive.I32,
-            new ConstrainsState(StatePrimitive.U24, StatePrimitive.I48));
-        Assert.AreEqual(res, StatePrimitive.I32);
+            I32,
+            new ConstrainsState(U24, I48));
+        Assert.AreEqual(res, I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_ConstrainsAndPrimitiveThatFit() {
         var res = SolvingFunctions.GetMergedStateOrNull(
-            StatePrimitive.I64,
-            new ConstrainsState(StatePrimitive.I16, StatePrimitive.Real));
-        Assert.AreEqual(res, StatePrimitive.I64);
+            I64,
+            new ConstrainsState(I16, Real));
+        Assert.AreEqual(res, I64);
     }
 
     [Test]
     public void GetMergedStateOrNull_ConstrainsThatFitAndPrimitive() {
         var res = SolvingFunctions.GetMergedStateOrNull(
-            new ConstrainsState(StatePrimitive.U24, StatePrimitive.I48),
-            StatePrimitive.I32);
-        Assert.AreEqual(res, StatePrimitive.I32);
+            new ConstrainsState(U24, I48),
+            I32);
+        Assert.AreEqual(res, I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_TwoSameConcreteArrays() {
         var res = SolvingFunctions.GetMergedStateOrNull(
-            StateArray.Of(StatePrimitive.I32),
-            StateArray.Of(StatePrimitive.I32));
-        Assert.AreEqual(res, StateArray.Of(StatePrimitive.I32));
+            StateArray.Of(I32),
+            StateArray.Of(I32));
+        Assert.AreEqual(res, StateArray.Of(I32));
     }
 
     [Test]
     public void GetMergedStateOrNull_TwoSameConcreteStructs() {
         var res = SolvingFunctions.GetMergedStateOrNull(
-            new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false),
-            new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false));
+            new StateStruct("a", TicNode.CreateTypeVariableNode(I32), false),
+            new StateStruct("a", TicNode.CreateTypeVariableNode(I32), false));
 
-        Assert.AreEqual(res, new StateStruct("a", TicNode.CreateTypeVariableNode(StatePrimitive.I32), false));
+        Assert.AreEqual(res, new StateStruct("a", TicNode.CreateTypeVariableNode(I32), false));
     }
 
 
@@ -213,20 +215,20 @@ class SolvingFunctionsTest {
         var res = SolvingFunctions.GetMergedStateOrNull(
             new StateStruct(
                 new Dictionary<string, TicNode> {
-                    { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
-                    { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
+                    { "i", TicNode.CreateTypeVariableNode(I32) },
+                    { "r", TicNode.CreateTypeVariableNode(Real) }
                 }, false
             ),
             new StateStruct(
                 new Dictionary<string, TicNode> {
-                    { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) },
-                    { "b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool) }
+                    { "r", TicNode.CreateTypeVariableNode(Real) },
+                    { "b", TicNode.CreateTypeVariableNode(Bool) }
                 }, false));
         var expected = new StateStruct(
             new Dictionary<string, TicNode> {
-                { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
-                { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) },
-                { "b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool) }
+                { "i", TicNode.CreateTypeVariableNode(I32) },
+                { "r", TicNode.CreateTypeVariableNode(Real) },
+                { "b", TicNode.CreateTypeVariableNode(Bool) }
             }, false);
 
         Assert.AreEqual(res, expected);
@@ -236,8 +238,8 @@ class SolvingFunctionsTest {
     public void GetMergedStateOrNull_EmptyAndNonEmptyStruct() {
         var nonEmpty = new StateStruct(
             new Dictionary<string, TicNode> {
-                { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
-                { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
+                { "i", TicNode.CreateTypeVariableNode(I32) },
+                { "r", TicNode.CreateTypeVariableNode(Real) }
             }, false
         );
 
@@ -246,8 +248,8 @@ class SolvingFunctionsTest {
             new StateStruct());
         var expected = new StateStruct(
             new Dictionary<string, TicNode> {
-                { "i", TicNode.CreateTypeVariableNode(StatePrimitive.I32) },
-                { "r", TicNode.CreateTypeVariableNode(StatePrimitive.Real) }
+                { "i", TicNode.CreateTypeVariableNode(I32) },
+                { "r", TicNode.CreateTypeVariableNode(Real) }
             }, false);
 
         Assert.AreEqual(res, expected);
@@ -270,17 +272,17 @@ class SolvingFunctionsTest {
 
     [Test]
     public void GetMergedState_PrimitiveAndConstrainsThatNotFit()
-        => AssertGetMergedStateIsNull(StatePrimitive.I32, new ConstrainsState(StatePrimitive.U24, StatePrimitive.U48));
+        => AssertGetMergedStateIsNull(I32, new ConstrainsState(U24, U48));
 
     [Test]
     public void GetMergedState_TwoDifferentPrimitivesThrows()
-        => AssertGetMergedStateIsNull(StatePrimitive.I32, StatePrimitive.Real);
+        => AssertGetMergedStateIsNull(I32, Real);
 
     [Test]
     public void GetMergedState_TwoDifferentConcreteArraysThrows()
         => AssertGetMergedStateIsNull(
-            stateA: StateArray.Of(StatePrimitive.I32),
-            stateB: StateArray.Of(StatePrimitive.Real));
+            stateA: StateArray.Of(I32),
+            stateB: StateArray.Of(Real));
 
     #endregion
 

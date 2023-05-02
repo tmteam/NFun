@@ -7,6 +7,8 @@ using NUnit.Framework;
 
 namespace NFun.ModuleTests;
 
+using static StatePrimitive;
+
 public class Toposort2Test {
     /* Test is ok, but cannot be launched in debug environment
     // Reason: Self referencing is denied
@@ -43,8 +45,8 @@ public class Toposort2Test {
 
     [Test]
     public void AncestorMultiCycle() {
-        //V2 -> n  -> 13 -> V2 
-        //   -> 16 -> V3 -> n	 
+        //V2 -> n  -> 13 -> V2
+        //   -> 16 -> V3 -> n
 
         //cycle 1:
         //1) v2->n->13->v2  merges as 'X'
@@ -52,8 +54,8 @@ public class Toposort2Test {
         //cycle 2:
         //2)  X -> 16 -> v3 -> X
 
-        var v2 = CreateNode("v2", new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
-        var v3 = CreateNode("v3", new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+        var v2 = CreateNode("v2", new ConstrainsState(I32, Real));
+        var v3 = CreateNode("v3", new ConstrainsState(I24, Real));
 
         var i13 = CreateNode("13");
         var i16 = CreateNode("16");
@@ -75,17 +77,17 @@ public class Toposort2Test {
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
         Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+        Assert.AreEqual(new ConstrainsState(I32, Real), theNode.State);
     }
 
     [Test]
     public void AncestorAndRefMultiCycle() {
-        //V2   -> n  ==> 13 -> V2 
-        //  |<== 16   -> V3 -> n	 
+        //V2   -> n  ==> 13 -> V2
+        //  |<== 16   -> V3 -> n
 
 
-        var v2 = CreateNode("v2", new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
-        var v3 = CreateNode("v3", new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+        var v2 = CreateNode("v2", new ConstrainsState(I32, Real));
+        var v3 = CreateNode("v3", new ConstrainsState(I24, Real));
 
         var i13 = CreateNode("13");
         var i16 = CreateNode("16");
@@ -108,19 +110,19 @@ public class Toposort2Test {
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
         Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+        Assert.AreEqual(new ConstrainsState(I32, Real), theNode.State);
     }
 
     [Test]
     public void AncestorAndRefMultiCycle_allAncestorsMoveToMerged() {
-        //V2   -> n  ==> 13 -> V2 
-        //  |<== 16   -> V3 -> n	 
+        //V2   -> n  ==> 13 -> V2
+        //  |<== 16   -> V3 -> n
 
         // Each of nodes has its own ancestor
         // all these 'side' -ancestors has to move to main node
 
-        var v2 = CreateNode("v2", new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
-        var v3 = CreateNode("v3", new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+        var v2 = CreateNode("v2", new ConstrainsState(I32, Real));
+        var v3 = CreateNode("v3", new ConstrainsState(I24, Real));
 
         var i13 = CreateNode("13");
         var i16 = CreateNode("16");
@@ -154,15 +156,15 @@ public class Toposort2Test {
         Assert.AreEqual(1 + ancestors.Length, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
         Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+        Assert.AreEqual(new ConstrainsState(I32, Real), theNode.State);
         CollectionAssert.AreEquivalent(ancestors, theNode.Ancestors);
     }
 
 
     [Test]
     public void AncestorAndRefMultiCycle2() {
-        //V2   -> n  ==> 13 <== V2 
-        //         |-> 16  ==> V3 -> n	 
+        //V2   -> n  ==> 13 <== V2
+        //         |-> 16  ==> V3 -> n
 
         // After adding - all references should dissapear
         // So the graph has to look like:
@@ -198,14 +200,14 @@ public class Toposort2Test {
     public void AncestorMultiCycleSimpliest() {
         //V2 13 V3 N
 
-        //V2[a b] => n       => V2 
-        //        => 16 =>  n	 
+        //V2[a b] => n       => V2
+        //        => 16 =>  n
         var v2 = CreateNode("v2");
 
         var i16 = CreateNode("16");
         var n = CreateNode("n");
 
-        v2.State = new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real);
+        v2.State = new ConstrainsState(I32, Real);
 
         v2.AddAncestor(n);
         n.AddAncestor(v2);
@@ -223,14 +225,14 @@ public class Toposort2Test {
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
         Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+        Assert.AreEqual(new ConstrainsState(I32, Real), theNode.State);
     }
 
     [Test]
     public void ConcreteAncestorCycle_OneNodeInResult() {
         var a1 = CreateNode("a1");
         var a2 = CreateNode("a2");
-        a1.State = new ConstrainsState(StatePrimitive.I32, StatePrimitive.I96);
+        a1.State = new ConstrainsState(I32, I96);
         a1.AddAncestor(a2);
         a2.AddAncestor(a1);
         var algorithm = new NodeToposort(3);

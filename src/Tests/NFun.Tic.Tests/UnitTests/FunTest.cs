@@ -3,25 +3,27 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.UnitTests;
 
+using static StatePrimitive;
+
 class FunTest {
     [Test]
     public void ConcreteTypes_SameTypes_EqualsReturnsTrue() {
-        var funA = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
-        var funB = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
+        var funA = StateFun.Of(Any, I32);
+        var funB = StateFun.Of(Any, I32);
         Assert.IsTrue(funA.Equals(funB));
     }
 
     [Test]
     public void ConcreteTypes_DifferentArgs_EqualsReturnsFalse() {
-        var funA = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
-        var funB = StateFun.Of(StatePrimitive.Any, StatePrimitive.Real);
+        var funA = StateFun.Of(Any, I32);
+        var funB = StateFun.Of(Any, Real);
         Assert.IsFalse(funA.Equals(funB));
     }
 
     [Test]
     public void ConcreteTypes_DifferentReturns_EqualsReturnsFalse() {
-        var funA = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
-        var funB = StateFun.Of(StatePrimitive.Real, StatePrimitive.I32);
+        var funA = StateFun.Of(Any, I32);
+        var funB = StateFun.Of(Real, I32);
         Assert.IsFalse(funA.Equals(funB));
     }
 
@@ -49,7 +51,7 @@ class FunTest {
 
     [Test]
     public void ConcreteTypes_IsSolvedReturnsTrue() {
-        var fun = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
+        var fun = StateFun.Of(Any, I32);
         Assert.IsTrue(fun.IsSolved);
     }
 
@@ -61,8 +63,8 @@ class FunTest {
 
     [Test]
     public void GetLastCommonAncestorOrNull_SameConcreteTypes_ReturnsEqualType() {
-        var funA = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
-        var funB = StateFun.Of(StatePrimitive.Any, StatePrimitive.I32);
+        var funA = StateFun.Of(Any, I32);
+        var funB = StateFun.Of(Any, I32);
         var ancestor = funA.GetLastCommonAncestorOrNull(funB);
         Assert.AreEqual(funA, ancestor);
         var ancestor2 = funB.GetLastCommonAncestorOrNull(funA);
@@ -71,9 +73,9 @@ class FunTest {
 
     [Test]
     public void GetLastCommonAncestorOrNull_ConcreteType_ReturnsAncestor() {
-        var funA = StateFun.Of(StatePrimitive.I32, StatePrimitive.I64);
-        var funB = StateFun.Of(StatePrimitive.U16, StatePrimitive.U64);
-        var expected = StateFun.Of(StatePrimitive.U16, StatePrimitive.I96);
+        var funA = StateFun.Of(I32, I64);
+        var funB = StateFun.Of(U16, U64);
+        var expected = StateFun.Of(U16, I96);
 
         Assert.AreEqual(expected, funA.GetLastCommonAncestorOrNull(funB));
         Assert.AreEqual(expected, funB.GetLastCommonAncestorOrNull(funA));
@@ -81,8 +83,8 @@ class FunTest {
 
     [Test]
     public void GetLastCommonAncestorOrNull_NotConcreteTypes_ReturnsNull() {
-        var funA = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(StatePrimitive.I32));
-        var funB = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(StatePrimitive.I32));
+        var funA = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(I32));
+        var funB = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(I32));
 
         Assert.IsNull(funA.GetLastCommonAncestorOrNull(funB));
         Assert.IsNull(funB.GetLastCommonAncestorOrNull(funA));
@@ -90,8 +92,8 @@ class FunTest {
 
     [Test]
     public void GetLastCommonAncestorOrNull_ConcreteAndNotConcreteType_ReturnsNull() {
-        var funA = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(StatePrimitive.I32));
-        var funB = StateFun.Of(StatePrimitive.U16, StatePrimitive.U64);
+        var funA = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(I32));
+        var funB = StateFun.Of(U16, U64);
 
         Assert.IsNull(funA.GetLastCommonAncestorOrNull(funB));
         Assert.IsNull(funB.GetLastCommonAncestorOrNull(funA));

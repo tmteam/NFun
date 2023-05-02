@@ -3,29 +3,31 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests;
 
+using static StatePrimitive;
+
 //& | ~ << >>
 class BitOperations {
     [Test]
     public void InvertConstants() {
         //y = ~1u
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.U32);
+        graph.SetConst(0, U32);
         graph.SetBitwiseInvert(0, 1);
         graph.SetDef("y", 1);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.U32, "y");
+        result.AssertNamed(U32, "y");
     }
 
     [Test]
     public void InvertGenericConstants() {
         //y = ~1
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
+        graph.SetIntConst(0, U8);
         graph.SetBitwiseInvert(0, 1);
         graph.SetDef("y", 1);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U8, I96);
         result.AssertAreGenerics(generic, "y");
     }
 
@@ -37,7 +39,7 @@ class BitOperations {
         graph.SetBitwiseInvert(0, 1);
         graph.SetDef("y", 1);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U8, I96);
         result.AssertAreGenerics(generic, "x", "y");
     }
 
@@ -46,13 +48,13 @@ class BitOperations {
         //    0  2 1
         //y = 1u & 2u
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.U32);
-        graph.SetConst(1, StatePrimitive.U32);
+        graph.SetConst(0, U32);
+        graph.SetConst(1, U32);
         graph.SetBitwise(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.U32, "y");
+        result.AssertNamed(U32, "y");
     }
 
 
@@ -62,13 +64,13 @@ class BitOperations {
         //    0  2 1
         //y = 1u & 2i
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.U32);
-        graph.SetConst(1, StatePrimitive.I32);
+        graph.SetConst(0, U32);
+        graph.SetConst(1, I32);
         graph.SetBitwise(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I64, "y");
+        result.AssertNamed(I64, "y");
     }
 
     [Test]
@@ -76,12 +78,12 @@ class BitOperations {
         //    0 2 1
         //y = 1 & x
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
+        graph.SetIntConst(0, U8);
         graph.SetVar("x", 1);
         graph.SetBitwise(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U8, I96);
         result.AssertAreGenerics(generic, "x", "y");
     }
 
@@ -90,13 +92,13 @@ class BitOperations {
         //    0 2 1
         //y = 1i & x
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetConst(0, I32);
         graph.SetVar("x", 1);
         graph.SetBitwise(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "x", "y");
+        result.AssertNamed(I32, "x", "y");
     }
 
     [Test]
@@ -104,16 +106,16 @@ class BitOperations {
         //    0 2 1 4   3 6 5
         //y = 1 & x | 256 | a
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
+        graph.SetIntConst(0, U8);
         graph.SetVar("x", 1);
         graph.SetBitwise(0, 1, 2);
-        graph.SetIntConst(3, StatePrimitive.U12);
+        graph.SetIntConst(3, U12);
         graph.SetBitwise(2, 3, 4);
         graph.SetVar("a", 5);
         graph.SetBitwise(4, 5, 6);
         graph.SetDef("y", 6);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U12, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U12, I96);
         result.AssertAreGenerics(generic, "a", "x", "y");
     }
 
@@ -122,16 +124,16 @@ class BitOperations {
         //    0 2 1 4   3 6 5
         //y = 1 & x | -1 | a
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
+        graph.SetIntConst(0, U8);
         graph.SetVar("x", 1);
         graph.SetBitwise(0, 1, 2);
-        graph.SetIntConst(3, StatePrimitive.I16);
+        graph.SetIntConst(3, I16);
         graph.SetBitwise(2, 3, 4);
         graph.SetVar("a", 5);
         graph.SetBitwise(4, 5, 6);
         graph.SetDef("y", 6);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.I16, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(I16, I96);
         result.AssertAreGenerics(generic, "a", "x", "y");
     }
 
@@ -140,12 +142,12 @@ class BitOperations {
         //    0 2 1
         //y = 1 & 2
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
-        graph.SetIntConst(1, StatePrimitive.U8);
+        graph.SetIntConst(0, U8);
+        graph.SetIntConst(1, U8);
         graph.SetBitwise(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.I96);
+        var generic = result.AssertAndGetSingleGeneric(U8, I96);
         result.AssertAreGenerics(generic, "y");
     }
 
@@ -155,13 +157,13 @@ class BitOperations {
         //    0  2 1
         //y = 1 << x
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8);
+        graph.SetIntConst(0, U8);
         graph.SetVar("x", 1);
         graph.SetBitShift(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
-        var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U24, StatePrimitive.I96);
-        result.AssertNamed(StatePrimitive.I48, "x");
+        var generic = result.AssertAndGetSingleGeneric(U24, I96);
+        result.AssertNamed(I48, "x");
         result.AssertAreGenerics(generic, "y");
     }
 
@@ -171,12 +173,12 @@ class BitOperations {
         //    0  2 1
         //y = 1i << 2
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
-        graph.SetIntConst(1, StatePrimitive.U8);
+        graph.SetConst(0, I32);
+        graph.SetIntConst(1, U8);
         graph.SetBitShift(0, 1, 2);
         graph.SetDef("y", 2);
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "y");
+        result.AssertNamed(I32, "y");
     }
 }

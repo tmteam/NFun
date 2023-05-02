@@ -3,16 +3,18 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Funs;
 
+using static StatePrimitive;
+
 public class MapTests {
     [Test]
     public void StrictArrayArg() {
         //     6  1 0     5  2  4 3
         //y = map([ 1i ], x->x == 0)
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetConst(0, I32);
         graph.SetStrictArrayInit(1, 0);
         graph.SetVar("lx", 2);
-        graph.SetIntConst(3, StatePrimitive.U8);
+        graph.SetIntConst(3, U8);
         graph.SetEquality(2, 3, 4);
         graph.CreateLambda(4, 5, "lx");
         graph.SetMap(1, 5, 6);
@@ -21,9 +23,9 @@ public class MapTests {
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StatePrimitive.Bool), "y");
-        result.AssertNamed(StatePrimitive.I32, "lx");
-        result.AssertNode(StateFun.Of(StatePrimitive.I32, StatePrimitive.Bool), 5);
+        result.AssertNamed(StateArray.Of(Bool), "y");
+        result.AssertNamed(I32, "lx");
+        result.AssertNode(StateFun.Of(I32, Bool), 5);
     }
 
     [Test]
@@ -31,11 +33,11 @@ public class MapTests {
         //     6  1 0     5      2 4 3
         //y = map([ 1i ], x:int->x * 2)
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetConst(0, I32);
         graph.SetStrictArrayInit(1, 0);
-        graph.SetVarType("lx", StatePrimitive.I32);
+        graph.SetVarType("lx", I32);
         graph.SetVar("lx", 2);
-        graph.SetIntConst(3, StatePrimitive.U8);
+        graph.SetIntConst(3, U8);
         graph.SetArith(2, 3, 4);
         graph.CreateLambda(4, 5, "lx");
         graph.SetMap(1, 5, 6);
@@ -44,9 +46,9 @@ public class MapTests {
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StatePrimitive.I32), "y");
-        result.AssertNamed(StatePrimitive.I32, "lx");
-        result.AssertNode(StateFun.Of(StatePrimitive.I32, StatePrimitive.I32), 5);
+        result.AssertNamed(StateArray.Of(I32), "y");
+        result.AssertNamed(I32, "lx");
+        result.AssertNode(StateFun.Of(I32, I32), 5);
     }
 
     [Test]
@@ -54,11 +56,11 @@ public class MapTests {
         //       6  1 0          5  2 43
         //y = map([ 1.0 ], x:int->x==0)
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.Real);
+        graph.SetConst(0, Real);
         graph.SetStrictArrayInit(1, 0);
-        graph.SetVarType("lx", StatePrimitive.I32);
+        graph.SetVarType("lx", I32);
         graph.SetVar("lx", 2);
-        graph.SetIntConst(3, StatePrimitive.U8);
+        graph.SetIntConst(3, U8);
         graph.SetEquality(2, 3, 4);
         TestHelper.AssertThrowsTicError(
             () => {
@@ -76,11 +78,11 @@ public class MapTests {
         //     6  1 0     5       2 4 3
         //y = Map([ 1i ], x:real->x*2)
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetConst(0, I32);
         graph.SetStrictArrayInit(1, 0);
-        graph.SetVarType("lx", StatePrimitive.Real);
+        graph.SetVarType("lx", Real);
         graph.SetVar("lx", 2);
-        graph.SetIntConst(3, StatePrimitive.U8);
+        graph.SetIntConst(3, U8);
         graph.SetArith(2, 3, 4);
         graph.CreateLambda(4, 5, "lx");
         graph.SetMap(1, 5, 6);
@@ -89,9 +91,9 @@ public class MapTests {
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.Real, "lx");
-        result.AssertNamed(StateArray.Of(StatePrimitive.Real), "y");
-        result.AssertNode(StateFun.Of(StatePrimitive.Real, StatePrimitive.Real), 5);
+        result.AssertNamed(Real, "lx");
+        result.AssertNamed(StateArray.Of(Real), "y");
+        result.AssertNode(StateFun.Of(Real, Real), 5);
     }
 
     [Test]
@@ -99,21 +101,21 @@ public class MapTests {
         //     6  1 0     5       2 4 3
         //y = Map([ 1i ], (x):real->x*2)
         var graph = new GraphBuilder();
-        graph.SetConst(0, StatePrimitive.I32);
+        graph.SetConst(0, I32);
         graph.SetStrictArrayInit(1, 0);
         graph.SetVar("lx", 2);
-        graph.SetIntConst(3, StatePrimitive.U8);
+        graph.SetIntConst(3, U8);
         graph.SetArith(2, 3, 4);
-        graph.CreateLambda(4, 5, StatePrimitive.Real, "lx");
+        graph.CreateLambda(4, 5, Real, "lx");
         graph.SetMap(1, 5, 6);
         graph.SetDef("y", 6);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StatePrimitive.I32, "lx");
-        result.AssertNamed(StateArray.Of(StatePrimitive.Real), "y");
-        result.AssertNode(StateFun.Of(StatePrimitive.I32, StatePrimitive.Real), 5);
+        result.AssertNamed(I32, "lx");
+        result.AssertNamed(StateArray.Of(Real), "y");
+        result.AssertNode(StateFun.Of(I32, Real), 5);
     }
 
     [Test]
@@ -146,15 +148,15 @@ public class MapTests {
         graph.SetVar("2lx", 1);
         graph.CreateLambda(1, 2, "2lx");
         graph.SetMap(0, 2, 3);
-        graph.SetVarType("y", StateArray.Of(StatePrimitive.U16));
+        graph.SetVarType("y", StateArray.Of(U16));
         graph.SetDef("y", 3);
 
         var result = graph.Solve();
 
         result.AssertNoGenerics();
 
-        result.AssertNamed(StateArray.Of(StatePrimitive.U16), "a", "y");
-        result.AssertNode(StateFun.Of(StatePrimitive.U16, StatePrimitive.U16));
+        result.AssertNamed(StateArray.Of(U16), "a", "y");
+        result.AssertNode(StateFun.Of(U16, U16));
     }
 
     [Test]
@@ -163,7 +165,7 @@ public class MapTests {
         //y = Map(a, SQRT)
         var graph = new GraphBuilder();
         graph.SetVar("a", 0);
-        graph.SetVarType("SQRT", StateFun.Of(StatePrimitive.Real, StatePrimitive.Real));
+        graph.SetVarType("SQRT", StateFun.Of(Real, Real));
         graph.SetVar("SQRT", 1);
         graph.SetMap(0, 1, 2);
         graph.SetDef("y", 2);
@@ -171,7 +173,7 @@ public class MapTests {
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StatePrimitive.Real), "a", "y");
+        result.AssertNamed(StateArray.Of(Real), "a", "y");
     }
 
     [Test]
@@ -179,9 +181,9 @@ public class MapTests {
         //                2  0   1
         //a:int[]; y = Map(a, SQRT)
         var graph = new GraphBuilder();
-        graph.SetVarType("a", StateArray.Of(StatePrimitive.I32));
+        graph.SetVarType("a", StateArray.Of(I32));
         graph.SetVar("a", 0);
-        graph.SetVarType("SQRT", StateFun.Of(StatePrimitive.Real, StatePrimitive.Real));
+        graph.SetVarType("SQRT", StateFun.Of(Real, Real));
         graph.SetVar("SQRT", 1);
         graph.SetMap(0, 1, 2);
         graph.SetDef("y", 2);
@@ -189,6 +191,6 @@ public class MapTests {
         var result = graph.Solve();
 
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StatePrimitive.Real), "y");
+        result.AssertNamed(StateArray.Of(Real), "y");
     }
 }
