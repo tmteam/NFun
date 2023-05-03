@@ -1,6 +1,7 @@
 namespace NFun.Tic;
 
 using System;
+using System.Collections.Generic;
 using SolvingStates;
 using static SolvingStates.StatePrimitive;
 
@@ -45,7 +46,32 @@ public static class Lca {
             return StateFun.Of(args, retType);
         }
 
-        throw new NotImplementedException($"{a} fcd {b} is not implemented yet");
+        if (a is StateStruct astruct)
+        {
+            //todo - just copy lca algorithm, but it is not fair
+            // consider case of function with two itmes
+            // should we merge fields with different names in the case?
+            if (!(b is StateStruct bstruct))
+                return Any;
+            var nodes = new Dictionary<string, TicNode>();
+            //todo - is it right? What about fields with unknown types?
+            foreach (var aField in astruct.Fields)
+            {
+                if (!aField.Value.IsSolved)
+                    continue;
+                var bField = bstruct.GetFieldOrNull(aField.Key);
+                if (bField == null) continue;
+                if (!bField.IsSolved)
+                    continue;
+                if (!aField.Value.State.Equals(bField.State))
+                    continue;
+                nodes.Add(aField.Key, aField.Value);
+            }
+            //todo is it frozen
+            return new StateStruct(nodes, true);
+        }
+
+        throw new NotSupportedException($"MinFcd is not supported for types {a} and {b}");
     }
 
     public static ITicNodeState MaxLca(ITicNodeState a, ITicNodeState b) {
@@ -85,8 +111,27 @@ public static class Lca {
             return StateFun.Of(argNodes, TicNode.CreateInvisibleNode(returnState));
         }
 
-        if (a is StateStruct)
-            throw new NotImplementedException($"Todo BottomLca type5 for {a}");
+        if (a is StateStruct astruct)
+        {
+            if (!(b is StateStruct bstruct))
+                return Any;
+            var nodes = new Dictionary<string, TicNode>();
+            //todo - is it right? What about fields with unknown types?
+            foreach (var aField in astruct.Fields)
+            {
+                if (!aField.Value.IsSolved)
+                    continue;
+                var bField = bstruct.GetFieldOrNull(aField.Key);
+                if (bField == null) continue;
+                if (!bField.IsSolved)
+                    continue;
+                if (!aField.Value.State.Equals(bField.State))
+                    continue;
+                nodes.Add(aField.Key, aField.Value);
+            }
+            //todo is it frozen
+            return new StateStruct(nodes, true);
+        }
         return Any;
     }
 
@@ -100,7 +145,7 @@ public static class Lca {
             StateArray arr =>  StateArray.Of(GetMaxType(GetMaxType(arr.Element))),
             StateRefTo aref => GetMaxType(aref.Element),
             StateFun f =>  GetMaxType(f),
-            StateStruct s => GetMaxType(s),
+            StateStruct => a, // todo should we discard items, that are not solved?
             _ => a
         };
 
@@ -117,12 +162,6 @@ public static class Lca {
         return StateFun.Of(argNodes, returnNode);
     }
 
-    private static ITicNodeState GetMaxType(StateStruct a) {
-        if (a.IsSolved)
-            return a;
-        throw new NotImplementedException($"Todo GetBottom type3 for {a}");
-    }
-
     /*
      * Returns most abstract possible type
      */
@@ -133,7 +172,7 @@ public static class Lca {
          StatePrimitive => a,
          StateArray arr =>  StateArray.Of(GetMinType(GetMaxType(arr.Element))),
          StateFun f => GetMinType(f),
-         StateStruct s => GetMinType(s),
+         StateStruct=> a,
          _ => a
      };
 
@@ -141,11 +180,5 @@ public static class Lca {
         if (f.IsSolved)
             return f;
         throw new NotImplementedException($"Todo GetBottom type2 for {f}");
-    }
-
-    private static ITicNodeState GetMinType(StateStruct s) {
-        if (s.IsSolved)
-            return s;
-        throw new NotImplementedException($"Todo GetBottom type1 for {s}");
     }
 }
