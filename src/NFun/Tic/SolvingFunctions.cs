@@ -208,9 +208,17 @@ public static class SolvingFunctions {
     }
 
     private static void PushConstraintsRecursive(TicNode node) {
+
         if (node.State is ICompositeState composite)
+        {
+            var oldMakr = node.VisitMark;
+            if (oldMakr == 1567)
+                throw new NotImplementedException("Recursive type definition");
+            node.VisitMark = 1567;
             foreach (var member in composite.Members)
                 PushConstraintsRecursive(member);
+            node.VisitMark = oldMakr;
+        }
 
         // micro optimization. node.Ancestors.ToArray() is very expensive operation
         // but cases of 0 or 1 ancestors are most common

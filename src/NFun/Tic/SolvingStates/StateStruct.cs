@@ -117,5 +117,5 @@ public class StateStruct : ICompositeState {
     }
 
     public override string ToString()
-        => "{" + (IsFrozen?" [frozen] " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}")) +*/ "}";
+        => "{" + (IsFrozen?" [frozen] " :"") + string.Join("; ", _nodes.Select(n => $"{n.Key}:{"..."/*n.Value.State*/}")) + "}";
 }
