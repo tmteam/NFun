@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic; 
+namespace NFun.Tic;
 
 class RefCycleSearchAlgorithm {
     private readonly int _nodeInListMark;
@@ -22,7 +22,7 @@ class RefCycleSearchAlgorithm {
 
         // ref cycle found!
         // the node becomes one non reference node with no constrains
-        node.State = new ConstrainsState();
+        node.State = ConstrainsState.Empty;
         foreach (var refNode in _refRoute)
         {
             if (refNode == node)

@@ -14,29 +14,29 @@ public class LcaPrimitivesTest {
     [Test]
     public void PrimitiveAndBottom_ReturnsPrimitive() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(new ConstrainsState(), primitive, primitive);
+            AssertLca(ConstrainsState.Empty, primitive, primitive);
     }
 
     [Test]
     public void PrimitiveAndConstraint_ReturnsLcaOfTypeAndDesc() {
         foreach (var types in PrimitiveTypesLca)
-            AssertLca(new ConstrainsState(types.Left), types.Right, types.Lca);
+            AssertLca(ConstrainsState.Of(types.Left), types.Right, types.Lca);
     }
 
     [Test]
     public void ConstraintAndConstraint_ReturnsLcaOfDescAndDesc() {
         foreach (var types in PrimitiveTypesLca)
-            AssertLca(new ConstrainsState(types.Left), new ConstrainsState(types.Right),
+            AssertLca(ConstrainsState.Of(types.Left), ConstrainsState.Of(types.Right),
                 types.Lca);
     }
 
     [Test]
     public void ConstraintAndBottom_ReturnsfDesc() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(new ConstrainsState(primitive), new ConstrainsState(), primitive);
+            AssertLca(ConstrainsState.Of(primitive), ConstrainsState.Empty, primitive);
     }
 
     [Test]
     public void BottomAndBottom_returnBottom() =>
-        AssertLca(new ConstrainsState(), new ConstrainsState(), new ConstrainsState());
+        AssertLca(ConstrainsState.Empty, ConstrainsState.Empty, ConstrainsState.Empty);
 }
