@@ -105,6 +105,12 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         return Of(retType: returnAnc, argTypes: argTypes);
     }
 
+    public string PrintState(int depth) {
+        if (depth > 100)
+            return "(...REQ...)->REQ";
+        return $"({string.Join(",", ArgNodes.Select(a => a.State.PrintState(depth+1)))})->{ReturnType.PrintState(depth+1)}";
+    }
+
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
         => type.Equals(StatePrimitive.Any);
 
@@ -180,6 +186,8 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
             }
         }
     }
+
+    public string StateDescription => PrintState(0);
 
     public override string ToString() {
         if (ArgsCount == 1)

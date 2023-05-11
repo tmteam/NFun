@@ -2,7 +2,6 @@ namespace NFun.Tic;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using SolvingStates;
 using static SolvingStates.StatePrimitive;
 
@@ -15,7 +14,7 @@ public static class StateExtensions {
         if (b is StateRefTo bref)
             return Lca(a, bref.Element);
         if (b is ConstrainsState bc)
-            return bc.HasDescendant ? Lca(a, bc.Descendant) : Concretest(a);
+            return bc.HasDescendant ? Lca(a, bc.Descendant) : MaxState(a);
         if (a is ConstrainsState)
             return Lca(b, a);
         if (a is StatePrimitive ap)
@@ -43,7 +42,6 @@ public static class StateExtensions {
             if (universalType == null) continue;
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(universalType));
         }
-
         //todo is it frozen or not?
         return new StateStruct(nodes, true);
     }
@@ -69,22 +67,22 @@ public static class StateExtensions {
 
     #endregion
 
-    #region fcd
+    #region Fcd
 
-    public static ITicNodeState Fcd(this ITicNodeState a, ITicNodeState b) {
+    private static ITicNodeState Fcd(this ITicNodeState a, ITicNodeState b) {
         if (b is StateRefTo bref)
             return Fcd(a, bref.Element);
         if (a is StateRefTo aref)
             return Fcd(aref.Element, b);
         if (a is ConstrainsState ac)
-            return ac.Ancestor != null ? Fcd(ac.Ancestor, b) : Abstractest(b);
+            return ac.Ancestor != null ? Fcd(ac.Ancestor, b) : MinState(b);
         if (b is ConstrainsState bc)
-            return bc.Ancestor != null ? Fcd(a, bc.Ancestor) : Abstractest(a);
+            return bc.Ancestor != null ? Fcd(a, bc.Ancestor) : MinState(a);
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
-                a.Equals(Any) ? Abstractest(b) : null;
+                a.Equals(Any) ? MinState(b) : null;
         if (b.Equals(Any))
-            return Abstractest(a);
+            return MinState(a);
         if (a.GetType() != b.GetType())
             return null;
         if (a is StateArray arrA)
@@ -93,7 +91,7 @@ public static class StateExtensions {
             return Fcd(funA, (StateFun)b);
         if (a is StateStruct astruct)
             return Fcd(astruct, (StateStruct)b);
-        throw new System.NotSupportedException($"FCD is not supported for types {a} and {b}");
+        throw new NotSupportedException($"MinFcd is not supported for types {a} and {b}");
     }
 
     private static ITicNodeState Fcd(this StateArray arrA, StateArray arrB) {
@@ -104,24 +102,25 @@ public static class StateExtensions {
     }
 
     private static ITicNodeState Fcd(this StateStruct astruct, StateStruct bstruct) {
+        //todo - just copy lca algorithm, but it is not fair
+        // consider case of function with two itmes
+        // should we merge fields with different names in the case?
+
         var nodes = new Dictionary<string, TicNode>();
-        // we need to collect both
-        var keys = astruct.Fields.Select(f => f.Key).Union(bstruct.Fields.Select(f => f.Key));
-        foreach (var name in keys)
+        //todo - is it right? What about fields with unknown types?
+        foreach (var aField in astruct.Fields)
         {
-            var aField = astruct.GetFieldOrNull(name);
-            var bField = bstruct.GetFieldOrNull(name);
-            if (aField == null)
-                nodes.Add(name, bField);
-            else if(bField==null)
-                nodes.Add(name, aField);
-            //base type has to fit both fields
-            else if (aField.State.StateDescription == bField.State.StateDescription)
-                nodes.Add(name, aField);
-            //todo - if aField fits in bField, or vice versa = we can add bField
-            else
-                return null;
+            if (!aField.Value.IsSolved)
+                continue;
+            var bField = bstruct.GetFieldOrNull(aField.Key);
+            if (bField == null) continue;
+            if (!bField.IsSolved)
+                continue;
+            if (!aField.Value.State.Equals(bField.State))
+                continue;
+            nodes.Add(aField.Key, aField.Value);
         }
+
         //todo is it frozen
         return new StateStruct(nodes, true);
     }
@@ -141,67 +140,54 @@ public static class StateExtensions {
 
     #endregion
 
-    #region  concretest
+    #region maxmin
 
-    /// <summary>
-    /// Returns most possible concrete type, that can be represented by current state (without convertion)
-    /// </summary>
-    public static ITicNodeState Concretest(this ITicNodeState a) =>
+    /*
+     * Returns most concrete type, or [..] if there is no concreteness
+     */
+    public static ITicNodeState MaxState(this ITicNodeState a) =>
         a switch {
             StatePrimitive => a,
-            ConstrainsState cs => cs.HasDescendant
-                ? cs.Descendant.Concretest()
-                : ConstrainsState.Of(isComparable: cs.IsComparable),
-            StateArray arr => StateArray.Of(arr.Element.Concretest()),
-            StateRefTo aref => aref.Element.Concretest(),
-            StateFun f => f.Concretest(),
-            StateStruct => a, //todo - exclude refs from struct
+            ConstrainsState cs => cs.HasDescendant ? cs.Descendant : ConstrainsState.Of(isComparable: cs.IsComparable),
+            StateArray arr => StateArray.Of(MaxState(MaxState(arr.Element))),
+            StateRefTo aref => MaxState(aref.Element),
+            StateFun f => MaxState(f),
+            StateStruct => a, // todo should we discard items, that are not solved?
             _ => a
         };
 
-    private static ITicNodeState Concretest(this StateFun f) {
+    private static ITicNodeState MaxState(this StateFun f) {
         // return type is classic, but arg type is contravariant
-        var returnNode = TicNode.CreateInvisibleNode(Concretest(f.ReturnType));
+        var returnNode = TicNode.CreateInvisibleNode(MaxState(f.ReturnType));
         var argNodes = new TicNode[f.ArgsCount];
         var i = 0;
         foreach (var node in f.ArgNodes)
         {
-            argNodes[i] = TicNode.CreateInvisibleNode(node.State.Abstractest());
+            argNodes[i] = TicNode.CreateInvisibleNode(MinState(node.State));
             i++;
         }
 
         return StateFun.Of(argNodes, returnNode);
     }
 
-    #endregion
-
-    #region abstractest
-
-    /// <summary>
-    /// Returns most possible abstract type, that can be represented by current state (without convertion)
-    /// </summary>
-    public static ITicNodeState Abstractest(this ITicNodeState a) =>
+    /*
+     * Returns most abstract possible type
+     */
+    public static ITicNodeState MinState(this ITicNodeState a) =>
         a switch {
-            StateRefTo aref => aref.Element.Abstractest(),
-            ConstrainsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
+            StateRefTo aref => MinState(aref.Element),
+            ConstrainsState cs => cs.HasAncestor ? cs.Ancestor : Any,
             StatePrimitive => a,
-            StateArray arr => StateArray.Of(arr.Element.Abstractest()),
-            StateFun f => f.Abstractest(),
+            StateArray arr => StateArray.Of(MinState(MaxState(arr.Element))),
+            StateFun f => MinState(f),
             StateStruct => a,
             _ => a
         };
 
-    private static ITicNodeState Abstractest(this StateFun f) {
-        var returnNode = TicNode.CreateInvisibleNode(Abstractest(f.ReturnType));
-        var argNodes = new TicNode[f.ArgsCount];
-        var i = 0;
-        foreach (var node in f.ArgNodes)
-        {
-            argNodes[i] = TicNode.CreateInvisibleNode(node.State.Concretest());
-            i++;
-        }
-
-        return StateFun.Of(argNodes, returnNode);
+    private static ITicNodeState MinState(this StateFun f) {
+        if (f.IsSolved)
+            return f;
+        throw new NotImplementedException($"Todo GetBottom type2 for {f}");
     }
 
     #endregion
@@ -220,7 +206,7 @@ public static class StateExtensions {
         {
             if (b is ConstrainsState bc)
                 return UniversalStateOrNull(ac, bc);
-            else if (b.FitsInto(ac))
+            else if (ac.Fits(b))
                 return b;
             else
                 return null;
@@ -240,7 +226,7 @@ public static class StateExtensions {
             return UniversalStateOrNull(aFun, b as StateFun);
         if (a is StateStruct aStr)
             return UniversalStateOrNull(aStr, b as StateStruct);
-        throw new System.NotSupportedException($"Unitype({a}, {b})");
+        throw new NotSupportedException($"Unitype({a}, {b})");
     }
 
     private static ITicNodeState UniversalStateOrNull(this ConstrainsState a, ConstrainsState b) {
@@ -311,7 +297,7 @@ public static class StateExtensions {
 
     #endregion
 
-    #region convert
+    #region converted
 
     /// <summary>
     /// `from` can be converted to `to` in SOME case
@@ -321,7 +307,7 @@ public static class StateExtensions {
             return CanBeConvertedOptimisticTo(fromRef.Element, to);
         if (to is StateRefTo toRef)
             return CanBeConvertedOptimisticTo(from, toRef.Element);
-        if (to.Equals(Any))
+        if (to.Equals(StatePrimitive.Any))
             return true;
         if (to is ICompositeState compositeState)
             return CanBeConvertedOptimisticTo(from, compositeState);
@@ -338,7 +324,7 @@ public static class StateExtensions {
             {
                 var ancestor = toConstraints.Ancestor;
                 // if there is no ancestor, than anything can be possibly converted to 'to'
-                if (ancestor == null || Equals(ancestor, Any))
+                if (ancestor == null || Equals(ancestor, StatePrimitive.Any))
                     return true;
                 //if there is ancestor, then either 'from.ancestor` either `from.desc` has to be converted to it
                 if (fromConstraints.HasAncestor && CanBeConvertedOptimisticTo(fromConstraints.Ancestor, ancestor))
@@ -348,41 +334,25 @@ public static class StateExtensions {
             }
 
             if (to is StatePrimitive toP)
-                return CanBeConvertedOptimisticTo(fromConstraints, toP);
+            {
+                if (fromConstraints.HasAncestor && fromConstraints.Ancestor.CanBePessimisticConvertedTo(toP))
+                    return true;
+                if (fromConstraints.HasDescendant && fromConstraints.Descendant.CanBePessimisticConvertedTo(toP))
+                    return true;
+            }
         }
 
         if (from is ICompositeState)
         {
             if (to is ConstrainsState constrainsState)
                 // if there is no ancestor, than anything can be possibly converted to 'to'
-                return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, Any);
+                return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, StatePrimitive.Any);
             return false;
         }
 
         if (to is StatePrimitive toPrimitive)
             return from.CanBePessimisticConvertedTo(toPrimitive);
         return false;
-    }
-
-    public static bool CanBeConvertedOptimisticTo(this ConstrainsState from, StatePrimitive to) {
-        if (from.Ancestor?.CanBePessimisticConvertedTo(to) == true)
-            return true;
-
-        if (from.HasDescendant)
-        {
-            var concretest = from.Descendant.Concretest();
-            if (concretest is ConstrainsState { HasAncestor : false, HasDescendant: false })
-                return true;
-            return concretest.CanBePessimisticConvertedTo(to);
-        }
-
-        if (from.HasAncestor)
-            return to.CanBePessimisticConvertedTo(from.Ancestor);
-
-        if (from.IsComparable)
-            return to.IsComparable || to.Equals(Any);
-        else
-            return true;
     }
 
     /// <summary>
@@ -395,46 +365,10 @@ public static class StateExtensions {
             return !constrainsState.HasDescendant;
         if (from.GetType() != to.GetType())
             return false;
-        return from switch {
-            StateArray arrayFrom => CanBeConvertedOptimisticTo(arrayFrom.Element, ((StateArray)to).Element),
-            StateFun funFrom => CanBeConvertedOptimisticTo(funFrom, (StateFun)to),
-            StateStruct structFrom => CanBeConvertedOptimisticTo(structFrom, (StateStruct)to),
-            _ => throw new System.NotSupportedException($"{from} is not supported for CanBeConvertedPessimistic ")
-        };
+        if (from is StateArray arrayFrom)
+            return CanBeConvertedOptimisticTo(arrayFrom.Element, (to as StateArray).Element);
+        throw new NotImplementedException($"{from} CanBeConvertedPessimistic Top");
     }
-
-    public static bool CanBeConvertedOptimisticTo(this StateFun from, StateFun to) {
-        if (from.ArgsCount != to.ArgsCount)
-            return false;
-        if (!from.ReturnType.CanBeConvertedOptimisticTo(to.ReturnType))
-            return false;
-        for (int i = 0; i < from.ArgsCount; i++)
-        {
-            var fromType = from.ArgNodes[i].State;
-            var toType = to.ArgNodes[i].State;
-            if (!toType.CanBeConvertedOptimisticTo(fromType))
-                return false;
-        }
-
-        return true;
-    }
-
-    public static bool CanBeConvertedOptimisticTo(this StateStruct from, StateStruct to) {
-        if (to.FieldsCount > from.FieldsCount)
-            return false;
-        foreach (var toField in to.Fields)
-        {
-            var fromField = from.GetFieldOrNull(toField.Key);
-            if (fromField == null)
-                return false;
-            var unitype = UniversalStateOrNull(fromField.State, toField.Value.State);
-            if (unitype == null)
-                return false;
-        }
-
-        return true;
-    }
-
 
     /// <summary>
     /// `from` can be converted to `to` in ANY case
@@ -447,12 +381,12 @@ public static class StateExtensions {
         if (to.IsComparable)
             return from is StateArray array && CanBeConvertedPessimisticTo(from: StatePrimitive.Char, array.Element);
         // so state has to be converted to descendant, to allow this
-        var toDescendant = to.Descendant;
-        if (Equals(toDescendant, Any))
+        if (Equals(to.Descendant, StatePrimitive.Any))
             return true;
-        if (toDescendant is ICompositeState toComposite)
-            return CanBeConvertedPessimisticTo(from, toComposite);
-        return false;
+        if (from is StateArray arrayDesc)
+            return to.Descendant is StateArray arrayAnc &&
+                   CanBeConvertedPessimisticTo(arrayDesc.Element, arrayAnc.Element);
+        throw new NotImplementedException($"{from} CanBeConvertedPessimistic Typed");
     }
 
     /// <summary>
@@ -461,224 +395,28 @@ public static class StateExtensions {
     public static bool CanBeConvertedPessimisticTo(this ITicNodeState from, ITicNodeState to) {
         if (to is StateRefTo ancRef)
             return CanBeConvertedPessimisticTo(from, ancRef.Element);
-        if (to.Equals(Any))
-            return true;
         return from switch {
             StateRefTo descRef => CanBeConvertedPessimisticTo(descRef.Element, to),
             StatePrimitive => to switch {
                 StatePrimitive p => from.CanBePessimisticConvertedTo(p),
-                ConstrainsState c => c.HasDescendant && CanBeConvertedPessimisticTo(from, c.Descendant), //todo support comparable
+                ConstrainsState c => c.NoConstrains || (
+                    c.HasDescendant
+                        ? CanBeConvertedPessimisticTo(from, c.Descendant)
+                        : CanBeConvertedPessimisticTo(from, c.Ancestor)),
                 _ => false
             },
             ConstrainsState fromDesc => fromDesc.HasAncestor
-                ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to) //todo support comparable
-                : CanBeConvertedPessimisticTo(Any, to),
-            ICompositeState comp => to switch {
-                ConstrainsState constrAnc => CanBeConvertedPessimisticTo(comp, constrAnc),
-                ICompositeState composite => CanBeConvertedPessimisticTo(comp, composite),
-                _ => false
-            }
-        };
-    }
-
-    private static bool CanBeConvertedPessimisticTo(ICompositeState from, ICompositeState to) =>
-        from switch {
+                ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to) //todo support convertible
+                : CanBeConvertedPessimisticTo(StatePrimitive.Any, to),
             StateArray arrayDesc => to switch {
                 StateArray arrayAnc => CanBeConvertedPessimisticTo(arrayDesc.Element, arrayAnc.Element),
+                ConstrainsState constrAnc => CanBeConvertedPessimisticTo(arrayDesc, constrAnc),
                 _ => false
             },
-            StateFun fromFun => to switch {
-                StateFun toFun => CanBeConvertedPessimisticTo(fromFun, toFun),
-                _ => false
-            },
-            StateStruct fromStr => to switch {
-                StateStruct toStr => CanBeConvertedPessimisticTo(fromStr, toStr),
-                _ => false
-            },
-            _ => throw new System.NotSupportedException($"type {from} is not supported for pessimistic convertion")
-        };
-
-    private static bool CanBeConvertedPessimisticTo(StateFun from, StateFun to) {
-        if (from.ArgsCount != to.ArgsCount)
-            return false;
-        if (!from.ReturnType.CanBeConvertedPessimisticTo(to.ReturnType))
-            return false;
-        for (int i = 0; i < from.ArgsCount; i++)
-        {
-            if (!to.ArgNodes[i].State.CanBeConvertedPessimisticTo(from.ArgNodes[i].State))
-                return false;
-        }
-
-        return true;
-    }
-
-    private static bool CanBeConvertedPessimisticTo(this StateStruct from, StateStruct to) {
-        if (to.FieldsCount > from.FieldsCount)
-            return false;
-        foreach (var toField in to.Fields)
-        {
-            if (!toField.Value.IsSolved)
-                return false;
-            var fromField = from.GetFieldOrNull(toField.Key);
-            if (fromField == null || !fromField.IsSolved)
-                return false;
-            if (toField.Value.State.StateDescription != fromField.State.StateDescription)
-                return false;
-        }
-
-        return true;
-    }
-
-    #endregion
-
-    #region fit
-
-    public static bool FitsInto(this ITicNodeState target, ConstrainsState to) {
-        if (to.HasAncestor && !target.CanBePessimisticConvertedTo(to.Ancestor))
-            return false;
-        if (to.IsComparable)
-        {
-            if (target is ICompositeState)
-            {
-                // the only comparable composite is arr(char)
-                if (!(target is StateArray a))
-                    return false;
-                if (!a.Element.Equals(StatePrimitive.Char))
-                    return false;
-            }
-
-            if (target is StatePrimitive tp)
-                return tp.IsComparable;
-        }
-        return to.Descendant == null || CanBeFitConverted(to.Descendant, target);
-    }
-
-
-    public static bool FitsInto(this ITicNodeState target, ITicNodeState to) {
-        if (to is StateRefTo toR)
-            return FitsInto(target, toR.GetNonReference());
-        if (to is ConstrainsState constrainsState)
-            return target.FitsInto(constrainsState);
-
-        return target switch {
-            StateArray targetA => to is StateArray arrTo
-                ? targetA.Element.FitsInto(arrTo.Element)
-                : to.Equals(Any),
-            StateFun targetF => to is StateFun funTo
-                ? targetF.FitsInto(funTo)
-                : to.Equals(Any),
-            StateStruct targetS => to is StateStruct structTo
-                ? targetS.FitsInto(structTo)
-                : to.Equals(Any),
-            StatePrimitive => to is StatePrimitive p && target.CanBePessimisticConvertedTo(p),
-            ConstrainsState { HasDescendant: true } fc => FitsInto(fc.Descendant, to),
-            ConstrainsState => true,
-            StateRefTo targetR=> FitsInto(targetR.GetNonReference(), to),
-            _ => throw new System.NotImplementedException($"Type {target} :> {to} is not supported in FIT")
-        };
-    }
-
-    private static bool FitsInto(this StateStruct from, StateStruct to) {
-        // 'from' has to have every field from 'to'
-        // every 'from' field has to fit into 'to' field
-        foreach (var toField in to.Fields)
-        {
-            var fromField = from.GetFieldOrNull(toField.Key);
-            if (fromField == null) return false;
-            if (!FitsInto(fromField.State, toField.Value.State))
-                return false;
-        }
-        return true;
-    }
-
-    private static bool FitsInto(this StateFun target, StateFun to) {
-        if (target.ArgsCount != to.ArgsCount)
-            return false;
-        //var returnBottomDesc = from.ReturnType.Concretest();
-        //var returnBottomAnc = to.ReturnType.Concretest();
-        if (!FitsInto(target.ReturnType, to.ReturnType))
-            return false;
-        for (int i = 0; i < target.ArgsCount; i++)
-        {
-            //var dmin = stateFun.ArgNodes[i].State.Abstractest();
-            //var amin = typeFun.ArgNodes[i].State.Abstractest();
-            if (!to.ArgNodes[i].State.FitsInto(target.ArgNodes[i].State))
-                return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
-    /// </summary>
-    private static bool CanBeFitConverted(ITicNodeState desc, ITicNodeState to) {
-        if (to is StateRefTo rto)
-            return CanBeFitConverted(desc, rto.Element);
-        if (to.Equals(Any))
-            return true;
-
-        return desc switch {
-            StateRefTo descRef => CanBeFitConverted(descRef.Element, to),
-            StatePrimitive descP => to switch {
-                StatePrimitive toP => descP.CanBePessimisticConvertedTo(toP),
-                ConstrainsState toC => toC.Descendant!=null && descP.CanBeConvertedPessimisticTo(toC.Descendant),
-                _ => false
-            },
-            ConstrainsState fromDesc => fromDesc.Descendant==null || CanBeFitConverted(fromDesc.Descendant, to),
-            ICompositeState comp => to switch {
-                ConstrainsState constrAnc => constrAnc.Descendant is ICompositeState toComposite && CanBeFitConverted(comp, toComposite),
-                ICompositeState composite => CanBeFitConverted(comp, composite),
-                _ => false
-            },
-            _ => throw new System.NotSupportedException($"CBFC does not support {desc} to {to}")
-        };
-    }
-
-    /// <summary>
-    /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
-    /// </summary>
-    private static bool CanBeFitConverted(ICompositeState desc, ICompositeState to) {
-        if (desc.GetType() != to.GetType())
-            return false;
-        return desc switch {
-            StateArray descA  => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
-            StateFun descF    => CanBeFitConverted(descF, (StateFun)to),
-            StateStruct descS => CanBeFitConverted(descS, (StateStruct)to),
+            StateFun => throw new NotImplementedException($"{from} CanBeConvertedPessimistic "),
+            StateStruct => throw new NotImplementedException($"{from} CanBeConvertedPessimistic "),
             _ => false
         };
-    }
-
-    /// <summary>
-    /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
-    /// </summary>
-    private static bool CanBeFitConverted(StateStruct desc, StateStruct to) {
-        //'to' has to contains all the fields from desc.
-        foreach (var (dname, dstate) in desc.Fields)
-        {
-            var astate = to.GetFieldOrNull(dname);
-            if (astate == null)
-                return false;
-            //todo - it is naive implementation
-            if (!dstate.State.CanBeConvertedPessimisticTo(astate.State))
-                return false;
-        }
-        //todo - it is naive implementation
-        return desc.FitsInto(to);
-    }
-
-
-    private static bool CanBeFitConverted(StateFun desc, StateFun to) {
-        if (desc.ArgsCount != to.ArgsCount) return false;
-        if (!CanBeFitConverted(desc.ReturnType, to.ReturnType))
-            return false;
-        for (int i = 0; i < to.ArgsCount; i++)
-        {
-            var descArg = desc.ArgNodes[i].State;
-            var toArg = desc.ArgNodes[i].State;
-            if (!CanBeFitConverted(toArg, descArg))
-                return false;
-        }
-        return true;
     }
 
     #endregion

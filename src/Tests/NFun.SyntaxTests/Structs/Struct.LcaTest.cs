@@ -2,7 +2,6 @@ namespace NFun.SyntaxTests.Structs;
 
 using NUnit.Framework;
 using TestTools;
-using Tic;
 using Types;
 
 public class StructLcaTest {
@@ -16,7 +15,7 @@ public class StructLcaTest {
             f3 = if(true) f1 else f2
 
             out = f3({age = 42, size = 15})
-        ".Calc().AssertResultHas("out", 57);
+        ".Calc().AssertReturns("out", 42);
 
     [Test]
     public void FunLca2() =>
@@ -27,7 +26,7 @@ public class StructLcaTest {
             f3 = if(true) f1 else f2
 
             out:int = f3({age = 42, size = 15})
-        ".Calc().AssertResultHas("out", 57);
+        ".Calc().AssertReturns("out", 42);
 
     [Test]
     public void FunLca3() =>
@@ -36,7 +35,7 @@ public class StructLcaTest {
         f2 = rule it.age
         f3 = if(true) f1 else f2
         out = f3({age = 42, size = 15})
-    ".Calc().AssertResultHas("out", 15);
+    ".Calc().AssertReturns("out", 15);
 
     [Test]
     public void FunLca4() =>
@@ -55,7 +54,7 @@ public class StructLcaTest {
         f2 = rule it.age
         f3 = if(true) f1 else if(false) f2 else rule it.size+ it.age
         out = f3({age = 42, size = 15})
-    ".Calc().AssertResultHas("out", 15);
+    ".Calc().AssertReturns("out", 15);
 
     [Test]
     public void IfLca1() =>
@@ -71,16 +70,16 @@ public class StructLcaTest {
 	            age = 42
             }
             out = x.age
-        ".Calc().AssertResultHas("out", 42);
+        ".Calc().AssertReturns("out", 42);
 
     [Test]
-    public void IfLca2() => TraceLog.WithTrace(()=>
+    public void IfLca2() =>
         @"
         x =
 	        if(true) { age = 0x1 }
 	        else { age = 42.0 }
-         out = x.age
-    ".Calc().AssertResultHas("out", 1.0));
+            out = x.age
+    ".Calc().AssertReturns("out", 1.0);
 
     [Test]
     public void IfLca3() =>
@@ -91,7 +90,7 @@ public class StructLcaTest {
 	    else { age = 42.0 }
 
     out = x.age
-    ".Calc().AssertResultHas("out", typeof(object));
+    ".Calc().AssertResultIs("out", typeof(object));
 
     [Test]
     public void IfLca4() {
@@ -118,14 +117,14 @@ public class StructLcaTest {
         @"
         arr = [{age=42}, {age = 42, size = 15}, {age = 1, size = 2, name = 'vasa'}]
         out = arr[0].age"
-            .Calc().AssertResultHas("out", 42);
+            .Calc().AssertReturns(42);
 
     [Test]
     public void ArrayLca2() =>
         @"
         arr = [{age=42}, {age = 42, size = 15}]
         out:real = arr[0].age"
-            .Calc().AssertResultHas("out", 42.0);
+            .Calc().AssertReturns(42.0);
 
     [Test]
     public void Fcd1() {
@@ -179,7 +178,7 @@ public class StructLcaTest {
  @"
     arr = [{age=42}, {age = 42, size = 15}]
     out:real = arr[0].size")]
-    [TestCase("y = [{a =1.0},{id = 31},{id = 42}][0].a")]
+    [TestCase("y = [{a =1.0},{id = 31},{id = 42}][0]")]
     public void ObviousFails(string expr) =>
         expr.AssertObviousFailsOnParse();
 }
