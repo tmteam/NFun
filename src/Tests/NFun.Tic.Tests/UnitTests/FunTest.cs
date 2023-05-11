@@ -100,5 +100,5 @@ class FunTest {
     }
 
     private TicNode CreateConstrainsNode()
-        => TicNode.CreateTypeVariableNode("", new ConstrainsState());
+        => TicNode.CreateTypeVariableNode("", ConstrainsState.Empty);
 }

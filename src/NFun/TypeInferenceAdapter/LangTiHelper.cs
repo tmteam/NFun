@@ -30,18 +30,18 @@ public static class LangTiHelper {
 
     public static ITicNodeState ConvertToTiType(this FunnyType origin) =>
         origin.BaseType switch {
-            BaseFunnyType.Bool   => StatePrimitive.Bool,
-            BaseFunnyType.Int16  => StatePrimitive.I16,
-            BaseFunnyType.Int32  => StatePrimitive.I32,
-            BaseFunnyType.Int64  => StatePrimitive.I64,
-            BaseFunnyType.UInt8  => StatePrimitive.U8,
+            BaseFunnyType.Bool => StatePrimitive.Bool,
+            BaseFunnyType.Int16 => StatePrimitive.I16,
+            BaseFunnyType.Int32 => StatePrimitive.I32,
+            BaseFunnyType.Int64 => StatePrimitive.I64,
+            BaseFunnyType.UInt8 => StatePrimitive.U8,
             BaseFunnyType.UInt16 => StatePrimitive.U16,
             BaseFunnyType.UInt32 => StatePrimitive.U32,
             BaseFunnyType.UInt64 => StatePrimitive.U64,
-            BaseFunnyType.Real   => StatePrimitive.Real,
-            BaseFunnyType.Char   => StatePrimitive.Char,
-            BaseFunnyType.Ip     => StatePrimitive.Ip,
-            BaseFunnyType.Any    => StatePrimitive.Any,
+            BaseFunnyType.Real => StatePrimitive.Real,
+            BaseFunnyType.Char => StatePrimitive.Char,
+            BaseFunnyType.Ip => StatePrimitive.Ip,
+            BaseFunnyType.Any => StatePrimitive.Any,
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiType(origin.ArrayTypeSpecification.FunnyType)),
             BaseFunnyType.Fun => StateFun.Of(
@@ -49,8 +49,7 @@ public static class LangTiHelper {
                 returnType: ConvertToTiType(origin.FunTypeSpecification.Output)),
             BaseFunnyType.Struct => StateStruct.Of(
                 origin.StructTypeSpecification.Select(
-                    d =>
-                        new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value))),
+                    d => new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value))),
                 origin.StructTypeSpecification.IsFrozen),
             _ => throw new ArgumentOutOfRangeException(
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
