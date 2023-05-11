@@ -310,7 +310,7 @@ public static class SolvingFunctions {
         //todo - we can put constrains of calling side here, or on a calling site
         if (descendant.NoConstrains)
         {
-            var constrains = new ConstrainsState();
+            var constrains = ConstrainsState.Empty;
             var eName = "e" + descNodeName.ToString().ToLower() + "'";
 
             var node = TicNode.CreateTypeVariableNode(eName, constrains);
@@ -320,7 +320,7 @@ public static class SolvingFunctions {
         {
             if (!arrayEDesc.IsSolved)
                 return arrayEDesc; // todo we have to remove ancestor on constrains here
-            var constrains = new ConstrainsState();
+            var constrains = ConstrainsState.Empty;
             var eName = "e" + descNodeName.ToString().ToLower() + "'";
 
             constrains.AddDescendant(arrayEDesc.Element);
@@ -340,12 +340,12 @@ public static class SolvingFunctions {
             var argNodes = new TicNode[ancestor.ArgsCount];
             for (int i = 0; i < ancestor.ArgsCount; i++)
             {
-                var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, new ConstrainsState());
+                var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, ConstrainsState.Empty);
                 argNode.AddAncestor(ancestor.ArgNodes[i]);
                 argNodes[i] = argNode;
             }
 
-            var retNode = TicNode.CreateTypeVariableNode("r'" + descNodeName, new ConstrainsState());
+            var retNode = TicNode.CreateTypeVariableNode("r'" + descNodeName, ConstrainsState.Empty);
             retNode.AddAncestor(ancestor.RetNode);
 
             return StateFun.Of(argNodes, retNode);
@@ -618,123 +618,5 @@ public static class SolvingFunctions {
         foreach (var node in nodes)
             ReqPrintNode(node);
 #endif
-    }
-
-    /// <summary>
-    /// `from` can be converted to `to` in SOME case
-    /// </summary>
-    public static bool CanBeConvertedOptimistic(ITicNodeState from, ITicNodeState to) {
-        if (from is StateRefTo fromRef)
-            return CanBeConvertedOptimistic(fromRef.Element, to);
-        if (to is StateRefTo toRef)
-            return CanBeConvertedOptimistic(from, toRef.Element);
-        if (to.Equals(StatePrimitive.Any))
-            return true;
-        if (to is ICompositeState compositeState)
-            return CanBeConvertedOptimistic(from, compositeState);
-        if (from is StatePrimitive)
-            return to is StatePrimitive top2
-                ? from.CanBePessimisticConvertedTo(top2)
-                : to is ConstrainsState toConstraints2 &&
-                  (!toConstraints2.HasAncestor || from.CanBePessimisticConvertedTo(toConstraints2.Ancestor));
-        if (from is ConstrainsState fromConstraints)
-        {
-            if (fromConstraints.NoConstrains)
-                return true;
-            if (to is ConstrainsState toConstraints)
-            {
-                var ancestor = toConstraints.Ancestor;
-                // if there is no ancestor, than anything can be possibly converted to 'to'
-                if (ancestor == null || Equals(ancestor, StatePrimitive.Any))
-                    return true;
-                //if there is ancestor, then either 'from.ancestor` either `from.desc` has to be converted to it
-                if (fromConstraints.HasAncestor && CanBeConvertedOptimistic(fromConstraints.Ancestor, ancestor))
-                    return true;
-                if (fromConstraints.HasDescendant && CanBeConvertedOptimistic(fromConstraints.Descendant, ancestor))
-                    return true;
-                return false;
-            }
-
-            if (to is StatePrimitive toP)
-            {
-                if (fromConstraints.HasAncestor && fromConstraints.Ancestor.CanBePessimisticConvertedTo(toP))
-                    return true;
-                if (fromConstraints.HasDescendant && fromConstraints.Descendant.CanBePessimisticConvertedTo(toP))
-                    return true;
-            }
-        }
-
-        if (from is ICompositeState)
-        {
-            if (to is ConstrainsState constrainsState)
-                // if there is no ancestor, than anything can be possibly converted to 'to'
-                return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, StatePrimitive.Any);
-            return false;
-        }
-        if (to is StatePrimitive toPrimitive)
-            return from.CanBePessimisticConvertedTo(toPrimitive);
-        return false;
-    }
-    /// <summary>
-    /// `from` can be converted to `to` in SOME case
-    /// </summary>
-    public static bool CanBeConvertedOptimistic(ITicNodeState from, ICompositeState to) {
-        if (from is StateRefTo r)
-            return CanBeConvertedOptimistic(r.Element, to);
-        if (from is ConstrainsState constrainsState)
-            return !constrainsState.HasDescendant;
-        if (from.GetType() != to.GetType())
-            return false;
-        if (from is StateArray arrayFrom)
-            return CanBeConvertedOptimistic(arrayFrom.Element, (to as StateArray).Element);
-        throw new NotImplementedException($"{from} CanBeConvertedPessimistic Top");
-    }
-
-    /// <summary>
-    /// `from` can be converted to `to` in ANY case
-    /// </summary>
-    private static bool CanBeConvertedPessimistic(ICompositeState from, ConstrainsState to) {
-        if (to.NoConstrains)
-            return true;
-        if (to.Ancestor != null && !from.CanBePessimisticConvertedTo(to.Ancestor))
-            return false;
-        if (to.IsComparable)
-            return from is StateArray array && CanBeConvertedPessimistic(from: StatePrimitive.Char, array.Element);
-        // so state has to be converted to descendant, to allow this
-        if (Equals(to.Descendant, StatePrimitive.Any))
-            return true;
-        if (from is StateArray arrayDesc)
-            return to.Descendant is StateArray arrayAnc &&
-                   CanBeConvertedPessimistic(arrayDesc.Element, arrayAnc.Element);
-        throw new NotImplementedException($"{from} CanBeConvertedPessimistic Typed");
-    }
-    /// <summary>
-    /// `from` can be converted to `to` in ANY case
-    /// </summary>
-    public static bool CanBeConvertedPessimistic(ITicNodeState from, ITicNodeState to) {
-        if (to is StateRefTo ancRef)
-            return CanBeConvertedPessimistic(from, ancRef.Element);
-        return from switch {
-            StateRefTo descRef => CanBeConvertedPessimistic(descRef.Element, to),
-            StatePrimitive => to switch {
-                StatePrimitive p => from.CanBePessimisticConvertedTo(p),
-                ConstrainsState c => c.NoConstrains || (
-                    c.HasDescendant
-                        ? CanBeConvertedPessimistic(from, c.Descendant)
-                        : CanBeConvertedPessimistic(from, c.Ancestor)),
-                _ => false
-            },
-            ConstrainsState fromDesc => fromDesc.HasAncestor
-                ? CanBeConvertedPessimistic(fromDesc.Ancestor, to) //todo support convertible
-                : CanBeConvertedPessimistic(StatePrimitive.Any, to),
-            StateArray arrayDesc => to switch {
-                StateArray arrayAnc => CanBeConvertedPessimistic(arrayDesc.Element, arrayAnc.Element),
-                ConstrainsState constrAnc => CanBeConvertedPessimistic(arrayDesc, constrAnc),
-                _ => false
-            },
-            StateFun => throw new NotImplementedException($"{from} CanBeConvertedPessimistic "),
-            StateStruct =>throw new NotImplementedException($"{from} CanBeConvertedPessimistic "),
-            _ => false
-        };
     }
 }

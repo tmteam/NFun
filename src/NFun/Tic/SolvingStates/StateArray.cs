@@ -51,6 +51,12 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
         return StateArray.Of(ancestor);
     }
 
+    public string PrintState(int depth) {
+        if (depth > 100)
+            return "arr(...REQ...)";
+        return $"arr({Element.PrintState(depth + 1)})";
+    }
+
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
         => type.Equals(StatePrimitive.Any);
 
@@ -76,6 +82,8 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
             return new[] { ElementNode };
         }
     }
+
+    public string StateDescription => PrintState(0);
 
     public string Description => "arr(" + ElementNode.Name + ")";
 }

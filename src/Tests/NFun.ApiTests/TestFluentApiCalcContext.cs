@@ -137,7 +137,12 @@ public class TestFluentApiCalcContext {
                             nonExistedStruct = {value = 1}
                             price = inputs.max() + users[0].size;
                             results =  inputs.reverse().map(rule it.toText());
-                            Contracts = [{Id = 1, Items = ['single'], Price = 456, Taxes = 789}]",
+                            Contracts = [{
+                                Id = 1,
+                                Items = ['single'],
+                                Price = 456,
+                                Taxes = 789
+                            }]",
             origin, expected);
     }
 

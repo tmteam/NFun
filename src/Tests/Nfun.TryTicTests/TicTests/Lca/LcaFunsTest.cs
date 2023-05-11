@@ -12,7 +12,7 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateFun.Of(new StatePrimitive[0], types.Left),
-                StateFun.Of(new ITicNodeState[0], new ConstrainsState(desc: types.Right)),
+                StateFun.Of(new ITicNodeState[0], ConstrainsState.Of(desc: types.Right)),
                 StateFun.Of(new StatePrimitive[0], types.Lca));
     }
 
@@ -21,7 +21,7 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateFun.Of(new[] { Any, Bool }, types.Left),
-                StateFun.Of(new[] { Any, Bool }, new ConstrainsState(desc: types.Right)),
+                StateFun.Of(new[] { Any, Bool }, ConstrainsState.Of(desc: types.Right)),
                 StateFun.Of(new[] { Any, Bool }, types.Lca));
     }
 
@@ -49,7 +49,7 @@ public class LcaFunsTest {
     [Test]
     public void PrimitiveAndFunOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(StateFun.Of(new[] { new ConstrainsState() }, new ConstrainsState()), primitive, Any);
+            AssertLca(StateFun.Of(new[] { ConstrainsState.Empty }, ConstrainsState.Empty), primitive, Any);
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateFun.Of(new[] { Any }, types.Left),
-                StateFun.Of(new[] { Any }, new ConstrainsState()),
+                StateFun.Of(new[] { Any }, ConstrainsState.Empty),
                 StateFun.Of(new[] { Any }, types.Left));
     }
 
@@ -91,7 +91,7 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateFun.Of(new[] { Any }, types.Left),
-                StateFun.Of(new[] { Any }, new ConstrainsState(desc: types.Right)),
+                StateFun.Of(new[] { Any }, ConstrainsState.Of(desc: types.Right)),
                 StateFun.Of(new[] { Any }, types.Lca));
     }
 
@@ -99,8 +99,8 @@ public class LcaFunsTest {
     public void FunReturnsConstrainWithDescType_ReturnsFunThatReturnsLca() {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
-                StateFun.Of(new[] { Any }, new ConstrainsState(desc: types.Left)),
-                StateFun.Of(new[] { Any }, new ConstrainsState(desc: types.Right)),
+                StateFun.Of(new[] { Any }, ConstrainsState.Of(desc: types.Left)),
+                StateFun.Of(new[] { Any }, ConstrainsState.Of(desc: types.Right)),
                 StateFun.Of(new[] { Any }, types.Lca));
     }
 
@@ -109,9 +109,9 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateFun.Of(new[] { Any },
-                    new ConstrainsState(desc: StateArray.Of(new ConstrainsState(desc: StateArray.Of(types.Left))))),
+                    ConstrainsState.Of(desc: StateArray.Of(ConstrainsState.Of(desc: StateArray.Of(types.Left))))),
                 StateFun.Of(new[] { Any },
-                    new ConstrainsState(desc: StateArray.Of(new ConstrainsState(desc: StateArray.Of(types.Right))))),
+                    ConstrainsState.Of(desc: StateArray.Of(ConstrainsState.Of(desc: StateArray.Of(types.Right))))),
                 StateFun.Of(new[] { Any },
                     StateArray.Of(StateArray.Of(types.Lca))));
     }
@@ -124,12 +124,12 @@ public class LcaFunsTest {
             if (lcd == null)
                 AssertLca(
                     StateFun.Of(new[] { types.Left }, Any),
-                    StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
+                    StateFun.Of(new[] { ConstrainsState.Of(anc: types.Right) }, Any),
                     Any);
             else
                 AssertLca(
                     StateFun.Of(new[] { types.Left }, Any),
-                    StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
+                    StateFun.Of(new[] { ConstrainsState.Of(anc: types.Right) }, Any),
                     StateFun.Of(new[] { lcd }, Any));
         }
     }
@@ -141,13 +141,13 @@ public class LcaFunsTest {
             var lcd = types.Left.GetFirstCommonDescendantOrNull(types.Right);
             if (lcd == null)
                 AssertLca(
-                    StateFun.Of(new[] { new ConstrainsState(anc: types.Left) }, Any),
-                    StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
+                    StateFun.Of(new[] { ConstrainsState.Of(anc: types.Left) }, Any),
+                    StateFun.Of(new[] { ConstrainsState.Of(anc: types.Right) }, Any),
                     Any);
             else
                 AssertLca(
-                    StateFun.Of(new[] { new ConstrainsState(anc: types.Left) }, Any),
-                    StateFun.Of(new[] { new ConstrainsState(anc: types.Right) }, Any),
+                    StateFun.Of(new[] { ConstrainsState.Of(anc: types.Left) }, Any),
+                    StateFun.Of(new[] { ConstrainsState.Of(anc: types.Right) }, Any),
                     StateFun.Of(new[] { lcd }, Any));
         }
     }
@@ -166,7 +166,7 @@ public class LcaFunsTest {
     [Test]
     public void FunReturnsConstrain_ReturnsFunThatReturnsConstrains() =>
         AssertLca(
-            StateFun.Of(new[] { new ConstrainsState(), new ConstrainsState() }, new ConstrainsState()),
-            StateFun.Of(new[] { new ConstrainsState(), new ConstrainsState() }, new ConstrainsState()),
-            StateFun.Of(new[] { Any, Any }, new ConstrainsState()));
+            StateFun.Of(new[] { ConstrainsState.Empty, ConstrainsState.Empty }, ConstrainsState.Empty),
+            StateFun.Of(new[] { ConstrainsState.Empty, ConstrainsState.Empty }, ConstrainsState.Empty),
+            StateFun.Of(new[] { Any, Any }, ConstrainsState.Empty));
 }

@@ -32,5 +32,5 @@ public class ITypeTest {
 
 
     private TicNode CreateConstrainsNode()
-        => TicNode.CreateTypeVariableNode("", new ConstrainsState());
+        => TicNode.CreateTypeVariableNode("", ConstrainsState.Empty);
 }
