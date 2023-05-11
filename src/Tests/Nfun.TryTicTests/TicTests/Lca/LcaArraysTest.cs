@@ -11,13 +11,13 @@ public class LcaArraysTest {
     [Test]
     public void PrimitiveAndArrayOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(StateArray.Of(new ConstrainsState()), primitive, Any);
+            AssertLca(StateArray.Of(ConstrainsState.Empty), primitive, Any);
     }
 
     [Test]
     public void PrimitiveAndArrayOfComposite_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(StateArray.Of(StateArray.Of(new ConstrainsState())), primitive, Any);
+            AssertLca(StateArray.Of(StateArray.Of(ConstrainsState.Empty)), primitive, Any);
     }
 
     [Test]
@@ -40,7 +40,7 @@ public class LcaArraysTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateArray.Of(types.Left),
-                StateArray.Of(new ConstrainsState()),
+                StateArray.Of(ConstrainsState.Empty),
                 StateArray.Of(types.Left));
     }
 
@@ -50,7 +50,7 @@ public class LcaArraysTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 StateArray.Of(types.Left),
-                StateArray.Of(new ConstrainsState(desc: types.Right)),
+                StateArray.Of(ConstrainsState.Of(desc: types.Right)),
                 StateArray.Of(types.Lca));
     }
 
@@ -60,7 +60,7 @@ public class LcaArraysTest {
         {
             var array1 = StateArray.Of(
                 new StateRefTo(
-                    TicNode.CreateNamedNode("foo", StateArray.Of(new ConstrainsState(desc: types.Left)))));
+                    TicNode.CreateNamedNode("foo", StateArray.Of(ConstrainsState.Of(desc: types.Left)))));
             var array2 = StateArray.Of(
                 StateArray.Of(types.Right));
 

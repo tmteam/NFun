@@ -119,6 +119,9 @@ public static class FunnyAssert {
         }
     }
 
+    public static void AssertResultIs(this CalculationResult result, string id, Type type)
+        => result.AssertResultIs(types :(id, type));
+
     public static void AssertResultIs(this CalculationResult result, Type type) {
         var res = result.Results.FirstOrDefault();
         Assert.IsNotNull(res, "no results found");

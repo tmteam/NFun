@@ -134,8 +134,8 @@ public static class LcaTestTools {
         if (a.Equals(Real) && b.Equals(Ip))
             Console.WriteLine("dd");
 
-        var result1 = Lca.MaxLca(a, b);
-        var result2 = Lca.MaxLca(b, a);
+        var result1 = a.Lca(b);
+        var result2 = b.Lca(a);
 
         var aRef = new StateRefTo(TicNode.CreateTypeVariableNode("a", a));
         var bRef = new StateRefTo(TicNode.CreateTypeVariableNode("b", b));
@@ -143,12 +143,12 @@ public static class LcaTestTools {
         var aRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("aa", aRef));
         var bRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("bb", bRef));
 
-        var result3 = Lca.MaxLca(aRef, bRef);
-        var result4 = Lca.MaxLca(bRefRef, aRefRef);
+        var result3 = aRef.Lca(bRef);
+        var result4 = bRefRef.Lca(aRefRef);
 
-        Assert.AreEqual(expected, result1, $"1: {a} LCA {b} = {result1}, but was expected {expected}");
-        Assert.AreEqual(expected, result2, $"1: {b} LCA {a} = {result2}, but was expected {expected}");
-        Assert.AreEqual(expected, result3, $"1: {aRef} LCA {bRef} = {result3}, but was expected {expected}");
-        Assert.AreEqual(expected, result4, $"1: {aRefRef} LCA {bRefRef} = {result4}, but was expected {expected}");
+        Assert.AreEqual(expected, result1, $"1: {a.StateDescription} LCA {b.StateDescription} = {result1.StateDescription}, but was expected {expected.StateDescription}");
+        Assert.AreEqual(expected, result2, $"1: {b.StateDescription} LCA {a.StateDescription} = {result2.StateDescription}, but was expected {expected.StateDescription}");
+        Assert.AreEqual(expected, result3, $"1: {aRef.StateDescription} LCA {bRef.StateDescription} = {result3.StateDescription}, but was expected {expected.StateDescription}");
+        Assert.AreEqual(expected, result4, $"1: {aRefRef.StateDescription} LCA {bRefRef.StateDescription} = {result4.StateDescription}, but was expected {expected.StateDescription}");
     }
 }

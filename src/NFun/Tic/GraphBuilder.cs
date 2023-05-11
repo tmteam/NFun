@@ -17,7 +17,7 @@ public class GraphBuilder {
     private readonly List<TicNode> _inputNodes = new();
 
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
-        => new(CreateVarType(new ConstrainsState(desc, anc, isComparable)));
+        => new(CreateVarType(ConstrainsState.Of(desc, anc, isComparable)));
 
     public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
     public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
@@ -430,7 +430,7 @@ public class GraphBuilder {
             return varnode;
         }
 
-        var ans = TicNode.CreateNamedNode(name, new ConstrainsState());
+        var ans = TicNode.CreateNamedNode(name, ConstrainsState.Empty);
         _variables.Add(name, ans);
         return ans;
     }
@@ -494,7 +494,7 @@ public class GraphBuilder {
         if (alreadyExists != null)
             return alreadyExists;
 
-        var res = TicNode.CreateSyntaxNode(id, new ConstrainsState(), true);
+        var res = TicNode.CreateSyntaxNode(id, ConstrainsState.Empty, true);
         _syntaxNodes[id] = res;
         return res;
     }
@@ -536,7 +536,7 @@ public class GraphBuilder {
 
         var varNode = TicNode.CreateTypeVariableNode(
             name: "V" + _varNodeId,
-            state: state ?? new ConstrainsState(),
+            state: state ?? ConstrainsState.Empty,
             true);
         _varNodeId++;
         _typeVariables.Add(varNode);

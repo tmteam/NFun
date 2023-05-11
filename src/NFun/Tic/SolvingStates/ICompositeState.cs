@@ -29,5 +29,9 @@ public interface ITicNodeState {
 
     string Description { get; }
 
+    string PrintState(int depth);
+
+    string StateDescription { get; }
+
     bool CanBePessimisticConvertedTo(StatePrimitive primitive);
 }

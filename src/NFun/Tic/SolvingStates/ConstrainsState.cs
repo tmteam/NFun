@@ -15,18 +15,20 @@ public class ConstrainsState : ITicNodeState {
     public bool IsComparable { get; }
     public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;
 
-    public ConstrainsState(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) {
+    public static ConstrainsState Empty => new(null, null, false);
+
+    public static ConstrainsState Of(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) =>
+        new(desc, anc, isComparable);
+
+    private ConstrainsState(ITicNodeState desc, StatePrimitive anc, bool isComparable ) {
         Descendant = desc;
         Ancestor = anc;
         IsComparable = isComparable;
     }
 
-    public ConstrainsState GetCopy() =>
-        new(Descendant, Ancestor, IsComparable) {
-            Preferred = Preferred,
-        };
+    public ConstrainsState GetCopy() => new(Descendant, Ancestor, IsComparable) { Preferred = Preferred};
 
-    public bool Fits(ITicNodeState type) => CanBeFitConverted(Lca.GetMaxType(this), Lca.GetMaxType(type));
+    public bool Fits(ITicNodeState type) => CanBeFitConverted(this.MaxState(), type.MaxState());
 
     public bool Fits(ICompositeState type) {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
@@ -48,8 +50,8 @@ public class ConstrainsState : ITicNodeState {
         if (Descendant is StateArray stateArray)
         {
             var typeArray = (StateArray)type;
-            var bottomDesc = Lca.GetMaxType(stateArray);
-            var bottomAnc = Lca.GetMaxType(typeArray);
+            var bottomDesc = stateArray.MaxState();
+            var bottomAnc = typeArray.MaxState();
             return CanBeFitConverted(from: bottomDesc, to: bottomAnc);
         }
 
@@ -58,15 +60,15 @@ public class ConstrainsState : ITicNodeState {
             var typeFun = (StateFun)type;
             if (stateFun.ArgsCount != typeFun.ArgsCount)
                 return false;
-            var returnBottomDesc = Lca.GetMaxType(stateFun.ReturnType);
-            var returnBottomAnc = Lca.GetMaxType(typeFun.ReturnType);
+            var returnBottomDesc = stateFun.ReturnType.MaxState();
+            var returnBottomAnc = typeFun.ReturnType.MaxState();
             if (!CanBeFitConverted(from: returnBottomDesc, to: returnBottomAnc))
                 return false;
 
             for (int i = 0; i < stateFun.ArgsCount; i++)
             {
-                var dmin = Lca.GetMinType(stateFun.ArgNodes[i].State);
-                var amin = Lca.GetMinType(typeFun.ArgNodes[i].State);
+                var dmin = stateFun.ArgNodes[i].State.MinState();
+                var amin = typeFun.ArgNodes[i].State.MinState();
                 if (!CanBeFitConverted(from: amin, to: dmin))
                     return false;
             }
@@ -74,7 +76,7 @@ public class ConstrainsState : ITicNodeState {
             return true;
         }
         else
-            throw new NotImplementedException($"Type {type} is not supported yet in FIT");
+            throw new NotImplementedException($"Type {type.StateDescription} is not supported yet in FIT");
     }
 
     private bool CanBeFitConverted(ITicNodeState from, ITicNodeState to) =>
@@ -91,7 +93,7 @@ public class ConstrainsState : ITicNodeState {
                 : to is StatePrimitive p && from.CanBePessimisticConvertedTo(p),
             ConstrainsState { HasDescendant: true } fc => CanBeFitConverted(fc.Descendant, to),
             ConstrainsState => true,
-            _ => throw new NotImplementedException($"Type {from}-> {to} is not supported yet in FIT")
+            _ => throw new NotImplementedException($"Type {from} :> {to} is not supported yet in FIT")
         };
 
     private bool CanBeFitConverted(StateFun from, StateFun to) {
@@ -161,8 +163,8 @@ public class ConstrainsState : ITicNodeState {
         if (type == null)
             return;
         Descendant = !HasDescendant
-            ? Lca.GetMaxType(type)
-            : Lca.MaxLca(Descendant, type);
+            ? type.MaxState()
+            : Descendant.Lca(type);
     }
 
     public ITicNodeState MergeOrNull(ConstrainsState constrainsState) {
@@ -327,5 +329,19 @@ public class ConstrainsState : ITicNodeState {
             return false;
 
         return IsComparable == constrainsState.IsComparable;
+    }
+
+    public string StateDescription => PrintState(0);
+
+    public string PrintState(int depth) {
+        if (depth > 100)
+            return "[..REQ..]";
+        depth++;
+        var res = $"[{Descendant?.PrintState(depth)}..{Ancestor?.PrintState(depth)}]";
+        if (IsComparable)
+            res += "<>";
+        if (Preferred != null)
+            res += Preferred + "!";
+        return res;
     }
 }
