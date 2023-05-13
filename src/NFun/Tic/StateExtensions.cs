@@ -6,7 +6,6 @@ using SolvingStates;
 using static SolvingStates.StatePrimitive;
 
 public static class StateExtensions {
-
     #region lca
 
     public static ITicNodeState Lca(this ITicNodeState a, ITicNodeState b) {
@@ -43,6 +42,7 @@ public static class StateExtensions {
             if (universalType == null) continue;
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(universalType));
         }
+
         //todo is it frozen or not?
         return new StateStruct(nodes, true);
     }
@@ -179,7 +179,7 @@ public static class StateExtensions {
     public static ITicNodeState Abstractest(this ITicNodeState a) =>
         a switch {
             StateRefTo aref => aref.Element.Abstractest(),
-            ConstrainsState cs => cs.IsComparable? cs : cs.HasAncestor ? cs.Ancestor : Any,
+            ConstrainsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
             StatePrimitive => a,
             StateArray arr => StateArray.Of(arr.Element.Abstractest()),
             StateFun f => f.Abstractest(),
@@ -196,6 +196,7 @@ public static class StateExtensions {
             argNodes[i] = TicNode.CreateInvisibleNode(node.State.Concretest());
             i++;
         }
+
         return StateFun.Of(argNodes, returnNode);
     }
 
@@ -374,10 +375,45 @@ public static class StateExtensions {
             return !constrainsState.HasDescendant;
         if (from.GetType() != to.GetType())
             return false;
-        if (from is StateArray arrayFrom)
-            return CanBeConvertedOptimisticTo(arrayFrom.Element, (to as StateArray).Element);
-        throw new NotImplementedException($"{from} CanBeConvertedPessimistic Top");
+        return from switch {
+            StateArray arrayFrom => CanBeConvertedOptimisticTo(arrayFrom.Element, ((StateArray)to).Element),
+            StateFun funFrom => CanBeConvertedOptimisticTo(funFrom, (StateFun)to),
+            StateStruct structFrom => CanBeConvertedOptimisticTo(structFrom, (StateStruct)to),
+            _ => throw new NotSupportedException($"{from} is not supported for CanBeConvertedPessimistic ")
+        };
     }
+
+    public static bool CanBeConvertedOptimisticTo(this StateFun from, StateFun to) {
+        if (from.ArgsCount != to.ArgsCount)
+            return false;
+        if (!from.ReturnType.CanBeConvertedOptimisticTo(to.ReturnType))
+            return false;
+        for (int i = 0; i < from.ArgsCount; i++)
+        {
+            var fromType = from.ArgNodes[i].State;
+            var toType = to.ArgNodes[i].State;
+            if (!toType.CanBeConvertedOptimisticTo(fromType))
+                return false;
+        }
+        return true;
+    }
+
+    public static bool CanBeConvertedOptimisticTo(this StateStruct from, StateStruct to) {
+        if (to.FieldsCount > from.FieldsCount)
+            return false;
+        foreach (var toField in to.Fields)
+        {
+            var fromField = from.GetFieldOrNull(toField.Key);
+            if (fromField == null)
+                return false;
+            var unitype = UniversalStateOrNull(fromField.State, toField.Value.State);
+            if (unitype == null)
+                return false;
+        }
+
+        return true;
+    }
+
 
     /// <summary>
     /// `from` can be converted to `to` in ANY case
@@ -390,12 +426,12 @@ public static class StateExtensions {
         if (to.IsComparable)
             return from is StateArray array && CanBeConvertedPessimisticTo(from: StatePrimitive.Char, array.Element);
         // so state has to be converted to descendant, to allow this
-        if (Equals(to.Descendant, Any))
+        var toDescendant = to.Descendant;
+        if (Equals(toDescendant, Any))
             return true;
-        if (from is StateArray arrayDesc)
-            return to.Descendant is StateArray arrayAnc &&
-                   CanBeConvertedPessimisticTo(arrayDesc.Element, arrayAnc.Element);
-        throw new NotImplementedException($"{from} CanBeConvertedPessimistic Typed");
+        if (toDescendant is ICompositeState toComposite)
+            return CanBeConvertedPessimisticTo(from, toComposite);
+        return false;
     }
 
     /// <summary>
@@ -404,6 +440,8 @@ public static class StateExtensions {
     public static bool CanBeConvertedPessimisticTo(this ITicNodeState from, ITicNodeState to) {
         if (to is StateRefTo ancRef)
             return CanBeConvertedPessimisticTo(from, ancRef.Element);
+        if (to.Equals(Any))
+            return true;
         return from switch {
             StateRefTo descRef => CanBeConvertedPessimisticTo(descRef.Element, to),
             StatePrimitive => to switch {
@@ -417,15 +455,59 @@ public static class StateExtensions {
             ConstrainsState fromDesc => fromDesc.HasAncestor
                 ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to) //todo support convertible
                 : CanBeConvertedPessimisticTo(Any, to),
+            ICompositeState comp => to switch {
+                ConstrainsState constrAnc => CanBeConvertedPessimisticTo(comp, constrAnc),
+                ICompositeState composite => CanBeConvertedPessimisticTo(comp, composite),
+                _ => false
+            }
+        };
+    }
+
+    private static bool CanBeConvertedPessimisticTo(ICompositeState from, ICompositeState to) =>
+        from switch {
             StateArray arrayDesc => to switch {
                 StateArray arrayAnc => CanBeConvertedPessimisticTo(arrayDesc.Element, arrayAnc.Element),
-                ConstrainsState constrAnc => CanBeConvertedPessimisticTo(arrayDesc, constrAnc),
                 _ => false
             },
-            StateFun => throw new NotImplementedException($"{from} CanBeConvertedPessimistic "),
-            StateStruct => throw new NotImplementedException($"{from} CanBeConvertedPessimistic "),
-            _ => false
+            StateFun fromFun => to switch {
+                StateFun toFun => CanBeConvertedPessimisticTo(fromFun, toFun),
+                _ => false
+            },
+            StateStruct fromStr => to switch {
+                StateStruct toStr => CanBeConvertedPessimisticTo(fromStr, toStr),
+                _ => false
+            },
+            _ => throw new NotSupportedException($"type {from} is not supported for pessimistic convertion")
         };
+
+    private static bool CanBeConvertedPessimisticTo(StateFun from, StateFun to) {
+        if (from.ArgsCount != to.ArgsCount)
+            return false;
+        if (!from.ReturnType.CanBeConvertedPessimisticTo(to.ReturnType))
+            return false;
+        for (int i = 0; i < from.ArgsCount; i++)
+        {
+            if (!to.ArgNodes[i].State.CanBeConvertedPessimisticTo(from.ArgNodes[i].State))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool CanBeConvertedPessimisticTo(this StateStruct from, StateStruct to) {
+        if (to.FieldsCount > from.FieldsCount)
+            return false;
+        foreach (var toField in to.Fields)
+        {
+            if (!toField.Value.IsSolved)
+                return false;
+            var fromField = from.GetFieldOrNull(toField.Key);
+            if (fromField == null || !fromField.IsSolved)
+                return false;
+            if (toField.Value.State.StateDescription != fromField.State.StateDescription)
+                return false;
+        }
+        return true;
     }
 
     #endregion
