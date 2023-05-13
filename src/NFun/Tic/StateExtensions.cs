@@ -6,6 +6,7 @@ using SolvingStates;
 using static SolvingStates.StatePrimitive;
 
 public static class StateExtensions {
+
     #region lca
 
     public static ITicNodeState Lca(this ITicNodeState a, ITicNodeState b) {
@@ -14,7 +15,7 @@ public static class StateExtensions {
         if (b is StateRefTo bref)
             return Lca(a, bref.Element);
         if (b is ConstrainsState bc)
-            return bc.HasDescendant ? Lca(a, bc.Descendant) : MaxState(a);
+            return bc.HasDescendant ? Lca(a, bc.Descendant) : Concretest(a);
         if (a is ConstrainsState)
             return Lca(b, a);
         if (a is StatePrimitive ap)
@@ -67,7 +68,7 @@ public static class StateExtensions {
 
     #endregion
 
-    #region Fcd
+    #region fcd
 
     private static ITicNodeState Fcd(this ITicNodeState a, ITicNodeState b) {
         if (b is StateRefTo bref)
@@ -75,14 +76,14 @@ public static class StateExtensions {
         if (a is StateRefTo aref)
             return Fcd(aref.Element, b);
         if (a is ConstrainsState ac)
-            return ac.Ancestor != null ? Fcd(ac.Ancestor, b) : MinState(b);
+            return ac.Ancestor != null ? Fcd(ac.Ancestor, b) : Abstractest(b);
         if (b is ConstrainsState bc)
-            return bc.Ancestor != null ? Fcd(a, bc.Ancestor) : MinState(a);
+            return bc.Ancestor != null ? Fcd(a, bc.Ancestor) : Abstractest(a);
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
-                a.Equals(Any) ? MinState(b) : null;
+                a.Equals(Any) ? Abstractest(b) : null;
         if (b.Equals(Any))
-            return MinState(a);
+            return Abstractest(a);
         if (a.GetType() != b.GetType())
             return null;
         if (a is StateArray arrA)
@@ -91,7 +92,7 @@ public static class StateExtensions {
             return Fcd(funA, (StateFun)b);
         if (a is StateStruct astruct)
             return Fcd(astruct, (StateStruct)b);
-        throw new NotSupportedException($"MinFcd is not supported for types {a} and {b}");
+        throw new NotSupportedException($"FCD is not supported for types {a} and {b}");
     }
 
     private static ITicNodeState Fcd(this StateArray arrA, StateArray arrB) {
@@ -142,52 +143,60 @@ public static class StateExtensions {
 
     #region maxmin
 
-    /*
-     * Returns most concrete type, or [..] if there is no concreteness
-     */
-    public static ITicNodeState MaxState(this ITicNodeState a) =>
+    /// <summary>
+    /// Returns most possible concrete type, that can be represented by current state (without convertion)
+    /// </summary>
+    public static ITicNodeState Concretest(this ITicNodeState a) =>
         a switch {
             StatePrimitive => a,
-            ConstrainsState cs => cs.HasDescendant ? cs.Descendant : ConstrainsState.Of(isComparable: cs.IsComparable),
-            StateArray arr => StateArray.Of(MaxState(MaxState(arr.Element))),
-            StateRefTo aref => MaxState(aref.Element),
-            StateFun f => MaxState(f),
-            StateStruct => a, // todo should we discard items, that are not solved?
+            ConstrainsState cs => cs.HasDescendant
+                ? cs.Descendant.Concretest()
+                : ConstrainsState.Of(isComparable: cs.IsComparable),
+            StateArray arr => StateArray.Of(arr.Element.Concretest()),
+            StateRefTo aref => aref.Element.Concretest(),
+            StateFun f => f.Concretest(),
+            StateStruct => a, //todo - exclude refs from struct
             _ => a
         };
 
-    private static ITicNodeState MaxState(this StateFun f) {
+    private static ITicNodeState Concretest(this StateFun f) {
         // return type is classic, but arg type is contravariant
-        var returnNode = TicNode.CreateInvisibleNode(MaxState(f.ReturnType));
+        var returnNode = TicNode.CreateInvisibleNode(Concretest(f.ReturnType));
         var argNodes = new TicNode[f.ArgsCount];
         var i = 0;
         foreach (var node in f.ArgNodes)
         {
-            argNodes[i] = TicNode.CreateInvisibleNode(MinState(node.State));
+            argNodes[i] = TicNode.CreateInvisibleNode(node.State.Abstractest());
             i++;
         }
 
         return StateFun.Of(argNodes, returnNode);
     }
 
-    /*
-     * Returns most abstract possible type
-     */
-    public static ITicNodeState MinState(this ITicNodeState a) =>
+    /// <summary>
+    /// Returns most possible abstract type, that can be represented by current state (without convertion)
+    /// </summary>
+    public static ITicNodeState Abstractest(this ITicNodeState a) =>
         a switch {
-            StateRefTo aref => MinState(aref.Element),
-            ConstrainsState cs => cs.HasAncestor ? cs.Ancestor : Any,
+            StateRefTo aref => aref.Element.Abstractest(),
+            ConstrainsState cs => cs.IsComparable? cs : cs.HasAncestor ? cs.Ancestor : Any,
             StatePrimitive => a,
-            StateArray arr => StateArray.Of(MinState(MaxState(arr.Element))),
-            StateFun f => MinState(f),
+            StateArray arr => StateArray.Of(arr.Element.Abstractest()),
+            StateFun f => f.Abstractest(),
             StateStruct => a,
             _ => a
         };
 
-    private static ITicNodeState MinState(this StateFun f) {
-        if (f.IsSolved)
-            return f;
-        throw new NotImplementedException($"Todo GetBottom type2 for {f}");
+    private static ITicNodeState Abstractest(this StateFun f) {
+        var returnNode = TicNode.CreateInvisibleNode(Abstractest(f.ReturnType));
+        var argNodes = new TicNode[f.ArgsCount];
+        var i = 0;
+        foreach (var node in f.ArgNodes)
+        {
+            argNodes[i] = TicNode.CreateInvisibleNode(node.State.Concretest());
+            i++;
+        }
+        return StateFun.Of(argNodes, returnNode);
     }
 
     #endregion
@@ -297,7 +306,7 @@ public static class StateExtensions {
 
     #endregion
 
-    #region converted
+    #region convert
 
     /// <summary>
     /// `from` can be converted to `to` in SOME case
@@ -307,7 +316,7 @@ public static class StateExtensions {
             return CanBeConvertedOptimisticTo(fromRef.Element, to);
         if (to is StateRefTo toRef)
             return CanBeConvertedOptimisticTo(from, toRef.Element);
-        if (to.Equals(StatePrimitive.Any))
+        if (to.Equals(Any))
             return true;
         if (to is ICompositeState compositeState)
             return CanBeConvertedOptimisticTo(from, compositeState);
@@ -324,7 +333,7 @@ public static class StateExtensions {
             {
                 var ancestor = toConstraints.Ancestor;
                 // if there is no ancestor, than anything can be possibly converted to 'to'
-                if (ancestor == null || Equals(ancestor, StatePrimitive.Any))
+                if (ancestor == null || Equals(ancestor, Any))
                     return true;
                 //if there is ancestor, then either 'from.ancestor` either `from.desc` has to be converted to it
                 if (fromConstraints.HasAncestor && CanBeConvertedOptimisticTo(fromConstraints.Ancestor, ancestor))
@@ -346,7 +355,7 @@ public static class StateExtensions {
         {
             if (to is ConstrainsState constrainsState)
                 // if there is no ancestor, than anything can be possibly converted to 'to'
-                return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, StatePrimitive.Any);
+                return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, Any);
             return false;
         }
 
@@ -381,7 +390,7 @@ public static class StateExtensions {
         if (to.IsComparable)
             return from is StateArray array && CanBeConvertedPessimisticTo(from: StatePrimitive.Char, array.Element);
         // so state has to be converted to descendant, to allow this
-        if (Equals(to.Descendant, StatePrimitive.Any))
+        if (Equals(to.Descendant, Any))
             return true;
         if (from is StateArray arrayDesc)
             return to.Descendant is StateArray arrayAnc &&
@@ -407,7 +416,7 @@ public static class StateExtensions {
             },
             ConstrainsState fromDesc => fromDesc.HasAncestor
                 ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to) //todo support convertible
-                : CanBeConvertedPessimisticTo(StatePrimitive.Any, to),
+                : CanBeConvertedPessimisticTo(Any, to),
             StateArray arrayDesc => to switch {
                 StateArray arrayAnc => CanBeConvertedPessimisticTo(arrayDesc.Element, arrayAnc.Element),
                 ConstrainsState constrAnc => CanBeConvertedPessimisticTo(arrayDesc, constrAnc),

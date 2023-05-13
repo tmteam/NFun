@@ -196,7 +196,7 @@ public class TrickyTest {
 
         var graph = new GraphBuilder();
         var generic = graph.InitializeVarNode();
-        graph.SetCall(StateFun.Of(Array.Empty<ITicNodeState>(), StateFun.Of(generic, generic)), 0);
+        graph.SetCall(StateFun.Of(StateFun.Of(generic, generic)), 0);
         graph.SetIntConst(1, U8);
         graph.SetCall(0, new[] { 1, 2 });
         graph.SetDef("x", 2);

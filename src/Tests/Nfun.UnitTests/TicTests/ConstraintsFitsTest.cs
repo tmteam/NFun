@@ -98,7 +98,7 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void HiOrderFun_returnsTrue2() {
-        var constrains = ConstrainsState.Of(StateFun.Of(new[] { ConstrainsState.Empty }, ConstrainsState.Of(U16)));
+        var constrains = ConstrainsState.Of(StateFun.Of(ConstrainsState.Empty, ConstrainsState.Of(U16)));
         var target = StateFun.Of(new[] { Any }, U16);
         constrains.Fits(target).AssertTrue();
     }
@@ -115,7 +115,7 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void HiOrderFun_returnsTrue4() {
-        var constrains = ConstrainsState.Of(StateFun.Of(new[] { ConstrainsState.Empty }, ConstrainsState.Empty));
+        var constrains = ConstrainsState.Of(StateFun.Of(ConstrainsState.Empty, ConstrainsState.Empty));
         var target = StateFun.Of(new[] { Any }, U16);
         constrains.Fits(target).AssertTrue();
     }
@@ -128,9 +128,9 @@ public class ConstraintsFitsTest {
                     StateFun.Of(new[] { Any },
                         U24))));
         var target =
-            StateFun.Of(new[] { ConstrainsState.Of(U24, Real) },
-                StateFun.Of(new[] { ConstrainsState.Of(U24, Real) },
-                    StateFun.Of(new[] { ConstrainsState.Of(U24, Real) },
+            StateFun.Of(ConstrainsState.Of(U24, Real) ,
+                StateFun.Of(ConstrainsState.Of(U24, Real),
+                    StateFun.Of(ConstrainsState.Of(U24, Real),
                         ConstrainsState.Of(U24, Real))));
         constrains.Fits(target).AssertTrue();
     }
