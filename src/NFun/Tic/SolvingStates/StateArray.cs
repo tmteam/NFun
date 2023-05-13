@@ -14,16 +14,11 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
             _ =>  throw new InvalidOperationException($"Array cannot have state {state}")
         };
 
-    private static StateArray Of(ConstrainsState state)
-        => state.HasAncestor
-            ? throw new InvalidOperationException($"Array cannot have state {state}")
-            : new(TicNode.CreateInvisibleNode(state));
+    private static StateArray Of(ConstrainsState state) => new(TicNode.CreateInvisibleNode(state));
 
-    public static StateArray Of(TicNode node)
-        => new(node);
+    public static StateArray Of(TicNode node) => new(node);
 
-    public static StateArray Of(ITypeState type)
-        => new(TicNode.CreateTypeVariableNode(type));
+    public static StateArray Of(ITypeState type) => new(TicNode.CreateTypeVariableNode(type));
 
     public TicNode ElementNode { get; }
     public bool IsSolved => Element.IsSolved;

@@ -27,8 +27,18 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         return new StateFun(argNodes, retNode);
     }
 
+    public static StateFun Of(ITicNodeState returnType)
+        => Of(Array.Empty<ITicNodeState>(), returnType);
+
     public static StateFun Of(ITicNodeState argType, ITicNodeState returnType)
         => Of(new[] { argType }, returnType);
+
+    public static StateFun Of(ITicNodeState arg1Type, ITicNodeState arg2Type, ITicNodeState retType) =>
+        Of(new[] { arg1Type, arg2Type }, retType);
+
+
+    public static StateFun Of(ITicNodeState arg1Type, ITicNodeState arg2Type, ITicNodeState arg3Type, ITicNodeState retType) =>
+        Of(new[] { arg1Type, arg2Type, arg3Type }, retType);
 
     public static StateFun Of(ITypeState[] argTypes, ITypeState retType) {
         var argNodes = new TicNode[argTypes.Length];
@@ -126,7 +136,7 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
             var myArg = ArgNodes[i];
             if (funArg.IsMutable || myArg.IsMutable)
             {
-                if (funArg != myArg)
+                if (!funArg.Equals(myArg))
                     return false;
             }
             else

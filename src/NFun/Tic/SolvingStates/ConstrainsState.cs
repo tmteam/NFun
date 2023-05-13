@@ -28,7 +28,7 @@ public class ConstrainsState : ITicNodeState {
 
     public ConstrainsState GetCopy() => new(Descendant, Ancestor, IsComparable) { Preferred = Preferred};
 
-    public bool Fits(ITicNodeState type) => CanBeFitConverted(this.MaxState(), type.MaxState());
+    public bool Fits(ITicNodeState type) => CanBeFitConverted(this.Concretest(), type.Concretest());
 
     public bool Fits(ICompositeState type) {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
@@ -50,8 +50,8 @@ public class ConstrainsState : ITicNodeState {
         if (Descendant is StateArray stateArray)
         {
             var typeArray = (StateArray)type;
-            var bottomDesc = stateArray.MaxState();
-            var bottomAnc = typeArray.MaxState();
+            var bottomDesc = stateArray.Concretest();
+            var bottomAnc = typeArray.Concretest();
             return CanBeFitConverted(from: bottomDesc, to: bottomAnc);
         }
 
@@ -60,15 +60,15 @@ public class ConstrainsState : ITicNodeState {
             var typeFun = (StateFun)type;
             if (stateFun.ArgsCount != typeFun.ArgsCount)
                 return false;
-            var returnBottomDesc = stateFun.ReturnType.MaxState();
-            var returnBottomAnc = typeFun.ReturnType.MaxState();
+            var returnBottomDesc = stateFun.ReturnType.Concretest();
+            var returnBottomAnc = typeFun.ReturnType.Concretest();
             if (!CanBeFitConverted(from: returnBottomDesc, to: returnBottomAnc))
                 return false;
 
             for (int i = 0; i < stateFun.ArgsCount; i++)
             {
-                var dmin = stateFun.ArgNodes[i].State.MinState();
-                var amin = typeFun.ArgNodes[i].State.MinState();
+                var dmin = stateFun.ArgNodes[i].State.Abstractest();
+                var amin = typeFun.ArgNodes[i].State.Abstractest();
                 if (!CanBeFitConverted(from: amin, to: dmin))
                     return false;
             }
@@ -163,7 +163,7 @@ public class ConstrainsState : ITicNodeState {
         if (type == null)
             return;
         Descendant = !HasDescendant
-            ? type.MaxState()
+            ? type.Concretest()
             : Descendant.Lca(type);
     }
 
