@@ -115,7 +115,7 @@ public static class FunCallBuilderExtensions {
         var generic = graph.InitializeVarNode();
 
         graph.SetCall(
-            new ITicNodeState[] { StateArray.Of(generic), StateFun.Of(new[] { generic, generic }, generic), generic },
+            new ITicNodeState[] { StateArray.Of(generic), StateFun.Of( generic, generic, generic), generic },
             new[] { arrId, funId, returnId });
     }
 
@@ -137,7 +137,7 @@ public static class FunCallBuilderExtensions {
         //fold call   fold( T[], G, (G,T)->G )->G
         graph.SetCall(
             new ITicNodeState[] {
-                StateArray.Of(tArg), tRes, StateFun.Of(new ITicNodeState[] { tRes, tArg }, tRes), tRes
+                StateArray.Of(tArg), tRes, StateFun.Of(tRes, tArg, tRes), tRes
             },
             new[] { arrId, defId, funId, resId });
     }
@@ -147,7 +147,7 @@ public static class FunCallBuilderExtensions {
         var outT = graph.InitializeVarNode();
 
         graph.SetCall(
-            new ITicNodeState[] { StateArray.Of(inT), StateFun.Of(new[] { outT, inT }, outT), outT },
+            new ITicNodeState[] { StateArray.Of(inT), StateFun.Of(outT, inT, outT), outT },
             new[] { arrId, funId, returnId });
     }
 
