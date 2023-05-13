@@ -39,8 +39,9 @@ public class UserFunctionsTest {
         graph.SetVarType(
             "swapIfNotSorted",
             StateFun.Of(
-                new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 },
+                StateArray.Of(tOfSwap), StatePrimitive.I32,
                 StateArray.Of(tOfSwap)));
+
         graph.SetVar("swapIfNotSorted", 5);
 
         graph.SetfoldCall(3, 4, 5, 6);
@@ -95,8 +96,9 @@ public class UserFunctionsTest {
         graph.SetVarType(
             "swapIfNotSorted",
             StateFun.Of(
-                new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 },
+                StateArray.Of(tOfSwap), StatePrimitive.I32,
                 StateArray.Of(tOfSwap)));
+
         graph.SetVar("swapIfNotSorted", 23);
         //Exit:17.Call fold(18, 22, 23, 17)
         graph.SetfoldCall(18, 22, 23, 17);

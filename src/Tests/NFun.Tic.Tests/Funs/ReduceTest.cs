@@ -29,7 +29,7 @@ public class foldTest {
         var tOfSwap = graph.InitializeVarNode(isComparable: true);
         graph.SetVarType(
             "swapIfNotSorted",
-            StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), I32 }, StateArray.Of(tOfSwap)));
+            StateFun.Of(StateArray.Of(tOfSwap), I32, StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 5);
 
         graph.SetfoldCall(3, 4, 5, 6);
@@ -62,7 +62,7 @@ public class foldTest {
 
         graph.SetVarType(
             "swapIfNotSorted",
-            StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), I32 }, StateArray.Of(tOfSwap)));
+            StateFun.Of(StateArray.Of(tOfSwap), I32, StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 5);
 
         graph.SetfoldCall(3, 4, 5, 6);
@@ -93,7 +93,7 @@ public class foldTest {
 
         graph.SetVarType(
             "swapIfNotSorted",
-            StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), I32 }, StateArray.Of(tOfSwap)));
+            StateFun.Of(StateArray.Of(tOfSwap), I32, StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 4);
 
         graph.SetfoldCall(2, 3, 4, 5);
