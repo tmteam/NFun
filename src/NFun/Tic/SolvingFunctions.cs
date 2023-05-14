@@ -213,7 +213,7 @@ public static class SolvingFunctions {
         {
             var oldMakr = node.VisitMark;
             if (oldMakr == 1567)
-                throw new NotImplementedException("Recursive type definition");
+                throw TicErrors.RecursiveTypeDefinition(new[]{ node});
             node.VisitMark = 1567;
             foreach (var member in composite.Members)
                 PushConstraintsRecursive(member);

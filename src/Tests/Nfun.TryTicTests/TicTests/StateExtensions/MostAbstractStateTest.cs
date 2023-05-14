@@ -1,8 +1,8 @@
-namespace NFun.UnitTests.TicTests;
+namespace NFun.UnitTests.TicTests.StateExtensions;
 
+using NFun.Tic;
+using NFun.Tic.SolvingStates;
 using NUnit.Framework;
-using Tic;
-using Tic.SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 
 public class MostAbstractStateTest {
