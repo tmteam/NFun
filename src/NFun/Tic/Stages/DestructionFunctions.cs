@@ -59,7 +59,7 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor.Fits(descendant))
+        if (descendant.FitsInto(ancestor))
         {
             ancestorNode.State = new StateRefTo(descendantNode);
             descendantNode.RemoveAncestor(ancestorNode);
@@ -77,7 +77,7 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ICompositeState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.Fits(ancestor))
+        if (ancestor.FitsInto(descendant))
         {
             descendantNode.State = new StateRefTo(ancestorNode);
             descendantNode.RemoveAncestor(ancestorNode);

@@ -9,6 +9,8 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic;
 
+using System.Text;
+
 public enum TicNodeType {
     /// <summary>
     /// input or output variable of expression
@@ -131,10 +133,20 @@ public class TicNode {
             return;
 
 #if DEBUG
-        TraceLog.Write($"{Name}:", ConsoleColor.Green);
-        TraceLog.Write(State.Description);
+        var sb = new StringBuilder($"{Name}");
+        var nameD = 3 - sb.Length;
+        if (nameD < 0) nameD = 0;
+        sb.Append(new string(' ', nameD));
+        sb.Append($"| {State.Description}");
         if (Ancestors.Any())
-            TraceLog.Write("  <=" + string.Join(",", Ancestors.Select(a => a.Name)));
+            sb.Append(" <- " + string.Join(",", Ancestors.Select(a => a.Name)));
+        var delta = 30 - sb.Length;
+        if (delta < 0)
+            delta = 0;
+        sb.Append(new string(' ', delta));
+        sb.Append("| state: " + State.StateDescription);
+
+        TraceLog.Write(sb.ToString());
         TraceLog.WriteLine();
 #endif
     }
