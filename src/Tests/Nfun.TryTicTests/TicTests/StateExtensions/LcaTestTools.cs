@@ -1,13 +1,12 @@
-namespace NFun.UnitTests.TicTests.Lca;
+namespace NFun.UnitTests.TicTests.StateExtensions;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TestTools;
-using Tic;
-using Tic.SolvingStates;
+using NFun.TestTools;
+using NFun.Tic;
+using NFun.Tic.SolvingStates;
 using NUnit.Framework;
-using static Tic.SolvingStates.StatePrimitive;
 
 public record TypeMap(StatePrimitive Left, StatePrimitive Right, StatePrimitive Lca);
 
@@ -131,8 +130,6 @@ public static class LcaTestTools {
     }
 
     public static void AssertLca(ITicNodeState a, ITicNodeState b, ITicNodeState expected) {
-        if (a.Equals(Real) && b.Equals(Ip))
-            Console.WriteLine("dd");
 
         var result1 = a.Lca(b);
         var result2 = b.Lca(a);

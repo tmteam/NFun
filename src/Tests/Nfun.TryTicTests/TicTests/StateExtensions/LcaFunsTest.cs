@@ -1,6 +1,6 @@
-namespace NFun.UnitTests.TicTests.Lca;
+namespace NFun.UnitTests.TicTests.StateExtensions;
 
-using Tic.SolvingStates;
+using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 using static LcaTestTools;
 using static Tic.SolvingStates.StatePrimitive;
