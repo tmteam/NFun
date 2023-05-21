@@ -1,47 +1,48 @@
 namespace NFun.UnitTests.TicTests.StateExtensions;
 
-using NFun.Tic;
+using Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 using static Tic.SolvingStates.StatePrimitive;
 using static LcaTestTools;
+using static SolvingStates;
 
 public class LcaArraysTest {
 
     [Test]
     public void PrimitiveAndArrayOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(StateArray.Of(ConstrainsState.Empty), primitive, Any);
+            AssertLca(Array(EmptyConstrains), primitive, Any);
     }
 
     [Test]
     public void PrimitiveAndArrayOfComposite_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(StateArray.Of(StateArray.Of(ConstrainsState.Empty)), primitive, Any);
+            AssertLca(Array(Array(EmptyConstrains)), primitive, Any);
     }
 
     [Test]
     public void PrimitiveAndArrayOfPrimitive_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(StateArray.Of(Any), primitive, Any);
+            AssertLca(Array(Any), primitive, Any);
     }
 
     [Test]
     public void ArrayOfPrimitiveTypes_ReturnsArrayOfLca() {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
-                StateArray.Of(types.Left),
-                StateArray.Of(types.Right),
-                StateArray.Of(types.Lca));
+                Array(types.Left),
+                Array(types.Right),
+                Array(types.Lca));
     }
 
     [Test]
     public void ArrayOfPrimitiveTypeAndArrayOfConstrainType_ReturnsArrayOfLca() {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
-                StateArray.Of(types.Left),
-                StateArray.Of(ConstrainsState.Empty),
-                StateArray.Of(types.Left));
+                Array(types.Left),
+                Array(EmptyConstrains),
+                Array(types.Left));
     }
 
 
@@ -49,22 +50,19 @@ public class LcaArraysTest {
     public void ArrayOfPrimitiveTypeAndArrayOfConstrainTypeWithDesc_ReturnsArrayOfLca() {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
-                StateArray.Of(types.Left),
-                StateArray.Of(ConstrainsState.Of(desc: types.Right)),
-                StateArray.Of(types.Lca));
+                Array(types.Left),
+                Array(Constrains(desc: types.Right)),
+                Array(types.Lca));
     }
 
     [Test]
     public void ComplexNestedArray() {
         foreach (var types in PrimitiveTypesLca)
         {
-            var array1 = StateArray.Of(
-                new StateRefTo(
-                    TicNode.CreateNamedNode("foo", StateArray.Of(ConstrainsState.Of(desc: types.Left)))));
-            var array2 = StateArray.Of(
-                StateArray.Of(types.Right));
+            var array1 = Array(Ref(Array(Constrains(desc: types.Left))));
+            var array2 = Array(Array(types.Right));
 
-            AssertLca(array1, array2, StateArray.Of(StateArray.Of(types.Lca)));
+            AssertLca(array1, array2, Array(Array(types.Lca)));
         }
     }
 }
