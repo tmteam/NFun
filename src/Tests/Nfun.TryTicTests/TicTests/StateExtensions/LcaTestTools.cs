@@ -3,8 +3,8 @@ namespace NFun.UnitTests.TicTests.StateExtensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.TestTools;
-using NFun.Tic;
+using TestTools;
+using Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
@@ -134,11 +134,11 @@ public static class LcaTestTools {
         var result1 = a.Lca(b);
         var result2 = b.Lca(a);
 
-        var aRef = new StateRefTo(TicNode.CreateTypeVariableNode("a", a));
-        var bRef = new StateRefTo(TicNode.CreateTypeVariableNode("b", b));
+        var aRef = SolvingStates.Ref(TicNode.CreateTypeVariableNode("a", a));
+        var bRef = SolvingStates.Ref(TicNode.CreateTypeVariableNode("b", b));
 
-        var aRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("aa", aRef));
-        var bRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("bb", bRef));
+        var aRefRef = SolvingStates.Ref(TicNode.CreateTypeVariableNode("aa", aRef));
+        var bRefRef = SolvingStates.Ref(TicNode.CreateTypeVariableNode("bb", bRef));
 
         var result3 = aRef.Lca(bRef);
         var result4 = bRefRef.Lca(aRefRef);

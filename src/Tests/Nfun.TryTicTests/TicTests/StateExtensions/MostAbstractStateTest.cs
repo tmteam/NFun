@@ -1,8 +1,9 @@
 namespace NFun.UnitTests.TicTests.StateExtensions;
 
-using NFun.Tic;
+using Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
+using static SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 
 public class MostAbstractStateTest {
@@ -10,97 +11,97 @@ public class MostAbstractStateTest {
     public void Primitive1() => Assert.AreEqual(U24, U24.Abstractest());
 
     [Test]
-    public void Constraint1() => Assert.AreEqual(Any, ConstrainsState.Empty.Abstractest());
+    public void Constraint1() => Assert.AreEqual(Any, EmptyConstrains.Abstractest());
 
     [Test]
     public void Constraint2() =>
         // if some type is comparable, then it most abstract type is comparable
         Assert.AreEqual(
-            ConstrainsState.Of(isComparable: true),
-            ConstrainsState.Of(isComparable: true).Abstractest());
+            Constrains(isComparable: true),
+            Constrains(isComparable: true).Abstractest());
 
     [Test]
-    public void Constraint3() => Assert.AreEqual(Real, ConstrainsState.Of(U24, Real).Abstractest());
+    public void Constraint3() => Assert.AreEqual(Real, Constrains(U24, Real).Abstractest());
 
     [Test]
-    public void Constraint4() => Assert.AreEqual(Real, ConstrainsState.Of(U24, Real).Abstractest());
+    public void Constraint4() => Assert.AreEqual(Real, Constrains(U24, Real).Abstractest());
 
     [Test]
     public void Constraint5()
         => Assert.AreEqual(
             Any,
-            ConstrainsState.Of(StateArray.Of(ConstrainsState.Of(U24, Real)), Any).Abstractest());
+            Constrains(Array(Constrains(U24, Real)), Any).Abstractest());
 
     [Test]
     public void Array1() {
-        var foo = StateArray.Of(U24);
+        var foo = Array(U24);
         Assert.AreEqual(foo, foo.Abstractest());
     }
 
     [Test]
     public void Array2() =>
-        Assert.AreEqual(StateArray.Of(Real), StateArray.Of(ConstrainsState.Of(U16, Real)).Abstractest());
+        Assert.AreEqual(Array(Real), Array(Constrains(U16, Real)).Abstractest());
 
     [Test]
     public void Array3() =>
-        Assert.AreEqual(StateArray.Of(Any), StateArray.Of(ConstrainsState.Empty).Abstractest());
+        Assert.AreEqual(Array(Any), Array(EmptyConstrains).Abstractest());
 
     [Test]
     public void Fun1() {
-        var foo = StateFun.Of(I64, U24);
+        var foo = Fun(I64, U24);
         Assert.AreEqual(foo, foo.Abstractest());
     }
 
     [Test]
     public void Fun2() {
-        var foo = StateFun.Of(
-            ConstrainsState.Of(U16, Real),
-            ConstrainsState.Of(I16, I64),
-            ConstrainsState.Of(U32, I64));
+        var foo = Fun(
+            Constrains(U16, Real),
+            Constrains(I16, I64),
+            Constrains(U32, I64));
 
         Assert.AreEqual(
-            StateFun.Of(U16, I16, I64),
+            Fun(U16, I16, I64),
             foo.Abstractest());
     }
 
     [Test]
     public void Fun3() {
-        var foo = StateFun.Of(
-            StateFun.Of(ConstrainsState.Of(U16, Real), ConstrainsState.Of(I16, I64)),
-            StateArray.Of(ConstrainsState.Of(U16, I64)),
-            StateFun.Of(ConstrainsState.Of(U16, Real), ConstrainsState.Of(I16, I64)));
+        var foo = Fun(
+            Fun(Constrains(U16, Real), Constrains(I16, I64)),
+            Array(Constrains(U16, I64)),
+            Fun(Constrains(U16, Real), Constrains(I16, I64)));
 
         Assert.AreEqual(
-            StateFun.Of(
-                StateFun.Of(Real, I16),
-                StateArray.Of(U16),
-                StateFun.Of(U16, I64)).StateDescription,
+            Fun(
+                Fun(Real, I16),
+                Array(U16),
+                Fun(U16, I64)).StateDescription,
             foo.Abstractest().StateDescription);
     }
 
     [Test]
     public void Fun4() =>
         Assert.AreEqual(
-            StateFun.Of(ConstrainsState.Empty, Any).StateDescription,
-            StateFun.Of(ConstrainsState.Empty, ConstrainsState.Empty).Abstractest().StateDescription);
+            Fun(EmptyConstrains, Any).StateDescription,
+            Fun(EmptyConstrains, EmptyConstrains).Abstractest().StateDescription);
 
     [Test]
-    public void Struct1() => Assert.AreEqual(StateStruct.Of(), StateStruct.Of().Abstractest());
+    public void Struct1() => Assert.AreEqual(EmptyStruct(), EmptyStruct().Abstractest());
 
     [Test]
     public void Struct2() =>
-        Assert.AreEqual(StateStruct.Of("foo", I64), StateStruct.Of("foo", I64).Abstractest());
+        Assert.AreEqual(Struct("foo", I64), Struct("foo", I64).Abstractest());
 
     [Test]
     public void Struct3() =>
         Assert.AreEqual(
-            StateStruct.Of("foo", ConstrainsState.Of(U24, Real)),
-            StateStruct.Of("foo", ConstrainsState.Of(U24, Real)).Abstractest());
+            Struct("foo", Constrains(U24, Real)),
+            Struct("foo", Constrains(U24, Real)).Abstractest());
 
     [Test]
     public void Struct4() =>
         Assert.AreEqual(
-            StateStruct.Of("foo", ConstrainsState.Empty),
-            StateStruct.Of("foo", ConstrainsState.Empty).Abstractest());
+            Struct("foo", EmptyConstrains),
+            Struct("foo", EmptyConstrains).Abstractest());
 
 }
