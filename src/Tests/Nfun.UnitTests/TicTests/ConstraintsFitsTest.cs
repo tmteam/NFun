@@ -171,3 +171,4 @@ public class ConstraintsFitsTest {
         bool isComparable = false)
         => ConstrainsState.Of(desc, anc, isComparable);
 }
+
