@@ -3,6 +3,7 @@ namespace NFun.UnitTests.TicTests.StateExtensions;
 using NUnit.Framework;
 using Tic;
 using Tic.SolvingStates;
+using static SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 
 public class FcdTest {
@@ -18,42 +19,42 @@ public class FcdTest {
 
     [Test]
     public void Struct1() {
-        var strA = StateStruct.Of(
+        var strA = Struct(
             ("a", I32),
-            ("b", StateArray.Of(StateArray.Of(Char))),
-            ("c", StateFun.Of(new[] { Bool }, I16))
+            ("b", Array(Array(Char))),
+            ("c", Fun(Bool, I16))
         );
 
-        var strB = StateStruct.Of(
+        var strB = Struct(
             ("d", I32),
-            ("e", StateArray.Of(StateArray.Of(Bool))),
-            ("f", StateStruct.Of(
+            ("e", Array(Array(Bool))),
+            ("f", Struct(
                 ("prim", U32),
-                ("fun", StateFun.Of(new[] { Char }, I16))
+                ("fun", Fun(Char, I16))
             ))
         );
 
         AssertFcd(strA, strB,
-            StateStruct.Of(
+            Struct(
                 ("a", I32),
-                ("b", StateArray.Of(StateArray.Of(Char))),
-                ("c", StateFun.Of(new[] { Bool }, I16)),
+                ("b", Array(Array(Char))),
+                ("c", Fun(Bool, I16)),
                 ("d", I32),
-                ("e", StateArray.Of(StateArray.Of(Bool))),
-                ("f", StateStruct.Of(
+                ("e", Array(Array(Bool))),
+                ("f", Struct(
                     ("prim", U32),
-                    ("fun", StateFun.Of(new[] { Char }, I16))
+                    ("fun", Fun(new[] { Char }, I16))
                 ))));
     }
 
     [Test]
     public void Struct2() {
-        var strA = StateStruct.Of(
+        var strA = Struct(
             ("a", I32),
-            ("c", StateFun.Of(new[] { Bool }, I16))
+            ("c", Fun(new[] { Bool }, I16))
         );
 
-        var strB = StateStruct.Of(
+        var strB = Struct(
             ("a", U32),
             ("d", I32)
         );
@@ -63,11 +64,11 @@ public class FcdTest {
 
     [Test]
     public void Struct3() {
-        var strA = StateStruct.Of("a", I32);
-        var strB = StateStruct.Of("d", I32);
+        var strA = Struct("a", I32);
+        var strB = Struct("d", I32);
 
         AssertFcd(strA, strB,
-            StateStruct.Of(
+            Struct(
                 ("a", I32),
                 ("d", I32)));
     }
@@ -76,11 +77,11 @@ public class FcdTest {
         var result1 = a.Fcd(b);
         var result2 = b.Fcd(a);
 
-        var aRef = new StateRefTo(TicNode.CreateTypeVariableNode("a", a));
-        var bRef = new StateRefTo(TicNode.CreateTypeVariableNode("b", b));
+        var aRef = Ref(TicNode.CreateTypeVariableNode("a", a));
+        var bRef = Ref(TicNode.CreateTypeVariableNode("b", b));
 
-        var aRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("aa", aRef));
-        var bRefRef = new StateRefTo(TicNode.CreateTypeVariableNode("bb", bRef));
+        var aRefRef = Ref(TicNode.CreateTypeVariableNode("aa", aRef));
+        var bRefRef = Ref(TicNode.CreateTypeVariableNode("bb", bRef));
 
         var result3 = aRef.Fcd(bRef);
         var result4 = bRefRef.Fcd(aRefRef);

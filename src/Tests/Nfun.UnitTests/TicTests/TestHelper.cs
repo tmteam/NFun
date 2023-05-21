@@ -34,7 +34,7 @@ public static class TestHelper {
         Console.WriteLine(equation);
 
         var flow = Tokenization.Tokenizer.ToFlow(equation);
-        var tree = SyntaxParsing.Parser.Parse(flow);
+        var tree = Parser.Parse(flow);
         tree.ComeOver(new SetNodeNumberVisitor(0));
 
 
@@ -54,7 +54,7 @@ public static class TestHelper {
         Console.WriteLine(equation);
 
         var flow = Tokenization.Tokenizer.ToFlow(equation);
-        var tree = SyntaxParsing.Parser.Parse(flow);
+        var tree = Parser.Parse(flow);
         tree.ComeOver(new SetNodeNumberVisitor(0));
 
         var graph = new GraphBuilder();
