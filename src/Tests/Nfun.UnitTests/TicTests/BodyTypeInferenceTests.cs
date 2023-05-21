@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace NFun.UnitTests.TicTests;
 
+using static SolvingStates;
 using static StatePrimitive;
 
 public class BodyTypeInferenceTests {
@@ -174,15 +175,15 @@ public class BodyTypeInferenceTests {
     public void MapWithLambda() {
         var result = TestHelper.Solve("y  = a.map(rule(i:int)=i+1)");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(I32), "y");
-        result.AssertNamed(StateArray.Of(I32), "a");
+        result.AssertNamed(Array(I32), "y");
+        result.AssertNamed(Array(I32), "a");
     }
 
     [Test]
     public void IfWithEmptyArray() {
         var result = TestHelper.Solve("y  =if (true) [1.0,2,3] else []");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(Real), "y");
+        result.AssertNamed(Array(Real), "y");
     }
 
     [Test]
@@ -200,7 +201,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        TestHelper.AssertAreSame(StateArray.Of(Real), state);
+        TestHelper.AssertAreSame(Array(Real), state);
     }
 
     [Test]
@@ -210,7 +211,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        TestHelper.AssertAreSame(StateArray.Of(Real), state);
+        TestHelper.AssertAreSame(Array(Real), state);
     }
 
     [Test]
@@ -228,7 +229,7 @@ public class BodyTypeInferenceTests {
         var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
-        TestHelper.AssertAreSame(StateArray.Of(Real), state);
+        TestHelper.AssertAreSame(Array(Real), state);
     }
 
     [Test]
@@ -249,7 +250,7 @@ public class BodyTypeInferenceTests {
     public void SortConcrete() {
         var result = TestHelper.Solve("y:int[] = [4,3,5,1].sort()");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(I32), "y");
+        result.AssertNamed(Array(I32), "y");
     }
 
     [Test]
@@ -265,14 +266,14 @@ public class BodyTypeInferenceTests {
     public void FilterComparable() {
         var result = TestHelper.Solve("y:int[]= [1,2,3].filter(rule it>2)");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(I32), "y");
+        result.AssertNamed(Array(I32), "y");
     }
 
     [Test]
     public void HiOrderMap() {
         var result = TestHelper.Solve("y = '12'.map(toText)");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StateArray.Of(Char)), "y");
+        result.AssertNamed(Array(Array(Char)), "y");
     }
 
 
@@ -280,14 +281,14 @@ public class BodyTypeInferenceTests {
     public void ConcatAndSplit() {
         var result = TestHelper.Solve("y = split(concat('a b ','c'),' ')");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StateArray.Of(Char)), "y");
+        result.AssertNamed(Array(Array(Char)), "y");
     }
 
     [Test]
     public void Split() {
         var result = TestHelper.Solve("y = split('a b c',' ')");
         result.AssertNoGenerics();
-        result.AssertNamed(StateArray.Of(StateArray.Of(Char)), "y");
+        result.AssertNamed(Array(Array(Char)), "y");
     }
 
     [Test]

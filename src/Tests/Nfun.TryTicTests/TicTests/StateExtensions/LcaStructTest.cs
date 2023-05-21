@@ -1,9 +1,10 @@
 namespace NFun.UnitTests.TicTests.StateExtensions;
 
-using NFun.Tic;
+using Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 using static LcaTestTools;
+using static SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 
 public class LcaStructTest {
@@ -13,14 +14,14 @@ public class LcaStructTest {
 
     [Test]
     public void ConcreteStructWithAdditionalField() {
-        var str = StateStruct.Of(
+        var str = Struct(
             ("prim", I32),
-            ("arr", StateArray.Of(StateArray.Of(Char))),
-            ("fun", StateFun.Of(new[] { Bool }, I16)),
-            ("str", StateStruct.Of(
+            ("arr", Array(Array(Char))),
+            ("fun", Fun(Bool, I16)),
+            ("str", Struct(
                 ("prim", I32),
-                ("arr", StateArray.Of(StateArray.Of(Char))),
-                ("fun", StateFun.Of(new[] { Bool }, I16))))
+                ("arr", Array(Array(Char))),
+                ("fun", Fun(Bool, I16))))
         );
         var other = str.With("additional", TicNode.CreateInvisibleNode(Char));
         AssertLca(str, other, str);
@@ -28,67 +29,67 @@ public class LcaStructTest {
 
     [Test]
     public void ItemsWithDifferentTypesDissapears() {
-        var strA = StateStruct.Of(
+        var strA = Struct(
             ("prim", I32),
-            ("arr", StateArray.Of(StateArray.Of(Char))),
-            ("fun", StateFun.Of(new[] { Bool }, I16)),
+            ("arr", Array(Array(Char))),
+            ("fun", Fun(Bool, I16)),
             ("str",
-                StateStruct.Of(
+                Struct(
                     ("prim", U32),
-                    ("arr", StateArray.Of(StateArray.Of(Char))),
-                    ("fun", StateFun.Of(new[] { Char }, I16))
+                    ("arr", Array(Array(Char))),
+                    ("fun", Fun(new[] { Char }, I16))
                 )),
             ("sameField", I32)
         );
 
-        var strB = StateStruct.Of(
+        var strB = Struct(
             ("sameField", I32),
             ("prim", U32),
-            ("arr", StateArray.Of(StateArray.Of(Bool))),
-            ("fun", StateFun.Of(new[] { Bool }, I32)),
+            ("arr", Array(Array(Bool))),
+            ("fun", Fun(Bool, I32)),
             ("str",
-                StateStruct.Of(
+                Struct(
                     ("prim", U32),
-                    ("arr", StateArray.Of(StateArray.Of(Char))),
-                    ("fun", StateFun.Of(new[] { Char }, I16))
+                    ("arr", Array(Array(Char))),
+                    ("fun", Fun(Char, I16))
                 ))
         );
 
         AssertLca(strA, strB,
-            StateStruct.Of(
+            Struct(
                 ("sameField", I32),
-                ("str", StateStruct.Of(
+                ("str", Struct(
                     ("prim", U32),
-                    ("arr", StateArray.Of(StateArray.Of(Char))),
-                    ("fun", StateFun.Of(new[] { Char }, I16))
+                    ("arr", Array(Array(Char))),
+                    ("fun", Fun(Char, I16))
                 ))
             ));
     }
 
     [Test]
     public void ItemsWithDifferentFieldsDisappears() {
-        var strA = StateStruct.Of(
+        var strA = Struct(
             ("a", I32),
-            ("b", StateArray.Of(StateArray.Of(Char))),
-            ("c", StateFun.Of(new[] { Bool }, I16))
+            ("b", Array(Array(Char))),
+            ("c", Fun(Bool, I16))
         );
 
-        var strB = StateStruct.Of(
+        var strB = Struct(
             ("d", I32),
-            ("e", StateArray.Of(StateArray.Of(Bool))),
-            ("f", StateStruct.Of(
+            ("e", Array(Array(Bool))),
+            ("f", Struct(
                 ("prim", U32),
-                ("fun", StateFun.Of(new[] { Char }, I16))
+                ("fun", Fun(Char, I16))
             ))
         );
 
-        AssertLca(strA, strB, StateStruct.Empty());
+        AssertLca(strA, strB, EmptyStruct());
     }
 
     [Test]
     public void Constrains1() {
-        var strA = StateStruct.Of("a", ConstrainsState.Of(I16, Real));
-        var strB = StateStruct.Of("a", ConstrainsState.Of(U8, U64));
+        var strA = Struct("a", Constrains(I16, Real));
+        var strB = Struct("a", Constrains(U8, U64));
         // RES = if(...) strA else strB
         // so RES has to fit both of these structures
         // Lets see all the types for strA.a: I16, I32, I64, Real
@@ -99,73 +100,73 @@ public class LcaStructTest {
 
     [Test]
     public void Constrains2() {
-        var strA = StateStruct.Of("a", ConstrainsState.Of(I16, Real));
-        var strB = StateStruct.Of("a", ConstrainsState.Of(U8, I64));
+        var strA = Struct("a", Constrains(I16, Real));
+        var strB = Struct("a", Constrains(U8, I64));
         // RES = if(...) strA else strB
         // so RES has to fit both of these structures
         // Lets see all the types for strA.a: I16, I32, I64, Real
         // Lets see all the types for strA.b: U8, U16, U32, I16, I32, I64
         // so result is [I16..I64]
-        AssertLca(strA, strB, StateStruct.Of("a", ConstrainsState.Of(I16, I64)));
+        AssertLca(strA, strB, Struct("a", Constrains(I16, I64)));
     }
 
     [Test]
     public void Constrains3() {
-        var strA = StateStruct.Of("a", ConstrainsState.Of(StateArray.Of(I16), Any));
-        var strB = StateStruct.Of("a", ConstrainsState.Of(StateArray.Of(U16), null));
-        AssertLca(strA, strB, StateStruct.Of("a", ConstrainsState.Of(StateArray.Of(I24), Any)));
+        var strA = Struct("a", Constrains(Array(I16), Any));
+        var strB = Struct("a", Constrains(Array(U16), null));
+        AssertLca(strA, strB, Struct("a", Constrains(Array(I24), Any)));
     }
 
     [Test]
     public void Constrains4() {
-        var strA = StateStruct.Of("a", StateArray.Of(ConstrainsState.Of(I16)));
-        var strB = StateStruct.Of("a", StateArray.Of(ConstrainsState.Of(U16)));
-        AssertLca(strA, strB, StateStruct.Of("a", StateArray.Of(ConstrainsState.Of(I24))));
+        var strA = Struct("a", Array(Constrains(I16)));
+        var strB = Struct("a", Array(Constrains(U16)));
+        AssertLca(strA, strB, Struct("a", Array(Constrains(I24))));
     }
 
     [Test]
     public void Constrains5() {
-        var strA = StateStruct.Of(
-            ("a", StateArray.Of(ConstrainsState.Of(I16))),
+        var strA = Struct(
+            ("a", Array(Constrains(I16))),
             ("b", I16));
-        var strB = StateStruct.Of(
-            ("a", StateArray.Of(ConstrainsState.Of(U16))),
+        var strB = Struct(
+            ("a", Array(Constrains(U16))),
             ("c", Any)
         );
-        AssertLca(strA, strB, StateStruct.Of("a", StateArray.Of(ConstrainsState.Of(I24))));
+        AssertLca(strA, strB, Struct("a", Array(Constrains(I24))));
     }
 
     [Test]
     public void Constrains6() {
-        var strA = StateStruct.Of(
-            ("a", StateArray.Of(I64)),
+        var strA = Struct(
+            ("a", Array(I64)),
             ("b", Any));
-        var strB = StateStruct.Of(
-            ("a", StateArray.Of(ConstrainsState.Of(U16))),
+        var strB = Struct(
+            ("a", Array(Constrains(U16))),
             ("c", Any)
         );
-        AssertLca(strA, strB, StateStruct.Of("a", StateArray.Of(I64)));
+        AssertLca(strA, strB, Struct("a", Array(I64)));
     }
 
     [Test]
     public void Comparable1() {
-        var strA = StateStruct.Of("a", ConstrainsState.Of(isComparable: true));
-        var strB = StateStruct.Of("a", ConstrainsState.Of(isComparable: true));
-        AssertLca(strA, strB, StateStruct.Of("a", ConstrainsState.Of(isComparable: true)));
+        var strA = Struct("a", Constrains(isComparable: true));
+        var strB = Struct("a", Constrains(isComparable: true));
+        AssertLca(strA, strB, Struct("a", Constrains(isComparable: true)));
     }
 
     [Test]
     public void Comparable2() {
         // if some is comparable, and other is not - it means that result constrains has to be comparable
-        var strA = StateStruct.Of("a", ConstrainsState.Of(isComparable: true));
-        var strB = StateStruct.Of("a", ConstrainsState.Empty);
-        AssertLca(strA, strB, StateStruct.Of("a", ConstrainsState.Of(isComparable: true)));
+        var strA = Struct("a", Constrains(isComparable: true));
+        var strB = Struct("a", EmptyConstrains);
+        AssertLca(strA, strB, Struct("a", Constrains(isComparable: true)));
     }
 
     [Test]
     public void Comparable3() {
-        var strA = StateStruct.Of("a", ConstrainsState.Of(I16, Any, isComparable: true));
-        var strB = StateStruct.Of("a", ConstrainsState.Of(U8, Any));
-        AssertLca(strA, strB, StateStruct.Of("a", ConstrainsState.Of(I16, Real, true)));
+        var strA = Struct("a", Constrains(I16, Any, isComparable: true));
+        var strB = Struct("a", Constrains(U8, Any));
+        AssertLca(strA, strB, Struct("a", Constrains(I16, Real, true)));
     }
 }
