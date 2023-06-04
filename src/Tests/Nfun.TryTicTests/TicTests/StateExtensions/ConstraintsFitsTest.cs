@@ -158,4 +158,12 @@ public class ConstraintsFitsTest {
                         Constrains(U24, Real, false))));
         target.FitsInto(constrains).AssertTrue();
     }
+
+    [Test]
+    public void TextFits_into_Comparable_returnsTrue() {
+        var constrains = Constrains(isComparable: true);
+        var target = Array(Char);
+        target.FitsInto(constrains).AssertTrue();
+    }
+
 }

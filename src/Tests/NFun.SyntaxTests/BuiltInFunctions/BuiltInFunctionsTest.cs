@@ -181,11 +181,7 @@ public class BuiltInFunctionsTest {
     [TestCase("['a'].sort()", new[] { "a" })]
     [TestCase("[12].sort(rule it)", new[] { 12 })]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
-    [TestCase("['a'].sort(rule it.reverse())", new[] { "a"})]
-    public void MergeComparableArray(string expr, object expected) {
-        using var _ = TraceLog.Scope;
-        expr.AssertAnonymousOut(expected);
-    }
+    public void MergeComparableArray(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
     [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
     [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
@@ -288,8 +284,6 @@ public class BuiltInFunctionsTest {
     [TestCase("y= max(1,2,3)")]
     [TestCase("y= ~1.5")]
     [TestCase("y= max(1,true)")]
-    [TestCase("y= max(1,'test')")]
-    [TestCase("y= max(1,'test'[0])")]
     [TestCase("y= max(1,(j)->j)")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 

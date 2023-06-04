@@ -12,7 +12,7 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.CanBeConvertedTo(ancestor))
+        if (ancestor.FitsInto(descendant))
             descendantNode.State = ancestor;
 
         return true;
@@ -23,15 +23,14 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor.CanBeConvertedTo(descendant)) ancestorNode.State = descendant;
+        if (ancestor.CanBeConvertedTo(descendant))
+            ancestorNode.State = descendant;
         return true;
     }
 
     public bool Apply(
         ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        ITicNodeState result;
-
-        result = ancestor.MergeOrNull(descendant);
+        var result = ancestor.MergeOrNull(descendant);
         if (result == null)
             return false;
 
@@ -64,9 +63,39 @@ public class DestructionFunctions : IStateFunction {
             ancestorNode.State = new StateRefTo(descendantNode);
             descendantNode.RemoveAncestor(ancestorNode);
         }
-        else
+        else if (!descendantNode.IsSolved)
         {
-            Console.WriteLine($"{descendant} does not fit into {ancestor}");
+            if (descendant is StateArray array)
+            {
+                if (ancestor.Descendant is StateArray ancestorArray)
+                {
+                    ancestorNode.State = ancestorArray;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return Apply(ancestorArray, array, ancestorNode, descendantNode);
+                }
+
+            }
+           /* else if (descendant is StateFun fun)
+            {
+                if (ancestor.Descendant is StateFun ancestorFun)
+                {
+                    ancestorNode.State = ancestorFun;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return Apply(ancestorFun, fun, ancestorNode, descendantNode);
+                }
+            }
+            else if (descendant is StateStruct stateStruct)
+            {
+                if (ancestor.Descendant is StateStruct ancestorStruct)
+                {
+                    ancestorNode.State = ancestorStruct;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return Apply(ancestorStruct, stateStruct, ancestorNode, descendantNode);
+                }
+            }*/
+            //else
+            throw new NotImplementedException($"{descendant} does not fit into {ancestor}");
+            TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
         }
 
         return true;
@@ -84,7 +113,7 @@ public class DestructionFunctions : IStateFunction {
         }
         else
         {
-            Console.WriteLine($"{descendant} does not fit into {ancestor}");
+            TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
         }
 
         return true;
@@ -117,6 +146,7 @@ public class DestructionFunctions : IStateFunction {
                 SolvingFunctions.Destruction(descFieldNode, value);
             }
         }
+
         ancestorNode.State = new StateRefTo(descendantNode);
         return true;
     }
