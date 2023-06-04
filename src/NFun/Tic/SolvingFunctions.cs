@@ -531,14 +531,8 @@ public static class SolvingFunctions {
         const int outputTypeMark = 77;
         // Firstly - get all outputs and mark them with output mark
         foreach (var outputNode in outputNodes)
-        {
             foreach (var outputType in outputNode.GetAllOutputTypes())
-            {
-                if (outputType.VisitMark == outputTypeMark)
-                    continue;
                 outputType.VisitMark = outputTypeMark;
-            }
-        }
 
         //All not solved output types
         foreach (var inputNode in inputNodes)

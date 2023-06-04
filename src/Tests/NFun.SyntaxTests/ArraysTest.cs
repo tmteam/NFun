@@ -202,8 +202,41 @@ public class ArraysTest {
     }
 
     [Test]
-    public void ConstantTwinAnyArrayWithUpcast() {
+    public void ConstantTwinAnyArrayWithUpcast2() {
+        using var _ = TraceLog.Scope;
         var expr = "out = [[0x1],[1.0],[true]]";
+        var result = expr.Calc().Get("out");
+        Assert.IsInstanceOf<object[][]>(result);
+    }
+
+    [Test]
+    public void ConstantTwinAnyArrayWithUpcast3() {
+        using var _ = TraceLog.Scope;
+        var expr = "out = [[],[true]]";
+        var result = expr.Calc().Get("out");
+        Assert.IsInstanceOf<bool[][]>(result);
+    }
+
+    [Test]
+    public void ConstantTwinAnyArrayWithUpcast4() {
+        using var _ = TraceLog.Scope;
+        var expr = "out:bool[][] = [[],[true]]";
+        var result = expr.Calc().Get("out");
+        Assert.IsInstanceOf<bool[][]>(result);
+    }
+
+    [Test]
+    public void ConstantTwinAnyArrayWithUpcast5() {
+        using var _ = TraceLog.Scope;
+        var expr = "out:any[][] = [[],[true]]";
+        var result = expr.Calc().Get("out");
+        Assert.IsInstanceOf<object[][]>(result);
+    }
+
+    [Test]
+    public void ConstantTwinAnyArrayWithUpcast6() {
+        using var _ = TraceLog.Scope;
+        var expr = "out = [[],[]]";
         var result = expr.Calc().Get("out");
         Assert.IsInstanceOf<object[][]>(result);
     }
