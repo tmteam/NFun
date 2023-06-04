@@ -527,7 +527,7 @@ public static class StateExtensions {
                 // the only comparable composite is arr(char)
                 if (!(target is StateArray a))
                     return false;
-                if (!a.GetNonReferenced().Equals(StatePrimitive.Char))
+                if (!a.Element.Equals(StatePrimitive.Char))
                     return false;
             }
 
