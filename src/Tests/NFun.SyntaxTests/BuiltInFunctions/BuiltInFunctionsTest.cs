@@ -177,8 +177,14 @@ public class BuiltInFunctionsTest {
     public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
+    [TestCase("['a'].sort(rule it)", new[] { "a" })]
+    [TestCase("['a'].sort()", new[] { "a" })]
+    [TestCase("[12].sort(rule it)", new[] { 12 })]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
-    public void MergeComparableArray(string expr, object expected) => expr.AssertAnonymousOut(expected);
+    public void MergeComparableArray(string expr, object expected) {
+        using var _ = TraceLog.Scope;
+        expr.AssertAnonymousOut(expected);
+    }
 
     [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
     [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
