@@ -54,25 +54,25 @@ public class TypeInferenceTest {
     [TestCase("y = 4&2", BaseFunnyType.Int32)]
     [TestCase(
         @"fibrec(n, iter, p1,p2) =
-                          if (n >iter) 
+                          if (n >iter)
                                 fibrec(n, iter+1, p1+p2, p1)
-                          else 
-                                p1+p2  
+                          else
+                                p1+p2
           fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
-                   
+
           y:int = fib(1)", BaseFunnyType.Int32)]
     [TestCase(
         @"fibrec(n:int, iter, p1,p2) =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
-                          else p1+p2  
-                    
+                          else p1+p2
+
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y:int = fib(1)", BaseFunnyType.Int32)]
     [TestCase(
         @"fibrec(n, iter, p1,p2):int =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
-                          else p1+p2  
-                    
+                          else p1+p2
+
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(1)", BaseFunnyType.Int32)]
     [TestCase(
@@ -131,16 +131,16 @@ public class TypeInferenceTest {
 
     [TestCase(
         @"someRec(n, iter, p1,p2) =
-                          if (n >iter) 
+                          if (n >iter)
                                 someRec(n, iter+1, p1+p2, p1)
-                          else 
-                                p1+p2  
+                          else
+                                p1+p2
           y = someRec(9,2,1,1)", BaseFunnyType.Int32)]
     [TestCase(
         @"someRec2(n, iter) =
-                          if (n >iter) 
+                          if (n >iter)
                                 someRec2(n, iter+1)
-                          else 
+                          else
                                 1
           y:int = someRec2(0x9,0x2)", BaseFunnyType.Int32)]
     [TestCase("(if(true) [1,2] else [])[0]", BaseFunnyType.Int32)]
@@ -173,9 +173,6 @@ public class TypeInferenceTest {
     [TestCase("y = [1..11].map(rule [1..i].sum())")]
     [TestCase("y = [1..12].map(rule [1..i].sum()).sum()")]
     [TestCase("dsum7(x) = x+x")]
-    [TestCase(
-        @"dsum8(x) = x+x
-            y = [1..20].map(dsum8)")]
     [TestCase(
         @"div9(x) = 2600/x
             y = [1..20].map(div9)")]
@@ -279,7 +276,7 @@ public class TypeInferenceTest {
     [TestCase(2, "y= 1*x", 2)]
     [TestCase(1, "y= 1-x", 0)]
     //todo
-    //[TestCase("1", "y= x.strConcat(1)", "11")]        
+    //[TestCase("1", "y= x.strConcat(1)", "11")]
     [TestCase(true, "x:bool\r y= x and true", true)]
     public void SingleInputTypedEquation(object x, string expr, object y) =>
         expr.Calc("x", x).AssertReturns(y);

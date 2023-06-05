@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 
 namespace NFun.Tic;
 
+using SolvingStates;
+
 public class FunnyTraceScope : IDisposable {
     public FunnyTraceScope() => TraceLog.IsEnabled = true;
 
@@ -11,6 +13,10 @@ public class FunnyTraceScope : IDisposable {
 public static class TraceLog {
 
     public static FunnyTraceScope Scope => new();
+
+    public static void WithTrace(Action action) {
+        using (Scope) action();
+    }
 
     public static bool IsEnabled { get; set; } = false;
 
