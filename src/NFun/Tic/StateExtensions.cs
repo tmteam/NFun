@@ -1,6 +1,5 @@
 namespace NFun.Tic;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using SolvingStates;
@@ -351,8 +350,13 @@ public static class StateExtensions {
             {
                 if (fromConstraints.HasAncestor && fromConstraints.Ancestor.CanBePessimisticConvertedTo(toP))
                     return true;
-                if (fromConstraints.HasDescendant && fromConstraints.Descendant.CanBePessimisticConvertedTo(toP))
-                    return true;
+                if (fromConstraints.HasDescendant)
+                {
+                    var concretest = fromConstraints.Descendant.Concretest();
+                    if (concretest is ConstrainsState { HasAncestor : false, HasDescendant: false } c)
+                        return true;
+                    return concretest.CanBePessimisticConvertedTo(toP);
+                }
             }
         }
 
@@ -614,7 +618,7 @@ public static class StateExtensions {
                 ICompositeState composite => CanBeFitConverted(comp, composite),
                 _ => false
             },
-            _ => throw new NotSupportedException($"CBFC does not support {desc} to {to}")
+            _ => throw new System.NotSupportedException($"CBFC does not support {desc} to {to}")
         };
     }
 
