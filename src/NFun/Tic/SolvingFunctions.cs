@@ -193,7 +193,8 @@ public static class SolvingFunctions {
     private static void PullConstrains(TicNode descendant, TicNode ancestor) {
         if (descendant == ancestor) return;
         var res = PullConstraintsFunctions.Singleton.Invoke(ancestor, descendant);
-        if (!res) throw TicErrors.IncompatibleTypes(ancestor, descendant);
+        if (!res)
+            throw TicErrors.IncompatibleTypes(ancestor, descendant);
     }
 
     public static void PushConstraints(TicNode[] toposortedNodes) {
@@ -335,13 +336,16 @@ public static class SolvingFunctions {
     /// Transform constrains to fun state
     /// </summary>
     public static StateFun TransformToFunOrNull(object descNodeName, ConstrainsState descendant, StateFun ancestor) {
+        //todo - this is naive implementation
         if (descendant.NoConstrains)
         {
             var argNodes = new TicNode[ancestor.ArgsCount];
             for (int i = 0; i < ancestor.ArgsCount; i++)
             {
                 var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, ConstrainsState.Empty);
-                argNode.AddAncestor(ancestor.ArgNodes[i]);
+                //todo - witch one is correct?
+                ancestor.ArgNodes[i].AddAncestor(argNode);
+                //argNode.AddAncestor(ancestor.ArgNodes[i]);
                 argNodes[i] = argNode;
             }
 
@@ -353,15 +357,37 @@ public static class SolvingFunctions {
 
         if (descendant.Descendant is StateFun funDesc && funDesc.ArgsCount == ancestor.ArgsCount)
         {
-            return funDesc;
-            /*
-            var nrArgNodes = new TicNode[funDesc.ArgNodes.Length];
-            for (int i = 0; i < funDesc.ArgNodes.Length; i++)
-                nrArgNodes[i] = funDesc.ArgNodes[i];
+            var argNodes = new TicNode[ancestor.ArgsCount];
+            for (int i = 0; i < ancestor.ArgsCount; i++)
+            {
+                var state = funDesc.ArgNodes[i].State;
 
-            var nrRetNode = funDesc.RetNode.GetNonReference();
-            if (allArgsAreSolved && nrRetNode.IsSolved)
-                return StateFun.Of(nrArgNodes, nrRetNode);*/
+                var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i,
+                    ConstrainsState.Of(
+                        anc: state as StatePrimitive,
+                        isComparable: state is ConstrainsState {IsComparable:true}));
+                ancestor.ArgNodes[i].AddAncestor(argNode);
+                //argNode.AddAncestor(ancestor.ArgNodes[i]);
+                argNodes[i] = argNode;
+            }
+
+            var retNode = TicNode.CreateTypeVariableNode("r'" + descNodeName,
+                    ConstrainsState.Of(desc : funDesc.ReturnType));
+            retNode.AddAncestor(ancestor.RetNode);
+
+            return StateFun.Of(argNodes, retNode);
+
+
+            //return funDesc;
+
+            // var nrArgNodes = new TicNode[funDesc.ArgNodes.Length];
+            // for (int i = 0; i < funDesc.ArgNodes.Length; i++)
+            //     nrArgNodes[i] = funDesc.ArgNodes[i];
+            //
+            // var nrRetNode = funDesc.RetNode.GetNonReference();
+            // if (allArgsAreSolved && nrRetNode.IsSolved)
+            //     return StateFun.Of(nrArgNodes, nrRetNode);
+
         }
 
         return null;
