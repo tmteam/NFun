@@ -139,7 +139,7 @@ public class TicNode {
         sb.Append(new string(' ', nameD));
         sb.Append($"| {State.Description}");
         if (Ancestors.Any())
-            sb.Append(" -> " + string.Join(",", Ancestors.Select(a => a.Name)));
+            sb.Append(" --> " + string.Join(",", Ancestors.Select(a => a.Name)));
         var delta = 30 - sb.Length;
         if (delta < 0)
             delta = 0;

@@ -3,8 +3,11 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests.BuiltInFunctions;
 
+using Tic;
+
 class LinqFunctionsTest {
     [TestCase("y:int = [0,7,1,2,3] . fold(max)", 7)]
+    [TestCase("y:int = [1] . fold(max)", 1)]
     [TestCase("y:int = [0x0,7,1,2,3] . fold(rule(a,b)= a+b)", 13)]
     [TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(rule(a,b)= a+b)", 13.0)]
     [TestCase(
@@ -55,7 +58,7 @@ class LinqFunctionsTest {
     [TestCase("y:int = [1,2,3,4,5,6,7].filter(rule it%2==0).fold(rule 0)", 0)]
     [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it%2==0)).fold(rule 0)", 0)]
     public void HiOrderFunConstantEquatation(string expr, object expected)
-        => expr.AssertReturns("y", expected);
+        => TraceLog.WithTrace(()=>expr.AssertReturns("y", expected));
 
     [TestCase("y:int[] = take([1,2,3,4,5],3)", new[] { 1, 2, 3 })]
     [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)", new[] { 1.0, 2.0, 3.0, 4.0 })]

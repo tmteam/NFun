@@ -299,18 +299,13 @@ public class GraphBuilder {
 
 
     public ITicResults Solve(bool ignorePrefered = false) {
-        PrintTrace("0. Solving");
-
         var sorted = Toposort();
-        PrintTrace("1. Toposorted");
         PrintTrace("1. Toposorted", sorted);
 
         SolvingFunctions.PullConstraints(sorted);
-        PrintTrace("2. PullConstraints");
         PrintTrace("2. PullConstraints", sorted);
 
         SolvingFunctions.PushConstraints(sorted);
-        PrintTrace("3. PushConstraints");
         PrintTrace("3. PushConstraints", sorted);
 
         bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);

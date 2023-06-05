@@ -204,7 +204,7 @@ public class ConstrainsState : ITicNodeState {
             if (Ancestor.Equals(Descendant))
                 return Ancestor;
             if (!(Descendant is ITypeState descendant))
-                return null;
+                return this;
             if (!descendant.CanBePessimisticConvertedTo(Ancestor))
                 return null;
         }

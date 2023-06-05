@@ -41,7 +41,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
 #if DEBUG
 
         TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",", argTypes)}):{retType}");
-        TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
+        TraceLog.WriteLine($"    of {string.Join(", ", langConstrains)}");
 #endif
         var function = new GenericUserFunction(
             typeInferenceResults,

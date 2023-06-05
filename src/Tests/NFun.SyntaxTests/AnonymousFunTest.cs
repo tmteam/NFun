@@ -56,8 +56,11 @@ public class AnonymousFunTest {
     [TestCase(@"y = (rule(x)=x+1)(3.0)", 4.0)]
     [TestCase(@"f = rule(x)=x+1; y = f(3.0)", 4.0)]
     [TestCase(@"f = rule(a)=rule(b)=a+b; y = f(3.0)(5.0)", 8.0)]
+    [TestCase(
+        @"dsum8(x) = x+x
+            y = [1].map(dsum8)",new[]{2})]
     public void AnonymousFunctions_ConstantEquation(string expr, object expected) {
-        TraceLog.IsEnabled = true;
+        using var _ = TraceLog.Scope;
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");
         runtime.Calc().AssertResultHas("y", expected);
