@@ -348,19 +348,7 @@ public static class StateExtensions {
             }
 
             if (to is StatePrimitive toP)
-            {
-                if (fromConstraints.HasAncestor && fromConstraints.Ancestor.CanBePessimisticConvertedTo(toP))
-                    return true;
-                if (fromConstraints.HasDescendant)
-                {
-                    var concretest = fromConstraints.Descendant.Concretest();
-                    if (concretest is ConstrainsState { HasAncestor : false, HasDescendant: false } c)
-                        return true;
-                    return concretest.CanBePessimisticConvertedTo(toP);
-                }
-                else if (fromConstraints.HasAncestor)
-                    return toP.CanBePessimisticConvertedTo(fromConstraints.Ancestor);
-            }
+                return CanBeConvertedOptimisticTo(fromConstraints, toP);
         }
 
         if (from is ICompositeState)
@@ -374,6 +362,27 @@ public static class StateExtensions {
         if (to is StatePrimitive toPrimitive)
             return from.CanBePessimisticConvertedTo(toPrimitive);
         return false;
+    }
+
+    public static bool CanBeConvertedOptimisticTo(this ConstrainsState from, StatePrimitive to) {
+        if (from.Ancestor?.CanBePessimisticConvertedTo(to) == true)
+            return true;
+
+        if (from.HasDescendant)
+        {
+            var concretest = from.Descendant.Concretest();
+            if (concretest is ConstrainsState { HasAncestor : false, HasDescendant: false })
+                return true;
+            return concretest.CanBePessimisticConvertedTo(to);
+        }
+
+        if (from.HasAncestor)
+            return to.CanBePessimisticConvertedTo(from.Ancestor);
+
+        if (from.IsComparable)
+            return to.IsComparable || to.Equals(Any);
+        else
+            return true;
     }
 
     /// <summary>

@@ -76,4 +76,12 @@ public class ConstraintsTest {
         var optimized = constrains.GetOptimizedOrNull();
         Assert.IsNull(optimized);
     }
+
+    [Test]
+    public void GetOptimized_returnsNull4() {
+        //the only one array type, that is comparable - is Text
+        var constrains = ConstrainsState.Of(StatePrimitive.Bool, isComparable: true);
+        var optimized = constrains.GetOptimizedOrNull();
+        Assert.IsNull(optimized);
+    }
 }

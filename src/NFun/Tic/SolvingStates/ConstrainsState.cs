@@ -175,56 +175,61 @@ public class ConstrainsState : ITicNodeState {
     }
 
     public ITicNodeState GetOptimizedOrNull() {
+        if (!HasDescendant) return this;
+
         if (IsComparable)
         {
-            if (Descendant is StateArray ar && ar.Element.CanBeConvertedOptimisticTo(Char))
-                return StateArray.Of(Char);
-            if (Descendant is ICompositeState)
-                return null;
-            if (Descendant != null)
+            switch (Descendant)
             {
-                if (Descendant.Equals(Char))
-                    return Char;
-                else if (Descendant is StatePrimitive primitive && primitive.IsNumeric)
+                case StateArray a:
                 {
-                    if (!TryAddAncestor(Real))
+                    if (a.Element.CanBeConvertedOptimisticTo(Char))
+                        return StateArray.Of(Char);
+                    else
                         return null;
                 }
-                else if (Descendant is StateArray a && a.Element.Equals(Char))
-                    return Descendant;
-            }
-        }
-
-        if (HasDescendant)
-        {
-            if (HasAncestor)
-            {
-                var d = Descendant;
-                if (Descendant is ConstrainsState { IsComparable: true } constrains && Ancestor.IsComparable)
+                case StatePrimitive primitive:
                 {
-                    d = constrains.Descendant;
-                    if (d == null)
-                        return new ConstrainsState(null, Ancestor, false);
-                }
+                    if (primitive.Equals(Char)) //it is an endpoint
+                        return Char;
+                    if (primitive.IsNumeric)
+                    {
+                        if (!TryAddAncestor(Real)) return null;
+                    }
+                    else return null;
 
-                if (IsComparable && d is StatePrimitive { IsComparable: false })
-                    return null;
-                if (Ancestor.Equals(d))
-                    return Ancestor;
-                if (!(d is ITypeState descendant))
-                    return this;
-                if (!descendant.CanBePessimisticConvertedTo(Ancestor))
+                    break;
+                }
+                case ICompositeState:
                     return null;
             }
-            else if (Descendant is ConstrainsState constrainsState)
-            {
-                if (constrainsState.IsComparable && !IsComparable)
-                    return this;
-                return new ConstrainsState(constrainsState.Descendant, null, IsComparable);
-            }
-            else if (Descendant.Equals(Any))
-                return Any;
         }
+
+        if (HasAncestor)
+        {
+            var d = Descendant;
+            if (Descendant is ConstrainsState { IsComparable: true } constrains && Ancestor.IsComparable)
+            {
+                d = constrains.Descendant;
+                if (d == null)
+                    return new ConstrainsState(null, Ancestor, false);
+            }
+
+            if (Ancestor.Equals(d))
+                return Ancestor;
+            if (!(d is ITypeState descendant))
+                return this;
+            if (!descendant.CanBePessimisticConvertedTo(Ancestor))
+                return null;
+        }
+        else if (Descendant is ConstrainsState constrainsState)
+        {
+            if (constrainsState.IsComparable && !IsComparable)
+                return this;
+            return new ConstrainsState(constrainsState.Descendant, null, IsComparable);
+        }
+        else if (Descendant.Equals(Any))
+            return Any;
 
         return this;
     }
