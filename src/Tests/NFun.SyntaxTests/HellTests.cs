@@ -14,9 +14,9 @@ public class HellTests {
 
     [Test]
     public void CustomForeachi() {
-        var expr = @" 
+        var expr = @"
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
-            
+
             res:int =  t.foreachi (rule if (it1>t[it2]) it1 else t[it2]) ";
 
         expr.AssertRuntimes(
@@ -26,10 +26,10 @@ public class HellTests {
 
     [Test]
     public void CustomForeachiWithUserFun() {
-        var expr = @" 
+        var expr = @"
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
-            max(a, t, i) = max(a, t[i])             
+            max(a, t, i) = max(a, t[i])
 
             res:int =  t.foreachi (rule max(it1,t,it2))";
         expr.AssertRuntimes(
@@ -38,7 +38,7 @@ public class HellTests {
 
     [Test]
     public void CustomForeachiWithBuiltInFun() {
-        var expr = @" 
+        var expr = @"
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
             res:int =  t.foreachi(rule max(it1,t[it2]))";
@@ -80,9 +80,9 @@ public class HellTests {
         @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
-                          swap(arr, i, j) 
+                          swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
-                          
+
                           swapIfNotSorted(c, i)
   	                        =	if   (c[i]<c[i+1]) c
   		                        else c.swap(i, i+1)".AssertRuntimes();
@@ -94,9 +94,9 @@ public class HellTests {
 
                  swapIfNotSorted(c, i) = if (c[i]<c[i+1]) c else c
 
-                  # run thru array 
+                  # run thru array
                   # and swap every unsorted values
-                  onelineSort(input) =  
+                  onelineSort(input) =
   	                [0..input.count()].fold(input, swapIfNotSorted)".AssertRuntimes();
 
     [Test]
@@ -106,7 +106,7 @@ public class HellTests {
 
                  swapIfNotSorted(c, i) = if (c[i]<c[i]) c else c
 
-                 # run thru array 
+                 # run thru array
                  # and swap every unsorted values
                  onelineSort(input) = [0..input.count()].fold(input, swapIfNotSorted)".AssertRuntimes();
 
@@ -115,16 +115,16 @@ public class HellTests {
         @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
-                          swap(arr, i, j) 
+                          swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
-                          
+
                           swapIfNotSorted(c, i)
   	                        =	if   (c[i]<c[i+1]) c
   		                        else c.swap(i, i+1)
 
-                          # run thru array 
+                          # run thru array
                           # and swap every unsorted values
-                          onelineSort(input) =  
+                          onelineSort(input) =
   	                        [0..input.count()].fold(input, swapIfNotSorted)".AssertRuntimes();
 
     [Test]
@@ -132,26 +132,57 @@ public class HellTests {
         @"twiceSet(arr,i,j,ival,jval)
   	                = arr.set(i,ival).set(j,jval)
 
-                  swap(arr, i, j) 
+                  swap(arr, i, j)
                     = arr.twiceSet(i,j,arr[j], arr[i])
-                  
+
                   swapIfNotSorted(c, i)
   	                =	if   (c[i]<c[i+1]) c
   		                else c.swap(i, i+1)
 
-                  # run thru array 
+                  # run thru array
                   # and swap every unsorted values
-                  onelineSort(input) =  
-  	                [0..input.count()-2].fold(input, swapIfNotSorted)		
+                  onelineSort(input) =
+  	                [0..input.count()-2].fold(input, swapIfNotSorted)
 
                   bubbleSort(input:int[]):int[]=
   	                [0..input.count()-1]
   		                .fold(
-  			                input, 
+  			                input,
   			                rule onelineSort(it1))
 
                   i:int[]  = [1,4,3,2,5].bubbleSort()"
             .AssertRuntimes(e => e.Calc().AssertReturns("i", new[] { 1, 2, 3, 4, 5 }));
+
+
+    [Test]
+    public void BubbleSortSemiConcreteParsesSomehow() {
+
+        var expr = @"twiceSet(arr,i,j,ival,jval)
+  	                = arr.set(i,ival).set(j,jval)
+
+                  swap(arr, i, j)
+                    = arr.twiceSet(i,j,arr[j], arr[i])
+
+                  swapIfNotSorted(c, i)
+  	                =	if   (c[i]<c[i+1]) c
+  		                else c.swap(i, i+1)
+
+                  # run thru array
+                  # and swap every unsorted values
+                  onelineSort(input) =
+  	                [0..input.count()-2].fold(input, swapIfNotSorted)
+
+                  bubbleSort(input:int[]):int[]=
+  	                [0..input.count()-1]
+  		                .fold(
+  			                input,
+  			                rule onelineSort(it1))
+                  ";
+        TraceLog.WithTrace(() => {
+            Funny.Hardcore.Build(expr);
+        });
+    }
+
 
     [Test]
     public void ManyOutputsTest() =>
@@ -183,31 +214,31 @@ public class HellTests {
     public void TestEverything() {
         var expr = @"       twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 
-                          #swap elements i,j in array arr  
-                          swap(arr, i, j) 
+                          #swap elements i,j in array arr
+                          swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
-                          
+
                           #swap elements i, i+1 if they are not sorted
                           swapIfNotSorted(c, i) =	if(c[i]<c[i+1]) c else c.swap(i, i+1)
 
                           # run thru array and swap every unsorted values
-                          onelineSort(input) =  [0..input.count()-2].fold(input, swapIfNotSorted)		
+                          onelineSort(input) =  [0..input.count()-2].fold(input, swapIfNotSorted)
 
                           bubbleSort(input)= [0..input.count()-1].fold(input, rule onelineSort(it1))
 
-                          #body  
+                          #body
                           ins:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
                           tns  = ins.filter(rule it%2==0).map(toText).concat(['vasa','kate'])
-                        
+
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()
                           t  = tns == tns
 
-                          myOr(a,b):bool = a or b  
+                          myOr(a,b):bool = a or b
                           k =  [0..100].map(rule i and r or t xor i).fold(myOr)
 
-                          mySum(a,b) = a + b  
+                          mySum(a,b) = a + b
                           j =  [0..100].map(rule (ins[1]+ it- ins[2])/it).fold(mySum);
                    ";
         Assert.DoesNotThrow(() =>
