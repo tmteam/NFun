@@ -51,6 +51,11 @@ public class OptimisticConvertTest {
             .AssertTrue();
 
     [Test]
+    public void FromPrimitiveToConstrains_returnsTrue4() =>
+        U8.CanBeConvertedOptimisticTo(Constrains(null, I96))
+            .AssertTrue();
+
+    [Test]
     public void FromPrimitiveToConstraints_returnsTrue4() =>
         I32.CanBeConvertedOptimisticTo(Constrains(Char)) // `from` can be of `any` type
             .AssertTrue();
@@ -122,6 +127,41 @@ public class OptimisticConvertTest {
     public void ConstrainsToPrimitive_returnsTrue4() =>
         Constrains(Constrains()).CanBeConvertedOptimisticTo(Char)
             .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue5() =>
+        Constrains(null, I96).CanBeConvertedOptimisticTo(U8)
+            .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue6() =>
+        Constrains(U8, I96).CanBeConvertedOptimisticTo(U8)
+            .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue7() =>
+        Constrains(U8, I96).CanBeConvertedOptimisticTo(I32)
+            .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue8() =>
+        Constrains(U8, I96).CanBeConvertedOptimisticTo(I96)
+            .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue9() =>
+        Constrains(U8, I96).CanBeConvertedOptimisticTo(Real)
+            .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsFalse1() =>
+        Constrains(U16, I96).CanBeConvertedOptimisticTo(U8)
+            .AssertFalse();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsFalse2() =>
+        Constrains(U16, U64).CanBeConvertedOptimisticTo(I16)
+            .AssertFalse();
 
     [Test]
     public void FromConstraintsToPrimitive_returnsFalse() =>

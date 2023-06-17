@@ -1,5 +1,6 @@
 namespace NFun.Tic;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SolvingStates;
@@ -357,6 +358,8 @@ public static class StateExtensions {
                         return true;
                     return concretest.CanBePessimisticConvertedTo(toP);
                 }
+                else if (fromConstraints.HasAncestor)
+                    return toP.CanBePessimisticConvertedTo(fromConstraints.Ancestor);
             }
         }
 
