@@ -181,6 +181,7 @@ public class BuiltInFunctionsTest {
     [TestCase("['a'].sort()", new[] { "a" })]
     [TestCase("[12].sort(rule it)", new[] { 12 })]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
+    [TestCase("['a'].sort(rule it.reverse())", new[] { "a"})]
     public void MergeComparableArray(string expr, object expected) {
         using var _ = TraceLog.Scope;
         expr.AssertAnonymousOut(expected);

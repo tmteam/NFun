@@ -6,6 +6,9 @@ using NFun.Types;
 
 namespace NFun.Runtime.Arrays;
 
+using System.Linq;
+using Tic.SolvingStates;
+
 public static class FunnyArrayTools {
     public static TextFunnyArray AsFunText(this string txt) => new(txt);
 
@@ -60,16 +63,45 @@ public static class FunnyArrayTools {
         return sb.ToString();
     }
 
+    internal static IFunnyArray CreateEnumerable(IEnumerable<object> items, FunnyType elementType) {
+        if(elementType== FunnyType.Char)
+        {
+            var s = items as IEnumerable<char> ?? items.Select(i => (char)i);
+            //todo - create TextEnumerable type
+            var str = new string(s.ToArray());
+            return new TextFunnyArray(str);
+        }
+        return new EnumerableFunnyArray(items, elementType);
+    }
+
+    internal static IFunnyArray CreateEmptyArray(FunnyType elementType) {
+        if (elementType == FunnyType.Char)
+            return TextFunnyArray.Empty;
+        else
+            return new ImmutableFunnyArray(Array.Empty<object>(), elementType);
+    }
+
+    internal static IFunnyArray CreateArray(Array values, FunnyType elementType) {
+        if (elementType == FunnyType.Char)
+        {
+            //todo - create TextEnumerable type
+            var str = new string(values.Cast<char>().ToArray());
+            return new TextFunnyArray(str);
+        }
+        else
+            return new ImmutableFunnyArray(values, elementType);
+    }
+
     internal static IFunnyArray SliceToImmutable(
         Array array,
         FunnyType elementType,
         int? startIndex, int? endIndex, int? step) {
         if (array.Length == 0)
-            return new ImmutableFunnyArray(array, elementType);
+            return CreateArray(array, elementType);
 
         var start = startIndex ?? 0;
         if (start > array.Length - 1)
-            return new ImmutableFunnyArray(Array.Empty<object>(), elementType);
+            return CreateEmptyArray(elementType);
 
         var end = array.Length - 1;
         if (endIndex.HasValue)
@@ -90,6 +122,6 @@ public static class FunnyArrayTools {
                 newArr[index] = array.GetValue(i);
         }
 
-        return new ImmutableFunnyArray(newArr, elementType);
+        return CreateArray(newArr, elementType);
     }
 }

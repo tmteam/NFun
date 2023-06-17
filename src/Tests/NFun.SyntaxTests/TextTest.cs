@@ -116,6 +116,13 @@ public class TextTest {
         Funny.Hardcore.Build(expression).Calc(("count", 3), ("name", "foo")).AssertReturns("foofoofoo");
     }
 
+    [TestCase("'avatar'.reverse() >  reverse('avatar') ", false)]
+    [TestCase("('avatar'.reverse()) >  reverse('avatar') ", false)]
+    [TestCase("'avatar'.reverse() <  'avatar'", false)]
+    public void ConstantEquation(string expr, bool expected)
+        => expr.AssertReturns("out", expected);
+
+
     [TestCase("y='hell")]
     [TestCase("y=hell'")]
     [TestCase("y='")]
