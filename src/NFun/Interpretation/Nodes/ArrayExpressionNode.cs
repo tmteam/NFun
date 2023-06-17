@@ -22,7 +22,7 @@ internal class ArrayExpressionNode : IExpressionNode {
         for (int i = 0; i < _elements.Length; i++)
             arr[i] = _elements[i].Calc();
 
-        return new ImmutableFunnyArray(arr, Type.ArrayTypeSpecification.FunnyType);
+        return FunnyArrayTools.CreateArray(arr, Type.ArrayTypeSpecification.FunnyType);
     }
 
     public IExpressionNode Clone(ICloneContext context) =>

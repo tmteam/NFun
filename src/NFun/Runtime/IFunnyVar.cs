@@ -170,9 +170,8 @@ public class VariableSource : IFunnyVar {
             return null;
 
         var arr = type.ArrayTypeSpecification;
-        if (arr.FunnyType.BaseType == BaseFunnyType.Char)
-            return TextFunnyArray.Empty;
-        return new ImmutableFunnyArray(Array.Empty<object>(), arr.FunnyType);
+
+        return FunnyArrayTools.CreateEmptyArray(arr.FunnyType);
     }
 }
 
