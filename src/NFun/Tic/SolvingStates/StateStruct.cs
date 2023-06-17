@@ -77,7 +77,7 @@ public class StateStruct : ICompositeState {
 
     public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
     public bool IsMutable => true;
-    public string Description => "{" + (IsFrozen?" [frozen] " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) +*/ "}";
+    public string Description => ToString();//"{" + (IsFrozen?"f " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) +*/ "}";
     public bool IsFrozen { get; }
 
     public ICompositeState GetNonReferenced() {
@@ -149,7 +149,8 @@ public class StateStruct : ICompositeState {
     public string StateDescription => PrintState(0);
 
     public override string ToString() =>
-        "{" + (IsFrozen ? " [frozen] " : "") +
+        "{" + (IsFrozen ? "f " : "") +
         string.Join("; ",
-            _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : $"...")}"));
+            _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : $"..")}"))
+        +"}";
 }
