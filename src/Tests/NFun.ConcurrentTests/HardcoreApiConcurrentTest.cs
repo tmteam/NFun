@@ -1,7 +1,6 @@
+namespace NFun.ConcurrentTests;
 using NFun.TestTools;
 using NUnit.Framework;
-
-namespace NFun.ConcurrentTests;
 
 public class HardcoreApiConcurrentTest {
     [TestCase("y = 2*x", 3, 6)]

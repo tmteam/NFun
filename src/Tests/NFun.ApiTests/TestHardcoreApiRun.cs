@@ -6,6 +6,8 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests;
 
+using Tic;
+
 class TestHardcoreApiRun {
     [TestCase("y = 2*x", 3, 6)]
     [TestCase("y = 2.0*x", 3.5, 7.0)]
@@ -109,12 +111,13 @@ class TestHardcoreApiRun {
     [TestCase("x:text[][]; y = x.count()", 0)]
     [TestCase("y = -(-(-x))", 0.0)]
     public void InputNotSet_SingleVariableEquation(string expr, object expected) =>
-        expr.AssertRuntimes(runtime => {
-            var ySource = runtime["y"];
-            Assert.IsNotNull(ySource);
-            runtime.Run();
-            Assert.AreEqual(expected, ySource.Value);
-        });
+        TraceLog.WithTrace(() => expr.AssertRuntimes(runtime => {
+                var ySource = runtime["y"];
+                Assert.IsNotNull(ySource);
+                runtime.Run();
+                Assert.AreEqual(expected, ySource.Value);
+            })
+        );
 
     [Test]
     public void RuntimeWithSimpleTypes_VariablesEnumerationTest() =>
