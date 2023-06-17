@@ -166,4 +166,40 @@ public class ConstraintsFitsTest {
         target.FitsInto(constrains).AssertTrue();
     }
 
+
+    [Test]
+    public void StructFits_returnsFalse1() {
+        var constrains = Constrains(EmptyStruct());
+        var target = Struct("a", I32);
+        target.FitsInto(constrains).AssertFalse();
+    }
+
+    [Test]
+    public void StructFits_returnsFalse2() {
+        var constrains = Constrains(Struct("a", I32));
+        var target = Struct(("a", I32), ("b", I32));
+        target.FitsInto(constrains).AssertFalse();
+    }
+
+    [Test]
+    public void StructFits_returnsTrue1() {
+        var constrains = Constrains(Struct("a", I32));
+        var target = Struct("a", I32);
+        target.FitsInto(constrains).AssertTrue();
+    }
+
+    [Test]
+    public void StructFits_returnsTrue2() {
+        var constrains = Constrains(Struct(("a", I32), ("b", I32)));
+        var target = Struct("a", I32);
+        target.FitsInto(constrains).AssertFalse();
+    }
+
+    [Test]
+    public void StructFits_returnsTrue3() {
+        var constrains = Constrains(Struct("a", I32));
+        var target = EmptyStruct();
+        target.FitsInto(constrains).AssertFalse();
+    }
+
 }
