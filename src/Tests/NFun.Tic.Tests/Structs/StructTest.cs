@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Structs;
 
+using System.Linq;
 using static StatePrimitive;
 
 public class StructTest {
@@ -47,8 +48,7 @@ public class StructTest {
         result.AssertNamed(
             new StateStruct(
                 new Dictionary<string, TicNode> {
-                    { "name", TicNode.CreateTypeVariableNode(I32) },
-                    { "age", TicNode.CreateTypeVariableNode(Real) }
+                    { "name", TicNode.CreateTypeVariableNode(I32) }, { "age", TicNode.CreateTypeVariableNode(Real) }
                 }, false),
             "a");
         result.AssertNamed(I32, "y");
@@ -69,8 +69,7 @@ public class StructTest {
         result.AssertNamed(
             new StateStruct(
                 new Dictionary<string, TicNode> {
-                    { "a", TicNode.CreateNamedNode("a", I32) },
-                    { "b", TicNode.CreateNamedNode("b", Real) }
+                    { "a", TicNode.CreateNamedNode("a", I32) }, { "b", TicNode.CreateNamedNode("b", Real) }
                 }, false), "y");
     }
 
@@ -197,9 +196,8 @@ public class StructTest {
 
         graph.SetVar("x", 3);
         graph.SetCall(
-            new ITicNodeState[] {
-                new StateStruct("field", TicNode.CreateTypeVariableNode(I32), false), Bool
-            }, new[] { 3, 4 });
+            new ITicNodeState[] { new StateStruct("field", TicNode.CreateTypeVariableNode(I32), false), Bool },
+            new[] { 3, 4 });
         graph.SetDef("y", 4);
 
         var result = graph.Solve();
@@ -330,5 +328,215 @@ public class StructTest {
         Assert.AreEqual(generic, aFieldNode);
         Assert.AreEqual(generic, bFieldNode);
         result.AssertNamed(Bool, "y");
+    }
+
+    [Test]
+    public void StructArrayLca1() {
+        using var _ = TraceLog.Scope;
+        // Ta: {age:int}, Tb: {}
+        //     2 0     1
+        // y = [a:Ta, b:Tb]
+        TraceLog.IsEnabled = true;
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Empty());
+
+        graph.SetVar("a", 0);
+        graph.SetVar("b", 0);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        var eType = y.Element as StateStruct;
+        Assert.AreEqual(0, eType.Fields.Count());
+    }
+
+    [Test]
+    public void StructArrayLca2() {
+        using var _ = TraceLog.Scope;
+        // Ta: {age:int}, Tb: {age:int, size:int}
+        //     2 0     1
+        // y = [a:Ta, b:Tb]
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Of(("age", I32), ("size", I32)));
+
+        graph.SetVar("a", 0);
+        graph.SetVar("b", 1);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        var eType = y.Element as StateStruct;
+
+        Assert.AreEqual(1, eType.Fields.Count());
+        Assert.AreEqual(I32, eType.GetFieldOrNull("age").State);
+    }
+
+    [Test]
+    public void StructArrayLca3() {
+        using var _ = TraceLog.Scope;
+        // Ta: {age:int}, Tb: {age:real, size:int}
+        //     2 0     1
+        // y = [a:Ta, b:Tb]
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Of(("age", Real), ("size", I32)));
+
+        graph.SetVar("a", 0);
+        graph.SetVar("b", 1);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        var eType = y.Element as StateStruct;
+        Assert.AreEqual(0, eType.Fields.Count());
+    }
+
+
+    [Test]
+    public void StructArrayLca4() {
+        using var _ = TraceLog.Scope;
+        // Ta: {age:int}, Tb: {}
+        //     2 0     1
+        // y = [b:Tb, a:Ta]
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Empty());
+
+        graph.SetVar("a", 1);
+        graph.SetVar("b", 0);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        var eType = y.Element as StateStruct;
+        Assert.AreEqual(0, eType.Fields.Count());
+    }
+
+    [Test]
+    public void StructArrayLca5() {
+        using var _ = TraceLog.Scope;
+        // Ta: {age:int}, Tb: {age:int, size:int}
+        //     2 0     1
+        // y = [b:Tb, a:Ta]
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Of(("age", I32), ("size", I32)));
+
+        graph.SetVar("a", 1);
+        graph.SetVar("b", 0);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        var eType = y.Element as StateStruct;
+
+        Assert.AreEqual(1, eType.Fields.Count());
+        Assert.AreEqual(I32, eType.GetFieldOrNull("age").State);
+    }
+
+    [Test]
+    public void StructArrayLca6() {
+        using var _ = TraceLog.Scope;
+        // Ta: {age:int}, Tb: {age:real, size:int}
+        //     2 0     1
+        // y = [b:Tb, a:Ta]
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Of(("age", Real), ("size", I32)));
+
+        graph.SetVar("a", 1);
+        graph.SetVar("b", 0);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        var eType = y.Element as StateStruct;
+        Assert.AreEqual(0, eType.Fields.Count());
+    }
+
+    [Test]
+    public void StructIfLca1() {
+        using var _ = TraceLog.Scope;
+        // Tb: {age:Real}
+        //
+        //    4    0    2       1        3
+        // y = if(true) { age = 1 } else b:Tb
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("b", StateStruct.Of("age", Real));
+        graph.SetVar("b", 3);
+        graph.SetConst(0, Bool);
+        graph.SetGenericConst(1, U8, Real, I32);
+        graph.SetStructInit(new[] { "age" }, new[] { 1 }, 2);
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 3 }, 4);
+        graph.SetDef("y", 4);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateStruct;
+        Assert.AreEqual(1, y.Fields.Count());
+        var age = y.GetFieldOrNull("age");
+        Assert.AreEqual(Real, age.State);
+    }
+
+    [Test]
+    public void StructIfLca2() {
+        using var _ = TraceLog.Scope;
+        // Tb: {age:Any}
+        //
+        //    4    0    2       1        3
+        // y = if(true) { age = 1 } else b:Tb
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("b", StateStruct.Of("age", Any));
+        graph.SetVar("b", 3);
+        graph.SetConst(0, Bool);
+        graph.SetGenericConst(1, U8, Real, I32);
+        graph.SetStructInit(new[] { "age" }, new[] { 1 }, 2);
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 3 }, 4);
+        graph.SetDef("y", 4);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateStruct;
+        Assert.AreEqual(1, y.Fields.Count());
+        var age = y.GetFieldOrNull("age");
+        Assert.AreEqual(Any, age.State);
     }
 }

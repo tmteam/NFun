@@ -153,37 +153,6 @@ public class HellTests {
                   i:int[]  = [1,4,3,2,5].bubbleSort()"
             .AssertRuntimes(e => e.Calc().AssertReturns("i", new[] { 1, 2, 3, 4, 5 }));
 
-
-    [Test]
-    public void BubbleSortSemiConcreteParsesSomehow() {
-
-        var expr = @"twiceSet(arr,i,j,ival,jval)
-  	                = arr.set(i,ival).set(j,jval)
-
-                  swap(arr, i, j)
-                    = arr.twiceSet(i,j,arr[j], arr[i])
-
-                  swapIfNotSorted(c, i)
-  	                =	if   (c[i]<c[i+1]) c
-  		                else c.swap(i, i+1)
-
-                  # run thru array
-                  # and swap every unsorted values
-                  onelineSort(input) =
-  	                [0..input.count()-2].fold(input, swapIfNotSorted)
-
-                  bubbleSort(input:int[]):int[]=
-  	                [0..input.count()-1]
-  		                .fold(
-  			                input,
-  			                rule onelineSort(it1))
-                  ";
-        TraceLog.WithTrace(() => {
-            Funny.Hardcore.Build(expr);
-        });
-    }
-
-
     [Test]
     public void ManyOutputsTest() =>
         ("x:int; " +

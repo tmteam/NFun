@@ -3,6 +3,8 @@ using NFun.Tic.SolvingStates;
 namespace NFun.Tic.Stages;
 
 using System;
+using System.Security.Cryptography;
+using Exceptions;
 
 public class DestructionFunctions : IStateFunction {
     public static DestructionFunctions Singleton { get; } = new();
@@ -62,42 +64,29 @@ public class DestructionFunctions : IStateFunction {
         {
             ancestorNode.State = new StateRefTo(descendantNode);
             descendantNode.RemoveAncestor(ancestorNode);
+            return true;
         }
-        else if (!descendantNode.IsSolved)
+
+        TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
+        if (!descendantNode.IsSolved)
         {
-            if (descendant is StateArray array)
+            if (descendant.GetType() == ancestor.Descendant?.GetType())
             {
-                if (ancestor.Descendant is StateArray ancestorArray)
-                {
-                    ancestorNode.State = ancestorArray;
-                    descendantNode.RemoveAncestor(ancestorNode);
-                    return Apply(ancestorArray, array, ancestorNode, descendantNode);
-                }
+                ancestorNode.State = ancestor.Descendant;
+                descendantNode.RemoveAncestor(ancestorNode);
+                return descendant switch {
+                    StateArray array =>
+                        Apply((StateArray)ancestor.Descendant, array, ancestorNode, descendantNode),
+                    StateFun fun =>
+                        Apply((StateFun)ancestor.Descendant, fun, ancestorNode, descendantNode),
+                    StateStruct @struct =>
+                        Apply((StateStruct)ancestor.Descendant, @struct, ancestorNode, descendantNode),
+                    _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
+                };
+            }
 
-            }
-           /* else if (descendant is StateFun fun)
-            {
-                if (ancestor.Descendant is StateFun ancestorFun)
-                {
-                    ancestorNode.State = ancestorFun;
-                    descendantNode.RemoveAncestor(ancestorNode);
-                    return Apply(ancestorFun, fun, ancestorNode, descendantNode);
-                }
-            }
-            else if (descendant is StateStruct stateStruct)
-            {
-                if (ancestor.Descendant is StateStruct ancestorStruct)
-                {
-                    ancestorNode.State = ancestorStruct;
-                    descendantNode.RemoveAncestor(ancestorNode);
-                    return Apply(ancestorStruct, stateStruct, ancestorNode, descendantNode);
-                }
-            }*/
-            //else
-            throw new NotImplementedException($"{descendant} does not fit into {ancestor}");
-            TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
+            TraceLog.WriteLine($"{descendant} completely not fit into {ancestor}");
         }
-
         return true;
     }
 
@@ -131,23 +120,25 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        foreach (var (key, value) in ancestor.Fields)
+        var sameFieldCount = 0;
+        foreach (var (key, value) in descendant.Fields)
         {
             var descFieldNode = descendant.GetFieldOrNull(key);
             if (descFieldNode == null)
             {
                 //todo!!
-                //throw new ImpossibleException(
-                //    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{ancField.Key}'");
+                throw new NFunImpossibleException(
+                    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{key}'");
                 descendantNode.State = descendant.With(key, value);
             }
             else
             {
-                SolvingFunctions.Destruction(descFieldNode, value);
+                if (SolvingFunctions.Destruction(descFieldNode, value))
+                    sameFieldCount++;
             }
         }
-
-        ancestorNode.State = new StateRefTo(descendantNode);
+        if(sameFieldCount == ancestor.FieldsCount && sameFieldCount == descendant.FieldsCount)
+            ancestorNode.State = new StateRefTo(descendantNode);
         return true;
     }
 }
