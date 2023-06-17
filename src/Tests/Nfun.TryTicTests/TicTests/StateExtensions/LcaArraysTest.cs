@@ -65,4 +65,12 @@ public class LcaArraysTest {
             AssertLca(array1, array2, Array(Array(types.Lca)));
         }
     }
+
+    [Test]
+    public void Struct1() =>
+        AssertLca(
+            Struct("age", Real),
+            Struct(false, ("age", Constrains(U8, Real))),
+            Struct("age", Real));
+
 }

@@ -634,16 +634,38 @@ public static class StateExtensions {
         };
     }
 
+    /// <summary>
+    /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
+    /// </summary>
     private static bool CanBeFitConverted(ICompositeState desc, ICompositeState to) {
         if (desc.GetType() != to.GetType())
             return false;
         return desc switch {
             StateArray descA  => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
             StateFun descF    => CanBeFitConverted(descF, (StateFun)to),
-            StateStruct descS => ((StateStruct)to).FitsInto(descS),
+            StateStruct descS => CanBeFitConverted(descS, (StateStruct)to),
             _ => false
         };
     }
+
+    /// <summary>
+    /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
+    /// </summary>
+    private static bool CanBeFitConverted(StateStruct desc, StateStruct to) {
+        //'to' has to contains all the fields from desc.
+        foreach (var (dname, dstate) in desc.Fields)
+        {
+            var astate = to.GetFieldOrNull(dname);
+            if (astate == null)
+                return false;
+            //todo - it is naive implementation
+            if (!dstate.State.CanBeConvertedPessimisticTo(astate.State))
+                return false;
+        }
+        //todo - it is naive implementation
+        return desc.FitsInto(to);
+    }
+
 
     private static bool CanBeFitConverted(StateFun desc, StateFun to) {
         if (desc.ArgsCount != to.ArgsCount) return false;
