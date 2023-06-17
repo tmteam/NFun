@@ -288,6 +288,8 @@ public class BuiltInFunctionsTest {
     [TestCase("y= max(1,2,3)")]
     [TestCase("y= ~1.5")]
     [TestCase("y= max(1,true)")]
+    [TestCase("y= max(1,'test')")]
+    [TestCase("y= max(1,'test'[0])")]
     [TestCase("y= max(1,(j)->j)")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
