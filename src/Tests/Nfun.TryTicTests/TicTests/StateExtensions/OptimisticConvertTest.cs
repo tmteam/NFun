@@ -154,6 +154,22 @@ public class OptimisticConvertTest {
             .AssertTrue();
 
     [Test]
+    public void ConstrainsToPrimitive_returnsTrue10() =>
+        Constrains(isComparable:true).CanBeConvertedOptimisticTo(I32)
+            .AssertTrue();
+
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue11() =>
+        Constrains(isComparable:true).CanBeConvertedOptimisticTo(Real)
+            .AssertTrue();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsTrue12() =>
+        Constrains(isComparable:true).CanBeConvertedOptimisticTo(Char)
+            .AssertTrue();
+
+    [Test]
     public void ConstrainsToPrimitive_returnsFalse1() =>
         Constrains(U16, I96).CanBeConvertedOptimisticTo(U8)
             .AssertFalse();
@@ -179,6 +195,11 @@ public class OptimisticConvertTest {
     public void FromConstraintsToPrimitive_returnsFalse3() =>
         Constrains(Real, Any)
             .CanBeConvertedOptimisticTo(I32)
+            .AssertFalse();
+
+    [Test]
+    public void ConstrainsToPrimitive_returnsFalse4() =>
+        Constrains(isComparable:true).CanBeConvertedOptimisticTo(Bool)
             .AssertFalse();
 
     [Test]

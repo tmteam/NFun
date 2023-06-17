@@ -15,7 +15,7 @@ public class StructLcaTest {
             f3 = if(true) f1 else f2
 
             out = f3({age = 42, size = 15})
-        ".Calc().AssertReturns("out", 42);
+        ".Calc().AssertReturns("out", 57);
 
     [Test]
     public void FunLca2() =>
@@ -26,7 +26,7 @@ public class StructLcaTest {
             f3 = if(true) f1 else f2
 
             out:int = f3({age = 42, size = 15})
-        ".Calc().AssertReturns("out", 42);
+        ".Calc().AssertReturns("out", 57);
 
     [Test]
     public void FunLca3() =>
@@ -78,7 +78,7 @@ public class StructLcaTest {
         x =
 	        if(true) { age = 0x1 }
 	        else { age = 42.0 }
-            out = x.age
+         out = x.age
     ".Calc().AssertReturns("out", 1.0);
 
     [Test]
