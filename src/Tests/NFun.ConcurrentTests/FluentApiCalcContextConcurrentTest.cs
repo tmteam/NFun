@@ -1,9 +1,8 @@
+namespace NFun.ConcurrentTests;
 using System;
 using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
-
-namespace NFun.ConcurrentTests;
 
 public class FluentApiCalcContextConcurrentTest {
     [Test]
@@ -30,8 +29,8 @@ public class FluentApiCalcContextConcurrentTest {
 
     [Test]
     public void FullConstInitialization() {
-        UserInputModel input = new UserInputModel();
-        ContractOutputModel expected = new ContractOutputModel {
+        var input = new UserInputModel();
+        var expected = new ContractOutputModel {
             Id = 42, Price = 42.1, Taxes = new decimal(42.2), Items = new[] { "vasa", "kate" }
         };
         var context = new ContextModel1(imodel: input);

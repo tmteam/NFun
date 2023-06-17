@@ -1,8 +1,7 @@
+namespace NFun.ConcurrentTests;
 using System;
 using NFun.TestTools;
 using NUnit.Framework;
-
-namespace NFun.ConcurrentTests;
 
 public class FluentApiCalcSingleTTConcurrentTest {
     [TestCase("(Age == 13) and (NAME == 'vasa')", true)]

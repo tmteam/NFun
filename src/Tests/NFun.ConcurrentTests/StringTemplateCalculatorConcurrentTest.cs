@@ -1,7 +1,6 @@
+namespace NFun.ConcurrentTests;
 using System.Linq;
 using NUnit.Framework;
-
-namespace NFun.ConcurrentTests;
 
 public class StringTemplateCalculatorConcurrentTest {
     [TestCase(42, "{x.toText().concat('lalala')}", "42lalala")]
