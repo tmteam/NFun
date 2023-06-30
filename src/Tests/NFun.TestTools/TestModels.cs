@@ -37,6 +37,13 @@ public class ModelWithCharArray2 {
     public char[] Letters { get; set; }
 }
 
+public class InheritedModel : AbstractModel {
+    public string ImplementedProperty { get; set; }
+}
+public abstract class AbstractModel {
+    public string AbstractProperty { get; set; }
+}
+
 public class ModelWithoutEmptyConstructor {
     public ModelWithoutEmptyConstructor(string name) => Name = name;
     public string Name { get; }

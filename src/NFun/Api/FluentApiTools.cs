@@ -10,7 +10,7 @@ using NFun.Types;
 namespace NFun;
 
 internal static class FluentApiTools {
-    public static TOutput CreateOutputModelFromResults<TOutput>(FunnyRuntime runtime,Memory<OutputProperty> outputs) 
+    public static TOutput CreateOutputModelFromResults<TOutput>(FunnyRuntime runtime,Memory<OutputProperty> outputs)
         where TOutput : new() {
         var answer = new TOutput();
         var settedCount = SetResultsToModel(runtime, outputs, answer);
@@ -36,9 +36,9 @@ internal static class FluentApiTools {
     }
 
     internal static Memory<OutputProperty> AddManyAprioriOutputs<TOutput>(
-        this MutableAprioriTypesMap aprioriTypesMap, 
+        this MutableAprioriTypesMap aprioriTypesMap,
         DialectSettings dialectSettings) {
-        
+
         var outputPropertyInfos = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var outputs = new OutputProperty[outputPropertyInfos.Length];
         int actualOutputsCount = 0;
@@ -56,7 +56,7 @@ internal static class FluentApiTools {
 
         return outputs.AsMemory(0, actualOutputsCount);
     }
-    
+
     internal static IFunnyVar GetFunnyOut(FunnyRuntime runtime) =>
         runtime[Parser.AnonymousEquationId] ?? throw Errors.OutputIsUnset();
 
@@ -71,10 +71,10 @@ internal static class FluentApiTools {
     }
 
     public static Memory<InputProperty> AddAprioriInputs<TInput>(
-        this MutableAprioriTypesMap mutableApriori, 
-        FunnyConverter funnyConverter, 
+        this MutableAprioriTypesMap mutableApriori,
+        FunnyConverter funnyConverter,
         bool ignoreIfHasSetter = false) {
-        
+
         var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var inputTypes = new InputProperty[inputProperties.Length];
         int actualInputsCount = 0;
@@ -85,10 +85,41 @@ internal static class FluentApiTools {
 
             if (!inputProperty.HasPublicGetter())
                 continue;
-            
+
             if(ignoreIfHasSetter && inputProperty.HasPublicSetter())
                 continue;
-            
+
+            var converter = funnyConverter.GetInputConverterFor(inputProperty.PropertyType);
+            var inputName = inputProperty.Name.ToLower();
+
+            mutableApriori.Add(inputName, converter.FunnyType);
+            inputTypes[actualInputsCount] = new InputProperty(inputName,converter,inputProperty);
+            actualInputsCount++;
+        }
+
+        return inputTypes.AsMemory(0, actualInputsCount);
+    }
+
+    public static Memory<InputProperty> AddAprioriTypeInputs(
+        this MutableAprioriTypesMap mutableApriori,
+        Type inputType,
+        FunnyConverter funnyConverter,
+        bool ignoreIfHasSetter = false) {
+
+        var inputProperties = inputType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        var inputTypes = new InputProperty[inputProperties.Length];
+        int actualInputsCount = 0;
+
+        for (var i = 0; i < inputProperties.Length; i++)
+        {
+            var inputProperty = inputProperties[i];
+
+            if (!inputProperty.HasPublicGetter())
+                continue;
+
+            if(ignoreIfHasSetter && inputProperty.HasPublicSetter())
+                continue;
+
             var converter = funnyConverter.GetInputConverterFor(inputProperty.PropertyType);
             var inputName = inputProperty.Name.ToLower();
 

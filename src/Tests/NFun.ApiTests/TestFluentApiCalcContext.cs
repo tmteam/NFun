@@ -112,6 +112,17 @@ public class TestFluentApiCalcContext {
             () => Funny.CalcContext(expression, new ContextModel1()));
 
     [Test]
+    public void TestImplementedModels() {
+        var inheritedModel = new InheritedModel();
+        inheritedModel.AbstractProperty = "A";
+        inheritedModel.ImplementedProperty = "B";
+
+        var calculator = new FunnyCalculatorBuilder().BuildForDynamicTypeCalc<bool>(inheritedModel.GetType());
+        Assert.True(calculator.Calc("ImplementedProperty == 'B'", inheritedModel));
+        Assert.True(calculator.Calc("AbstractProperty == 'A'", inheritedModel));
+    }
+
+    [Test]
     public void CompositeCase() {
         var origin = new ContextModel2(id: 42, inputs: new[] { 1, 2, 3, 4 },
             new[] { new UserInputModel(name: "kate", age: 33, size: 15.5) });
@@ -179,4 +190,6 @@ public class TestFluentApiCalcContext {
         FunnyAssert.AreSame(expected, c8);
         FunnyAssert.AreSame(expected, c9);
     }
+
+
 }
