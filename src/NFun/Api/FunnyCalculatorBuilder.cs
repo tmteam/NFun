@@ -6,11 +6,11 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun; 
+namespace NFun;
 
 public class FunnyCalculatorBuilder {
     internal static FunnyCalculatorBuilder Default => new();
-    internal DialectSettings Dialect => _dialect; 
+    internal DialectSettings Dialect => _dialect;
     private DialectSettings _dialect = Dialects.Origin;
     private readonly List<(string, object)> _constantList = new();
     private readonly List<Func<DialectSettings,IConcreteFunction>> _customFunctionFactories = new();
@@ -30,9 +30,9 @@ public class FunnyCalculatorBuilder {
     /// <param name="allowUserFunctions">Allow or deny regular or recursive user functions</param>
     public FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, 
+        RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
-        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll) 
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
         => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions));
 
     public FunnyCalculatorBuilder WithConstant(string id, object value) {
@@ -91,10 +91,6 @@ public class FunnyCalculatorBuilder {
     public ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => new CalculatorSingle<TInput, TOutput>(this);
 
-    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-    public ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()
-        => new CalculatorMany<TInput, TOutput>(this);
-
     public IConstantCalculator<object> BuildForCalcConstant()
         => new ConstantCalculatorSingle(this);
 
@@ -106,10 +102,10 @@ public class FunnyCalculatorBuilder {
 
     public IContextCalculator<TContext> BuildForCalcContext<TContext>()
         => new ContextCalculator<TContext>(this);
-    
+
     public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
 
-    public TOutput Calc<TOutput>(string expression) 
+    public TOutput Calc<TOutput>(string expression)
         => BuildForCalcConstant<TOutput>().Calc(expression);
 
     public object Calc<TInput>(string expression, TInput input) => BuildForCalc<TInput>().Calc(expression, input);
@@ -120,11 +116,7 @@ public class FunnyCalculatorBuilder {
     public TOutput CalcMany<TOutput>(string expression) where TOutput : new() =>
         BuildForCalcManyConstants<TOutput>().Calc(expression);
 
-    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-    public TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput : new()
-        => BuildForCalcMany<TInput, TOutput>().Calc(expression, input);
-    
-    public void CalcContext<TContext>(string expression, TContext context) 
+    public void CalcContext<TContext>(string expression, TContext context)
         => BuildForCalcContext<TContext>().Calc(expression, context);
 
     internal FunnyRuntime CreateRuntime(string expression, IAprioriTypesMap aprioriTypes) {

@@ -99,55 +99,6 @@ internal class Calculator<TInput> : ICalculator<TInput> {
     }
 }
 
-[Obsolete("This type is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new() {
-    private readonly FunnyCalculatorBuilder _builder;
-    private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<InputProperty> _inputsMap;
-    private readonly Memory<OutputProperty> _outputsMap;
-
-    public CalculatorMany(FunnyCalculatorBuilder builder) {
-        _builder = builder;
-        _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(_builder.Dialect.Converter);
-        _outputsMap = _mutableApriori.AddManyAprioriOutputs<TOutput>(_builder.Dialect);
-    }
-
-    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-    public TOutput Calc(string expression, TInput input) => ToLambda(expression)(input);
-
-    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-    public Func<TInput, TOutput> ToLambda(string expression) {
-        var runtime = _builder.CreateRuntime(expression, _mutableApriori);
-        FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
-
-        int isRunning = 0;
-        return input => {
-            if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
-            {
-                // if runtime already run - create runtime copy, and run it
-                return Run(runtime.Clone(), input);
-            }
-
-            try
-            {
-                return Run(runtime, input);
-            }
-            finally
-            {
-                isRunning = 0;
-            }
-        };
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TOutput Run(FunnyRuntime runtime, TInput input) {
-        FluentApiTools.SetInputValues(runtime, _inputsMap, input);
-        runtime.Run();
-        return FluentApiTools.CreateOutputModelFromResults<TOutput>(runtime, _outputsMap);
-    }
-}
-
 internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
