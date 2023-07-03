@@ -112,7 +112,7 @@ public class FunnyCalculatorBuilder {
 
     public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
 
-    public TOutput Calc<TOutput>(string expression, object input, Type inputType) => BuildForDynamicTypeCalc<TOutput>(inputType).Calc(expression, input);
+    public TOutput CalcDynamic<TOutput>(string expression, object input) => BuildForDynamicTypeCalc<TOutput>(input.GetType()).Calc(expression, input);
 
     public TOutput Calc<TOutput>(string expression)
         => BuildForCalcConstant<TOutput>().Calc(expression);

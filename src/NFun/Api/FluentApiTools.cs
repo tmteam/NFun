@@ -6,8 +6,10 @@ using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Types;
+using System.Globalization;
 
 namespace NFun;
+
 
 internal static class FluentApiTools {
     public static TOutput CreateOutputModelFromResults<TOutput>(FunnyRuntime runtime,Memory<OutputProperty> outputs)
@@ -121,7 +123,7 @@ internal static class FluentApiTools {
                 continue;
 
             var converter = funnyConverter.GetInputConverterFor(inputProperty.PropertyType);
-            var inputName = inputProperty.Name.ToLower();
+            var inputName = inputProperty.Name.ToLower(CultureInfo.InvariantCulture);
 
             mutableApriori.Add(inputName, converter.FunnyType);
             inputTypes[actualInputsCount] = new InputProperty(inputName,converter,inputProperty);
