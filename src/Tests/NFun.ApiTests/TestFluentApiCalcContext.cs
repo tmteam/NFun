@@ -117,7 +117,7 @@ public class TestFluentApiCalcContext {
         inheritedModel.AbstractProperty = "A";
         inheritedModel.ImplementedProperty = "B";
 
-        var calculator = new FunnyCalculatorBuilder().BuildForDynamicTypeCalc<bool>(inheritedModel.GetType());
+        var calculator = new FunnyCalculatorBuilder().BuildForCalcDynamicInput<bool>(inheritedModel.GetType());
         Assert.True(calculator.Calc("ImplementedProperty == 'B'", inheritedModel));
         Assert.True(calculator.Calc("AbstractProperty == 'A'", inheritedModel));
     }

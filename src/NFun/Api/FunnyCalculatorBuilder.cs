@@ -88,36 +88,39 @@ public class FunnyCalculatorBuilder {
     public ICalculator<TInput> BuildForCalc<TInput>()
         => new Calculator<TInput>(this);
 
-    public ICalculator<object, TOutput> BuildForDynamicTypeCalc<TOutput>(Type inputType)
-        => new CalculatorSingleDynamic<TOutput>(this, inputType);
-
     public ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
-        => new CalculatorSingle<TInput, TOutput>(this);
+        => new Calculator<TInput, TOutput>(this);
+
+    public ICalculator<object, object> BuildForCalcDynamicInput(Type inputType)
+        => new DynamicInputCalculator(this, inputType);
+
+    public ICalculator<object, TOutput> BuildForCalcDynamicInput<TOutput>(Type inputType)
+        => new DynamicInputCalculator<TOutput>(this, inputType);
 
     [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
     public ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()
-        => new CalculatorMany<TInput, TOutput>(this);
+        => new ManyCalculator<TInput, TOutput>(this);
 
     public IConstantCalculator<object> BuildForCalcConstant()
-        => new ConstantCalculatorSingle(this);
+        => new ConstantCalculator(this);
 
     public IConstantCalculator<TOutput> BuildForCalcConstant<TOutput>()
-        => new ConstantCalculatorSingle<TOutput>(this);
+        => new ConstantCalculator<TOutput>(this);
 
     public IConstantCalculator<TOutput> BuildForCalcManyConstants<TOutput>() where TOutput : new()
-        => new ConstantCalculatorMany<TOutput>(this);
+        => new ManyConstantsCalculator<TOutput>(this);
 
     public IContextCalculator<TContext> BuildForCalcContext<TContext>()
         => new ContextCalculator<TContext>(this);
 
-    public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
+    public object Calc(string expression) =>
+        BuildForCalcConstant().Calc(expression);
 
-    public TOutput CalcDynamic<TOutput>(string expression, object input) => BuildForDynamicTypeCalc<TOutput>(input.GetType()).Calc(expression, input);
+    public TOutput Calc<TOutput>(string expression)=>
+        BuildForCalcConstant<TOutput>().Calc(expression);
 
-    public TOutput Calc<TOutput>(string expression)
-        => BuildForCalcConstant<TOutput>().Calc(expression);
-
-    public object Calc<TInput>(string expression, TInput input) => BuildForCalc<TInput>().Calc(expression, input);
+    public object Calc<TInput>(string expression, TInput input) =>
+        BuildForCalc<TInput>().Calc(expression, input);
 
     public TOutput Calc<TInput, TOutput>(string expression, TInput input) =>
         BuildForCalc<TInput, TOutput>().Calc(expression, input);
@@ -128,6 +131,12 @@ public class FunnyCalculatorBuilder {
     [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
     public TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput : new()
         => BuildForCalcMany<TInput, TOutput>().Calc(expression, input);
+
+    public TOutput CalcDynamicInput<TOutput>(string expression, object input) =>
+        BuildForCalcDynamicInput<TOutput>(input.GetType()).Calc(expression, input);
+
+    public object CalcDynamicInput(string expression, object input) =>
+        BuildForCalcDynamicInput(input.GetType()).Calc(expression, input);
 
     public void CalcContext<TContext>(string expression, TContext context)
         => BuildForCalcContext<TContext>().Calc(expression, context);
@@ -145,7 +154,7 @@ public class FunnyCalculatorBuilder {
             constants = cl;
         }
 
-        ImmutableFunctionDictionary dic = BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour);
+        var dic = BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour);
 
         if (_customFunctionFactories.Any())
             dic = dic.CloneWith(_customFunctionFactories.Select(f=>f(_dialect)).ToArray());

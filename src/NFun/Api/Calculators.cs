@@ -100,13 +100,13 @@ internal class Calculator<TInput> : ICalculator<TInput> {
 }
 
 [Obsolete("This type is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new() {
+internal class ManyCalculator<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new() {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly Memory<InputProperty> _inputsMap;
     private readonly Memory<OutputProperty> _outputsMap;
 
-    public CalculatorMany(FunnyCalculatorBuilder builder) {
+    public ManyCalculator(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
         _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(_builder.Dialect.Converter);
@@ -148,23 +148,22 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
     }
 }
 
-internal class CalculatorSingleDynamic<TOutput> : ICalculator<object, TOutput> {
+internal class DynamicInputCalculator<TOutput> : ICalculator<object, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly Memory<InputProperty> _inputsMap;
     private readonly IOutputFunnyConverter _outputConverter;
-    public CalculatorSingleDynamic (FunnyCalculatorBuilder builder, Type inputType){
-        if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
-            throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
+    public DynamicInputCalculator (FunnyCalculatorBuilder builder, Type inputType) {
+        FluentApiTools.ThrowIfInvalidDecimalDialectSettings<TOutput>(builder);
 
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
         _inputsMap = _mutableApriori.AddAprioriTypeInputs(inputType, Dialects.Origin.Converter);
 
         _outputConverter = _builder.Dialect.Converter.GetOutputConverterFor(typeof(TOutput));
-        _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
+        if(_outputConverter.FunnyType!=FunnyType.Any)
+            _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
     }
-
 
     public TOutput Calc(string expression, object inputModel) => ToLambda(expression)(inputModel);
 
@@ -204,23 +203,74 @@ internal class CalculatorSingleDynamic<TOutput> : ICalculator<object, TOutput> {
     }
 }
 
+internal class DynamicInputCalculator : ICalculator<object, object> {
+    private readonly FunnyCalculatorBuilder _builder;
+    private readonly MutableAprioriTypesMap _mutableApriori;
+    private readonly Memory<InputProperty> _inputsMap;
+    private readonly IOutputFunnyConverter _outputConverter;
+    public DynamicInputCalculator (FunnyCalculatorBuilder builder, Type inputType) {
+        _builder = builder;
+        _mutableApriori = new MutableAprioriTypesMap();
+        _inputsMap = _mutableApriori.AddAprioriTypeInputs(inputType, Dialects.Origin.Converter);
+        _outputConverter = DynamicTypeOutputFunnyConverter.AnyConverter;
+    }
 
-internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> {
+
+    public object Calc(string expression, object inputModel) => ToLambda(expression)(inputModel);
+
+    public Func<object, object> ToLambda(string expression) {
+        var runtime = _builder.CreateRuntime(expression, _mutableApriori);
+
+        FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
+        FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
+
+        var outVariable = runtime[Parser.AnonymousEquationId];
+
+        int isRunning = 0;
+        return input => {
+            if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+            {
+                // if runtime already run - create runtime copy, and run it
+                var clone = runtime.Clone();
+                return Run(clone, input, clone[Parser.AnonymousEquationId]);
+            }
+
+            try
+            {
+                return Run(runtime, input, outVariable);
+            }
+            finally
+            {
+                isRunning = 0;
+            }
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private object Run(FunnyRuntime runtime, object input, IFunnyVar outVariable) {
+        FluentApiTools.SetInputValues(runtime, _inputsMap, input);
+        runtime.Run();
+        return _outputConverter.ToClrObject(outVariable.FunnyValue);
+    }
+}
+
+
+internal class Calculator<TInput, TOutput> : ICalculator<TInput, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly Memory<InputProperty> _inputsMap;
     private readonly IOutputFunnyConverter _outputConverter;
 
-    public CalculatorSingle(FunnyCalculatorBuilder builder) {
-        if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
-            throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
+    public Calculator(FunnyCalculatorBuilder builder) {
+        FluentApiTools.ThrowIfInvalidDecimalDialectSettings<TOutput>(builder);
 
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
         _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(Dialects.Origin.Converter);
 
         _outputConverter = _builder.Dialect.Converter.GetOutputConverterFor(typeof(TOutput));
-        _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
+        if (_outputConverter.FunnyType != FunnyType.Any)
+            _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
     }
 
     public TOutput Calc(string expression, TInput input) => ToLambda(expression)(input);
@@ -312,12 +362,12 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
     }
 }
 
-internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> {
+internal class ConstantCalculator<TOutput> : IConstantCalculator<TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly IAprioriTypesMap _mutableApriori;
     private readonly IOutputFunnyConverter _outputConverter;
 
-    public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) {
+    public ConstantCalculator(FunnyCalculatorBuilder builder) {
         if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
             throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
 
@@ -336,12 +386,12 @@ internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> 
     }
 }
 
-internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> where TOutput : new() {
+internal class ManyConstantsCalculator<TOutput> : IConstantCalculator<TOutput> where TOutput : new() {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly Memory<OutputProperty> _outputsMap;
 
-    public ConstantCalculatorMany(FunnyCalculatorBuilder builder) {
+    public ManyConstantsCalculator(FunnyCalculatorBuilder builder) {
         _mutableApriori = new MutableAprioriTypesMap();
         _outputsMap = _mutableApriori.AddManyAprioriOutputs<TOutput>(builder.Dialect);
         _builder = builder;
@@ -356,10 +406,10 @@ internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> wh
     }
 }
 
-internal class ConstantCalculatorSingle : IConstantCalculator<object> {
+internal class ConstantCalculator : IConstantCalculator<object> {
     private readonly FunnyCalculatorBuilder _builder;
 
-    public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) => _builder = builder;
+    public ConstantCalculator(FunnyCalculatorBuilder builder) => _builder = builder;
 
     public object Calc(string expression) {
         var runtime = _builder.CreateRuntime(expression, EmptyAprioriTypesMap.Instance);
