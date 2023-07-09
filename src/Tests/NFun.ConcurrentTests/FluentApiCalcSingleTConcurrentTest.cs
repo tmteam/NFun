@@ -23,7 +23,7 @@ public class FluentApiCalcSingleTConcurrentTest {
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
     [TestCase("ids.map(rule it.toText())", new[] { "1", "2", "101", "102" })]
     public void GeneralUserInputModelTest(string expr, object expected) =>
-        expr.CalcSingleUntypedInDifferentWays(expected, new UserInputModel(
+        expr.CalcNonGenericInDifferentWays(expected, new UserInputModel(
             name: "vasa",
             age: 13,
             size: 13.5,
@@ -32,7 +32,7 @@ public class FluentApiCalcSingleTConcurrentTest {
 
     [Test]
     public void InputFieldIsCharArray() =>
-        "[letters.reverse()]".CalcSingleUntypedInDifferentWays(new[] { "test" }
+        "[letters.reverse()]".CalcNonGenericInDifferentWays(new[] { "test" }
             , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
 
     [Test]

@@ -10,11 +10,11 @@ using NUnit.Framework;
 namespace NFun.ConcurrentTests;
 
 public static class ConcurrentTestsHelper {
-    private const int TestsConcurrentDegree = 20; // minimum 10, maximum 300 
+    private const int TestsConcurrentDegree = 20; // minimum 10, maximum 300
     //10 -> 3sec
-    //100 = 2min
-    //200 = 3min
-    //300 = 8min 
+    //100 = 1min
+    //200 = 5min
+    //300 = 15min
 
     public static void AssertConcurrentHardcore(this string originExpr, Action<FunnyRuntime> action)
         => originExpr.Build().AssertConcurrentHardcore(action);
@@ -117,7 +117,7 @@ public static class ConcurrentTestsHelper {
         AssertAll(expected, results);
     }
 
-    public static void CalcSingleUntypedInDifferentWays<TInput>(this string expr, object expected, TInput input) {
+    public static void CalcNonGenericInDifferentWays<TInput>(this string expr, object expected, TInput input) {
         var calculator = Funny.BuildForCalc<TInput>();
         var lambda1 = calculator.ToLambda(expr);
         var lambda2 = calculator.ToLambda(expr);
@@ -179,6 +179,70 @@ public static class ConcurrentTestsHelper {
             var result8 = Funny
                 .WithConstant("SomeNotUsedConstant", 42)
                 .BuildForCalc<TInput, TOutput>()
+                .Calc(expr, input);
+
+            results.Enqueue(result1);
+            results.Enqueue(result2);
+            results.Enqueue(result3);
+            results.Enqueue(result4);
+            results.Enqueue(result5);
+            results.Enqueue(result6);
+            results.Enqueue(result7);
+            results.Enqueue(result8);
+        });
+        AssertAll(expected, results);
+    }
+
+    public static void
+        CalcNonGenericDifferentWays<TOutput>(this string expr, object input, TOutput expected) {
+        var calculator = Funny.BuildForCalc<TOutput>(input.GetType());
+        var lambda1 = calculator.ToLambda(expr);
+        var lambda2 = calculator.ToLambda(expr);
+
+        var results = new ConcurrentQueue<TOutput>();
+        Parallel.ForEach(Enumerable.Range(0, TestsConcurrentDegree * 10), _ => {
+            var result1 = Funny.CalcNonGeneric<TOutput>(expr, input);
+            var result2 = calculator.Calc(expr, input);
+            var result3 = calculator.Calc(expr, input);
+            var result4 = lambda1(input);
+            var result5 = lambda1(input);
+            var result6 = lambda2(input);
+            var result7 = lambda2(input);
+            var result8 = Funny
+                .WithConstant("SomeNotUsedConstant", 42)
+                .BuildForCalc<TOutput>(input.GetType())
+                .Calc(expr, input);
+
+            results.Enqueue(result1);
+            results.Enqueue(result2);
+            results.Enqueue(result3);
+            results.Enqueue(result4);
+            results.Enqueue(result5);
+            results.Enqueue(result6);
+            results.Enqueue(result7);
+            results.Enqueue(result8);
+        });
+        AssertAll(expected, results);
+    }
+
+    public static void
+        CalcNonGenericDifferentWays(this string expr, object input, object expected) {
+        var calculator = Funny.BuildForCalc(input.GetType());
+        var lambda1 = calculator.ToLambda(expr);
+        var lambda2 = calculator.ToLambda(expr);
+
+        var results = new ConcurrentQueue<object>();
+        Parallel.ForEach(Enumerable.Range(0, TestsConcurrentDegree * 10), _ => {
+            var result1 = Funny.CalcNonGeneric(expr, input);
+            var result2 = calculator.Calc(expr, input);
+            var result3 = calculator.Calc(expr, input);
+            var result4 = lambda1(input);
+            var result5 = lambda1(input);
+            var result6 = lambda2(input);
+            var result7 = lambda2(input);
+            var result8 = Funny
+                .WithConstant("SomeNotUsedConstant", 42)
+                .BuildForCalc(input.GetType())
                 .Calc(expr, input);
 
             results.Enqueue(result1);

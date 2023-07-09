@@ -10,6 +10,7 @@ using System.Globalization;
 
 namespace NFun;
 
+using Exceptions;
 
 internal static class FluentApiTools {
     public static TOutput CreateOutputModelFromResults<TOutput>(FunnyRuntime runtime,Memory<OutputProperty> outputs)
@@ -131,6 +132,12 @@ internal static class FluentApiTools {
         }
 
         return inputTypes.AsMemory(0, actualInputsCount);
+    }
+
+    internal static void ThrowIfInvalidDecimalDialectSettings<TOutput>(FunnyCalculatorBuilder builder)
+    {
+        if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
+            throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
     }
 
     internal static void ThrowIfHasInputs(FunnyRuntime runtime) {

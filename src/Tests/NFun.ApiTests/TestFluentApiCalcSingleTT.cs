@@ -17,6 +17,12 @@ public class TestFluentApiCalcSingleTT {
     public void ReturnsBoolean(string expr, bool expected)
         => CalcInDifferentWays(expr, new UserInputModel("vasa", 13), expected);
 
+    [TestCase("'mama'=='{name}{age}'.reverse()", false)]
+    [TestCase("out:bool = 'mama'=='{name}{age}'.reverse()", false)]
+    [TestCase("out:int[] = [age,2,3]", new[]{13,2,3})]
+    public void ReturnsObject(string expr, object expected)
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13), expected);
+
     [Test]
     public void AccessToInput() {
         var res = Funny.Calc<ModelWithInt, long>("id+1", new ModelWithInt { id = 54 });
