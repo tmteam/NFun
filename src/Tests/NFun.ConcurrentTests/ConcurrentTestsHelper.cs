@@ -117,7 +117,7 @@ public static class ConcurrentTestsHelper {
         AssertAll(expected, results);
     }
 
-    public static void CalcSingleUntypedInDifferentWays<TInput>(this string expr, object expected, TInput input) {
+    public static void CalcNonGenericInDifferentWays<TInput>(this string expr, object expected, TInput input) {
         var calculator = Funny.BuildForCalc<TInput>();
         var lambda1 = calculator.ToLambda(expr);
         var lambda2 = calculator.ToLambda(expr);
@@ -194,14 +194,14 @@ public static class ConcurrentTestsHelper {
     }
 
     public static void
-        CalcDynamicTypedInDifferentWays<TOutput>(this string expr, object input, TOutput expected) {
-        var calculator = Funny.BuildForCalcDynamicInput<TOutput>(input.GetType());
+        CalcNonGenericDifferentWays<TOutput>(this string expr, object input, TOutput expected) {
+        var calculator = Funny.BuildForCalc<TOutput>(input.GetType());
         var lambda1 = calculator.ToLambda(expr);
         var lambda2 = calculator.ToLambda(expr);
 
         var results = new ConcurrentQueue<TOutput>();
         Parallel.ForEach(Enumerable.Range(0, TestsConcurrentDegree * 10), _ => {
-            var result1 = Funny.CalcDynamicInput<TOutput>(expr, input);
+            var result1 = Funny.CalcNonGeneric<TOutput>(expr, input);
             var result2 = calculator.Calc(expr, input);
             var result3 = calculator.Calc(expr, input);
             var result4 = lambda1(input);
@@ -210,7 +210,7 @@ public static class ConcurrentTestsHelper {
             var result7 = lambda2(input);
             var result8 = Funny
                 .WithConstant("SomeNotUsedConstant", 42)
-                .BuildForCalcDynamicInput<TOutput>(input.GetType())
+                .BuildForCalc<TOutput>(input.GetType())
                 .Calc(expr, input);
 
             results.Enqueue(result1);
@@ -226,14 +226,14 @@ public static class ConcurrentTestsHelper {
     }
 
     public static void
-        CalcDynamicInDifferentWays(this string expr, object input, object expected) {
-        var calculator = Funny.BuildForCalcDynamicInput(input.GetType());
+        CalcNonGenericDifferentWays(this string expr, object input, object expected) {
+        var calculator = Funny.BuildForCalc(input.GetType());
         var lambda1 = calculator.ToLambda(expr);
         var lambda2 = calculator.ToLambda(expr);
 
         var results = new ConcurrentQueue<object>();
         Parallel.ForEach(Enumerable.Range(0, TestsConcurrentDegree * 10), _ => {
-            var result1 = Funny.CalcDynamicInput(expr, input);
+            var result1 = Funny.CalcNonGeneric(expr, input);
             var result2 = calculator.Calc(expr, input);
             var result3 = calculator.Calc(expr, input);
             var result4 = lambda1(input);
@@ -242,7 +242,7 @@ public static class ConcurrentTestsHelper {
             var result7 = lambda2(input);
             var result8 = Funny
                 .WithConstant("SomeNotUsedConstant", 42)
-                .BuildForCalcDynamicInput(input.GetType())
+                .BuildForCalc(input.GetType())
                 .Calc(expr, input);
 
             results.Enqueue(result1);

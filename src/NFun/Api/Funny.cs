@@ -22,16 +22,16 @@ public static class Funny {
     public static TOutput Calc<TInput, TOutput>(string expression, TInput input)
         => FunnyCalculatorBuilder.Default.Calc<TInput, TOutput>(expression, input);
 
-    public static TOutput CalcDynamicInput<TOutput>(string expression, object input)
-        => FunnyCalculatorBuilder.Default.CalcDynamicInput<TOutput>(expression, input);
+    public static TOutput CalcNonGeneric<TOutput>(string expression, object input)
+        => FunnyCalculatorBuilder.Default.CalcNonGeneric<TOutput>(expression, input);
 
-    public static object CalcDynamicInput(string expression, object input)
-        => FunnyCalculatorBuilder.Default.CalcDynamicInput(expression, input);
+    public static object CalcNonGeneric(string expression, object input)
+        => FunnyCalculatorBuilder.Default.CalcNonGeneric(expression, input);
 
     public static TOutput CalcMany<TOutput>(string expression) where TOutput : new()
         => FunnyCalculatorBuilder.Default.CalcMany<TOutput>(expression);
 
-    public static void CalcContext<TOutput>(string expression, TOutput context)
+    public static void CalcContext<TContext>(string expression, TContext context)
         => FunnyCalculatorBuilder.Default.CalcContext(expression, context);
 
     #endregion
@@ -45,11 +45,11 @@ public static class Funny {
     public static ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput, TOutput>();
 
-    public static ICalculator<object, TOutput> BuildForCalcDynamicInput<TOutput>(Type inputType)
-        => FunnyCalculatorBuilder.Default.BuildForCalcDynamicInput<TOutput>(inputType);
+    public static ICalculator<object, TOutput> BuildForCalc<TOutput>(Type inputType)
+        => FunnyCalculatorBuilder.Default.BuildForCalc<TOutput>(inputType);
 
-    public static ICalculator<object, object> BuildForCalcDynamicInput(Type inputType)
-        => FunnyCalculatorBuilder.Default.BuildForCalcDynamicInput(inputType);
+    public static ICalculator<object, object> BuildForCalc(Type inputType)
+        => FunnyCalculatorBuilder.Default.BuildForCalc(inputType);
 
     [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
     public static ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()

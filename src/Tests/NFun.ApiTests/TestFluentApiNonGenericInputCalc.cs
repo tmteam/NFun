@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests;
 
-public class TestFluentApiDynamicCalc {
+public class TestFluentApiNonGenericInputCalc {
     [TestCase("age", 13)]
     [TestCase("Age", 13)]
     [TestCase("(Age == 13) and (Name == 'vasa')", true)]
@@ -99,15 +99,15 @@ public class TestFluentApiDynamicCalc {
 
     private static void CalcInDifferentWays(string expr, object expected, object input) {
         //CALC
-        var result1 = Funny.CalcDynamicInput(expr, input);
-        var calculator = Funny.BuildForCalcDynamicInput(input.GetType());
+        var result1 = Funny.CalcNonGeneric(expr, input);
+        var calculator = Funny.BuildForCalc(input.GetType());
         //calculator+calc
         var result2 = calculator.Calc(expr, input);
         var result3 = calculator.Calc(expr, input);
-        var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).CalcDynamicInput(expr, input);
+        var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).CalcNonGeneric(expr, input);
         var result5 = Funny
             .WithConstant("SomeNotUsedConstant", 42)
-            .BuildForCalcDynamicInput(input.GetType())
+            .BuildForCalc(input.GetType())
             .Calc(expr, input);
 
         //lambda

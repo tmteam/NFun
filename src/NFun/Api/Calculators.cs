@@ -148,12 +148,12 @@ internal class ManyCalculator<TInput, TOutput> : ICalculator<TInput, TOutput> wh
     }
 }
 
-internal class DynamicInputCalculator<TOutput> : ICalculator<object, TOutput> {
+internal class NonGenericCalculator<TOutput> : ICalculator<object, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly Memory<InputProperty> _inputsMap;
     private readonly IOutputFunnyConverter _outputConverter;
-    public DynamicInputCalculator (FunnyCalculatorBuilder builder, Type inputType) {
+    public NonGenericCalculator (FunnyCalculatorBuilder builder, Type inputType) {
         FluentApiTools.ThrowIfInvalidDecimalDialectSettings<TOutput>(builder);
 
         _builder = builder;
@@ -203,12 +203,12 @@ internal class DynamicInputCalculator<TOutput> : ICalculator<object, TOutput> {
     }
 }
 
-internal class DynamicInputCalculator : ICalculator<object, object> {
+internal class NonGenericCalculator : ICalculator<object, object> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly Memory<InputProperty> _inputsMap;
     private readonly IOutputFunnyConverter _outputConverter;
-    public DynamicInputCalculator (FunnyCalculatorBuilder builder, Type inputType) {
+    public NonGenericCalculator (FunnyCalculatorBuilder builder, Type inputType) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
         _inputsMap = _mutableApriori.AddAprioriTypeInputs(inputType, Dialects.Origin.Converter);
@@ -253,7 +253,6 @@ internal class DynamicInputCalculator : ICalculator<object, object> {
         return _outputConverter.ToClrObject(outVariable.FunnyValue);
     }
 }
-
 
 internal class Calculator<TInput, TOutput> : ICalculator<TInput, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
