@@ -99,6 +99,62 @@ internal class Calculator<TInput> : ICalculator<TInput> {
     }
 }
 
+internal class CalculatorSingleDynamic<TOutput> : ICalculator<object, TOutput> {
+    private readonly FunnyCalculatorBuilder _builder;
+    private readonly MutableAprioriTypesMap _mutableApriori;
+    private readonly Memory<InputProperty> _inputsMap;
+    private readonly IOutputFunnyConverter _outputConverter;
+    public CalculatorSingleDynamic (FunnyCalculatorBuilder builder, Type inputType){
+        if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
+            throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
+
+        _builder = builder;
+        _mutableApriori = new MutableAprioriTypesMap();
+        _inputsMap = _mutableApriori.AddAprioriTypeInputs(inputType, Dialects.Origin.Converter);
+
+        _outputConverter = _builder.Dialect.Converter.GetOutputConverterFor(typeof(TOutput));
+        _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
+    }
+
+
+    public TOutput Calc(string expression, object inputModel) => ToLambda(expression)(inputModel);
+
+    public Func<object, TOutput> ToLambda(string expression) {
+        var runtime = _builder.CreateRuntime(expression, _mutableApriori);
+
+        FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
+        FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
+
+        var outVariable = runtime[Parser.AnonymousEquationId];
+
+        int isRunning = 0;
+        return input => {
+            if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+            {
+                // if runtime already run - create runtime copy, and run it
+                var clone = runtime.Clone();
+                return Run(clone, input, clone[Parser.AnonymousEquationId]);
+            }
+
+            try
+            {
+                return Run(runtime, input, outVariable);
+            }
+            finally
+            {
+                isRunning = 0;
+            }
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private TOutput Run(FunnyRuntime runtime, object input, IFunnyVar outVariable) {
+        FluentApiTools.SetInputValues(runtime, _inputsMap, input);
+        runtime.Run();
+        return (TOutput)_outputConverter.ToClrObject(outVariable.FunnyValue);
+    }
+}
+
 internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;

@@ -88,6 +88,9 @@ public class FunnyCalculatorBuilder {
     public ICalculator<TInput> BuildForCalc<TInput>()
         => new Calculator<TInput>(this);
 
+    public ICalculator<object, TOutput> BuildForDynamicTypeCalc<TOutput>(Type inputType)
+        => new CalculatorSingleDynamic<TOutput>(this, inputType);
+
     public ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => new CalculatorSingle<TInput, TOutput>(this);
 
@@ -105,6 +108,8 @@ public class FunnyCalculatorBuilder {
 
     public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
 
+    public TOutput CalcDynamic<TOutput>(string expression, object input) => BuildForDynamicTypeCalc<TOutput>(input.GetType()).Calc(expression, input);
+
     public TOutput Calc<TOutput>(string expression)
         => BuildForCalcConstant<TOutput>().Calc(expression);
 
@@ -112,9 +117,6 @@ public class FunnyCalculatorBuilder {
 
     public TOutput Calc<TInput, TOutput>(string expression, TInput input) =>
         BuildForCalc<TInput, TOutput>().Calc(expression, input);
-
-    public TOutput CalcMany<TOutput>(string expression) where TOutput : new() =>
-        BuildForCalcManyConstants<TOutput>().Calc(expression);
 
     public void CalcContext<TContext>(string expression, TContext context)
         => BuildForCalcContext<TContext>().Calc(expression, context);
