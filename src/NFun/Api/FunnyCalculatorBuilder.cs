@@ -85,7 +85,7 @@ public class FunnyCalculatorBuilder {
         return this;
     }
 
-    public ICalculator<TInput> BuildForCalc<TInput>() =>
+    public ICalculator<TInput, object> BuildForCalc<TInput>() =>
         new Calculator<TInput>(this);
 
     public ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>() =>

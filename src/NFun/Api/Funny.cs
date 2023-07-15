@@ -39,7 +39,7 @@ public static class Funny {
 
     #region Calculator factories
 
-    public static ICalculator<TInput> BuildForCalc<TInput>()
+    public static ICalculator<TInput, object> BuildForCalc<TInput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput>();
 
     public static ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
