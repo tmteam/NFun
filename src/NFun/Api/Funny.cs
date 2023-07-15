@@ -1,10 +1,10 @@
 using System;
 using NFun.Types;
 
-namespace NFun; 
+namespace NFun;
 
 public static class Funny {
-    
+
     public static HardcoreBuilder Hardcore { get; } = new();
 
 
@@ -24,24 +24,20 @@ public static class Funny {
 
     public static TOutput CalcMany<TOutput>(string expression) where TOutput : new()
         => FunnyCalculatorBuilder.Default.CalcMany<TOutput>(expression);
-    
+
     public static void CalcContext<TOutput>(string expression, TOutput context)
         => FunnyCalculatorBuilder.Default.CalcContext(expression, context);
-    
+
     #endregion
 
 
     #region Calculator factories
-    
+
     public static ICalculator<TInput> BuildForCalc<TInput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput>();
 
     public static ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput, TOutput>();
-
-    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
-    public static ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()
-        => FunnyCalculatorBuilder.Default.BuildForCalcMany<TInput, TOutput>();
 
     public static IConstantCalculator<object> BuildForCalcConstant()
         => FunnyCalculatorBuilder.Default.BuildForCalcConstant();
@@ -92,7 +88,7 @@ public static class Funny {
         string id,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut> function)
         => new FunnyCalculatorBuilder().WithFunction(id, function);
-    
+
     /// <summary>
     /// Allows to setup syntax and semantics
     /// </summary>
@@ -103,14 +99,14 @@ public static class Funny {
     public static FunnyCalculatorBuilder WithDialect(
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, 
+        RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
         => new FunnyCalculatorBuilder().WithDialect(
-            ifExpressionSyntax, 
-            integerPreferredType, 
-            realClrType, 
-            integerOverflow, 
+            ifExpressionSyntax,
+            integerPreferredType,
+            realClrType,
+            integerOverflow,
             allowUserFunctions);
 
     #endregion

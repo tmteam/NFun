@@ -70,7 +70,7 @@ internal static partial class Errors {
                 TokType.ArrOBr => "[",
                 TokType.ArrCBr => "]",
                 TokType.BitOr => "|",
-                TokType.BitAnd => "$",
+                TokType.BitAnd => "&",
                 TokType.BitXor => "^",
                 TokType.BitShiftLeft => "<<",
                 TokType.BitShiftRight => ">>",
@@ -177,7 +177,7 @@ internal static partial class Errors {
     private static ExprListError SpecifyArrayInitError(
         IList<ISyntaxNode> arguments, TokFlow flow, TokType openBrack, TokType closeBrack) {
         var firstToken = flow.Current;
-        int lastArgPosition = arguments.LastOrDefault()?.Interval.Finish ?? flow.Position;
+        int lastArgPosition = arguments.LastOrDefault()?.Interval.Finish ?? flow.CurrentTokenFinishPosition;
 
         flow.SkipNewLines();
 
@@ -191,12 +191,12 @@ internal static partial class Errors {
             return new ExprListError(
                 ExprListErrorType.ArgumentIsInvalid,
                 arguments,
-                new Interval(firstToken.Start, flow.Position));
+                new Interval(firstToken.Start, flow.CurrentTokenFinishPosition));
         }
 
 
         var errorStart = lastArgPosition;
-        if (flow.Position == errorStart)
+        if (flow.CurrentTokenStartPosition == errorStart)
             errorStart = arguments.Last().Interval.Start;
         //[x, {y someshit} , ...
         if (!hasAnyBeforeStop)
@@ -205,14 +205,14 @@ internal static partial class Errors {
             return new ExprListError(
                 ExprListErrorType.CloseBracketIsMissing,
                 arguments,
-                new Interval(errorStart, flow.Position));
+                new Interval(errorStart, flow.CurrentTokenFinishPosition));
         }
 
         //Last argument is a part of error
         return new ExprListError(
             ExprListErrorType.LastArgumentIsInvalid,
             arguments,
-            new Interval(arguments.Last().Interval.Start, flow.Position));
+            new Interval(arguments.Last().Interval.Start, flow.CurrentTokenFinishPosition));
     }
 
     private class ExprListError {

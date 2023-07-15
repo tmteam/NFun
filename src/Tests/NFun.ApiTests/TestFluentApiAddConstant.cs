@@ -7,6 +7,7 @@ using NUnit.Framework;
 namespace NFun.ApiTests;
 
 public class TestFluentApiAddConstant {
+
     [Test]
     public void Smoke() {
         var calculator = Funny
@@ -55,14 +56,16 @@ public class TestFluentApiAddConstant {
     public void OutputNameOverridesConstant(string constantName, string varName) {
         var calculator = Funny
             .WithConstant(constantName, 100)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
 
         var lambda = calculator.ToLambda($"{varName}= age");
 
-        var result1 = lambda(new UserInputModel(age: 42));
-        Assert.AreEqual(result1.Id, 42);
-        var result2 = lambda(new UserInputModel(age: 11));
-        Assert.AreEqual(result2.Id, 11);
+        var model = new ContextModel(age: 42);
+        lambda(model);
+        Assert.AreEqual(model.Id, 42);
+        var model2 = new ContextModel(age: 11);
+        lambda(model2);
+        Assert.AreEqual(model2.Id, 11);
     }
 
     [Test]
@@ -70,7 +73,7 @@ public class TestFluentApiAddConstant {
         var calculator = Funny
             .WithConstant("ultra", (Decimal)100.5)
             .WithDialect(realClrType: RealClrType.IsDecimal)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
         AssertConstantSetToDecimalAndDouble(calculator, 100.5);
     }
 
@@ -79,7 +82,7 @@ public class TestFluentApiAddConstant {
         var calculator = Funny
             .WithDialect(realClrType: RealClrType.IsDecimal)
             .WithConstant("ultra", (Decimal)100.5)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
         AssertConstantSetToDecimalAndDouble(calculator, 100.5);
     }
 
@@ -88,7 +91,7 @@ public class TestFluentApiAddConstant {
         var calculator = Funny
             .WithConstant("ultra", (Decimal)100.5)
             .WithDialect(realClrType: RealClrType.IsDecimal)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
         AssertConstantSetToDecimalAndDouble(calculator, 100.5);
     }
 
@@ -97,7 +100,7 @@ public class TestFluentApiAddConstant {
         var calculator = Funny
             .WithDialect(realClrType: RealClrType.IsDouble)
             .WithConstant("ultra", (Decimal)100.5)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
         AssertConstantSetToDecimalAndDouble(calculator, 100.5);
     }
 
@@ -106,7 +109,7 @@ public class TestFluentApiAddConstant {
         var calculator = Funny
             .WithConstant("ultra", (double)100.5)
             .WithDialect(realClrType: RealClrType.IsDecimal)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
         AssertConstantSetToDecimalAndDouble(calculator, 100.5);
     }
 
@@ -115,15 +118,40 @@ public class TestFluentApiAddConstant {
         var calculator = Funny
             .WithDialect(realClrType: RealClrType.IsDecimal)
             .WithConstant("ultra", (double)100.5)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+            .BuildForCalcContext<ContextModel>();
         AssertConstantSetToDecimalAndDouble(calculator, 100.5);
     }
 
-    private static void AssertConstantSetToDecimalAndDouble(ICalculator<UserInputModel, ContractOutputModel> calculator,
+    private static void AssertConstantSetToDecimalAndDouble(IContextCalculator<ContextModel> calculator,
         double expected) {
         var lambda = calculator.ToLambda("Price = ultra; Taxes = ultra ");
-        var result = lambda(new UserInputModel(age: 42));
-        Assert.AreEqual(result.Taxes, (Decimal)expected);
-        Assert.AreEqual(result.Price, expected);
+        var model = new ContextModel(age: 42);
+        lambda(model);
+        Assert.AreEqual(model.Taxes, (Decimal)expected);
+        Assert.AreEqual(model.Price, expected);
+    }
+
+    class ContextModel {
+        public ContextModel(string name = "vasa", int age = 22, double size = 13.5, Decimal balance = Decimal.One,
+            float iq = 50, params int[] ids) {
+            Ids = ids;
+            Name = name;
+            Age = age;
+            Size = size;
+            Iq = iq;
+            Balance = balance;
+        }
+        public int[] Ids { get; }
+        public string Name { get; }
+        public int Age { get; }
+        public double Size { get; }
+        public float Iq { get; }
+        public Decimal Balance { get; }
+
+        public int Id { get; set; } = 123;
+        public string[] Items { get; set; } = { "default" };
+        public double Price { get; set; } = 12.3;
+        public Decimal Taxes { get; set; } = Decimal.One;
+
     }
 }

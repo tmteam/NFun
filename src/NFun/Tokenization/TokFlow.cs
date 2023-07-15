@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NFun.Tokenization; 
+namespace NFun.Tokenization;
 
 public class TokFlow {
     private static readonly Tok PreviousBeforeFlowTok = Tok.New(TokType.NotAToken, 0, 0);
@@ -52,7 +52,7 @@ public class TokFlow {
 
 
     public Tok Peek => PeekNext(1);
-    public int Position
+    public int CurrentTokenFinishPosition
     {
         get
         {
@@ -63,6 +63,19 @@ public class TokFlow {
             return _tokens[^1].Finish;
         }
     }
+
+    public int CurrentTokenStartPosition
+    {
+        get
+        {
+            if (!IsDone)
+                return Current.Start;
+            if (_tokens.Length == 0)
+                return 0;
+            return _tokens[^1].Finish;
+        }
+    }
+
 
     private Tok PeekNext(int offset) {
         if (_tokens.Length <= (CurrentTokenPosition + offset + 1))
