@@ -34,6 +34,9 @@ public static class Funny {
     public static void CalcContext<TContext>(string expression, TContext context)
         => FunnyCalculatorBuilder.Default.CalcContext(expression, context);
 
+    public static void CalcContextNonGeneric(string expression, object context)
+        => FunnyCalculatorBuilder.Default.CalcContextNonGeneric(expression, context);
+
     #endregion
 
 
@@ -62,6 +65,9 @@ public static class Funny {
 
     public static IContextCalculator<TContext> BuildForCalcContext<TContext>()
         => FunnyCalculatorBuilder.Default.BuildForCalcContext<TContext>();
+
+    public static IContextCalculator<object> BuildForCalcContext(Type contextType)
+        => FunnyCalculatorBuilder.Default.BuildForCalcContext(contextType);
 
     #endregion
 

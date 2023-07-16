@@ -114,7 +114,7 @@ internal class NonGenericCalculator<TOutput> : CalculatorBase<object, TOutput> {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override TOutput Run(FunnyRuntime runtime, object input, IFunnyVar outVariable) {
-        
+
         FluentApiTools.SetInputValues(runtime, InputsMap, input);
         runtime.Run();
         return (TOutput)_outputConverter.ToClrObject(outVariable.FunnyValue);
@@ -154,18 +154,17 @@ internal class Calculator<TInput, TOutput> : CalculatorBase<TInput, TOutput> {
     }
 }
 
-internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
+
+
+internal class ContextCalculatorBase<TContext> : IContextCalculator<TContext> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<OutputProperty> _outputsMap;
-    private readonly Memory<InputProperty> _inputsMap;
+    protected readonly Memory<OutputProperty> _outputsMap;
+    protected readonly Memory<InputProperty> _inputsMap;
 
-    public ContextCalculator(FunnyCalculatorBuilder builder) {
+    public ContextCalculatorBase(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
-
-        _outputsMap = _mutableApriori.AddManyAprioriOutputs<TContext>(builder.Dialect);
-        _inputsMap = _mutableApriori.AddAprioriInputs<TContext>(builder.Dialect.Converter, ignoreIfHasSetter: true);
     }
 
     public void Calc(string expression, TContext context) => ToLambda(expression)(context);
@@ -201,6 +200,64 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
         var settedCount = FluentApiTools.SetResultsToModel(runtime, _outputsMap, context);
         if (settedCount == 0)
             throw Errors.NoOutputVariablesSetted(_outputsMap);
+    }
+}
+
+public static class ContextCalculator {
+    public static IContextCalculator<TContext> Create<TContext>(FunnyCalculatorBuilder builder) =>
+        new PrivateContextCalculator<TContext>(builder, typeof(TContext));
+
+    public static IContextCalculator<object> Create(FunnyCalculatorBuilder builder, Type type) =>
+        new PrivateContextCalculator<object>(builder, type);
+
+    private class PrivateContextCalculator<TContext> : IContextCalculator<TContext> {
+        private readonly FunnyCalculatorBuilder _builder;
+        private readonly MutableAprioriTypesMap _mutableApriori;
+        private readonly Memory<OutputProperty> _outputsMap;
+        private readonly Memory<InputProperty> _inputsMap;
+
+        public PrivateContextCalculator(FunnyCalculatorBuilder builder, Type contextType) {
+            _builder = builder;
+            _mutableApriori = new MutableAprioriTypesMap();
+
+            _outputsMap = _mutableApriori.AddManyAprioriOutputs(contextType, builder.Dialect);
+            _inputsMap = _mutableApriori.AddAprioriInputs(contextType, builder.Dialect.Converter, ignoreIfHasSetter: true);
+        }
+
+        public void Calc(string expression, TContext context) => ToLambda(expression)(context);
+
+        public Action<TContext> ToLambda(string expression) {
+            var runtime = _builder.CreateRuntime(expression, _mutableApriori);
+            FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
+            int isRunning = 0;
+            return context => {
+                if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+                {
+                    // if runtime already run - create runtime copy, and run it
+                    Run(runtime.Clone(), context);
+                }
+                else
+                {
+                    try
+                    {
+                        Run(runtime, context);
+                    }
+                    finally
+                    {
+                        isRunning = 0;
+                    }
+                }
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Run(FunnyRuntime runtime, TContext context) {
+            FluentApiTools.SetInputValues(runtime, _inputsMap, context);
+            runtime.Run();
+            var settedCount = FluentApiTools.SetResultsToModel(runtime, _outputsMap, context);
+            if (settedCount == 0)
+                throw Errors.NoOutputVariablesSetted(_outputsMap);
+        }
     }
 }
 

@@ -71,9 +71,13 @@ public static class ConcurrentTestsHelper {
         where TContext : ICloneable {
         var results = new ConcurrentQueue<object>();
         var calculator = Funny.BuildForCalcContext<TContext>();
+        var calculatorNonGeneric = Funny.BuildForCalcContext(typeof(TContext));
 
         var action1 = calculator.ToLambda(expr);
         var action2 = calculator.ToLambda(expr);
+
+        var actionNonGeneric1 = calculatorNonGeneric.ToLambda(expr);
+        var actionNonGeneric2 = calculatorNonGeneric.ToLambda(expr);
 
         Parallel.ForEach(Enumerable.Range(0, TestsConcurrentDegree), _ => {
             for (int i = 0; i < TestsConcurrentDegree; i++)
@@ -112,6 +116,41 @@ public static class ConcurrentTestsHelper {
                 var c8 = (TContext)origin.Clone();
                 results.Enqueue(c8);
                 calculator2.ToLambda(expr)(c8);
+
+                var c9 = (TContext)origin.Clone();
+                results.Enqueue(c1);
+                calculatorNonGeneric.Calc(expr, c9);
+
+                var c10 = (TContext)origin.Clone();
+                results.Enqueue(c10);
+                calculatorNonGeneric.Calc(expr, c10);
+
+                var c11 = (TContext)origin.Clone();
+                results.Enqueue(c11);
+                actionNonGeneric1(c11);
+
+                var c12 = (TContext)origin.Clone();
+                results.Enqueue(c12);
+                actionNonGeneric1(c12);
+
+                var c13 = (TContext)origin.Clone();
+                results.Enqueue(c13);
+                actionNonGeneric2(c13);
+
+                var actionNonGeneric3 = calculatorNonGeneric.ToLambda(expr);
+                var c14 = (TContext)origin.Clone();
+                results.Enqueue(c14);
+                actionNonGeneric3(c14);
+
+                var calculatorNonGeneric2 = Funny.BuildForCalcContext(typeof(TContext));
+
+                var c15 = (TContext)origin.Clone();
+                results.Enqueue(c15);
+                calculatorNonGeneric2.Calc(expr, c15);
+
+                var c16 = (TContext)origin.Clone();
+                results.Enqueue(c16);
+                calculatorNonGeneric2.ToLambda(expr)(c16);
             }
         });
         AssertAll(expected, results);

@@ -107,7 +107,10 @@ public class FunnyCalculatorBuilder {
         new ManyConstantsCalculator<TOutput>(this);
 
     public IContextCalculator<TContext> BuildForCalcContext<TContext>() =>
-        new ContextCalculator<TContext>(this);
+        ContextCalculator.Create<TContext>(this);
+
+    public IContextCalculator<object> BuildForCalcContext(Type contextType) =>
+        ContextCalculator.Create(this, contextType);
 
     public object Calc(string expression) =>
         BuildForCalcConstant().Calc(expression);
@@ -132,6 +135,9 @@ public class FunnyCalculatorBuilder {
 
     public void CalcContext<TContext>(string expression, TContext context) =>
         BuildForCalcContext<TContext>().Calc(expression, context);
+
+    public void CalcContextNonGeneric(string expression, object context) =>
+        BuildForCalcContext(context.GetType()).Calc(expression, context);
 
     internal FunnyRuntime CreateRuntime(string expression, IAprioriTypesMap aprioriTypes) {
         IConstantList constants = null;

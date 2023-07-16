@@ -109,7 +109,7 @@ public class ApiUsageExamples {
         // then we can set the 'Adult' and 'Price' properties based on the value of the 'Age' and 'Cars' properties
         Funny.CalcContext(
             @"adult = age>18
-              price = cars.sum(rule it.price)",context);
+              price = cars.sum(rule it.price)", context);
         Assert.AreEqual(true, context.Adult);
         Assert.AreEqual(12200, context.Price);
         // So input values and output values are properties of the same object

@@ -40,9 +40,15 @@ internal static class FluentApiTools {
 
     internal static Memory<OutputProperty> AddManyAprioriOutputs<TOutput>(
         this MutableAprioriTypesMap aprioriTypesMap,
+        DialectSettings dialectSettings) =>
+        AddManyAprioriOutputs(aprioriTypesMap, typeof(TOutput), dialectSettings);
+
+    internal static Memory<OutputProperty> AddManyAprioriOutputs(
+        this MutableAprioriTypesMap aprioriTypesMap,
+        Type outputType,
         DialectSettings dialectSettings) {
 
-        var outputPropertyInfos = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        var outputPropertyInfos = outputType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var outputs = new OutputProperty[outputPropertyInfos.Length];
         int actualOutputsCount = 0;
         foreach (var outputProperty in outputPropertyInfos)
@@ -76,9 +82,16 @@ internal static class FluentApiTools {
     public static Memory<InputProperty> AddAprioriInputs<TInput>(
         this MutableAprioriTypesMap mutableApriori,
         FunnyConverter funnyConverter,
+        bool ignoreIfHasSetter = false) =>
+        AddAprioriInputs(mutableApriori, typeof(TInput), funnyConverter, ignoreIfHasSetter);
+
+    public static Memory<InputProperty> AddAprioriInputs(
+        this MutableAprioriTypesMap mutableApriori,
+        Type inputType,
+        FunnyConverter funnyConverter,
         bool ignoreIfHasSetter = false) {
 
-        var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        var inputProperties = inputType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var inputTypes = new InputProperty[inputProperties.Length];
         int actualInputsCount = 0;
 

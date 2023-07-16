@@ -141,11 +141,11 @@ public class TestFluentApiCalcContext {
             origin, expected);
     }
 
+
     private void CalcInDifferentWays<TContext>(string expr, TContext origin, TContext expected)
         where TContext : ICloneable {
         var c1 = (TContext)origin.Clone();
         Funny.CalcContext(expr, c1);
-
 
         var calculator = Funny.BuildForCalcContext<TContext>();
 
@@ -189,7 +189,53 @@ public class TestFluentApiCalcContext {
         FunnyAssert.AreSame(expected, c7);
         FunnyAssert.AreSame(expected, c8);
         FunnyAssert.AreSame(expected, c9);
+
+        //test non generic version:
+
+        var cg1 = (TContext)origin.Clone();
+        Funny.CalcContextNonGeneric(expr, cg1);
+
+        var calculatorg = Funny.BuildForCalcContext(typeof(TContext));
+
+        var cg2 = (TContext)origin.Clone();
+        calculatorg.Calc(expr, cg2);
+
+        var cg3 = (TContext)origin.Clone();
+        calculatorg.Calc(expr, cg3);
+
+
+        var calculatorg2 = Funny.WithDialect(
+            IfExpressionSetup.IfIfElse,
+            IntegerPreferredType.I32,
+            RealClrType.IsDouble,
+            IntegerOverflow.Checked).BuildForCalcContext(typeof(TContext));
+
+        var cg4 = (TContext)origin.Clone();
+        calculatorg2.Calc(expr, cg4);
+
+        var cg5 = (TContext)origin.Clone();
+        calculatorg2.Calc(expr, cg5);
+
+        var actiong1 = calculatorg2.ToLambda(expr);
+        var cg6 = (TContext)origin.Clone();
+        actiong1(cg6);
+        var cg7 = (TContext)origin.Clone();
+        actiong1(cg7);
+
+        var actiong2 = calculatorg2.ToLambda(expr);
+        var cg8 = (TContext)origin.Clone();
+        actiong2(cg8);
+        var cg9 = (TContext)origin.Clone();
+        actiong2(cg9);
+
+        FunnyAssert.AreSame(expected, cg1);
+        FunnyAssert.AreSame(expected, cg2);
+        FunnyAssert.AreSame(expected, cg3);
+        FunnyAssert.AreSame(expected, cg4);
+        FunnyAssert.AreSame(expected, cg5);
+        FunnyAssert.AreSame(expected, cg6);
+        FunnyAssert.AreSame(expected, cg7);
+        FunnyAssert.AreSame(expected, cg8);
+        FunnyAssert.AreSame(expected, cg9);
     }
-
-
 }
