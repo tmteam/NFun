@@ -338,6 +338,26 @@ public class StructBodyTest {
          "d = {e = 'lala'; f = a};" +
          "y = d.f.b[1]")
         .AssertResultHas("y", 2);
+    //todo - start debug from here
+    [Test]
+    public void ConstAccessDoubleNestedCreatedComposite2() {
+        TraceLog.IsEnabled = true;
+
+        ("a = {b= [1]};" +
+         "d = {f = a};" +
+         "y = d.f.b[0]")
+            .AssertResultHas("y", 1);
+    }
+
+    [Test]
+    public void ConstAccessDoubleNestedCreatedComposite3() {
+        TraceLog.IsEnabled = true;
+
+        (
+         "d = {f = {b= [1]}};" +
+         "y = d.f.b[0]")
+            .AssertResultHas("y", 1);
+    }
 
     [Test]
     public void ConstAccessDoubleNestedCreated() => "d = {f = {b= 2.0}}; y = d.f.b".AssertResultHas("y", 2.0);
