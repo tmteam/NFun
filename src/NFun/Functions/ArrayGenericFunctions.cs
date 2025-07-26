@@ -6,7 +6,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
-namespace NFun.Functions; 
+namespace NFun.Functions;
 
 public class LastFunction : GenericFunctionBase {
     public LastFunction() : base(
@@ -63,7 +63,7 @@ public class MapFunction : GenericFunctionBase {
         return res;
     }
 
-    class ConcreteMap : FunctionWithTwoArgs {
+    private class ConcreteMap : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
             var arr = (IFunnyArray)a;
             var type = ReturnType.ArrayTypeSpecification.FunnyType;
@@ -94,7 +94,7 @@ public class MultiMapSumFunction : GenericFunctionBase {
                            BaseFunnyType.Int32  => new ConcreteMapSumBase((a, b) => (Int32)a + (Int32)b, 0),
                            BaseFunnyType.Int64  => new ConcreteMapSumBase((a, b) => (Int64)a + (Int64)b, (Int64)0),
                            BaseFunnyType.Real => context.RealTypeSelect(
-                               ifIsDouble: new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0), 
+                               ifIsDouble: new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0),
                                ifIsDecimal: new ConcreteMapSumBase((a, b) => (decimal)a + (decimal)b, (decimal)0)),
                            _ => throw new ArgumentOutOfRangeException()
                        };
@@ -104,7 +104,7 @@ public class MultiMapSumFunction : GenericFunctionBase {
         return concrete;
     }
 
-    class ConcreteMapSumBase : FunctionWithTwoArgs {
+    private class ConcreteMapSumBase : FunctionWithTwoArgs {
         private readonly Func<object, object, object> _solver;
         private readonly object _defaultValue;
 
@@ -158,15 +158,15 @@ public class SliceWithStepGenericFunctionDefinition : GenericFunctionBase {
         FunnyType.Int32) { }
 
     protected override object Calc(object[] args) {
-        var start = ((int)args[1]);
+        var start = (int)args[1];
         if (start < 0)
             throw new FunnyRuntimeException("Argument out of range");
-        var end = ((int)args[2]);
+        var end = (int)args[2];
         if (end < 0)
             throw new FunnyRuntimeException("Argument out of range");
         if (end != 0 && start > end)
             throw new FunnyRuntimeException("Start cannot be more than end");
-        var step = ((int)args[3]);
+        var step = (int)args[3];
         if (step < 0)
             throw new FunnyRuntimeException("Argument out of range");
         if (step == 0)
@@ -209,7 +209,7 @@ public class SortMapFunction : GenericFunctionBase {
     public SortMapFunction() : base(
         "sort", new[] { GenericConstrains.Any, GenericConstrains.Comparable },
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.ArrayOf(FunnyType.Generic(0)), 
+        FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     protected override object Calc(object[] args) {
@@ -224,7 +224,7 @@ public class SortMapDescendingFunction : GenericFunctionBase {
     public SortMapDescendingFunction() : base(
         "sortDescending", new[] { GenericConstrains.Any, GenericConstrains.Comparable },
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.ArrayOf(FunnyType.Generic(0)), 
+        FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     protected override object Calc(object[] args) {
@@ -254,9 +254,7 @@ public class MedianFunction : GenericFunctionBase {
         int count = temp.Length;
         if (count == 0)
             throw new InvalidOperationException("Empty collection");
-        if (count % 2 == 0)
-            return temp[count / 2 - 1];
-        return temp[count / 2];
+        return temp[(count - 1) / 2];
     }
 }
 
@@ -315,7 +313,7 @@ public class GetGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         FunnyType.Int32) { }
 
     protected override object Calc(object a, object b) {
-        var index = ((int)b);
+        var index = (int)b;
         if (index < 0)
             throw new FunnyRuntimeException("Argument out of range");
 
@@ -339,7 +337,7 @@ public class SetGenericFunctionDefinition : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var arr = (IFunnyArray)args[0];
 
-        var index = ((int)args[1]);
+        var index = (int)args[1];
         if (index < 0)
             throw new FunnyRuntimeException("Argument out of range");
         if (index > arr.Count + 1)
@@ -384,18 +382,25 @@ public class ChunkGenericFunctionDefinition : GenericFunctionWithTwoArguments {
 
     protected override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;
-        var chunkSize = ((int)b);
+        var chunkSize = (int)b;
         if (chunkSize <= 0)
-            throw new FunnyRuntimeException("Chunk size is " + chunkSize + ". It has to be positive");
+            throw new FunnyRuntimeException($"Chunk size is {chunkSize}. It has to be positive");
 
-        var originInputType = FunnyType.ArrayOf(arr.ElementType);
-        //todo performance
-        var res = arr
-                  .Select((x, i) => new { Index = i, Value = x })
-                  .GroupBy(x => x.Index / chunkSize)
-                  .Select(x => new EnumerableFunnyArray(x.Select(v => v.Value), originInputType));
-        return new EnumerableFunnyArray(res, FunnyType.ArrayOf(originInputType));
+        var elementType = arr.ElementType;
+        var result = new List<IFunnyArray>();
+
+        int i = 0;
+        while (i < arr.Count) {
+            int size = Math.Min(chunkSize, arr.Count - i);
+            var chunk = new object[size];
+            Array.Copy(arr.ClrArray, i, chunk, 0, size);
+            result.Add(new ImmutableFunnyArray(chunk, elementType));
+            i += size;
+        }
+
+        return new EnumerableFunnyArray(result, FunnyType.ArrayOf(FunnyType.ArrayOf(elementType)));
     }
+
 }
 
 public class FlatGenericFunctionDefinition : GenericFunctionWithSingleArgument {
@@ -419,16 +424,16 @@ public class FoldGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.FunOf(FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0))) { }
 
-    protected override object Calc(object arg1, object arg2) {
-        var arr = (IFunnyArray)arg1;
+    protected override object Calc(object a, object b) {
+        var arr = (IFunnyArray)a;
         if (arr.Count == 0)
             throw new FunnyRuntimeException("Input array is empty");
-        if (arg2 is FunctionWithTwoArgs fold2)
-            return arr.Aggregate((a, b) => fold2.Calc(a, b));
+        if (b is FunctionWithTwoArgs fold2)
+            return arr.Aggregate((l, r) => fold2.Calc(l, r));
 
-        var fold = (IConcreteFunction)arg2;
+        var fold = (IConcreteFunction)b;
 
-        return arr.Aggregate((a, b) => fold.Calc(new[] { a, b }));
+        return arr.Aggregate((l, r) => fold.Calc(new[] { l, r }));
     }
 }
 
@@ -631,7 +636,7 @@ public class RepeatGenericFunctionDefinition : GenericFunctionBase {
         return res;
     }
 
-    class ConcreteRepeat : FunctionWithTwoArgs {
+    private class ConcreteRepeat : FunctionWithTwoArgs {
         public override object Calc(object a, object b)
             => new EnumerableFunnyArray(Enumerable.Repeat(a, (int)b), this.ArgTypes[0]);
     }
@@ -657,7 +662,7 @@ public class TakeGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         FunnyType.Int32) { }
 
     protected override object Calc(object a, object b)
-        => ((IFunnyArray)a).Slice(null, ((int)b) - 1, 1);
+        => ((IFunnyArray)a).Slice(null, (int)b - 1, 1);
 }
 
 public class SkipGenericFunctionDefinition : GenericFunctionWithTwoArguments {
@@ -668,5 +673,5 @@ public class SkipGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         FunnyType.Int32) { }
 
     protected override object Calc(object a, object b)
-        => ((IFunnyArray)a).Slice(((int)b), null, 1);
+        => ((IFunnyArray)a).Slice((int)b, null, 1);
 }

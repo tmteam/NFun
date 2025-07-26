@@ -63,6 +63,26 @@ public class TextTest {
     [TestCase("y = 'a b '.concat((1+2).toText()).split(' ')", new[] { "a", "b", "3" })]
     [TestCase("y = 'a b c'.split(' ')", new[] { "a", "b", "c" })]
     [TestCase("y = 'a b '.concat('c').split(' ')", new[] { "a", "b", "c" })]
+    [TestCase("y = 'a b '.split('')", new[] { "a", " ", "b", " "})]
+    [TestCase("y = ''.toUpper()", "")]
+    [TestCase("y = 'abcDEF'.toUpper()", "ABCDEF")]
+    [TestCase("y = ''.toLower()", "")]
+    [TestCase("y = 'abcDEF'.toLower()", "abcdef")]
+
+    [TestCase("y = '  padded  '.trim()", "padded")]
+    [TestCase("y = '  padded  '.trimStart()", "padded  ")]
+    [TestCase("y = '  padded  '.trimEnd()", "  padded")]
+
+    [TestCase("y = ['a','b','c'].join(',')", "a,b,c")]
+    [TestCase("y = ['a','b','c'].join('')", "abc")]
+    [TestCase("y = [].join(',')", "")]
+    [TestCase("y = [''].join(',')", "")]
+
+    [TestCase("y = 'a,b,c'.split(',')", new[] { "a", "b", "c" })]
+    [TestCase("y = 'a,,c'.split(',')", new[] { "a", "c" })]  // removeEmptyEntries
+    [TestCase("y = 'a b c'.split(' ')", new[] { "a", "b", "c" })]
+    [TestCase("y = 'abc'.split('')", new[] { "a", "b", "c" })]
+    [TestCase("y = ''.split(',')", new string[0])]
     public void TextConstantEquation(string expr, object expected) => expr.AssertReturns(expected);
 
     [TestCase(42, "y = x.toText().concat('lalala')", "42lalala")]

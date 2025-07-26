@@ -145,7 +145,7 @@ internal static class Helper {
     public static bool ValueEquals<TKey, TValue>(this Dictionary<TKey, TValue> dict1, Dictionary<TKey, TValue> dict2)
     {
         if (dict1 == dict2) return true;
-        if ((dict1 == null) || (dict2 == null)) return false;
+        if (dict1 == null || dict2 == null) return false;
         if (dict1.Count != dict2.Count) return false;
 
         var valueComparer = EqualityComparer<TValue>.Default;
@@ -158,65 +158,4 @@ internal static class Helper {
         }
         return true;
     }
-}
-//netstandard 2.0 tuple deconstruct helper extension
-static class KvpExtensions
-{
-    public static void Deconstruct<TKey, TValue>(
-        this KeyValuePair<TKey, TValue> kvp,
-        out TKey key,
-        out TValue value)
-    {
-        key = kvp.Key;
-        value = kvp.Value;
-    }
-}
-
-static class QueueExtensions
-{
-    public static bool TryPeek<TValue>(
-        this Queue<TValue> queue,
-        out TValue result)
-    {
-        if (queue.IsEmpty())
-        {
-            result = default;
-            return false;
-        }
-        result = queue.Peek();
-        return true;
-    }
-}
-
-internal static class DictionaryExtensions
-{
-    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key) {
-        if (dictionary.TryGetValue(key, out var value))
-            return value;
-        else
-            return default;
-    }
-    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue) {
-        if (dictionary.TryGetValue(key, out var value))
-            return value;
-        else
-            return default;
-    }
-
-    //Remove this method when old framework support will be removed, as it is not very fast
-    public static bool TryAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value) {
-#if DEBUG
-        if (dictionary == null)
-            throw new ArgumentNullException(nameof(dictionary));
-#endif
-
-        if (!dictionary.ContainsKey(key))
-        {
-            dictionary.Add(key, value);
-            return true;
-        }
-
-        return false;
-    }
-
 }

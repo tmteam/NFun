@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>1.0.2</PackageVersion>
-    <Version>1.0.2</Version>
+    <PackageVersion>1.0.3</PackageVersion>
+    <Version>1.0.3</Version>
     <LangVersion>10</LangVersion>
     <Title>NFun</Title>
     <Authors>tmteam</Authors>
     <Description>Expressions Evaluator for .NET</Description>
-    <Copyright>Copyright 2023</Copyright>
+    <Copyright>Copyright 2025</Copyright>
     <PackageProjectUrl>https://github.com/tmteam/NFun</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>Icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
     <PackageTags>Not a functional intepritable language</PackageTags>
     <PackageReleaseNotes>Strong named assembly. net8 support.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
+    <AssemblyVersion>1.0.3</AssemblyVersion>
+    <FileVersion>1.0.3</FileVersion>
     <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

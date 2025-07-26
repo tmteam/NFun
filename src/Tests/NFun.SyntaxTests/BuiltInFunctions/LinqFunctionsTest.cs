@@ -123,6 +123,15 @@ class LinqFunctionsTest {
     [TestCase("y = [0..1].chunk(7) == [[0,1]]", true)]
     [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]", true)]
     [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]", true)]
+    [TestCase("y = [].chunk(3) == []", true)]
+    [TestCase("y = [1].chunk(5) == [[1]]", true)]
+    [TestCase("y = [1,2,3,4].chunk(2) == [[1,2],[3,4]]", true)]
+    [TestCase("y = [1,2,3].chunk(3) == [[1,2,3]]", true)]
+    [TestCase("y = [1,2,3].chunk(10) == [[1,2,3]]", true)]
+    [TestCase("y = [].chunk(10).flat() == []", true)]
+    [TestCase("y = [42].chunk(1) == [[42]]", true)]
+    [TestCase("y = [1,2,3,4,5].chunk(2) == [[1,2],[3,4],[5]]", true)]
+
     [TestCase("y = [true,false,true].map(toText).join(', ')", "True, False, True")]
     [TestCase("y = [1,2,3,4].map(toText).join(', ')", "1, 2, 3, 4")]
     [TestCase("y = ['1','2','3','4'].join(', ')", "1, 2, 3, 4")]
@@ -141,6 +150,8 @@ class LinqFunctionsTest {
     public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 
+    [TestCase("y = [1,2,3].chunk(0)")]
+    [TestCase("y = [1,2,3].chunk(-1)")]
     [TestCase("y = [1..100].chunk(-1)")]
     [TestCase("y = [1..100].chunk(0)")]
     [TestCase(

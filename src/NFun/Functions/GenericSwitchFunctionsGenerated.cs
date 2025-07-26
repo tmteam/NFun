@@ -668,37 +668,37 @@ public class BitInverseFunction : PureGenericFunctionBase {
       
                 private class UInt8Function : FunctionWithSingleArg {  
                     public static UInt8Function Instance = new UInt8Function();
-                    public override object Calc(object a) => (byte)(~((byte)a)); 
+                    public override object Calc(object a) => (byte)~(byte)a; 
                 }
       
                 private class UInt16Function : FunctionWithSingleArg {  
                     public static UInt16Function Instance = new UInt16Function();
-                    public override object Calc(object a) => (UInt16)(~((UInt16)a)); 
+                    public override object Calc(object a) => (UInt16)(~(UInt16)a); 
                 }
       
                 private class UInt32Function : FunctionWithSingleArg {  
                     public static UInt32Function Instance = new UInt32Function();
-                    public override object Calc(object a) => (UInt32)(~((UInt32)a)); 
+                    public override object Calc(object a) => (UInt32)(~(UInt32)a); 
                 }
       
                 private class UInt64Function : FunctionWithSingleArg {  
                     public static UInt64Function Instance = new UInt64Function();
-                    public override object Calc(object a) => (UInt64)(~((UInt64)a)); 
+                    public override object Calc(object a) => (UInt64)(~(UInt64)a); 
                 }
       
                 private class Int16Function : FunctionWithSingleArg {  
                     public static Int16Function Instance = new Int16Function();
-                    public override object Calc(object a) => (Int16)(~((Int16)a)); 
+                    public override object Calc(object a) => (Int16)(~(Int16)a); 
                 }
       
                 private class Int32Function : FunctionWithSingleArg {  
                     public static Int32Function Instance = new Int32Function();
-                    public override object Calc(object a) => (Int32)(~((Int32)a)); 
+                    public override object Calc(object a) => (Int32)(~(Int32)a); 
                 }
       
                 private class Int64Function : FunctionWithSingleArg {  
                     public static Int64Function Instance = new Int64Function();
-                    public override object Calc(object a) => (Int64)(~((Int64)a)); 
+                    public override object Calc(object a) => (Int64)(~(Int64)a); 
                 }
 }
 
@@ -722,27 +722,27 @@ public class NegateFunction : PureGenericFunctionBase {
       
                 private class Int16Function : FunctionWithSingleArg {  
                     public static Int16Function Instance = new Int16Function();
-                    public override object Calc(object a) => (Int16)(-((Int16)a)); 
+                    public override object Calc(object a) => (Int16)(-(Int16)a); 
                 }
       
                 private class Int32Function : FunctionWithSingleArg {  
                     public static Int32Function Instance = new Int32Function();
-                    public override object Calc(object a) => (Int32)(-((Int32)a)); 
+                    public override object Calc(object a) => (Int32)(-(Int32)a); 
                 }
       
                 private class Int64Function : FunctionWithSingleArg {  
                     public static Int64Function Instance = new Int64Function();
-                    public override object Calc(object a) => (Int64)(-((Int64)a)); 
+                    public override object Calc(object a) => (Int64)(-(Int64)a); 
                 }
       
                 private class DoubleFunction : FunctionWithSingleArg {  
                     public static DoubleFunction Instance = new DoubleFunction();
-                    public override object Calc(object a) => (Double)(-((Double)a)); 
+                    public override object Calc(object a) => (Double)(-(Double)a); 
                 }
       
                 private class DecimalFunction : FunctionWithSingleArg {  
                     public static DecimalFunction Instance = new DecimalFunction();
-                    public override object Calc(object a) => (Decimal)(-((Decimal)a)); 
+                    public override object Calc(object a) => (Decimal)(-(Decimal)a); 
                 }
 }
 
@@ -766,27 +766,27 @@ public class AbsFunction : PureGenericFunctionBase {
       
                 private class Int16Function : FunctionWithSingleArg {  
                     public static Int16Function Instance = new Int16Function();
-                    public override object Calc(object a) => (Int16)(Math.Abs((Int16)a)); 
+                    public override object Calc(object a) => (Int16)Math.Abs((Int16)a); 
                 }
       
                 private class Int32Function : FunctionWithSingleArg {  
                     public static Int32Function Instance = new Int32Function();
-                    public override object Calc(object a) => (Int32)(Math.Abs((Int32)a)); 
+                    public override object Calc(object a) => (Int32)Math.Abs((Int32)a); 
                 }
       
                 private class Int64Function : FunctionWithSingleArg {  
                     public static Int64Function Instance = new Int64Function();
-                    public override object Calc(object a) => (Int64)(Math.Abs((Int64)a)); 
+                    public override object Calc(object a) => (Int64)Math.Abs((Int64)a); 
                 }
       
                 private class DoubleFunction : FunctionWithSingleArg {  
                     public static DoubleFunction Instance = new DoubleFunction();
-                    public override object Calc(object a) => (Double)(Math.Abs((Double)a)); 
+                    public override object Calc(object a) => (Double)Math.Abs((Double)a); 
                 }
       
                 private class DecimalFunction : FunctionWithSingleArg {  
                     public static DecimalFunction Instance = new DecimalFunction();
-                    public override object Calc(object a) => (Decimal)(Math.Abs((Decimal)a)); 
+                    public override object Calc(object a) => (Decimal)Math.Abs((Decimal)a); 
                 }
 }
 

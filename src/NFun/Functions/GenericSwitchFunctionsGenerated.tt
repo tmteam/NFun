@@ -70,7 +70,7 @@ namespace NFun.Functions {
     //TwoArgs:
 
     void WriteTwoArgFunction(string className,  string[] types, string op, string name = null, bool overflowIntegers = false) {
-        var realName = name ?? ("CoreFunNames." + className);
+        var realName = name ?? "CoreFunNames." + className;
         #>public class <#=className#>Function : PureGenericFunctionBase {
     // GENERATED
     public <#=className#>Function() : base(<#=realName#>, <#=GetConstrainsName(types)#>, 2) { }

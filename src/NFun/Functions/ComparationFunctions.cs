@@ -24,10 +24,10 @@ public class MoreFunction : GenericFunctionWithTwoArguments {
         CoreFunNames.More, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
         FunnyType.Generic(0)) { }
 
-    protected override object Calc(object arg1, object arg2) {
-        var a = (IComparable)arg1;
-        var b = (IComparable)arg2;
-        return a.CompareTo(b) > 0;
+    protected override object Calc(object a, object b) {
+        var left = (IComparable)a;
+        var right = (IComparable)b;
+        return left.CompareTo(right) > 0;
     }
 }
 
@@ -36,10 +36,10 @@ public class MoreOrEqualFunction : GenericFunctionWithTwoArguments {
         CoreFunNames.MoreOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
-    protected override object Calc(object arg1, object arg2) {
-        var a = (IComparable)arg1;
-        var b = (IComparable)arg2;
-        return a.CompareTo(b) >= 0;
+    protected override object Calc(object a, object b) {
+        var left = (IComparable)a;
+        var right = (IComparable)b;
+        return left.CompareTo(right) >= 0;
     }
 }
 
@@ -48,9 +48,9 @@ public class LessFunction : GenericFunctionWithTwoArguments {
         CoreFunNames.Less, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
         FunnyType.Generic(0)) { }
 
-    protected override object Calc(object arg1, object arg2) {
-        var left = (IComparable)arg1;
-        var right = (IComparable)arg2;
+    protected override object Calc(object a, object b) {
+        var left = (IComparable)a;
+        var right = (IComparable)b;
         return left.CompareTo(right) < 0;
     }
 }
@@ -60,10 +60,10 @@ public class LessOrEqualFunction : GenericFunctionWithTwoArguments {
         CoreFunNames.LessOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
-    protected override object Calc(object arg1, object arg2) {
-        var a = (IComparable)arg1;
-        var b = (IComparable)arg2;
-        return a.CompareTo(b) <= 0;
+    protected override object Calc(object a, object b) {
+        var left = (IComparable)a;
+        var right = (IComparable)b;
+        return left.CompareTo(right) <= 0;
     }
 }
 
@@ -77,11 +77,11 @@ public class MinFunction : PureGenericFunctionBase {
         return function;
     }
 
-    class MinConcreteFunction : FunctionWithTwoArgs {
+    private class MinConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            var arg1 = (IComparable)a;
-            var arg2 = (IComparable)b;
-            return arg1.CompareTo(arg2) > 0 ? b : a;
+            var left = (IComparable)a;
+            var right = (IComparable)b;
+            return left.CompareTo(right) > 0 ? b : a;
         }
     }
 }
@@ -96,7 +96,7 @@ public class MaxFunction : PureGenericFunctionBase {
         return function;
     }
 
-    class MaxConcreteFunction : FunctionWithTwoArgs {
+    private class MaxConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
             var arg1 = (IComparable)a;
             var arg2 = (IComparable)b;

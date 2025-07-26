@@ -274,8 +274,8 @@ public class RangeFunction : GenericFunctionBase {
 
         public override object Calc(object a, object b)
         {
-            var start = ((int) a);
-            var end = ((int) b);
+            var start = (int) a;
+            var end = (int) b;
             int[] result;
             if (start < end)
             {
@@ -328,8 +328,8 @@ public class RangeFunction : GenericFunctionBase {
 
         public override object Calc(object a, object b)
         {
-            var start = ((byte) a);
-            var end = ((byte) b);
+            var start = (byte) a;
+            var end = (byte) b;
             
             byte[] result;
             if (start < end)
@@ -389,8 +389,8 @@ public class RangeFunction : GenericFunctionBase {
 
         public override object Calc(object a, object b)
         {
-            var start = ((uint) a);
-            var end = ((uint) b);
+            var start = (uint) a;
+            var end = (uint) b;
             uint[] result;
             if (start < end)
             {
@@ -547,9 +547,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((int) args[0]);
-            var end = ((int) args[1]);
-            var step = ((int) args[2]);
+            var start = (int) args[0];
+            var end = (int) args[1];
+            var step = (int) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -574,9 +574,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((int) args[0]);
-            var end = ((int) args[1]);
-            var step = ((int) args[2]);
+            var start = (int) args[0];
+            var end = (int) args[1];
+            var step = (int) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -601,9 +601,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((long) args[0]);
-            var end = ((long) args[1]);
-            var step = ((long) args[2]);
+            var start = (long) args[0];
+            var end = (long) args[1];
+            var step = (long) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -628,9 +628,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((byte) args[0]);
-            var end = ((byte) args[1]);
-            var step = ((byte) args[2]);
+            var start = (byte) args[0];
+            var end = (byte) args[1];
+            var step = (byte) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -655,9 +655,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((ushort) args[0]);
-            var end = ((ushort) args[1]);
-            var step = ((ushort) args[2]);
+            var start = (ushort) args[0];
+            var end = (ushort) args[1];
+            var step = (ushort) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -682,9 +682,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((UInt32) args[0]);
-            var end = ((UInt32) args[1]);
-            var step = ((uint) args[2]);
+            var start = (UInt32) args[0];
+            var end = (UInt32) args[1];
+            var step = (uint) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -709,9 +709,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((ulong) args[0]);
-            var end = ((ulong) args[1]);
-            var step = ((ulong) args[2]);
+            var start = (ulong) args[0];
+            var end = (ulong) args[1];
+            var step = (ulong) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -736,9 +736,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((double) args[0]);
-            var end = ((double) args[1]);
-            var step = ((double) args[2]);
+            var start = (double) args[0];
+            var end = (double) args[1];
+            var step = (double) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
@@ -764,9 +764,9 @@ public class RangeStepFunction : GenericFunctionBase {
 
         public override object Calc(object[] args)
         {
-            var start = ((decimal) args[0]);
-            var end = ((decimal) args[1]);
-            var step = ((decimal) args[2]);
+            var start = (decimal) args[0];
+            var end = (decimal) args[1];
+            var step = (decimal) args[2];
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
