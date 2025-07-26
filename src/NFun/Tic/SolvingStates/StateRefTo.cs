@@ -20,18 +20,6 @@ public class StateRefTo : ITicNodeState {
 
     public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
         primitive.Equals(StatePrimitive.Any);
-
-    public string PrintState(int depth) {
-        if (depth > 100)
-            return "ref(...REQ...)";
-        return $"ref({Node.State.PrintState(depth + 1)})";
-    }
-
-    public string StateDescription => PrintState(0);
-
-    public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
-        primitive.Equals(StatePrimitive.Any);
-
     public override bool Equals(object obj) {
         if (obj is not StateRefTo refTo)
             return false;
