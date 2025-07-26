@@ -1,43 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <PackageVersion>1.0.1</PackageVersion>
-        <Version>0.9.8</Version>
-        <LangVersion>10</LangVersion>
-        <Title>NFun</Title>
-        <Authors>tmteam</Authors>
-        <Description>Expressions Evaluator for .NET</Description>
-        <Copyright>Copyright 2023</Copyright>
-        <PackageProjectUrl>https://github.com/tmteam/NFun</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/tmteam/NFun/blob/master/LICENSE</PackageLicenseUrl>
-        <PackageIconUrl>https://github.com/tmteam/NFun/raw/master/Icon.png</PackageIconUrl>
-        <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
-        <PackageTags>Not a functional intepritable language</PackageTags>
-        <PackageReleaseNotes>Minior bugs fixed. Non-Generic calculators</PackageReleaseNotes>
-        <AssemblyVersion>0.9.9</AssemblyVersion>
-        <FileVersion>0.9.9</FileVersion>
-        <TargetFrameworks>net5.0;net6.0;netstandard2.0</TargetFrameworks>
-        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  <PropertyGroup>
+    <PackageVersion>1.0.2</PackageVersion>
+    <Version>1.0.2</Version>
+    <LangVersion>10</LangVersion>
+    <Title>NFun</Title>
+    <Authors>tmteam</Authors>
+    <Description>Expressions Evaluator for .NET</Description>
+    <Copyright>Copyright 2023</Copyright>
+    <PackageProjectUrl>https://github.com/tmteam/NFun</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>Icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
+    <PackageTags>Not a functional intepritable language</PackageTags>
+    <PackageReleaseNotes>Strong named assembly. net8 support.</PackageReleaseNotes>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
+    <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>NFunKey.snk</AssemblyOriginatorKeyFile>
+    <PackageReadmeFile>nuget-readme.md</PackageReadmeFile>
+  </PropertyGroup>
 
-    </PropertyGroup>
+  <ItemGroup>
+    <None Remove="NFun.nuspec"/>
+    <PackageReference Include="IndexRange" Version="1.0.2"/>
+    <PackageReference Include="System.Memory" Version="4.5.5"/>
+    <None Update="Functions\GenericSwitchFunctionsGenerated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>GenericSwitchFunctionsGenerated.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
 
-    <ItemGroup>
-      <None Remove="NFun.nuspec" />
-      <PackageReference Include="IndexRange" Version="1.0.2" />
-      <PackageReference Include="System.Memory" Version="4.5.5" />
-      <None Update="Functions\GenericSwitchFunctionsGenerated.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>GenericSwitchFunctionsGenerated.cs</LastGenOutput>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="Functions\GenericSwitchFunctionsGenerated.cs">
-        <AutoGen>True</AutoGen>
-        <DesignTime>True</DesignTime>
-        <DependentUpon>GenericSwitchFunctionsGenerated.tt</DependentUpon>
-      </Compile>
-    </ItemGroup>
-
+  <ItemGroup>
+    <Compile Update="Functions\GenericSwitchFunctionsGenerated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>GenericSwitchFunctionsGenerated.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icon.png" Pack="true" PackagePath=""/>
+    <None Include="nuget-readme.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 </Project>
