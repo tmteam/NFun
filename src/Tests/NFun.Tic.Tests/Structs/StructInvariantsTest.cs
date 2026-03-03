@@ -325,7 +325,7 @@ public class StructInvariantsTest {
         graph.SetConst(0, I32);
         graph.SetConst(1, I32);
         graph.SetConst(2, I32);
-        graph.SetStrictArrayInit(3, 0, 1, 2);
+        graph.SetSoftArrayInit(3, 0, 1, 2);
         graph.SetStructInit(new[] { "b" }, new[] { 3 }, 4);
         graph.SetDef("a", 4);
 
@@ -365,7 +365,7 @@ public class StructInvariantsTest {
 
         var graph = new GraphBuilder();
         graph.SetConst(0, I32);
-        graph.SetStrictArrayInit(1, 0);
+        graph.SetSoftArrayInit(1, 0);
         graph.SetStructInit(new[] { "b" }, new[] { 1 }, 2);
         graph.SetDef("a", 2);
 
@@ -627,7 +627,7 @@ public class StructInvariantsTest {
         graph.SetConst(4, Bool);
         graph.SetStructInit(new[] { "age", "name" }, new[] { 3, 4 }, 5);
 
-        graph.SetStrictArrayInit(6, 2, 5);
+        graph.SetSoftArrayInit(6, 2, 5);
         graph.SetDef("y", 6);
 
         var result = graph.Solve();
@@ -658,7 +658,7 @@ public class StructInvariantsTest {
         graph.SetConst(4, I32);
         graph.SetStructInit(new[] { "age", "size" }, new[] { 3, 4 }, 5);
 
-        graph.SetStrictArrayInit(6, 2, 5);
+        graph.SetSoftArrayInit(6, 2, 5);
         graph.SetDef("y", 6);
 
         var result = graph.Solve();
@@ -694,7 +694,7 @@ public class StructInvariantsTest {
         graph.SetConst(7, I32);
         graph.SetStructInit(new[] { "a" }, new[] { 7 }, 8);
 
-        graph.SetStrictArrayInit(9, 3, 6, 8);
+        graph.SetSoftArrayInit(9, 3, 6, 8);
         graph.SetDef("y", 9);
 
         var result = graph.Solve();
@@ -725,7 +725,7 @@ public class StructInvariantsTest {
         graph.SetConst(3, I32);
         graph.SetStructInit(new[] { "age", "size" }, new[] { 2, 3 }, 4);
 
-        graph.SetStrictArrayInit(5, 1, 4);
+        graph.SetSoftArrayInit(5, 1, 4);
         graph.SetDef("arr", 5);
 
         graph.SetVar("arr", 6);
@@ -852,7 +852,7 @@ public class StructInvariantsTest {
         var graph = new GraphBuilder();
         graph.SetConst(0, Bool);
         graph.SetConst(1, Bool);
-        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetSoftArrayInit(2, 0, 1);
         graph.SetStructInit(new[] { "arr" }, new[] { 2 }, 3);
         graph.SetDef("inner", 3);
 
@@ -919,7 +919,7 @@ public class StructInvariantsTest {
             graph.SetConst(3, I32);
             graph.SetStructInit(new[] { "age", "size" }, new[] { 2, 3 }, 4);
 
-            graph.SetStrictArrayInit(5, 1, 4);
+            graph.SetSoftArrayInit(5, 1, 4);
             graph.SetDef("arr", 5);
 
             graph.SetVar("arr", 6);

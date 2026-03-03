@@ -391,6 +391,7 @@ public class StructTest {
         // y = [a:Ta, b:Tb]
         // Covariant fields: LCA(int, real) = real. 'size' only in Tb => dropped.
         // Result element: {age:real}
+        // Uses SetSoftArrayInit (same as production path — TicSetupVisitor)
 
         var graph = new GraphBuilder();
 
@@ -399,7 +400,7 @@ public class StructTest {
 
         graph.SetVar("a", 0);
         graph.SetVar("b", 1);
-        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetSoftArrayInit(2, 0, 1);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
@@ -471,6 +472,7 @@ public class StructTest {
         //     2 0     1
         // y = [b:Tb, a:Ta]
         // Same as Lca3 but reversed order. Result: {age:real}
+        // Uses SetSoftArrayInit (same as production path)
 
         var graph = new GraphBuilder();
 
@@ -479,7 +481,7 @@ public class StructTest {
 
         graph.SetVar("a", 1);
         graph.SetVar("b", 0);
-        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetSoftArrayInit(2, 0, 1);
         graph.SetDef("y", 2);
 
         var result = graph.Solve();
