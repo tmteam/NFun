@@ -40,22 +40,14 @@ public static class SolvingFunctions {
                 return funA;
             }
             case StateStruct strA when stateB is StateStruct strB:
+                return MergeStructs(strA, strB);
+            case StateStruct strA2 when stateB is ConstrainsState constrainsB2:
             {
-                var result = new Dictionary<string, TicNode>();
-                foreach (var (key, value) in strA.Fields)
-                {
-                    var bNode = strB.GetFieldOrNull(key);
-                    if (bNode != null)
-                        MergeInplace(value, bNode);
-                    else if (strA.IsFrozen || strB.IsFrozen)
-                        return null;
-                    result.Add(key, value);
-                }
-
-                foreach (var (key, value) in strB.Fields)
-                    result.TryAdd(key, value);
-
-                return new StateStruct(result, isFrozen: false);
+                if (constrainsB2.HasDescendant && constrainsB2.Descendant is StateStruct descStruct)
+                    return MergeStructs(strA2, descStruct);
+                if (!constrainsB2.HasDescendant && !constrainsB2.IsComparable)
+                    return strA2; // unconstrained → becomes the struct
+                return null;
             }
             case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
                 return constrainsB.MergeOrNull(constrainsA);
@@ -74,6 +66,24 @@ public static class SolvingFunctions {
             return GetMergedStateOrNull(stateB, stateA);
 
         return null;
+    }
+
+    private static StateStruct MergeStructs(StateStruct strA, StateStruct strB) {
+        var result = new Dictionary<string, TicNode>();
+        foreach (var (key, value) in strA.Fields)
+        {
+            var bNode = strB.GetFieldOrNull(key);
+            if (bNode != null)
+                MergeInplace(value, bNode);
+            else if (strA.IsFrozen || strB.IsFrozen)
+                return null;
+            result.Add(key, value);
+        }
+
+        foreach (var (key, value) in strB.Fields)
+            result.TryAdd(key, value);
+
+        return new StateStruct(result, isFrozen: false);
     }
 
     /// <summary>

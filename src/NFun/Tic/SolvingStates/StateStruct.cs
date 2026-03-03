@@ -111,10 +111,38 @@ public class StateStruct : ICompositeState {
 
     public int MembersCount => _nodes.Count;
 
-    public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
-        otherType is StateStruct
-            ? new StateStruct()
-            : StatePrimitive.Any;
+    public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) {
+        if (otherType is not StateStruct otherStruct)
+            return StatePrimitive.Any;
+
+        // Struct LCA = intersection of fields where field types have a common ancestor
+        var resultFields = new Dictionary<string, TicNode>();
+        foreach (var (name, node) in _nodes)
+        {
+            var otherField = otherStruct.GetFieldOrNull(name);
+            if (otherField == null)
+                continue; // field not in other struct → not in LCA
+
+            if (node.State is not ITypeState thisFieldType)
+                continue;
+            if (otherField.State is not ITypeState otherFieldType)
+                continue;
+
+            if (thisFieldType.Equals(otherFieldType))
+            {
+                resultFields.Add(name, TicNode.CreateTypeVariableNode(thisFieldType));
+            }
+            else
+            {
+                var fieldLca = thisFieldType.GetLastCommonAncestorOrNull(otherFieldType);
+                if (fieldLca == null)
+                    continue; // incompatible field types → field dropped from LCA
+                resultFields.Add(name, TicNode.CreateTypeVariableNode(fieldLca));
+            }
+        }
+
+        return new StateStruct(resultFields, true);
+    }
 
     public string PrintState(int depth) {
         if (depth > 100)
