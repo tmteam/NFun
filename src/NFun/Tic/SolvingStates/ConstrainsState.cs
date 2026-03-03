@@ -133,6 +133,14 @@ public class ConstrainsState : ITicNodeState {
             if (!result.CanBeConvertedTo(result.Preferred))
                 result.Preferred = null;
 
+        // If descendant is a fully solved struct and there is no ancestor constraint,
+        // the struct type IS the result. Structs don't have ancestor primitives in the
+        // type hierarchy (only Any), so a ConstrainsState wrapping a solved struct is
+        // equivalent to the struct itself.
+        if (!result.HasAncestor && !result.IsComparable &&
+            result.Descendant is StateStruct { IsSolved: true })
+            return (ITicNodeState)result.Descendant;
+
         return result;
     }
 
@@ -154,7 +162,7 @@ public class ConstrainsState : ITicNodeState {
                 return this;
         }
 
-        if (Descendant is StateArray)
+        if (Descendant is ICompositeState)
             return Descendant;
         return ancestor;
     }
