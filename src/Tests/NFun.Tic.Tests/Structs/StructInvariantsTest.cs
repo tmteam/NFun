@@ -510,8 +510,8 @@ public class StructInvariantsTest {
         // Script:
         //   y = if(true) {age = 1i32} else {age = 1.0real}
         //
-        // Struct fields are INVARIANT: {age:I32} != {age:Real}
-        // Field 'age' removed from LCA => empty struct {}
+        // Struct fields are COVARIANT (immutable struct).
+        // LCA(I32, Real) = Real => {age:Real}
 
         var graph = new GraphBuilder();
         graph.SetConst(0, Bool);
@@ -530,7 +530,8 @@ public class StructInvariantsTest {
 
         var y = result.GetVariableNode("y").State as StateStruct;
         Assert.IsNotNull(y, "y should be a struct");
-        Assert.AreEqual(0, y.Fields.Count());
+        Assert.AreEqual(1, y.Fields.Count());
+        Assert.AreEqual(Real, y.GetFieldOrNull("age").State);
     }
 
     [Test]

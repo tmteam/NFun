@@ -389,6 +389,8 @@ public class StructTest {
         // Ta: {age:int}, Tb: {age:real, size:int}
         //     2 0     1
         // y = [a:Ta, b:Tb]
+        // Covariant fields: LCA(int, real) = real. 'size' only in Tb => dropped.
+        // Result element: {age:real}
 
         var graph = new GraphBuilder();
 
@@ -405,7 +407,8 @@ public class StructTest {
 
         var y = result.GetVariableNode("y").State as StateArray;
         var eType = y.Element as StateStruct;
-        Assert.AreEqual(0, eType.Fields.Count());
+        Assert.AreEqual(1, eType.Fields.Count());
+        Assert.AreEqual(Real, eType.GetFieldOrNull("age").State);
     }
 
 
@@ -467,6 +470,7 @@ public class StructTest {
         // Ta: {age:int}, Tb: {age:real, size:int}
         //     2 0     1
         // y = [b:Tb, a:Ta]
+        // Same as Lca3 but reversed order. Result: {age:real}
 
         var graph = new GraphBuilder();
 
@@ -483,7 +487,8 @@ public class StructTest {
 
         var y = result.GetVariableNode("y").State as StateArray;
         var eType = y.Element as StateStruct;
-        Assert.AreEqual(0, eType.Fields.Count());
+        Assert.AreEqual(1, eType.Fields.Count());
+        Assert.AreEqual(Real, eType.GetFieldOrNull("age").State);
     }
 
     [Test]
@@ -538,5 +543,65 @@ public class StructTest {
         Assert.AreEqual(1, y.Fields.Count());
         var age = y.GetFieldOrNull("age");
         Assert.AreEqual(Any, age.State);
+    }
+
+    [Test]
+    public void MinimalArrayStructLca_DifferentFieldSets() {
+        using var _ = TraceLog.Scope;
+        // Two structs with different field SETS (not just types).
+        //
+        // y = [{age:I32}, {age:I32, size:I32}]
+        //
+        // LCA: only 'age' is common. Result: {age:I32}
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Of(("age", I32), ("size", I32)));
+
+        graph.SetVar("a", 0);
+        graph.SetVar("b", 1);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        Assert.IsNotNull(y, "y should be array");
+        var eType = y.Element as StateStruct;
+        Assert.IsNotNull(eType, "element should be struct");
+        Assert.AreEqual(1, eType.Fields.Count());
+        Assert.AreEqual(I32, eType.GetFieldOrNull("age").State);
+    }
+
+    [Test]
+    public void MinimalArrayStructLca_DifferentFieldTypes() {
+        using var _ = TraceLog.Scope;
+        // Simplest case: array of two structs with one field of different types.
+        //
+        // y = [{age:I32}, {age:Real}]
+        //
+        // Covariant LCA: {age: LCA(I32,Real)} = {age:Real}
+
+        var graph = new GraphBuilder();
+
+        graph.SetVarType("a", StateStruct.Of("age", I32));
+        graph.SetVarType("b", StateStruct.Of("age", Real));
+
+        graph.SetVar("a", 0);
+        graph.SetVar("b", 1);
+        graph.SetStrictArrayInit(2, 0, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+
+        var y = result.GetVariableNode("y").State as StateArray;
+        Assert.IsNotNull(y, "y should be array");
+        var eType = y.Element as StateStruct;
+        Assert.IsNotNull(eType, "element should be struct");
+        Assert.AreEqual(1, eType.Fields.Count());
+        Assert.AreEqual(Real, eType.GetFieldOrNull("age").State);
     }
 }

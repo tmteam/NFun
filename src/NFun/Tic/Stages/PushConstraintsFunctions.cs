@@ -42,8 +42,39 @@ public class PushConstraintsFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(ConstrainsState ancestor, ICompositeState descendant, TicNode _, TicNode __) =>
-        !ancestor.HasAncestor || ancestor.Ancestor.Equals(StatePrimitive.Any);
+    public bool Apply(ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor.HasAncestor && !ancestor.Ancestor.Equals(StatePrimitive.Any))
+            return false;
+
+        // If ancestor constrains has a struct descendant, propagate field constraints down.
+        // Struct fields are covariant (immutable struct).
+        if (ancestor.HasDescendant && ancestor.Descendant is StateStruct ancDescStruct
+                                   && descendant is StateStruct descStruct)
+        {
+            TraceLog.WriteLine($"  Push Constrains({ancDescStruct.StateDescription})=>Struct: into {descStruct.StateDescription}");
+            foreach (var ancField in ancDescStruct.Fields)
+            {
+                var descField = descStruct.GetFieldOrNull(ancField.Key);
+                if (descField == null) continue;
+
+                // If desc field is unsolved (constrains), merge with ancestor field
+                // to tighten constraints. If desc field is already concrete, just
+                // verify convertibility via PushConstraints.
+                if (descField.State is ConstrainsState)
+                {
+                    TraceLog.WriteLine($"    Merge field '{ancField.Key}': desc={descField.State} <- anc={ancField.Value.State}");
+                    SolvingFunctions.MergeInplace(descField, ancField.Value);
+                }
+                else
+                {
+                    TraceLog.WriteLine($"    Push field '{ancField.Key}': desc={descField.State} <- anc={ancField.Value.State}");
+                    SolvingFunctions.PushConstraints(descField, ancField.Value);
+                }
+            }
+        }
+
+        return true;
+    }
 
     public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) => false;
 

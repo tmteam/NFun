@@ -102,7 +102,7 @@ public class DestructionFunctions : IStateFunction {
         }
         else
         {
-            TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
+            TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
         }
 
         return true;

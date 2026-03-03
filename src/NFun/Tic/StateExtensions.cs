@@ -32,19 +32,31 @@ public static class StateExtensions {
     }
 
     private static ITicNodeState Lca(this StateStruct a, StateStruct b) {
+        // Struct LCA = intersection of field names, with covariant field type LCA.
+        // Covariance is sound because NFun structs are immutable (read-only fields).
+        //
+        // For resolved types: LCA(I32, Real) = Real (covariant)
+        // For constraints: use UniversalStateOrNull (preserves constraint intervals)
         var nodes = new Dictionary<string, TicNode>();
         foreach (var aField in a.Fields)
         {
             var bField = b.GetFieldOrNull(aField.Key);
-            // if there is no bField - than resulting state got no this field
             if (bField == null) continue;
 
-            var universalType = UniversalStateOrNull(aField.Value.State, bField.State);
-            if (universalType == null) continue;
-            nodes.Add(aField.Key, TicNode.CreateInvisibleNode(universalType));
+            var aState = aField.Value.State;
+            var bState = bField.State;
+
+            // For constraint states, use UniversalStateOrNull to preserve intervals
+            ITicNodeState fieldType;
+            if (aState is ConstrainsState || bState is ConstrainsState)
+                fieldType = UniversalStateOrNull(aState, bState);
+            else
+                fieldType = Lca(aState, bState);
+
+            if (fieldType == null) continue;
+            nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));
         }
 
-        //todo is it frozen or not?
         return new StateStruct(nodes, true);
     }
 
