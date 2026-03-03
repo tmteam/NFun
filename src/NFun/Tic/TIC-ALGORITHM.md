@@ -245,3 +245,133 @@ Apply(Composite, Primitive)    Apply(Composite, Constrains)    Apply(Composite, 
 Plus Composite×Composite further dispatches to Array×Array, Fun×Fun, Struct×Struct.
 
 Most of these do very simple things. The complexity comes from **missing abstractions**: if there were a unified `Merge` and `FitsInto`, most of these methods would collapse.
+
+---
+
+## Part 5: How Composite Members Are Decomposed — The Key Asymmetry
+
+### How Array and Fun work (correctly)
+
+When Pull encounters `Array(descElem) ≤ Array(ancElem)`:
+
+```csharp
+// PullConstraintsFunctions.Apply(StateArray, StateArray):
+descendant.ElementNode.AddAncestor(ancestor.ElementNode);  // elem ≤ elem
+descendantNode.RemoveAncestor(ancestorNode);                // composite edge → member edges
+```
+
+**What this does**: removes the composite-level edge and replaces it with member-level edges. After this, `descElem` and `ancElem` are **independent nodes in the graph** with an ancestor edge between them. Pull/Push/Destruction handle them in subsequent passes **automatically**.
+
+Same for Fun (return is covariant, args are contravariant):
+```csharp
+descendant.RetNode.AddAncestor(ancestor.RetNode);
+ancestor.ArgNodes[i].AddAncestor(descendant.ArgNodes[i]);  // reversed
+descendantNode.RemoveAncestor(ancestorNode);
+```
+
+**Key property**: member nodes (ElementNode, RetNode, ArgNodes) are created via `CreateVarType()`, registered in `_typeVariables`, and included in toposort. They are **first-class graph citizens**.
+
+### How Struct works (broken)
+
+When Pull encounters `Struct{f:descF} ≤ Struct{f:ancF}`:
+
+```csharp
+// PullConstraintsFunctions.Apply(StateStruct, StateStruct):
+MergeInplace(ancField.Value, descField);   // f ≡ f  (IDENTITY, not subtyping)
+// NO RemoveAncestor                        // composite edge stays
+```
+
+**Two problems**:
+
+1. **Identity instead of subtyping**: MergeInplace makes both field nodes the same object. This means `{age:I32}` and `{age:Real}` can't coexist — one must become the other. For covariant fields, we need `descF ≤ ancF` (ancestor edge), not `descF ≡ ancF` (identity).
+
+2. **No decomposition**: the composite edge `Struct ≤ Struct` is NOT removed. Field edges are NOT added to the graph. So Pull/Push can't process field constraints in later passes.
+
+### Why naive fix failed
+
+Replacing `MergeInplace` with `AddAncestor` and `RemoveAncestor` — exactly matching Array/Fun pattern — caused regressions because:
+
+**Struct field nodes are NOT always registered in the graph.**
+
+- `SetStructInit` creates a struct using **existing expression nodes** as field values. These nodes ARE in the graph (they're syntax nodes).
+- `SetFieldAccess` creates **new TypeVariable nodes** for fields via `CreateVarType()`. These ARE registered in `_typeVariables`.
+- But `StateStruct.Of(...)` (used in tests via `SetVarType`) creates field nodes via `TicNode.CreateTypeVariableNode()` — these are NOT registered in `_typeVariables` and NOT in toposort.
+- `StateStruct.With(...)` (used in Pull to add missing fields) also creates new nodes that may not be registered.
+- LCA creates frozen structs with `TicNode.CreateInvisibleNode()` — explicitly NOT registered.
+
+When `AddAncestor` creates an edge between a registered node and an unregistered node, the unregistered node is **never visited** by Pull/Push/Destruction. The edge exists but is never processed.
+
+### What needs to happen (plan)
+
+To make struct fields work like Array elements and Fun args:
+
+1. **All struct field nodes must be registered in the graph.** Every time a StateStruct is created or modified, its field nodes must be in `_typeVariables` (or toposort). This includes:
+   - `StateStruct.Of(...)` factory methods
+   - `StateStruct.With(...)` when adding new fields
+   - LCA results (frozen structs with invisible nodes)
+   - `TransformToStructOrNull` results
+
+2. **Pull Struct≤Struct should decompose into field edges**, same as Array:
+   ```
+   descField.AddAncestor(ancField);
+   descendantNode.RemoveAncestor(ancestorNode);
+   ```
+
+3. **Push Struct≤Struct should push field constraints**, same as Array:
+   ```
+   PushConstraints(descField, ancField);
+   ```
+
+4. **Destruction Struct≤Struct should destruct fields**, same as Array:
+   ```
+   Destruction(descField, ancField);
+   ```
+
+### How to get there incrementally
+
+**Step 0** (current state): Struct fields use MergeInplace. Works for identity cases, fails for covariance.
+
+**Step 1**: Ensure all struct field nodes are registered. Add a `RegisterStructFields(StateStruct)` method to GraphBuilder that walks field nodes and adds unregistered ones to `_typeVariables`. Call it whenever a StateStruct is set as a node's state.
+
+**Step 2**: In PullConstraintsFunctions, replace MergeInplace with AddAncestor for struct fields. Add RemoveAncestor for the composite edge. This decomposes struct constraints into field constraints.
+
+**Step 3**: Simplify PushConstraintsFunctions for Struct×Struct to match Array×Array pattern.
+
+**Step 4**: Remove struct-specific hacks in Destruction, ConstrainsState.MergeOrNull, etc. — they become unnecessary because fields are handled as regular graph nodes.
+
+**Step 1 is the prerequisite.** Without it, Steps 2-4 will cause the same regression we saw.
+
+### Update after implementation attempt
+
+Step 1 turned out to be **unnecessary**. `PullConstraintsRecursive` and `PushConstraintsRecursive` already recurse into composite members:
+
+```csharp
+if (node.State is ICompositeState composite)
+    foreach (var member in composite.Members)
+        PullConstraintsRecursive(member);
+```
+
+So struct field nodes ARE processed even without explicit registration.
+
+**Step 2 was partially done** — `Apply(StateStruct, StateStruct)` now uses `AddAncestor` + `RemoveAncestor`. This fixed crash bugs and nested struct access.
+
+**The remaining problem** is `Apply(ICompositeState, ConstrainsState)` for structs — specifically the `Struct ancestor + ConstrainsState descendant` case in if-else. Here the flow is:
+
+1. Pull: node 2 `{age:[U8..Re]}` and node 3 `{age:Real}` both ancestors of node 4
+2. Pull processes `(node 2, node 4)` and `(node 3, node 4)` via `Apply(ICompositeState, ConstrainsState)`
+3. LCA computed in `AddDescendant`: `{age:Real}` (correct)
+4. `TransformToStructOrNull` returns the LCA frozen struct with **new invisible field nodes**
+5. These new field nodes are **disconnected** from original field nodes (node 1 = generic const [U8..Re])
+6. No ancestor edge exists between node 1 and LCA's age field node
+
+**Root cause**: `Apply(ICompositeState, ConstrainsState)` for structs does NOT decompose into field-level edges (unlike Array which does: `result.ElementNode.AddAncestor(ancArray.ElementNode)`). It can't, because it processes one ancestor at a time, and field decomposition needs to connect to ALL ancestors' field nodes.
+
+**Possible solutions**:
+
+A. **Field decomposition in Apply(ICompositeState, ConstrainsState)**: After TransformToStructOrNull, add ancestor edges from result field nodes to ancestor field nodes. Problem: only sees one ancestor per call. Partially works — helps for the case where TransformToStructOrNull returns ancestorStruct itself (NoConstrains case).
+
+B. **Push-based field propagation** (current workaround): In `Apply(ConstrainsState, ICompositeState)`, if ConstrainsState has a struct descendant, MergeInplace the LCA's field types into the descendant struct's field types. Works for concrete LCA fields (Real), crashes for Any.
+
+C. **Restructure graph building**: Instead of creating ConstrainsState node for if-else result, create a struct node with new field type variables, and add ancestor edges from EACH branch's field nodes. This is the cleanest solution but requires changes to how `SetIfElse` works for struct types.
+
+Currently using solution B with a guard against Any fields.

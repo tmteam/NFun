@@ -46,10 +46,13 @@ public static class StateExtensions {
             var aState = aField.Value.State;
             var bState = bField.State;
 
-            // For unsolved field types, use UniversalStateOrNull to preserve constraint intervals.
             // For fully solved field types, use Lca (covariant).
+            // For unsolved (constrains), use UniversalStateOrNull to preserve intervals.
+            // Special case: Any absorbs everything — Lca(Any, X) = Any always.
             ITicNodeState fieldType;
-            if (aField.Value.IsSolved && bField.IsSolved)
+            if (aState.Equals(Any) || bState.Equals(Any))
+                fieldType = Any;
+            else if (aField.Value.IsSolved && bField.IsSolved)
                 fieldType = Lca(aState, bState);
             else
                 fieldType = UniversalStateOrNull(aState, bState);
