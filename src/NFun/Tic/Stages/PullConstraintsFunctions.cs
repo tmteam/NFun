@@ -96,8 +96,9 @@ public class PullConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // desc node has to have all ancestors fields that has exast same type as desc type
-        // (implicit field convertion is not allowed)
+        // Decompose struct constraint into field-level ancestor edges.
+        // Same pattern as Array (element ≤ element) and Fun (ret ≤ ret, arg ≥ arg).
+        // Struct fields are covariant: descField ≤ ancField.
         TraceLog.WriteLine($"  Pull Struct<-Struct: anc={ancestorNode.Name}:{ancestor.StateDescription} desc={descendantNode.Name}:{descendant.StateDescription}");
         foreach (var ancField in ancestor.Fields)
         {
@@ -109,23 +110,18 @@ public class PullConstraintsFunctions : IStateFunction {
                     TraceLog.WriteLine($"    BLOCKED: desc is frozen, cannot add field '{ancField.Key}'");
                     return false;
                 }
-                else
-                {
-                    TraceLog.WriteLine($"    Adding field '{ancField.Key}' to desc");
-                    descendantNode.State = descendant.With(ancField.Key, ancField.Value);
-                }
+
+                TraceLog.WriteLine($"    Adding field '{ancField.Key}' to desc");
+                descendantNode.State = descendant.With(ancField.Key, ancField.Value);
             }
-            else
+            else if (descField != ancField.Value)
             {
-                TraceLog.WriteLine($"    Merging field '{ancField.Key}': anc={ancField.Value.State} desc={descField.State}");
-                SolvingFunctions.MergeInplace(ancField.Value, descField);
-                if (ancField.Value.State is StateRefTo)
-                    ancestorNode.State = ancestor.GetNonReferenced();
-                if (descField.State is StateRefTo)
-                    descendantNode.State = descendant.GetNonReferenced();
+                TraceLog.WriteLine($"    Field '{ancField.Key}': desc ≤ anc ({descField.State} ≤ {ancField.Value.State})");
+                descField.AddAncestor(ancField.Value);
             }
         }
 
+        descendantNode.RemoveAncestor(ancestorNode);
         return true;
     }
 
