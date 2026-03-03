@@ -119,9 +119,11 @@ public class StateStruct : ICompositeState {
     public string PrintState(int depth) {
         if (depth > 100)
             return "{...REQ...}";
+        if (_nodes.Count == 0)
+            return IsFrozen ? "{frozen}" : "{}";
         return
             "{"
-            + (IsFrozen ? "f " : "")
+            + (IsFrozen ? "F|" : "")
             + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State.PrintState(depth + 1)}"))
             + "}";
     }
@@ -148,9 +150,12 @@ public class StateStruct : ICompositeState {
 
     public string StateDescription => PrintState(0);
 
-    public override string ToString() =>
-        "{" + (IsFrozen ? "f " : "") +
-        string.Join("; ",
-            _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : $"..")}"))
-        +"}";
+    public override string ToString() {
+        if (_nodes.Count == 0)
+            return IsFrozen ? "{frozen}" : "{}";
+        return "{" + (IsFrozen ? "F|" : "") +
+               string.Join("; ",
+                   _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : $"..")}"))
+               + "}";
+    }
 }

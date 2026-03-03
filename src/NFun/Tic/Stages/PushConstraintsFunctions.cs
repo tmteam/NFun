@@ -113,11 +113,16 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     private static bool TryMergeStructFields(StateStruct ancStruct, StateStruct descStruct) {
+        TraceLog.WriteLine($"  Push MergeStructFields: anc={ancStruct.StateDescription} desc={descStruct.StateDescription}");
         foreach (var ancField in ancStruct.Fields)
         {
             var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
             if (descFieldNode == null)
+            {
+                TraceLog.WriteLine($"    FAIL: desc missing field '{ancField.Key}'");
                 return false;
+            }
+            TraceLog.WriteLine($"    Merging field '{ancField.Key}': desc={descFieldNode.State} anc={ancField.Value.State}");
             //  i m not sure why - but it is very important to set descFieldNode as main merge node...
             SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
         }

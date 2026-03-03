@@ -82,9 +82,17 @@ public class ConstrainsState : ITicNodeState {
     public void AddDescendant(ITicNodeState type) {
         if (type == null)
             return;
-        Descendant = !HasDescendant
-            ? type.Concretest()
-            : Descendant.Lca(type);
+        if (!HasDescendant)
+        {
+            Descendant = type.Concretest();
+            TraceLog.WriteLine($"    Constrains.AddDescendant: first={type} => concretest={Descendant}");
+        }
+        else
+        {
+            var prev = Descendant;
+            Descendant = Descendant.Lca(type);
+            TraceLog.WriteLine($"    Constrains.AddDescendant: LCA({prev}, {type}) => {Descendant}");
+        }
     }
 
     public ITicNodeState MergeOrNull(ConstrainsState constrainsState) {

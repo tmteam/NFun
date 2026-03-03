@@ -98,18 +98,26 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
         // desc node has to have all ancestors fields that has exast same type as desc type
         // (implicit field convertion is not allowed)
+        TraceLog.WriteLine($"  Pull Struct<-Struct: anc={ancestorNode.Name}:{ancestor.StateDescription} desc={descendantNode.Name}:{descendant.StateDescription}");
         foreach (var ancField in ancestor.Fields)
         {
             var descField = descendant.GetFieldOrNull(ancField.Key);
             if (descField == null)
             {
                 if (descendant.IsFrozen)
+                {
+                    TraceLog.WriteLine($"    BLOCKED: desc is frozen, cannot add field '{ancField.Key}'");
                     return false;
+                }
                 else
+                {
+                    TraceLog.WriteLine($"    Adding field '{ancField.Key}' to desc");
                     descendantNode.State = descendant.With(ancField.Key, ancField.Value);
+                }
             }
             else
             {
+                TraceLog.WriteLine($"    Merging field '{ancField.Key}': anc={ancField.Value.State} desc={descField.State}");
                 SolvingFunctions.MergeInplace(ancField.Value, descField);
                 if (ancField.Value.State is StateRefTo)
                     ancestorNode.State = ancestor.GetNonReferenced();
