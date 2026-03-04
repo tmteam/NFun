@@ -163,8 +163,18 @@ public class PushConstraintsFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) =>
-        TryMergeStructFields(ancestor, descendant);
+    public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Struct fields are covariant: push constraints field-by-field,
+        // consistent with how arrays and functions handle sub-components.
+        foreach (var ancField in ancestor.Fields)
+        {
+            var descFieldNode = descendant.GetFieldOrNull(ancField.Key);
+            if (descFieldNode == null)
+                return false;
+            SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
+        }
+        return true;
+    }
 
     private static void PushFunTypeArgumentsConstraints(StateFun descFun, StateFun ancFun) {
         for (int i = 0; i < descFun.ArgsCount; i++)

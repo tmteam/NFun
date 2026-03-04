@@ -548,6 +548,30 @@ public class StructTest {
     }
 
     [Test]
+    public void IfElseStructs_FieldAccessOnResult_ResolvesToLca() {
+        using var _ = TraceLog.Scope;
+        // x = if(true) {age = 1i} else {age = 42.0}
+        // out = x.age   → should be Real  (LCA of I32, Real)
+
+        var graph = new GraphBuilder();
+        graph.SetConst(0, Bool);          // condition
+        graph.SetConst(1, I32);           // {age = 1i}
+        graph.SetStructInit(new[] { "age" }, new[] { 1 }, 2);
+        graph.SetConst(3, Real);          // {age = 42.0}
+        graph.SetStructInit(new[] { "age" }, new[] { 3 }, 4);
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 4 }, 5);  // if-else → node 5
+        graph.SetDef("x", 5);
+
+        graph.SetVar("x", 6);
+        graph.SetFieldAccess(6, 7, "age");
+        graph.SetDef("out", 7);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(Real, "out");
+    }
+
+    [Test]
     public void MinimalArrayStructLca_DifferentFieldSets() {
         using var _ = TraceLog.Scope;
         // Two structs with different field SETS (not just types).
