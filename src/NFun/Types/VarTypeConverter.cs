@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NFun.Interpretation.Functions;
 using NFun.Interpretation.Nodes;
 using NFun.ParseErrors;
+using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 
@@ -136,14 +137,33 @@ public static class VarTypeConverter {
 
         if (from.BaseType == BaseFunnyType.Struct)
         {
-            foreach (var (key, value) in to.StructTypeSpecification)
+            var fieldConverters = new Dictionary<string, Func<object, object>>(StringComparer.InvariantCultureIgnoreCase);
+            bool needsConversion = false;
+            foreach (var (key, toFieldType) in to.StructTypeSpecification)
             {
                 if (!from.StructTypeSpecification.TryGetValue(key, out var fromFieldType))
                     return null;
-                if (!value.Equals(fromFieldType))
+                var fieldConverter = GetConverterOrNull(typeBehaviour, fromFieldType, toFieldType);
+                if (fieldConverter == null)
                     return null;
+                fieldConverters[key] = fieldConverter;
+                if (!fromFieldType.Equals(toFieldType))
+                    needsConversion = true;
             }
-            return NoConvertion;
+            if (!needsConversion)
+                return NoConvertion;
+            return o => {
+                var origin = (FunnyStruct)o;
+                var fields = new FunnyStruct.FieldsDictionary(origin.Count);
+                foreach (var (key, value) in origin)
+                {
+                    if (fieldConverters.TryGetValue(key, out var converter))
+                        fields[key] = converter(value);
+                    else
+                        fields[key] = value;
+                }
+                return new FunnyStruct(fields);
+            };
         }
         return null;
     }
