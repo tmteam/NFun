@@ -1,102 +1,269 @@
-﻿using System;
-using System.Diagnostics;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NFun.Exceptions;
+using NFun.Runtime.Arrays;
 
 namespace NFun.ConsoleApp;
 
 class Program {
-    static void Main(string[] args) {
-        Console.WriteLine("Let's make some fun.");
-        Console.WriteLine("Type an expression or '/exit' to return");
-
+    static void Main() {
+        PrintWelcome();
         while (true)
         {
-            var expression = ReadMultiline();
-            if (expression == "/exit")
-                return;
-            try
-            {
-                Stopwatch calcSw;
-                Stopwatch build = Stopwatch.StartNew();
-                var runtime = Funny.Hardcore.Build(expression);
-                build.Stop();
-                Console.WriteLine($"Built in {build.Elapsed.TotalMilliseconds}");
-
-                if (runtime.Variables.Any(v => !v.IsOutput))
-                {
-                    Console.WriteLine(
-                        "Inputs: " +
-                        string.Join(
-                            ", ",
-                            runtime.Variables.Where(v => !v.IsOutput).Select(s => s.ToString())));
-                    Console.WriteLine(
-                        "Ouputs: " +
-                        string.Join(
-                            ", ",
-                            runtime.Variables.Where(v => v.IsOutput).Select(s => s.ToString())));
-                }
-                else
-                {
-                    calcSw = Stopwatch.StartNew();
-                    runtime.Run();
-
-                    calcSw.Stop();
-                    Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
-                    Console.WriteLine("Results:");
-                    foreach (var result in runtime.Variables.Where(v => v.IsOutput))
-                        Console.WriteLine(
-                            result.Name +
-                            ": " +
-                            result.Type +
-                            " (" +
-                            result.Value.GetType().Name +
-                            ")");
-                }
-            }
-            catch (FunnyRuntimeException e)
-            {
-                Console.WriteLine("Expression cannot be calculated: " + e.Message);
-            }
-            catch (FunnyParseException e)
-            {
-                Console.BackgroundColor = ConsoleColor.Red;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(" ERROR [FU" + e.ErrorCode + "] ");
-                Console.Write($" {e.Message} ");
-
-                Console.ResetColor();
-
-                if (e.End != -1)
-                {
-                    if (e.Start > 0)
-                        Console.Write(expression[..e.Start]);
-
-                    Console.BackgroundColor = ConsoleColor.DarkRed;
-                    Console.ForegroundColor = ConsoleColor.White;
-
-                    Console.Write(e.Interval.SubString(expression));
-                    Console.ResetColor();
-                    if (expression.Length >= e.End)
-                        Console.Write(expression[e.End..]);
-                    Console.WriteLine();
-                }
-            }
-
-            Console.WriteLine("--------------");
+            var expr = ReadExpression();
+            if (expr == null)
+                break;
+            if (expr.Length == 0)
+                continue;
+            if (TryHandleCommand(expr))
+                continue;
+            Execute(expr);
         }
     }
 
-    private static string ReadMultiline() {
-        StringBuilder sb = new StringBuilder();
+    static void PrintWelcome() {
+        Write("NFun", ConsoleColor.Cyan);
+        Console.Write(" Playground  ");
+        WriteDim("Type /help for commands, /ex for examples");
+        Console.WriteLine();
+    }
+
+    static string ReadExpression() {
+        Write("> ", ConsoleColor.DarkYellow);
+        var first = Console.ReadLine();
+        if (first == null)
+            return null;
+        if (first.Trim().Length == 0)
+            return "";
+        if (first.TrimStart().StartsWith("/"))
+            return first.Trim();
+
+        var sb = new StringBuilder(first);
         while (true)
         {
-            var expression = Console.ReadLine();
-            if (expression == "")
-                return sb.ToString();
-            else
-                sb.Append("\r\n" + expression);
+            Write("| ", ConsoleColor.DarkGray);
+            var line = Console.ReadLine();
+            if (line == null || line == "")
+                break;
+            sb.AppendLine();
+            sb.Append(line);
         }
+
+        return sb.ToString();
+    }
+
+    static bool TryHandleCommand(string cmd) {
+        var lower = cmd.ToLowerInvariant();
+        if (lower is "/exit" or "/quit" or "/q")
+        {
+            Environment.Exit(0);
+            return true;
+        }
+
+        if (lower is "/help" or "/h" or "/?")
+        {
+            PrintHelp();
+            return true;
+        }
+
+        if (lower is "/examples" or "/ex")
+        {
+            PrintExamples();
+            return true;
+        }
+
+        if (cmd.StartsWith("/"))
+        {
+            WriteLineColor($"Unknown command: {cmd}. Type /help for commands.", ConsoleColor.DarkRed);
+            return true;
+        }
+
+        return false;
+    }
+
+    static void Execute(string expression) {
+        try
+        {
+            var runtime = Funny.Hardcore.Build(expression);
+            var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
+            var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
+
+            if (outputs.Count == 0)
+            {
+                WriteDim("  (no output variables)");
+                if (runtime.UserFunctions.Count > 0)
+                {
+                    var names = string.Join(", ", runtime.UserFunctions.Select(f => f.Name));
+                    WriteDim($"  Functions defined: {names}");
+                }
+                Console.WriteLine();
+                return;
+            }
+
+            if (inputs.Count > 0)
+            {
+                WriteDim("  Inputs:");
+                foreach (var input in inputs)
+                    WriteDim($"    {input.Name} : {input.Type}");
+
+                foreach (var input in inputs)
+                {
+                    Write($"  {input.Name} = ", ConsoleColor.DarkYellow);
+                    var valueStr = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(valueStr))
+                        continue;
+
+                    try
+                    {
+                        var val = Funny.Calc(valueStr);
+                        input.Value = val;
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteLineColor($"  Cannot parse value: {ex.Message}", ConsoleColor.Red);
+                        Console.WriteLine();
+                        return;
+                    }
+                }
+            }
+
+            runtime.Run();
+
+            foreach (var output in outputs)
+            {
+                Write($"  {output.Name}", ConsoleColor.White);
+                WriteDim($" : {output.Type}");
+                Write("    = ", ConsoleColor.DarkGray);
+                WriteLineColor(FormatValue(output.Value), ConsoleColor.Green);
+            }
+
+            Console.WriteLine();
+        }
+        catch (FunnyParseException e)
+        {
+            ShowParseError(e, expression);
+        }
+        catch (FunnyRuntimeException e)
+        {
+            WriteLineColor($"  Runtime error: {e.Message}", ConsoleColor.Red);
+            Console.WriteLine();
+        }
+    }
+
+    static void ShowParseError(FunnyParseException e, string expression) {
+        Write(" ERROR ", ConsoleColor.Red);
+        WriteDim($"[FU{e.ErrorCode}]");
+        Console.WriteLine($"  {e.Message}");
+
+        if (e.Start >= 0 && e.End > 0 && e.End <= expression.Length)
+        {
+            Console.Write("  ");
+            if (e.Start > 0)
+                Console.Write(expression[..e.Start]);
+            WriteColor(e.Interval.SubString(expression), ConsoleColor.Red);
+            if (e.End < expression.Length)
+                Console.Write(expression[e.End..]);
+            Console.WriteLine();
+        }
+
+        Console.WriteLine();
+    }
+
+    static string FormatValue(object value) =>
+        value switch {
+            null => "null",
+            bool b => b ? "true" : "false",
+            string s => $"'{s}'",
+            IFunnyArray arr => arr.ToText(),
+            IReadOnlyDictionary<string, object> dict => FormatStruct(dict),
+            Array arr => FormatArray(arr),
+            _ => value.ToString()
+        };
+
+    static string FormatStruct(IReadOnlyDictionary<string, object> dict) {
+        var fields = dict.Select(kv => $"{kv.Key} = {FormatValue(kv.Value)}");
+        return "{ " + string.Join(", ", fields) + " }";
+    }
+
+    static string FormatArray(Array arr) {
+        var items = new List<string>();
+        foreach (var item in arr)
+            items.Add(FormatValue(item));
+        return "[" + string.Join(", ", items) + "]";
+    }
+
+    static void Write(string text, ConsoleColor color) {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.Write(text);
+        Console.ForegroundColor = prev;
+    }
+
+    static void WriteColor(string text, ConsoleColor color) {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.Write(text);
+        Console.ForegroundColor = prev;
+    }
+
+    static void WriteLineColor(string text, ConsoleColor color) {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.WriteLine(text);
+        Console.ForegroundColor = prev;
+    }
+
+    static void WriteDim(string text) {
+        WriteLineColor(text, ConsoleColor.DarkGray);
+    }
+
+    static void PrintHelp() {
+        Console.WriteLine(@"
+  Usage:
+    Type an NFun expression, press Enter, then Enter again to run.
+    Multi-line scripts: keep typing, empty line executes.
+    If the script has input variables, you'll be prompted for values.
+
+  Commands:
+    /help, /h       Show this help
+    /examples, /ex  Show example expressions
+    /exit, /q       Exit
+
+  NFun types:
+    bool, int, real, text, int[], {field:type}
+
+  NFun features:
+    rule          Anonymous function:  rule it * 2
+    if/else       Ternary:  if(x > 0) x else -x
+    . (dot)       Field access:  user.name
+    [i]           Array indexing
+");
+    }
+
+    static void PrintExamples() {
+        var examples = new[] {
+            ("Arithmetic",    "out = 2 + 2 * 2"),
+            ("Strings",       "out = 'hello world'.reverse()"),
+            ("Arrays",        "out = [1,2,3,4].filter(rule it > 2)"),
+            ("Map",           "out = [1,2,3].map(rule it * it)"),
+            ("Structs",       "out = {name = 'Kate', age = 25}"),
+            ("Field access",  "user = {name = 'Kate', age = 25}; out = user.name"),
+            ("Functions",     "add(a,b) = a + b\nout = add(2, 3)"),
+            ("If-else",       "out = if(1 > 0) 'yes' else 'no'"),
+            ("Variables",     "y = x * 2 + 1"),
+            ("Complex",       "items = [{name='tea', price=5}, {name='coffee', price=8}]\nout = items.filter(rule it.price > 6).map(rule it.name)"),
+        };
+
+        Console.WriteLine();
+        foreach (var (label, code) in examples)
+        {
+            Write($"  {label,-14}", ConsoleColor.DarkCyan);
+            WriteDim($"  {code}");
+        }
+
+        Console.WriteLine();
     }
 }
