@@ -140,9 +140,9 @@ public class StructLcaTest {
         var hr = Funny.Hardcore.Build(expr);
         var type = hr["a"].Type;
         Assert.AreEqual(BaseFunnyType.Struct, type.BaseType);
-        Assert.AreEqual(2, type.StructTypeSpecification);
-        Assert.AreEqual(BaseFunnyType.Real,  type.StructTypeSpecification["age"]);
-        Assert.AreEqual(BaseFunnyType.Real,  type.StructTypeSpecification["size"]);
+        Assert.AreEqual(2, type.StructTypeSpecification.Count);
+        Assert.AreEqual(FunnyType.Real,  type.StructTypeSpecification["age"]);
+        Assert.AreEqual(FunnyType.Real,  type.StructTypeSpecification["size"]);
     }
 
     [Test]
