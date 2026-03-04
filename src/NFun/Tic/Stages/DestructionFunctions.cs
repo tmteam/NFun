@@ -120,24 +120,19 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Destruct field-by-field: for each ancestor field, find matching descendant field
         var sameFieldCount = 0;
-        foreach (var (key, value) in descendant.Fields)
+        foreach (var (key, ancFieldNode) in ancestor.Fields)
         {
             var descFieldNode = descendant.GetFieldOrNull(key);
             if (descFieldNode == null)
-            {
-                //todo!!
-                throw new NFunImpossibleException(
-                    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{key}'");
-                descendantNode.State = descendant.With(key, value);
-            }
-            else
-            {
-                if (SolvingFunctions.Destruction(descFieldNode, value))
-                    sameFieldCount++;
-            }
+                continue; // descendant may have fewer fields (struct width subtyping)
+
+            if (SolvingFunctions.Destruction(descFieldNode, ancFieldNode))
+                sameFieldCount++;
         }
-        if(sameFieldCount == ancestor.FieldsCount && sameFieldCount == descendant.FieldsCount)
+
+        if (sameFieldCount == ancestor.FieldsCount && sameFieldCount == descendant.FieldsCount)
             ancestorNode.State = new StateRefTo(descendantNode);
         return true;
     }
