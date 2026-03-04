@@ -68,25 +68,22 @@ public class DestructionFunctions : IStateFunction {
         }
 
         TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
-        if (!descendantNode.IsSolved)
+        if (descendant.GetType() == ancestor.Descendant?.GetType())
         {
-            if (descendant.GetType() == ancestor.Descendant?.GetType())
-            {
-                ancestorNode.State = ancestor.Descendant;
-                descendantNode.RemoveAncestor(ancestorNode);
-                return descendant switch {
-                    StateArray array =>
-                        Apply((StateArray)ancestor.Descendant, array, ancestorNode, descendantNode),
-                    StateFun fun =>
-                        Apply((StateFun)ancestor.Descendant, fun, ancestorNode, descendantNode),
-                    StateStruct @struct =>
-                        Apply((StateStruct)ancestor.Descendant, @struct, ancestorNode, descendantNode),
-                    _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
-                };
-            }
-
-            TraceLog.WriteLine($"{descendant} completely not fit into {ancestor}");
+            ancestorNode.State = ancestor.Descendant;
+            descendantNode.RemoveAncestor(ancestorNode);
+            return descendant switch {
+                StateArray array =>
+                    Apply((StateArray)ancestor.Descendant, array, ancestorNode, descendantNode),
+                StateFun fun =>
+                    Apply((StateFun)ancestor.Descendant, fun, ancestorNode, descendantNode),
+                StateStruct @struct =>
+                    Apply((StateStruct)ancestor.Descendant, @struct, ancestorNode, descendantNode),
+                _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
+            };
         }
+
+        TraceLog.WriteLine($"{descendant} completely not fit into {ancestor}");
         return true;
     }
 
