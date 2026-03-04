@@ -158,6 +158,15 @@ public class LcaStructTest {
     }
 
     [Test]
+    public void SolvedFieldAndConstrainsField_LcaIsCovariant() {
+        // {age: Real} LCA {age: [U8..I96]I32!} = {age: Real}
+        // One field is solved (Re), the other is ConstrainsState
+        var strA = Struct("age", Real);
+        var strB = Struct("age", Constrains(U8, I96));
+        AssertLca(strA, strB, Struct("age", Real));
+    }
+
+    [Test]
     public void Comparable1() {
         var strA = Struct("a", Constrains(isComparable: true));
         var strB = Struct("a", Constrains(isComparable: true));
