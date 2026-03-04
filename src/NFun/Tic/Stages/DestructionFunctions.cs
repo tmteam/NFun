@@ -120,7 +120,7 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Destruct field-by-field: for each ancestor field, find matching descendant field
+        // Destruct field-by-field: for each ancestor field, find matching descendant field.
         var sameFieldCount = 0;
         foreach (var (key, ancFieldNode) in ancestor.Fields)
         {
@@ -132,8 +132,25 @@ public class DestructionFunctions : IStateFunction {
                 sameFieldCount++;
         }
 
+        // Only redirect if all fields match AND field nodes actually resolved to the
+        // same node. This prevents overwriting an LCA result when field types differ
+        // (e.g. I32 ≤ Re both destruct successfully but aren't equal).
         if (sameFieldCount == ancestor.FieldsCount && sameFieldCount == descendant.FieldsCount)
-            ancestorNode.State = new StateRefTo(descendantNode);
+        {
+            bool fieldsEquivalent = true;
+            foreach (var (key, ancFieldNode) in ancestor.Fields)
+            {
+                var descFieldNode = descendant.GetFieldOrNull(key);
+                if (ancFieldNode.GetNonReference() != descFieldNode.GetNonReference())
+                {
+                    fieldsEquivalent = false;
+                    break;
+                }
+            }
+            if (fieldsEquivalent)
+                ancestorNode.State = new StateRefTo(descendantNode);
+        }
+
         return true;
     }
 }
