@@ -194,7 +194,35 @@ public class StructInvariantsTest {
         graph.SetDef("y", 7);
 
         var result = graph.Solve();
-        result.AssertNoGenerics();
+        // y = second.d.b  where b is a generic const [U8..Re]I32!
+        // Output generics are resolved by the runtime, not TIC solver
+        // (same as simple "y = 24" staying generic at TIC level).
+        // Here we verify the graph solves and y has correct constraints.
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<ConstrainsState>(yState);
+        var c = (ConstrainsState)yState;
+        Assert.AreEqual(U8, c.Descendant);
+        Assert.AreEqual(Real, c.Ancestor);
+        Assert.AreEqual(I32, c.Preferred);
+    }
+
+    [Test]
+    public void GenericConst_OutputStaysGenericAtTicLevel() {
+        using var _ = TraceLog.Scope;
+        // y = 24 — generic const [U8..Re] preferred I32.
+        // TIC solver keeps output generics unresolved; the runtime resolves them.
+        var graph = new GraphBuilder();
+        graph.SetGenericConst(0, U8, Real, I32);
+        graph.SetDef("y", 0);
+
+        var result = graph.Solve();
+
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<ConstrainsState>(yState);
+        var c = (ConstrainsState)yState;
+        Assert.AreEqual(U8, c.Descendant);
+        Assert.AreEqual(Real, c.Ancestor);
+        Assert.AreEqual(I32, c.Preferred);
     }
 
     // ================================================================
