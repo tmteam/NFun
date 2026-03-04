@@ -83,15 +83,19 @@ public class StructLcaTest {
     ".Calc().AssertResultHas("out", 1.0));
 
     [Test]
-    public void IfLca3() =>
-        @"
+    public void IfLca3() {
+        var runtime = Funny.Hardcore.Build(@"
     x =
 	    if(true) { age = 0x1 }
 	    else if(false) { age = 'name' }
 	    else { age = 42.0 }
 
     out = x.age
-    ".Calc().AssertResultHas("out", typeof(object));
+    ");
+        runtime.Calc();
+        Assert.AreEqual(FunnyType.Any, runtime["out"].Type);
+        Assert.AreEqual(1, runtime["out"].Value);
+    }
 
     [Test]
     public void IfLca4() {
