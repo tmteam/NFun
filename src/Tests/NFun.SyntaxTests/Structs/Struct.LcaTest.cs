@@ -186,4 +186,13 @@ public class StructLcaTest {
     [TestCase("y = [{a =1.0},{id = 31},{id = 42}][0].a")]
     public void ObviousFails(string expr) =>
         expr.AssertObviousFailsOnParse();
+
+    [Test]
+    public void DefaultFieldInArrayOfStructs() => TraceLog.WithTrace(() =>
+        @"
+        a = { f = default }
+        b = { f = 42 }
+        arr = [a, b]
+        out = arr[0].f
+        ".Calc().AssertResultHas("out", 0));
 }

@@ -663,4 +663,43 @@ public class StructTest {
         Assert.AreEqual(Real, aState.GetFieldOrNull("age")?.State, "age should be Real");
         Assert.AreEqual(Real, aState.GetFieldOrNull("size")?.State, "size should be Real");
     }
+
+    [Test]
+    public void DefaultFieldInStructArray_ResolvesFromContext() {
+        using var _ = TraceLog.Scope;
+        // a = { f = default }
+        // b = { f = 42i }
+        // arr = [a, b]
+        // out = arr[0].f  → should be I32
+
+        var graph = new GraphBuilder();
+
+        // a = { f = default }
+        graph.SetGenericConst(0);                            // node 0: default
+        graph.SetStructInit(new[] { "f" }, new[] { 0 }, 1);  // node 1: {f: default}
+        graph.SetDef("a", 1);
+
+        // b = { f = 42i }
+        graph.SetConst(2, I32);                              // node 2: 42i
+        graph.SetStructInit(new[] { "f" }, new[] { 2 }, 3);  // node 3: {f: I32}
+        graph.SetDef("b", 3);
+
+        // arr = [a, b]
+        graph.SetVar("a", 4);
+        graph.SetVar("b", 5);
+        graph.SetStrictArrayInit(6, 4, 5);
+        graph.SetDef("arr", 6);
+
+        // out = arr[0].f
+        graph.SetVar("arr", 7);
+        graph.SetConst(8, StatePrimitive.I32);               // index 0
+        graph.SetArrGetCall(7, 8, 9);                        // arr[0] → node 9
+        graph.SetFieldAccess(9, 10, "f");                    // .f → node 10
+        graph.SetDef("out", 10);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "out");
+        result.AssertNamed(StateStruct.WithField("f", I32), "a");
+    }
 }

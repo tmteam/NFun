@@ -97,6 +97,22 @@ public class DestructionFunctions : IStateFunction {
             descendantNode.State = new StateRefTo(ancestorNode);
             descendantNode.RemoveAncestor(ancestorNode);
         }
+        else if (ancestor is StateStruct ancStruct
+                 && descendant.HasDescendant && descendant.Descendant is StateStruct)
+        {
+            // Transform descendant constrains to struct, then destruct field-by-field
+            var descStruct = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
+            if (descStruct != null)
+            {
+                descendantNode.State = descStruct;
+                descendantNode.RemoveAncestor(ancestorNode);
+                Apply(ancStruct, descStruct, ancestorNode, descendantNode);
+            }
+            else
+            {
+                TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
+            }
+        }
         else
         {
             TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
