@@ -163,6 +163,7 @@ public class StateStruct : ICompositeState {
 
     public override bool Equals(object obj) {
         if (obj is not StateStruct stateStruct) return false;
+        if (_nodes.Count != stateStruct._nodes.Count) return false;
 
         foreach (var (key, value) in _nodes)
         {

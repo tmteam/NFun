@@ -14,8 +14,27 @@ public static class StateExtensions {
             return Lca(aref.Element, b);
         if (b is StateRefTo bref)
             return Lca(a, bref.Element);
-        if (b is ConstrainsState bc)
-            return bc.HasDescendant ? Lca(a, bc.Descendant) : Concretest(a);
+        if (a is ConstrainsState ac && b is ConstrainsState bc)
+        {
+            // Both are constraints — compute LCA of their concretest forms
+            var descA = ac.HasDescendant ? ac.Descendant : null;
+            var descB = bc.HasDescendant ? bc.Descendant : null;
+            ITicNodeState lcaDesc = (descA, descB) switch {
+                (null, null) => null,
+                (null, _)    => Concretest(descB),
+                (_, null)    => Concretest(descA),
+                _            => Lca(descA, descB)
+            };
+            var comparable = ac.IsComparable && bc.IsComparable;
+            if (lcaDesc == null)
+                return ConstrainsState.Of(isComparable: comparable);
+            // If result is a solved concrete type and no comparable constraint — return it directly
+            if (lcaDesc is ITypeState { IsSolved: true } && !comparable)
+                return lcaDesc;
+            return ConstrainsState.Of(lcaDesc, null, comparable);
+        }
+        if (b is ConstrainsState bc2)
+            return bc2.HasDescendant ? Lca(a, bc2.Descendant) : Concretest(a);
         if (a is ConstrainsState)
             return Lca(b, a);
         if (a is StatePrimitive ap)
@@ -36,7 +55,7 @@ public static class StateExtensions {
         // Covariance is sound because NFun structs are immutable (read-only fields).
         //
         // For resolved types: LCA(I32, Real) = Real (covariant)
-        // For constraints: use UniversalStateOrNull (preserves constraint intervals)
+        // For constraints: use UnifyOrNull (preserves constraint intervals)
         var nodes = new Dictionary<string, TicNode>();
         foreach (var aField in a.Fields)
         {
@@ -47,15 +66,13 @@ public static class StateExtensions {
             var bState = bField.State;
 
             // For fully solved field types, use Lca (covariant).
-            // For unsolved (constrains), use UniversalStateOrNull to preserve intervals.
-            // Special case: Any absorbs everything — Lca(Any, X) = Any always.
+            // For unsolved (constrains), use UnifyOrNull to preserve intervals.
+            // (Any is handled inside UnifyOrNull)
             ITicNodeState fieldType;
-            if (aState.Equals(Any) || bState.Equals(Any))
-                fieldType = Any;
-            else if (aField.Value.IsSolved && bField.IsSolved)
+            if (aField.Value.IsSolved && bField.IsSolved)
                 fieldType = Lca(aState, bState);
             else
-                fieldType = UniversalStateOrNull(aState, bState);
+                fieldType = UnifyOrNull(aState, bState);
 
             if (fieldType == null) continue;
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));
@@ -224,18 +241,23 @@ public static class StateExtensions {
 
     #region uni
 
-    private static ITicNodeState UniversalStateOrNull(this ITicNodeState a, ITicNodeState b) {
+    public static ITicNodeState UnifyOrNull(this ITicNodeState a, ITicNodeState b) {
         if (a.Equals(b))
             return a;
 
         if (a is StateRefTo ar)
-            return UniversalStateOrNull(ar.GetNonReference(), b);
+            return UnifyOrNull(ar.GetNonReference(), b);
         if (b is StateRefTo br)
-            return UniversalStateOrNull(a, br.GetNonReference());
+            return UnifyOrNull(a, br.GetNonReference());
+
+        // Any is the universal ancestor — any type is convertible to Any
+        if (a.Equals(Any)) return Any;
+        if (b.Equals(Any)) return Any;
+
         if (a is ConstrainsState ac)
         {
             if (b is ConstrainsState bc)
-                return UniversalStateOrNull(ac, bc);
+                return UnifyOrNull(ac, bc);
             else if (b.FitsInto(ac))
                 return b;
             else
@@ -243,7 +265,7 @@ public static class StateExtensions {
         }
 
         if (b is ConstrainsState)
-            return UniversalStateOrNull(b, a);
+            return UnifyOrNull(b, a);
         if (a.GetType() != b.GetType())
             return null;
         if (a is StatePrimitive)
@@ -251,15 +273,15 @@ public static class StateExtensions {
         if (b is StatePrimitive)
             return null;
         if (a is StateArray aArr)
-            return UniversalStateOrNull(aArr, b as StateArray);
+            return UnifyOrNull(aArr, b as StateArray);
         if (a is StateFun aFun)
-            return UniversalStateOrNull(aFun, b as StateFun);
+            return UnifyOrNull(aFun, b as StateFun);
         if (a is StateStruct aStr)
-            return UniversalStateOrNull(aStr, b as StateStruct);
+            return UnifyOrNull(aStr, b as StateStruct);
         throw new System.NotSupportedException($"Unitype({a}, {b})");
     }
 
-    private static ITicNodeState UniversalStateOrNull(this ConstrainsState a, ConstrainsState b) {
+    private static ITicNodeState UnifyOrNull(this ConstrainsState a, ConstrainsState b) {
         var comparable = a.IsComparable || b.IsComparable;
         ITicNodeState descendant = null;
         if (!a.HasDescendant)
@@ -284,30 +306,30 @@ public static class StateExtensions {
         return ConstrainsState.Of(descendant, ancestor, comparable).GetOptimizedOrNull();
     }
 
-    private static ITicNodeState UniversalStateOrNull(this StateArray a, StateArray b) {
-        var uniElement = UniversalStateOrNull(a.Element, b.Element);
+    private static ITicNodeState UnifyOrNull(this StateArray a, StateArray b) {
+        var uniElement = UnifyOrNull(a.Element, b.Element);
         return uniElement == null ? null : StateArray.Of(uniElement);
     }
 
-    private static ITicNodeState UniversalStateOrNull(this StateFun a, StateFun b) {
+    private static ITicNodeState UnifyOrNull(this StateFun a, StateFun b) {
         if (a.ArgsCount != b.ArgsCount)
             return null;
         var argNodes = new TicNode[a.ArgsCount];
         for (int i = 0; i < a.ArgsCount; i++)
         {
-            var uniArg = UniversalStateOrNull(a.ArgNodes[i].State, b.ArgNodes[i].State);
+            var uniArg = UnifyOrNull(a.ArgNodes[i].State, b.ArgNodes[i].State);
             if (uniArg == null)
                 return null;
             argNodes[i] = TicNode.CreateInvisibleNode(uniArg);
         }
 
-        var retArg = UniversalStateOrNull(a.ReturnType, b.ReturnType);
+        var retArg = UnifyOrNull(a.ReturnType, b.ReturnType);
         if (retArg == null)
             return null;
         return StateFun.Of(argNodes, TicNode.CreateInvisibleNode(retArg));
     }
 
-    private static ITicNodeState UniversalStateOrNull(this StateStruct a, StateStruct b) {
+    private static ITicNodeState UnifyOrNull(this StateStruct a, StateStruct b) {
         if (a.FieldsCount != b.FieldsCount)
             return null;
         var fields = new Dictionary<string, TicNode>();
@@ -316,7 +338,7 @@ public static class StateExtensions {
             var bField = b.GetFieldOrNull(aField.Key);
             if (bField == null)
                 return null;
-            var uniField = UniversalStateOrNull(aField.Value.State, bField.State);
+            var uniField = UnifyOrNull(aField.Value.State, bField.State);
             if (uniField == null)
                 return null;
             fields.Add(aField.Key, TicNode.CreateInvisibleNode(uniField));
@@ -443,7 +465,7 @@ public static class StateExtensions {
             var fromField = from.GetFieldOrNull(toField.Key);
             if (fromField == null)
                 return false;
-            var unitype = UniversalStateOrNull(fromField.State, toField.Value.State);
+            var unitype = UnifyOrNull(fromField.State, toField.Value.State);
             if (unitype == null)
                 return false;
         }

@@ -115,8 +115,9 @@ public class ConstraintsGetOptimizedTest {
         var constrains = ConstrainsState.Of();
         constrains.AddDescendant(StateStruct.Of(("a", I32), ("b", I32)));
         constrains.AddDescendant(StateStruct.Of("a", Bool));
+        // With covariant fields: Lca(I32, Bool) = Any, field 'b' only in first => dropped
         var optimized = constrains.GetOptimizedOrNull();
-        Assert.AreEqual(optimized, ConstrainsState.Of(StateStruct.Empty()));
+        Assert.AreEqual(optimized, ConstrainsState.Of(StateStruct.Of("a", Any)));
     }
 
     [Test]

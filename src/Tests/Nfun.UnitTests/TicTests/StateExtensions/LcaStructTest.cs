@@ -55,14 +55,23 @@ public class LcaStructTest {
                 ))
         );
 
+        // With covariant fields, all common fields survive with LCA of their types:
+        // prim: Lca(I32, U32) = I48
+        // arr: Lca(arr(arr(Char)), arr(arr(Bool))) = arr(arr(Any))
+        // fun: Lca(Fun(Bool,I16), Fun(Bool,I32)) = Fun(Fcd(Bool,Bool), Lca(I16,I32)) = Fun(Bool,I32)
+        // str: identical
+        // sameField: I32
         AssertLca(strA, strB,
             Struct(
-                ("sameField", I32),
+                ("prim", I48),
+                ("arr", Array(Array(Any))),
+                ("fun", Fun(Bool, I32)),
                 ("str", Struct(
                     ("prim", U32),
                     ("arr", Array(Array(Char))),
                     ("fun", Fun(Char, I16))
-                ))
+                )),
+                ("sameField", I32)
             ));
     }
 

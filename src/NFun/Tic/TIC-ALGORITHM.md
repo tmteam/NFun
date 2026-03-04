@@ -25,18 +25,142 @@ For composites:
 - `Struct{...f:A...} ≤ Struct{f:B}` iff `A ≤ B` for each field f in B (covariant, width+depth subtyping)
 - `T ≤ Any` for all T
 
-### 1.2 LCA and FCD
+### 1.2 Type Algebra
 
-**LCA(A, B)** — Least Common Ancestor — smallest type C such that A ≤ C and B ≤ C:
-- For primitives: pre-computed matrix
-- `LCA(Array(A), Array(B)) = Array(LCA(A, B))`
-- `LCA(Fun(A→R₁), Fun(B→R₂)) = Fun(FCD(A,B) → LCA(R₁,R₂))` — or Any if FCD fails
-- `LCA(Struct{fᵢ:Aᵢ}, Struct{fⱼ:Bⱼ}) = Struct{fₖ:LCA(Aₖ,Bₖ)}` where fₖ ∈ fields(A) ∩ fields(B)
-- `LCA(A, B) = Any` when A and B are different composite kinds
+Four core operations on the type lattice:
 
-**FCD(A, B)** — First Common Descendant — largest type C such that C ≤ A and C ≤ B.
+#### Lca(A, B) — Least Common Ancestor (Join, ∨)
 
-### 1.3 Constraint State
+Smallest type C such that `A ≤ C` and `B ≤ C`.
+Used for: if-else result type, array element type.
+
+**Definition by type:**
+
+| A | B | Lca(A, B) |
+|---|---|-----------|
+| P₁ | P₂ | Pre-computed 18×18 matrix |
+| Array(A) | Array(B) | Array(Lca(A, B)) |
+| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Fcd(A₁,B₁)..Fcd(Aₙ,Bₙ) → Lca(R₁,R₂)), or Any if any Fcd fails |
+| Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{fₖ:Lca(Aₖ,Bₖ)} where fₖ ∈ fields(A) ∩ fields(B) |
+| C[descA,..] | C[descB,..] | See below (constraint LCA) |
+| different kinds | | Any |
+
+**Constraint LCA**: `Lca(C[dA, ancA, cmpA], C[dB, ancB, cmpB])`:
+- desc = Lca(dA, dB) if both present; Concretest(dA) or Concretest(dB) if one missing; null if both
+- comparable = cmpA AND cmpB
+- If desc is a solved ITypeState and not comparable → return desc directly
+- Otherwise → C[desc, null, comparable]
+
+**Algebraic properties (all tested):**
+
+| Property | Status | Notes |
+|----------|--------|-------|
+| Symmetry: Lca(A,B) = Lca(B,A) | ✅ tested | For all types including constrains |
+| Idempotent: Lca(A,A) = A | ✅ tested | For concrete types |
+| Associativity: Lca(Lca(A,B),C) = Lca(A,Lca(B,C)) | ✅ tested | For primitives |
+| Top absorption: Lca(A, Any) = Any | ✅ tested | Any is ⊤ |
+| Bottom identity: Lca(A, ⊥) = A | ✅ tested | ⊥ = empty constrains |
+| Ancestor: A ≤ Lca(A,B) and B ≤ Lca(A,B) | ✅ tested | For primitives |
+| Mixed composites: Lca(Array, Struct) = Any | ✅ tested | |
+| Struct field intersection | ✅ tested | Only common fields survive |
+| Struct covariant fields | ✅ tested | Lca({a:I32}, {a:Real}) = {a:Real} |
+| Struct nested | ✅ tested | Recursive on field types |
+| Associativity for composites | ❌ not tested | |
+| Associativity for constraints | ❌ not tested | |
+
+#### Fcd(A, B) — First Common Descendant (Meet, ∧)
+
+Largest type C such that `C ≤ A` and `C ≤ B`.
+Used for: function argument types in LCA (contravariance).
+
+**Definition by type:**
+
+| A | B | Fcd(A, B) |
+|---|---|-----------|
+| P₁ | P₂ | Pre-computed 18×18 matrix (or null) |
+| Array(A) | Array(B) | Array(Fcd(A, B)) or null |
+| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Lca(A₁,B₁)..→Fcd(R₁,R₂)) or null |
+| Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{union of fields, Fcd on common} or null |
+| different kinds | | null |
+
+**Algebraic properties:**
+
+| Property | Status | Notes |
+|----------|--------|-------|
+| Symmetry: Fcd(A,B) = Fcd(B,A) | ✅ tested | For concrete types |
+| Idempotent: Fcd(A,A) = A | ✅ tested | For concrete types |
+| Top identity: Fcd(A, Any) = A | ✅ tested | Any is ⊤, meet with ⊤ = self |
+| Descendant: Fcd(A,B) ≤ A and ≤ B | ✅ tested | For primitives |
+| Mixed composites = null | ✅ tested | |
+| Associativity | ❌ not tested | |
+
+#### Unify(A, B) — Unification (Constraint intersection)
+
+Find a type that satisfies BOTH A and B simultaneously. Returns null if impossible.
+Used for: struct field LCA with unsolved types, constraint merging.
+
+**Definition by type:**
+
+| A | B | Unify(A, B) |
+|---|---|-------------|
+| Any | X | Any (Any is compatible with everything) |
+| P | P (same) | P |
+| P₁ | P₂ (different, non-Any) | null |
+| P | C[desc, anc, cmp] | P if P fits C, else null |
+| C₁ | C₂ | C[Lca(d₁,d₂), Fcd(a₁,a₂), cmp₁∨cmp₂] or null |
+| Array(A) | Array(B) | Array(Unify(A,B)) or null |
+| Struct{same fields, same types} | Struct{same} | Struct |
+| Struct (different field count) | Struct | null |
+| different kinds | | null |
+
+**Algebraic properties:**
+
+| Property | Status | Notes |
+|----------|--------|-------|
+| Symmetry: Unify(A,B) = Unify(B,A) | ✅ tested | For all types |
+| Idempotent: Unify(A,A) = A | ✅ tested | |
+| Any compatible: Unify(A, Any) ≠ null | ✅ tested | |
+| Same primitive = self | ✅ tested | |
+| Different primitives = null | ✅ tested | |
+| Constrains interval | ✅ tested | I32 fits [U8..Real] |
+| Constrains intersection | ✅ tested | [U8..Real] ∩ [I16..I64] |
+| Disjoint constrains = null | ✅ tested | |
+| Array recursive | ✅ tested | |
+| Struct same fields | ✅ tested | |
+| Struct different field types = null | ✅ tested | |
+| Associativity | ❌ not tested | |
+
+#### FitsInto(A, B) — Subtyping check
+
+"Can A be used where B is expected?" Equivalent to `A ≤ B`.
+
+**Algebraic properties:**
+
+| Property | Status | Notes |
+|----------|--------|-------|
+| Reflexive: A fits A | ✅ tested | For concrete types |
+| Transitive: A≤B ∧ B≤C ⟹ A≤C | ✅ tested | For primitives |
+| Any accepts all | ✅ tested | |
+| Empty constrains accepts all | ✅ tested | |
+| Constrains interval | ✅ tested | |
+| Array covariance: A≤B ⟹ A[]≤B[] | ✅ tested | |
+| Struct width: {a,b}≤{a} | ✅ tested | |
+| Struct empty accepts all | ✅ tested | |
+| Struct depth covariance | ❌ not tested | {a:I32} fits {a:Real}? |
+| Fun contravariance | ❌ not tested | |
+| Transitivity for composites | ❌ not tested | |
+| Antisymmetry: A≤B ∧ B≤A ⟹ A=B | ❌ not tested | |
+
+### 1.3 Cross-operation invariants (all tested)
+
+| Invariant | Status |
+|-----------|--------|
+| Fcd(A,B) ≤ A ≤ Lca(A,B) | ✅ for primitives |
+| A fits Lca(A,B) | ✅ for primitives |
+| Fcd(A,B) fits A | ✅ for primitives |
+| Fcd(A,B) fits Lca(A,B) | ✅ for primitives |
+
+### 1.4 Constraint State
 
 A constraint `C[desc, anc, cmp]` represents an unsolved type variable with:
 - `desc` (descendant/lower bound): most concrete type that satisfies constraints so far
@@ -46,7 +170,7 @@ A constraint `C[desc, anc, cmp]` represents an unsolved type variable with:
 
 **Invariant**: if both desc and anc are set, then `desc ≤ anc`.
 
-### 1.4 Constraint Graph
+### 1.5 Constraint Graph
 
 A directed graph G = (N, E) where:
 - **N**: set of typed nodes. Each node has a mutable `state ∈ T`
@@ -57,7 +181,7 @@ Node types:
 - **SyntaxNode**: intermediate expression nodes
 - **TypeVariable**: generated during graph building (array elements, function args, struct fields)
 
-### 1.5 Solving Algorithm
+### 1.6 Solving Algorithm
 
 ```
 SOLVE(G):
@@ -109,7 +233,7 @@ Resolve remaining generics:
 - Input types (contravariant): solve contravariantly (prefer descendant/most concrete)
 - Other: solve covariantly
 
-### 1.6 Dispatch Matrix
+### 1.7 Dispatch Matrix
 
 Each stage (Pull, Push, Destruct) dispatches on `(ancestor.state, descendant.state)`:
 
