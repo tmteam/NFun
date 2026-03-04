@@ -1,4 +1,5 @@
 ﻿using NFun.TestTools;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests;
@@ -7,9 +8,20 @@ namespace NFun.SyntaxTests;
 public class RecursiveTypeDefinitionDetectionTest {
     [TestCase("r(x) = r(x.i)")]
     [TestCase("r(x) = {f = r(x)}")]
-    [TestCase("f(x) = x.age; y1 = f(user); y2 = f(user.child)")]
     public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr)
         => expr.AssertObviousFailsOnParse();
+
+    [Test]
+    public void FieldAccessOnChildOfSameVar_IsNotRecursive() {
+        // f(x) = x.age; y1 = f(user); y2 = f(user.child)
+        // user: {age: Any, child: {age: Any}} — finite type, not recursive.
+        // 'user' and 'user.child' both satisfy {age: _} independently.
+        var runtime = Funny.Hardcore.Build("f(x) = x.age; y1 = f(user); y2 = f(user.child)");
+        var userType = runtime["user"].Type;
+        Assert.AreEqual(BaseFunnyType.Struct, userType.BaseType);
+        Assert.IsTrue(userType.StructTypeSpecification.ContainsKey("age"));
+        Assert.IsTrue(userType.StructTypeSpecification.ContainsKey("child"));
+    }
 
     [TestCase("y = t.concat(t[0])")]
     [TestCase("y = t.concat(t[0][0])")]

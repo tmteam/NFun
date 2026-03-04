@@ -630,4 +630,37 @@ public class StructTest {
         Assert.AreEqual(1, eType.Fields.Count());
         Assert.AreEqual(Real, eType.GetFieldOrNull("age").State);
     }
+
+    [Test]
+    public void FunCallWithTwoStructParams_SameVarPassedToBoth() {
+        using var _ = TraceLog.Scope;
+        // fun1(x,y) = x.age + y.size
+        // out:real = fun1(a, a)
+        // → a: {age: Real, size: Real}
+
+        var graph = new GraphBuilder();
+
+        // fun1 body: x.age + y.size
+        var fun = graph.SetFunDef("fun1", 4, null, "x", "y");
+        graph.SetVar("x", 0);
+        graph.SetFieldAccess(0, 1, "age");   // node 1 = x.age
+        graph.SetVar("y", 2);
+        graph.SetFieldAccess(2, 3, "size");  // node 3 = y.size
+        graph.SetArith(1, 3, 4);             // node 4 = x.age + y.size (return)
+
+        // out:real = fun1(a, a)
+        graph.SetVar("a", 5);
+        graph.SetVar("a", 6);
+        graph.SetCall(fun, 5, 6, 7);
+        graph.SetVarType("out", Real);
+        graph.SetDef("out", 7);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(Real, "out");
+        var aState = result.GetVariableNode("a").GetNonReference().State as StateStruct;
+        Assert.IsNotNull(aState, "a should be struct");
+        Assert.AreEqual(Real, aState.GetFieldOrNull("age")?.State, "age should be Real");
+        Assert.AreEqual(Real, aState.GetFieldOrNull("size")?.State, "size should be Real");
+    }
 }

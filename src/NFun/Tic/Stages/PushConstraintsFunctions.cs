@@ -164,14 +164,22 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Struct fields are covariant: push constraints field-by-field,
-        // consistent with how arrays and functions handle sub-components.
+        // Width subtyping: descendant (more specific) must have all fields of ancestor.
+        // If descendant is missing a field, extend it (unless frozen).
         foreach (var ancField in ancestor.Fields)
         {
-            var descFieldNode = descendant.GetFieldOrNull(ancField.Key);
-            if (descFieldNode == null)
-                return false;
-            SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
+            if (descendant.GetFieldOrNull(ancField.Key) == null)
+            {
+                if (descendant.IsFrozen)
+                    return false;
+                descendant = descendant.With(ancField.Key, ancField.Value);
+                descendantNode.State = descendant;
+            }
+        }
+        // Covariant field-by-field push.
+        foreach (var ancField in ancestor.Fields)
+        {
+            SolvingFunctions.PushConstraints(descendant.GetFieldOrNull(ancField.Key), ancField.Value);
         }
         return true;
     }
