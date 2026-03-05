@@ -42,22 +42,24 @@ public static partial class StateExtensions {
     private static ITicNodeState Gcd(this StateStruct a, StateStruct b) {
         var nodes = new Dictionary<string, TicNode>();
         // GCD of structs = union of all fields. For shared fields, compute GCD of field types.
-        var keys = a.Fields.Select(f => f.Key).Union(b.Fields.Select(f => f.Key));
-        foreach (var name in keys)
+        foreach (var (name, aFieldNode) in a.Fields)
         {
-            var aField = a.GetFieldOrNull(name);
             var bField = b.GetFieldOrNull(name);
-            if (aField == null)
-                nodes.Add(name, bField);
-            else if (bField == null)
-                nodes.Add(name, aField);
+            if (bField == null)
+                nodes.Add(name, aFieldNode);
             else
             {
-                var fieldGcd = Gcd(aField.State, bField.State);
+                var fieldGcd = Gcd(aFieldNode.State, bField.State);
                 if (fieldGcd == null)
                     return null;
                 nodes.Add(name, TicNode.CreateInvisibleNode(fieldGcd));
             }
+        }
+        // Add fields only in b
+        foreach (var (name, bFieldNode) in b.Fields)
+        {
+            if (a.GetFieldOrNull(name) == null)
+                nodes.Add(name, bFieldNode);
         }
 
         return new StateStruct(nodes, isFrozen: true);

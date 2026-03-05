@@ -75,18 +75,38 @@ public class StateStruct : ICompositeState {
         IsFrozen = isFrozen;
     }
 
-    public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
+    public bool IsSolved {
+        get {
+            foreach (var n in _nodes)
+                if (!n.Value.IsSolved) return false;
+            return true;
+        }
+    }
     public bool IsMutable => true;
     public string Description => ToString();
     public bool IsFrozen { get; }
 
     public ICompositeState GetNonReferenced() {
-        var nodeCopy = _nodes.ToDictionary(d => d.Key, d => d.Value.GetNonReference());
+        var nodeCopy = new Dictionary<string, TicNode>(_nodes.Count);
+        foreach (var (key, value) in _nodes)
+            nodeCopy.Add(key, value.GetNonReference());
         return new StateStruct(nodeCopy, IsFrozen);
     }
 
-    public bool HasAnyReferenceMember => _nodes.Values.Any(v => v.State is StateRefTo);
-    public IEnumerable<TicNode> Members => _nodes.Values.Select(m => m.GetNonReference());
+    public bool HasAnyReferenceMember {
+        get {
+            foreach (var v in _nodes.Values)
+                if (v.State is StateRefTo) return true;
+            return false;
+        }
+    }
+
+    public IEnumerable<TicNode> Members {
+        get {
+            foreach (var m in _nodes.Values)
+                yield return m.GetNonReference();
+        }
+    }
 
     public IEnumerable<TicNode> AllLeafTypes
     {
