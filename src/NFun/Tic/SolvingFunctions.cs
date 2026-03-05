@@ -12,7 +12,7 @@ public static class SolvingFunctions {
     #region Merges
 
     public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB) {
-        if (stateB is ConstrainsState c && c.NoConstrains)
+        if (stateB is ConstraintsState c && c.NoConstrains)
             return stateA;
 
         if (stateA is ITypeState typeA && !typeA.IsMutable)
@@ -20,7 +20,7 @@ public static class SolvingFunctions {
             if (stateB is ITypeState typeB && !typeB.IsMutable)
                 return !typeB.Equals(typeA) ? null : typeA;
 
-            if (stateB is ConstrainsState constrainsB)
+            if (stateB is ConstraintsState constrainsB)
                 return !constrainsB.CanBeConvertedTo(typeA) ? null : typeA;
         }
 
@@ -41,7 +41,7 @@ public static class SolvingFunctions {
             }
             case StateStruct strA when stateB is StateStruct strB:
                 return MergeStructs(strA, strB);
-            case StateStruct strA2 when stateB is ConstrainsState constrainsB2:
+            case StateStruct strA2 when stateB is ConstraintsState constrainsB2:
             {
                 if (constrainsB2.HasDescendant && constrainsB2.Descendant is StateStruct descStruct)
                     return MergeStructs(strA2, descStruct);
@@ -49,9 +49,9 @@ public static class SolvingFunctions {
                     return strA2; // unconstrained → becomes the struct
                 return null;
             }
-            case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
+            case ConstraintsState constrainsA when stateB is ConstraintsState constrainsB:
                 return constrainsB.MergeOrNull(constrainsA);
-            case ConstrainsState:
+            case ConstraintsState:
                 return GetMergedStateOrNull(stateB, stateA);
             case StateRefTo refA:
             {
@@ -317,10 +317,10 @@ public static class SolvingFunctions {
     /// <summary>
     /// Transform constrains state to array state
     /// </summary>
-    public static StateArray TransformToArrayOrNull(object descNodeName, ConstrainsState descendant) {
+    public static StateArray TransformToArrayOrNull(object descNodeName, ConstraintsState descendant) {
         if (descendant.NoConstrains)
         {
-            var constrains = ConstrainsState.Empty;
+            var constrains = ConstraintsState.Empty;
             var eName = "e" + descNodeName.ToString().ToLower() + "'";
 
             var node = TicNode.CreateTypeVariableNode(eName, constrains);
@@ -330,7 +330,7 @@ public static class SolvingFunctions {
         {
             if (!arrayEDesc.IsSolved)
                 return arrayEDesc;
-            var constrains = ConstrainsState.Empty;
+            var constrains = ConstraintsState.Empty;
             var eName = "e" + descNodeName.ToString().ToLower() + "'";
 
             constrains.AddDescendant(arrayEDesc.Element);
@@ -344,18 +344,18 @@ public static class SolvingFunctions {
     /// <summary>
     /// Transform constrains to fun state
     /// </summary>
-    public static StateFun TransformToFunOrNull(object descNodeName, ConstrainsState descendant, StateFun ancestor) {
+    public static StateFun TransformToFunOrNull(object descNodeName, ConstraintsState descendant, StateFun ancestor) {
         if (descendant.NoConstrains)
         {
             var argNodes = new TicNode[ancestor.ArgsCount];
             for (int i = 0; i < ancestor.ArgsCount; i++)
             {
-                var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, ConstrainsState.Empty);
+                var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, ConstraintsState.Empty);
                 ancestor.ArgNodes[i].AddAncestor(argNode); // contravariant: desc arg ≥ anc arg
                 argNodes[i] = argNode;
             }
 
-            var retNode = TicNode.CreateTypeVariableNode("r'" + descNodeName, ConstrainsState.Empty);
+            var retNode = TicNode.CreateTypeVariableNode("r'" + descNodeName, ConstraintsState.Empty);
             retNode.AddAncestor(ancestor.RetNode);
 
             return StateFun.Of(argNodes, retNode);
@@ -369,16 +369,16 @@ public static class SolvingFunctions {
                 var state = funDesc.ArgNodes[i].State;
 
                 var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i,
-                    ConstrainsState.Of(
+                    ConstraintsState.Of(
                         anc: state as StatePrimitive,
-                        isComparable: state is ConstrainsState {IsComparable:true}));
+                        isComparable: state is ConstraintsState {IsComparable:true}));
                 ancestor.ArgNodes[i].AddAncestor(argNode);
                 //argNode.AddAncestor(ancestor.ArgNodes[i]);
                 argNodes[i] = argNode;
             }
 
             var retNode = TicNode.CreateTypeVariableNode("r'" + descNodeName,
-                    ConstrainsState.Of(desc : funDesc.ReturnType));
+                    ConstraintsState.Of(desc : funDesc.ReturnType));
             retNode.AddAncestor(ancestor.RetNode);
 
             return StateFun.Of(argNodes, retNode);
@@ -402,7 +402,7 @@ public static class SolvingFunctions {
     /// <summary>
     /// Transform constrains to struct state
     /// </summary>
-    public static StateStruct TransformToStructOrNull(ConstrainsState descendant, StateStruct ancStruct) {
+    public static StateStruct TransformToStructOrNull(ConstraintsState descendant, StateStruct ancStruct) {
         if (descendant.NoConstrains)
             return ancStruct;
 
@@ -443,7 +443,7 @@ public static class SolvingFunctions {
                     foreach (var member in composite.Members)
                         ThrowIfNodeHasRecursiveTypeDefinitionReq(member, 1);
                     break;
-                case ConstrainsState constrains:
+                case ConstraintsState constrains:
                     if (constrains.HasDescendant)
                         ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Descendant, 1);
                     if (constrains.HasAncestor)
@@ -511,7 +511,7 @@ public static class SolvingFunctions {
                 if (member.VisitMark == typeVariableVisitedMark)
                     continue;
                 member.VisitMark = typeVariableVisitedMark;
-                if (member.Type == TicNodeType.TypeVariable && member.State is ConstrainsState)
+                if (member.Type == TicNodeType.TypeVariable && member.State is ConstraintsState)
                 {
                     typeVariables.Add(member);
                 }
@@ -579,7 +579,7 @@ public static class SolvingFunctions {
 
                     //if contravariant not in output type list then
                     //solve it and add to output types
-                    leafNode.State = ((ConstrainsState)leafNode.State).SolveContravariant();
+                    leafNode.State = ((ConstraintsState)leafNode.State).SolveContravariant();
                 }
             }
         }
@@ -589,7 +589,7 @@ public static class SolvingFunctions {
         {
             if (node.VisitMark == outputTypeMark)
                 continue;
-            if (node.State is not ConstrainsState c)
+            if (node.State is not ConstraintsState c)
                 continue;
             // we have to ignore prefered type as we need last common ancestor
             node.State = c.SolveCovariant(ignorePreferred);
@@ -602,7 +602,7 @@ public static class SolvingFunctions {
     private static IEnumerable<TicNode> GetAllNotSolvedContravariantLeafs(this StateFun fun) =>
         fun.ArgNodes
             .SelectMany(n => n.GetAllLeafTypes())
-            .Where(t => t.State is ConstrainsState);
+            .Where(t => t.State is ConstraintsState);
 
 
     public static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>

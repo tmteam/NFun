@@ -8,9 +8,9 @@ public class PushConstraintsFunctions : IStateFunction {
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
         => descendant.CanBePessimisticConvertedTo(ancestor);
 
-    public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+    public bool Apply(StatePrimitive ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         descendant.AddAncestor(ancestor);
-        var result = descendant.GetOptimizedOrNull();
+        var result = descendant.SimplifyOrNull();
         if (result == null)
             return false;
         descendantNode.State = result;
@@ -21,7 +21,7 @@ public class PushConstraintsFunctions : IStateFunction {
         => true;
 
     public bool Apply(
-        ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode,
+        ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode,
         TicNode descendantNode) {
         if (!ancestor.HasAncestor)
             return true;
@@ -29,20 +29,20 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(
-        ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode,
+        ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode,
         TicNode descendantNode) {
         if (!ancestor.HasAncestor)
             return true;
 
         descendant.AddAncestor(ancestor.Ancestor);
-        var result = descendant.GetOptimizedOrNull();
+        var result = descendant.SimplifyOrNull();
         if (result == null)
             return false;
         descendantNode.State = result;
         return true;
     }
 
-    public bool Apply(ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+    public bool Apply(ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.HasAncestor && !ancestor.Ancestor.Equals(StatePrimitive.Any))
             return false;
 
@@ -56,7 +56,7 @@ public class PushConstraintsFunctions : IStateFunction {
                 var descField = descStruct.GetFieldOrNull(ancField.Key);
                 if (descField == null) continue;
 
-                if (descField.State is ConstrainsState && !ancField.Value.State.Equals(StatePrimitive.Any))
+                if (descField.State is ConstraintsState && !ancField.Value.State.Equals(StatePrimitive.Any))
                     SolvingFunctions.MergeInplace(descField, ancField.Value);
                 else
                     SolvingFunctions.PushConstraints(descField, ancField.Value);
@@ -70,7 +70,7 @@ public class PushConstraintsFunctions : IStateFunction {
 
     public bool Apply(
         ICompositeState ancestor,
-        ConstrainsState descendant,
+        ConstraintsState descendant,
         TicNode ancestorNode,
         TicNode descendantNode) {
         switch (ancestor)

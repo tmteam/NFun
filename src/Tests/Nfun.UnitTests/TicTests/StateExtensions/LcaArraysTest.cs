@@ -12,13 +12,13 @@ public class LcaArraysTest {
     [Test]
     public void PrimitiveAndArrayOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Array(EmptyConstrains), primitive, Any);
+            AssertLca(Array(EmptyConstraints), primitive, Any);
     }
 
     [Test]
     public void PrimitiveAndArrayOfComposite_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Array(Array(EmptyConstrains)), primitive, Any);
+            AssertLca(Array(Array(EmptyConstraints)), primitive, Any);
     }
 
     [Test]
@@ -41,7 +41,7 @@ public class LcaArraysTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 Array(types.Left),
-                Array(EmptyConstrains),
+                Array(EmptyConstraints),
                 Array(types.Left));
     }
 

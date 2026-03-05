@@ -38,8 +38,8 @@ public readonly struct GenericConstrains {
     public static readonly GenericConstrains Numbers
         = new(Real, null, false);
 
-    public static GenericConstrains FromTicConstrains(ConstrainsState constrainsState)
-        => new(constrainsState.Ancestor, constrainsState.Descendant as StatePrimitive, constrainsState.IsComparable);
+    public static GenericConstrains FromTicConstrains(ConstraintsState constraintsState)
+        => new(constraintsState.Ancestor, constraintsState.Descendant as StatePrimitive, constraintsState.IsComparable);
 
     private GenericConstrains(
         StatePrimitive ancestor = null, StatePrimitive descendant = null,

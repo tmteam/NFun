@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -154,7 +153,7 @@ public class TicNode {
     public bool TryBecomeConcrete(StatePrimitive primitiveState) {
         if (_state is StatePrimitive oldConcrete)
             return oldConcrete.Equals(primitiveState);
-        if (_state is ConstrainsState constrains)
+        if (_state is ConstraintsState constrains)
         {
             if (constrains.CanBeConvertedTo(primitiveState))
             {
@@ -177,12 +176,12 @@ public class TicNode {
         {
             return oldConcrete.CanBePessimisticConvertedTo(anc);
         }
-        else if (node.State is ConstrainsState constrains)
+        else if (node.State is ConstraintsState constrains)
         {
             if (!constrains.TryAddAncestor(anc))
                 return false;
             constrains.Preferred = anc;
-            var optimized = constrains.GetOptimizedOrNull();
+            var optimized = constrains.SimplifyOrNull();
             if (optimized == null)
                 return false;
             State = optimized;

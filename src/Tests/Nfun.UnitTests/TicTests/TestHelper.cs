@@ -97,7 +97,7 @@ public static class TestHelper {
     private static void AssertGenericType(
         this TicNode node, StatePrimitive desc, StatePrimitive anc,
         bool isComparable = false) {
-        var generic = node.State as ConstrainsState;
+        var generic = node.State as ConstraintsState;
         Assert.IsNotNull(generic);
         if (desc == null)
             Assert.IsFalse(generic.HasDescendant);

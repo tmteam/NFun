@@ -13,18 +13,18 @@ public static class StagesExtension {
                 return function.Apply(p, bp, nodeA, nodeB);
             else if (nodeB.State is ICompositeState bc)
                 return function.Apply(p, bc, nodeA, nodeB);
-            else if (nodeB.State is ConstrainsState bcon)
+            else if (nodeB.State is ConstraintsState bcon)
                 return function.Apply(p, bcon, nodeA, nodeB);
             else
                 throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
         }
-        else if (nodeA.State is ConstrainsState con)
+        else if (nodeA.State is ConstraintsState con)
         {
             if (nodeB.State is StatePrimitive bp)
                 return function.Apply(con, bp, nodeA, nodeB);
             else if (nodeB.State is ICompositeState bc)
                 return function.Apply(con, bc, nodeA, nodeB);
-            else if (nodeB.State is ConstrainsState bcon)
+            else if (nodeB.State is ConstraintsState bcon)
                 return function.Apply(con, bcon, nodeA, nodeB);
             else
                 throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
@@ -33,7 +33,7 @@ public static class StagesExtension {
         {
             if (nodeB.State is StatePrimitive bp)
                 return function.Apply(c, bp, nodeA, nodeB);
-            else if (nodeB.State is ConstrainsState bcon)
+            else if (nodeB.State is ConstraintsState bcon)
                 return function.Apply(c, bcon, nodeA, nodeB);
             else if (nodeB.State is ICompositeState bc)
                 return c switch {

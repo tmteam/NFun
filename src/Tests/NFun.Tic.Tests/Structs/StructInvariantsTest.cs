@@ -199,8 +199,8 @@ public class StructInvariantsTest {
         // (same as simple "y = 24" staying generic at TIC level).
         // Here we verify the graph solves and y has correct constraints.
         var yState = result.GetVariableNode("y").GetNonReference().State;
-        Assert.IsInstanceOf<ConstrainsState>(yState);
-        var c = (ConstrainsState)yState;
+        Assert.IsInstanceOf<ConstraintsState>(yState);
+        var c = (ConstraintsState)yState;
         Assert.AreEqual(U8, c.Descendant);
         Assert.AreEqual(Real, c.Ancestor);
         Assert.AreEqual(I32, c.Preferred);
@@ -218,8 +218,8 @@ public class StructInvariantsTest {
         var result = graph.Solve();
 
         var yState = result.GetVariableNode("y").GetNonReference().State;
-        Assert.IsInstanceOf<ConstrainsState>(yState);
-        var c = (ConstrainsState)yState;
+        Assert.IsInstanceOf<ConstraintsState>(yState);
+        var c = (ConstraintsState)yState;
         Assert.AreEqual(U8, c.Descendant);
         Assert.AreEqual(Real, c.Ancestor);
         Assert.AreEqual(I32, c.Preferred);
@@ -783,7 +783,7 @@ public class StructInvariantsTest {
         //   f3 = if(true) f1 else f2
         //   out = f3({age=42, size=15})
         //
-        // f3 arg type = FCD({age,size}, {age}) = {age,size}
+        // f3 arg type = GCD({age,size}, {age}) = {age,size}
         // f3 ret type = LCA(arith, arith)
 
         var graph = new GraphBuilder();

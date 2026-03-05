@@ -17,7 +17,7 @@ public class GraphBuilder {
     private readonly List<TicNode> _inputNodes = new();
 
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
-        => new(CreateVarType(ConstrainsState.Of(desc, anc, isComparable)));
+        => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
 
     public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
     public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
@@ -28,7 +28,7 @@ public class GraphBuilder {
     public void SetVar(string name, int node) {
         var namedNode = GetNamedNode(name);
         var idNode = GetOrCreateNode(node);
-        if (idNode.State is ConstrainsState)
+        if (idNode.State is ConstraintsState)
         {
             namedNode.AddAncestor(idNode);
         }
@@ -63,7 +63,7 @@ public class GraphBuilder {
 
     public void SetGenericConst(int id, StatePrimitive desc = null, StatePrimitive anc = null, StatePrimitive preferred = null) {
         var node = GetOrCreateNode(id);
-        if (node.State is ConstrainsState constrains)
+        if (node.State is ConstraintsState constrains)
         {
             constrains.AddAncestor(anc);
             constrains.AddDescendant(desc);
@@ -99,7 +99,7 @@ public class GraphBuilder {
     public void SetArrayConst(int id, StatePrimitive elementType) {
         var eNode = CreateVarType(elementType);
         var node = GetOrCreateNode(id);
-        if (node.State is ConstrainsState c)
+        if (node.State is ConstraintsState c)
         {
             var arrayOf = StateArray.Of(eNode);
             if (c.CanBeConvertedTo(arrayOf))
@@ -148,7 +148,7 @@ public class GraphBuilder {
         var fun = StateFun.Of(args, returnTypeNode);
 
         var node = GetNamedNode(name);
-        if (node.State is not ConstrainsState c || !c.NoConstrains)
+        if (node.State is not ConstraintsState c || !c.NoConstrains)
             throw new InvalidOperationException($"variable {name}already declared");
         node.State = fun;
         _outputNodes.Add(returnTypeNode);
@@ -203,7 +203,7 @@ public class GraphBuilder {
         for (int i = 0; i < funState.ArgsCount; i++)
         {
             var state = funState.ArgNodes[i].State;
-            if (state is ConstrainsState)
+            if (state is ConstraintsState)
                 state = new StateRefTo(funState.ArgNodes[i]);
             SetCallArgument(state, argThenReturnIds[i]);
         }
@@ -251,7 +251,7 @@ public class GraphBuilder {
         var defNode = GetNamedNode(name);
         _outputNodes.Add(defNode);
 
-        if (exprNode.State is StatePrimitive primitive && defNode.State is ConstrainsState constrains)
+        if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
             constrains.Preferred = primitive;
 
         exprNode.AddAncestor(defNode);
@@ -352,7 +352,7 @@ public class GraphBuilder {
         {
             case StatePrimitive primitive:
             {
-                if (node.State is ConstrainsState { HasAncestor: false, HasDescendant: false })
+                if (node.State is ConstraintsState { HasAncestor: false, HasDescendant: false })
                 {
                     node.State = type;
                     return;
@@ -402,7 +402,7 @@ public class GraphBuilder {
                 genericArgs[i] = CreateVarType();
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
-            if (state is not ConstrainsState constrains || !constrains.CanBeConvertedTo(newFunVar))
+            if (state is not ConstraintsState constrains || !constrains.CanBeConvertedTo(newFunVar))
                 throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
             functionNode.State = newFunVar;
             SetCall(newFunVar, argThenReturnIds);
@@ -423,7 +423,7 @@ public class GraphBuilder {
             return varnode;
         }
 
-        var ans = TicNode.CreateNamedNode(name, ConstrainsState.Empty);
+        var ans = TicNode.CreateNamedNode(name, ConstraintsState.Empty);
         _variables.Add(name, ans);
         return ans;
     }
@@ -487,7 +487,7 @@ public class GraphBuilder {
         if (alreadyExists != null)
             return alreadyExists;
 
-        var res = TicNode.CreateSyntaxNode(id, ConstrainsState.Empty, true);
+        var res = TicNode.CreateSyntaxNode(id, ConstraintsState.Empty, true);
         _syntaxNodes[id] = res;
         return res;
     }
@@ -529,7 +529,7 @@ public class GraphBuilder {
 
         var varNode = TicNode.CreateTypeVariableNode(
             name: "V" + _varNodeId,
-            state: state ?? ConstrainsState.Empty,
+            state: state ?? ConstraintsState.Empty,
             true);
         _varNodeId++;
         _typeVariables.Add(varNode);

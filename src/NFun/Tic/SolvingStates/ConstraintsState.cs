@@ -4,7 +4,7 @@ namespace NFun.Tic.SolvingStates;
 
 using static StatePrimitive;
 
-public class ConstrainsState : ITicNodeState {
+public class ConstraintsState : ITicNodeState {
     public StatePrimitive Ancestor { get; private set; }
     public ITicNodeState Descendant { get; private set; }
     public bool HasAncestor => Ancestor != null;
@@ -15,18 +15,18 @@ public class ConstrainsState : ITicNodeState {
     public bool IsComparable { get; }
     public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;
 
-    public static ConstrainsState Empty => new(null, null, false);
+    public static ConstraintsState Empty => new(null, null, false);
 
-    public static ConstrainsState Of(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) =>
+    public static ConstraintsState Of(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) =>
         new(desc, anc, isComparable);
 
-    private ConstrainsState(ITicNodeState desc, StatePrimitive anc, bool isComparable) {
+    private ConstraintsState(ITicNodeState desc, StatePrimitive anc, bool isComparable) {
         Descendant = desc;
         Ancestor = anc;
         IsComparable = isComparable;
     }
 
-    public ConstrainsState GetCopy() => new(Descendant, Ancestor, IsComparable) { Preferred = Preferred };
+    public ConstraintsState GetCopy() => new(Descendant, Ancestor, IsComparable) { Preferred = Preferred };
 
 
     public bool CanBeConvertedTo(ITypeState type) {
@@ -95,12 +95,12 @@ public class ConstrainsState : ITicNodeState {
         }
     }
 
-    public ITicNodeState MergeOrNull(ConstrainsState constrainsState) {
-        var result = new ConstrainsState(Descendant, Ancestor, IsComparable || constrainsState.IsComparable);
+    public ITicNodeState MergeOrNull(ConstraintsState constraintsState) {
+        var result = new ConstraintsState(Descendant, Ancestor, IsComparable || constraintsState.IsComparable);
 
-        result.AddDescendant(constrainsState.Descendant);
+        result.AddDescendant(constraintsState.Descendant);
 
-        if (!result.TryAddAncestor(constrainsState.Ancestor))
+        if (!result.TryAddAncestor(constraintsState.Ancestor))
             return null;
 
         if (result.HasAncestor && result.HasDescendant)
@@ -119,15 +119,15 @@ public class ConstrainsState : ITicNodeState {
         }
 
         if (Preferred == null)
-            result.Preferred = constrainsState.Preferred;
-        else if (constrainsState.Preferred == null)
+            result.Preferred = constraintsState.Preferred;
+        else if (constraintsState.Preferred == null)
             result.Preferred = Preferred;
-        else if (constrainsState.Preferred.Equals(Preferred))
+        else if (constraintsState.Preferred.Equals(Preferred))
             result.Preferred = Preferred;
-        else if (result.CanBeConvertedTo(Preferred) && !result.CanBeConvertedTo(constrainsState.Preferred))
+        else if (result.CanBeConvertedTo(Preferred) && !result.CanBeConvertedTo(constraintsState.Preferred))
             result.Preferred = Preferred;
         else
-            result.Preferred = constrainsState.Preferred;
+            result.Preferred = constraintsState.Preferred;
 
         if (result.Preferred != null)
             if (!result.CanBeConvertedTo(result.Preferred))
@@ -135,7 +135,7 @@ public class ConstrainsState : ITicNodeState {
 
         // If descendant is a fully solved struct and there is no ancestor constraint,
         // the struct type IS the result. Structs don't have ancestor primitives in the
-        // type hierarchy (only Any), so a ConstrainsState wrapping a solved struct is
+        // type hierarchy (only Any), so a ConstraintsState wrapping a solved struct is
         // equivalent to the struct itself.
         if (!result.HasAncestor && !result.IsComparable &&
             result.Descendant is StateStruct { IsSolved: true })
@@ -190,7 +190,7 @@ public class ConstrainsState : ITicNodeState {
         return Descendant;
     }
 
-    public ITicNodeState GetOptimizedOrNull() {
+    public ITicNodeState SimplifyOrNull() {
         if (!HasDescendant) return this;
 
         if (IsComparable)
@@ -224,11 +224,11 @@ public class ConstrainsState : ITicNodeState {
         if (HasAncestor)
         {
             var d = Descendant;
-            if (Descendant is ConstrainsState { IsComparable: true } constrains && Ancestor.IsComparable)
+            if (Descendant is ConstraintsState { IsComparable: true } constrains && Ancestor.IsComparable)
             {
                 d = constrains.Descendant;
                 if (d == null)
-                    return new ConstrainsState(null, Ancestor, false);
+                    return new ConstraintsState(null, Ancestor, false);
             }
 
             if (Ancestor.Equals(d))
@@ -238,11 +238,11 @@ public class ConstrainsState : ITicNodeState {
             if (!descendant.CanBePessimisticConvertedTo(Ancestor))
                 return null;
         }
-        else if (Descendant is ConstrainsState constrainsState)
+        else if (Descendant is ConstraintsState constrainsState)
         {
             if (constrainsState.IsComparable && !IsComparable)
                 return this;
-            return new ConstrainsState(constrainsState.Descendant, null, IsComparable);
+            return new ConstraintsState(constrainsState.Descendant, null, IsComparable);
         }
         else if (Descendant.Equals(Any))
             return Any;
@@ -265,7 +265,7 @@ public class ConstrainsState : ITicNodeState {
         Equals(primitive, Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
 
     public override bool Equals(object obj) {
-        if (obj is not ConstrainsState constrainsState)
+        if (obj is not ConstraintsState constrainsState)
             return false;
 
         if (HasAncestor != constrainsState.HasAncestor)

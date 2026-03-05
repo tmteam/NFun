@@ -58,7 +58,7 @@ public class LcaStructTest {
         // With covariant fields, all common fields survive with LCA of their types:
         // prim: Lca(I32, U32) = I48
         // arr: Lca(arr(arr(Char)), arr(arr(Bool))) = arr(arr(Any))
-        // fun: Lca(Fun(Bool,I16), Fun(Bool,I32)) = Fun(Fcd(Bool,Bool), Lca(I16,I32)) = Fun(Bool,I32)
+        // fun: Lca(Fun(Bool,I16), Fun(Bool,I32)) = Fun(Gcd(Bool,Bool), Lca(I16,I32)) = Fun(Bool,I32)
         // str: identical
         // sameField: I32
         AssertLca(strA, strB,
@@ -160,7 +160,7 @@ public class LcaStructTest {
     [Test]
     public void SolvedFieldAndConstrainsField_LcaIsCovariant() {
         // {age: Real} LCA {age: [U8..I96]I32!} = {age: Real}
-        // One field is solved (Re), the other is ConstrainsState
+        // One field is solved (Re), the other is ConstraintsState
         var strA = Struct("age", Real);
         var strB = Struct("age", Constrains(U8, I96));
         AssertLca(strA, strB, Struct("age", Real));
@@ -175,9 +175,9 @@ public class LcaStructTest {
 
     [Test]
     public void Comparable2() {
-        // if some is comparable, and other is not - it means that result constrains has to be comparable
+        // if some is comparable, and other is not - it means that result constraints has to be comparable
         var strA = Struct("a", Constrains(isComparable: true));
-        var strB = Struct("a", EmptyConstrains);
+        var strB = Struct("a", EmptyConstraints);
         AssertLca(strA, strB, Struct("a", Constrains(isComparable: true)));
     }
 

@@ -14,7 +14,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     private readonly IFunctionDictionary _dictionary;
     private readonly DialectSettings _dialect;
 
-    private readonly IReadOnlyList<ConstrainsState> _constrainsMap;
+    private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
     public int BuiltCount { get; private set; }
 
     internal static GenericUserFunction Create(

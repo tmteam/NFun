@@ -38,7 +38,7 @@ public class TicResultsWithGenerics : ITicResults {
         _typeVariables
             .Union(_namedNodes.Values)
             .Union(_syntaxNodes)
-            .Where(t => t?.State is ConstrainsState);
+            .Where(t => t?.State is ConstraintsState);
     /// <summary>
     /// GAP for tests
     /// </summary>
@@ -46,30 +46,30 @@ public class TicResultsWithGenerics : ITicResults {
 
     public bool HasGenerics => GenericsStates.Count > 0;
 
-    private  IReadOnlyList<ConstrainsState> _genericsStates = null;
+    private  IReadOnlyList<ConstraintsState> _genericsStates = null;
 
-    public IReadOnlyList<ConstrainsState> GenericsStates
+    public IReadOnlyList<ConstraintsState> GenericsStates
     {
         get
         {
             if (_genericsStates != null) return _genericsStates;
             
-            var states = new List<ConstrainsState>();
+            var states = new List<ConstraintsState>();
             foreach (var node in _typeVariables)
             {
-                if (node?.State is ConstrainsState c)
+                if (node?.State is ConstraintsState c)
                     states.Add(c);
             }
 
             foreach (var node in _namedNodes)
             {
-                if (node.Value.State is ConstrainsState c)
+                if (node.Value.State is ConstraintsState c)
                     states.Add(c);
             }
 
             foreach (var node in _syntaxNodes)
             {
-                if (node?.State is ConstrainsState c)
+                if (node?.State is ConstraintsState c)
                     states.Add(c);
             }
 

@@ -54,7 +54,7 @@ public class StateStruct : ICompositeState {
             var node = value switch {
                 ITypeState at   => TicNode.CreateTypeVariableNode(at),
                 StateRefTo aRef => aRef.Node,
-                ConstrainsState ct => TicNode.CreateInvisibleNode(ct),
+                ConstraintsState ct => TicNode.CreateInvisibleNode(ct),
                 _               => throw new InvalidOperationException()
             };
             nodeFields.Add(key, node);

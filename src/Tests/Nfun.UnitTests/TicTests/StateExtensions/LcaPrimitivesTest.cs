@@ -15,7 +15,7 @@ public class LcaPrimitivesTest {
     [Test]
     public void PrimitiveAndBottom_ReturnsPrimitive() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(EmptyConstrains, primitive, primitive);
+            AssertLca(EmptyConstraints, primitive, primitive);
     }
 
     [Test]
@@ -34,10 +34,10 @@ public class LcaPrimitivesTest {
     [Test]
     public void ConstraintAndBottom_ReturnsfDesc() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Constrains(primitive), EmptyConstrains, primitive);
+            AssertLca(Constrains(primitive), EmptyConstraints, primitive);
     }
 
     [Test]
     public void BottomAndBottom_returnBottom() =>
-        AssertLca(EmptyConstrains, EmptyConstrains, EmptyConstrains);
+        AssertLca(EmptyConstraints, EmptyConstraints, EmptyConstraints);
 }

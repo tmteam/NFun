@@ -132,7 +132,7 @@ public class StructLcaTest {
             .Calc().AssertResultHas("out", 42.0);
 
     [Test]
-    public void Fcd1() {
+    public void Gcd1() {
         var expr = @"
             fun1(x,y) = x.age + y.size
             out = fun1(a,a)
@@ -146,7 +146,7 @@ public class StructLcaTest {
     }
 
     [Test]
-    public void Fcd2() =>
+    public void Gcd2() =>
         @"
             fun1(x,y) = x.age + y.size
             a = {age = 42, size = 54, name = 'kate'}

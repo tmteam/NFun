@@ -40,7 +40,7 @@ Used for: if-else result type, array element type.
 |---|---|-----------|
 | P₁ | P₂ | Pre-computed 18×18 matrix |
 | Array(A) | Array(B) | Array(Lca(A, B)) |
-| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Fcd(A₁,B₁)..Fcd(Aₙ,Bₙ) → Lca(R₁,R₂)), or Any if any Fcd fails |
+| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Gcd(A₁,B₁)..Gcd(Aₙ,Bₙ) → Lca(R₁,R₂)), or Any if any Gcd fails |
 | Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{fₖ:Lca(Aₖ,Bₖ)} where fₖ ∈ fields(A) ∩ fields(B) |
 | C[descA,..] | C[descB,..] | See below (constraint LCA) |
 | different kinds | | Any |
@@ -68,29 +68,29 @@ Used for: if-else result type, array element type.
 | Associativity for composites | ❌ not tested | |
 | Associativity for constraints | ❌ not tested | |
 
-#### Fcd(A, B) — First Common Descendant (Meet, ∧)
+#### Gcd(A, B) — First Common Descendant (Meet, ∧)
 
 Largest type C such that `C ≤ A` and `C ≤ B`.
 Used for: function argument types in LCA (contravariance).
 
 **Definition by type:**
 
-| A | B | Fcd(A, B) |
+| A | B | Gcd(A, B) |
 |---|---|-----------|
 | P₁ | P₂ | Pre-computed 18×18 matrix (or null) |
-| Array(A) | Array(B) | Array(Fcd(A, B)) or null |
-| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Lca(A₁,B₁)..→Fcd(R₁,R₂)) or null |
-| Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{union of fields, Fcd on common} or null |
+| Array(A) | Array(B) | Array(Gcd(A, B)) or null |
+| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Lca(A₁,B₁)..→Gcd(R₁,R₂)) or null |
+| Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{union of fields, Gcd on common} or null |
 | different kinds | | null |
 
 **Algebraic properties:**
 
 | Property | Status | Notes |
 |----------|--------|-------|
-| Symmetry: Fcd(A,B) = Fcd(B,A) | ✅ tested | For concrete types |
-| Idempotent: Fcd(A,A) = A | ✅ tested | For concrete types |
-| Top identity: Fcd(A, Any) = A | ✅ tested | Any is ⊤, meet with ⊤ = self |
-| Descendant: Fcd(A,B) ≤ A and ≤ B | ✅ tested | For primitives |
+| Symmetry: Gcd(A,B) = Gcd(B,A) | ✅ tested | For concrete types |
+| Idempotent: Gcd(A,A) = A | ✅ tested | For concrete types |
+| Top identity: Gcd(A, Any) = A | ✅ tested | Any is ⊤, meet with ⊤ = self |
+| Descendant: Gcd(A,B) ≤ A and ≤ B | ✅ tested | For primitives |
 | Mixed composites = null | ✅ tested | |
 | Associativity | ❌ not tested | |
 
@@ -107,7 +107,7 @@ Used for: struct field LCA with unsolved types, constraint merging.
 | P | P (same) | P |
 | P₁ | P₂ (different, non-Any) | null |
 | P | C[desc, anc, cmp] | P if P fits C, else null |
-| C₁ | C₂ | C[Lca(d₁,d₂), Fcd(a₁,a₂), cmp₁∨cmp₂] or null |
+| C₁ | C₂ | C[Lca(d₁,d₂), Gcd(a₁,a₂), cmp₁∨cmp₂] or null |
 | Array(A) | Array(B) | Array(Unify(A,B)) or null |
 | Struct{same fields, same types} | Struct{same} | Struct |
 | Struct (different field count) | Struct | null |
@@ -155,10 +155,10 @@ Used for: struct field LCA with unsolved types, constraint merging.
 
 | Invariant | Status |
 |-----------|--------|
-| Fcd(A,B) ≤ A ≤ Lca(A,B) | ✅ for primitives |
+| Gcd(A,B) ≤ A ≤ Lca(A,B) | ✅ for primitives |
 | A fits Lca(A,B) | ✅ for primitives |
-| Fcd(A,B) fits A | ✅ for primitives |
-| Fcd(A,B) fits Lca(A,B) | ✅ for primitives |
+| Gcd(A,B) fits A | ✅ for primitives |
+| Gcd(A,B) fits Lca(A,B) | ✅ for primitives |
 
 ### 1.4 Constraint State
 
@@ -217,7 +217,7 @@ For each node in **reverse** toposort order, for each ancestor:
 ```
 PUSH(ancestor, descendant):
     -- ancestor's constraints refine descendant's upper bound
-    descendant.anc = FCD(descendant.anc, ancestor.anc)
+    descendant.anc = GCD(descendant.anc, ancestor.anc)
 ```
 
 #### Stage 4: DESTRUCT
@@ -296,9 +296,9 @@ For primitives, the constraint interval `[U8..Real]` is a simple linear range. F
 ### Proven by tests (1120+ unit tests pass):
 
 1. **Primitive LCA is correct and symmetric**: LCA(A,B) = LCA(B,A). Pre-computed 18×18 matrix.
-2. **Primitive FCD is correct**: FCD(A,B) finds the most abstract common descendant.
+2. **Primitive GCD is correct**: GCD(A,B) finds the most abstract common descendant.
 3. **Array LCA is covariant**: LCA(A[], B[]) = LCA(A,B)[]. Works recursively.
-4. **Function LCA**: covariant in return, contravariant in args via FCD.
+4. **Function LCA**: covariant in return, contravariant in args via GCD.
 5. **Struct LCA**: intersection of field names, covariant in field types (LCA per field). *(newly established)*
 6. **Toposort detects and merges cycles**: no infinite loops possible.
 7. **Constraint interval [desc..anc] is always valid**: if both set, desc ≤ anc.
@@ -326,20 +326,20 @@ For primitives, the constraint interval `[U8..Real]` is a simple linear range. F
 
 For primitives, the constraint system is elegant:
 ```
-Merge([A..B], [C..D]) = [LCA(A,C) .. FCD(B,D)]
+Merge([A..B], [C..D]) = [LCA(A,C) .. GCD(B,D)]
 ```
 
 This is a single operation that works uniformly. For composites (Array, Fun, Struct), there is no such algebra. Instead, there's a 9-entry dispatch matrix with hand-coded logic per combination.
 
 **The ideal**: a single `Merge(T, T) → T` operation that works for all types, including composite types with nested constraints. This would replace the separate Pull/Push/Destruct dispatch tables with one consistent algebra.
 
-### What's missing: covariance-aware FitsInto
+### What's missing: covariance-aware IsSubclassOf
 
-`FitsInto` is the fundamental question: "can type A be used where type B is expected?"
+`IsSubclassOf` is the fundamental question: "can type A be used where type B is expected?"
 
 For primitives it delegates to `CanBePessimisticConvertedTo` — a simple lookup.
 
-For structs, it checks field-by-field. But the check direction (A.field → B.field vs B.field → A.field) depends on whether fields are covariant or invariant. Currently the code has **both directions** in different methods, inconsistently. A single, covariance-aware `FitsInto` for struct fields would resolve several bugs at once.
+For structs, it checks field-by-field. But the check direction (A.field → B.field vs B.field → A.field) depends on whether fields are covariant or invariant. Currently the code has **both directions** in different methods, inconsistently. A single, covariance-aware `IsSubclassOf` for struct fields would resolve several bugs at once.
 
 ### What's missing: distinction between Identity and Subtyping edges
 

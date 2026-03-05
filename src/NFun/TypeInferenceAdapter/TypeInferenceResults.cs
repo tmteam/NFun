@@ -76,7 +76,7 @@ public class TypeInferenceResults {
             : _recursiveCalls[id];
 
     public  ITicNodeState[][] GenericFunctionTypes { get; }
-    public IReadOnlyList<ConstrainsState> Generics => _bodyTypeSolving.GenericsStates;
+    public IReadOnlyList<ConstraintsState> Generics => _bodyTypeSolving.GenericsStates;
 
     public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
         => _bodyTypeSolving.GetSyntaxNodeOrNull(id)?.State;

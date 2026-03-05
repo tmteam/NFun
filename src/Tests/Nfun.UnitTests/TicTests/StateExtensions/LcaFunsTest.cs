@@ -49,7 +49,7 @@ public class LcaFunsTest {
     [Test]
     public void PrimitiveAndFunOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Fun(EmptyConstrains, EmptyConstrains), primitive, Any);
+            AssertLca(Fun(EmptyConstraints, EmptyConstraints), primitive, Any);
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
             AssertLca(
                 Fun(Any , types.Left),
-                Fun(Any , EmptyConstrains),
+                Fun(Any , EmptyConstraints),
                 Fun(Any , types.Left));
     }
 
@@ -166,7 +166,7 @@ public class LcaFunsTest {
     [Test]
     public void FunReturnsConstrain_ReturnsFunThatReturnsConstrains() =>
         AssertLca(
-            Fun(EmptyConstrains, EmptyConstrains, EmptyConstrains),
-            Fun(EmptyConstrains, EmptyConstrains, EmptyConstrains),
-            Fun(Any, Any, EmptyConstrains));
+            Fun(EmptyConstraints, EmptyConstraints, EmptyConstraints),
+            Fun(EmptyConstraints, EmptyConstraints, EmptyConstraints),
+            Fun(Any, Any, EmptyConstraints));
 }

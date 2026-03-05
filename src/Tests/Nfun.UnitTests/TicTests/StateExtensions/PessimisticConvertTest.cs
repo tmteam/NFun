@@ -43,7 +43,7 @@ public class PessimisticConvertTest {
 
     [Test]
     public void Сonstrains3() =>
-        EmptyConstrains.CanBeConvertedPessimisticTo(EmptyConstrains)
+        EmptyConstraints.CanBeConvertedPessimisticTo(EmptyConstraints)
             .AssertFalse();
 
     [Test]

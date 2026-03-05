@@ -10,11 +10,11 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
         state switch {
             ITypeState type => Of(type),
             StateRefTo refTo => Of(refTo.Node),
-            ConstrainsState c => Of(c),
+            ConstraintsState c => Of(c),
             _ =>  throw new InvalidOperationException($"Array cannot have state {state}")
         };
 
-    private static StateArray Of(ConstrainsState state) => new(TicNode.CreateInvisibleNode(state));
+    private static StateArray Of(ConstraintsState state) => new(TicNode.CreateInvisibleNode(state));
 
     public static StateArray Of(TicNode node) => new(node);
 

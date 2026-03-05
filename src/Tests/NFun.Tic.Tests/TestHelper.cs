@@ -73,7 +73,7 @@ public static class TestHelper {
     public static void AssertGenericType(
         this ITicNodeState state, StatePrimitive desc, StatePrimitive anc,
         bool isComparable = false) {
-        var generic = state as ConstrainsState;
+        var generic = state as ConstraintsState;
         Assert.IsNotNull(generic);
         if (desc == null)
             Assert.IsFalse(generic.HasDescendant);
@@ -91,7 +91,7 @@ public static class TestHelper {
     public static void AssertGenericType(
         this TicNode node, StatePrimitive desc, StatePrimitive anc,
         bool isComparable = false) {
-        var generic = node.State as ConstrainsState;
+        var generic = node.State as ConstraintsState;
         Assert.IsNotNull(generic);
         if (desc == null)
             Assert.IsFalse(generic.HasDescendant);
@@ -171,7 +171,7 @@ public static class TestHelper {
 
         if (a is StatePrimitive)
             return a.Equals(b);
-        if (a is ConstrainsState)
+        if (a is ConstraintsState)
             return a.Equals(b);
         if (a is ICompositeState aComposite && b is ICompositeState bComposite)
         {

@@ -22,7 +22,7 @@ public class Toposort2Test {
         algorithm.OptimizeTopology();
         Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
         Assert.AreEqual(a1,algorithm.NonReferenceOrdered[0]);
-        Assert.IsInstanceOf<ConstrainsState>(a1.State);
+        Assert.IsInstanceOf<ConstraintsState>(a1.State);
     }*/
     [Test]
     public void AddNullToTopology_DoesNotThrow() {
@@ -54,8 +54,8 @@ public class Toposort2Test {
         //cycle 2:
         //2)  X -> 16 -> v3 -> X
 
-        var v2 = CreateNode("v2", ConstrainsState.Of(I32, Real));
-        var v3 = CreateNode("v3", ConstrainsState.Of(I24, Real));
+        var v2 = CreateNode("v2", ConstraintsState.Of(I32, Real));
+        var v3 = CreateNode("v3", ConstraintsState.Of(I24, Real));
 
         var i13 = CreateNode("13");
         var i16 = CreateNode("16");
@@ -76,8 +76,8 @@ public class Toposort2Test {
 
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
-        Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(ConstrainsState.Of(I32, Real), theNode.State);
+        Assert.IsInstanceOf<ConstraintsState>(theNode.State);
+        Assert.AreEqual(ConstraintsState.Of(I32, Real), theNode.State);
     }
 
     [Test]
@@ -86,8 +86,8 @@ public class Toposort2Test {
         //  |<== 16   -> V3 -> n
 
 
-        var v2 = CreateNode("v2", ConstrainsState.Of(I32, Real));
-        var v3 = CreateNode("v3", ConstrainsState.Of(I24, Real));
+        var v2 = CreateNode("v2", ConstraintsState.Of(I32, Real));
+        var v3 = CreateNode("v3", ConstraintsState.Of(I24, Real));
 
         var i13 = CreateNode("13");
         var i16 = CreateNode("16");
@@ -109,8 +109,8 @@ public class Toposort2Test {
 
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
-        Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(ConstrainsState.Of(I32, Real), theNode.State);
+        Assert.IsInstanceOf<ConstraintsState>(theNode.State);
+        Assert.AreEqual(ConstraintsState.Of(I32, Real), theNode.State);
     }
 
     [Test]
@@ -121,8 +121,8 @@ public class Toposort2Test {
         // Each of nodes has its own ancestor
         // all these 'side' -ancestors has to move to main node
 
-        var v2 = CreateNode("v2", ConstrainsState.Of(I32, Real));
-        var v3 = CreateNode("v3", ConstrainsState.Of(I24, Real));
+        var v2 = CreateNode("v2", ConstraintsState.Of(I32, Real));
+        var v3 = CreateNode("v3", ConstraintsState.Of(I24, Real));
 
         var i13 = CreateNode("13");
         var i16 = CreateNode("16");
@@ -155,8 +155,8 @@ public class Toposort2Test {
 
         Assert.AreEqual(1 + ancestors.Length, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
-        Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(ConstrainsState.Of(I32, Real), theNode.State);
+        Assert.IsInstanceOf<ConstraintsState>(theNode.State);
+        Assert.AreEqual(ConstraintsState.Of(I32, Real), theNode.State);
         CollectionAssert.AreEquivalent(ancestors, theNode.Ancestors);
     }
 
@@ -193,7 +193,7 @@ public class Toposort2Test {
 
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
-        Assert.IsInstanceOf<ConstrainsState>(theNode.State);
+        Assert.IsInstanceOf<ConstraintsState>(theNode.State);
     }
 
     [Test]
@@ -207,7 +207,7 @@ public class Toposort2Test {
         var i16 = CreateNode("16");
         var n = CreateNode("n");
 
-        v2.State = ConstrainsState.Of(I32, Real);
+        v2.State = ConstraintsState.Of(I32, Real);
 
         v2.AddAncestor(n);
         n.AddAncestor(v2);
@@ -224,15 +224,15 @@ public class Toposort2Test {
 
         Assert.AreEqual(1, algorithm.NonReferenceOrdered.Length);
         var theNode = algorithm.NonReferenceOrdered[0];
-        Assert.IsInstanceOf<ConstrainsState>(theNode.State);
-        Assert.AreEqual(ConstrainsState.Of(I32, Real), theNode.State);
+        Assert.IsInstanceOf<ConstraintsState>(theNode.State);
+        Assert.AreEqual(ConstraintsState.Of(I32, Real), theNode.State);
     }
 
     [Test]
     public void ConcreteAncestorCycle_OneNodeInResult() {
         var a1 = CreateNode("a1");
         var a2 = CreateNode("a2");
-        a1.State = ConstrainsState.Of(I32, I96);
+        a1.State = ConstraintsState.Of(I32, I96);
         a1.AddAncestor(a2);
         a2.AddAncestor(a1);
         var algorithm = new NodeToposort(3);
@@ -464,5 +464,5 @@ public class Toposort2Test {
     }
 
     private static TicNode CreateNode(string name, ITicNodeState state = null)
-        => TicNode.CreateNamedNode(name, state ?? ConstrainsState.Empty);
+        => TicNode.CreateNamedNode(name, state ?? ConstraintsState.Empty);
 }

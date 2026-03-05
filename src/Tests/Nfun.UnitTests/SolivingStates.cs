@@ -4,13 +4,13 @@ using Tic;
 using Tic.SolvingStates;
 
 public static class SolvingStates {
-    public static ConstrainsState EmptyConstrains => ConstrainsState.Empty;
+    public static ConstraintsState EmptyConstraints => ConstraintsState.Empty;
 
     public static ITypeState Array(ITicNodeState state) => StateArray.Of(state);
 
     public static ITicNodeState Constrains(ITicNodeState desc = null, StatePrimitive anc = null,
         bool isComparable = false)
-        => ConstrainsState.Of(desc, anc, isComparable);
+        => ConstraintsState.Of(desc, anc, isComparable);
 
     public static StateFun Fun(ITicNodeState returnType)
         => StateFun.Of(System.Array.Empty<ITicNodeState>(), returnType);

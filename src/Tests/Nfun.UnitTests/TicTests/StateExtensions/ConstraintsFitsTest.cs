@@ -10,11 +10,11 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void PrimitiveFits_returnTrue1() =>
-        Any.FitsInto(EmptyConstrains).AssertTrue();
+        Any.FitsInto(EmptyConstraints).AssertTrue();
 
     [Test]
     public void PrimitiveFits_returnTrue2() =>
-        Ip.FitsInto(EmptyConstrains).AssertTrue();
+        Ip.FitsInto(EmptyConstraints).AssertTrue();
 
     [Test]
     public void PrimitiveFits_returnTrue3() =>
@@ -42,7 +42,7 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void PrimitiveFits_returnFalse() =>
-        EmptyConstrains.FitsInto(Constrains(U8, Real, false)).AssertFalse();
+        EmptyConstraints.FitsInto(Constrains(U8, Real, false)).AssertFalse();
 
     [Test]
     public void PrimitiveFits_returnFalse2() =>
@@ -54,7 +54,7 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void ConstrainsFits_returnTrue() =>
-        Constrains(U8, Real, false).FitsInto(EmptyConstrains).AssertTrue();
+        Constrains(U8, Real, false).FitsInto(EmptyConstraints).AssertTrue();
 
     [Test]
     public void ConstrainsFits_returnFalse() =>
@@ -75,19 +75,19 @@ public class ConstraintsFitsTest {
     [Test]
     public void ArrayFits_returnTrue2() =>
         Array(Constrains(U8, Real, false))
-            .FitsInto(Constrains(Array(EmptyConstrains), null, false))
+            .FitsInto(Constrains(Array(EmptyConstraints), null, false))
             .AssertTrue();
 
     [Test]
     public void ArrayFits_returnTrue3() =>
         Array(U32)
-            .FitsInto(Array(EmptyConstrains))
+            .FitsInto(Array(EmptyConstraints))
             .AssertTrue();
 
     [Test]
     public void ArrayFits_returnTrue4() =>
         Array(Constrains(Array(U8), null, false))
-            .FitsInto(Array(EmptyConstrains))
+            .FitsInto(Array(EmptyConstraints))
             .AssertTrue();
 
     [Test]
@@ -103,19 +103,19 @@ public class ConstraintsFitsTest {
     [Test]
     public void ArrayFits_returnTrue7() =>
         Array(Constrains(U32, Real, true))
-            .FitsInto(Array(EmptyConstrains))
+            .FitsInto(Array(EmptyConstraints))
             .AssertTrue();
 
     [Test]
     public void ArrayFits_returnTrue8() =>
-        Array(Array(EmptyConstrains))
-            .FitsInto(Array(EmptyConstrains))
+        Array(Array(EmptyConstraints))
+            .FitsInto(Array(EmptyConstraints))
             .AssertTrue();
 
     [Test]
     public void FunFits_returnsFalse() =>
         Fun(new[] { Any }, Any)
-            .FitsInto(Constrains(Array(EmptyConstrains), null, false))
+            .FitsInto(Constrains(Array(EmptyConstraints), null, false))
             .AssertFalse();
 
     [Test]
@@ -126,7 +126,7 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void FunFits_returnsTrue2() {
-        var constrains = Constrains(Fun(EmptyConstrains, Constrains(U16, null, false)), null, false);
+        var constrains = Constrains(Fun(EmptyConstraints, Constrains(U16, null, false)), null, false);
         var target = Fun(new[] { Any }, U16);
         target.FitsInto(constrains).AssertTrue();
     }
@@ -140,7 +140,7 @@ public class ConstraintsFitsTest {
 
     [Test]
     public void FunFits_returnsTrue4() {
-        var constrains = Constrains(Fun(EmptyConstrains, EmptyConstrains), null, false);
+        var constrains = Constrains(Fun(EmptyConstraints, EmptyConstraints), null, false);
         var target = Fun(new[] { Any }, U16);
         target.FitsInto(constrains).AssertTrue();
     }

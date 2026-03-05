@@ -10,7 +10,7 @@ using static SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 
 /// <summary>
-/// Tests for algebraic invariants of Lca, Fcd, UnifyOrNull, FitsInto.
+/// Tests for algebraic invariants of Lca, Gcd, UnifyOrNull, FitsInto.
 /// These must hold regardless of implementation details.
 /// </summary>
 public class AlgebraInvariantsTest {
@@ -33,7 +33,7 @@ public class AlgebraInvariantsTest {
     }
 
     private static IEnumerable<ITicNodeState> AllConstrainedTypes() {
-        yield return EmptyConstrains;
+        yield return EmptyConstraints;
         yield return Constrains(U8, Real);
         yield return Constrains(I16, I64);
         yield return Constrains(isComparable: true);
@@ -83,10 +83,10 @@ public class AlgebraInvariantsTest {
 
     [Test]
     public void Lca_EmptyConstrainsIsBottom() {
-        // Empty constrains is bottom: Lca(A, ⊥) = A
+        // Empty constraints is bottom: Lca(A, ⊥) = A
         foreach (var a in AllConcreteTypes())
         {
-            var result = a.Lca(EmptyConstrains);
+            var result = a.Lca(EmptyConstraints);
             Assert.AreEqual(a, result,
                 $"LCA bottom violated: Lca({a}, empty)={result}, expected {a}");
         }
@@ -129,9 +129,9 @@ public class AlgebraInvariantsTest {
         var array = Array(I32);
         var struc = Struct("a", I32);
         var fun = Fun(I32, Real);
-        Assert.AreEqual(Any, ((ITicNodeState)array).Lca(struc));
-        Assert.AreEqual(Any, ((ITicNodeState)array).Lca(fun));
-        Assert.AreEqual(Any, ((ITicNodeState)struc).Lca(fun));
+        Assert.AreEqual(Any, array.Lca(struc));
+        Assert.AreEqual(Any, array.Lca(fun));
+        Assert.AreEqual(Any, struc.Lca(fun));
     }
 
     [Test]
@@ -151,68 +151,68 @@ public class AlgebraInvariantsTest {
     }
 
     // ================================================================
-    // FCD invariants (Meet in the type lattice)
+    // GCD invariants (Meet in the type lattice)
     // ================================================================
 
     [Test]
-    public void Fcd_Symmetry() {
+    public void Gcd_Symmetry() {
         foreach (var a in AllConcreteTypes())
         foreach (var b in AllConcreteTypes())
         {
-            var ab = a.Fcd(b);
-            var ba = b.Fcd(a);
+            var ab = a.Gcd(b);
+            var ba = b.Gcd(a);
             Assert.AreEqual(ab, ba,
-                $"FCD symmetry violated: Fcd({a}, {b})={ab} but Fcd({b}, {a})={ba}");
+                $"GCD symmetry violated: Gcd({a}, {b})={ab} but Gcd({b}, {a})={ba}");
         }
     }
 
     [Test]
-    public void Fcd_Idempotent() {
+    public void Gcd_Idempotent() {
         foreach (var a in AllConcreteTypes())
         {
-            var aa = a.Fcd(a);
+            var aa = a.Gcd(a);
             Assert.AreEqual(a, aa,
-                $"FCD idempotent violated: Fcd({a}, {a})={aa}");
+                $"GCD idempotent violated: Gcd({a}, {a})={aa}");
         }
     }
 
     [Test]
-    public void Fcd_AnyIsIdentity() {
-        // Any is top: Fcd(A, Any) = A (meet with top = self)
+    public void Gcd_AnyIsIdentity() {
+        // Any is top: Gcd(A, Any) = A (meet with top = self)
         foreach (var a in AllConcreteTypes())
         {
-            var result = a.Fcd(Any);
+            var result = a.Gcd(Any);
             Assert.AreEqual(a, result,
-                $"FCD Any identity violated: Fcd({a}, Any)={result}, expected {a}");
+                $"GCD Any identity violated: Gcd({a}, Any)={result}, expected {a}");
         }
     }
 
     [Test]
-    public void Fcd_ResultIsDescendantOfBoth_Primitives() {
-        // Fcd(A,B) = C  ⟹  C ≤ A  ∧  C ≤ B
+    public void Gcd_ResultIsDescendantOfBoth_Primitives() {
+        // Gcd(A,B) = C  ⟹  C ≤ A  ∧  C ≤ B
         foreach (var a in PrimitiveTypes)
         foreach (var b in PrimitiveTypes)
         {
-            var c = a.Fcd(b);
+            var c = a.Gcd(b);
             if (c is StatePrimitive cp)
             {
                 Assert.IsTrue(cp.CanBePessimisticConvertedTo(a),
-                    $"Fcd({a},{b})={c} but {c} not convertible to {a}");
+                    $"Gcd({a},{b})={c} but {c} not convertible to {a}");
                 Assert.IsTrue(cp.CanBePessimisticConvertedTo(b),
-                    $"Fcd({a},{b})={c} but {c} not convertible to {b}");
+                    $"Gcd({a},{b})={c} but {c} not convertible to {b}");
             }
         }
     }
 
     [Test]
-    public void Fcd_MixedComposites_ReturnNull() {
-        // Fcd(Array, Struct) = null
+    public void Gcd_MixedComposites_ReturnNull() {
+        // Gcd(Array, Struct) = null
         var array = Array(I32);
         var struc = Struct("a", I32);
         var fun = Fun(I32, Real);
-        Assert.IsNull(((ITicNodeState)array).Fcd(struc));
-        Assert.IsNull(((ITicNodeState)array).Fcd(fun));
-        Assert.IsNull(((ITicNodeState)struc).Fcd(fun));
+        Assert.IsNull(array.Gcd(struc));
+        Assert.IsNull(array.Gcd(fun));
+        Assert.IsNull(struc.Gcd(fun));
     }
 
     // ================================================================
@@ -258,7 +258,7 @@ public class AlgebraInvariantsTest {
     public void Unify_EmptyConstrainsAcceptsAll() {
         foreach (var a in AllConcreteTypes())
         {
-            var result = a.UnifyOrNull(EmptyConstrains);
+            var result = a.UnifyOrNull(EmptyConstraints);
             Assert.IsNotNull(result,
                 $"Unify({a}, empty) should not be null");
         }
@@ -268,7 +268,7 @@ public class AlgebraInvariantsTest {
     public void Unify_SamePrimitiveReturnsSelf() {
         foreach (var p in PrimitiveTypes)
         {
-            var result = ((ITicNodeState)p).UnifyOrNull(p);
+            var result = p.UnifyOrNull(p);
             Assert.AreEqual(p, result);
         }
     }
@@ -279,7 +279,7 @@ public class AlgebraInvariantsTest {
         foreach (var b in PrimitiveTypes)
         {
             if (a.Equals(b) || a.Equals(Any) || b.Equals(Any)) continue;
-            var result = ((ITicNodeState)a).UnifyOrNull(b);
+            var result = a.UnifyOrNull(b);
             Assert.IsNull(result,
                 $"Unify({a}, {b}) should be null for different non-Any primitives, got {result}");
         }
@@ -288,14 +288,14 @@ public class AlgebraInvariantsTest {
     [Test]
     public void Unify_PrimitiveFitsInConstrains() {
         // Unify(I32, [U8..Real]) = I32 (I32 is in the interval)
-        var result = ((ITicNodeState)I32).UnifyOrNull(Constrains(U8, Real));
+        var result = I32.UnifyOrNull(Constrains(U8, Real));
         Assert.AreEqual(I32, result);
     }
 
     [Test]
     public void Unify_PrimitiveOutsideConstrains() {
         // Unify(Bool, [U8..Real]) = null (Bool not in numeric interval)
-        var result = ((ITicNodeState)Bool).UnifyOrNull(Constrains(U8, Real));
+        var result = Bool.UnifyOrNull(Constrains(U8, Real));
         Assert.IsNull(result);
     }
 
@@ -323,17 +323,17 @@ public class AlgebraInvariantsTest {
         // Unify(I32[], Real[]) = null (I32 ≠ Real)
         var a = Array(I32);
         var b = Array(Real);
-        Assert.IsNull(((ITicNodeState)a).UnifyOrNull(b));
+        Assert.IsNull(a.UnifyOrNull(b));
 
         // Unify(I32[], I32[]) = I32[]
-        Assert.AreEqual(a, ((ITicNodeState)a).UnifyOrNull(a));
+        Assert.AreEqual(a, a.UnifyOrNull(a));
     }
 
     [Test]
     public void Unify_StructSameFields() {
         var a = Struct(("x", I32), ("y", Bool));
         var b = Struct(("x", I32), ("y", Bool));
-        var result = ((ITicNodeState)a).UnifyOrNull(b);
+        var result = a.UnifyOrNull(b);
         Assert.IsNotNull(result);
     }
 
@@ -342,30 +342,30 @@ public class AlgebraInvariantsTest {
         // {x:I32} unify {x:Real} = null (I32 ≠ Real, unify is strict)
         var a = Struct("x", I32);
         var b = Struct("x", Real);
-        Assert.IsNull(((ITicNodeState)a).UnifyOrNull(b));
+        Assert.IsNull(a.UnifyOrNull(b));
     }
 
     // ================================================================
-    // Lca + Fcd duality
+    // Lca + Gcd duality
     // ================================================================
 
     [Test]
-    public void Lca_Fcd_Duality_ForPrimitives() {
-        // FCD(A,B) ≤ A ≤ LCA(A,B)
-        // FCD(A,B) ≤ LCA(A,B)
+    public void Lca_Gcd_Duality_ForPrimitives() {
+        // GCD(A,B) ≤ A ≤ LCA(A,B)
+        // GCD(A,B) ≤ LCA(A,B)
         foreach (var a in PrimitiveTypes)
         foreach (var b in PrimitiveTypes)
         {
             var lca = a.Lca(b);
-            var fcd = a.Fcd(b);
-            if (lca is StatePrimitive lcaP && fcd is StatePrimitive fcdP)
+            var gcd = a.Gcd(b);
+            if (lca is StatePrimitive lcaP && gcd is StatePrimitive gcdP)
             {
-                Assert.IsTrue(fcdP.CanBePessimisticConvertedTo(a),
-                    $"FCD({a},{b})={fcd} should be ≤ {a}");
+                Assert.IsTrue(gcdP.CanBePessimisticConvertedTo(a),
+                    $"GCD({a},{b})={gcd} should be ≤ {a}");
                 Assert.IsTrue(a.CanBePessimisticConvertedTo(lcaP),
                     $"{a} should be ≤ LCA({a},{b})={lca}");
-                Assert.IsTrue(fcdP.CanBePessimisticConvertedTo(lcaP),
-                    $"FCD ≤ LCA violated: FCD({a},{b})={fcd} ≤ LCA({a},{b})={lca}");
+                Assert.IsTrue(gcdP.CanBePessimisticConvertedTo(lcaP),
+                    $"GCD ≤ LCA violated: GCD({a},{b})={gcd} ≤ LCA({a},{b})={lca}");
             }
         }
     }
@@ -385,18 +385,18 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Fcd_FitsInto_Relationship_Primitives() {
-        // Fcd(A,B) always fits into A and B (if not null)
+    public void Gcd_FitsInto_Relationship_Primitives() {
+        // Gcd(A,B) always fits into A and B (if not null)
         foreach (var a in PrimitiveTypes)
         foreach (var b in PrimitiveTypes)
         {
-            var fcd = a.Fcd(b);
-            if (fcd != null)
+            var gcd = a.Gcd(b);
+            if (gcd != null)
             {
-                Assert.IsTrue(fcd.FitsInto(a),
-                    $"Fcd({a},{b})={fcd} should fit into {a}");
-                Assert.IsTrue(fcd.FitsInto(b),
-                    $"Fcd({a},{b})={fcd} should fit into {b}");
+                Assert.IsTrue(gcd.FitsInto(a),
+                    $"Gcd({a},{b})={gcd} should fit into {a}");
+                Assert.IsTrue(gcd.FitsInto(b),
+                    $"Gcd({a},{b})={gcd} should fit into {b}");
             }
         }
     }
@@ -409,7 +409,7 @@ public class AlgebraInvariantsTest {
     public void Lca_Struct_FieldIntersection() {
         var ab = Struct(("x", I32), ("y", Bool));
         var ac = Struct(("x", I32), ("z", Real));
-        var result = ((ITicNodeState)ab).Lca(ac);
+        var result = ab.Lca(ac);
         Assert.IsInstanceOf<StateStruct>(result);
         var s = (StateStruct)result;
         Assert.IsNotNull(s.GetFieldOrNull("x"), "common field 'x' should be in LCA");
@@ -422,7 +422,7 @@ public class AlgebraInvariantsTest {
         // Lca({a:I32}, {a:Real}) = {a:Real}
         var s1 = Struct("a", I32);
         var s2 = Struct("a", Real);
-        var result = ((ITicNodeState)s1).Lca(s2);
+        var result = s1.Lca(s2);
         var s = (StateStruct)result;
         Assert.AreEqual(1, s.Fields.Count());
         Assert.AreEqual(Real, s.GetFieldOrNull("a").State);
@@ -433,7 +433,7 @@ public class AlgebraInvariantsTest {
         // Lca({a:I32}, {a:Bool}) = {a:Any}
         var s1 = Struct("a", I32);
         var s2 = Struct("a", Bool);
-        var result = ((ITicNodeState)s1).Lca(s2);
+        var result = s1.Lca(s2);
         var s = (StateStruct)result;
         Assert.AreEqual(1, s.Fields.Count());
         Assert.AreEqual(Any, s.GetFieldOrNull("a").State);
@@ -444,7 +444,7 @@ public class AlgebraInvariantsTest {
         // Lca({a:I32}, {}) = {}
         var s1 = Struct("a", I32);
         var s2 = EmptyStruct();
-        var result = ((ITicNodeState)s1).Lca(s2);
+        var result = s1.Lca(s2);
         var s = (StateStruct)result;
         Assert.AreEqual(0, s.Fields.Count());
     }
@@ -453,8 +453,8 @@ public class AlgebraInvariantsTest {
     public void Lca_Struct_Symmetry() {
         var s1 = Struct(("a", I32), ("b", Real));
         var s2 = Struct(("b", I64), ("c", Bool));
-        var r1 = ((ITicNodeState)s1).Lca(s2);
-        var r2 = ((ITicNodeState)s2).Lca(s1);
+        var r1 = s1.Lca(s2);
+        var r2 = s2.Lca(s1);
         Assert.AreEqual(r1, r2, $"Struct LCA symmetry: {r1} vs {r2}");
     }
 
@@ -463,7 +463,7 @@ public class AlgebraInvariantsTest {
         // Lca({a:{x:I32}}, {a:{x:Real}}) = {a:{x:Real}}
         var s1 = Struct("a", Struct("x", I32));
         var s2 = Struct("a", Struct("x", Real));
-        var result = ((ITicNodeState)s1).Lca(s2);
+        var result = s1.Lca(s2);
         var s = (StateStruct)result;
         Assert.AreEqual(1, s.Fields.Count());
         var inner = s.GetFieldOrNull("a").State as StateStruct;
@@ -476,7 +476,7 @@ public class AlgebraInvariantsTest {
         // Lca({a:I32[]}, {a:Real[]}) = {a:Real[]}  (covariant array in covariant field)
         var s1 = Struct("a", Array(I32));
         var s2 = Struct("a", Array(Real));
-        var result = ((ITicNodeState)s1).Lca(s2);
+        var result = s1.Lca(s2);
         var s = (StateStruct)result;
         Assert.AreEqual(1, s.Fields.Count());
         var arr = s.GetFieldOrNull("a").State as StateArray;
@@ -533,9 +533,9 @@ public class AlgebraInvariantsTest {
     public void FitsInto_Struct_WidthSubtyping() {
         var wide = Struct(("a", I32), ("b", Bool));
         var narrow = Struct("a", I32);
-        Assert.IsTrue(((ITicNodeState)wide).FitsInto(narrow),
+        Assert.IsTrue(wide.FitsInto(narrow),
             "wider struct should fit into narrower");
-        Assert.IsFalse(((ITicNodeState)narrow).FitsInto(wide),
+        Assert.IsFalse(narrow.FitsInto(wide),
             "narrower struct should NOT fit into wider");
     }
 
@@ -543,16 +543,16 @@ public class AlgebraInvariantsTest {
     public void FitsInto_Struct_EmptyAcceptsAll() {
         // Any struct fits into {}
         var s1 = Struct(("a", I32), ("b", Bool));
-        Assert.IsTrue(((ITicNodeState)s1).FitsInto(EmptyStruct()));
-        Assert.IsTrue(((ITicNodeState)EmptyStruct()).FitsInto(EmptyStruct()));
+        Assert.IsTrue(s1.FitsInto(EmptyStruct()));
+        Assert.IsTrue(EmptyStruct().FitsInto(EmptyStruct()));
     }
 
     [Test]
     public void FitsInto_EmptyConstrainsAcceptsAll() {
         // Any type fits into unconstrained
         foreach (var a in AllConcreteTypes())
-            Assert.IsTrue(a.FitsInto(EmptyConstrains),
-                $"{a} should fit into empty constrains");
+            Assert.IsTrue(a.FitsInto(EmptyConstraints),
+                $"{a} should fit into empty constraints");
     }
 
     [Test]
@@ -579,7 +579,7 @@ public class AlgebraInvariantsTest {
     };
 
     private static ITicNodeState[] AssocConstrainedTypes => new ITicNodeState[] {
-        EmptyConstrains,
+        EmptyConstraints,
         Constrains(U8, Real),
         Constrains(I16, I64),
         Constrains(isComparable: true),
@@ -616,34 +616,30 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Fcd_Associativity_Composites() {
-        // For types where Fcd is defined:
-        // Fcd(Fcd(A,B), C) = Fcd(A, Fcd(B,C))  — when all intermediate results are non-null
+    public void Gcd_Associativity_Composites() {
+        // For types where Gcd is defined:
+        // Gcd(Gcd(A,B), C) = Gcd(A, Gcd(B,C))  — when all intermediate results are non-null
         foreach (var a in AssocTypes)
         foreach (var b in AssocTypes)
         foreach (var c in AssocTypes)
         {
-            var ab = a.Fcd(b);
-            var bc = b.Fcd(c);
+            var ab = a.Gcd(b);
+            var bc = b.Gcd(c);
             if (ab == null || bc == null) continue;
-            var ab_c = ab.Fcd(c);
-            var a_bc = a.Fcd(bc);
+            var ab_c = ab.Gcd(c);
+            var a_bc = a.Gcd(bc);
             if (ab_c == null && a_bc == null) continue; // both null is fine
             Assert.AreEqual(ab_c, a_bc,
-                $"FCD assoc violated for ({a}, {b}, {c})");
+                $"GCD assoc violated for ({a}, {b}, {c})");
         }
     }
-
-    // ================================================================
-    // FitsInto — missing coverage
-    // ================================================================
 
     [Test]
     public void FitsInto_Struct_DepthCovariance() {
         // {a:I32} fits {a:Real}  — because I32 ≤ Real (covariant fields)
         var narrow = Struct("a", I32);
         var wide = Struct("a", Real);
-        Assert.IsTrue(((ITicNodeState)narrow).FitsInto(wide),
+        Assert.IsTrue(narrow.FitsInto(wide),
             "{a:I32} should fit into {a:Real} (covariant fields)");
     }
 
@@ -652,7 +648,7 @@ public class AlgebraInvariantsTest {
         // {a:Bool} does NOT fit {a:I32}  — Bool and I32 unrelated
         var a = Struct("a", Bool);
         var b = Struct("a", I32);
-        Assert.IsFalse(((ITicNodeState)a).FitsInto(b));
+        Assert.IsFalse(a.FitsInto(b));
     }
 
     [Test]
@@ -740,18 +736,18 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Fcd_FitsInto_Relationship_Composites() {
-        // Fcd(A,B) fits into A and B (if not null)
+    public void Gcd_FitsInto_Relationship_Composites() {
+        // Gcd(A,B) fits into A and B (if not null)
         foreach (var a in AssocTypes)
         foreach (var b in AssocTypes)
         {
-            var fcd = a.Fcd(b);
-            if (fcd != null)
+            var gcd = a.Gcd(b);
+            if (gcd != null)
             {
-                Assert.IsTrue(fcd.FitsInto(a),
-                    $"Fcd({a},{b})={fcd} should fit into {a}");
-                Assert.IsTrue(fcd.FitsInto(b),
-                    $"Fcd({a},{b})={fcd} should fit into {b}");
+                Assert.IsTrue(gcd.FitsInto(a),
+                    $"Gcd({a},{b})={gcd} should fit into {a}");
+                Assert.IsTrue(gcd.FitsInto(b),
+                    $"Gcd({a},{b})={gcd} should fit into {b}");
             }
         }
     }

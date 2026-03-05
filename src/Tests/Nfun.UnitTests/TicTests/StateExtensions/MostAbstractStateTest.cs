@@ -11,7 +11,7 @@ public class MostAbstractStateTest {
     public void Primitive1() => Assert.AreEqual(U24, U24.Abstractest());
 
     [Test]
-    public void Constraint1() => Assert.AreEqual(Any, EmptyConstrains.Abstractest());
+    public void Constraint1() => Assert.AreEqual(Any, EmptyConstraints.Abstractest());
 
     [Test]
     public void Constraint2() =>
@@ -44,7 +44,7 @@ public class MostAbstractStateTest {
 
     [Test]
     public void Array3() =>
-        Assert.AreEqual(Array(Any), Array(EmptyConstrains).Abstractest());
+        Assert.AreEqual(Array(Any), Array(EmptyConstraints).Abstractest());
 
     [Test]
     public void Fun1() {
@@ -82,8 +82,8 @@ public class MostAbstractStateTest {
     [Test]
     public void Fun4() =>
         Assert.AreEqual(
-            Fun(EmptyConstrains, Any).StateDescription,
-            Fun(EmptyConstrains, EmptyConstrains).Abstractest().StateDescription);
+            Fun(EmptyConstraints, Any).StateDescription,
+            Fun(EmptyConstraints, EmptyConstraints).Abstractest().StateDescription);
 
     [Test]
     public void Struct1() => Assert.AreEqual(EmptyStruct(), EmptyStruct().Abstractest());
@@ -101,7 +101,7 @@ public class MostAbstractStateTest {
     [Test]
     public void Struct4() =>
         Assert.AreEqual(
-            Struct("foo", EmptyConstrains),
-            Struct("foo", EmptyConstrains).Abstractest());
+            Struct("foo", EmptyConstraints),
+            Struct("foo", EmptyConstraints).Abstractest());
 
 }

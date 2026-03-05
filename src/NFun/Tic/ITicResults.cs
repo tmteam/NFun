@@ -16,5 +16,5 @@ public interface ITicResults {
     /// GAP for tests
     /// </summary>
     int GenericsCount { get; }
-    IReadOnlyList<ConstrainsState> GenericsStates { get; }
+    IReadOnlyList<ConstraintsState> GenericsStates { get; }
 }

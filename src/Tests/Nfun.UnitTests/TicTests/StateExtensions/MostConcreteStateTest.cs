@@ -11,7 +11,7 @@ public class MostConcreteStateTest {
     public void Primitive1() => Assert.AreEqual(U24, U24.Concretest());
 
     [Test]
-    public void Constraint1() => Assert.AreEqual(EmptyConstrains, EmptyConstrains.Concretest());
+    public void Constraint1() => Assert.AreEqual(EmptyConstraints, EmptyConstraints.Concretest());
 
     [Test]
     public void Constraint2() =>
@@ -47,8 +47,8 @@ public class MostConcreteStateTest {
 
     [Test]
     public void Array3() {
-        var foo = Array(EmptyConstrains);
-        Assert.AreEqual(Array(EmptyConstrains), foo.Concretest());
+        var foo = Array(EmptyConstraints);
+        Assert.AreEqual(Array(EmptyConstraints), foo.Concretest());
     }
 
     [Test]
@@ -87,8 +87,8 @@ public class MostConcreteStateTest {
     [Test]
     public void Fun4() =>
         Assert.AreEqual(
-            Fun(Any, EmptyConstrains),
-            Fun(EmptyConstrains, EmptyConstrains).Concretest());
+            Fun(Any, EmptyConstraints),
+            Fun(EmptyConstraints, EmptyConstraints).Concretest());
 
     //actually, it is impossible to say most concrete type of struct, as it contain any possible field name
     [Test]

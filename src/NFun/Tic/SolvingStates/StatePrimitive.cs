@@ -2,13 +2,13 @@
 
 public class StatePrimitive : ITypeState, ITicNodeState {
     private static readonly StatePrimitive[,] LcaMap;
-    private static readonly StatePrimitive[,] FcdMap;
+    private static readonly StatePrimitive[,] GcdMap;
 
     static StatePrimitive() {
         LcaMap = new StatePrimitive [18, 18];
-        FcdMap = new StatePrimitive [18, 18];
+        GcdMap = new StatePrimitive [18, 18];
 
-        FillLcaFcdMaps();
+        FillLcaGcdMaps();
     }
 
 
@@ -55,7 +55,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public bool CanBePessimisticConvertedTo(StatePrimitive type) => Equals(LcaMap[Order, type.Order], type);
 
     public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
-        => FcdMap[Order, other.Order];
+        => GcdMap[Order, other.Order];
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
         otherType is StatePrimitive primitive
@@ -68,7 +68,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public override int GetHashCode() => (int)Name;
     public string Description => Name.ToString();
 
-    private static void FillLcaFcdMaps() {
+    private static void FillLcaGcdMaps() {
         int maxVal = 18;
         var numberToTypeMap = new[] {
             Any, //0
@@ -102,9 +102,9 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             //x ^ x = x
             LcaMap[i, i] = numberToTypeMap[i];
             //x _ x = x
-            FcdMap[i, i] = numberToTypeMap[i];
+            GcdMap[i, i] = numberToTypeMap[i];
             //x _ any = x
-            FcdMap[i, Any.Order] = numberToTypeMap[i];
+            GcdMap[i, Any.Order] = numberToTypeMap[i];
         }
 
         //real
@@ -113,7 +113,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             //number ^ real = real
             LcaMap[i, Real.Order] = Real;
             //number _ real = number
-            FcdMap[i, Real.Order] = numberToTypeMap[i];
+            GcdMap[i, Real.Order] = numberToTypeMap[i];
         }
 
         //i96
@@ -122,7 +122,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             //i96 ^ iXX = i96,   i96 ^ uXX = i96
             LcaMap[i, I96.Order] = I96;
             //i96 _ iXX = iXX,   i96 _ uXX = uXX
-            FcdMap[i, I96.Order] = numberToTypeMap[i];
+            GcdMap[i, I96.Order] = numberToTypeMap[i];
         }
 
         //all ints
@@ -133,7 +133,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
                 //I64 ^ i32 = I64
                 LcaMap[desc, anc] = numberToTypeMap[anc];
                 //I64 _ i32 = i32
-                FcdMap[desc, anc] = numberToTypeMap[desc];
+                GcdMap[desc, anc] = numberToTypeMap[desc];
             }
         }
 
@@ -145,7 +145,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
                 //u64 ^ u32 = u64
                 LcaMap[desc, anc] = numberToTypeMap[anc];
                 //u64 _ u32 = u32
-                FcdMap[desc, anc] = numberToTypeMap[desc];
+                GcdMap[desc, anc] = numberToTypeMap[desc];
             }
         }
 
@@ -155,12 +155,12 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             //iXX ^ u8  = iXX
             LcaMap[U8.Order, i] = numberToTypeMap[i];
             //iXX _ u8  = u8
-            FcdMap[U8.Order, i] = U8;
+            GcdMap[U8.Order, i] = U8;
 
             //iXX ^ u12  = iXX
             LcaMap[U12.Order, i] = numberToTypeMap[i];
             //iXX _ u12  = u12
-            FcdMap[U12.Order, i] = U12;
+            GcdMap[U12.Order, i] = U12;
         }
 
         //uXX ^ Ixx
@@ -197,35 +197,35 @@ public class StatePrimitive : ITypeState, ITicNodeState {
 
         //uXX _ Ixx
         //U32 _ I64 = U32...
-        FcdMap[U16.Order, I16.Order] = U12;
-        FcdMap[U24.Order, I16.Order] = U12;
-        FcdMap[U32.Order, I16.Order] = U12;
-        FcdMap[U48.Order, I16.Order] = U12;
-        FcdMap[U64.Order, I16.Order] = U12;
+        GcdMap[U16.Order, I16.Order] = U12;
+        GcdMap[U24.Order, I16.Order] = U12;
+        GcdMap[U32.Order, I16.Order] = U12;
+        GcdMap[U48.Order, I16.Order] = U12;
+        GcdMap[U64.Order, I16.Order] = U12;
 
-        FcdMap[U16.Order, I24.Order] = U16;
-        FcdMap[U24.Order, I24.Order] = U16;
-        FcdMap[U32.Order, I24.Order] = U16;
-        FcdMap[U48.Order, I24.Order] = U16;
-        FcdMap[U64.Order, I24.Order] = U16;
+        GcdMap[U16.Order, I24.Order] = U16;
+        GcdMap[U24.Order, I24.Order] = U16;
+        GcdMap[U32.Order, I24.Order] = U16;
+        GcdMap[U48.Order, I24.Order] = U16;
+        GcdMap[U64.Order, I24.Order] = U16;
 
-        FcdMap[U16.Order, I32.Order] = U16;
-        FcdMap[U24.Order, I32.Order] = U24;
-        FcdMap[U32.Order, I32.Order] = U24;
-        FcdMap[U48.Order, I32.Order] = U24;
-        FcdMap[U64.Order, I32.Order] = U24;
+        GcdMap[U16.Order, I32.Order] = U16;
+        GcdMap[U24.Order, I32.Order] = U24;
+        GcdMap[U32.Order, I32.Order] = U24;
+        GcdMap[U48.Order, I32.Order] = U24;
+        GcdMap[U64.Order, I32.Order] = U24;
 
-        FcdMap[U16.Order, I48.Order] = U16;
-        FcdMap[U24.Order, I48.Order] = U24;
-        FcdMap[U32.Order, I48.Order] = U32;
-        FcdMap[U48.Order, I48.Order] = U32;
-        FcdMap[U64.Order, I48.Order] = U32;
+        GcdMap[U16.Order, I48.Order] = U16;
+        GcdMap[U24.Order, I48.Order] = U24;
+        GcdMap[U32.Order, I48.Order] = U32;
+        GcdMap[U48.Order, I48.Order] = U32;
+        GcdMap[U64.Order, I48.Order] = U32;
 
-        FcdMap[U16.Order, I64.Order] = U16;
-        FcdMap[U24.Order, I64.Order] = U24;
-        FcdMap[U32.Order, I64.Order] = U32;
-        FcdMap[U48.Order, I64.Order] = U48;
-        FcdMap[U64.Order, I64.Order] = U48;
+        GcdMap[U16.Order, I64.Order] = U16;
+        GcdMap[U24.Order, I64.Order] = U24;
+        GcdMap[U32.Order, I64.Order] = U32;
+        GcdMap[U48.Order, I64.Order] = U48;
+        GcdMap[U64.Order, I64.Order] = U48;
 
         //a ^ b = b ^ a
         //a _ b = b _ a
@@ -236,7 +236,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             for (int row = col; row < maxVal; row++)
             {
                 LcaMap[col, row] = LcaMap[row, col];
-                FcdMap[col, row] = FcdMap[row, col];
+                GcdMap[col, row] = GcdMap[row, col];
             }
         }
     }

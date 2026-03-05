@@ -14,7 +14,7 @@ public static class StateExtensions {
             return Lca(aref.Element, b);
         if (b is StateRefTo bref)
             return Lca(a, bref.Element);
-        if (a is ConstrainsState ac && b is ConstrainsState bc)
+        if (a is ConstraintsState ac && b is ConstraintsState bc)
         {
             // Both are constraints — compute LCA of their concretest forms
             var descA = ac.HasDescendant ? ac.Descendant : null;
@@ -27,15 +27,15 @@ public static class StateExtensions {
             };
             var comparable = ac.IsComparable && bc.IsComparable;
             if (lcaDesc == null)
-                return ConstrainsState.Of(isComparable: comparable);
+                return ConstraintsState.Of(isComparable: comparable);
             // If result is a solved concrete type and no comparable constraint — return it directly
             if (lcaDesc is ITypeState { IsSolved: true } && !comparable)
                 return lcaDesc;
-            return ConstrainsState.Of(lcaDesc, null, comparable);
+            return ConstraintsState.Of(lcaDesc, null, comparable);
         }
-        if (b is ConstrainsState bc2)
+        if (b is ConstraintsState bc2)
             return bc2.HasDescendant ? Lca(a, bc2.Descendant) : Concretest(a);
-        if (a is ConstrainsState)
+        if (a is ConstraintsState)
             return Lca(b, a);
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetLastCommonPrimitiveAncestor(bp) : Any;
@@ -85,10 +85,10 @@ public static class StateExtensions {
         {
             var aNode = a.ArgNodes[i];
             var bNode = b.ArgNodes[i];
-            var fcd = Fcd(aNode.State, bNode.State);
-            if (fcd == null)
+            var gcd = Gcd(aNode.State, bNode.State);
+            if (gcd == null)
                 return Any;
-            argNodes[i] = TicNode.CreateInvisibleNode(fcd);
+            argNodes[i] = TicNode.CreateInvisibleNode(gcd);
         }
 
         return StateFun.Of(argNodes, TicNode.CreateInvisibleNode(returnState));
@@ -96,17 +96,17 @@ public static class StateExtensions {
 
     #endregion
 
-    #region fcd
+    #region gcd
 
-    public static ITicNodeState Fcd(this ITicNodeState a, ITicNodeState b) {
+    public static ITicNodeState Gcd(this ITicNodeState a, ITicNodeState b) {
         if (b is StateRefTo bref)
-            return Fcd(a, bref.Element);
+            return Gcd(a, bref.Element);
         if (a is StateRefTo aref)
-            return Fcd(aref.Element, b);
-        if (a is ConstrainsState ac)
-            return ac.Ancestor != null ? Fcd(ac.Ancestor, b) : Abstractest(b);
-        if (b is ConstrainsState bc)
-            return bc.Ancestor != null ? Fcd(a, bc.Ancestor) : Abstractest(a);
+            return Gcd(aref.Element, b);
+        if (a is ConstraintsState ac)
+            return ac.Ancestor != null ? Gcd(ac.Ancestor, b) : Abstractest(b);
+        if (b is ConstraintsState bc)
+            return bc.Ancestor != null ? Gcd(a, bc.Ancestor) : Abstractest(a);
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
                 a.Equals(Any) ? Abstractest(b) : null;
@@ -115,24 +115,24 @@ public static class StateExtensions {
         if (a.GetType() != b.GetType())
             return null;
         if (a is StateArray arrA)
-            return Fcd(arrA, (StateArray)b);
+            return Gcd(arrA, (StateArray)b);
         if (a is StateFun funA)
-            return Fcd(funA, (StateFun)b);
+            return Gcd(funA, (StateFun)b);
         if (a is StateStruct astruct)
-            return Fcd(astruct, (StateStruct)b);
-        throw new NotSupportedException($"FCD is not supported for types {a} and {b}");
+            return Gcd(astruct, (StateStruct)b);
+        throw new NotSupportedException($"GCD is not supported for types {a} and {b}");
     }
 
-    private static ITicNodeState Fcd(this StateArray arrA, StateArray arrB) {
-        var lcd = Fcd(arrA.Element, arrB.Element);
+    private static ITicNodeState Gcd(this StateArray arrA, StateArray arrB) {
+        var lcd = Gcd(arrA.Element, arrB.Element);
         if (lcd == null)
             return null;
         return StateArray.Of(lcd);
     }
 
-    private static ITicNodeState Fcd(this StateStruct a, StateStruct b) {
+    private static ITicNodeState Gcd(this StateStruct a, StateStruct b) {
         var nodes = new Dictionary<string, TicNode>();
-        // FCD of structs = union of all fields. For shared fields, compute FCD of field types.
+        // GCD of structs = union of all fields. For shared fields, compute GCD of field types.
         var keys = a.Fields.Select(f => f.Key).Union(b.Fields.Select(f => f.Key));
         foreach (var name in keys)
         {
@@ -144,24 +144,24 @@ public static class StateExtensions {
                 nodes.Add(name, aField);
             else
             {
-                var fieldFcd = Fcd(aField.State, bField.State);
-                if (fieldFcd == null)
+                var fieldGcd = Gcd(aField.State, bField.State);
+                if (fieldGcd == null)
                     return null;
-                nodes.Add(name, TicNode.CreateInvisibleNode(fieldFcd));
+                nodes.Add(name, TicNode.CreateInvisibleNode(fieldGcd));
             }
         }
 
         return new StateStruct(nodes, isFrozen: true);
     }
 
-    private static ITicNodeState Fcd(this StateFun funA, StateFun funB) {
+    private static ITicNodeState Gcd(this StateFun funA, StateFun funB) {
         if (funA.ArgsCount != funB.ArgsCount)
             return null;
         var args = new ITicNodeState[funA.ArgsCount];
         for (int i = 0; i < funA.ArgsCount; i++)
             args[i] = Lca(funA.ArgNodes[i].State, funB.ArgNodes[i].State);
 
-        var retType = Fcd(funA.ReturnType, funB.ReturnType);
+        var retType = Gcd(funA.ReturnType, funB.ReturnType);
         if (retType == null)
             return null;
         return StateFun.Of(args, retType);
@@ -177,9 +177,9 @@ public static class StateExtensions {
     public static ITicNodeState Concretest(this ITicNodeState a) =>
         a switch {
             StatePrimitive => a,
-            ConstrainsState cs => cs.HasDescendant
+            ConstraintsState cs => cs.HasDescendant
                 ? cs.Descendant.Concretest()
-                : ConstrainsState.Of(isComparable: cs.IsComparable),
+                : ConstraintsState.Of(isComparable: cs.IsComparable),
             StateArray arr => StateArray.Of(arr.Element.Concretest()),
             StateRefTo aref => aref.Element.Concretest(),
             StateFun f => f.Concretest(),
@@ -225,7 +225,7 @@ public static class StateExtensions {
     public static ITicNodeState Abstractest(this ITicNodeState a) =>
         a switch {
             StateRefTo aref => aref.Element.Abstractest(),
-            ConstrainsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
+            ConstraintsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
             StatePrimitive => a,
             StateArray arr => StateArray.Of(arr.Element.Abstractest()),
             StateFun f => f.Abstractest(),
@@ -263,9 +263,9 @@ public static class StateExtensions {
         if (a.Equals(Any)) return Any;
         if (b.Equals(Any)) return Any;
 
-        if (a is ConstrainsState ac)
+        if (a is ConstraintsState ac)
         {
-            if (b is ConstrainsState bc)
+            if (b is ConstraintsState bc)
                 return UnifyOrNull(ac, bc);
             else if (b.FitsInto(ac))
                 return b;
@@ -273,7 +273,7 @@ public static class StateExtensions {
                 return null;
         }
 
-        if (b is ConstrainsState)
+        if (b is ConstraintsState)
             return UnifyOrNull(b, a);
         if (a.GetType() != b.GetType())
             return null;
@@ -290,7 +290,7 @@ public static class StateExtensions {
         throw new NotSupportedException($"Unitype({a}, {b})");
     }
 
-    private static ITicNodeState UnifyOrNull(this ConstrainsState a, ConstrainsState b) {
+    private static ITicNodeState UnifyOrNull(this ConstraintsState a, ConstraintsState b) {
         var comparable = a.IsComparable || b.IsComparable;
         ITicNodeState descendant = null;
         if (!a.HasDescendant)
@@ -312,7 +312,7 @@ public static class StateExtensions {
                 return null;
         }
 
-        return ConstrainsState.Of(descendant, ancestor, comparable).GetOptimizedOrNull();
+        return ConstraintsState.Of(descendant, ancestor, comparable).SimplifyOrNull();
     }
 
     private static ITicNodeState UnifyOrNull(this StateArray a, StateArray b) {
@@ -375,13 +375,13 @@ public static class StateExtensions {
         if (from is StatePrimitive)
             return to is StatePrimitive top2
                 ? from.CanBePessimisticConvertedTo(top2)
-                : to is ConstrainsState toConstraints2 &&
+                : to is ConstraintsState toConstraints2 &&
                   (!toConstraints2.HasAncestor || from.CanBePessimisticConvertedTo(toConstraints2.Ancestor));
-        if (from is ConstrainsState fromConstraints)
+        if (from is ConstraintsState fromConstraints)
         {
             if (fromConstraints.NoConstrains)
                 return true;
-            if (to is ConstrainsState toConstraints)
+            if (to is ConstraintsState toConstraints)
             {
                 var ancestor = toConstraints.Ancestor;
                 // if there is no ancestor, than anything can be possibly converted to 'to'
@@ -400,7 +400,7 @@ public static class StateExtensions {
 
         if (from is ICompositeState)
         {
-            if (to is ConstrainsState constrainsState)
+            if (to is ConstraintsState constrainsState)
                 // if there is no ancestor, than anything can be possibly converted to 'to'
                 return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, Any);
             return false;
@@ -411,14 +411,14 @@ public static class StateExtensions {
         return false;
     }
 
-    public static bool CanBeConvertedOptimisticTo(this ConstrainsState from, StatePrimitive to) {
+    public static bool CanBeConvertedOptimisticTo(this ConstraintsState from, StatePrimitive to) {
         if (from.Ancestor?.CanBePessimisticConvertedTo(to) == true)
             return true;
 
         if (from.HasDescendant)
         {
             var concretest = from.Descendant.Concretest();
-            if (concretest is ConstrainsState { HasAncestor : false, HasDescendant: false })
+            if (concretest is ConstraintsState { HasAncestor : false, HasDescendant: false })
                 return true;
             return concretest.CanBePessimisticConvertedTo(to);
         }
@@ -438,7 +438,7 @@ public static class StateExtensions {
     public static bool CanBeConvertedOptimisticTo(this ITicNodeState from, ICompositeState to) {
         if (from is StateRefTo r)
             return CanBeConvertedOptimisticTo(r.Element, to);
-        if (from is ConstrainsState constrainsState)
+        if (from is ConstraintsState constrainsState)
             return !constrainsState.HasDescendant;
         if (from.GetType() != to.GetType())
             return false;
@@ -486,7 +486,7 @@ public static class StateExtensions {
     /// <summary>
     /// `from` can be converted to `to` in ANY case
     /// </summary>
-    private static bool CanBeConvertedPessimisticTo(this ICompositeState from, ConstrainsState to) {
+    private static bool CanBeConvertedPessimisticTo(this ICompositeState from, ConstraintsState to) {
         if (to.NoConstrains)
             return true;
         if (to.Ancestor != null && !from.CanBePessimisticConvertedTo(to.Ancestor))
@@ -514,15 +514,15 @@ public static class StateExtensions {
             StateRefTo descRef => CanBeConvertedPessimisticTo(descRef.Element, to),
             StatePrimitive fromPrim => to switch {
                 StatePrimitive p => fromPrim.CanBePessimisticConvertedTo(p),
-                ConstrainsState c => (!c.IsComparable || fromPrim.IsComparable)
+                ConstraintsState c => (!c.IsComparable || fromPrim.IsComparable)
                                      && c.HasDescendant && CanBeConvertedPessimisticTo(fromPrim, c.Descendant),
                 _ => false
             },
-            ConstrainsState fromDesc => fromDesc.HasAncestor
+            ConstraintsState fromDesc => fromDesc.HasAncestor
                 ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to)
                 : CanBeConvertedPessimisticTo(Any, to),
             ICompositeState comp => to switch {
-                ConstrainsState constrAnc => CanBeConvertedPessimisticTo(comp, constrAnc),
+                ConstraintsState constrAnc => CanBeConvertedPessimisticTo(comp, constrAnc),
                 ICompositeState composite => CanBeConvertedPessimisticTo(comp, composite),
                 _ => false
             }
@@ -581,7 +581,7 @@ public static class StateExtensions {
 
     #region fit
 
-    public static bool FitsInto(this ITicNodeState target, ConstrainsState to) {
+    public static bool FitsInto(this ITicNodeState target, ConstraintsState to) {
         if (to.HasAncestor && !target.CanBePessimisticConvertedTo(to.Ancestor))
             return false;
         if (to.IsComparable)
@@ -605,7 +605,7 @@ public static class StateExtensions {
     public static bool FitsInto(this ITicNodeState target, ITicNodeState to) {
         if (to is StateRefTo toR)
             return FitsInto(target, toR.GetNonReference());
-        if (to is ConstrainsState constrainsState)
+        if (to is ConstraintsState constrainsState)
             return target.FitsInto(constrainsState);
 
         return target switch {
@@ -619,8 +619,8 @@ public static class StateExtensions {
                 ? targetS.FitsInto(structTo)
                 : to.Equals(Any),
             StatePrimitive => to is StatePrimitive p && target.CanBePessimisticConvertedTo(p),
-            ConstrainsState { HasDescendant: true } fc => FitsInto(fc.Descendant, to),
-            ConstrainsState => true,
+            ConstraintsState { HasDescendant: true } fc => FitsInto(fc.Descendant, to),
+            ConstraintsState => true,
             StateRefTo targetR=> FitsInto(targetR.GetNonReference(), to),
             _ => throw new NotImplementedException($"Type {target} :> {to} is not supported in FIT")
         };
@@ -669,12 +669,12 @@ public static class StateExtensions {
             StateRefTo descRef => CanBeFitConverted(descRef.Element, to),
             StatePrimitive descP => to switch {
                 StatePrimitive toP => descP.CanBePessimisticConvertedTo(toP),
-                ConstrainsState toC => toC.Descendant!=null && descP.CanBeConvertedPessimisticTo(toC.Descendant),
+                ConstraintsState toC => toC.Descendant!=null && descP.CanBeConvertedPessimisticTo(toC.Descendant),
                 _ => false
             },
-            ConstrainsState fromDesc => fromDesc.Descendant==null || CanBeFitConverted(fromDesc.Descendant, to),
+            ConstraintsState fromDesc => fromDesc.Descendant==null || CanBeFitConverted(fromDesc.Descendant, to),
             ICompositeState comp => to switch {
-                ConstrainsState constrAnc => constrAnc.Descendant is ICompositeState toComposite && CanBeFitConverted(comp, toComposite),
+                ConstraintsState constrAnc => constrAnc.Descendant is ICompositeState toComposite && CanBeFitConverted(comp, toComposite),
                 ICompositeState composite => CanBeFitConverted(comp, composite),
                 _ => false
             },

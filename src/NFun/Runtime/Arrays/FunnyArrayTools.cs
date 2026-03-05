@@ -7,7 +7,6 @@ using NFun.Types;
 namespace NFun.Runtime.Arrays;
 
 using System.Linq;
-using Tic.SolvingStates;
 
 public static class FunnyArrayTools {
     public static TextFunnyArray AsFunText(this string txt) => new(txt);

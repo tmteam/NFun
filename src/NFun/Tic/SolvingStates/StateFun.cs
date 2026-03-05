@@ -11,7 +11,7 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         var retNode = returnType switch {
             ITypeState rt => TicNode.CreateTypeVariableNode(rt),
             StateRefTo retRef => retRef.Node,
-            ConstrainsState c => TicNode.CreateInvisibleNode(c),
+            ConstraintsState c => TicNode.CreateInvisibleNode(c),
             _ => throw new InvalidOperationException($"Fan cannot return state {returnType}")
         };
 
@@ -20,7 +20,7 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
             argNodes[i] = argTypes[i] switch {
                               ITypeState at   => TicNode.CreateTypeVariableNode(at),
                               StateRefTo aRef => aRef.Node,
-                              ConstrainsState c => TicNode.CreateInvisibleNode(c),
+                              ConstraintsState c => TicNode.CreateInvisibleNode(c),
                               _               => throw new InvalidOperationException()
                           };
         }

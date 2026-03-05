@@ -86,7 +86,7 @@ public class OptimisticConvertTest {
 
     [Test]
     public void ConstrainsToConstraints_returnsTrue() =>
-        EmptyConstrains
+        EmptyConstraints
             .CanBeConvertedOptimisticTo(Constrains(U8, Real))
             .AssertTrue();
 
@@ -99,7 +99,7 @@ public class OptimisticConvertTest {
     [Test]
     public void ConstrainsToConstraints_returnsTrue3() =>
         Constrains(Ip)
-            .CanBeConvertedOptimisticTo(EmptyConstrains)
+            .CanBeConvertedOptimisticTo(EmptyConstraints)
             .AssertTrue();
 
     [Test]
@@ -204,7 +204,7 @@ public class OptimisticConvertTest {
 
     [Test]
     public void FromConstraintsToPrimitive_returnsTrue2() =>
-        EmptyConstrains
+        EmptyConstraints
             .CanBeConvertedOptimisticTo(Ip)
             .AssertTrue();
 
@@ -419,13 +419,13 @@ public class OptimisticConvertTest {
 
     [Test]
     public void Struct6() =>
-        Struct("a",EmptyConstrains)
-            .CanBeConvertedOptimisticTo(Struct("a", EmptyConstrains))
+        Struct("a",EmptyConstraints)
+            .CanBeConvertedOptimisticTo(Struct("a", EmptyConstraints))
             .AssertTrue();
 
     [Test]
     public void Struct7() =>
-        Struct("a",EmptyConstrains)
+        Struct("a",EmptyConstraints)
             .CanBeConvertedOptimisticTo(Any)
             .AssertTrue();
 }

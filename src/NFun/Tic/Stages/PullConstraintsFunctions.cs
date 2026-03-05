@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
@@ -10,20 +9,20 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __) =>
         descendant.CanBePessimisticConvertedTo(ancestor);
 
-    public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode _, TicNode __)
+    public bool Apply(StatePrimitive ancestor, ConstraintsState descendant, TicNode _, TicNode __)
         => descendant.CanBeConvertedOptimisticTo(ancestor);
 
     public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __)
         => descendant.CanBePessimisticConvertedTo(ancestor);
 
-    public bool Apply(ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
+    public bool Apply(ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
         => ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
 
     public bool Apply(
-        ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
         ancestorCopy.AddDescendant(descendant.Descendant);
-        var result = ancestorCopy.GetOptimizedOrNull();
+        var result = ancestorCopy.SimplifyOrNull();
         if (result == null)
             return false;
         ancestorNode.State = result;
@@ -31,13 +30,13 @@ public class PullConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(
-        ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
+        ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
         => ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
 
     public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) => false;
 
     public bool Apply(
-        ICompositeState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         switch (ancestor)
         {
             case StateArray ancArray:
@@ -124,10 +123,10 @@ public class PullConstraintsFunctions : IStateFunction {
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ApplyAncestorConstrains(TicNode ancestorNode, ConstrainsState ancestor, ITypeState typeDesc) {
+    private static bool ApplyAncestorConstrains(TicNode ancestorNode, ConstraintsState ancestor, ITypeState typeDesc) {
         var ancestorCopy = ancestor.GetCopy();
         ancestorCopy.AddDescendant(typeDesc);
-        var result = ancestorCopy.GetOptimizedOrNull();
+        var result = ancestorCopy.SimplifyOrNull();
         if (result == null)
             return false;
         ancestorNode.State = result;

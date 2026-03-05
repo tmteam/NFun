@@ -3,8 +3,6 @@ using NFun.Tic.SolvingStates;
 namespace NFun.Tic.Stages;
 
 using System;
-using System.Security.Cryptography;
-using Exceptions;
 
 public class DestructionFunctions : IStateFunction {
     public static DestructionFunctions Singleton { get; } = new();
@@ -13,7 +11,7 @@ public class DestructionFunctions : IStateFunction {
         => true;
 
     public bool Apply(
-        StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        StatePrimitive ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.FitsInto(descendant))
             descendantNode.State = ancestor;
 
@@ -24,14 +22,14 @@ public class DestructionFunctions : IStateFunction {
         => true;
 
     public bool Apply(
-        ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.CanBeConvertedTo(descendant))
             ancestorNode.State = descendant;
         return true;
     }
 
     public bool Apply(
-        ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var result = ancestor.MergeOrNull(descendant);
         if (result == null)
             return false;
@@ -59,7 +57,7 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(
-        ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.FitsInto(ancestor))
         {
             ancestorNode.State = new StateRefTo(descendantNode);
@@ -91,7 +89,7 @@ public class DestructionFunctions : IStateFunction {
         => false;
 
     public bool Apply(
-        ICompositeState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.FitsInto(descendant))
         {
             descendantNode.State = new StateRefTo(ancestorNode);
