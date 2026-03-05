@@ -58,7 +58,7 @@ class RefCycleSearchAlgorithm {
         {
             node.VisitMark = -1;
             //merge
-            if (node.Ancestors.Any())
+            if (node.Ancestors.Count > 0)
             {
                 res.AddAncestors(node.Ancestors);
                 node.ClearAncestors();

@@ -10,12 +10,10 @@ public class StateStruct : ICompositeState {
 
     public IEnumerable<KeyValuePair<string, TicNode>> Fields => _nodes;
 
-    private readonly Dictionary<string, TicNode> _nodes;
+    private readonly FieldMap _nodes;
 
-    public TicNode GetFieldOrNull(string fieldName) {
-        _nodes.TryGetValue(fieldName, out var res);
-        return res;
-    }
+    public TicNode GetFieldOrNull(string fieldName) =>
+        _nodes.GetValueOrNull(fieldName);
 
     /// <summary>
     /// Adds a field in-place and returns this.
@@ -61,15 +59,21 @@ public class StateStruct : ICompositeState {
         return new StateStruct(nodeFields, isFrozen);
     }
 
+    /// <summary>Migration constructor: wraps existing Dictionary in FieldMap.</summary>
     public StateStruct(Dictionary<string, TicNode> fields, bool isFrozen) {
-        _nodes = fields;
+        _nodes = new FieldMap(fields);
         IsFrozen = isFrozen;
     }
 
-    public StateStruct() => _nodes = new Dictionary<string, TicNode>();
+    public StateStruct() => _nodes = new FieldMap();
 
     public StateStruct(string name, TicNode node, bool isFrozen) {
-        _nodes = new Dictionary<string, TicNode> { { name, node.GetNonReference() } };
+        _nodes = new FieldMap(name, node.GetNonReference());
+        IsFrozen = isFrozen;
+    }
+
+    internal StateStruct(FieldMap fields, bool isFrozen) {
+        _nodes = fields;
         IsFrozen = isFrozen;
     }
 
@@ -85,7 +89,7 @@ public class StateStruct : ICompositeState {
     public bool IsFrozen { get; }
 
     public ICompositeState GetNonReferenced() {
-        var nodeCopy = new Dictionary<string, TicNode>(_nodes.Count);
+        var nodeCopy = new FieldMap();
         foreach (var (key, value) in _nodes)
             nodeCopy.Add(key, value.GetNonReference());
         return new StateStruct(nodeCopy, IsFrozen);

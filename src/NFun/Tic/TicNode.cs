@@ -94,8 +94,8 @@ public class TicNode {
         _ancestors[index] = node;
     }
 
-    private readonly List<TicNode> _ancestors = new();
-    public IReadOnlyList<TicNode> Ancestors => _ancestors;
+    private readonly SmallList<TicNode> _ancestors = new();
+    public SmallList<TicNode> Ancestors => _ancestors;
 
     #endregion
 
@@ -137,7 +137,7 @@ public class TicNode {
         if (nameD < 0) nameD = 0;
         sb.Append(new string(' ', nameD));
         sb.Append($"| {State.Description}");
-        if (Ancestors.Any())
+        if (Ancestors.Count > 0)
             sb.Append(" --> " + string.Join(",", Ancestors.Select(a => a.Name)));
         var delta = 30 - sb.Length;
         if (delta < 0)
