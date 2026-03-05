@@ -136,7 +136,6 @@ class TrickyPrimitives {
     }
 
     [Test]
-    [Ignore("UB r type")]
     public void LimitCall_ComplexEquations_TypesSolved() {
         //     0 2 1      3 5  4      6 8 7
         // r = x + y; i = y << 2; x = 3 / 2

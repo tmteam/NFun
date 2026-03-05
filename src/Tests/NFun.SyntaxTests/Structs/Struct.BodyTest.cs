@@ -15,12 +15,7 @@ public class StructBodyTest {
             .Calc()
             .AssertReturns("y", new { a = 1.0 });
 
-    [Ignore("Lca calculation")]
-    [TestCase("y = [{a =1.0},{id = 31},{id = 42}][0]")]
-    public void StructLca(string expr) =>
-        expr
-            .Calc()
-            .AssertReturns("y", new { a = 1.0 });
+
 
     [Test]
     public void TwoFieldStructInitialization() =>

@@ -119,7 +119,6 @@ public class GenericUserFunctionsTest {
 
   res:int = origin.maxOfMatrix()".AssertResultHas("res", 42);
 
-    [Ignore("UB")]
     [Test]
     public void TwinGenericWrongOrderFunCall() {
         var expr = @"
