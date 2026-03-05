@@ -112,7 +112,7 @@ public static class FunnyArrayTools {
         {
             var size = end - start + 1;
             newArr = new object[size];
-            System.Array.Copy(array, start, newArr, 0, size);
+            Array.Copy(array, start, newArr, 0, size);
         }
         else
         {

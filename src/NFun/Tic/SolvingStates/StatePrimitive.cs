@@ -52,17 +52,17 @@ public class StatePrimitive : ITypeState, ITicNodeState {
 
     public string PrintState(int depth) => ToString();
 
-    public bool CanBePessimisticConvertedTo(StatePrimitive type) => Equals(LcaMap[this.Order, type.Order], type);
+    public bool CanBePessimisticConvertedTo(StatePrimitive type) => Equals(LcaMap[Order, type.Order], type);
 
     public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
-        => FcdMap[this.Order, other.Order];
+        => FcdMap[Order, other.Order];
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
         otherType is StatePrimitive primitive
             ? GetLastCommonPrimitiveAncestor(primitive)
             : Any;
 
-    public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other) => LcaMap[this.Order, other.Order];
+    public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other) => LcaMap[Order, other.Order];
 
     public override bool Equals(object obj) => (obj as StatePrimitive)?.Name == Name;
     public override int GetHashCode() => (int)Name;

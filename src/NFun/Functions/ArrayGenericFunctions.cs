@@ -638,7 +638,7 @@ public class RepeatGenericFunctionDefinition : GenericFunctionBase {
 
     private class ConcreteRepeat : FunctionWithTwoArgs {
         public override object Calc(object a, object b)
-            => FunnyArrayTools.CreateEnumerable(Enumerable.Repeat(a, (int)b), this.ArgTypes[0]);
+            => FunnyArrayTools.CreateEnumerable(Enumerable.Repeat(a, (int)b), ArgTypes[0]);
     }
 }
 

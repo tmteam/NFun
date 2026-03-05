@@ -44,21 +44,21 @@ public class ConvertFunction : GenericFunctionBase {
 
         if (to == FunnyType.Ip)
         {
-            var ipConverterOrNull = ConvertFunction.CreateToIpConverterOrNull(from);
+            var ipConverterOrNull = CreateToIpConverterOrNull(from);
             if (ipConverterOrNull != null)
                 return new ConcreteConverter(ipConverterOrNull, from, to);
         }
 
         if (from == FunnyType.Char)
         {
-            var charConverterOrNull = ConvertFunction.CreateFromCharConverterOrNull(to);
+            var charConverterOrNull = CreateFromCharConverterOrNull(to);
             if (charConverterOrNull != null)
                 return new ConcreteConverter(charConverterOrNull, from, to);
         }
 
         if (from == FunnyType.Ip)
         {
-            var ipConverterOrNull = ConvertFunction.CreateFromIpConverterOrNull(to);
+            var ipConverterOrNull = CreateFromIpConverterOrNull(to);
             if (ipConverterOrNull != null)
                 return new ConcreteConverter(ipConverterOrNull, from, to);
         }
@@ -318,7 +318,7 @@ public class ConvertFunction : GenericFunctionBase {
             }
             catch (Exception e)
             {
-                throw new FunnyRuntimeException($"Cannot convert {a} to type {this.ReturnType}", e);
+                throw new FunnyRuntimeException($"Cannot convert {a} to type {ReturnType}", e);
             }
         }
     }
