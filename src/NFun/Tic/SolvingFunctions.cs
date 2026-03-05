@@ -188,8 +188,6 @@ public static class SolvingFunctions {
     }
 
     private static void PullConstraintsRecursive(TicNode node) {
-        // micro optimization. node.Ancestors.ToArray() is very expensive operation
-        // but cases of 0 or 1 ancestors are most common
         var ancSize = node.Ancestors.Count;
         if (ancSize == 1)
         {
@@ -197,12 +195,9 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            // We have to use ToArray() option, since some node ancestors can be removed
-            // during the operation
+            // ToArray() needed: ancestors can be modified during iteration
             foreach (var ancestor in node.Ancestors.ToArray())
-            {
                 PullConstrains(node, ancestor);
-            }
         }
 
         if (node.State is ICompositeState composite)
@@ -242,8 +237,6 @@ public static class SolvingFunctions {
             node.VisitMark = oldMakr;
         }
 
-        // micro optimization. node.Ancestors.ToArray() is very expensive operation
-        // but cases of 0 or 1 ancestors are most common
         var ancSize = node.Ancestors.Count;
         if (ancSize == 1)
         {
@@ -251,8 +244,6 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            // We have to use ToArray() option, since some node ancestors can be removed
-            // during the operation
             foreach (var ancestor in node.Ancestors.ToArray())
                 PushConstraints(node, ancestor);
         }
@@ -291,8 +282,6 @@ public static class SolvingFunctions {
             foreach (var member in composite.Members) DestructionRecursive(member);
         }
 
-        // micro optimization. node.Ancestors.ToArray() is very expensive operation
-        // but cases of 0 or 1 ancestors are most common
         var ancSize = node.Ancestors.Count;
         if (ancSize == 1)
         {
@@ -300,8 +289,6 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            // We have to use ToArray() option, since some node ancestors can be removed
-            // during the operation
             foreach (var ancestor in node.Ancestors.ToArray())
                 Destruction(node, ancestor);
         }

@@ -17,15 +17,13 @@ public class StateStruct : ICompositeState {
         return res;
     }
 
+    /// <summary>
+    /// Adds a field in-place and returns this.
+    /// Safe because all callers discard the old reference immediately.
+    /// </summary>
     public StateStruct With(string name, TicNode memberNode) {
-        var newDic = new Dictionary<string, TicNode>(_nodes.Count + 1);
-        foreach (var (key, value) in _nodes)
-        {
-            newDic.Add(key, value.GetNonReference());
-        }
-
-        newDic.Add(name, memberNode);
-        return new StateStruct(newDic, IsFrozen);
+        _nodes.Add(name, memberNode);
+        return this;
     }
 
     public static StateStruct Empty(bool isFrozen = true) => Of(isFrozen);
