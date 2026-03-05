@@ -15,9 +15,9 @@ public static partial class StateExtensions {
         if (b is StateRefTo br)
             return UnifyOrNull(a, br.GetNonReference());
 
-        // Any is the universal ancestor — any type is convertible to Any
-        if (a.Equals(Any)) return Any;
-        if (b.Equals(Any)) return Any;
+        // Any is the top type — X satisfies both X and Any, so Unify preserves the specific type
+        if (a.Equals(Any)) return b;
+        if (b.Equals(Any)) return a;
 
         if (a is ConstraintsState ac)
         {

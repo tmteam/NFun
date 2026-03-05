@@ -35,11 +35,19 @@ Structs are immutable, therefore fields are covariant.
 
 A constraint `C[desc, anc, cmp, pref]` (ConstraintsState) represents an unsolved type variable with:
 - **desc** (descendant/lower bound): most concrete type known. Can be a primitive or composite.
-- **anc** (ancestor/upper bound): most abstract type allowed. Always a primitive or null.
+- **anc** (ancestor/upper bound): most abstract type allowed. Always a primitive or null (never a composite — see §1.4).
 - **cmp** (comparable flag): if true, type must support comparison operators (numeric, Char, or Array(Char)).
 - **pref** (preferred): resolution hint (e.g., I32 for integer constants).
 
 **Invariant**: if both desc and anc are set, then `desc ≤ anc`.
+
+### 1.4 Design Decisions
+
+**Ancestor is always primitive (or null).**
+Composite upper bounds (e.g., "must be Array(something)") are never stored in `anc`. Instead, Pull and Push decompose them into member-level ancestor edges: if a variable must be `Array(X)`, the constraint node is transformed into a `StateArray` with an edge `element ≤ X`. This avoids the complexity of composite constraint intervals and keeps `anc` simple.
+
+**Struct openness (frozen vs open).**
+A struct can be *open* (fields may be added during Pull/Push when an ancestor struct has fields the descendant lacks) or *frozen* (closed — no fields can be added, e.g., from a literal or a function signature). The `IsFrozen` flag controls this. Open structs enable incremental field discovery during type inference; frozen structs enforce exact field sets.
 
 ---
 
@@ -56,7 +64,7 @@ Used for: if-else result type, array element type.
 |---|---|-----------|
 | P₁ | P₂ | Pre-computed 18×18 matrix |
 | Array(A) | Array(B) | Array(Lca(A, B)) |
-| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Gcd(A₁,B₁)..Gcd(Aₙ,Bₙ) → Lca(R₁,R₂)), Any if any Gcd is null |
+| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Gcd(A₁,B₁)..Gcd(Aₙ,Bₙ) → Lca(R₁,R₂)); Any if arity differs or any arg Gcd is null |
 | Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{fₖ:Lca(Aₖ,Bₖ)} where fₖ ∈ fields(A) ∩ fields(B) |
 | C[dA,..] | C[dB,..] | C[Lca(dA,dB), null, cmpA ∧ cmpB] or desc directly if solved |
 | different kinds | | Any |
@@ -85,7 +93,7 @@ Used for: struct field Lca with unsolved constraints, node merging.
 
 | A | B | Unify(A, B) |
 |---|---|-------------|
-| Any | X | Any |
+| Any | X | X |
 | P | P (same) | P |
 | P₁ | P₂ (different) | null |
 | P | C[d, a, cmp] | P if P fits C, else null |
@@ -142,8 +150,10 @@ All verified by unit tests:
 | Idempotent | ✅ | ✅ | ✅ | n/a |
 | Reflexive | n/a | n/a | n/a | ✅ |
 | Transitive | ✅ primitives | n/a | n/a | ✅ primitives |
-| Top (Any) | Lca(A,Any)=Any | Gcd(A,Any)=A | Unify(A,Any)=Any | Fits(A,Any)=true |
-| Bottom (⊥=C[]) | Lca(A,⊥)=A | n/a | n/a | Fits(A,⊥)=true |
+| Top (Any) | Lca(A,Any)=Any | Gcd(A,Any)=A | Unify(A,Any)=A | Fits(A,Any)=true |
+| Unconstrained (C[]) | Lca(A,C[])=A | n/a | n/a | Fits(A,C[])=true |
+
+C[] (empty constraints) is not the lattice bottom — it is the *least constrained* state, accepting any type.
 
 Cross-operation invariants (tested for primitives):
 - `Gcd(A,B) ≤ A ≤ Lca(A,B)`
@@ -182,10 +192,13 @@ When Pull encounters a composite-to-composite ancestor edge, it **decomposes** i
 **Array**: `Array(dE) ≤ Array(aE)` → replace with `dE ≤ aE` (one edge for element)
 **Fun**: `Fun(dA→dR) ≤ Fun(aA→aR)` → replace with `dR ≤ aR` and `aA ≤ dA` (args reversed)
 **Struct**: `Struct{f:dF} ≤ Struct{f:aF}` → replace with `dF ≤ aF` per common field.
-  - Missing fields: added to descendant if not frozen.
+  - Missing fields: added to descendant if descendant is *open* (not frozen).
+  - Frozen descendant missing a required field → error.
   - Extra fields in descendant: allowed (width subtyping).
 
 After decomposition, member nodes are processed by subsequent solver passes automatically.
+
+**Note on Lca(Fun) = Any.** When argument Gcd is null (incompatible arg types), the entire function type collapses to Any. This is intentional: NFun has no partial types or existentials, so a function with incompatible arguments cannot be meaningfully called and has no useful common type.
 
 ---
 
@@ -243,6 +256,18 @@ Core operation: `descendant.anc = Gcd(descendant.anc, ancestor.anc)`
 Key behaviors:
 - **Constraints ← Composite (Struct)**: if ancestor's constraint has a struct descendant, propagate field types via MergeInplace.
 - **Struct ← Struct**: extend descendant with missing fields (width subtyping), then push per field.
+
+### 4.3.1 Single-Pass Limitation
+
+Pull and Push each make a **single pass** over the toposorted nodes. During processing, composite decomposition may add new edges to nodes that were already visited in the current pass. These edges are not re-processed in the same stage.
+
+This is sufficient for all NFun grammar constructs because:
+- Pull processes children before parents (toposort order); decomposition adds edges between member nodes that are children of the current node, and their constraints are already established from graph construction.
+- Push processes parents before children (reverse order); upper bounds flow downward to the newly connected member nodes.
+- Destruct handles any remaining unresolved pairs.
+- The combination of four stages covers all practical propagation paths.
+
+A worklist/repeat-until-stable approach would be needed for full theoretical completeness (arbitrary constraint graphs where a single pass misses propagation). This is a known architectural limitation.
 
 ### 4.4 DESTRUCT (bottom-up)
 
@@ -309,7 +334,7 @@ Maintained throughout solving:
 2. **Ancestor edges are acyclic** after toposort (cycles merged).
 3. **Composite decomposition preserves semantics**: replacing Array≤Array with elem≤elem is equivalent.
 4. **Ref chains terminate**: GetNonReference always finds a non-Ref state.
-5. **Comparable propagation**: comparable flag propagates through Lca (AND), Merge (OR), and is checked in Fits and Simplify.
+5. **Comparable propagation**: comparable flag propagates through Lca (AND) and Merge (OR). These differ because Lca joins two *different values* (result is comparable only if both branches are), while Merge intersects *requirements on one variable* (any requirement makes it mandatory). Checked in Fits and Simplify.
 6. **Preferred type validity**: after merge, preferred is cleared if it doesn't fit the resulting constraint.
 
 ---
