@@ -2,6 +2,7 @@ namespace NFun.UnitTests.TicTests.StateExtensions;
 
 using NUnit.Framework;
 using Tic;
+using NFun.Tic.Algebra;
 using Tic.SolvingStates;
 using static SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;

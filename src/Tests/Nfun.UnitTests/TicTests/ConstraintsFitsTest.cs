@@ -3,6 +3,7 @@ namespace NFun.UnitTests.TicTests;
 using NUnit.Framework;
 using TestTools;
 using Tic;
+using NFun.Tic.Algebra;
 using Tic.SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 

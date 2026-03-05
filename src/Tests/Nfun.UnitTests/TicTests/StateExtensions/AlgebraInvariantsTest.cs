@@ -3,6 +3,7 @@ namespace NFun.UnitTests.TicTests.StateExtensions;
 using System.Collections.Generic;
 using System.Linq;
 using Tic;
+using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 using static LcaTestTools;

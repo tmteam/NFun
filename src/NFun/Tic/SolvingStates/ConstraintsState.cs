@@ -1,4 +1,5 @@
 ﻿using System;
+using NFun.Tic.Algebra;
 
 namespace NFun.Tic.SolvingStates;
 

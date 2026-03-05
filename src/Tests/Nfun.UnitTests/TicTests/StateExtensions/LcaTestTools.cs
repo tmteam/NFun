@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TestTools;
 using Tic;
+using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 

@@ -1,3 +1,4 @@
+using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic.Stages;
