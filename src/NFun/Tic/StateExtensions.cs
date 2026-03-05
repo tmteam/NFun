@@ -685,20 +685,20 @@ public static class StateExtensions {
     }
 
     /// <summary>
-    /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
+    /// desc ≤ to (width subtyping): desc must have all fields of to, each pessimistically convertible.
+    /// Extra desc fields are OK (more fields = subtype).
     /// </summary>
     private static bool CanBeFitConverted(StateStruct desc, StateStruct to) {
-        //'to' has to contains all the fields from desc.
-        foreach (var (dname, dstate) in desc.Fields)
+        foreach (var (toName, toField) in to.Fields)
         {
-            var astate = to.GetFieldOrNull(dname);
-            if (astate == null)
+            var descField = desc.GetFieldOrNull(toName);
+            if (descField == null)
                 return false;
-            if (!dstate.State.CanBeConvertedPessimisticTo(astate.State))
+            if (!descField.State.CanBeConvertedPessimisticTo(toField.State))
                 return false;
         }
 
-        return desc.FitsInto(to);
+        return true;
     }
 
 

@@ -220,18 +220,21 @@ public class ConstraintsFitsTest {
         target.FitsInto(constrains).AssertTrue();
     }
 
+    // Width subtyping: desc={a,b} has more fields = subtype. Target={a} is supertype.
+    // desc ≤ target, so target satisfies C[desc={a,b}].
     [Test]
     public void StructFits_returnsTrue2() {
         var constrains = Constrains(Struct(("a", I32), ("b", I32)));
         var target = Struct("a", I32);
-        target.FitsInto(constrains).AssertFalse();
+        target.FitsInto(constrains).AssertTrue();
     }
 
+    // Width subtyping: desc={a} ≤ {} (any struct fits into empty struct).
     [Test]
     public void StructFits_returnsTrue3() {
         var constrains = Constrains(Struct("a", I32));
         var target = EmptyStruct();
-        target.FitsInto(constrains).AssertFalse();
+        target.FitsInto(constrains).AssertTrue();
     }
 
 }
