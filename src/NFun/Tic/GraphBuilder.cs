@@ -137,11 +137,47 @@ public class GraphBuilder {
     }
 
     /// <summary>
-    /// Optimized version of SetCallArgument for ref cases
+    /// Optimized version of SetCallArgument for ref cases.
+    /// When the arg is a fresh constraint node (e.g. integer constant)
+    /// whose range is fully subsumed by the generic's range,
+    /// converts it to a direct reference — avoids an ancestor edge
+    /// and simplifies solver work.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCallArgument(StateRefTo type, int argId) {
         var node = GetOrCreateNode(argId);
+        // Fast check: only fresh nodes (no ancestors) can be const-ref candidates.
+        // Keeps the method small for JIT inlining — slow path is NoInlining.
+        if (node.Ancestors.Count == 0 && TryConvertConstToRef(node, type))
+            return;
         node.AddAncestor(type.Node);
+    }
+
+    /// <summary>
+    /// Slow path: checks if a fresh constraint node's range is fully subsumed
+    /// by the generic's range, and if so, converts it to a direct reference.
+    /// Common case: integer constant (2) as arg to arithmetic op (x * 2).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool TryConvertConstToRef(TicNode node, StateRefTo type) {
+        if (node.IsMemberOfAnything)
+            return false;
+        if (node.State is not ConstraintsState argCs || !argCs.HasDescendant)
+            return false;
+        if (type.Node.State is not ConstraintsState genCs)
+            return false;
+        // Check: generic's range [genDesc..genAnc] ⊆ arg's range [argDesc..argAnc]
+        if (genCs.Descendant is not StatePrimitive genDesc) return false;
+        if (argCs.Descendant is not StatePrimitive argDesc) return false;
+        if (genCs.Ancestor == null || argCs.Ancestor == null) return false;
+        if (!argDesc.CanBePessimisticConvertedTo(genDesc)) return false;
+        if (!genCs.Ancestor.CanBePessimisticConvertedTo(argCs.Ancestor)) return false;
+        if (argCs.IsComparable && !genCs.IsComparable) return false;
+        // Transfer preferred from constant to generic (so type resolution is preserved)
+        if (argCs.Preferred != null && genCs.Preferred == null)
+            genCs.Preferred = argCs.Preferred;
+        node.State = type;
+        return true;
     }
 
     public void SetCallArgument(ITicNodeState type, int argId) {
