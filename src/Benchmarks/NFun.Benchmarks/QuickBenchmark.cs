@@ -13,7 +13,13 @@ namespace Nfun.Benchmarks;
 /// <summary>
 /// Quick A/B performance benchmark for comparing branches.
 /// Uses auto-balancing + shuffled slots for stable measurements on MacBook.
-/// Run with: dotnet test --filter "FullyQualifiedName~QuickBenchmark" -v n
+///
+/// Three modes:
+///   Quick1 — single run (~13s), fast sanity check
+///   Quick3 — median of 3 runs (~40s), normal A/B comparison
+///   Quick5 — median of 5 runs (~65s), precise measurement for reports
+///
+/// Run with: dotnet test --filter "FullyQualifiedName~QuickBenchmark.Quick1" -v n
 /// </summary>
 [TestFixture]
 public class QuickBenchmark {
@@ -80,15 +86,50 @@ public class QuickBenchmark {
         Array.Sort(arr);
         int sum = 0;
         for (int i = 0; i < arr.Length; i++) sum += arr[i] * (i & 1);
-        // Binary search a few values to add more stable work
         sum += Array.BinarySearch(arr, 42);
         sum += Array.BinarySearch(arr, 250);
         sum += Array.BinarySearch(arr, 499);
         return sum;
     }
 
-    [Test]
-    public void RunBenchmark() {
+    [Test] public void Quick1() => RunMultiple(1);
+    [Test] public void Quick3() => RunMultiple(3);
+    [Test] public void Quick5() => RunMultiple(5);
+
+    void RunMultiple(int totalRuns) {
+        // Collect medians from each run: [run][opIdx]
+        var allMedians = new double[totalRuns][];
+        var allBatchSizes = new int[0];
+        var allRounds = 0;
+        string[] opNames = null;
+
+        var totalSw = Stopwatch.StartNew();
+
+        for (int run = 0; run < totalRuns; run++) {
+            var (medians, batchSizes, rounds, names) = RunSingle();
+            allMedians[run] = medians;
+            allBatchSizes = batchSizes;
+            allRounds = rounds;
+            opNames = names;
+        }
+
+        totalSw.Stop();
+
+        // Compute per-operation median across runs
+        int numOps = allMedians[0].Length;
+        var finalMedians = new double[numOps];
+        for (int op = 0; op < numOps; op++) {
+            var values = new double[totalRuns];
+            for (int run = 0; run < totalRuns; run++)
+                values[run] = allMedians[run][op];
+            Array.Sort(values);
+            finalMedians[op] = values[totalRuns / 2];
+        }
+
+        PrintReport(finalMedians, allBatchSizes, allRounds, opNames, totalRuns, totalSw.Elapsed);
+    }
+
+    (double[] medians, int[] batchSizes, int rounds, string[] names) RunSingle() {
         // Pre-build runtimes for Run/Update measurements
         var simpleRuntime = Funny.Hardcore.Build(SimpleScript);
         var mediumRuntime = Funny.Hardcore.Build(MediumScript);
@@ -170,8 +211,6 @@ public class QuickBenchmark {
             results[i] = new List<double>(rounds);
 
         // === PHASE 4: EXECUTE ===
-        var totalSw = Stopwatch.StartNew();
-
         foreach (int opIdx in slots) {
             int batch = batchSizes[opIdx];
             var action = ops[opIdx].action;
@@ -185,20 +224,20 @@ public class QuickBenchmark {
             results[opIdx].Add(batchUs / batch);
         }
 
-        totalSw.Stop();
-
-        // === PHASE 5: COMPUTE & REPORT ===
+        // === PHASE 5: COMPUTE MEDIANS ===
         var medians = new double[numOps];
         for (int i = 0; i < numOps; i++) {
             var sorted = results[i].OrderBy(x => x).ToArray();
             medians[i] = sorted[sorted.Length / 2];
         }
 
+        return (medians, batchSizes, rounds, ops.Select(o => o.name).ToArray());
+    }
+
+    void PrintReport(double[] medians, int[] batchSizes, int rounds,
+                     string[] opNames, int totalRuns, TimeSpan elapsed) {
         double baselineUs = medians[0];
 
-        // Map operation indices
-        // 0=Baseline, 1=S.Parse, 2=S.Build, 3=S.Run, 4=S.Update,
-        // 5=M.Parse, 6=M.Build, 7=M.Run, 8=C.Parse, 9=C.Build, 10=C.Run
         var table = new (string label, int parseIdx, int buildIdx, int runIdx, int updateIdx)[] {
             ("Simple",  1, 2, 3, 4),
             ("Medium",  5, 6, 7, -1),
@@ -207,10 +246,10 @@ public class QuickBenchmark {
 
         var report = new System.Text.StringBuilder();
         report.AppendLine();
-        report.AppendLine("NFun Quick Benchmark");
+        report.AppendLine($"NFun Quick Benchmark (Quick{totalRuns})");
         report.AppendLine(new string('=', 72));
         report.AppendLine($"Baseline: Sort+Scan int[{BaselineN}] = {baselineUs:F2} μs");
-        report.AppendLine($"Rounds: {rounds} | Slots: {slots.Count} | Total: {totalSw.Elapsed.TotalSeconds:F1}s");
+        report.AppendLine($"Runs: {totalRuns} | Rounds/run: {rounds} | Total: {elapsed.TotalSeconds:F1}s");
         report.AppendLine();
         report.AppendLine("           |  Parse  |  Build  | TIC+Asm |   Run   | Update");
         report.AppendLine("-----------+---------+---------+---------+---------+--------");
@@ -234,8 +273,7 @@ public class QuickBenchmark {
 
         report.AppendLine();
         report.AppendLine("Batch sizes: " + string.Join(", ",
-            ops.Select((o, i) => $"{o.name}={batchSizes[i]}")));
-        report.AppendLine($"Samples per op: {rounds}");
+            opNames.Select((n, i) => $"{n}={batchSizes[i]}")));
 
         string reportStr = report.ToString();
         TestContext.WriteLine(reportStr);
