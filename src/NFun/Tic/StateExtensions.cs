@@ -589,7 +589,7 @@ public static class StateExtensions {
             if (target is ICompositeState)
             {
                 // the only comparable composite is arr(char)
-                if (!(target is StateArray a))
+                if (target is not StateArray a)
                     return false;
                 if (!a.Element.Equals(StatePrimitive.Char))
                     return false;

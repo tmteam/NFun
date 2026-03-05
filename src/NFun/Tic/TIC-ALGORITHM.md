@@ -1,501 +1,334 @@
 # TIC Algorithm — Type Inference Constraint Solver
 
-## Part 1: Formal Description
+## Part 1: Type Universe
 
-### 1.1 Type Universe
+### 1.1 Types
 
 Types form a lattice:
 
 ```
-T ::= P                    -- primitive (Bool, Char, U8, U16, ..., I16, I32, ..., Real, Ip, Any)
-    | Array(T)             -- array with element type T
-    | Fun(T₁...Tₙ → T)    -- function with arg types and return type
-    | Struct{f₁:T₁...fₙ:Tₙ}  -- struct with named fields
-    | C[desc, anc, cmp]    -- constraint (unsolved type variable)
-    | Ref(node)            -- reference to another node (alias)
+T ::= P                        -- primitive (Bool, Char, U8, U16, ..., I16, I32, ..., Real, Ip, Any)
+    | Array(T)                 -- array with element type T
+    | Fun(T₁...Tₙ → T)        -- function with arg types and return type
+    | Struct{f₁:T₁...fₙ:Tₙ}   -- struct with named fields
+    | C[desc, anc, cmp, pref]  -- constraint interval (unsolved type variable)
+    | Ref(node)                -- reference to another node (alias)
 ```
 
-#### Subtyping relation ≤
+Primitives, Array, Fun, Struct are **type states** (ITypeState).
+Array, Fun, Struct are **composite states** (ICompositeState).
+ConstraintsState is a bounded type variable, not a concrete type.
+
+### 1.2 Subtyping (≤)
 
 For primitives: pre-defined partial order (U8 ≤ U16 ≤ U32 ≤ ... ≤ Real ≤ Any, etc.)
 
 For composites:
 - `Array(A) ≤ Array(B)` iff `A ≤ B` (covariant)
-- `Fun(A₁...Aₙ→R₁) ≤ Fun(B₁...Bₙ→R₂)` iff `Bᵢ ≤ Aᵢ` and `R₁ ≤ R₂` (contra/covariant)
-- `Struct{...f:A...} ≤ Struct{f:B}` iff `A ≤ B` for each field f in B (covariant, width+depth subtyping)
+- `Fun(A₁...Aₙ→R₁) ≤ Fun(B₁...Bₙ→R₂)` iff `Bᵢ ≤ Aᵢ` and `R₁ ≤ R₂` (args contravariant, return covariant)
+- `Struct{...f:A...} ≤ Struct{f:B}` iff `A ≤ B` for each field f in B (width + depth subtyping, covariant)
 - `T ≤ Any` for all T
 
-### 1.2 Type Algebra
+Structs are immutable, therefore fields are covariant.
 
-Four core operations on the type lattice:
+### 1.3 Constraint Interval
 
-#### Lca(A, B) — Least Common Ancestor (Join, ∨)
+A constraint `C[desc, anc, cmp, pref]` (ConstraintsState) represents an unsolved type variable with:
+- **desc** (descendant/lower bound): most concrete type known. Can be a primitive or composite.
+- **anc** (ancestor/upper bound): most abstract type allowed. Always a primitive or null.
+- **cmp** (comparable flag): if true, type must support comparison operators (numeric, Char, or Array(Char)).
+- **pref** (preferred): resolution hint (e.g., I32 for integer constants).
+
+**Invariant**: if both desc and anc are set, then `desc ≤ anc`.
+
+---
+
+## Part 2: Type Algebra
+
+Four core operations on the type lattice. All are defined recursively for composite types.
+
+### 2.1 Lca(A, B) — Least Common Ancestor (Join, ⊔)
 
 Smallest type C such that `A ≤ C` and `B ≤ C`.
 Used for: if-else result type, array element type.
-
-**Definition by type:**
 
 | A | B | Lca(A, B) |
 |---|---|-----------|
 | P₁ | P₂ | Pre-computed 18×18 matrix |
 | Array(A) | Array(B) | Array(Lca(A, B)) |
-| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Gcd(A₁,B₁)..Gcd(Aₙ,Bₙ) → Lca(R₁,R₂)), or Any if any Gcd fails |
+| Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Gcd(A₁,B₁)..Gcd(Aₙ,Bₙ) → Lca(R₁,R₂)), Any if any Gcd is null |
 | Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{fₖ:Lca(Aₖ,Bₖ)} where fₖ ∈ fields(A) ∩ fields(B) |
-| C[descA,..] | C[descB,..] | See below (constraint LCA) |
+| C[dA,..] | C[dB,..] | C[Lca(dA,dB), null, cmpA ∧ cmpB] or desc directly if solved |
 | different kinds | | Any |
 
-**Constraint LCA**: `Lca(C[dA, ancA, cmpA], C[dB, ancB, cmpB])`:
-- desc = Lca(dA, dB) if both present; Concretest(dA) or Concretest(dB) if one missing; null if both
-- comparable = cmpA AND cmpB
-- If desc is a solved ITypeState and not comparable → return desc directly
-- Otherwise → C[desc, null, comparable]
+Note: Struct LCA keeps only **common** fields (intersection). Each common field type is Lca'd recursively. This mirrors width subtyping: fewer fields = more general.
 
-**Algebraic properties (all tested):**
+### 2.2 Gcd(A, B) — Greatest Common Descendant (Meet, ⊓)
 
-| Property | Status | Notes |
-|----------|--------|-------|
-| Symmetry: Lca(A,B) = Lca(B,A) | ✅ tested | For all types including constrains |
-| Idempotent: Lca(A,A) = A | ✅ tested | For concrete types |
-| Associativity: Lca(Lca(A,B),C) = Lca(A,Lca(B,C)) | ✅ tested | For primitives |
-| Top absorption: Lca(A, Any) = Any | ✅ tested | Any is ⊤ |
-| Bottom identity: Lca(A, ⊥) = A | ✅ tested | ⊥ = empty constrains |
-| Ancestor: A ≤ Lca(A,B) and B ≤ Lca(A,B) | ✅ tested | For primitives |
-| Mixed composites: Lca(Array, Struct) = Any | ✅ tested | |
-| Struct field intersection | ✅ tested | Only common fields survive |
-| Struct covariant fields | ✅ tested | Lca({a:I32}, {a:Real}) = {a:Real} |
-| Struct nested | ✅ tested | Recursive on field types |
-| Associativity for composites | ❌ not tested | |
-| Associativity for constraints | ❌ not tested | |
-
-#### Gcd(A, B) — First Common Descendant (Meet, ∧)
-
-Largest type C such that `C ≤ A` and `C ≤ B`.
-Used for: function argument types in LCA (contravariance).
-
-**Definition by type:**
+Largest type C such that `C ≤ A` and `C ≤ B`. Returns null if no such C exists.
+Used for: function argument types in Lca (contravariance), ancestor narrowing.
 
 | A | B | Gcd(A, B) |
 |---|---|-----------|
 | P₁ | P₂ | Pre-computed 18×18 matrix (or null) |
 | Array(A) | Array(B) | Array(Gcd(A, B)) or null |
 | Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Lca(A₁,B₁)..→Gcd(R₁,R₂)) or null |
-| Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{union of fields, Gcd on common} or null |
+| Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{union of fields, Gcd on shared} or null |
 | different kinds | | null |
 
-**Algebraic properties:**
+Note: Struct Gcd keeps the **union** of all fields (dual to Lca). Shared fields are Gcd'd recursively. More fields = more specific = lower in the lattice.
 
-| Property | Status | Notes |
-|----------|--------|-------|
-| Symmetry: Gcd(A,B) = Gcd(B,A) | ✅ tested | For concrete types |
-| Idempotent: Gcd(A,A) = A | ✅ tested | For concrete types |
-| Top identity: Gcd(A, Any) = A | ✅ tested | Any is ⊤, meet with ⊤ = self |
-| Descendant: Gcd(A,B) ≤ A and ≤ B | ✅ tested | For primitives |
-| Mixed composites = null | ✅ tested | |
-| Associativity | ❌ not tested | |
+### 2.3 Unify(A, B) — Unification
 
-#### Unify(A, B) — Unification (Constraint intersection)
-
-Find a type that satisfies BOTH A and B simultaneously. Returns null if impossible.
-Used for: struct field LCA with unsolved types, constraint merging.
-
-**Definition by type:**
+Find a type satisfying BOTH A and B simultaneously. Returns null if impossible.
+Used for: struct field Lca with unsolved constraints, node merging.
 
 | A | B | Unify(A, B) |
 |---|---|-------------|
-| Any | X | Any (Any is compatible with everything) |
+| Any | X | Any |
 | P | P (same) | P |
-| P₁ | P₂ (different, non-Any) | null |
-| P | C[desc, anc, cmp] | P if P fits C, else null |
-| C₁ | C₂ | C[Lca(d₁,d₂), Gcd(a₁,a₂), cmp₁∨cmp₂] or null |
+| P₁ | P₂ (different) | null |
+| P | C[d, a, cmp] | P if P fits C, else null |
+| C₁ | C₂ | C[Lca(d₁,d₂), Gcd(a₁,a₂), cmp₁∨cmp₂].Simplify() |
 | Array(A) | Array(B) | Array(Unify(A,B)) or null |
-| Struct{same fields, same types} | Struct{same} | Struct |
-| Struct (different field count) | Struct | null |
+| Struct{same fields} | Struct{same fields} | Struct{Unify per field} or null |
 | different kinds | | null |
 
-**Algebraic properties:**
+### 2.4 Fits(A, B) — Constraint Satisfaction
 
-| Property | Status | Notes |
-|----------|--------|-------|
-| Symmetry: Unify(A,B) = Unify(B,A) | ✅ tested | For all types |
-| Idempotent: Unify(A,A) = A | ✅ tested | |
-| Any compatible: Unify(A, Any) ≠ null | ✅ tested | |
-| Same primitive = self | ✅ tested | |
-| Different primitives = null | ✅ tested | |
-| Constrains interval | ✅ tested | I32 fits [U8..Real] |
-| Constrains intersection | ✅ tested | [U8..Real] ∩ [I16..I64] |
-| Disjoint constrains = null | ✅ tested | |
-| Array recursive | ✅ tested | |
-| Struct same fields | ✅ tested | |
-| Struct different field types = null | ✅ tested | |
-| Associativity | ❌ not tested | |
+"Does type A fit where B is expected?"
 
-#### FitsInto(A, B) — Subtyping check
+For concrete types this is subtyping: A ≤ B.
+For ConstraintsState B = C[desc, anc, cmp]: checks that `desc ≤ A ≤ anc` **and** comparable constraint is met. This is a two-sided check (not just subtyping).
 
-"Can A be used where B is expected?" Equivalent to `A ≤ B`.
+Recursive for composites:
+- Array: element Fits element
+- Fun: return Fits return (covariant), args reversed (contravariant)
+- Struct: A must have all fields of B, each field Fits (width + depth)
 
-**Algebraic properties:**
+### 2.5 Supporting Operations
 
-| Property | Status | Notes |
-|----------|--------|-------|
-| Reflexive: A fits A | ✅ tested | For concrete types |
-| Transitive: A≤B ∧ B≤C ⟹ A≤C | ✅ tested | For primitives |
-| Any accepts all | ✅ tested | |
-| Empty constrains accepts all | ✅ tested | |
-| Constrains interval | ✅ tested | |
-| Array covariance: A≤B ⟹ A[]≤B[] | ✅ tested | |
-| Struct width: {a,b}≤{a} | ✅ tested | |
-| Struct empty accepts all | ✅ tested | |
-| Struct depth covariance | ❌ not tested | {a:I32} fits {a:Real}? |
-| Fun contravariance | ❌ not tested | |
-| Transitivity for composites | ❌ not tested | |
-| Antisymmetry: A≤B ∧ B≤A ⟹ A=B | ❌ not tested | |
+**Concretest(A)** — most specific type representable by A:
+- Primitive → itself
+- C[desc, ..] → Concretest(desc), or C[cmp] if no desc
+- Array → Array(Concretest(element))
+- Fun → Fun(Abstractest(args)→Concretest(return)) — contravariant args
+- Struct → Struct with dereferenced field nodes
 
-### 1.3 Cross-operation invariants (all tested)
+**Abstractest(A)** — most general type representable by A:
+- Primitive → itself
+- C[.., anc, cmp] → anc if present, else Any (unless comparable)
+- Array → Array(Abstractest(element))
+- Fun → Fun(Concretest(args)→Abstractest(return)) — contravariant args
 
-| Invariant | Status |
-|-----------|--------|
-| Gcd(A,B) ≤ A ≤ Lca(A,B) | ✅ for primitives |
-| A fits Lca(A,B) | ✅ for primitives |
-| Gcd(A,B) fits A | ✅ for primitives |
-| Gcd(A,B) fits Lca(A,B) | ✅ for primitives |
+**Simplify(C)** — simplify a constraint after modification:
+- If desc = anc → return the primitive
+- If comparable, validate against desc
+- If desc is nested ConstraintsState, flatten
+- Returns null if constraint is inconsistent
 
-### 1.4 Constraint State
+**Merge(C₁, C₂)** — merge two constraint intervals (on ConstraintsState):
+- desc = Lca(d₁, d₂), anc = Gcd(a₁, a₂), cmp = cmp₁ ∨ cmp₂
+- Handles preferred type resolution
+- Returns null if inconsistent
 
-A constraint `C[desc, anc, cmp]` represents an unsolved type variable with:
-- `desc` (descendant/lower bound): most concrete type that satisfies constraints so far
-- `anc` (ancestor/upper bound): most abstract type — always a primitive or null
-- `cmp` (comparable flag): if true, type must support comparison operators
-- `pref` (preferred): hint for resolution (e.g., I32 for integer constants)
+### 2.6 Algebraic Properties
 
-**Invariant**: if both desc and anc are set, then `desc ≤ anc`.
+All verified by unit tests:
 
-### 1.5 Constraint Graph
+| Property | Lca | Gcd | Unify | Fits |
+|----------|-----|-----|-------|------|
+| Symmetry | ✅ | ✅ | ✅ | n/a |
+| Idempotent | ✅ | ✅ | ✅ | n/a |
+| Reflexive | n/a | n/a | n/a | ✅ |
+| Transitive | ✅ primitives | n/a | n/a | ✅ primitives |
+| Top (Any) | Lca(A,Any)=Any | Gcd(A,Any)=A | Unify(A,Any)=Any | Fits(A,Any)=true |
+| Bottom (⊥=C[]) | Lca(A,⊥)=A | n/a | n/a | Fits(A,⊥)=true |
+
+Cross-operation invariants (tested for primitives):
+- `Gcd(A,B) ≤ A ≤ Lca(A,B)`
+- `A fits Lca(A,B)`
+- `Gcd(A,B) fits A`
+
+---
+
+## Part 3: Constraint Graph
+
+### 3.1 Graph Structure
 
 A directed graph G = (N, E) where:
-- **N**: set of typed nodes. Each node has a mutable `state ∈ T`
-- **E**: ancestor edges. `(A, B) ∈ E` means "A is constrained by B" (A ≤ B)
+- **N**: set of typed nodes. Each node has a mutable `state ∈ T`.
+- **E**: ancestor edges. `(D, A) ∈ E` means "D ≤ A" (D's type must be convertible to A's type).
 
 Node types:
-- **Named**: input/output variables of the expression
-- **SyntaxNode**: intermediate expression nodes
+- **Named**: input/output variables of the expression (`x`, `y`)
+- **SyntaxNode**: intermediate expression nodes (constants, function calls)
 - **TypeVariable**: generated during graph building (array elements, function args, struct fields)
 
-### 1.6 Solving Algorithm
+### 3.2 Edge Semantics
+
+Two kinds of relationships:
+
+**Ancestor edge** (D ≤ A): "D is convertible to A". Created by `AddAncestor`.
+Example: `y = if(cond) a else b` → both `a` and `b` get ancestor edge to `y`.
+
+**Identity** (A ≡ B): "A and B are the same type". Created by `MergeInplace`.
+One node becomes `StateRefTo` of the other. Used for cycle resolution and equivariant positions.
+
+### 3.3 Composite Decomposition
+
+When Pull encounters a composite-to-composite ancestor edge, it **decomposes** it into member-level edges:
+
+**Array**: `Array(dE) ≤ Array(aE)` → replace with `dE ≤ aE` (one edge for element)
+**Fun**: `Fun(dA→dR) ≤ Fun(aA→aR)` → replace with `dR ≤ aR` and `aA ≤ dA` (args reversed)
+**Struct**: `Struct{f:dF} ≤ Struct{f:aF}` → replace with `dF ≤ aF` per common field.
+  - Missing fields: added to descendant if not frozen.
+  - Extra fields in descendant: allowed (width subtyping).
+
+After decomposition, member nodes are processed by subsequent solver passes automatically.
+
+---
+
+## Part 4: Solving Algorithm
 
 ```
 SOLVE(G):
-    1. TOPOSORT(G)        -- topological sort, merge cycles
-    2. PULL(sorted)       -- bottom-up constraint propagation
-    3. PUSH(sorted)       -- top-down constraint propagation
-    4. DESTRUCT(sorted)   -- resolve remaining constraints
-    5. if generics remain:
-       FINALIZE(sorted)   -- resolve output/input generics
+    1. TOPOSORT(G)
+    2. PULL(sorted)
+    3. PUSH(sorted)
+    4. DESTRUCT(sorted)
+    5. FINALIZE(sorted)
 ```
 
-#### Stage 1: TOPOSORT
+### 4.1 TOPOSORT
 
-Topologically sort nodes by ancestor edges. If cycle detected (A ≤ B ≤ ... ≤ A),
-merge all nodes in cycle into one via `MergeGroup`.
+Topologically sort nodes by ancestor edges via DFS.
+If cycle detected (A ≤ B ≤ ... ≤ A), merge all nodes in cycle into one representative.
+All other nodes in cycle become Ref(representative).
 
-**Post-condition**: sorted array is acyclic, no Ref nodes.
+Post-condition: sorted array is acyclic.
 
-#### Stage 2: PULL (bottom-up)
+### 4.2 PULL (bottom-up)
 
-For each node in toposort order, for each ancestor:
-```
-PULL(ancestor, descendant):
-    -- descendant's constraints tighten ancestor's lower bound
-    ancestor.desc = LCA(ancestor.desc, descendant.desc)
-```
+For each node in toposort order, for each ancestor edge (descendant → ancestor):
+Propagate descendant information **upward** to tighten ancestor's lower bound.
 
-Dispatched by state types of both nodes (3×3 matrix: Primitive, Constrains, Composite).
+Core operation: `ancestor.desc = Lca(ancestor.desc, descendant.desc)`
 
-#### Stage 3: PUSH (top-down)
+Dispatch matrix (ancestor state × descendant state):
 
-For each node in **reverse** toposort order, for each ancestor:
-```
-PUSH(ancestor, descendant):
-    -- ancestor's constraints refine descendant's upper bound
-    descendant.anc = GCD(descendant.anc, ancestor.anc)
-```
+| anc \ desc | Primitive | Constraints | Composite |
+|---|---|---|---|
+| **Primitive** | check compat | optimistic check | check compat |
+| **Constraints** | AddDescendant + Simplify | AddDescendant + Simplify | AddDescendant + Simplify |
+| **Composite** | fail | transform desc to composite, add member edges | decompose into member edges |
 
-#### Stage 4: DESTRUCT
+Key behaviors:
+- **Composite ← Constraints**: transforms the constraint node into a matching composite (Array/Fun/Struct) and adds member-level ancestor edges. The composite-level edge is removed.
+- **Struct ← Struct**: field-level decomposition with `AddAncestor` per field. Missing fields added to descendant.
 
-For each unsolved node pair (ancestor, descendant):
-- Merge constraints, resolve to concrete types where possible
-- `ConstrainsState.MergeOrNull` combines two constraint intervals
+### 4.3 PUSH (top-down)
 
-#### Stage 5: FINALIZE
+For each node in **reverse** toposort order, for each ancestor edge:
+Propagate ancestor information **downward** to tighten descendant's upper bound.
 
-Resolve remaining generics:
-- Output types: solve covariantly (prefer ancestor/most generic)
-- Input types (contravariant): solve contravariantly (prefer descendant/most concrete)
-- Other: solve covariantly
+Core operation: `descendant.anc = Gcd(descendant.anc, ancestor.anc)`
 
-### 1.7 Dispatch Matrix
+| anc \ desc | Primitive | Constraints | Composite |
+|---|---|---|---|
+| **Primitive** | check compat | AddAncestor + Simplify | pass |
+| **Constraints** | check ancestor | AddAncestor + Simplify | struct field propagation |
+| **Composite** | fail | transform desc, push members | push per member |
 
-Each stage (Pull, Push, Destruct) dispatches on `(ancestor.state, descendant.state)`:
+Key behaviors:
+- **Constraints ← Composite (Struct)**: if ancestor's constraint has a struct descendant, propagate field types via MergeInplace.
+- **Struct ← Struct**: extend descendant with missing fields (width subtyping), then push per field.
 
-```
-              │ Primitive    Constrains    Composite
-──────────────┼──────────────────────────────────────
-Primitive     │ check compat  add bound    check compat
-Constrains    │ add bound     merge        transform/check
-Composite     │ fail          transform    merge members
-```
+### 4.4 DESTRUCT (bottom-up)
 
-For Composite×Composite, further dispatch on (Array×Array, Fun×Fun, Struct×Struct).
-Mixed composites (Array×Struct) → fail.
+For each remaining unsolved ancestor-descendant pair, resolve to concrete types.
+
+| anc \ desc | Primitive | Constraints | Composite |
+|---|---|---|---|
+| **Primitive** | pass | Fits → assign | pass |
+| **Constraints** | CanBeConvertedTo → assign | MergeOrNull → assign+ref | Fits → ref; else fallback decompose |
+| **Composite** | fail | Fits → ref; else struct transform+decompose | decompose members |
+
+Key behaviors:
+- **Constraints ← Constraints**: merge both intervals via MergeOrNull, assign result and create Ref.
+- **Constraints ← Composite**: if composite fits constraints, create ref. Otherwise, for matching descendant types, decompose into member-level destruction.
+- **Composite ← Constraints**: if composite ancestor fits descendant constraints, create ref. For structs, transform constraint to struct and destruct field-by-field.
+- **Struct ← Struct**: destruct each field recursively. Only redirect ancestor→descendant if all fields are equivalent.
+
+### 4.5 FINALIZE
+
+Resolve remaining generics (unsolved ConstraintsState nodes):
+
+1. Replace all Ref chains with actual states.
+2. Identify output types and contravariant input types.
+3. **Output** (covariant): solve via SolveCovariant — prefer ancestor (most general). Use preferred type if available and valid.
+4. **Input** (contravariant): solve via SolveContravariant — prefer descendant (most concrete). Use preferred type if available and valid.
+5. **Other**: solve covariantly.
 
 ---
 
-## Part 2: Human Description
+## Part 5: Dispatch Pattern
 
-### What TIC does
+Each stage (Pull, Push, Destruct) implements the IStateFunction interface with 11 Apply overloads:
 
-TIC answers: "Given an expression with no type annotations, what type does every subexpression have?"
+```
+3×3 for (Primitive, Constraints, Composite) × (Primitive, Constraints, Composite)
++3  for (Array×Array, Fun×Fun, Struct×Struct)
+-1  because Composite×Composite dispatches to the specific 3
+= 11 methods total
+```
 
-It builds a graph where each subexpression is a node, and type constraints are edges between nodes. Then it solves this graph in 4 passes.
-
-### The Key Idea
-
-Every node starts as "I don't know my type yet" (empty ConstrainsState). As constraints arrive, the node narrows down: "I must be at least X" (descendant), "I must be at most Y" (ancestor). Eventually it resolves to a concrete type.
-
-### The Ancestor Edge
-
-If node A has ancestor B, it means: "A's type must be convertible to B's type." This is the only constraint mechanism. Everything else — if-else, arrays, function calls — is expressed through ancestor edges.
-
-Example: `y = if(cond) a else b`
-- Both `a` and `b` get ancestor edge to `y`
-- Meaning: both `a` and `b` must be convertible to `y`'s type
-- `y`'s type becomes LCA(type_a, type_b) — the most specific type that covers both
-
-### The Four Passes
-
-**Pass 1 — Toposort**: Order nodes so that "simpler" nodes come first. If there's a cycle (A depends on B which depends on A), merge them into one node — they must be the same type.
-
-**Pass 2 — Pull (bottom-up)**: Walk from leaves to root. Each node "pulls" information from what it already knows. If I know my descendant must be an integer, my ancestor gets that info too. This propagates lower bounds upward.
-
-**Pass 3 — Push (top-down)**: Walk from root to leaves. Each node "pushes" information downward. If my ancestor must be Real, I learn my upper bound is Real. This propagates upper bounds downward.
-
-**Pass 4 — Destruct**: For each remaining unsolved node, try to pick a concrete type from its constraint interval [desc..anc]. Use preferred type if possible (e.g., integer constants prefer I32).
-
-### What Goes Wrong With Structs
-
-For primitives, the constraint interval `[U8..Real]` is a simple linear range. For structs, the "interval" is multi-dimensional: each field has its own constraint. The code handles this with a big dispatch matrix (Primitive×Primitive, Primitive×Constrains, ..., Struct×Struct), but **struct-specific cases are incomplete**:
-
-- `ConstrainsState + Struct` in Push — doesn't propagate field constraints
-- `MergeOrNull` for two ConstrainsState both containing Struct descendant — didn't resolve
-- `FitsInto` and `CanBeFitConverted` for structs — used invariant field checks instead of covariant
+The dispatcher (StagesExtension.Invoke) resolves RefTo chains, then dispatches to the correct Apply overload based on runtime types of both states.
 
 ---
 
-## Part 3: Invariants (What We're Certain Of)
+## Part 6: Variance Summary
 
-### Proven by tests (1120+ unit tests pass):
+| Context | Position | Direction | Operation |
+|---|---|---|---|
+| Array element | covariant | Lca for join, AddAncestor in Pull | desc ≤ anc |
+| Fun return | covariant | Lca for join, AddAncestor in Pull | desc ≤ anc |
+| Fun arguments | contravariant | Gcd for join, reversed AddAncestor | anc ≤ desc |
+| Struct fields | covariant | Lca for join, AddAncestor in Pull | desc ≤ anc |
+| If-else branches | covariant | Lca of both branches | branch ≤ result |
 
-1. **Primitive LCA is correct and symmetric**: LCA(A,B) = LCA(B,A). Pre-computed 18×18 matrix.
-2. **Primitive GCD is correct**: GCD(A,B) finds the most abstract common descendant.
-3. **Array LCA is covariant**: LCA(A[], B[]) = LCA(A,B)[]. Works recursively.
-4. **Function LCA**: covariant in return, contravariant in args via GCD.
-5. **Struct LCA**: intersection of field names, covariant in field types (LCA per field). *(newly established)*
-6. **Toposort detects and merges cycles**: no infinite loops possible.
-7. **Constraint interval [desc..anc] is always valid**: if both set, desc ≤ anc.
-
-### Proven by recent work:
-
-8. **Struct fields are covariant**: {age:int} ≤ {age:real} because int ≤ real. Sound because structs are immutable.
-9. **ConstrainsState with solved StateStruct descendant resolves via MergeOrNull**: `C[{age:I32}, null] + C[{age:I32}, null] → {age:I32}`.
-10. **Nested struct field access works for 1-3 levels**: `a.b`, `a.b.c`, `a.b.c.d` — all resolve correctly.
-11. **Struct merge (GetMergedStateOrNull) handles Struct+ConstrainsState**: ConstrainsState with struct descendant can merge with StateStruct.
-
-### Known gaps:
-
-12. **Array Struct LCA doesn't finalize in Destruction**: When array element is `C[desc=Struct{...}]`, Destruction's `Apply(ICompositeState, ConstrainsState)` picks one ancestor via `ref(ancestor)` instead of the LCA result. The LCA is computed correctly in Pull but lost in Destruction.
-
-13. **Push ConstrainsState→ICompositeState is a no-op for most cases**: `Apply(ConstrainsState, ICompositeState)` just checks ancestor compatibility but doesn't propagate struct field constraints downward. Partially fixed for struct fields.
-
-14. **`CanBeFitConverted(StateStruct, StateStruct)` uses invariant field checks**: checks `desc.field → to.field` instead of `to.field → desc.field` (covariant direction). This blocks Destruction from recognizing that `{age:I32}` fits into `C[desc={age:Real}]`.
+Structs are immutable → fields are covariant. If mutable structs/arrays are added, fields/elements would need to be invariant (both directions).
 
 ---
 
-## Part 4: Architectural Observations
+## Part 7: Key Invariants
 
-### What's missing: a unified "constraint algebra" for composite types
+Maintained throughout solving:
 
-For primitives, the constraint system is elegant:
-```
-Merge([A..B], [C..D]) = [LCA(A,C) .. GCD(B,D)]
-```
-
-This is a single operation that works uniformly. For composites (Array, Fun, Struct), there is no such algebra. Instead, there's a 9-entry dispatch matrix with hand-coded logic per combination.
-
-**The ideal**: a single `Merge(T, T) → T` operation that works for all types, including composite types with nested constraints. This would replace the separate Pull/Push/Destruct dispatch tables with one consistent algebra.
-
-### What's missing: covariance-aware IsSubclassOf
-
-`IsSubclassOf` is the fundamental question: "can type A be used where type B is expected?"
-
-For primitives it delegates to `CanBePessimisticConvertedTo` — a simple lookup.
-
-For structs, it checks field-by-field. But the check direction (A.field → B.field vs B.field → A.field) depends on whether fields are covariant or invariant. Currently the code has **both directions** in different methods, inconsistently. A single, covariance-aware `IsSubclassOf` for struct fields would resolve several bugs at once.
-
-### What's missing: distinction between Identity and Subtyping edges
-
-The graph has two kinds of edges, but the code doesn't distinguish them clearly:
-
-1. **Ancestor edge** (A ≤ B): "A is convertible to B". Created by `AddAncestor`. Semantics: Pull computes LCA of all descendants, Push narrows descendants.
-
-2. **Identity edge** (A ≡ B): "A and B are the same type". Created by `BecomeReferenceFor` / `MergeInplace`. One becomes `StateRefTo` of the other.
-
-For primitives, identity works: if two int nodes merge, they're both int. No information loss.
-
-For structs, identity is **too strong**: `MergeInplace({age:I32}, {age:Real, size:I32})` creates `{age:I32, size:I32}` — a union. But the intended semantics for arrays is LCA = `{age:Real}` — an intersection with covariant field types.
-
-`SetStrictArrayInit` uses identity edges (`BecomeReferenceFor`), but the correct semantics for struct elements is subtyping (`AddAncestor`). This is the root cause of array struct LCA failures.
-
-**Proposal**: For composite types in array init, use ancestor edges instead of identity. This lets the existing Pull/LCA mechanism compute the correct element type automatically, without special cases in Destruction.
-
-### What's excessive: the 3×3 dispatch matrix per stage
-
-Each stage (Pull, Push, Destruct) has 9+ methods for different type combinations:
-```
-Apply(Primitive, Primitive)    Apply(Primitive, Constrains)    Apply(Primitive, Composite)
-Apply(Constrains, Primitive)   Apply(Constrains, Constrains)   Apply(Constrains, Composite)
-Apply(Composite, Primitive)    Apply(Composite, Constrains)    Apply(Composite, Composite)
-```
-
-Plus Composite×Composite further dispatches to Array×Array, Fun×Fun, Struct×Struct.
-
-Most of these do very simple things. The complexity comes from **missing abstractions**: if there were a unified `Merge` and `FitsInto`, most of these methods would collapse.
+1. **Constraint interval valid**: if both desc and anc are set, then desc ≤ anc.
+2. **Ancestor edges are acyclic** after toposort (cycles merged).
+3. **Composite decomposition preserves semantics**: replacing Array≤Array with elem≤elem is equivalent.
+4. **Ref chains terminate**: GetNonReference always finds a non-Ref state.
+5. **Comparable propagation**: comparable flag propagates through Lca (AND), Merge (OR), and is checked in Fits and Simplify.
+6. **Preferred type validity**: after merge, preferred is cleared if it doesn't fit the resulting constraint.
 
 ---
 
-## Part 5: How Composite Members Are Decomposed — The Key Asymmetry
+## Part 8: Terminology Reference
 
-### How Array and Fun work (correctly)
-
-When Pull encounters `Array(descElem) ≤ Array(ancElem)`:
-
-```csharp
-// PullConstraintsFunctions.Apply(StateArray, StateArray):
-descendant.ElementNode.AddAncestor(ancestor.ElementNode);  // elem ≤ elem
-descendantNode.RemoveAncestor(ancestorNode);                // composite edge → member edges
-```
-
-**What this does**: removes the composite-level edge and replaces it with member-level edges. After this, `descElem` and `ancElem` are **independent nodes in the graph** with an ancestor edge between them. Pull/Push/Destruction handle them in subsequent passes **automatically**.
-
-Same for Fun (return is covariant, args are contravariant):
-```csharp
-descendant.RetNode.AddAncestor(ancestor.RetNode);
-ancestor.ArgNodes[i].AddAncestor(descendant.ArgNodes[i]);  // reversed
-descendantNode.RemoveAncestor(ancestorNode);
-```
-
-**Key property**: member nodes (ElementNode, RetNode, ArgNodes) are created via `CreateVarType()`, registered in `_typeVariables`, and included in toposort. They are **first-class graph citizens**.
-
-### How Struct works (broken)
-
-When Pull encounters `Struct{f:descF} ≤ Struct{f:ancF}`:
-
-```csharp
-// PullConstraintsFunctions.Apply(StateStruct, StateStruct):
-MergeInplace(ancField.Value, descField);   // f ≡ f  (IDENTITY, not subtyping)
-// NO RemoveAncestor                        // composite edge stays
-```
-
-**Two problems**:
-
-1. **Identity instead of subtyping**: MergeInplace makes both field nodes the same object. This means `{age:I32}` and `{age:Real}` can't coexist — one must become the other. For covariant fields, we need `descF ≤ ancF` (ancestor edge), not `descF ≡ ancF` (identity).
-
-2. **No decomposition**: the composite edge `Struct ≤ Struct` is NOT removed. Field edges are NOT added to the graph. So Pull/Push can't process field constraints in later passes.
-
-### Why naive fix failed
-
-Replacing `MergeInplace` with `AddAncestor` and `RemoveAncestor` — exactly matching Array/Fun pattern — caused regressions because:
-
-**Struct field nodes are NOT always registered in the graph.**
-
-- `SetStructInit` creates a struct using **existing expression nodes** as field values. These nodes ARE in the graph (they're syntax nodes).
-- `SetFieldAccess` creates **new TypeVariable nodes** for fields via `CreateVarType()`. These ARE registered in `_typeVariables`.
-- But `StateStruct.Of(...)` (used in tests via `SetVarType`) creates field nodes via `TicNode.CreateTypeVariableNode()` — these are NOT registered in `_typeVariables` and NOT in toposort.
-- `StateStruct.With(...)` (used in Pull to add missing fields) also creates new nodes that may not be registered.
-- LCA creates frozen structs with `TicNode.CreateInvisibleNode()` — explicitly NOT registered.
-
-When `AddAncestor` creates an edge between a registered node and an unregistered node, the unregistered node is **never visited** by Pull/Push/Destruction. The edge exists but is never processed.
-
-### What needs to happen (plan)
-
-To make struct fields work like Array elements and Fun args:
-
-1. **All struct field nodes must be registered in the graph.** Every time a StateStruct is created or modified, its field nodes must be in `_typeVariables` (or toposort). This includes:
-   - `StateStruct.Of(...)` factory methods
-   - `StateStruct.With(...)` when adding new fields
-   - LCA results (frozen structs with invisible nodes)
-   - `TransformToStructOrNull` results
-
-2. **Pull Struct≤Struct should decompose into field edges**, same as Array:
-   ```
-   descField.AddAncestor(ancField);
-   descendantNode.RemoveAncestor(ancestorNode);
-   ```
-
-3. **Push Struct≤Struct should push field constraints**, same as Array:
-   ```
-   PushConstraints(descField, ancField);
-   ```
-
-4. **Destruction Struct≤Struct should destruct fields**, same as Array:
-   ```
-   Destruction(descField, ancField);
-   ```
-
-### How to get there incrementally
-
-**Step 0** (current state): Struct fields use MergeInplace. Works for identity cases, fails for covariance.
-
-**Step 1**: Ensure all struct field nodes are registered. Add a `RegisterStructFields(StateStruct)` method to GraphBuilder that walks field nodes and adds unregistered ones to `_typeVariables`. Call it whenever a StateStruct is set as a node's state.
-
-**Step 2**: In PullConstraintsFunctions, replace MergeInplace with AddAncestor for struct fields. Add RemoveAncestor for the composite edge. This decomposes struct constraints into field constraints.
-
-**Step 3**: Simplify PushConstraintsFunctions for Struct×Struct to match Array×Array pattern.
-
-**Step 4**: Remove struct-specific hacks in Destruction, ConstrainsState.MergeOrNull, etc. — they become unnecessary because fields are handled as regular graph nodes.
-
-**Step 1 is the prerequisite.** Without it, Steps 2-4 will cause the same regression we saw.
-
-### Update after implementation attempt
-
-Step 1 turned out to be **unnecessary**. `PullConstraintsRecursive` and `PushConstraintsRecursive` already recurse into composite members:
-
-```csharp
-if (node.State is ICompositeState composite)
-    foreach (var member in composite.Members)
-        PullConstraintsRecursive(member);
-```
-
-So struct field nodes ARE processed even without explicit registration.
-
-**Step 2 was partially done** — `Apply(StateStruct, StateStruct)` now uses `AddAncestor` + `RemoveAncestor`. This fixed crash bugs and nested struct access.
-
-**The remaining problem** is `Apply(ICompositeState, ConstrainsState)` for structs — specifically the `Struct ancestor + ConstrainsState descendant` case in if-else. Here the flow is:
-
-1. Pull: node 2 `{age:[U8..Re]}` and node 3 `{age:Real}` both ancestors of node 4
-2. Pull processes `(node 2, node 4)` and `(node 3, node 4)` via `Apply(ICompositeState, ConstrainsState)`
-3. LCA computed in `AddDescendant`: `{age:Real}` (correct)
-4. `TransformToStructOrNull` returns the LCA frozen struct with **new invisible field nodes**
-5. These new field nodes are **disconnected** from original field nodes (node 1 = generic const [U8..Re])
-6. No ancestor edge exists between node 1 and LCA's age field node
-
-**Root cause**: `Apply(ICompositeState, ConstrainsState)` for structs does NOT decompose into field-level edges (unlike Array which does: `result.ElementNode.AddAncestor(ancArray.ElementNode)`). It can't, because it processes one ancestor at a time, and field decomposition needs to connect to ALL ancestors' field nodes.
-
-**Possible solutions**:
-
-A. **Field decomposition in Apply(ICompositeState, ConstrainsState)**: After TransformToStructOrNull, add ancestor edges from result field nodes to ancestor field nodes. Problem: only sees one ancestor per call. Partially works — helps for the case where TransformToStructOrNull returns ancestorStruct itself (NoConstrains case).
-
-B. **Push-based field propagation** (current workaround): In `Apply(ConstrainsState, ICompositeState)`, if ConstrainsState has a struct descendant, MergeInplace the LCA's field types into the descendant struct's field types. Works for concrete LCA fields (Real), crashes for Any.
-
-C. **Restructure graph building**: Instead of creating ConstrainsState node for if-else result, create a struct node with new field type variables, and add ancestor edges from EACH branch's field nodes. This is the cleanest solution but requires changes to how `SetIfElse` works for struct types.
-
-Currently using solution B with a guard against Any fields.
+| TIC Term | Standard (type theory) | Description |
+|---|---|---|
+| Lca | Join, LUB (⊔) | Least common ancestor in type lattice |
+| Gcd | Meet, GLB (⊓) | Greatest common descendant in type lattice |
+| Unify | Unification | Find type satisfying both constraints |
+| Fits | Constraint satisfaction | Does type A fit where B is expected? (two-sided for constraints) |
+| Merge | Constraint combination | Combine two constraint intervals |
+| Simplify | Normalization | Reduce constraint to simplest form |
+| Concretest | Lower bound projection | Most specific type representable |
+| Abstractest | Upper bound projection | Most general type representable |
+| Ancestor edge | Subtyping constraint (≤) | D ≤ A: descendant convertible to ancestor |
+| MergeInplace | Equate | Make two nodes the same type (identity) |
+| Pull | Forward propagation | Bottom-up: tighten lower bounds |
+| Push | Backward propagation | Top-down: tighten upper bounds |
+| Destruct | Resolution | Resolve constraint intervals to concrete types |
+| Finalize | Generic resolution | Solve remaining type variables by variance |
