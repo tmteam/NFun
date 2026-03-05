@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,64 +16,182 @@ public class GraphBuilder {
     private readonly List<TicNode> _outputNodes = new();
     private readonly List<TicNode> _inputNodes = new();
 
-    public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
-        => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
-
     public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
     public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
 
+    public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
+        => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
 
-    #region set primitives
+    #region node management
 
-    public void SetVar(string name, int node) {
-        var namedNode = GetNamedNode(name);
-        var idNode = GetOrCreateNode(node);
-        if (idNode.State is ConstraintsState)
-        {
-            namedNode.AddAncestor(idNode);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                $"Node {node} cannot be referenced by '{name}' because it is not constrained node.");
-        }
+    /// <summary>
+    /// Returns already exists syntax node, or creates new one with empty constraints
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TicNode GetOrCreateNode(int id) {
+        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        if (alreadyExists != null)
+            return alreadyExists;
+
+        var res = TicNode.CreateSyntaxNode(id, ConstraintsState.Empty, true);
+        _syntaxNodes[id] = res;
+        return res;
     }
 
-    public void SetIfElse(int[] conditions, int[] expressions, int resultId) {
-        var result = GetOrCreateNode(resultId);
+    public TicNode GetNamedNode(string name) {
+        if (_variables.TryGetValue(name, out var varnode))
+            return varnode;
 
-        foreach (var exprId in expressions)
-        {
-            var expr = GetOrCreateNode(exprId);
-            expr.AddAncestor(result);
-        }
-
-        foreach (var condId in conditions)
-            SetOrCreatePrimitive(condId, StatePrimitive.Bool);
+        var ans = TicNode.CreateNamedNode(name, ConstraintsState.Empty);
+        _variables.Add(name, ans);
+        return ans;
     }
 
-    public void SetConst(int id, StatePrimitive type)
-        => SetOrCreatePrimitive(id, type);
-
-    public void SetIntConst(int id, StatePrimitive desc)
-        => SetGenericConst(id,
-            desc: desc,
-            anc: StatePrimitive.Real,
-            preferred: StatePrimitive.Real);
-
-    public void SetGenericConst(int id, StatePrimitive desc = null, StatePrimitive anc = null, StatePrimitive preferred = null) {
-        var node = GetOrCreateNode(id);
-        if (node.State is ConstraintsState constrains)
-        {
-            constrains.AddAncestor(anc);
-            constrains.AddDescendant(desc);
-            constrains.Preferred = preferred;
-        }
-        else
-            throw new InvalidOperationException();
+    public TicNode[] GetNamedNodes(string[] names) {
+        var ans = new TicNode[names.Length];
+        for (int i = 0; i < names.Length; i++)
+            ans[i] = GetNamedNode(names[i]);
+        return ans;
     }
 
     public bool HasNamedNode(string s) => _variables.ContainsKey(s);
+
+    public TicNode CreateVarType(ITicNodeState state = null) {
+        if (state is ICompositeState composite)
+            RegistrateCompositeType(composite);
+
+        var varNode = TicNode.CreateTypeVariableNode(
+            name: "V" + _varNodeId,
+            state: state ?? ConstraintsState.Empty,
+            true);
+        _varNodeId++;
+        _typeVariables.Add(varNode);
+        return varNode;
+    }
+
+    /// <summary>
+    /// Merge already exists syntax node, or creates new one with specified type
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void MergeOrSetNode(int id, StateRefTo type) {
+        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        if (alreadyExists == null)
+        {
+            var res = TicNode.CreateSyntaxNode(id, type, true);
+            _syntaxNodes[id] = res;
+            return;
+        }
+
+        alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(alreadyExists.State, type) ??
+                              throw TicErrors.CannotSetState(alreadyExists, type);
+    }
+
+    public void SetOrCreatePrimitive(int id, StatePrimitive type) {
+        var node = GetOrCreateNode(id);
+        if (!node.TryBecomeConcrete(type))
+            throw TicErrors.CannotSetState(node, type);
+    }
+
+    public void GetOrCreateArrayNode(int id, TicNode elementType) {
+        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State =
+                SolvingFunctions.GetMergedStateOrNull(new StateArray(elementType), alreadyExists.State) ??
+                throw TicErrors.CannotSetState(elementType, new StateArray(elementType));
+            return;
+        }
+
+        var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType), true);
+        _syntaxNodes[id] = res;
+    }
+
+    public TicNode GetOrCreateStructNode(int id, StateStruct stateStruct) {
+        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(stateStruct, alreadyExists.State) ??
+                                  throw TicErrors.CannotSetState(alreadyExists, stateStruct);
+            return alreadyExists;
+        }
+
+        var res = TicNode.CreateSyntaxNode(id, stateStruct, true);
+        _syntaxNodes[id] = res;
+        return res;
+    }
+
+    public void SetOrCreateLambda(int lambdaId, TicNode[] args, TicNode ret) {
+        var fun = StateFun.Of(args, ret);
+
+        var alreadyExists = _syntaxNodes.GetOrEnlarge(lambdaId);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(fun, alreadyExists.State) ??
+                                  throw TicErrors.CannotSetState(alreadyExists, fun);
+        }
+        else
+        {
+            var res = TicNode.CreateSyntaxNode(lambdaId, fun, true);
+            _syntaxNodes[lambdaId] = res;
+        }
+    }
+
+    /// <summary>
+    /// Optimized version of SetCallArgument for ref cases
+    /// </summary>
+    public void SetCallArgument(StateRefTo type, int argId) {
+        var node = GetOrCreateNode(argId);
+        node.AddAncestor(type.Node);
+    }
+
+    public void SetCallArgument(ITicNodeState type, int argId) {
+        var node = GetOrCreateNode(argId);
+        switch (type)
+        {
+            case StatePrimitive primitive:
+            {
+                if (node.State is ConstraintsState { HasAncestor: false, HasDescendant: false })
+                {
+                    node.State = type;
+                    return;
+                }
+
+                if (!node.TrySetAncestor(primitive))
+                    throw TicErrors.CannotSetState(node, primitive);
+                break;
+            }
+            case ICompositeState composite:
+            {
+                RegistrateCompositeType(composite);
+                var ancestor = CreateVarType(composite);
+                node.AddAncestor(ancestor);
+                break;
+            }
+            case StateRefTo refTo:
+            {
+                node.AddAncestor(refTo.Node);
+                break;
+            }
+            default: throw new NotSupportedException();
+        }
+    }
+
+    private void RegistrateCompositeType(ICompositeState composite) {
+        foreach (var member in composite.Members)
+        {
+            if (!member.Registered)
+            {
+                member.Registered = true;
+                if (member.State is ICompositeState c)
+                    RegistrateCompositeType(c);
+                _typeVariables.Add(member);
+            }
+        }
+    }
+
+    #endregion
+
+    #region definitions and calls
 
     public void SetVarType(string s, ITicNodeState state) {
         if (!TrySetVarType(s, state))
@@ -82,7 +200,6 @@ public class GraphBuilder {
 
     public bool TrySetVarType(string s, ITicNodeState state) {
         var node = GetNamedNode(s);
-
         switch (state)
         {
             case StatePrimitive primitive:
@@ -96,47 +213,15 @@ public class GraphBuilder {
         }
     }
 
-    public void SetArrayConst(int id, StatePrimitive elementType) {
-        var eNode = CreateVarType(elementType);
-        var node = GetOrCreateNode(id);
-        if (node.State is ConstraintsState c)
-        {
-            var arrayOf = StateArray.Of(eNode);
-            if (c.CanBeConvertedTo(arrayOf))
-            {
-                node.State = arrayOf;
-                return;
-            }
-        }
-        else if (node.State is StateArray a)
-        {
-            if (a.Element.Equals(elementType))
-                return;
-        }
+    public void SetDef(string name, int rightNodeId) {
+        var exprNode = GetOrCreateNode(rightNodeId);
+        var defNode = GetNamedNode(name);
+        _outputNodes.Add(defNode);
 
-        throw new InvalidOperationException();
-    }
+        if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
+            constrains.Preferred = primitive;
 
-    public void SetStructConst(int id, StateStruct @struct) {
-        if (!@struct.IsSolved)
-            throw new InvalidOperationException();
-        GetOrCreateStructNode(id, @struct);
-        RegistrateCompositeType(@struct);
-    }
-
-    public void CreateLambda(int returnId, int lambdaId, params string[] varNames) {
-        var args = GetNamedNodes(varNames);
-        var ret = GetOrCreateNode(returnId);
-        SetOrCreateLambda(lambdaId, args, ret);
-    }
-
-    public void CreateLambda(int returnId, int lambdaId, ITypeState returnType, params string[] varNames) {
-        var args = GetNamedNodes(varNames);
-        var exprId = GetOrCreateNode(returnId);
-        var returnTypeNode = CreateVarType(returnType);
-        exprId.AddAncestor(returnTypeNode);
-        //expr<=returnType<= ...
-        SetOrCreateLambda(lambdaId, args, returnTypeNode);
+        exprNode.AddAncestor(defNode);
     }
 
     public StateFun SetFunDef(string name, int returnId, ITypeState returnType = null, params string[] varNames) {
@@ -154,29 +239,6 @@ public class GraphBuilder {
         _outputNodes.Add(returnTypeNode);
         _inputNodes.AddRange(args);
         return fun;
-    }
-
-    public StateRefTo SetStrictArrayInit(int resultIds, params int[] elementIds) {
-        var elementType = CreateVarType();
-        GetOrCreateArrayNode(resultIds, elementType);
-
-        foreach (var id in elementIds)
-        {
-            elementType.BecomeReferenceFor(GetOrCreateNode(id));
-            elementType.IsMemberOfAnything = true;
-        }
-
-        return new StateRefTo(elementType);
-    }
-
-    public void SetSoftArrayInit(int resultIds, params int[] elementIds) {
-        var elementType = CreateVarType();
-        GetOrCreateArrayNode(resultIds, elementType);
-        foreach (var id in elementIds)
-        {
-            GetOrCreateNode(id).AddAncestor(elementType);
-            elementType.IsMemberOfAnything = true;
-        }
     }
 
     /// <summary>
@@ -246,139 +308,6 @@ public class GraphBuilder {
                            throw TicErrors.CannotSetState(returnNode, returnType);
     }
 
-    public void SetDef(string name, int rightNodeId) {
-        var exprNode = GetOrCreateNode(rightNodeId);
-        var defNode = GetNamedNode(name);
-        _outputNodes.Add(defNode);
-
-        if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
-            constrains.Preferred = primitive;
-
-        exprNode.AddAncestor(defNode);
-    }
-
-    public void SetFieldAccess(int structNodeId, int opId, string fieldName) {
-        var node = GetOrCreateStructNode(structNodeId, new StateStruct())
-            .GetNonReference();
-
-        var state = (StateStruct)node.State;
-        var memberNode = state.GetFieldOrNull(fieldName);
-        if (memberNode == null)
-        {
-            memberNode = CreateVarType();
-            //if origin node is reference node - than we should change
-            node.State = state.With(fieldName, memberNode);
-        }
-
-        MergeOrSetNode(opId, new StateRefTo(memberNode));
-    }
-
-    public void SetStructInit(string[] fieldNames, int[] fieldExpressionIds, int id) {
-        var fields = new Dictionary<string, TicNode>(fieldNames.Length);
-        for (int i = 0; i < fieldNames.Length; i++)
-        {
-            fields.Add(fieldNames[i], GetOrCreateNode(fieldExpressionIds[i]));
-        }
-
-        GetOrCreateStructNode(id, new StateStruct(fields, false));
-    }
-
-    public void SetCompareChain(int nodeOrderNumber, StateRefTo[] generics, int[] ids) {
-        for (int i = 0; i < generics.Length; i++)
-        {
-            var generic = generics[i];
-            SetCallArgument(generic, ids[i]);
-            SetCallArgument(generic, ids[i + 1]);
-        }
-
-        SetOrCreatePrimitive(nodeOrderNumber, StatePrimitive.Bool);
-    }
-
-    #endregion
-
-
-    public ITicResults Solve(bool ignorePrefered = false) {
-        var sorted = Toposort();
-        PrintTrace("1. Toposorted", sorted);
-
-        SolvingFunctions.PullConstraints(sorted);
-        PrintTrace("2. PullConstraints", sorted);
-
-        SolvingFunctions.PushConstraints(sorted);
-        PrintTrace("3. PushConstraints", sorted);
-
-        bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
-        PrintTrace("4. Destructed");
-
-        if (allTypesAreSolved)
-            return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
-
-        var results =  SolvingFunctions.Finalize(
-            toposortedNodes: sorted,
-            outputNodes: _outputNodes,
-            inputNodes: _inputNodes,
-            syntaxNodes: _syntaxNodes,
-            namedNodes: _variables,
-            ignorePrefered);
-        PrintTrace("4. Finalized");
-
-        return results;
-    }
-    public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s=>s!=null)).ToArray();
-    private TicNode[] Toposort() {
-        var toposortAlgorithm = new NodeToposort(
-            capacity: _syntaxNodes.Count + _variables.Count + _typeVariables.Count);
-
-        foreach (var node in _syntaxNodes) toposortAlgorithm.AddToTopology(node);
-        foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node);
-        foreach (var node in _typeVariables) toposortAlgorithm.AddToTopology(node);
-
-        toposortAlgorithm.OptimizeTopology();
-        return toposortAlgorithm.NonReferenceOrdered;
-    }
-
-    /// <summary>
-    /// Optimized version of SetCallArgument for ref cases
-    /// Not sure how necessary this optimization is
-    /// </summary>
-    private void SetCallArgument(StateRefTo type, int argId) {
-        var node = GetOrCreateNode(argId);
-        node.AddAncestor(type.Node);
-    }
-
-    private void SetCallArgument(ITicNodeState type, int argId) {
-        var node = GetOrCreateNode(argId);
-        switch (type)
-        {
-            case StatePrimitive primitive:
-            {
-                if (node.State is ConstraintsState { HasAncestor: false, HasDescendant: false })
-                {
-                    node.State = type;
-                    return;
-                }
-
-                if (!node.TrySetAncestor(primitive))
-                    throw TicErrors.CannotSetState(node, primitive);
-                break;
-            }
-            case ICompositeState composite:
-            {
-                RegistrateCompositeType(composite);
-
-                var ancestor = CreateVarType(composite);
-                node.AddAncestor(ancestor);
-                break;
-            }
-            case StateRefTo refTo:
-            {
-                node.AddAncestor(refTo.Node);
-                break;
-            }
-            default: throw new NotSupportedException();
-        }
-    }
-
     private void SetCall(TicNode functionNode, int[] argThenReturnIds) {
         var id = argThenReturnIds[^1];
 
@@ -409,132 +338,53 @@ public class GraphBuilder {
         }
     }
 
-    private TicNode[] GetNamedNodes(string[] names) {
-        var ans = new TicNode[names.Length];
-        for (int i = 0; i < names.Length; i++)
-            ans[i] = GetNamedNode(names[i]);
+    #endregion
 
-        return ans;
+    #region solving
+
+    public ITicResults Solve(bool ignorePrefered = false) {
+        var sorted = Toposort();
+        PrintTrace("1. Toposorted", sorted);
+
+        SolvingFunctions.PullConstraints(sorted);
+        PrintTrace("2. PullConstraints", sorted);
+
+        SolvingFunctions.PushConstraints(sorted);
+        PrintTrace("3. PushConstraints", sorted);
+
+        bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
+        PrintTrace("4. Destructed");
+
+        if (allTypesAreSolved)
+            return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
+
+        var results = SolvingFunctions.Finalize(
+            toposortedNodes: sorted,
+            outputNodes: _outputNodes,
+            inputNodes: _inputNodes,
+            syntaxNodes: _syntaxNodes,
+            namedNodes: _variables,
+            ignorePrefered);
+        PrintTrace("5. Finalized");
+
+        return results;
     }
 
-    private TicNode GetNamedNode(string name) {
-        if (_variables.TryGetValue(name, out var varnode))
-        {
-            return varnode;
-        }
+    public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s => s != null)).ToArray();
 
-        var ans = TicNode.CreateNamedNode(name, ConstraintsState.Empty);
-        _variables.Add(name, ans);
-        return ans;
+    private TicNode[] Toposort() {
+        var toposortAlgorithm = new NodeToposort(
+            capacity: _syntaxNodes.Count + _variables.Count + _typeVariables.Count);
+
+        foreach (var node in _syntaxNodes) toposortAlgorithm.AddToTopology(node);
+        foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node);
+        foreach (var node in _typeVariables) toposortAlgorithm.AddToTopology(node);
+
+        toposortAlgorithm.OptimizeTopology();
+        return toposortAlgorithm.NonReferenceOrdered;
     }
 
-    private void SetOrCreateLambda(int lambdaId, TicNode[] args, TicNode ret) {
-        var fun = StateFun.Of(args, ret);
-
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(lambdaId);
-        if (alreadyExists != null)
-        {
-            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(fun, alreadyExists.State) ??
-                                  throw TicErrors.CannotSetState(alreadyExists, fun);
-        }
-        else
-        {
-            var res = TicNode.CreateSyntaxNode(lambdaId, fun, true);
-            _syntaxNodes[lambdaId] = res;
-        }
-    }
-
-    private void SetOrCreatePrimitive(int id, StatePrimitive type) {
-        var node = GetOrCreateNode(id);
-        if (!node.TryBecomeConcrete(type))
-            throw TicErrors.CannotSetState(node, type);
-    }
-
-    private void GetOrCreateArrayNode(int id, TicNode elementType) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
-        if (alreadyExists != null)
-        {
-            alreadyExists.State =
-                SolvingFunctions.GetMergedStateOrNull(new StateArray(elementType), alreadyExists.State) ??
-                throw TicErrors.CannotSetState(elementType, new StateArray(elementType));
-            return;
-        }
-
-        var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType), true);
-        _syntaxNodes[id] = res;
-    }
-
-    private TicNode GetOrCreateStructNode(int id, StateStruct stateStruct) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
-        if (alreadyExists != null)
-        {
-            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(stateStruct, alreadyExists.State) ??
-                                  throw TicErrors.CannotSetState(alreadyExists, stateStruct);
-            return alreadyExists;
-        }
-
-        var res = TicNode.CreateSyntaxNode(id, stateStruct, true);
-        _syntaxNodes[id] = res;
-        return res;
-    }
-
-    /// <summary>
-    /// Returns already exists syntax node id, or creates new one with empty constraints
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TicNode GetOrCreateNode(int id) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
-        if (alreadyExists != null)
-            return alreadyExists;
-
-        var res = TicNode.CreateSyntaxNode(id, ConstraintsState.Empty, true);
-        _syntaxNodes[id] = res;
-        return res;
-    }
-
-    /// <summary>
-    /// Merge already exists syntax node id,
-    /// or creates new one with specified type
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void MergeOrSetNode(int id, StateRefTo type) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
-        if (alreadyExists == null)
-        {
-            var res = TicNode.CreateSyntaxNode(id, type, true);
-            _syntaxNodes[id] = res;
-            return;
-        }
-
-        alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(alreadyExists.State, type) ??
-                              throw TicErrors.CannotSetState(alreadyExists, type);
-    }
-
-    private void RegistrateCompositeType(ICompositeState composite) {
-        foreach (var member in composite.Members)
-        {
-            if (!member.Registered)
-            {
-                member.Registered = true;
-                if (member.State is ICompositeState c)
-                    RegistrateCompositeType(c);
-                _typeVariables.Add(member);
-            }
-        }
-    }
-
-    private TicNode CreateVarType(ITicNodeState state = null) {
-        if (state is ICompositeState composite)
-            RegistrateCompositeType(composite);
-
-        var varNode = TicNode.CreateTypeVariableNode(
-            name: "V" + _varNodeId,
-            state: state ?? ConstraintsState.Empty,
-            true);
-        _varNodeId++;
-        _typeVariables.Add(varNode);
-        return varNode;
-    }
+    #endregion
 
     public void PrintTrace(string name)
     {
