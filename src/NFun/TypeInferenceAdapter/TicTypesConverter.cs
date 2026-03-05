@@ -176,12 +176,12 @@ public abstract class TicTypesConverter {
             PrimitiveTypeName.U8   => FunnyType.UInt8,
             PrimitiveTypeName.I96  => FunnyType.Int64,
             PrimitiveTypeName.I48  => FunnyType.Int32,
-            PrimitiveTypeName.U48 =>
-                throw new InvalidOperationException("Cannot cast abstract type " + name),
-            PrimitiveTypeName.U24 =>
-                throw new InvalidOperationException("Cannot cast abstract type " + name),
-            PrimitiveTypeName.U12 =>
-                throw new InvalidOperationException("Cannot cast abstract type " + name),
+            // Abstract types can appear as bare StatePrimitive when MergeOrNull collapses
+            // a constraint interval to a single point (ancestor == descendant).
+            // Map each to its nearest concrete descendant in the type hierarchy.
+            PrimitiveTypeName.U48  => FunnyType.UInt32,
+            PrimitiveTypeName.U24  => FunnyType.UInt16,
+            PrimitiveTypeName.U12  => FunnyType.UInt8,
             _ => throw new ArgumentOutOfRangeException()
         };
 }
