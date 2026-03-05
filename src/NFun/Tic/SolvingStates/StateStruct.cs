@@ -77,7 +77,7 @@ public class StateStruct : ICompositeState {
 
     public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
     public bool IsMutable => true;
-    public string Description => ToString();//"{" + (IsFrozen?"f " :"") + /*string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) +*/ "}";
+    public string Description => ToString();
     public bool IsFrozen { get; }
 
     public ICompositeState GetNonReferenced() {

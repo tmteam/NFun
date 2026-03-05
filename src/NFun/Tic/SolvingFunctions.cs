@@ -382,18 +382,6 @@ public static class SolvingFunctions {
             retNode.AddAncestor(ancestor.RetNode);
 
             return StateFun.Of(argNodes, retNode);
-
-
-            //return funDesc;
-
-            // var nrArgNodes = new TicNode[funDesc.ArgNodes.Length];
-            // for (int i = 0; i < funDesc.ArgNodes.Length; i++)
-            //     nrArgNodes[i] = funDesc.ArgNodes[i];
-            //
-            // var nrRetNode = funDesc.RetNode.GetNonReference();
-            // if (allArgsAreSolved && nrRetNode.IsSolved)
-            //     return StateFun.Of(nrArgNodes, nrRetNode);
-
         }
 
         return null;

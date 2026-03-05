@@ -188,15 +188,11 @@ public static class StateExtensions {
         };
 
     private static ITicNodeState Concretest(this StateFun f) {
-        // return type is classic, but arg type is contravariant
+        // return type is covariant, arg types are contravariant
         var returnNode = TicNode.CreateInvisibleNode(Concretest(f.ReturnType));
         var argNodes = new TicNode[f.ArgsCount];
-        var i = 0;
-        foreach (var node in f.ArgNodes)
-        {
-            argNodes[i] = TicNode.CreateInvisibleNode(node.State.Abstractest());
-            i++;
-        }
+        for (int i = 0; i < f.ArgsCount; i++)
+            argNodes[i] = TicNode.CreateInvisibleNode(f.ArgNodes[i].State.Abstractest());
 
         return StateFun.Of(argNodes, returnNode);
     }
@@ -236,12 +232,8 @@ public static class StateExtensions {
     private static ITicNodeState Abstractest(this StateFun f) {
         var returnNode = TicNode.CreateInvisibleNode(Abstractest(f.ReturnType));
         var argNodes = new TicNode[f.ArgsCount];
-        var i = 0;
-        foreach (var node in f.ArgNodes)
-        {
-            argNodes[i] = TicNode.CreateInvisibleNode(node.State.Concretest());
-            i++;
-        }
+        for (int i = 0; i < f.ArgsCount; i++)
+            argNodes[i] = TicNode.CreateInvisibleNode(f.ArgNodes[i].State.Concretest());
 
         return StateFun.Of(argNodes, returnNode);
     }
@@ -642,14 +634,10 @@ public static class StateExtensions {
     private static bool FitsInto(this StateFun target, StateFun to) {
         if (target.ArgsCount != to.ArgsCount)
             return false;
-        //var returnBottomDesc = from.ReturnType.Concretest();
-        //var returnBottomAnc = to.ReturnType.Concretest();
         if (!FitsInto(target.ReturnType, to.ReturnType))
             return false;
         for (int i = 0; i < target.ArgsCount; i++)
         {
-            //var dmin = stateFun.ArgNodes[i].State.Abstractest();
-            //var amin = typeFun.ArgNodes[i].State.Abstractest();
             if (!to.ArgNodes[i].State.FitsInto(target.ArgNodes[i].State))
                 return false;
         }
