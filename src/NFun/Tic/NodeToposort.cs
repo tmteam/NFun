@@ -104,57 +104,59 @@ public class NodeToposort {
         if (_visitDepth > 1000)
             throw new InvalidOperationException($"Toposort stack overflow. Node: {node}");
 
-
-        if (node == null)
-            return true;
-        if (node.VisitMark == IsVisited)
+        try
         {
-            // if node is already visited then skip it
-            return true;
-        }
+            if (node == null)
+                return true;
+            if (node.VisitMark == IsVisited)
+                return true;
 
-        if (node.VisitMark == InProcess)
-        {
-            // Node is visiting, that means cycle found
-            // initialize cycle collecting process
-            _cycle = new Stack<TicNode>(_path.Count + 1);
-            _cycleInitiator = node;
-            return false;
-        }
-
-        node.VisitMark = InProcess;
-
-        if (node.State is StateRefTo refTo)
-        {
-            _referenceNodesCount++;
-            if (!Visit(refTo.Node))
+            if (node.VisitMark == InProcess)
             {
-                // VisitNodeInCycle rolls back graph
-                // so we need to decrement counter
-                _referenceNodesCount--;
-                // this node is part of cycle
-                return VisitNodeInCycle(node);
+                // Node is visiting, that means cycle found
+                // initialize cycle collecting process
+                _cycle = new Stack<TicNode>(_path.Count + 1);
+                _cycleInitiator = node;
+                return false;
             }
+
+            node.VisitMark = InProcess;
+
+            if (node.State is StateRefTo refTo)
+            {
+                _referenceNodesCount++;
+                if (!Visit(refTo.Node))
+                {
+                    // VisitNodeInCycle rolls back graph
+                    // so we need to decrement counter
+                    _referenceNodesCount--;
+                    // this node is part of cycle
+                    return VisitNodeInCycle(node);
+                }
+            }
+            else if (node.State is ICompositeState composite)
+            {
+                foreach (var member in composite.Members)
+                    if (!Visit(member))
+                        ThrowRecursiveTypeDefinition(node);
+            }
+
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < node.Ancestors.Count; i++)
+            {
+                var ancestor = node.Ancestors[i];
+                if (!Visit(ancestor))
+                    return VisitNodeInCycle(node);
+            }
+
+            _path.Push(node);
+            node.VisitMark = IsVisited;
+            return true;
         }
-        else if (node.State is ICompositeState composite)
+        finally
         {
-            foreach (var member in composite.Members)
-                if (!Visit(member))
-                    ThrowRecursiveTypeDefinition(node);
+            _visitDepth--;
         }
-
-        // ReSharper disable once ForCanBeConvertedToForeach
-        for (var i = 0; i < node.Ancestors.Count; i++)
-        {
-            var ancestor = node.Ancestors[i];
-            if (!Visit(ancestor))
-                return VisitNodeInCycle(node);
-        }
-
-
-        _path.Push(node);
-        node.VisitMark = IsVisited;
-        return true;
     }
 
     private void ThrowRecursiveTypeDefinition(TicNode node) {

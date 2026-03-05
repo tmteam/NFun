@@ -144,7 +144,7 @@ public class PushConstraintsFunctions : IStateFunction {
                 return false;
             }
             TraceLog.WriteLine($"    Merging field '{ancField.Key}': desc={descFieldNode.State} anc={ancField.Value.State}");
-            //  i m not sure why - but it is very important to set descFieldNode as main merge node...
+            // descFieldNode is the main node: struct fields are covariant, so descendant field is the primary.
             SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
         }
 
@@ -164,22 +164,21 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Width subtyping: descendant (more specific) must have all fields of ancestor.
-        // If descendant is missing a field, extend it (unless frozen).
         foreach (var ancField in ancestor.Fields)
         {
-            if (descendant.GetFieldOrNull(ancField.Key) == null)
+            var descField = descendant.GetFieldOrNull(ancField.Key);
+            if (descField == null)
             {
                 if (descendant.IsFrozen)
                     return false;
+                // With() adds the exact ancestor field node, so no push needed for new fields.
                 descendant = descendant.With(ancField.Key, ancField.Value);
                 descendantNode.State = descendant;
             }
-        }
-        // Covariant field-by-field push.
-        foreach (var ancField in ancestor.Fields)
-        {
-            SolvingFunctions.PushConstraints(descendant.GetFieldOrNull(ancField.Key), ancField.Value);
+            else
+            {
+                SolvingFunctions.PushConstraints(descField, ancField.Value);
+            }
         }
         return true;
     }

@@ -420,22 +420,21 @@ public static class SolvingFunctions {
     private static void ThrowIfRecursiveTypeDefinition(TicNode node) {
         ThrowIfStateHasRecursiveTypeDefinitionReq(node.State, 1);
 
-        // ReSharper disable once UnusedParameter.Local
         static void ThrowIfStateHasRecursiveTypeDefinitionReq(ITicNodeState state, int bypassNumber) {
             switch (state)
             {
                 case StateRefTo refTo:
-                    ThrowIfNodeHasRecursiveTypeDefinitionReq(refTo.Node, 1);
+                    ThrowIfNodeHasRecursiveTypeDefinitionReq(refTo.Node, bypassNumber);
                     break;
                 case ICompositeState composite:
                     foreach (var member in composite.Members)
-                        ThrowIfNodeHasRecursiveTypeDefinitionReq(member, 1);
+                        ThrowIfNodeHasRecursiveTypeDefinitionReq(member, bypassNumber);
                     break;
                 case ConstraintsState constrains:
                     if (constrains.HasDescendant)
-                        ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Descendant, 1);
+                        ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Descendant, bypassNumber);
                     if (constrains.HasAncestor)
-                        ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Ancestor, 1);
+                        ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Ancestor, bypassNumber);
                     break;
             }
         }

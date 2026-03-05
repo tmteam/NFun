@@ -6,7 +6,7 @@ using SolvingStates;
 public static class StagesExtension {
     public static bool Invoke(this IStateFunction function, TicNode nodeA, TicNode nodeB) {
         if (nodeB.State is StateRefTo bRef)
-            Invoke(function, nodeA, bRef.Node);
+            return Invoke(function, nodeA, bRef.Node);
         if (nodeA.State is StatePrimitive p)
         {
             if (nodeB.State is StatePrimitive bp)

@@ -438,7 +438,7 @@ public static class StateExtensions {
             StateArray arrayFrom => CanBeConvertedOptimisticTo(arrayFrom.Element, ((StateArray)to).Element),
             StateFun funFrom => CanBeConvertedOptimisticTo(funFrom, (StateFun)to),
             StateStruct structFrom => CanBeConvertedOptimisticTo(structFrom, (StateStruct)to),
-            _ => throw new NotSupportedException($"{from} is not supported for CanBeConvertedPessimistic ")
+            _ => throw new NotSupportedException($"{from} is not supported for CanBeConvertedOptimistic")
         };
     }
 
