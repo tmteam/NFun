@@ -120,7 +120,7 @@ public static class StateExtensions {
             return Fcd(funA, (StateFun)b);
         if (a is StateStruct astruct)
             return Fcd(astruct, (StateStruct)b);
-        throw new System.NotSupportedException($"FCD is not supported for types {a} and {b}");
+        throw new NotSupportedException($"FCD is not supported for types {a} and {b}");
     }
 
     private static ITicNodeState Fcd(this StateArray arrA, StateArray arrB) {
@@ -130,27 +130,28 @@ public static class StateExtensions {
         return StateArray.Of(lcd);
     }
 
-    private static ITicNodeState Fcd(this StateStruct astruct, StateStruct bstruct) {
+    private static ITicNodeState Fcd(this StateStruct a, StateStruct b) {
         var nodes = new Dictionary<string, TicNode>();
-        // we need to collect both
-        var keys = astruct.Fields.Select(f => f.Key).Union(bstruct.Fields.Select(f => f.Key));
+        // FCD of structs = union of all fields. For shared fields, compute FCD of field types.
+        var keys = a.Fields.Select(f => f.Key).Union(b.Fields.Select(f => f.Key));
         foreach (var name in keys)
         {
-            var aField = astruct.GetFieldOrNull(name);
-            var bField = bstruct.GetFieldOrNull(name);
+            var aField = a.GetFieldOrNull(name);
+            var bField = b.GetFieldOrNull(name);
             if (aField == null)
                 nodes.Add(name, bField);
-            else if(bField==null)
+            else if (bField == null)
                 nodes.Add(name, aField);
-            //base type has to fit both fields
-            else if (aField.State.StateDescription == bField.State.StateDescription)
-                nodes.Add(name, aField);
-            //todo - if aField fits in bField, or vice versa = we can add bField
             else
-                return null;
+            {
+                var fieldFcd = Fcd(aField.State, bField.State);
+                if (fieldFcd == null)
+                    return null;
+                nodes.Add(name, TicNode.CreateInvisibleNode(fieldFcd));
+            }
         }
-        //todo is it frozen
-        return new StateStruct(nodes, true);
+
+        return new StateStruct(nodes, isFrozen: true);
     }
 
     private static ITicNodeState Fcd(this StateFun funA, StateFun funB) {
@@ -182,7 +183,7 @@ public static class StateExtensions {
             StateArray arr => StateArray.Of(arr.Element.Concretest()),
             StateRefTo aref => aref.Element.Concretest(),
             StateFun f => f.Concretest(),
-            StateStruct => a, //todo - exclude refs from struct
+            StateStruct s => s.ConcretestFields(),
             _ => a
         };
 
@@ -198,6 +199,20 @@ public static class StateExtensions {
         }
 
         return StateFun.Of(argNodes, returnNode);
+    }
+
+    private static StateStruct ConcretestFields(this StateStruct s) {
+        var nodes = new Dictionary<string, TicNode>(s.FieldsCount);
+        bool changed = false;
+        foreach (var (key, fieldNode) in s.Fields)
+        {
+            var nr = fieldNode.GetNonReference();
+            if (nr != fieldNode)
+                changed = true;
+            nodes[key] = nr;
+        }
+
+        return changed ? new StateStruct(nodes, s.IsFrozen) : s;
     }
 
     #endregion
@@ -272,7 +287,7 @@ public static class StateExtensions {
             return UnifyOrNull(aFun, b as StateFun);
         if (a is StateStruct aStr)
             return UnifyOrNull(aStr, b as StateStruct);
-        throw new System.NotSupportedException($"Unitype({a}, {b})");
+        throw new NotSupportedException($"Unitype({a}, {b})");
     }
 
     private static ITicNodeState UnifyOrNull(this ConstrainsState a, ConstrainsState b) {
@@ -431,7 +446,7 @@ public static class StateExtensions {
             StateArray arrayFrom => CanBeConvertedOptimisticTo(arrayFrom.Element, ((StateArray)to).Element),
             StateFun funFrom => CanBeConvertedOptimisticTo(funFrom, (StateFun)to),
             StateStruct structFrom => CanBeConvertedOptimisticTo(structFrom, (StateStruct)to),
-            _ => throw new System.NotSupportedException($"{from} is not supported for CanBeConvertedPessimistic ")
+            _ => throw new NotSupportedException($"{from} is not supported for CanBeConvertedPessimistic ")
         };
     }
 
@@ -497,13 +512,14 @@ public static class StateExtensions {
             return true;
         return from switch {
             StateRefTo descRef => CanBeConvertedPessimisticTo(descRef.Element, to),
-            StatePrimitive => to switch {
-                StatePrimitive p => from.CanBePessimisticConvertedTo(p),
-                ConstrainsState c => c.HasDescendant && CanBeConvertedPessimisticTo(from, c.Descendant), //todo support comparable
+            StatePrimitive fromPrim => to switch {
+                StatePrimitive p => fromPrim.CanBePessimisticConvertedTo(p),
+                ConstrainsState c => (!c.IsComparable || fromPrim.IsComparable)
+                                     && c.HasDescendant && CanBeConvertedPessimisticTo(fromPrim, c.Descendant),
                 _ => false
             },
             ConstrainsState fromDesc => fromDesc.HasAncestor
-                ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to) //todo support comparable
+                ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to)
                 : CanBeConvertedPessimisticTo(Any, to),
             ICompositeState comp => to switch {
                 ConstrainsState constrAnc => CanBeConvertedPessimisticTo(comp, constrAnc),
@@ -527,7 +543,7 @@ public static class StateExtensions {
                 StateStruct toStr => CanBeConvertedPessimisticTo(fromStr, toStr),
                 _ => false
             },
-            _ => throw new System.NotSupportedException($"type {from} is not supported for pessimistic convertion")
+            _ => throw new NotSupportedException($"type {from} is not supported for pessimistic convertion")
         };
 
     private static bool CanBeConvertedPessimisticTo(StateFun from, StateFun to) {
@@ -606,7 +622,7 @@ public static class StateExtensions {
             ConstrainsState { HasDescendant: true } fc => FitsInto(fc.Descendant, to),
             ConstrainsState => true,
             StateRefTo targetR=> FitsInto(targetR.GetNonReference(), to),
-            _ => throw new System.NotImplementedException($"Type {target} :> {to} is not supported in FIT")
+            _ => throw new NotImplementedException($"Type {target} :> {to} is not supported in FIT")
         };
     }
 
@@ -662,7 +678,7 @@ public static class StateExtensions {
                 ICompositeState composite => CanBeFitConverted(comp, composite),
                 _ => false
             },
-            _ => throw new System.NotSupportedException($"CBFC does not support {desc} to {to}")
+            _ => throw new NotSupportedException($"CBFC does not support {desc} to {to}")
         };
     }
 
@@ -690,11 +706,10 @@ public static class StateExtensions {
             var astate = to.GetFieldOrNull(dname);
             if (astate == null)
                 return false;
-            //todo - it is naive implementation
             if (!dstate.State.CanBeConvertedPessimisticTo(astate.State))
                 return false;
         }
-        //todo - it is naive implementation
+
         return desc.FitsInto(to);
     }
 

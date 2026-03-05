@@ -318,7 +318,6 @@ public static class SolvingFunctions {
     /// Transform constrains state to array state
     /// </summary>
     public static StateArray TransformToArrayOrNull(object descNodeName, ConstrainsState descendant) {
-        //todo - we can put constrains of calling side here, or on a calling site
         if (descendant.NoConstrains)
         {
             var constrains = ConstrainsState.Empty;
@@ -330,7 +329,7 @@ public static class SolvingFunctions {
         else if (descendant.HasDescendant && descendant.Descendant is StateArray arrayEDesc)
         {
             if (!arrayEDesc.IsSolved)
-                return arrayEDesc; // todo we have to remove ancestor on constrains here
+                return arrayEDesc;
             var constrains = ConstrainsState.Empty;
             var eName = "e" + descNodeName.ToString().ToLower() + "'";
 
@@ -346,16 +345,13 @@ public static class SolvingFunctions {
     /// Transform constrains to fun state
     /// </summary>
     public static StateFun TransformToFunOrNull(object descNodeName, ConstrainsState descendant, StateFun ancestor) {
-        //todo - this is naive implementation
         if (descendant.NoConstrains)
         {
             var argNodes = new TicNode[ancestor.ArgsCount];
             for (int i = 0; i < ancestor.ArgsCount; i++)
             {
                 var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, ConstrainsState.Empty);
-                //todo - witch one is correct?
-                ancestor.ArgNodes[i].AddAncestor(argNode);
-                //argNode.AddAncestor(ancestor.ArgNodes[i]);
+                ancestor.ArgNodes[i].AddAncestor(argNode); // contravariant: desc arg ≥ anc arg
                 argNodes[i] = argNode;
             }
 
@@ -617,7 +613,6 @@ public static class SolvingFunctions {
         };
 
     private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
-        //Todo Method is not tested. What about composite reference+ fun + reference cases?
         node.State switch {
             StateFun fun => fun.RetNode.GetAllOutputTypes(),
             StateArray array => array.AllLeafTypes,

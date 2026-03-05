@@ -181,9 +181,9 @@ public class ConstrainsState : ITicNodeState {
 
         if (IsComparable)
         {
-            //todo
-            //char[] is comparable!
-            if (Descendant is not StatePrimitive { IsComparable: true })
+            var isDescComparable = Descendant is StatePrimitive { IsComparable: true }
+                                   || (Descendant is StateArray a && a.Element.Equals(StatePrimitive.Char));
+            if (!isDescComparable)
                 return this;
         }
 

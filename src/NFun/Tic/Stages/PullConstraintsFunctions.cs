@@ -11,7 +11,6 @@ public class PullConstraintsFunctions : IStateFunction {
         descendant.CanBePessimisticConvertedTo(ancestor);
 
     public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode _, TicNode __)
-    //todo - should we add ancestor to constrains?!
         => descendant.CanBeConvertedOptimisticTo(ancestor);
 
     public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __)
@@ -44,8 +43,6 @@ public class PullConstraintsFunctions : IStateFunction {
             case StateArray ancArray:
             {
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
-                //todo - dont we need to check, if result is solved? What can we decide in the case?
-                //todo  Should we put resulting constrains on descendant (relaunch pull constrains with new anc-array)?
                 if (result == null)
                     return false;
                 result.ElementNode.AddAncestor(ancArray.ElementNode);

@@ -102,7 +102,6 @@ public class GraphBuilder {
         if (node.State is ConstrainsState c)
         {
             var arrayOf = StateArray.Of(eNode);
-            // todo - there were Fits instead of CanBeConvertedTo
             if (c.CanBeConvertedTo(arrayOf))
             {
                 node.State = arrayOf;
@@ -403,7 +402,6 @@ public class GraphBuilder {
                 genericArgs[i] = CreateVarType();
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
-            //todo - there were FITS instead of CanBeConvertedTo. What is right?
             if (state is not ConstrainsState constrains || !constrains.CanBeConvertedTo(newFunVar))
                 throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
             functionNode.State = newFunVar;

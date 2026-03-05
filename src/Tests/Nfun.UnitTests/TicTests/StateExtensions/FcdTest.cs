@@ -59,7 +59,12 @@ public class FcdTest {
             ("d", I32)
         );
 
-        AssertFcd(strA, strB, null);
+        // FCD(I32, U32) = U24 (common subtype of both)
+        AssertFcd(strA, strB,
+            Struct(
+                ("a", U24),
+                ("c", Fun(new[] { Bool }, I16)),
+                ("d", I32)));
     }
 
     [Test]
@@ -71,6 +76,46 @@ public class FcdTest {
             Struct(
                 ("a", I32),
                 ("d", I32)));
+    }
+
+    [Test]
+    public void Struct_SharedFieldWithCompatibleTypes() {
+        // FCD({a:I32, b:Bool}, {a:Real, c:I32})
+        // Field a: FCD(I32, Real) = I32 (I32 is subtype of Real)
+        // Result: {a:I32, b:Bool, c:I32}
+        var strA = Struct(
+            ("a", I32),
+            ("b", Bool)
+        );
+        var strB = Struct(
+            ("a", Real),
+            ("c", I32)
+        );
+        AssertFcd(strA, strB,
+            Struct(
+                ("a", I32),
+                ("b", Bool),
+                ("c", I32)));
+    }
+
+    [Test]
+    public void Struct_SharedFieldWithSameType() {
+        // FCD({a:I32, b:Bool}, {a:I32, c:Real})
+        // Field a: FCD(I32, I32) = I32
+        // Result: {a:I32, b:Bool, c:Real}
+        var strA = Struct(
+            ("a", I32),
+            ("b", Bool)
+        );
+        var strB = Struct(
+            ("a", I32),
+            ("c", Real)
+        );
+        AssertFcd(strA, strB,
+            Struct(
+                ("a", I32),
+                ("b", Bool),
+                ("c", Real)));
     }
 
     public static void AssertFcd(ITicNodeState a, ITicNodeState b, ITicNodeState expected) {
