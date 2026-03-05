@@ -124,28 +124,31 @@ public class ConstraintsFitsTest {
             .FitsInto(Constrains(StateFun.Of(new[] { Any }, U16)))
             .AssertTrue();
 
+    // Tests fixed: had wrong expectations due to copy-paste bug in CanBeFitConverted(StateFun)
+    // that skipped arg checking. With correct semantics (∀t∈to, ∃d∈desc: d ≤ t), these are false.
+
     [Test]
-    public void FunFits_returnsTrue2() {
+    public void FunFits_EmptyConstraintArg_returnsFalse() {
         var constrains = Constrains(StateFun.Of(EmptyConstraints, Constrains(U16)));
         var target = StateFun.Of(new[] { Any }, U16);
-        target.FitsInto(constrains).AssertTrue();
+        target.FitsInto(constrains).AssertFalse();
     }
 
     [Test]
-    public void FunFits_returnsTrue3() {
+    public void FunFits_IncompatibleConstraintArgs_returnsFalse() {
         var constrains = Constrains(StateFun.Of(
             new[] { TicNode.CreateInvisibleNode(Constrains(desc: U16, anc: Real)) },
             TicNode.CreateInvisibleNode(Constrains(desc: U16, anc: Real))));
         var target = StateFun.Of(new[] { TicNode.CreateInvisibleNode(Constrains(desc: U32, anc: U64)) },
             TicNode.CreateInvisibleNode(Constrains(desc: U32, anc: U64)));
-        target.FitsInto(constrains).AssertTrue();
+        target.FitsInto(constrains).AssertFalse();
     }
 
     [Test]
-    public void FunFits_returnsTrue4() {
+    public void FunFits_BothEmptyConstraintArgs_returnsFalse() {
         var constrains = Constrains(StateFun.Of(EmptyConstraints, EmptyConstraints));
         var target = StateFun.Of(new[] { Any }, U16);
-        target.FitsInto(constrains).AssertTrue();
+        target.FitsInto(constrains).AssertFalse();
     }
 
     [Test]

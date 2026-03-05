@@ -721,7 +721,7 @@ public static class StateExtensions {
         for (int i = 0; i < to.ArgsCount; i++)
         {
             var descArg = desc.ArgNodes[i].State;
-            var toArg = desc.ArgNodes[i].State;
+            var toArg = to.ArgNodes[i].State;
             if (!CanBeFitConverted(toArg, descArg))
                 return false;
         }

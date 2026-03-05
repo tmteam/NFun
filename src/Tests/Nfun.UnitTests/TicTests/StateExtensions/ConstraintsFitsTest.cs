@@ -124,24 +124,46 @@ public class ConstraintsFitsTest {
             .FitsInto(Constrains(Fun(new[] { Any }, U16), null, false))
             .AssertTrue();
 
+    // CanBeFitConverted semantics: ∀t∈to, ∃d∈desc: d ≤ t
+    // These tests had wrong expectations — they passed only due to a copy-paste bug
+    // that skipped arg checking entirely. With correct arg checks, they are false.
+
+    // Fun(Any→U16).Fits(C[desc=Fun(EC→C[U16])])
+    // Args (contra): CanBeFitConverted(Any, EmptyConstraints) = false
+    // because ∀t∈EmptyConstraints: Any ≤ t is false (Any ≰ Bool)
     [Test]
-    public void FunFits_returnsTrue2() {
+    public void FunFits_EmptyConstraintArg_returnsFalse() {
         var constrains = Constrains(Fun(EmptyConstraints, Constrains(U16, null, false)), null, false);
         var target = Fun(new[] { Any }, U16);
-        target.FitsInto(constrains).AssertTrue();
+        target.FitsInto(constrains).AssertFalse();
     }
 
+    // Fun(C[U32..U64]→C[U32..U64]).Fits(C[desc=Fun(C[U16..Real]→C[U16..Real])])
+    // Args (contra): CanBeFitConverted(U32, C[U16..Real]) = false
+    // because ∀t∈[U16..Real]: U32 ≤ t is false (U32 ≰ U16)
     [Test]
-    public void FunFits_returnsTrue3() {
+    public void FunFits_IncompatibleConstraintArgs_returnsFalse() {
         var constrains = Constrains(Fun(Constrains(U16, Real, false), Constrains(U16, Real, false)), null, false);
         var target = Fun(Constrains(U32, U64, false), Constrains(U32, U64, false));
-        target.FitsInto(constrains).AssertTrue();
+        target.FitsInto(constrains).AssertFalse();
     }
 
+    // Fun(Any→U16).Fits(C[desc=Fun(EC→EC)])
+    // Same as above — EmptyConstraints arg makes it false
     [Test]
-    public void FunFits_returnsTrue4() {
+    public void FunFits_BothEmptyConstraintArgs_returnsFalse() {
         var constrains = Constrains(Fun(EmptyConstraints, EmptyConstraints), null, false);
         var target = Fun(new[] { Any }, U16);
+        target.FitsInto(constrains).AssertFalse();
+    }
+
+    // Valid true case: Fun(U32→U16).Fits(C[desc=Fun(Real→U8)])
+    // Return: CanBeFitConverted(U8, U16) = true (U8 ≤ U16)
+    // Args (contra): CanBeFitConverted(U32, Real) = true (U32 ≤ Real)
+    [Test]
+    public void FunFits_CompatibleConcreteArgs_returnsTrue() {
+        var constrains = Constrains(Fun(new[] { Real }, U8), null, false);
+        var target = Fun(new[] { U32 }, U16);
         target.FitsInto(constrains).AssertTrue();
     }
 
@@ -158,6 +180,16 @@ public class ConstraintsFitsTest {
                         Constrains(U24, Real, false))));
         target.FitsInto(constrains).AssertTrue();
     }
+
+    // Regression: CanBeFitConverted(StateFun,StateFun) had a copy-paste bug
+    // where both arg variables read from desc instead of desc vs to.
+    // Fun(Bool→I32) should NOT fit C[desc=Fun(Real→I32)] because
+    // contravariant check requires desc.arg ≤ target.arg, i.e. Real ≤ Bool — false.
+    [Test]
+    public void FunFits_IncompatibleArgs_returnsFalse() =>
+        Fun(new[] { Bool }, I32)
+            .FitsInto(Constrains(Fun(new[] { Real }, I32), null, false))
+            .AssertFalse();
 
     [Test]
     public void TextFits_into_Comparable_returnsTrue() {
