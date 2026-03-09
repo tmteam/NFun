@@ -15,11 +15,6 @@ public class SqrtDoubleFunction : FunctionWithSingleArg {
     public override object Calc(object a) => Math.Sqrt((double)a);
 }
 
-public class PowDoubleFunction : FunctionWithTwoArgs {
-    public PowDoubleFunction() : base(CoreFunNames.Pow, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
-    public override object Calc(object a, object b) => Math.Pow((double)a, (double)b);
-}
-
 public class DivideDoubleFunction : FunctionWithTwoArgs {
     public DivideDoubleFunction() : base(CoreFunNames.DivideReal, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
     public override object Calc(object a, object b) => (double)a / (double)b;

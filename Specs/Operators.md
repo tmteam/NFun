@@ -69,7 +69,7 @@ Assume variable A holds 6 and variable B holds 4 then:
 | %           | Arithmetics | Modulus Operator - remainder of after an division. | `A % B` = 2    |
 | //          | Integers    | Divides integer numerator by de-numerator.	        | `A / B` = 1.5  |
 | /           | `real`	     | Divides real numerator by de-numerator.	           | `A //B` = 1    |
-| **          | `real`      | Raising the base A to the power of B               | `A**B`  = 1296 |
+| **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 |
 | − *(unary)* | Signed      | Multiply expression by -1.	                        | `−A` = -6      |
 
 ## Relational Operators

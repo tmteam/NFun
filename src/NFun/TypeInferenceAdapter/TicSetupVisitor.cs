@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
+using NFun.Functions;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.ParseErrors;
@@ -359,6 +360,23 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 #endif
+        // Special case: pow with non-constant or negative exponent → force (real, real) -> real
+        if (node.Id == CoreFunNames.Pow && signature is PureGenericFunctionBase)
+        {
+            bool isConstNonNegativeInt = node.Args[1] is GenericIntSyntaxNode intNode
+                && !(intNode.Value is long l && l < 0);
+
+            if (!isConstNonNegativeInt)
+            {
+                // Force T = Real by constraining the generic type to [Real..Real]
+                var genericType = _ticTypeGraph.InitializeVarNode(Real, Real, false);
+                _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[] { genericType });
+                _ticTypeGraph.SetCall(genericType, ids);
+                return true;
+            }
+            // else: fall through to standard PureGenericFunctionBase handling
+        }
+
         if (signature is PureGenericFunctionBase pure)
         {
             // Сase of (T,T):T signatures

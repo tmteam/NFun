@@ -76,7 +76,7 @@ class TestHardcoreApiRun {
 
     [TestCase("y = 4.0 + x", 3, 7)]
     [TestCase("y = (x + 4/x)", 2, 4)]
-    [TestCase("y = x**3", 2, 8)]
+    [TestCase("y:real = x**3", 2, 8)]
     public void TypedSingleVariableEquation(string expr, double arg, double expected) =>
         expr.AssertRuntimes(runtime => {
             var ySource = runtime["y"];

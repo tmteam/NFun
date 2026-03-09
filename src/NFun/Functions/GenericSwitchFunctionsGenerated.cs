@@ -789,6 +789,174 @@ public class AbsFunction : PureGenericFunctionBase {
                     public override object Calc(object a) => (Decimal)Math.Abs((Decimal)a); 
                 }
 }
+public class PowFunction : PureGenericFunctionBase {
+    public PowFunction() : base(CoreFunNames.Pow, GenericConstrains.Arithmetical, 2) { }
+
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
+        concreteTypes[0].BaseType switch {
+                                           BaseFunnyType.UInt8 =>context.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,
+                                           BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,
+                                           BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
+                                           BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
+                                           BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
+                                           BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                                           BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
+        _                   => throw new ArgumentOutOfRangeException()
+    };
+
+        private class UInt8Function : FunctionWithTwoArgs {
+             public static UInt8Function Instance = new ();
+             private UInt8Function() : base(CoreFunNames.Pow, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
+             public override object Calc(object a, object b) {
+                 byte baseVal = (byte)a; int exp = (byte)b; byte result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (byte)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (byte)(baseVal * baseVal); }
+                 return result;
+             }
+        }
+
+        private class UInt8CheckedFunction : FunctionWithTwoArgs {
+             public static UInt8CheckedFunction Instance = new ();
+             public UInt8CheckedFunction() : base(CoreFunNames.Pow, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
+             public override object Calc(object a, object b) { checked {
+                 byte baseVal = (byte)a; int exp = (byte)b; byte result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (byte)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (byte)(baseVal * baseVal); }
+                 return result;
+             }}
+        }
+
+        private class UInt16Function : FunctionWithTwoArgs {
+             public static UInt16Function Instance = new ();
+             private UInt16Function() : base(CoreFunNames.Pow, FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
+             public override object Calc(object a, object b) {
+                 UInt16 baseVal = (UInt16)a; int exp = (UInt16)b; UInt16 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (UInt16)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (UInt16)(baseVal * baseVal); }
+                 return result;
+             }
+        }
+
+        private class UInt16CheckedFunction : FunctionWithTwoArgs {
+             public static UInt16CheckedFunction Instance = new ();
+             public UInt16CheckedFunction() : base(CoreFunNames.Pow, FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
+             public override object Calc(object a, object b) { checked {
+                 UInt16 baseVal = (UInt16)a; int exp = (UInt16)b; UInt16 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (UInt16)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (UInt16)(baseVal * baseVal); }
+                 return result;
+             }}
+        }
+
+        private class UInt32Function : FunctionWithTwoArgs {
+             public static UInt32Function Instance = new ();
+             private UInt32Function() : base(CoreFunNames.Pow, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
+             public override object Calc(object a, object b) {
+                 UInt32 baseVal = (UInt32)a; int exp = (int)(UInt32)b; UInt32 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }
+        }
+
+        private class UInt32CheckedFunction : FunctionWithTwoArgs {
+             public static UInt32CheckedFunction Instance = new ();
+             public UInt32CheckedFunction() : base(CoreFunNames.Pow, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
+             public override object Calc(object a, object b) { checked {
+                 UInt32 baseVal = (UInt32)a; int exp = (int)(UInt32)b; UInt32 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }}
+        }
+
+        private class UInt64Function : FunctionWithTwoArgs {
+             public static UInt64Function Instance = new ();
+             private UInt64Function() : base(CoreFunNames.Pow, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
+             public override object Calc(object a, object b) {
+                 UInt64 baseVal = (UInt64)a; int exp = (int)(UInt64)b; UInt64 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }
+        }
+
+        private class UInt64CheckedFunction : FunctionWithTwoArgs {
+             public static UInt64CheckedFunction Instance = new ();
+             public UInt64CheckedFunction() : base(CoreFunNames.Pow, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
+             public override object Calc(object a, object b) { checked {
+                 UInt64 baseVal = (UInt64)a; int exp = (int)(UInt64)b; UInt64 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }}
+        }
+
+        private class Int16Function : FunctionWithTwoArgs {
+             public static Int16Function Instance = new ();
+             private Int16Function() : base(CoreFunNames.Pow, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
+             public override object Calc(object a, object b) {
+                 Int16 baseVal = (Int16)a; int exp = (Int16)b; Int16 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (Int16)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (Int16)(baseVal * baseVal); }
+                 return result;
+             }
+        }
+
+        private class Int16CheckedFunction : FunctionWithTwoArgs {
+             public static Int16CheckedFunction Instance = new ();
+             public Int16CheckedFunction() : base(CoreFunNames.Pow, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
+             public override object Calc(object a, object b) { checked {
+                 Int16 baseVal = (Int16)a; int exp = (Int16)b; Int16 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (Int16)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (Int16)(baseVal * baseVal); }
+                 return result;
+             }}
+        }
+
+        private class Int32Function : FunctionWithTwoArgs {
+             public static Int32Function Instance = new ();
+             private Int32Function() : base(CoreFunNames.Pow, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
+             public override object Calc(object a, object b) {
+                 Int32 baseVal = (Int32)a; int exp = (Int32)b; Int32 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }
+        }
+
+        private class Int32CheckedFunction : FunctionWithTwoArgs {
+             public static Int32CheckedFunction Instance = new ();
+             public Int32CheckedFunction() : base(CoreFunNames.Pow, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
+             public override object Calc(object a, object b) { checked {
+                 Int32 baseVal = (Int32)a; int exp = (Int32)b; Int32 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }}
+        }
+
+        private class Int64Function : FunctionWithTwoArgs {
+             public static Int64Function Instance = new ();
+             private Int64Function() : base(CoreFunNames.Pow, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
+             public override object Calc(object a, object b) {
+                 Int64 baseVal = (Int64)a; int exp = (int)(Int64)b; Int64 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }
+        }
+
+        private class Int64CheckedFunction : FunctionWithTwoArgs {
+             public static Int64CheckedFunction Instance = new ();
+             public Int64CheckedFunction() : base(CoreFunNames.Pow, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
+             public override object Calc(object a, object b) { checked {
+                 Int64 baseVal = (Int64)a; int exp = (int)(Int64)b; Int64 result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = result * baseVal; exp >>= 1; if (exp > 0) baseVal = baseVal * baseVal; }
+                 return result;
+             }}
+        }
+
+        private class DoubleFunction : FunctionWithTwoArgs {
+             public static DoubleFunction Instance = new ();
+             private DoubleFunction() : base(CoreFunNames.Pow, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
+             public override object Calc(object a, object b) => Math.Pow((double)a, (double)b);
+        }
+
+        private class DecimalFunction : FunctionWithTwoArgs {
+             public static DecimalFunction Instance = new ();
+             private DecimalFunction() : base(CoreFunNames.Pow, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
+             public override object Calc(object a, object b) => (decimal)Math.Pow((double)(decimal)a, (double)(decimal)b);
+        }
+}
 
 }
 

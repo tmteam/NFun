@@ -43,6 +43,7 @@ internal static class BaseFunctions {
             new AddFunction(),
             new SubstractFunction(),
             new MultiplyFunction(),
+            new PowFunction(),
             new IsInSingleGenericFunctionDefinition(),
             new UniqueGenericFunctionDefinition(),
             new UniteGenericFunctionDefinition(),
@@ -112,7 +113,6 @@ internal static class BaseFunctions {
         ConcreteDoubleFunctions = new IConcreteFunction[] {
             new AverageDoubleFunction(),
 
-            new PowDoubleFunction(),
             new DivideDoubleFunction(),
             new SqrtDoubleFunction(),
             new SinDoubleFunction(),
@@ -132,7 +132,6 @@ internal static class BaseFunctions {
         ConcreteDecimalFunctions = new IConcreteFunction[] {
             new AverageDecimalFunction(),
 
-            new PowDecimalFunction(),
             new DivideDecimalFunction(),
             new SqrtDecimalFunction(),
             new SinDecimalFunction(),

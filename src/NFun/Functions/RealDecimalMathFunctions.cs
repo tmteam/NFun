@@ -15,11 +15,6 @@ public class SqrtDecimalFunction : FunctionWithSingleArg {
     public override object Calc(object a) =>  (Decimal)Math.Sqrt((double)(decimal)a);
 }
 
-public class PowDecimalFunction : FunctionWithTwoArgs {
-    public PowDecimalFunction() : base(CoreFunNames.Pow, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
-    public override object Calc(object a, object b) => (decimal)Math.Pow((double)(decimal)a, (double)(decimal)b);
-}
-
 public class DivideDecimalFunction : FunctionWithTwoArgs {
     public DivideDecimalFunction() : base(CoreFunNames.DivideReal, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
     public override object Calc(object a, object b) => (decimal)a / (decimal)b;

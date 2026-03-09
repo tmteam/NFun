@@ -198,24 +198,32 @@ public class ArithmeticalOperatorsTest {
     public void VarDivision(string expression, object input, object expected)
         => expression.Calc("x", input).AssertResultHas("y", expected);
 
-    [TestCase("y = 4**2", 16.0)]
-    [TestCase("y = 2**4", 16.0)]
-    [TestCase("y = 0**4", 0.0)]
-    [TestCase("y = 0**0", 1.0)]
-    [TestCase("y = 2**0", 1.0)]
+    [TestCase("y = 4**2", 16)]
+    [TestCase("y = 2**4", 16)]
+    [TestCase("y = 0**4", 0)]
+    [TestCase("y = 0**0", 1)]
+    [TestCase("y = 2**0", 1)]
     [TestCase("y = 0.1**0", 1.0)]
     [TestCase("y = 1.5**2", 2.25)]
     [TestCase("y = 4.5**1.5", 9.5459415460183923)]
+    [TestCase("y:int = 2**10", 1024)]
+    [TestCase("y:int = 3**3", 27)]
+    [TestCase("y = 2**(-1)", 0.5)]
+    [TestCase("y:int64 = 2**32", (Int64)4294967296)]
     public void ConstantPow(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
     [TestCase("y = -2**x", 2.0, 4.0)]
     [TestCase("y = -2**-x", 1.0, -0.5)]
-    [TestCase("y = x**2", 1.0, 1.0)]
-    [TestCase("y = x**2", 0.0, 0.0)]
-    [TestCase("y = x**2", 2.0, 4.0)]
+    [TestCase("y = x**2", (Int32)1, (Int32)1)]
+    [TestCase("y = x**2", (Int32)0, (Int32)0)]
+    [TestCase("y = x**2", (Int32)2, (Int32)4)]
+    [TestCase("y:real = x**2", 1.0, 1.0)]
+    [TestCase("y:real = x**2", 0.0, 0.0)]
+    [TestCase("y:real = x**2", 2.0, 4.0)]
     [TestCase("y = x**-1", 1.0, 1.0)]
     [TestCase("y = x**x", 0.0, 1.0)]
+    [TestCase("y:int32 = x**2", (Int32)3, (Int32)9)]
     public void VarPow(string expression, object input, object expected)
         => expression.Calc("x", input).AssertResultHas("y", expected);
 

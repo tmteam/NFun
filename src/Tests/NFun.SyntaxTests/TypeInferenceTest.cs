@@ -9,7 +9,7 @@ namespace NFun.SyntaxTests;
 public class TypeInferenceTest {
     [TestCase("y = 0x2", BaseFunnyType.Int32)]
     [TestCase("y = 0x2*3", BaseFunnyType.Int32)]
-    [TestCase("y = 2**3", BaseFunnyType.Real)]
+    [TestCase("y = 2**3", BaseFunnyType.Int32)]
     [TestCase("y = 0x2 % 3", BaseFunnyType.Int32)]
     [TestCase("y = 4/3", BaseFunnyType.Real)]
     [TestCase("y = 0x4- 3", BaseFunnyType.Int32)]
