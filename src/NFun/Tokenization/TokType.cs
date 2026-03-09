@@ -166,5 +166,9 @@ public enum TokType {
     /// </summary>
     Default,
     Reserved,
+    /// <summary>
+    /// /'x'
+    /// </summary>
+    CharLiteral,
 
 }

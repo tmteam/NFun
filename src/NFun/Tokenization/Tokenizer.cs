@@ -330,6 +330,7 @@ public class Tokenizer {
             case '^': return Tok.New(TokType.BitXor, position, position + 1);
             case '|': return Tok.New(TokType.BitOr, position, position + 1);
             case '/' when next == '/': return Tok.New(TokType.DivInt, position, position + 2);
+            case '/' when next == '\'': return ReadCharLiteral(str, position);
             case '/': return Tok.New(TokType.Div, position, position + 1);
             case '+': return Tok.New(TokType.Plus, position, position + 1);
             case '%': return Tok.New(TokType.Rema, position, position + 1);
@@ -397,6 +398,74 @@ public class Tokenizer {
         if (IsQuote(current)) return ReadText(str, position);
 
         return Tok.New(TokType.NotAToken, current.ToString(), position, position + 1);
+    }
+
+    /// <summary>
+    /// Reads char literal: /'x' or /'\n' etc.
+    /// Position points to '/' character.
+    /// </summary>
+    private static Tok ReadCharLiteral(string str, int position) {
+        // position is at '/', position+1 is at '\''
+        var start = position;
+        var quotePos = position + 1;
+
+        if (quotePos >= str.Length - 1)
+            throw Errors.UnclosedCharLiteral(start, str.Length);
+
+        var i = quotePos + 1; // first char after opening quote
+        char value;
+
+        if (i >= str.Length)
+            throw Errors.UnclosedCharLiteral(start, str.Length);
+
+        var current = str[i];
+
+        if (current == '\'')
+            throw Errors.EmptyCharLiteral(start, i + 1);
+
+        if (current == '\\')
+        {
+            // escape sequence
+            if (i + 1 >= str.Length)
+                throw Errors.BackslashAtEndOfText(i, i + 1);
+
+            var next = str[i + 1];
+            value = next switch {
+                '\\' => '\\',
+                'n'  => '\n',
+                'r'  => '\r',
+                '\'' => '\'',
+                '"'  => '"',
+                't'  => '\t',
+                _    => throw Errors.UnknownEscapeSequence(next.ToString(), i, i + 2)
+            };
+            i += 2; // skip both backslash and escape char
+        }
+        else
+        {
+            value = current;
+            i++;
+        }
+
+        // Now i should point to closing quote
+        if (i >= str.Length || str[i] != '\'')
+        {
+            // Check if there are more characters before closing quote
+            if (i < str.Length && str[i] != '\'')
+            {
+                // Find the closing quote to report better error
+                var end = i;
+                while (end < str.Length && str[end] != '\'')
+                    end++;
+                if (end < str.Length)
+                    end++; // include closing quote
+                throw Errors.CharLiteralTooLong(start, end);
+            }
+            throw Errors.UnclosedCharLiteral(start, str.Length);
+        }
+
+        var finish = i + 1; // past closing quote
+        return Tok.New(TokType.CharLiteral, value.ToString(), start, finish);
     }
 
     /// <exception cref="FunnyParseException"></exception>

@@ -184,7 +184,7 @@ y = 1+2 # this is also a comment
 An expression is a description of calculating a value of some type.
 
 An expression is anything from
-- literal (discrete, ip, numeric, or textual)
+- literal (discrete, ip, numeric, character, or textual)
 - variable
 - template text
 - function call
@@ -262,6 +262,17 @@ m = 1/k
 
 r = 1.5 #real
 ```
+
+### Expressions: Character literal
+
+Character literals have the **char** type. Syntax: `/` prefix + single character in single quotes
+
+```py
+a = /'a'                         # char
+b = /'\\n'                       # escape sequences same as in text literals
+```
+
+Must contain exactly one character. `/''` and `/'ab'` are errors.
 
 ### Conditional expression `if-else`
 

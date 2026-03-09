@@ -57,4 +57,13 @@ internal partial class Errors {
 
     internal static FunnyParseException InvalidIpAddress(Tok token) => new(
         142, $"'{token.Value}' is not valid ip address", token.Interval);
+
+    internal static FunnyParseException EmptyCharLiteral(int start, int end) => new(
+        145, "Char literal cannot be empty. Use /'x' syntax with exactly one character", start, end);
+
+    internal static FunnyParseException CharLiteralTooLong(int start, int end) => new(
+        148, "Char literal must contain exactly one character. Use text 'abc' for strings", start, end);
+
+    internal static FunnyParseException UnclosedCharLiteral(int start, int end) => new(
+        151, "Closing quote is missing in char literal", start, end);
 }

@@ -231,6 +231,9 @@ public static class SyntaxNodeReader {
         if (flow.MoveIf(TokType.Text, out var txt))
             return SyntaxNodeFactory.Constant(new TextFunnyArray(txt.Value), FunnyType.Text, txt.Interval);
 
+        if (flow.MoveIf(TokType.CharLiteral, out var charTok))
+            return SyntaxNodeFactory.Constant(charTok.Value[0], FunnyType.Char, charTok.Interval);
+
         if (flow.MoveIf(TokType.Id, out var headToken))
         {
             //fun call

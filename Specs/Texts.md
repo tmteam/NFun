@@ -65,7 +65,7 @@ This means that any text is an array of characters, and any array of characters 
 Thus, all the equality rules, default values, and type conversions are identical to the usual rules for arrays.
 ```
 a = 'test'.reverse() #tset
-b = 'hello'[0] # \'h'
+b = 'hello'[0] # /'h'
 
 c = 'hello'[0:2] #'hel'
 d = 'hello'[2:3] #'ll'
@@ -73,6 +73,13 @@ d = 'hello'[2:3] #'ll'
 e:text = default # '' or []
 f = '' == [] # true
 g = 'test' == 'test' #true
+```
+
+Since text is `char[]`, an array of char literals produces text:
+
+```py
+word = [/'h', /'e', /'l', /'l', /'o']  # text "hello"
+word == 'hello'                         # true
 ```
 
 The only difference between a regular array (not characters) is that the text (or array of characters) is comparable
