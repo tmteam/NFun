@@ -14,6 +14,7 @@ public static partial class StateExtensions {
                 ? cs.Descendant.Concretest()
                 : ConstraintsState.Of(isComparable: cs.IsComparable),
             StateArray arr => StateArray.Of(arr.Element.Concretest()),
+            StateOptional opt => StateOptional.Of(opt.Element.Concretest()),
             StateRefTo aref => aref.Element.Concretest(),
             StateFun f => f.Concretest(),
             StateStruct s => s.ConcretestFields(),

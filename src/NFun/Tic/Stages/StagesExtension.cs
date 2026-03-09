@@ -40,6 +40,9 @@ public static class StagesExtension {
                     StateArray arrA => bc is StateArray arrB && function.Apply(arrA, arrB, nodeA, nodeB),
                     StateFun funA => bc is StateFun funB && function.Apply(funA, funB, nodeA, nodeB),
                     StateStruct strA => bc is StateStruct strB && function.Apply(strA, strB, nodeA, nodeB),
+                    StateOptional optA when bc is StateOptional optB => function.Apply(optA, optB, nodeA, nodeB),
+                    // Implicit lift: T ≤ opt(T) for composite T (array, struct, fun)
+                    StateOptional optA => Invoke(function, optA.ElementNode, nodeB),
                     _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
                 };
             else

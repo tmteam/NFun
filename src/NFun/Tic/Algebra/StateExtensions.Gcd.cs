@@ -16,6 +16,19 @@ public static partial class StateExtensions {
             return ac.Ancestor != null ? Gcd(ac.Ancestor, b) : Abstractest(b);
         if (b is ConstraintsState bc)
             return bc.Ancestor != null ? Gcd(a, bc.Ancestor) : Abstractest(a);
+
+        // None: GCD(None, Opt(T)) = None, GCD(None, Any) = None, GCD(None, T) = null
+        if (a is StatePrimitive { Name: PrimitiveTypeName.None })
+            return GcdWithNone(b);
+        if (b is StatePrimitive { Name: PrimitiveTypeName.None })
+            return GcdWithNone(a);
+
+        // Optional: covariant GCD
+        if (a is StateOptional aopt)
+            return GcdWithOptional(aopt, b);
+        if (b is StateOptional bopt)
+            return GcdWithOptional(bopt, a);
+
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
                 a.Equals(Any) ? Abstractest(b) : null;
@@ -30,6 +43,23 @@ public static partial class StateExtensions {
         if (a is StateStruct astruct)
             return Gcd(astruct, (StateStruct)b);
         throw new NotSupportedException($"GCD is not supported for types {a} and {b}");
+    }
+
+    private static ITicNodeState GcdWithNone(ITicNodeState other) =>
+        other switch {
+            StatePrimitive { Name: PrimitiveTypeName.None } => StatePrimitive.None,
+            StateOptional => StatePrimitive.None, // None ≤ Opt(T) → meet = None
+            _ => null // None is not ≤ Any or any concrete type
+        };
+
+    private static ITicNodeState GcdWithOptional(StateOptional opt, ITicNodeState other) {
+        if (other is StateOptional otherOpt)
+        {
+            var innerGcd = Gcd(opt.Element, otherOpt.Element);
+            return innerGcd == null ? null : StateOptional.Of(innerGcd);
+        }
+        // GCD(Opt(A), B) = GCD(A, B) — for all B including Any
+        return Gcd(opt.Element, other);
     }
 
     private static ITicNodeState Gcd(this StateArray arrA, StateArray arrB) {

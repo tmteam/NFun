@@ -23,10 +23,13 @@ public readonly struct FunnyType {
     public static readonly FunnyType Int64  = new(BaseFunnyType.Int64);
     public static readonly FunnyType Real   = new(BaseFunnyType.Real);
     public static readonly FunnyType Text   = ArrayOf(Char);
+    public static readonly FunnyType None   = new(BaseFunnyType.None);
 
     public static FunnyType PrimitiveOf(BaseFunnyType baseType) => new(baseType);
 
     public static FunnyType ArrayOf(FunnyType type) => new(type);
+
+    public static FunnyType OptionalOf(FunnyType type) => new(type, isOptional: true);
 
     internal static FunnyType StructOf(StructTypeSpecification fields) => new(fields);
 
@@ -49,6 +52,7 @@ public readonly struct FunnyType {
         FunTypeSpecification = new FunTypeSpecification(output, inputs);
         BaseType = BaseFunnyType.Fun;
         ArrayTypeSpecification = null;
+        OptionalTypeSpecification = null;
         GenericId = null;
         StructTypeSpecification = null;
         _genericArgumentsCount = inputs.Length + 1;
@@ -58,6 +62,7 @@ public readonly struct FunnyType {
         BaseType = BaseFunnyType.Generic;
         FunTypeSpecification = null;
         ArrayTypeSpecification = null;
+        OptionalTypeSpecification = null;
         StructTypeSpecification = null;
         GenericId = genericId;
         _genericArgumentsCount = 0;
@@ -66,9 +71,9 @@ public readonly struct FunnyType {
     private FunnyType(BaseFunnyType baseType) {
         BaseType = baseType;
         StructTypeSpecification = null;
-
         FunTypeSpecification = null;
         ArrayTypeSpecification = null;
+        OptionalTypeSpecification = null;
         GenericId = null;
         _genericArgumentsCount = 0;
     }
@@ -78,6 +83,17 @@ public readonly struct FunnyType {
         StructTypeSpecification = null;
         FunTypeSpecification = null;
         ArrayTypeSpecification = new ArrayTypeSpecification(arrayElementType);
+        OptionalTypeSpecification = null;
+        GenericId = null;
+        _genericArgumentsCount = 1;
+    }
+
+    private FunnyType(FunnyType elementType, bool isOptional) {
+        BaseType = BaseFunnyType.Optional;
+        StructTypeSpecification = null;
+        FunTypeSpecification = null;
+        ArrayTypeSpecification = null;
+        OptionalTypeSpecification = new OptionalTypeSpecification(elementType);
         GenericId = null;
         _genericArgumentsCount = 1;
     }
@@ -87,6 +103,7 @@ public readonly struct FunnyType {
         StructTypeSpecification = fields;
         FunTypeSpecification = null;
         ArrayTypeSpecification = null;
+        OptionalTypeSpecification = null;
         GenericId = null;
         _genericArgumentsCount = 0;
     }
@@ -98,6 +115,8 @@ public readonly struct FunnyType {
     public readonly IStructTypeSpecification StructTypeSpecification;
 
     internal readonly ArrayTypeSpecification ArrayTypeSpecification;
+
+    internal readonly OptionalTypeSpecification OptionalTypeSpecification;
 
     internal readonly FunTypeSpecification FunTypeSpecification;
 
@@ -120,7 +139,7 @@ public readonly struct FunnyType {
         if (IsPrimitive)
             throw new InvalidOperationException($"Type '{this}' contains no generic arguments because it is primitive");
         if (index == 0)
-            return ArrayTypeSpecification?.FunnyType ?? FunTypeSpecification.Output;
+            return ArrayTypeSpecification?.FunnyType ?? OptionalTypeSpecification?.ElementType ?? FunTypeSpecification.Output;
         if (index >= _genericArgumentsCount)
             throw new InvalidOperationException($"Type '{this}' contains only {_genericArgumentsCount} generic arguments");
         return FunTypeSpecification.Inputs[index - 1];
@@ -139,7 +158,7 @@ public readonly struct FunnyType {
         => !obj1.Equals(obj2);
 
     public bool IsPrimitive
-        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Any;
+        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Any || BaseType == BaseFunnyType.None;
 
     public bool IsNumeric()
         => BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real;
@@ -169,7 +188,10 @@ public readonly struct FunnyType {
             case BaseFunnyType.Char:
             case BaseFunnyType.Ip:
             case BaseFunnyType.Any:
+            case BaseFunnyType.None:
                 return genericOrNot;
+            case BaseFunnyType.Optional:
+                return OptionalOf(SubstituteConcreteTypes(genericOrNot.OptionalTypeSpecification.ElementType, solvedTypes));
             case BaseFunnyType.ArrayOf:
                 return ArrayOf(SubstituteConcreteTypes(genericOrNot.ArrayTypeSpecification.FunnyType, solvedTypes));
             case BaseFunnyType.Fun:
@@ -215,6 +237,13 @@ public readonly struct FunnyType {
 
                     return true;
                 }
+                case BaseFunnyType.Optional when concreteType.BaseType != BaseFunnyType.Optional:
+                    return false;
+                case BaseFunnyType.Optional:
+                    genericType = genericType.OptionalTypeSpecification.ElementType;
+                    concreteType = concreteType.OptionalTypeSpecification.ElementType;
+                    strict = false;
+                    continue;
                 case BaseFunnyType.ArrayOf when concreteType.BaseType != BaseFunnyType.ArrayOf:
                     return false;
                 case BaseFunnyType.ArrayOf:
@@ -262,7 +291,10 @@ public readonly struct FunnyType {
             case BaseFunnyType.Char:
             case BaseFunnyType.Ip:
             case BaseFunnyType.Any:
+            case BaseFunnyType.None:
                 return null;
+            case BaseFunnyType.Optional:
+                return OptionalTypeSpecification.ElementType.SearchMaxGenericTypeId();
             case BaseFunnyType.ArrayOf:
                 return ArrayTypeSpecification.FunnyType.SearchMaxGenericTypeId();
             case BaseFunnyType.Fun:
@@ -282,8 +314,10 @@ public readonly struct FunnyType {
 
     public override string ToString() =>
         BaseType switch {
-            BaseFunnyType.ArrayOf => ArrayTypeSpecification.FunnyType + "[]",
-            BaseFunnyType.Fun     => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
+            BaseFunnyType.ArrayOf  => ArrayTypeSpecification.FunnyType + "[]",
+            BaseFunnyType.Optional => OptionalTypeSpecification.ElementType + "?",
+            BaseFunnyType.None     => "none",
+            BaseFunnyType.Fun      => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
             BaseFunnyType.Struct =>
                 $"{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
             BaseFunnyType.Generic => "T" + GenericId,
@@ -301,6 +335,7 @@ public readonly struct FunnyType {
         BaseType == obj.BaseType
         && Equals(StructTypeSpecification, obj.StructTypeSpecification)
         && Equals(ArrayTypeSpecification, obj.ArrayTypeSpecification)
+        && Equals(OptionalTypeSpecification, obj.OptionalTypeSpecification)
         && Equals(FunTypeSpecification, obj.FunTypeSpecification)
         && _genericArgumentsCount == obj._genericArgumentsCount
         && GenericId == obj.GenericId;
@@ -311,6 +346,7 @@ public readonly struct FunnyType {
             var hashCode = (int)BaseType;
             hashCode = (hashCode * 397) ^ (StructTypeSpecification != null ? StructTypeSpecification.GetHashCode() : 0);
             hashCode = (hashCode * 397) ^ (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ (OptionalTypeSpecification != null ? OptionalTypeSpecification.GetHashCode() : 0);
             hashCode = (hashCode * 397) ^ (FunTypeSpecification != null ? FunTypeSpecification.GetHashCode() : 0);
             hashCode = (hashCode * 397) ^ _genericArgumentsCount;
             hashCode = (hashCode * 397) ^ GenericId.GetHashCode();

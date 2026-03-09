@@ -35,6 +35,8 @@ public static class SolvingStates {
     public static StateStruct Struct(bool isFrozen, params (string, ITicNodeState)[] fields) =>
          StateStruct.Of(isFrozen, fields);
 
+    public static ITypeState Optional(ITicNodeState state) => StateOptional.Of(state);
+
     public static StateRefTo Ref(TicNode node) => new(node);
 
     public static StateRefTo Ref(ITicNodeState state) => Ref(TicNode.CreateInvisibleNode(state));

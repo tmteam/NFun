@@ -83,6 +83,12 @@ public static class SyntaxNodeFactory {
             leftNode, memberId.Value,
             new Interval(leftNode.Interval.Start, memberId.Finish));
 
+    public static ISyntaxNode SafeFieldAccess(ISyntaxNode leftNode, Tok memberId) =>
+        new StructFieldAccessSyntaxNode(
+            leftNode, memberId.Value,
+            new Interval(leftNode.Interval.Start, memberId.Finish),
+            isSafeAccess: true);
+
     public static EquationSyntaxNode Equation(Tok idToken, ISyntaxNode body) =>
         new(idToken.Value, idToken.Start, body, System.Array.Empty<FunnyAttribute>());
 

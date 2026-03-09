@@ -34,7 +34,15 @@ public class PullConstraintsFunctions : IStateFunction {
         ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
         => ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
 
-    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) => false;
+    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor is StateOptional)
+        {
+            // None ≤ opt(T) and T ≤ opt(T) via implicit lift
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        return false;
+    }
 
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
@@ -69,6 +77,20 @@ public class PullConstraintsFunctions : IStateFunction {
                 if (result == null)
                     return false;
                 descendantNode.State = result;
+                return true;
+            }
+            case StateOptional ancOpt:
+            {
+                var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                if (result == null)
+                {
+                    // Implicit lift: T ≤ opt(T) for any T (primitive/constrains)
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                result.ElementNode.AddAncestor(ancOpt.ElementNode);
+                descendantNode.State = result;
+                descendantNode.RemoveAncestor(ancestorNode);
                 return true;
             }
             default: return true;
@@ -122,6 +144,13 @@ public class PullConstraintsFunctions : IStateFunction {
         return true;
     }
 
+
+    public bool Apply(StateOptional ancestor, StateOptional descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.ElementNode != ancestor.ElementNode)
+            descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ApplyAncestorConstrains(TicNode ancestorNode, ConstraintsState ancestor, ITypeState typeDesc) {

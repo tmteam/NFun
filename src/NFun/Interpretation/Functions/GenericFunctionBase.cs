@@ -137,6 +137,11 @@ public abstract class GenericFunctionBase : IGenericFunction {
                 return true;
             }
 
+            if (genericOrConcrete.OptionalTypeSpecification != null)
+                return SubstitudeType(
+                    genericOrConcrete.OptionalTypeSpecification.ElementType,
+                    concrete.OptionalTypeSpecification.ElementType);
+
             if (genericOrConcrete.ArrayTypeSpecification != null)
                 return SubstitudeType(
                     genericOrConcrete.ArrayTypeSpecification.FunnyType,

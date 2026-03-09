@@ -157,6 +157,13 @@ public class FunnyConverter {
                     var arrayType = elementConverter.ClrType.MakeArrayType();
                     return new ClrArrayOutputFunnyConverter(arrayType, elementConverter);
                 }
+                case BaseFunnyType.Optional:
+                {
+                    var elementConverter = GetOutputConverterFor(funnyType.OptionalTypeSpecification.ElementType);
+                    return new OptionalOutputFunnyConverter(elementConverter);
+                }
+                case BaseFunnyType.None:
+                    return new NoneOutputFunnyConverter();
                 // If output type is struct, but clr type is unknown (for ex in case of hardcore calc)
                 // convert funny struct to an IDictionary<string,object>
                 case BaseFunnyType.Struct:

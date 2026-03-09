@@ -63,9 +63,11 @@ public abstract class TypeBehaviour {
         null,
         null,
         typeof(object),
-        null
+        null,
+        null, // Optional
+        null  // None
     };
-    
+
     protected static readonly object[] DefaultPrimitiveValues = {
         null,
         default(char),
@@ -83,7 +85,9 @@ public abstract class TypeBehaviour {
         null,
         null,
         new(),
-        null
+        null,
+        null, // Optional
+        null  // None
     };
     
     private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName

@@ -66,7 +66,12 @@ public class PushConstraintsFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) => false;
+    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) {
+        // None ≤ opt(T) and T ≤ opt(T) via implicit lift
+        if (ancestor is StateOptional)
+            return true;
+        return false;
+    }
 
     public bool Apply(
         ICompositeState ancestor,
@@ -129,6 +134,27 @@ public class PushConstraintsFunctions : IStateFunction {
 
                 return false;
             }
+            case StateOptional ancOpt:
+            {
+                var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                if (result == null)
+                {
+                    // Implicit lift: T ≤ opt(T) for any T (primitive/constrains)
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                if (result.ElementNode == ancOpt.ElementNode)
+                {
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+
+                result.ElementNode.AddAncestor(ancOpt.ElementNode);
+                descendantNode.State = result;
+                descendantNode.RemoveAncestor(ancestorNode);
+                SolvingFunctions.PushConstraints(result.ElementNode, ancOpt.ElementNode);
+                return true;
+            }
             default: return false;
         }
     }
@@ -148,6 +174,11 @@ public class PushConstraintsFunctions : IStateFunction {
             SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
         }
 
+        return true;
+    }
+
+    public bool Apply(StateOptional ancestor, StateOptional descendant, TicNode ancestorNode, TicNode descendantNode) {
+        SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
         return true;
     }
 

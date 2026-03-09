@@ -21,6 +21,8 @@ public enum PrimitiveTypeName {
     U12 = 16 << 6 | _isNumber | _isAbstract,
     U8 = 17 << 6 | _isNumber,
 
+    None = 18 << 6,
+
     // ReSharper disable once InconsistentNaming
     _isAbstract = 1 << 3,
     // ReSharper disable once InconsistentNaming

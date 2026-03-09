@@ -33,6 +33,19 @@ public static partial class StateExtensions {
             return bc2.HasDescendant ? Lca(a, bc2.Descendant) : Concretest(a);
         if (a is ConstraintsState)
             return Lca(b, a);
+
+        // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
+        if (a is StatePrimitive { Name: PrimitiveTypeName.None })
+            return LcaWithNone(b);
+        if (b is StatePrimitive { Name: PrimitiveTypeName.None })
+            return LcaWithNone(a);
+
+        // Optional: covariant wrapper
+        if (a is StateOptional aopt)
+            return LcaWithOptional(aopt, b);
+        if (b is StateOptional bopt)
+            return LcaWithOptional(bopt, a);
+
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetLastCommonPrimitiveAncestor(bp) : Any;
         if (b is StatePrimitive)
@@ -44,6 +57,22 @@ public static partial class StateExtensions {
         if (a is StateStruct astruct)
             return b is StateStruct bstruct ? Lca(astruct, bstruct) : Any;
         return Any;
+    }
+
+    private static ITicNodeState LcaWithNone(ITicNodeState other) {
+        if (other is StatePrimitive { Name: PrimitiveTypeName.None })
+            return StatePrimitive.None;
+        if (other is StateOptional)
+            return other; // None ≤ Opt(T) → LCA = Opt(T)
+        // None ^ T = Opt(T) for any type including Any
+        return StateOptional.Of(other);
+    }
+
+    private static ITicNodeState LcaWithOptional(StateOptional opt, ITicNodeState other) {
+        if (other is StateOptional otherOpt)
+            return StateOptional.Of(Lca(opt.Element, otherOpt.Element));
+        // Opt(A) ^ T = Opt(LCA(A, T)) — for all T including Any
+        return StateOptional.Of(Lca(opt.Element, other));
     }
 
     private static ITicNodeState Lca(this StateStruct a, StateStruct b) {

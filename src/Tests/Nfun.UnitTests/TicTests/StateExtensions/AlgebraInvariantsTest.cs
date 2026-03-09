@@ -19,6 +19,7 @@ public class AlgebraInvariantsTest {
     // All concrete types we want to check invariants against
     private static IEnumerable<ITicNodeState> AllConcreteTypes() {
         foreach (var p in PrimitiveTypes) yield return p;
+        yield return None;
         yield return Array(I32);
         yield return Array(Real);
         yield return Array(Bool);
@@ -31,6 +32,10 @@ public class AlgebraInvariantsTest {
         yield return Fun(I32, Real);
         yield return Fun(Bool, Bool);
         yield return Fun(I32, Bool, Real);  // multi-arg
+        yield return Optional(I32);
+        yield return Optional(Real);
+        yield return Optional(Bool);
+        yield return Optional(Array(I32));
     }
 
     private static IEnumerable<ITicNodeState> AllConstrainedTypes() {
@@ -72,13 +77,27 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Lca_AnyAbsorbs() {
-        // Any is top: Lca(A, Any) = Any
+    public void Lca_AnyAbsorbs_ConcreteTypes() {
+        // Any is top of concrete types: Lca(A, Any) = Any for concrete A
         foreach (var a in AllTypes())
         {
+            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
+                continue;
             var result = a.Lca(Any);
             Assert.AreEqual(Any, result,
                 $"LCA Any absorb violated: Lca({a}, Any)={result}");
+        }
+    }
+
+    [Test]
+    public void Lca_TopAbsorbs() {
+        // Opt(Any) is true top: Lca(A, Opt(Any)) = Opt(Any)
+        var top = Optional(Any);
+        foreach (var a in AllTypes())
+        {
+            var result = a.Lca(top);
+            Assert.AreEqual(top, result,
+                $"LCA Top absorb violated: Lca({a}, Opt(Any))={result}");
         }
     }
 
@@ -178,13 +197,27 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Gcd_AnyIsIdentity() {
-        // Any is top: Gcd(A, Any) = A (meet with top = self)
+    public void Gcd_AnyIsIdentity_ConcreteTypes() {
+        // Any is identity for GCD of concrete types
         foreach (var a in AllConcreteTypes())
         {
+            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
+                continue;
             var result = a.Gcd(Any);
             Assert.AreEqual(a, result,
                 $"GCD Any identity violated: Gcd({a}, Any)={result}, expected {a}");
+        }
+    }
+
+    [Test]
+    public void Gcd_TopIsIdentity() {
+        // Opt(Any) is true identity for GCD
+        var top = Optional(Any);
+        foreach (var a in AllConcreteTypes())
+        {
+            var result = a.Gcd(top);
+            Assert.AreEqual(a, result,
+                $"GCD Top identity violated: Gcd({a}, Opt(Any))={result}, expected {a}");
         }
     }
 
@@ -244,14 +277,15 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Unify_AnyIsCompatibleWithAll() {
-        // Unify(A, Any) is never null — Any is compatible with everything.
-        // The result depends on implementation: could be A or Any.
+    public void Unify_AnyIsCompatibleWithConcrete() {
+        // Unify(A, Any) is never null for concrete types
         foreach (var a in AllTypes())
         {
+            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
+                continue;
             var result = a.UnifyOrNull(Any);
             Assert.IsNotNull(result,
-                $"Unify({a}, Any) should not be null — Any is compatible with everything");
+                $"Unify({a}, Any) should not be null — Any is compatible with concrete types");
         }
     }
 
@@ -496,9 +530,20 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void FitsInto_AnyAcceptsAll() {
+    public void FitsInto_AnyAcceptsAllConcrete() {
         foreach (var a in AllConcreteTypes())
+        {
+            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
+                continue;
             Assert.IsTrue(a.FitsInto(Any), $"{a} should fit into Any");
+        }
+    }
+
+    [Test]
+    public void FitsInto_TopAcceptsAll() {
+        var top = Optional(Any);
+        foreach (var a in AllConcreteTypes())
+            Assert.IsTrue(a.FitsInto(top), $"{a} should fit into Opt(Any)");
     }
 
     [Test]
@@ -571,12 +616,13 @@ public class AlgebraInvariantsTest {
     // Associativity (for non-primitives)
     // ================================================================
 
-    // Compact set for O(N³) tests — mix of primitives, arrays, structs, funs
+    // Compact set for O(N³) tests — mix of primitives, arrays, structs, funs, optionals
     private static ITicNodeState[] AssocTypes => new ITicNodeState[] {
-        I32, Real, Bool, Any, U8,
+        I32, Real, Bool, Any, U8, None,
         Array(I32), Array(Real), Array(Any),
         Struct("a", I32), Struct("a", Real), Struct(("a", I32), ("b", Bool)), EmptyStruct(),
         Fun(I32, Real), Fun(Bool, Bool),
+        Optional(I32), Optional(Real), Optional(Bool), Optional(Array(I32)),
     };
 
     private static ITicNodeState[] AssocConstrainedTypes => new ITicNodeState[] {

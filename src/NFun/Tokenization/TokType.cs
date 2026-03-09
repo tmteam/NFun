@@ -170,5 +170,25 @@ public enum TokType {
     /// /'x'
     /// </summary>
     CharLiteral,
+    /// <summary>
+    /// none literal
+    /// </summary>
+    None,
+    /// <summary>
+    /// '?'
+    /// </summary>
+    Question,
+    /// <summary>
+    /// ??
+    /// </summary>
+    NullCoalesce,
+    /// <summary>
+    /// ?.
+    /// </summary>
+    SafeAccess,
+    /// <summary>
+    /// ! (postfix)
+    /// </summary>
+    ForceUnwrap,
 
 }

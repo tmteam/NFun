@@ -74,16 +74,31 @@ public static class TokenHelper {
         flow.MoveNext();
         var lastPosition = cur.Finish;
 
-        while (flow.IsCurrent(TokType.ArrOBr))
+        while (true)
         {
-            if (flow.Current.Start != lastPosition)
-                throw Errors.UnexpectedSpaceBeforeArrayTypeBrackets(readType, new Interval(lastPosition, flow.Current.Start));
+            if (flow.IsCurrent(TokType.ArrOBr))
+            {
+                if (flow.Current.Start != lastPosition)
+                    throw Errors.UnexpectedSpaceBeforeArrayTypeBrackets(readType, new Interval(lastPosition, flow.Current.Start));
 
-            flow.MoveNext();
-            lastPosition = flow.Current.Finish;
-            if (!flow.MoveIf(TokType.ArrCBr))
-                throw Errors.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
-            readType = FunnyType.ArrayOf(readType);
+                flow.MoveNext();
+                lastPosition = flow.Current.Finish;
+                if (!flow.MoveIf(TokType.ArrCBr))
+                    throw Errors.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
+                readType = FunnyType.ArrayOf(readType);
+            }
+            else if (flow.IsCurrent(TokType.Question))
+            {
+                if (flow.Current.Start != lastPosition)
+                    break; // space before ? means it's not a type suffix
+                lastPosition = flow.Current.Finish;
+                flow.MoveNext();
+                readType = FunnyType.OptionalOf(readType);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return readType;

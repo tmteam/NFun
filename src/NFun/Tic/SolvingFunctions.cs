@@ -39,6 +39,9 @@ public static class SolvingFunctions {
                 MergeInplace(funA.RetNode, funB.RetNode);
                 return funA;
             }
+            case StateOptional optA when stateB is StateOptional optB:
+                MergeInplace(optA.ElementNode, optB.ElementNode);
+                return optA;
             case StateStruct strA when stateB is StateStruct strB:
                 return MergeStructs(strA, strB);
             case StateStruct strA2 when stateB is ConstraintsState constrainsB2:
@@ -337,6 +340,32 @@ public static class SolvingFunctions {
         }
         else
             return null;
+    }
+
+    /// <summary>
+    /// Transform constrains state to optional state
+    /// </summary>
+    public static StateOptional TransformToOptionalOrNull(object descNodeName, ConstraintsState descendant) {
+        if (descendant.NoConstrains)
+        {
+            var constrains = ConstraintsState.Empty;
+            var eName = "e" + descNodeName.ToString().ToLower() + "'";
+            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            return new StateOptional(node);
+        }
+
+        if (descendant.HasDescendant && descendant.Descendant is StateOptional optDesc)
+        {
+            if (!optDesc.IsSolved)
+                return optDesc;
+            var constrains = ConstraintsState.Empty;
+            var eName = "e" + descNodeName.ToString().ToLower() + "'";
+            constrains.AddDescendant(optDesc.Element);
+            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            return new StateOptional(node);
+        }
+
+        return null;
     }
 
     /// <summary>

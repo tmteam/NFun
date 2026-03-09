@@ -13,6 +13,16 @@ public static partial class StateExtensions {
             return CanBeConvertedOptimisticTo(fromRef.Element, to);
         if (to is StateRefTo toRef)
             return CanBeConvertedOptimisticTo(from, toRef.Element);
+
+        // None can only optimistically convert to None or Optional targets
+        if (from is StatePrimitive { Name: PrimitiveTypeName.None })
+            return to is StatePrimitive { Name: PrimitiveTypeName.None }
+                || (to is ICompositeState cs && CanBeConvertedOptimisticTo(from, cs));
+
+        // Optional can only optimistically convert to Optional targets
+        if (from is StateOptional)
+            return to is ICompositeState cs2 && CanBeConvertedOptimisticTo(from, cs2);
+
         if (to.Equals(Any))
             return true;
         if (to is ICompositeState compositeState)
@@ -83,6 +93,21 @@ public static partial class StateExtensions {
     public static bool CanBeConvertedOptimisticTo(this ITicNodeState from, ICompositeState to) {
         if (from is StateRefTo r)
             return CanBeConvertedOptimisticTo(r.Element, to);
+
+        // to is Optional: implicit lift from any compatible type
+        if (to is StateOptional optTo)
+        {
+            if (from is StatePrimitive { Name: PrimitiveTypeName.None })
+                return true;
+            if (from is StateOptional optFrom)
+                return optFrom.Element.CanBeConvertedOptimisticTo(optTo.Element);
+            return from.CanBeConvertedOptimisticTo(optTo.Element);
+        }
+
+        // from is Optional: can only convert to Optional target (handled above)
+        if (from is StateOptional)
+            return false;
+
         if (from is ConstraintsState constrainsState)
             return !constrainsState.HasDescendant;
         if (from.GetType() != to.GetType())
@@ -153,8 +178,26 @@ public static partial class StateExtensions {
     public static bool CanBeConvertedPessimisticTo(this ITicNodeState from, ITicNodeState to) {
         if (to is StateRefTo ancRef)
             return CanBeConvertedPessimisticTo(from, ancRef.Element);
+
+        // to is Optional: None → Opt(T) = true, Opt(A) → Opt(B) covariant, T → Opt(T) implicit lift
+        if (to is StateOptional optTo)
+        {
+            if (from is StatePrimitive { Name: PrimitiveTypeName.None })
+                return true;
+            if (from is StateOptional optFrom)
+                return CanBeConvertedPessimisticTo(optFrom.Element, optTo.Element);
+            return CanBeConvertedPessimisticTo(from, optTo.Element);
+        }
+
+        // None and Optional can't pessimistically convert to non-optional targets
+        if (from is StatePrimitive { Name: PrimitiveTypeName.None })
+            return to is StatePrimitive { Name: PrimitiveTypeName.None };
+        if (from is StateOptional)
+            return false;
+
         if (to.Equals(Any))
             return true;
+
         return from switch {
             StateRefTo descRef => CanBeConvertedPessimisticTo(descRef.Element, to),
             StatePrimitive fromPrim => to switch {
@@ -186,6 +229,10 @@ public static partial class StateExtensions {
             },
             StateStruct fromStr => to switch {
                 StateStruct toStr => CanBeConvertedPessimisticTo(fromStr, toStr),
+                _ => false
+            },
+            StateOptional fromOpt => to switch {
+                StateOptional toOpt => CanBeConvertedPessimisticTo(fromOpt.Element, toOpt.Element),
                 _ => false
             },
             _ => throw new NotSupportedException($"type {from} is not supported for pessimistic convertion")

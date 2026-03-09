@@ -84,4 +84,10 @@ public interface IStateFunction {
         StateStruct descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
+
+    bool Apply(
+        StateOptional ancestor,
+        StateOptional descendant,
+        TicNode ancestorNode,
+        TicNode descendantNode);
 }

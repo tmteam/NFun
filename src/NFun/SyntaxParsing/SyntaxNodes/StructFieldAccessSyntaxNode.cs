@@ -5,13 +5,15 @@ using NFun.Tokenization;
 namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class StructFieldAccessSyntaxNode : ISyntaxNode {
-    public StructFieldAccessSyntaxNode(ISyntaxNode source, string fieldName, Interval interval) {
+    public StructFieldAccessSyntaxNode(ISyntaxNode source, string fieldName, Interval interval, bool isSafeAccess = false) {
         FieldName = fieldName;
         Source = source;
         Interval = interval;
+        IsSafeAccess = isSafeAccess;
     }
     public FunnyType OutputType { get; set; }
     public string FieldName { get; }
+    public bool IsSafeAccess { get; }
     public ISyntaxNode Source { get; }
     public int OrderNumber { get; set; }
     public int ParenthesesCount { get; set; }

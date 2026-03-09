@@ -31,6 +31,21 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // When ancestor has only None as descendant (from if-else/array None branch)
+        // and descendant is NOT also None-only, wrap ancestor in Optional instead of unifying.
+        // This prevents None from "infecting" unconstrained type variables.
+        // Example: if(cond) x else none → result = opt(x), x stays generic
+        if (ancestor.HasDescendant
+            && ancestor.Descendant is StatePrimitive { Name: PrimitiveTypeName.None }
+            && !ancestor.HasAncestor && !ancestor.IsComparable
+            && !(descendant.HasDescendant
+                 && descendant.Descendant is StatePrimitive { Name: PrimitiveTypeName.None }))
+        {
+            ancestorNode.State = new StateOptional(descendantNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+
         var result = ancestor.MergeOrNull(descendant);
         if (result == null)
             return false;
@@ -78,6 +93,8 @@ public class DestructionFunctions : IStateFunction {
                     Apply((StateFun)ancestor.Descendant, fun, ancestorNode, descendantNode),
                 StateStruct @struct =>
                     Apply((StateStruct)ancestor.Descendant, @struct, ancestorNode, descendantNode),
+                StateOptional opt =>
+                    Apply((StateOptional)ancestor.Descendant, opt, ancestorNode, descendantNode),
                 _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
             };
         }
@@ -86,8 +103,12 @@ public class DestructionFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __)
-        => false;
+    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) {
+        // None ≤ opt(T) and T ≤ opt(T) via implicit lift
+        if (ancestor is StateOptional)
+            return true;
+        return false;
+    }
 
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
@@ -112,6 +133,29 @@ public class DestructionFunctions : IStateFunction {
                 TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
             }
         }
+        else if (ancestor is StateOptional ancOpt)
+        {
+            if (descendant.HasDescendant && descendant.Descendant is StateOptional)
+            {
+                var descOpt = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                if (descOpt != null)
+                {
+                    descendantNode.State = descOpt;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    Apply(ancOpt, descOpt, ancestorNode, descendantNode);
+                }
+                else
+                {
+                    TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
+                }
+            }
+            else
+            {
+                // Implicit lift: T ≤ opt(T). Destruct descendant with Optional's element.
+                SolvingFunctions.Destruction(descendantNode, ancOpt.ElementNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+            }
+        }
         else
         {
             TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
@@ -119,6 +163,9 @@ public class DestructionFunctions : IStateFunction {
 
         return true;
     }
+
+    public bool Apply(StateOptional ancestor, StateOptional descendant, TicNode ancestorNode, TicNode descendantNode) =>
+        SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
 
     public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) =>
         SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);

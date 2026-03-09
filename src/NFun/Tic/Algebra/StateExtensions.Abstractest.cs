@@ -13,6 +13,7 @@ public static partial class StateExtensions {
             ConstraintsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
             StatePrimitive => a,
             StateArray arr => StateArray.Of(arr.Element.Abstractest()),
+            StateOptional opt => StateOptional.Of(opt.Element.Abstractest()),
             StateFun f => f.Abstractest(),
             StateStruct => a,
             _ => a

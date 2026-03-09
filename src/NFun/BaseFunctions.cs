@@ -85,7 +85,10 @@ internal static class BaseFunctions {
             new AllGenericFunctionDefinition(),
             new HasAnyGenericFunctionDefinition(),
             new AnyGenericFunctionDefinition(),
-            new ReverseGenericFunctionDefinition()
+            new ReverseGenericFunctionDefinition(),
+
+            new NullCoalesceFunction(),
+            new ForceUnwrapFunction()
         };
 
         ConcreteFunctions = new IConcreteFunction[] {

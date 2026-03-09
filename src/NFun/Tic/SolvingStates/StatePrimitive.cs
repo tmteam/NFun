@@ -5,8 +5,8 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     private static readonly StatePrimitive[,] GcdMap;
 
     static StatePrimitive() {
-        LcaMap = new StatePrimitive [18, 18];
-        GcdMap = new StatePrimitive [18, 18];
+        LcaMap = new StatePrimitive [19, 19];
+        GcdMap = new StatePrimitive [19, 19];
 
         FillLcaGcdMaps();
     }
@@ -19,13 +19,14 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public bool IsMutable => false;
 
     public bool IsNumeric => Name.HasFlag(PrimitiveTypeName._isNumber);
-    private int Order => (int)Name >> 6;
+    public int Order => (int)Name >> 6;
 
     public override string ToString() =>
         Name switch {
             PrimitiveTypeName.Char => "Ch",
             PrimitiveTypeName.Bool => "Bo",
             PrimitiveTypeName.Real => "Re",
+            PrimitiveTypeName.None => "None",
             _                      => Name.ToString()
         };
 
@@ -47,12 +48,18 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public static StatePrimitive U16 { get; } = new(PrimitiveTypeName.U16);
     public static StatePrimitive U12 { get; } = new(PrimitiveTypeName.U12);
     public static StatePrimitive U8 { get; } = new(PrimitiveTypeName.U8);
+    public static StatePrimitive None { get; } = new(PrimitiveTypeName.None);
     public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
     public string StateDescription => PrintState(0);
 
     public string PrintState(int depth) => ToString();
 
-    public bool CanBePessimisticConvertedTo(StatePrimitive type) => Equals(LcaMap[Order, type.Order], type);
+    public bool CanBePessimisticConvertedTo(StatePrimitive type) {
+        // None is not ≤ Any or any other concrete primitive
+        if (Name == PrimitiveTypeName.None || type.Name == PrimitiveTypeName.None)
+            return Name == type.Name;
+        return Equals(LcaMap[Order, type.Order], type);
+    }
 
     public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
         => GcdMap[Order, other.Order];
@@ -69,7 +76,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public string Description => Name.ToString();
 
     private static void FillLcaGcdMaps() {
-        int maxVal = 18;
+        int maxVal = 19;
         var numberToTypeMap = new[] {
             Any, //0
             Char, //1
@@ -89,6 +96,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             U16, //15
             U12, //16
             U8, //17
+            None, //18
         };
 
         //by default - any lca returns any
@@ -107,8 +115,8 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             GcdMap[i, Any.Order] = numberToTypeMap[i];
         }
 
-        //real
-        for (int i = Real.Order; i < maxVal; i++)
+        //real (only numeric types: Real..U8, orders 4..17)
+        for (int i = Real.Order; i <= U8.Order; i++)
         {
             //number ^ real = real
             LcaMap[i, Real.Order] = Real;
@@ -116,8 +124,8 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             GcdMap[i, Real.Order] = numberToTypeMap[i];
         }
 
-        //i96
-        for (int i = I96.Order; i < maxVal; i++)
+        //i96 (only numeric types: I96..U8, orders 5..17)
+        for (int i = I96.Order; i <= U8.Order; i++)
         {
             //i96 ^ iXX = i96,   i96 ^ uXX = i96
             LcaMap[i, I96.Order] = I96;

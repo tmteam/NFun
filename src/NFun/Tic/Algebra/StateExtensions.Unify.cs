@@ -15,9 +15,19 @@ public static partial class StateExtensions {
         if (b is StateRefTo br)
             return UnifyOrNull(a, br.GetNonReference());
 
-        // Any is the top type — X satisfies both X and Any, so Unify preserves the specific type
-        if (a.Equals(Any)) return b;
-        if (b.Equals(Any)) return a;
+        // Any is top of concrete types — None and Optional are NOT ≤ Any
+        if (a.Equals(Any))
+        {
+            if (b is StatePrimitive { Name: PrimitiveTypeName.None } || b is StateOptional)
+                return null;
+            return b;
+        }
+        if (b.Equals(Any))
+        {
+            if (a is StatePrimitive { Name: PrimitiveTypeName.None } || a is StateOptional)
+                return null;
+            return a;
+        }
 
         if (a is ConstraintsState ac)
         {
@@ -31,6 +41,21 @@ public static partial class StateExtensions {
 
         if (b is ConstraintsState)
             return UnifyOrNull(b, a);
+        // Optional: Unify(Opt(A), Opt(B)) = Opt(Unify(A,B)), Unify(Opt, None) = None
+        if (a is StateOptional aOpt)
+        {
+            if (b is StateOptional bOpt)
+            {
+                var elem = UnifyOrNull(aOpt.Element, bOpt.Element);
+                return elem == null ? null : StateOptional.Of(elem);
+            }
+            if (b is StatePrimitive { Name: PrimitiveTypeName.None })
+                return b; // None ≤ Opt(T), intersection = None
+            return null;
+        }
+        if (b is StateOptional)
+            return UnifyOrNull(b, a);
+
         if (a.GetType() != b.GetType())
             return null;
         if (a is StatePrimitive)

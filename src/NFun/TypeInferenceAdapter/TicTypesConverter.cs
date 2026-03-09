@@ -34,6 +34,9 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
+    private FunnyType ConvertToFunnyOptional(StateOptional opt)
+        => FunnyType.OptionalOf(Convert(opt.Element));
+
     class OnlyConcreteTypesConverter : TicTypesConverter {
         public override FunnyType Convert(ITicNodeState type) {
             while (true)
@@ -88,6 +91,8 @@ public abstract class TicTypesConverter {
 
                     case StateArray array:
                         return ConvertToFunnyArray(array);
+                    case StateOptional opt:
+                        return ConvertToFunnyOptional(opt);
                     case StateFun fun:
                         return ConvertToFunnyFun(fun);
                     case StateStruct str:
@@ -110,6 +115,7 @@ public abstract class TicTypesConverter {
                    StatePrimitive primitive   => ToConcrete(primitive.Name),
                    ConstraintsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
                    StateArray array           => ConvertToFunnyArray(array),
+                   StateOptional opt          => ConvertToFunnyOptional(opt),
                    StateFun fun               => ConvertToFunnyFun(fun),
                    StateStruct str            => ConvertToFunnyStruct(str),
                    _                          => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
@@ -148,6 +154,8 @@ public abstract class TicTypesConverter {
                         return _argTypes[index];
                     case StateArray array:
                         return ConvertToFunnyArray(array);
+                    case StateOptional opt:
+                        return ConvertToFunnyOptional(opt);
                     case StateFun fun:
                         return ConvertToFunnyFun(fun);
                     case StateStruct str:
@@ -182,6 +190,7 @@ public abstract class TicTypesConverter {
             PrimitiveTypeName.U48  => FunnyType.UInt32,
             PrimitiveTypeName.U24  => FunnyType.UInt16,
             PrimitiveTypeName.U12  => FunnyType.UInt8,
+            PrimitiveTypeName.None => FunnyType.None,
             _ => throw new ArgumentOutOfRangeException()
         };
 }

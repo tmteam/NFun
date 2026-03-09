@@ -166,6 +166,10 @@ public class VariableSource : IFunnyVar {
         if (defaultValue != null)
             return defaultValue;
 
+        // Optional and None default to null (none)
+        if (type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None)
+            return null;
+
         if (type.ArrayTypeSpecification == null)
             return null;
 

@@ -8,8 +8,8 @@ namespace NFun.SyntaxTests;
 [TestFixture]
 public class ErrorDetailsTest {
     [TestCase("s = x ", "123abc", " z")]
-    [TestCase("s = x ", "!", " z")]
-    [TestCase("s = x ", "!", " z")]
+    [TestCase("s = x ! ", "z", "")]
+    [TestCase("s = x ! ", "z", "")]
     [TestCase("s = x + ", "0x", "")]
     [TestCase("", "(", "")]
     [TestCase("y(x,y)", "qwe", " x+y\r j = y(1,2)")]

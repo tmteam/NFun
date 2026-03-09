@@ -106,7 +106,7 @@ public class Tokenizer {
         { "num", TokType.Reserved },
         { "nil", TokType.Reserved },
         { "null", TokType.Reserved },
-        { "none", TokType.Reserved },
+        { "none", TokType.None },
         { "of", TokType.Reserved },
         { "optional", TokType.Reserved },
         { "output", TokType.Reserved },
@@ -354,6 +354,10 @@ public class Tokenizer {
             case '.' when next == '.': return Tok.New(TokType.TwoDots, position, position + 2);
             case '.': return Tok.New(TokType.Dot, position, position + 1);
             case '!' when next == '=': return Tok.New(TokType.NotEqual, position, position + 2);
+            case '!': return Tok.New(TokType.ForceUnwrap, position, position + 1);
+            case '?' when next == '?': return Tok.New(TokType.NullCoalesce, position, position + 2);
+            case '?' when next == '.': return Tok.New(TokType.SafeAccess, position, position + 2);
+            case '?': return Tok.New(TokType.Question, position, position + 1);
             default:
                 return null;
         }

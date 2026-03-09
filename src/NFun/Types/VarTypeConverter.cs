@@ -75,6 +75,15 @@ public static class VarTypeConverter {
             return ToText;
         if (to.BaseType == BaseFunnyType.Any)
             return NoConvertion;
+
+        // None → Optional(T): null stays null
+        if (from.BaseType == BaseFunnyType.None && to.BaseType == BaseFunnyType.Optional)
+            return NoConvertion;
+
+        // T → Optional(T): implicit wrapping (boxed value is already valid)
+        if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
+            return GetConverterOrNull(typeBehaviour, from, to.OptionalTypeSpecification.ElementType) ?? NoConvertion;
+
         if (from.BaseType == BaseFunnyType.Char)
             return typeBehaviour.GetFromCharToNumberConverterOrNull(to.BaseType);
         if (from.IsNumeric())
@@ -82,6 +91,16 @@ public static class VarTypeConverter {
         if (from.BaseType != to.BaseType)
             return null;
         
+        if (from.BaseType == BaseFunnyType.Optional)
+        {
+            var elementConverter = GetConverterOrNull(typeBehaviour, @from.OptionalTypeSpecification.ElementType, to.OptionalTypeSpecification.ElementType);
+            if (elementConverter == null)
+                return null;
+            if (elementConverter == NoConvertion)
+                return NoConvertion;
+            return o => o == null ? null : elementConverter(o);
+        }
+
         if (from.BaseType == BaseFunnyType.ArrayOf)
         {
             if (to == FunnyType.ArrayOf(FunnyType.Any))
@@ -179,6 +198,15 @@ public static class VarTypeConverter {
         while (true)
         {
             if (to.IsText) return true;
+
+            // None → Optional(T) is always valid
+            if (from.BaseType == BaseFunnyType.None && to.BaseType == BaseFunnyType.Optional)
+                return true;
+
+            // T → Optional(T) - implicit wrapping
+            if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
+                return CanBeConverted(from, to.OptionalTypeSpecification.ElementType);
+
             if (to.BaseType == from.BaseType)
             {
                 switch (to.BaseType)
@@ -187,13 +215,20 @@ public static class VarTypeConverter {
                         @from = @from.ArrayTypeSpecification.FunnyType;
                         to = to.ArrayTypeSpecification.FunnyType;
                         continue;
-                    //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
+                    case BaseFunnyType.Optional:
+                        @from = @from.OptionalTypeSpecification.ElementType;
+                        to = to.OptionalTypeSpecification.ElementType;
+                        continue;
+                    //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code
                     case BaseFunnyType.Fun:
                         return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                     case BaseFunnyType.Struct:
                         return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                 }
             }
+
+            if ((int)from.BaseType >= PrimitiveTypeCount || (int)to.BaseType >= PrimitiveTypeCount)
+                return false;
 
             return PrimitiveConvertMap[(int)from.BaseType, (int)to.BaseType];
         }

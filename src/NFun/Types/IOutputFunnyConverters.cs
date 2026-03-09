@@ -166,6 +166,28 @@ public class StructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
     }
 }
 
+public class OptionalOutputFunnyConverter : IOutputFunnyConverter {
+    private readonly IOutputFunnyConverter _elementConverter;
+
+    public OptionalOutputFunnyConverter(IOutputFunnyConverter elementConverter) {
+        _elementConverter = elementConverter;
+        FunnyType = FunnyType.OptionalOf(elementConverter.FunnyType);
+        ClrType = elementConverter.ClrType;
+    }
+
+    public Type ClrType { get; }
+    public FunnyType FunnyType { get; }
+
+    public object ToClrObject(object funObject) =>
+        funObject == null ? null : _elementConverter.ToClrObject(funObject);
+}
+
+public class NoneOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; } = typeof(object);
+    public FunnyType FunnyType => FunnyType.None;
+    public object ToClrObject(object funObject) => null;
+}
+
 public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
     public static DynamicStructToDictionaryOutputFunnyConverter Instance { get; } = new();
 

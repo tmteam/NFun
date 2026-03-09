@@ -19,15 +19,15 @@ namespace NFun.SyntaxParsing;
 public static class SyntaxNodeReader {
     private const int MinPriority = 0;
     private const int OperatorBitInversePriority = 1;
-    private const int OperatorNotPriority = 10;
+    private const int OperatorNotPriority = 11;
 
     private static readonly int MaxPriority;
 
     private static readonly Dictionary<TokType, byte> BinaryPriorities = new();
 
     static SyntaxNodeReader() {
-        var priorities = new List<TokType[]>(14) {
-            new[] { TokType.ArrOBr, TokType.Dot, TokType.ParenthObr },
+        var priorities = new List<TokType[]>(15) {
+            new[] { TokType.ArrOBr, TokType.Dot, TokType.SafeAccess, TokType.ForceUnwrap, TokType.ParenthObr },
             new[] { TokType.Pow },
             new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
             new[] { TokType.Plus, TokType.Minus },
@@ -40,6 +40,7 @@ public static class SyntaxNodeReader {
                 TokType.LessOrEqual
             },
             new [] { TokType.In, TokType.Equal, TokType.NotEqual },
+            new[] { TokType.NullCoalesce },
             Array.Empty<TokType>(), // gap for unary 'not x'
             new[] { TokType.And },
             new[] { TokType.Xor },
@@ -80,7 +81,8 @@ public static class SyntaxNodeReader {
         { TokType.NotEqual, CoreFunNames.NotEqual },
         { TokType.BitShiftLeft, CoreFunNames.BitShiftLeft },
         { TokType.BitShiftRight, CoreFunNames.BitShiftRight },
-        { TokType.In, CoreFunNames.In }
+        { TokType.In, CoreFunNames.In },
+        { TokType.NullCoalesce, CoreFunNames.NullCoalesce }
     };
 
     private static readonly HashSet<TokType> ComparisonChainOperators = new() {
@@ -177,6 +179,9 @@ public static class SyntaxNodeReader {
 
         if (flow.MoveIf(TokType.False, out var falseTok))
             return SyntaxNodeFactory.Constant(false, FunnyType.Bool, falseTok.Interval);
+
+        if (flow.MoveIf(TokType.None, out var noneTok))
+            return SyntaxNodeFactory.Constant(null, FunnyType.None, noneTok.Interval);
 
         if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal))
         {
@@ -355,6 +360,20 @@ public static class SyntaxNodeReader {
                     leftNode = ReadFunctionCall(flow, id, leftNode);
                 else //else it is struct field
                     leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
+            }
+            else if (opToken.Type == TokType.SafeAccess)
+            {
+                flow.MoveNext(); // ?.
+                if (!flow.MoveIf(TokType.Id, out var id))
+                    throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
+                leftNode = SyntaxNodeFactory.SafeFieldAccess(leftNode, id);
+            }
+            else if (opToken.Type == TokType.ForceUnwrap)
+            {
+                flow.MoveNext();
+                leftNode = SyntaxNodeFactory.UnarOperatorCall(
+                    CoreFunNames.ForceUnwrap, leftNode,
+                    leftNode.Interval.Start, opToken.Finish);
             }
             else if (ComparisonChainOperators.Contains(opToken.Type))
                 leftNode = ReadComparisonChain(flow, leftNode, priority);

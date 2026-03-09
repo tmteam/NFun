@@ -42,6 +42,9 @@ public static class LangTiHelper {
             BaseFunnyType.Char => StatePrimitive.Char,
             BaseFunnyType.Ip => StatePrimitive.Ip,
             BaseFunnyType.Any => StatePrimitive.Any,
+            BaseFunnyType.None => StatePrimitive.None,
+            BaseFunnyType.Optional => StateOptional.Of(
+                ConvertToTiType(origin.OptionalTypeSpecification.ElementType)),
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiType(origin.ArrayTypeSpecification.FunnyType)),
             BaseFunnyType.Fun => StateFun.Of(
@@ -58,6 +61,8 @@ public static class LangTiHelper {
     public static ITicNodeState ConvertToTiType(this FunnyType origin, StateRefTo[] genericMap) =>
         origin.BaseType switch {
             BaseFunnyType.Generic => genericMap[origin.GenericId.Value],
+            BaseFunnyType.Optional => StateOptional.Of(
+                ConvertToTiType(origin.OptionalTypeSpecification.ElementType, genericMap)),
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiType(origin.ArrayTypeSpecification.FunnyType, genericMap)),
             BaseFunnyType.Fun => StateFun.Of(

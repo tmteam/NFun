@@ -32,7 +32,24 @@ public static partial class StateExtensions {
         if (to is ConstraintsState constrainsState)
             return target.FitsInto(constrainsState);
 
+        // to is Optional: None ≤ Opt(T), T ≤ Opt(T) via implicit lift, Opt(A) ≤ Opt(B) covariant
+        if (to is StateOptional optTo)
+        {
+            if (target is StatePrimitive { Name: PrimitiveTypeName.None })
+                return true;
+            if (target is StateOptional targetOpt)
+                return targetOpt.Element.FitsInto(optTo.Element);
+            // T ≤ Opt(U) iff T ≤ U (implicit lift: T ≤ U ≤ Opt(U))
+            return target.FitsInto(optTo.Element);
+        }
+
+        // None only fits into Opt(T) (handled above) or None itself
+        if (target is StatePrimitive { Name: PrimitiveTypeName.None })
+            return to is StatePrimitive { Name: PrimitiveTypeName.None };
+
         return target switch {
+            // Opt(A) only fits into Opt(B) (handled above), not into Any
+            StateOptional => false,
             StateArray targetA => to is StateArray arrTo
                 ? targetA.Element.FitsInto(arrTo.Element)
                 : to.Equals(Any),
@@ -109,9 +126,10 @@ public static partial class StateExtensions {
         if (desc.GetType() != to.GetType())
             return false;
         return desc switch {
-            StateArray descA  => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
-            StateFun descF    => CanBeFitConverted(descF, (StateFun)to),
-            StateStruct descS => CanBeFitConverted(descS, (StateStruct)to),
+            StateArray descA     => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
+            StateFun descF       => CanBeFitConverted(descF, (StateFun)to),
+            StateStruct descS    => CanBeFitConverted(descS, (StateStruct)to),
+            StateOptional descO  => CanBeFitConverted(descO.Element, ((StateOptional)to).Element),
             _ => false
         };
     }
