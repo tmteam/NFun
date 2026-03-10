@@ -6,6 +6,7 @@
         <LangVersion>10</LangVersion>
         <AssemblyName>NFun.ConsoleApp</AssemblyName>
         <RootNamespace>NFun.ConsoleApp</RootNamespace>
+        <SignAssembly>false</SignAssembly>
     </PropertyGroup>
 
     <ItemGroup>

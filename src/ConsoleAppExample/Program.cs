@@ -9,7 +9,29 @@ using NFun.Runtime.Arrays;
 namespace NFun.ConsoleApp;
 
 class Program {
-    static void Main() {
+    static int Main(string[] args) {
+        if (args.Length >= 2 && args[0] is "-e" or "--eval")
+        {
+            var expression = string.Join(" ", args.Skip(1));
+            return ExecuteNonInteractive(expression);
+        }
+
+        if (args.Length >= 2 && args[0] is "-s" or "--script")
+        {
+            var script = System.IO.File.ReadAllText(args[1]);
+            return ExecuteNonInteractive(script);
+        }
+
+        if (args.Length == 1 && args[0] is "-h" or "--help")
+        {
+            Console.WriteLine("Usage: nfun [options]");
+            Console.WriteLine("  (no args)          Interactive REPL");
+            Console.WriteLine("  -e, --eval <expr>  Evaluate expression and print results");
+            Console.WriteLine("  -s, --script <file> Run script from file");
+            Console.WriteLine("  -h, --help         Show this help");
+            return 0;
+        }
+
         PrintWelcome();
         while (true)
         {
@@ -22,6 +44,8 @@ class Program {
                 continue;
             Execute(expr);
         }
+
+        return 0;
     }
 
     static void PrintWelcome() {
@@ -82,6 +106,46 @@ class Program {
         }
 
         return false;
+    }
+
+    static int ExecuteNonInteractive(string expression) {
+        try
+        {
+            var runtime = Funny.Hardcore.Build(expression);
+            var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
+
+            if (inputs.Count > 0)
+            {
+                Console.Error.WriteLine("Error: expression has unbound inputs: " +
+                    string.Join(", ", inputs.Select(i => $"{i.Name}:{i.Type}")));
+                return 1;
+            }
+
+            runtime.Run();
+            var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
+
+            foreach (var output in outputs)
+                Console.WriteLine($"{output.Name}:{output.Type} = {FormatValue(output.Value)}");
+
+            return 0;
+        }
+        catch (FunnyParseException e)
+        {
+            Console.Error.WriteLine($"Parse error [FU{e.ErrorCode}]: {e.Message}");
+            if (e.Start >= 0 && e.End > 0 && e.End <= expression.Length)
+                Console.Error.WriteLine($"  at [{e.Start}..{e.End}]: '{e.Interval.SubString(expression)}'");
+            return 1;
+        }
+        catch (FunnyRuntimeException e)
+        {
+            Console.Error.WriteLine($"Runtime error: {e.Message}");
+            return 1;
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine($"{e.GetType().Name}: {e.Message}");
+            return 1;
+        }
     }
 
     static void Execute(string expression) {
