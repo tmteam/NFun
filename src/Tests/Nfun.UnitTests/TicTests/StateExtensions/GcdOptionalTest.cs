@@ -22,8 +22,9 @@ public class GcdOptionalTest {
     // ===================================================================
 
     [Test]
-    public void None_GCD_Any_ReturnsNull() =>
-        AssertGcd(None, Any, null);
+    public void None_GCD_Any_ReturnsNone() =>
+        // none <: any, so GCD(None, Any) = None
+        AssertGcd(None, Any, None);
 
     [Test]
     public void None_GCD_Bool_ReturnsNull() =>
@@ -252,9 +253,9 @@ public class GcdOptionalTest {
         AssertGcd(Optional(I32), Bool, null);
 
     [Test]
-    public void OptI32_GCD_Any_ReturnsI32() =>
-        // GCD(Opt(I32), Any) = GCD(I32, Any) = I32
-        AssertGcd(Optional(I32), Any, I32);
+    public void OptI32_GCD_Any_ReturnsOptI32() =>
+        // opt(T) <: any, so GCD(Opt(I32), Any) = Opt(I32)
+        AssertGcd(Optional(I32), Any, Optional(I32));
 
     [Test]
     public void OptBool_GCD_Bool_ReturnsBool() =>
@@ -292,16 +293,16 @@ public class GcdOptionalTest {
         AssertGcd(Optional(Bool), Char, null);
 
     [Test]
-    public void OptBool_GCD_Any_ReturnsBool() =>
-        AssertGcd(Optional(Bool), Any, Bool);
+    public void OptBool_GCD_Any_ReturnsOptBool() =>
+        AssertGcd(Optional(Bool), Any, Optional(Bool));
 
     [Test]
-    public void OptReal_GCD_Any_ReturnsReal() =>
-        AssertGcd(Optional(Real), Any, Real);
+    public void OptReal_GCD_Any_ReturnsOptReal() =>
+        AssertGcd(Optional(Real), Any, Optional(Real));
 
     [Test]
-    public void OptChar_GCD_Any_ReturnsChar() =>
-        AssertGcd(Optional(Char), Any, Char);
+    public void OptChar_GCD_Any_ReturnsOptChar() =>
+        AssertGcd(Optional(Char), Any, Optional(Char));
 
     // ===================================================================
     // Optional x Composites: GCD(Opt(A), B) = GCD(A, B)
@@ -380,12 +381,12 @@ public class GcdOptionalTest {
 
     [Test]
     public void OptAny_GCD_Any_ReturnsAny() =>
-        // GCD(Opt(Any), Any) = GCD(Any, Any) = Any
+        // opt(any) = any, so GCD(Any, Any) = Any
         AssertGcd(Optional(Any), Any, Any);
 
     [Test]
     public void OptAny_GCD_I32_ReturnsI32() =>
-        // GCD(Opt(Any), I32) = GCD(Any, I32) = I32
+        // opt(any) = any, so GCD(Any, I32) = I32
         AssertGcd(Optional(Any), I32, I32);
 
     [Test]
@@ -421,10 +422,11 @@ public class GcdOptionalTest {
     // ===================================================================
 
     [Test]
-    public void NoneAndAllPrimitives_GCD_ReturnsNull() {
+    public void NoneAndAllPrimitives_GCD_ReturnsNullOrNone() {
         foreach (var primitive in PrimitiveTypes)
         {
-            ITicNodeState expected = null;
+            // none <: any, so GCD(None, Any) = None; for others GCD(None, T) = null
+            ITicNodeState expected = primitive.Equals(Any) ? None : null;
             AssertGcd(None, primitive, expected);
         }
     }
@@ -444,9 +446,15 @@ public class GcdOptionalTest {
     // ===================================================================
 
     [Test]
-    public void OptPrimitive_GCD_Any_ReturnsPrimitive() {
+    public void OptPrimitive_GCD_Any_ReturnsOptPrimitive() {
         foreach (var primitive in PrimitiveTypes)
-            AssertGcd(Optional(primitive), Any, primitive);
+        {
+            // opt(T) <: any, so GCD(Opt(T), Any) = Opt(T); but opt(any)=any
+            var expected = primitive.Equals(Any)
+                ? (ITicNodeState)Any
+                : (ITicNodeState)Optional(primitive);
+            AssertGcd(Optional(primitive), Any, expected);
+        }
     }
 
     // ===================================================================

@@ -43,7 +43,7 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
         return $"opt({Element.PrintState(depth + 1)})";
     }
 
-    public bool CanBePessimisticConvertedTo(StatePrimitive type) => false;
+    public bool CanBePessimisticConvertedTo(StatePrimitive type) => type.Name == PrimitiveTypeName.Any;
 
     public override bool Equals(object obj) {
         if (obj is StateOptional opt)

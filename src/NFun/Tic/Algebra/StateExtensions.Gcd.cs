@@ -48,8 +48,9 @@ public static partial class StateExtensions {
     private static ITicNodeState GcdWithNone(ITicNodeState other) =>
         other switch {
             StatePrimitive { Name: PrimitiveTypeName.None } => StatePrimitive.None,
+            StatePrimitive { Name: PrimitiveTypeName.Any } => StatePrimitive.None, // None ≤ Any → meet = None
             StateOptional => StatePrimitive.None, // None ≤ Opt(T) → meet = None
-            _ => null // None is not ≤ Any or any concrete type
+            _ => null // None is not ≤ other concrete types
         };
 
     private static ITicNodeState GcdWithOptional(StateOptional opt, ITicNodeState other) {
@@ -58,7 +59,10 @@ public static partial class StateExtensions {
             var innerGcd = Gcd(opt.Element, otherOpt.Element);
             return innerGcd == null ? null : StateOptional.Of(innerGcd);
         }
-        // GCD(Opt(A), B) = GCD(A, B) — for all B including Any
+        // Opt(T) ≤ Any, so GCD(Opt(T), Any) = Opt(T)
+        if (other.Equals(Any))
+            return opt.Element.Equals(Any) ? Any : (ITicNodeState)opt;
+        // GCD(Opt(A), B) = GCD(A, B) — for non-Any B (common desc can't be optional since None ≰ B)
         return Gcd(opt.Element, other);
     }
 

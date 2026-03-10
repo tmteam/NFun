@@ -1,5 +1,6 @@
 using System.Linq;
 using NFun.Exceptions;
+using NFun.Functions;
 using NFun.Interpretation.Functions;
 using NFun.Interpretation.Nodes;
 using NFun.ParseErrors;
@@ -245,6 +246,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             }
 
             var function = genericFunction.CreateConcrete(genericArgs, _dialect);
+
+            if (!_dialect.AllowOptionalTypes && id is CoreFunNames.ForceUnwrap or CoreFunNames.NullCoalesce)
+                throw Errors.OptionalTypesNotSupported(id, node.Interval);
+
             return CreateFunctionCall(node, function);
         }
         throw new NFunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");

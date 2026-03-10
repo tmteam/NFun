@@ -43,13 +43,13 @@ public static partial class StateExtensions {
             return target.FitsInto(optTo.Element);
         }
 
-        // None only fits into Opt(T) (handled above) or None itself
+        // None fits into Opt(T) (handled above), None itself, or Any
         if (target is StatePrimitive { Name: PrimitiveTypeName.None })
-            return to is StatePrimitive { Name: PrimitiveTypeName.None };
+            return to is StatePrimitive p && (p.Name == PrimitiveTypeName.None || p.Name == PrimitiveTypeName.Any);
 
         return target switch {
-            // Opt(A) only fits into Opt(B) (handled above), not into Any
-            StateOptional => false,
+            // Opt(A) fits into Opt(B) (handled above) or Any
+            StateOptional => to.Equals(Any),
             StateArray targetA => to is StateArray arrTo
                 ? targetA.Element.FitsInto(arrTo.Element)
                 : to.Equals(Any),

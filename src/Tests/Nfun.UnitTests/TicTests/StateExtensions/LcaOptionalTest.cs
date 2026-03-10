@@ -21,8 +21,9 @@ public class LcaOptionalTest {
     // ===================================================================
 
     [Test]
-    public void None_LCA_Any_ReturnsOptAny() =>
-        AssertLca(None, Any, Optional(Any));
+    public void None_LCA_Any_ReturnsAny() =>
+        // none <: any, so LCA(None, Any) = Any
+        AssertLca(None, Any, Any);
 
     [Test]
     public void None_LCA_Bool_ReturnsOptBool() =>
@@ -171,8 +172,9 @@ public class LcaOptionalTest {
         AssertLca(None, Constrains(desc: Bool), Optional(Bool));
 
     [Test]
-    public void None_LCA_ConstrainsDescAny_ReturnsOptAny() =>
-        AssertLca(None, Constrains(desc: Any), Optional(Any));
+    public void None_LCA_ConstrainsDescAny_ReturnsAny() =>
+        // none <: any, LCA(None, Any) = Any
+        AssertLca(None, Constrains(desc: Any), Any);
 
     // ===================================================================
     // Optional x Optional (covariant)
@@ -199,19 +201,19 @@ public class LcaOptionalTest {
         AssertLca(Optional(I16), Optional(U16), Optional(I24));
 
     [Test]
-    public void OptBool_LCA_OptI32_ReturnsOptAny() =>
-        // LCA(Bool, I32) = Any, so Opt(Any)
-        AssertLca(Optional(Bool), Optional(I32), Optional(Any));
+    public void OptBool_LCA_OptI32_ReturnsAny() =>
+        // LCA(Bool, I32) = Any, opt(any) = any
+        AssertLca(Optional(Bool), Optional(I32), Any);
 
     [Test]
-    public void OptChar_LCA_OptBool_ReturnsOptAny() =>
-        // LCA(Char, Bool) = Any, so Opt(Any)
-        AssertLca(Optional(Char), Optional(Bool), Optional(Any));
+    public void OptChar_LCA_OptBool_ReturnsAny() =>
+        // LCA(Char, Bool) = Any, opt(any) = any
+        AssertLca(Optional(Char), Optional(Bool), Any);
 
     [Test]
-    public void OptChar_LCA_OptI32_ReturnsOptAny() =>
-        // LCA(Char, I32) = Any, so Opt(Any)
-        AssertLca(Optional(Char), Optional(I32), Optional(Any));
+    public void OptChar_LCA_OptI32_ReturnsAny() =>
+        // LCA(Char, I32) = Any, opt(any) = any
+        AssertLca(Optional(Char), Optional(I32), Any);
 
     [Test]
     public void OptBool_LCA_OptBool_ReturnsOptBool() =>
@@ -250,8 +252,9 @@ public class LcaOptionalTest {
         AssertLca(Optional(Array(U8)), Optional(Array(I32)), Optional(Array(I32)));
 
     [Test]
-    public void OptArrayChar_LCA_OptArrayBool_ReturnsAny() =>
-        // LCA(Array(Char), Array(Bool)) = Array(Any), LCA(Char, Bool) = Any
+    public void OptArrayChar_LCA_OptArrayBool_ReturnsOptArrayAny() =>
+        // LCA(Array(Char), Array(Bool)) = Array(Any), so Opt(Array(Any))
+        // Note: inner is Array(Any), not Any itself, so optional doesn't collapse
         AssertLca(Optional(Array(Char)), Optional(Array(Bool)), Optional(Array(Any)));
 
     [Test]
@@ -287,13 +290,14 @@ public class LcaOptionalTest {
         AssertLca(Optional(I32), U8, Optional(I32));
 
     [Test]
-    public void OptI32_LCA_Bool_ReturnsOptAny() =>
-        // LCA(I32, Bool) = Any, so Opt(Any)
-        AssertLca(Optional(I32), Bool, Optional(Any));
+    public void OptI32_LCA_Bool_ReturnsAny() =>
+        // LCA(I32, Bool) = Any, opt(any) = any
+        AssertLca(Optional(I32), Bool, Any);
 
     [Test]
-    public void OptI32_LCA_Any_ReturnsOptAny() =>
-        AssertLca(Optional(I32), Any, Optional(Any));
+    public void OptI32_LCA_Any_ReturnsAny() =>
+        // opt(T) <: any, so LCA(Opt(I32), Any) = Any
+        AssertLca(Optional(I32), Any, Any);
 
     [Test]
     public void OptBool_LCA_Bool_ReturnsOptBool() =>
@@ -328,51 +332,51 @@ public class LcaOptionalTest {
         AssertLca(Optional(I16), U16, Optional(I24));
 
     [Test]
-    public void OptBool_LCA_Char_ReturnsOptAny() =>
-        // LCA(Bool, Char) = Any, so Opt(Any)
-        AssertLca(Optional(Bool), Char, Optional(Any));
+    public void OptBool_LCA_Char_ReturnsAny() =>
+        // LCA(Bool, Char) = Any, opt(any) = any
+        AssertLca(Optional(Bool), Char, Any);
 
     [Test]
-    public void OptChar_LCA_I32_ReturnsOptAny() =>
-        // LCA(Char, I32) = Any, so Opt(Any)
-        AssertLca(Optional(Char), I32, Optional(Any));
+    public void OptChar_LCA_I32_ReturnsAny() =>
+        // LCA(Char, I32) = Any, opt(any) = any
+        AssertLca(Optional(Char), I32, Any);
 
     [Test]
-    public void OptIp_LCA_I32_ReturnsOptAny() =>
-        // LCA(Ip, I32) = Any, so Opt(Any)
-        AssertLca(Optional(Ip), I32, Optional(Any));
+    public void OptIp_LCA_I32_ReturnsAny() =>
+        // LCA(Ip, I32) = Any, opt(any) = any
+        AssertLca(Optional(Ip), I32, Any);
 
     [Test]
-    public void OptBool_LCA_Any_ReturnsOptAny() =>
-        AssertLca(Optional(Bool), Any, Optional(Any));
+    public void OptBool_LCA_Any_ReturnsAny() =>
+        AssertLca(Optional(Bool), Any, Any);
 
     [Test]
-    public void OptChar_LCA_Any_ReturnsOptAny() =>
-        AssertLca(Optional(Char), Any, Optional(Any));
+    public void OptChar_LCA_Any_ReturnsAny() =>
+        AssertLca(Optional(Char), Any, Any);
 
     // ===================================================================
     // Optional x Composites (mismatched inner kind)
     // ===================================================================
 
     [Test]
-    public void OptI32_LCA_ArrayI32_ReturnsOptAny() =>
-        // LCA(I32, Array(I32)) = Any, so Opt(Any)
-        AssertLca(Optional(I32), Array(I32), Optional(Any));
+    public void OptI32_LCA_ArrayI32_ReturnsAny() =>
+        // LCA(I32, Array(I32)) = Any, opt(any) = any
+        AssertLca(Optional(I32), Array(I32), Any);
 
     [Test]
-    public void OptI32_LCA_StructA_I32_ReturnsOptAny() =>
-        // LCA(I32, Struct) = Any, so Opt(Any)
-        AssertLca(Optional(I32), Struct("a", I32), Optional(Any));
+    public void OptI32_LCA_StructA_I32_ReturnsAny() =>
+        // LCA(I32, Struct) = Any, opt(any) = any
+        AssertLca(Optional(I32), Struct("a", I32), Any);
 
     [Test]
-    public void OptI32_LCA_FunI32Real_ReturnsOptAny() =>
-        // LCA(I32, Fun(I32,Real)) = Any, so Opt(Any)
-        AssertLca(Optional(I32), Fun(I32, Real), Optional(Any));
+    public void OptI32_LCA_FunI32Real_ReturnsAny() =>
+        // LCA(I32, Fun(I32,Real)) = Any, opt(any) = any
+        AssertLca(Optional(I32), Fun(I32, Real), Any);
 
     [Test]
-    public void OptBool_LCA_ArrayBool_ReturnsOptAny() =>
-        // LCA(Bool, Array(Bool)) = Any, so Opt(Any)
-        AssertLca(Optional(Bool), Array(Bool), Optional(Any));
+    public void OptBool_LCA_ArrayBool_ReturnsAny() =>
+        // LCA(Bool, Array(Bool)) = Any, opt(any) = any
+        AssertLca(Optional(Bool), Array(Bool), Any);
 
     // ===================================================================
     // Optional x Composites (matching inner kind)
@@ -395,7 +399,7 @@ public class LcaOptionalTest {
 
     [Test]
     public void OptArrayBool_LCA_ArrayChar_ReturnsOptArrayAny() =>
-        // LCA(Array(Bool), Array(Char)) = Array(Any), so Opt(Array(Any))
+        // LCA(Array(Bool), Array(Char)) = Array(Any), inner is Array(Any) not Any → stays Opt
         AssertLca(Optional(Array(Bool)), Array(Char), Optional(Array(Any)));
 
     [Test]
@@ -448,9 +452,9 @@ public class LcaOptionalTest {
         AssertLca(Optional(I32), Constrains(desc: Real), Optional(Real));
 
     [Test]
-    public void OptI32_LCA_ConstrainsDescBool_ReturnsOptAny() =>
-        // Constrains unwraps to desc=Bool, then LCA(Opt(I32), Bool) = Opt(Any)
-        AssertLca(Optional(I32), Constrains(desc: Bool), Optional(Any));
+    public void OptI32_LCA_ConstrainsDescBool_ReturnsAny() =>
+        // Constrains unwraps to desc=Bool, LCA(I32, Bool) = Any, opt(any) = any
+        AssertLca(Optional(I32), Constrains(desc: Bool), Any);
 
     [Test]
     public void OptI32_LCA_ConstrainsDescI32_ReturnsOptI32() =>
@@ -478,32 +482,35 @@ public class LcaOptionalTest {
         AssertLca(Optional(Fun(Bool, I16)), Optional(Fun(Bool, I32)), Optional(Fun(Bool, I32)));
 
     [Test]
-    public void OptFunDifferentArgCount_ReturnsOptAny() =>
-        // LCA(Fun(I32,I32,I32), Fun(I32,I32)) = Any, so Opt(Any)
-        AssertLca(Optional(Fun(I32, I32, I32)), Optional(Fun(I32, I32)), Optional(Any));
+    public void OptFunDifferentArgCount_ReturnsAny() =>
+        // LCA(Fun(I32,I32,I32), Fun(I32,I32)) = Any, opt(any) = any
+        AssertLca(Optional(Fun(I32, I32, I32)), Optional(Fun(I32, I32)), Any);
 
     [Test]
-    public void OptStruct_LCA_OptArray_ReturnsOptAny() =>
-        // LCA(Struct, Array) = Any inside optional, so Opt(Any)
-        AssertLca(Optional(Struct("a", I32)), Optional(Array(I32)), Optional(Any));
+    public void OptStruct_LCA_OptArray_ReturnsAny() =>
+        // LCA(Struct, Array) = Any, opt(any) = any
+        AssertLca(Optional(Struct("a", I32)), Optional(Array(I32)), Any);
 
     [Test]
-    public void OptArray_LCA_OptFun_ReturnsOptAny() =>
-        AssertLca(Optional(Array(I32)), Optional(Fun(I32, I32)), Optional(Any));
+    public void OptArray_LCA_OptFun_ReturnsAny() =>
+        AssertLca(Optional(Array(I32)), Optional(Fun(I32, I32)), Any);
 
     [Test]
-    public void OptStruct_LCA_OptFun_ReturnsOptAny() =>
-        AssertLca(Optional(Struct("a", I32)), Optional(Fun(I32, I32)), Optional(Any));
+    public void OptStruct_LCA_OptFun_ReturnsAny() =>
+        AssertLca(Optional(Struct("a", I32)), Optional(Fun(I32, I32)), Any);
 
     // ===================================================================
     // Bulk: Optional x Optional for all primitive LCA combinations
     // ===================================================================
 
     [Test]
-    public void OptionalOfAllPrimitivePairs_ReturnsOptionalOfLca() {
+    public void OptionalOfAllPrimitivePairs_ReturnsOptionalOfLcaOrAny() {
         foreach (var types in PrimitiveTypesLca)
         {
-            var expected = (ITicNodeState)Optional(types.Lca);
+            // opt(any) collapses to any
+            var expected = types.Lca.Equals(Any)
+                ? (ITicNodeState)Any
+                : (ITicNodeState)Optional(types.Lca);
             AssertLca(Optional(types.Left), Optional(types.Right), expected);
         }
     }
@@ -516,7 +523,10 @@ public class LcaOptionalTest {
     public void NoneAndAllPrimitives_ReturnsOptOrAny() {
         foreach (var primitive in PrimitiveTypes)
         {
-            var expected = (ITicNodeState)Optional(primitive);
+            // none <: any, so LCA(None, Any) = Any; for others LCA(None, T) = Opt(T)
+            var expected = primitive.Equals(Any)
+                ? (ITicNodeState)Any
+                : (ITicNodeState)Optional(primitive);
             AssertLca(None, primitive, expected);
         }
     }
@@ -526,10 +536,13 @@ public class LcaOptionalTest {
     // ===================================================================
 
     [Test]
-    public void OptionalPrimitive_LCA_SamePrimitive_ReturnsOptSelf() {
+    public void OptionalPrimitive_LCA_SamePrimitive_ReturnsOptSelfOrAny() {
         foreach (var primitive in PrimitiveTypes)
         {
-            var expected = (ITicNodeState)Optional(primitive);
+            // opt(any) = any
+            var expected = primitive.Equals(Any)
+                ? (ITicNodeState)Any
+                : (ITicNodeState)Optional(primitive);
             AssertLca(Optional(primitive), primitive, expected);
         }
     }
@@ -542,8 +555,10 @@ public class LcaOptionalTest {
     public void OptionalLeft_LCA_PrimitiveRight_ReturnsOptLcaOrAny() {
         foreach (var types in PrimitiveTypesLca)
         {
-            // LCA(Opt(Left), Right) = Opt(LCA(Left, Right))
-            var expected = (ITicNodeState)Optional(types.Lca);
+            // LCA(Opt(Left), Right) = Opt(LCA(Left, Right)), but opt(any) = any
+            var expected = types.Lca.Equals(Any)
+                ? (ITicNodeState)Any
+                : (ITicNodeState)Optional(types.Lca);
             AssertLca(Optional(types.Left), types.Right, expected);
         }
     }
@@ -556,12 +571,13 @@ public class LcaOptionalTest {
     public void NoneAndAllOptionalPrimitives_ReturnsOptPrimitive() {
         foreach (var primitive in PrimitiveTypes)
         {
-            // None ^ Opt(T) = Opt(T) — unless T is Any, where Opt(Any)=Any
-            // But Optional(Any) should still be treated as Opt(Any) by the factory.
-            // Actually LcaWithNone checks: if other is StateOptional -> return other.
-            // So the result is the Optional itself.
+            // None ^ Opt(T) = Opt(T), but opt(any) = any
+            // For T=Any: LCA(None, Opt(Any)) = LCA(None, Any) = Any
             var opt = Optional(primitive);
-            AssertLca(None, opt, opt);
+            var expected = primitive.Equals(Any)
+                ? (ITicNodeState)Any
+                : (ITicNodeState)opt;
+            AssertLca(None, opt, expected);
         }
     }
 
@@ -608,30 +624,30 @@ public class LcaOptionalTest {
     // ===================================================================
 
     [Test]
-    public void OptAny_LCA_Primitives_ReturnsOptAny() {
-        // Opt(Any) LCA X: LcaWithOptional -> Opt(LCA(Any, X)) = Opt(Any)
-        AssertLca(Optional(Any), I32, Optional(Any));
-        AssertLca(Optional(Any), Bool, Optional(Any));
-        AssertLca(Optional(Any), Array(I32), Optional(Any));
-        AssertLca(Optional(Any), Struct("a", I32), Optional(Any));
-        AssertLca(Optional(Any), Fun(I32, Real), Optional(Any));
+    public void OptAny_LCA_Primitives_ReturnsAny() {
+        // opt(any) = any, so LCA(Any, X) = Any
+        AssertLca(Optional(Any), I32, Any);
+        AssertLca(Optional(Any), Bool, Any);
+        AssertLca(Optional(Any), Array(I32), Any);
+        AssertLca(Optional(Any), Struct("a", I32), Any);
+        AssertLca(Optional(Any), Fun(I32, Real), Any);
     }
 
     [Test]
-    public void OptAny_LCA_None_ReturnsOptAny() {
-        // LCA(Opt(Any), None): None check fires first -> LcaWithNone(Opt(Any))
-        // -> other is StateOptional -> returns other = Opt(Any) (not collapsed to Any)
-        AssertLca(Optional(Any), None, Optional(Any));
+    public void OptAny_LCA_None_ReturnsAny() {
+        // opt(any) = any, LCA(Any, None) = Any (since none <: any)
+        AssertLca(Optional(Any), None, Any);
     }
 
     [Test]
-    public void OptAny_LCA_OptAny_ReturnsOptAny() =>
-        AssertLca(Optional(Any), Optional(Any), Optional(Any));
+    public void OptAny_LCA_OptAny_ReturnsAny() =>
+        // opt(any) = any
+        AssertLca(Optional(Any), Optional(Any), Any);
 
     [Test]
-    public void OptAny_LCA_OptI32_ReturnsOptAny() =>
-        // LCA(Any, I32) = Any, so Opt(Any)
-        AssertLca(Optional(Any), Optional(I32), Optional(Any));
+    public void OptAny_LCA_OptI32_ReturnsAny() =>
+        // LCA(Any, I32) = Any, opt(any) = any
+        AssertLca(Optional(Any), Optional(I32), Any);
 
     [Test]
     public void None_LCA_None_Idempotent() {

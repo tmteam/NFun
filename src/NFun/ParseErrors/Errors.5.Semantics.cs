@@ -128,4 +128,14 @@ internal static partial class Errors {
 
     #endregion
 
+
+    #region optional operators
+
+    internal static FunnyParseException OptionalTypesNotSupported(string operatorName, Interval interval) {
+        var opSymbol = operatorName == Functions.CoreFunNames.ForceUnwrap ? "!" : "??";
+        return new(882, $"Operator '{opSymbol}' requires optional types to be enabled", interval);
+    }
+
+    #endregion
+
 }

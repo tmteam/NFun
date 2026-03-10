@@ -35,10 +35,15 @@ public class PullConstraintsFunctions : IStateFunction {
         => ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
 
     public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor is StateOptional)
+        if (ancestor is StateOptional opt)
         {
-            // None ≤ opt(T) and T ≤ opt(T) via implicit lift
             descendantNode.RemoveAncestor(ancestorNode);
+            if (descendant.Name != PrimitiveTypeName.None)
+            {
+                // T_value ≤ opt(T): redirect edge to element node so T gets constrained
+                descendantNode.AddAncestor(opt.ElementNode);
+            }
+            // None ≤ opt(T): no constraint on T
             return true;
         }
         return false;
@@ -84,8 +89,19 @@ public class PullConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
                 if (result == null)
                 {
-                    // Implicit lift: T ≤ opt(T) for any T (primitive/constrains)
-                    descendantNode.RemoveAncestor(ancestorNode);
+                    // Implicit lift: T ≤ opt(T).
+                    // Redirect to element only for primitive/empty constraints.
+                    // Composite descendants (char[], int[]) must NOT be redirected —
+                    // PullNoneNode may later add None (LCA → opt(composite)),
+                    // which would conflict with the element-level ancestor.
+                    // Push handles composites correctly after PullNoneNode finishes.
+                    if (!descendant.HasDescendant || descendant.Descendant is StatePrimitive)
+                    {
+                        descendantNode.RemoveAncestor(ancestorNode);
+                        if (!descendant.HasDescendant
+                            || descendant.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None })
+                            descendantNode.AddAncestor(ancOpt.ElementNode);
+                    }
                     return true;
                 }
                 result.ElementNode.AddAncestor(ancOpt.ElementNode);

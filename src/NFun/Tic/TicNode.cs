@@ -161,6 +161,8 @@ public class TicNode {
                 return true;
             }
         }
+        if (_state is StateRefTo refTo)
+            return refTo.Node.TryBecomeConcrete(primitiveState);
 
         return false;
     }

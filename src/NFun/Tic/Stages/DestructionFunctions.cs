@@ -82,6 +82,17 @@ public class DestructionFunctions : IStateFunction {
         }
 
         TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
+        // When the actual descendant (from solved expression) contains Optional-wrapped
+        // elements that the stale constraint snapshot doesn't know about, the constraint's
+        // Descendant is outdated (e.g. arr(U8) vs actual arr(opt(T))). In this case,
+        // adopt the actual descendant directly instead of using the stale snapshot.
+        if (DescendantHasOptionalLift(ancestor.Descendant, descendant))
+        {
+            ancestorNode.State = new StateRefTo(descendantNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+
         if (descendant.GetType() == ancestor.Descendant?.GetType())
         {
             ancestorNode.State = ancestor.Descendant;
@@ -103,10 +114,20 @@ public class DestructionFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) {
-        // None ≤ opt(T) and T ≤ opt(T) via implicit lift
-        if (ancestor is StateOptional)
+    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor is StateOptional opt)
+        {
+            if (descendant.Name != PrimitiveTypeName.None)
+            {
+                // T ≤ opt(T): constrain the Optional's element with T
+                SolvingFunctions.Destruction(descendantNode, opt.ElementNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+            }
+
+            // None ≤ opt(T) is always valid (no-op)
             return true;
+        }
+
         return false;
     }
 
@@ -211,5 +232,30 @@ public class DestructionFunctions : IStateFunction {
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Checks if the actual descendant composite contains Optional-wrapped elements
+    /// that the stale constraint descendant doesn't (e.g. arr(opt(T)) vs arr(U8)).
+    /// This happens when Pull phase wraps array/struct elements in Optional after
+    /// the constraint's Descendant was already set.
+    /// </summary>
+    private static bool DescendantHasOptionalLift(ITicNodeState staleDescendant, ICompositeState actual) =>
+        (staleDescendant, actual) switch {
+            (StateArray staleArr, StateArray actualArr) =>
+                actualArr.Element is StateOptional && staleArr.Element is not StateOptional,
+            (StateStruct staleStr, StateStruct actualStr) =>
+                HasAnyOptionalLiftedField(staleStr, actualStr),
+            _ => false
+        };
+
+    private static bool HasAnyOptionalLiftedField(StateStruct stale, StateStruct actual) {
+        foreach (var (key, actualFieldNode) in actual.Fields) {
+            var staleFieldNode = stale.GetFieldOrNull(key);
+            if (staleFieldNode == null) continue;
+            if (actualFieldNode.State is StateOptional && staleFieldNode.State is not StateOptional)
+                return true;
+        }
+        return false;
     }
 }

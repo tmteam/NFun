@@ -13,11 +13,17 @@ public static partial class StateExtensions {
             ConstraintsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
             StatePrimitive => a,
             StateArray arr => StateArray.Of(arr.Element.Abstractest()),
-            StateOptional opt => StateOptional.Of(opt.Element.Abstractest()),
+            StateOptional opt => AbstractestOptional(opt),
             StateFun f => f.Abstractest(),
             StateStruct => a,
             _ => a
         };
+
+    private static ITicNodeState AbstractestOptional(StateOptional opt) {
+        var inner = opt.Element.Abstractest();
+        // opt(any) = any
+        return inner.Equals(StatePrimitive.Any) ? StatePrimitive.Any : StateOptional.Of(inner);
+    }
 
     private static ITicNodeState Abstractest(this StateFun f) {
         var returnNode = TicNode.CreateInvisibleNode(Abstractest(f.ReturnType));

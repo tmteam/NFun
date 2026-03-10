@@ -166,9 +166,9 @@ public class VariableSource : IFunnyVar {
         if (defaultValue != null)
             return defaultValue;
 
-        // Optional and None default to null (none)
+        // Optional and None default to FunnyNone sentinel
         if (type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None)
-            return null;
+            return FunnyNone.Instance;
 
         if (type.ArrayTypeSpecification == null)
             return null;

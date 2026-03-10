@@ -182,11 +182,110 @@ public static class SolvingFunctions {
 
 
     public static void PullConstraints(TicNode[] toposortedNodes) {
+        // Phase 1: Pull all non-None nodes to establish constraint bounds
         foreach (var node in toposortedNodes)
         {
             if (node.IsMemberOfAnything)
                 continue;
+            if (node.State is StatePrimitive { Name: PrimitiveTypeName.None })
+                continue;
             PullConstraintsRecursive(node);
+        }
+
+        // Phase 2: Pull None nodes — may transform ancestors to Optional
+        foreach (var node in toposortedNodes)
+        {
+            if (node.IsMemberOfAnything)
+                continue;
+            if (node.State is not StatePrimitive { Name: PrimitiveTypeName.None })
+                continue;
+            PullNoneNode(node, toposortedNodes);
+        }
+    }
+
+    /// <summary>
+    /// Processes a None node's ancestor edges. If the ancestor already has non-None
+    /// constraints (established in Phase 1), transforms it to Optional with an inner
+    /// node carrying the original constraints. Otherwise does a normal Pull.
+    /// After transformation, propagates the Optional structure upward.
+    /// </summary>
+    private static void PullNoneNode(TicNode noneNode, TicNode[] allNodes) {
+        foreach (var ancestorNode in noneNode.Ancestors.ToArray())
+        {
+            if (ancestorNode.State is ConstraintsState ancestor
+                && ancestor.HasDescendant
+                && ancestor.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None }
+                && ancestor.Descendant is not StateOptional)
+            {
+                // Ancestor already has real constraints from Phase 1.
+                // Transform to Optional, preserving inner constraints.
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
+                    ancestor.GetCopy());
+                ancestorNode.State = new StateOptional(innerNode);
+                noneNode.RemoveAncestor(ancestorNode);
+
+                // Redirect remaining descendant edges from ancestorNode to innerNode.
+                // These are non-None nodes whose constraints were pulled in Phase 1.
+                // By redirecting, Push and Destruction operate on the element level
+                // without Optional wrapping complications.
+                // Skip other None nodes — they should keep pointing at the Optional
+                // wrapper so they resolve as None ≤ opt(T) without triggering
+                // another transformation.
+                foreach (var node in allNodes)
+                {
+                    if (node.State is StatePrimitive { Name: PrimitiveTypeName.None })
+                        continue;
+                    var ancs = node.Ancestors;
+                    for (int i = 0; i < ancs.Count; i++)
+                    {
+                        if (ReferenceEquals(ancs[i], ancestorNode))
+                        {
+                            node.RemoveAncestor(ancestorNode);
+                            node.AddAncestor(innerNode);
+                            break;
+                        }
+                    }
+                }
+
+                // Propagate the Optional structure upward through ancestor edges
+                PropagateOptionalUpward(ancestorNode);
+            }
+            else
+            {
+                // Normal pull (None into empty or None-only constraints)
+                PullConstrains(noneNode, ancestorNode);
+                // Propagate (e.g., [None..] to parent nodes)
+                PullConstraintsRecursive(ancestorNode);
+            }
+        }
+    }
+
+    /// <summary>
+    /// After a node has been transformed to StateOptional during PullNoneNode,
+    /// propagate the Optional structure upward through its ancestor edges.
+    /// Each ConstraintsState ancestor gets wrapped in a matching Optional,
+    /// with element-level edges connecting the inner nodes.
+    /// </summary>
+    private static void PropagateOptionalUpward(TicNode optNode) {
+        var optState = (StateOptional)optNode.State;
+        foreach (var ancestorNode in optNode.Ancestors.ToArray())
+        {
+            if (ancestorNode.State is ConstraintsState ancestor)
+            {
+                // Create matching Optional wrapper for ancestor
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
+                    ancestor.GetCopy());
+                // Connect element nodes: child.element ≤ parent.element
+                optState.ElementNode.AddAncestor(innerNode);
+                ancestorNode.State = new StateOptional(innerNode);
+                optNode.RemoveAncestor(ancestorNode);
+                // Pull element constraints through the new edge
+                PullConstraintsRecursive(optState.ElementNode);
+                // Continue propagating upward
+                PropagateOptionalUpward(ancestorNode);
+            }
         }
     }
 
@@ -633,7 +732,8 @@ public static class SolvingFunctions {
             StateFun fun => fun.RetNode.GetAllOutputTypes(),
             StateArray array => array.AllLeafTypes,
             StateStruct @struct => @struct.AllLeafTypes,
-            StateRefTo => new[] { node.GetNonReference() }, //mb AllLeafType?
+            StateOptional opt => opt.AllLeafTypes,
+            StateRefTo => node.GetNonReference().GetAllOutputTypes(),
             _ => new[] { node }
         };
 

@@ -55,9 +55,11 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public string PrintState(int depth) => ToString();
 
     public bool CanBePessimisticConvertedTo(StatePrimitive type) {
-        // None is not ≤ Any or any other concrete primitive
-        if (Name == PrimitiveTypeName.None || type.Name == PrimitiveTypeName.None)
-            return Name == type.Name;
+        // None ≤ Any (none is a value with toString/equals), but None is not ≤ any other primitive
+        if (Name == PrimitiveTypeName.None)
+            return type.Name == PrimitiveTypeName.None || type.Name == PrimitiveTypeName.Any;
+        if (type.Name == PrimitiveTypeName.None)
+            return false;
         return Equals(LcaMap[Order, type.Order], type);
     }
 
@@ -234,6 +236,9 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         GcdMap[U32.Order, I64.Order] = U32;
         GcdMap[U48.Order, I64.Order] = U48;
         GcdMap[U64.Order, I64.Order] = U48;
+
+        // None ≤ Any: GCD(None, Any) = None
+        GcdMap[None.Order, Any.Order] = None;
 
         //a ^ b = b ^ a
         //a _ b = b _ a

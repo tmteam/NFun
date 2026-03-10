@@ -24,6 +24,7 @@ public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
 
     public object ToClrObject(object funObject) =>
         funObject switch {
+            FunnyNone       => null,
             TextFunnyArray txt => txt.ToString(),
             IFunnyArray funArray =>
                 _behaviour
@@ -179,7 +180,7 @@ public class OptionalOutputFunnyConverter : IOutputFunnyConverter {
     public FunnyType FunnyType { get; }
 
     public object ToClrObject(object funObject) =>
-        funObject == null ? null : _elementConverter.ToClrObject(funObject);
+        funObject is FunnyNone ? null : _elementConverter.ToClrObject(funObject);
 }
 
 public class NoneOutputFunnyConverter : IOutputFunnyConverter {

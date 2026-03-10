@@ -3,13 +3,14 @@ using NFun.Types;
 namespace NFun; 
 
 internal static class Dialects {
-    public static DialectSettings Origin { get; } 
+    public static DialectSettings Origin { get; }
         = new(
-            ifExpressionSetup: IfExpressionSetup.IfIfElse, 
-            integerPreferredType: IntegerPreferredType.I32, 
-            funnyConverter: FunnyConverter.RealIsDouble, 
-            allowIntegerOverflow: false, 
-            allowUserFunctions: AllowUserFunctions.AllowAll);
+            ifExpressionSetup: IfExpressionSetup.IfIfElse,
+            integerPreferredType: IntegerPreferredType.I32,
+            funnyConverter: FunnyConverter.RealIsDouble,
+            allowIntegerOverflow: false,
+            allowUserFunctions: AllowUserFunctions.AllowAll,
+            allowOptionalTypes: true);
     
     public static DialectSettings ModifyOrigin(
         IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
@@ -34,18 +35,20 @@ public interface IFunctionSelectorContext {
 }
 
 internal sealed class DialectSettings : IFunctionSelectorContext {
-    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions) {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions, bool allowOptionalTypes = false) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
         AllowIntegerOverflow = allowIntegerOverflow;
         AllowUserFunctions = allowUserFunctions;
+        AllowOptionalTypes = allowOptionalTypes;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
     public IntegerPreferredType IntegerPreferredType { get; }
     public bool AllowIntegerOverflow { get; }
     public AllowUserFunctions AllowUserFunctions { get; }
+    public bool AllowOptionalTypes { get; }
 }
 
 public enum AllowUserFunctions {

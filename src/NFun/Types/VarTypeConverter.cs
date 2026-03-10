@@ -76,7 +76,7 @@ public static class VarTypeConverter {
         if (to.BaseType == BaseFunnyType.Any)
             return NoConvertion;
 
-        // None → Optional(T): null stays null
+        // None → Optional(T): FunnyNone stays FunnyNone
         if (from.BaseType == BaseFunnyType.None && to.BaseType == BaseFunnyType.Optional)
             return NoConvertion;
 
@@ -98,7 +98,7 @@ public static class VarTypeConverter {
                 return null;
             if (elementConverter == NoConvertion)
                 return NoConvertion;
-            return o => o == null ? null : elementConverter(o);
+            return o => o is FunnyNone ? o : elementConverter(o);
         }
 
         if (from.BaseType == BaseFunnyType.ArrayOf)

@@ -7,7 +7,8 @@
 Types form a lattice:
 
 ```
-T ::= P                        -- primitive (Bool, Char, U8, U16, ..., I16, I32, ..., Real, Ip, Any)
+T ::= P                        -- primitive (Bool, Char, U8, U16, ..., I16, I32, ..., Real, Ip, Any, None)
+    | Opt(T)                   -- optional type (T | None)
     | Array(T)                 -- array with element type T
     | Fun(T₁...Tₙ → T)        -- function with arg types and return type
     | Struct{f₁:T₁...fₙ:Tₙ}   -- struct with named fields
@@ -15,19 +16,32 @@ T ::= P                        -- primitive (Bool, Char, U8, U16, ..., I16, I32,
     | Ref(node)                -- reference to another node (alias)
 ```
 
-Primitives, Array, Fun, Struct are **type states** (ITypeState).
-Array, Fun, Struct are **composite states** (ICompositeState).
+Primitives, Opt, Array, Fun, Struct are **type states** (ITypeState).
+Opt, Array, Fun, Struct are **composite states** (ICompositeState).
 ConstraintsState is a bounded type variable, not a concrete type.
 
 ### 1.2 Subtyping (≤)
 
+**Any** is the single top of the type lattice: `T ≤ Any` for all T.
+
 For primitives: pre-defined partial order (U8 ≤ U16 ≤ U32 ≤ ... ≤ Real ≤ Any, etc.)
+
+**None** is a primitive singleton value (has toString(), equals()):
+- `None ≤ Any`
+- `None ≤ Opt(T)` for all T
+- `None` is NOT a subtype of other concrete types (None ≰ Int, None ≰ Bool, etc.)
+
+**Optional** types:
+- `T ≤ Opt(T)` for all T (implicit lift)
+- `Opt(T) ≤ Opt(S)` iff `T ≤ S` (covariant)
+- `Opt(T) ≤ Any` for all T
+- `Opt(Any) = Any` (collapses — since `Any ≤ Opt(Any)` and `Opt(Any) ≤ Any`)
+- `default(Any) = None`
 
 For composites:
 - `Array(A) ≤ Array(B)` iff `A ≤ B` (covariant)
 - `Fun(A₁...Aₙ→R₁) ≤ Fun(B₁...Bₙ→R₂)` iff `Bᵢ ≤ Aᵢ` and `R₁ ≤ R₂` (args contravariant, return covariant)
 - `Struct{...f:A...} ≤ Struct{f:B}` iff `A ≤ B` for each field f in B (width + depth subtyping, covariant)
-- `T ≤ Any` for all T
 
 Structs are immutable, therefore fields are covariant.
 
@@ -62,12 +76,19 @@ Used for: if-else result type, array element type.
 
 | A | B | Lca(A, B) |
 |---|---|-----------|
-| P₁ | P₂ | Pre-computed 18×18 matrix |
+| P₁ | P₂ | Pre-computed 19×19 matrix (includes None) |
+| None | Any | Any (since None ≤ Any) |
+| None | T (non-Any) | Opt(T) |
+| None | Opt(T) | Opt(T) |
+| Opt(A) | Opt(B) | Opt(Lca(A,B)) if Lca(A,B)≠Any, else Any |
+| Opt(A) | T | Opt(Lca(A,T)) if Lca(A,T)≠Any, else Any |
 | Array(A) | Array(B) | Array(Lca(A, B)) |
 | Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Gcd(A₁,B₁)..Gcd(Aₙ,Bₙ) → Lca(R₁,R₂)); Any if arity differs or any arg Gcd is null |
 | Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{fₖ:Lca(Aₖ,Bₖ)} where fₖ ∈ fields(A) ∩ fields(B) |
 | C[dA,..] | C[dB,..] | C[Lca(dA,dB), null, cmpA ∧ cmpB] or desc directly if solved |
 | different kinds | | Any |
+
+Key rule: **Opt(Any) collapses to Any** — whenever an Opt would wrap Any, return Any instead.
 
 Note: Struct LCA keeps only **common** fields (intersection). Each common field type is Lca'd recursively. This mirrors width subtyping: fewer fields = more general.
 
@@ -78,7 +99,13 @@ Used for: function argument types in Lca (contravariance), ancestor narrowing.
 
 | A | B | Gcd(A, B) |
 |---|---|-----------|
-| P₁ | P₂ | Pre-computed 18×18 matrix (or null) |
+| P₁ | P₂ | Pre-computed 19×19 matrix (includes None; or null) |
+| None | Any | None (since None ≤ Any) |
+| None | Opt(T) | None (since None ≤ Opt(T)) |
+| None | T (non-Any, non-Opt) | null (None is not ≤ T) |
+| Opt(A) | Any | Opt(A) (since Opt(A) ≤ Any) |
+| Opt(A) | Opt(B) | Opt(Gcd(A,B)) or null |
+| Opt(A) | T (non-Any, non-Opt) | Gcd(A, T) (common desc must be non-optional) |
 | Array(A) | Array(B) | Array(Gcd(A, B)) or null |
 | Fun(A₁..Aₙ→R₁) | Fun(B₁..Bₙ→R₂) | Fun(Lca(A₁,B₁)..→Gcd(R₁,R₂)) or null |
 | Struct{fᵢ:Aᵢ} | Struct{fⱼ:Bⱼ} | Struct{union of fields, Gcd on shared} or null |
@@ -150,8 +177,10 @@ All verified by unit tests:
 | Idempotent | ✅ | ✅ | ✅ | n/a |
 | Reflexive | n/a | n/a | n/a | ✅ |
 | Transitive | ✅ primitives | n/a | n/a | ✅ primitives |
-| Top (Any) | Lca(A,Any)=Any | Gcd(A,Any)=A | Unify(A,Any)=A | Fits(A,Any)=true |
+| Top (Any) | Lca(A,Any)=Any ∀A | Gcd(A,Any)=A ∀A | Unify(A,Any)=A ∀A | Fits(A,Any)=true ∀A |
 | Unconstrained (C[]) | Lca(A,C[])=A | n/a | n/a | Fits(A,C[])=true |
+
+Note: Any is the single top of the entire lattice. None ≤ Any, Opt(T) ≤ Any for all T. Opt(Any) = Any.
 
 C[] (empty constraints) is not the lattice bottom — it is the *least constrained* state, accepting any type.
 

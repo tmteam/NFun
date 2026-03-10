@@ -47,6 +47,9 @@ internal  static class DefaultValueHelper {
         if (type.BaseType == BaseFunnyType.Fun)
             return new DefaultHiOrderFunction(type.FunTypeSpecification.Output, type.FunTypeSpecification.Output);
 
+        if (type.BaseType == BaseFunnyType.Optional)
+            return FunnyNone.Instance;
+
         throw new NotSupportedException($"Type {type} has no default value");
     }
 

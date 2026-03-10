@@ -10,6 +10,7 @@ using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.SyntaxParsing;
 
@@ -181,7 +182,7 @@ public static class SyntaxNodeReader {
             return SyntaxNodeFactory.Constant(false, FunnyType.Bool, falseTok.Interval);
 
         if (flow.MoveIf(TokType.None, out var noneTok))
-            return SyntaxNodeFactory.Constant(null, FunnyType.None, noneTok.Interval);
+            return SyntaxNodeFactory.Constant(FunnyNone.Instance, FunnyType.None, noneTok.Interval);
 
         if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal))
         {

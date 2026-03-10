@@ -49,6 +49,8 @@ public abstract class TicTypesConverter {
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstraintsState constrains when constrains.Preferred != null:
+                        if (constrains.HasDescendant && constrains.Descendant is StateOptional)
+                            return FunnyType.OptionalOf(ToConcrete(constrains.Preferred.Name));
                         return ToConcrete(constrains.Preferred.Name);
                     case ConstraintsState constrains when !constrains.HasAncestor:
                     {

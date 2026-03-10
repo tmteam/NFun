@@ -15,19 +15,11 @@ public static partial class StateExtensions {
         if (b is StateRefTo br)
             return UnifyOrNull(a, br.GetNonReference());
 
-        // Any is top of concrete types — None and Optional are NOT ≤ Any
+        // Any is top of ALL types: None ≤ Any, Opt(T) ≤ Any
         if (a.Equals(Any))
-        {
-            if (b is StatePrimitive { Name: PrimitiveTypeName.None } || b is StateOptional)
-                return null;
             return b;
-        }
         if (b.Equals(Any))
-        {
-            if (a is StatePrimitive { Name: PrimitiveTypeName.None } || a is StateOptional)
-                return null;
             return a;
-        }
 
         if (a is ConstraintsState ac)
         {

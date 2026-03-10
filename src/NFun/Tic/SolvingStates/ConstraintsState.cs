@@ -96,26 +96,52 @@ public class ConstraintsState : ITicNodeState {
         }
     }
 
+    /// <summary>
+    /// Intersect two constraint intervals:
+    ///   desc = LCA(this.Desc, other.Desc)
+    ///   anc  = GCD(this.Anc,  other.Anc)
+    ///   comp = this.IsComparable || other.IsComparable
+    /// Returns null if ancestors are incompatible (GCD fails).
+    /// Does NOT merge Preferred or collapse composites.
+    /// </summary>
+    public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other) {
+        var result = new ConstraintsState(Descendant, Ancestor, IsComparable || other.IsComparable);
+        result.AddDescendant(other.Descendant);
+        if (!result.TryAddAncestor(other.Ancestor))
+            return null;
+        return result;
+    }
+
+    /// <summary>
+    /// Returns true if the interval [Descendant..Ancestor] can contain at least one type.
+    /// Open intervals (no ancestor or no descendant) are trivially non-empty.
+    /// When Ancestor == Descendant, checks that comparable constraint is satisfied.
+    /// </summary>
+    public bool IntervalIsNonEmpty() {
+        if (!HasAncestor || !HasDescendant)
+            return true;
+        if (Ancestor.Equals(Descendant))
+            return !IsComparable || Ancestor.IsComparable;
+        if (Descendant is ITypeState typeState)
+            return typeState.CanBePessimisticConvertedTo(Ancestor);
+        return true;
+    }
+
     public ITicNodeState MergeOrNull(ConstraintsState constraintsState) {
-        var result = new ConstraintsState(Descendant, Ancestor, IsComparable || constraintsState.IsComparable);
-
-        result.AddDescendant(constraintsState.Descendant);
-
-        if (!result.TryAddAncestor(constraintsState.Ancestor))
+        var result = IntersectIntervalsOrNull(constraintsState);
+        if (result == null)
             return null;
 
         if (result.HasAncestor && result.HasDescendant)
         {
-            var anc = result.Ancestor;
-            var des = result.Descendant;
-            if (anc.Equals(des))
+            if (result.Ancestor.Equals(result.Descendant))
             {
-                if (result.IsComparable && !anc.IsComparable)
+                if (result.IsComparable && !result.Ancestor.IsComparable)
                     return null;
-                return anc;
+                return result.Ancestor;
             }
 
-            if (Descendant != null && !Descendant.CanBePessimisticConvertedTo(anc))
+            if (Descendant != null && !Descendant.CanBePessimisticConvertedTo(result.Ancestor))
                 return null;
         }
 
@@ -138,9 +164,18 @@ public class ConstraintsState : ITicNodeState {
         // the composite type IS the result. Struct and Optional don't participate in the
         // primitive type hierarchy (unlike Array/Fun whose elements can widen covariantly),
         // so [struct/opt..] without a primitive upper bound is equivalent to the type itself.
+        // Exception: when Optional has a preferred type hint, keep as ConstraintsState
+        // so finalization/converter can apply preferred to the inner element.
         if (!result.HasAncestor && !result.IsComparable &&
             result.Descendant is StateStruct { IsSolved: true } or StateOptional { IsSolved: true })
-            return (ITicNodeState)result.Descendant;
+        {
+            if (result.Descendant is StateOptional && result.Preferred != null)
+            {
+                // Don't collapse — let preferred type survive to runtime resolution
+            }
+            else
+                return (ITicNodeState)result.Descendant;
+        }
 
         return result;
     }

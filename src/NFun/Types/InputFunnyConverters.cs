@@ -153,6 +153,20 @@ public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
     }
 }
 
+public class OptionalInputFunnyConverter : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _elementConverter;
+
+    public OptionalInputFunnyConverter(IInputFunnyConverter elementConverter) {
+        _elementConverter = elementConverter;
+        FunnyType = FunnyType.OptionalOf(elementConverter.FunnyType);
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToFunObject(object clrObject) =>
+        clrObject == null ? FunnyNone.Instance : _elementConverter.ToFunObject(clrObject);
+}
+
 public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
     private readonly IInputFunnyConverter _elementConverter;
 

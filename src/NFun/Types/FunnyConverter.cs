@@ -42,6 +42,13 @@ public class FunnyConverter {
         _inputTypeFromClr.Count;
     
     public object ConvertInputOrThrow(object clrValue, FunnyType resultFunnyType) {
+        if (clrValue == null)
+        {
+            if (resultFunnyType.BaseType is BaseFunnyType.Optional or BaseFunnyType.None or BaseFunnyType.Any)
+                return FunnyNone.Instance;
+            throw new InvalidCastException($"Cannot set null for non-optional type {resultFunnyType}");
+        }
+
         var clrFromType = clrValue.GetType();
         if (TypeBehaviour.GetClrTypeFor(resultFunnyType.BaseType) == clrFromType)
             return clrValue;
@@ -91,6 +98,12 @@ public class FunnyConverter {
         return converter;
         
         IOutputFunnyConverter CreateOutputConverterFor(Type clrType, int reqDeepthCheck) {
+
+            if (Nullable.GetUnderlyingType(clrType) is { } underlyingType)
+            {
+                var elementConverter = GetOutputConverterReq(underlyingType, reqDeepthCheck++);
+                return new OptionalOutputFunnyConverter(elementConverter);
+            }
 
             if (clrType.IsArray)
             {
@@ -224,6 +237,17 @@ public class FunnyConverter {
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
             }
 
+            if (funnyType.BaseType == BaseFunnyType.Optional)
+            {
+                var innerClrType = clrTypeOrNull != null
+                    && Nullable.GetUnderlyingType(clrTypeOrNull) is { } underlying
+                        ? underlying
+                        : clrTypeOrNull;
+                var elementConverter = GetInputConverterReq(
+                    innerClrType, funnyType.OptionalTypeSpecification.ElementType, reqDeepthCheck++);
+                return new OptionalInputFunnyConverter(elementConverter);
+            }
+
             if (funnyType.BaseType != BaseFunnyType.Struct)
                 return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
 
@@ -285,6 +309,12 @@ public class FunnyConverter {
                 var elementConverter = GetInputConverterReq(elementType, reqDeepthCheck++);
 
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (Nullable.GetUnderlyingType(clrType) is { } underlyingType)
+            {
+                var elementConverter = GetInputConverterReq(underlyingType, reqDeepthCheck++);
+                return new OptionalInputFunnyConverter(elementConverter);
             }
 
             var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);

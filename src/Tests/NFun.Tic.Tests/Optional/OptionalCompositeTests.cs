@@ -71,7 +71,7 @@ class OptionalCompositeTests {
         result.AssertNamed(s, "y");
     }
 
-    [Test(Description = "y = {a = if(c) 1i else none} → y = {a:[opt(i32)..]}")]
+    [Test(Description = "y = {a = if(c) 1i else none} → y = {a:opt(i32)}")]
     public void StructWithOptionalField_IfElse() {
         var graph = new GraphBuilder();
         graph.SetVar("c", 0);
@@ -82,15 +82,13 @@ class OptionalCompositeTests {
         graph.SetDef("y", 4);
 
         var result = graph.Solve();
-        // Field "a" is an output generic [opt(I32)..] — LCA(I32, None) = opt(I32) as descendant
+        // Field "a" is opt(I32) — PullNoneNode transforms the if-else result
+        // to Optional when a concrete primitive and None are combined.
         var yNode = result.GetVariableNode("y").GetNonReference();
         Assert.IsInstanceOf<StateStruct>(yNode.State);
         var fieldNode = ((StateStruct)yNode.State).GetFieldOrNull("a").GetNonReference();
-        Assert.IsInstanceOf<ConstraintsState>(fieldNode.State);
-        var cs = (ConstraintsState)fieldNode.State;
-        Assert.IsTrue(cs.HasDescendant);
-        Assert.IsInstanceOf<StateOptional>(cs.Descendant);
-        Assert.AreEqual(StateOptional.Of(I32), cs.Descendant);
+        Assert.IsInstanceOf<StateOptional>(fieldNode.State);
+        Assert.AreEqual(StateOptional.Of(I32), fieldNode.State);
     }
 
     #endregion

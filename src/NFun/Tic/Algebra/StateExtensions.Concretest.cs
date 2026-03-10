@@ -14,12 +14,18 @@ public static partial class StateExtensions {
                 ? cs.Descendant.Concretest()
                 : ConstraintsState.Of(isComparable: cs.IsComparable),
             StateArray arr => StateArray.Of(arr.Element.Concretest()),
-            StateOptional opt => StateOptional.Of(opt.Element.Concretest()),
+            StateOptional opt => ConcretestOptional(opt),
             StateRefTo aref => aref.Element.Concretest(),
             StateFun f => f.Concretest(),
             StateStruct s => s.ConcretestFields(),
             _ => a
         };
+
+    private static ITicNodeState ConcretestOptional(StateOptional opt) {
+        var inner = opt.Element.Concretest();
+        // opt(any) = any
+        return inner.Equals(StatePrimitive.Any) ? StatePrimitive.Any : StateOptional.Of(inner);
+    }
 
     private static ITicNodeState Concretest(this StateFun f) {
         // return type is covariant, arg types are contravariant

@@ -78,11 +78,10 @@ public class AlgebraInvariantsTest {
 
     [Test]
     public void Lca_AnyAbsorbs_ConcreteTypes() {
-        // Any is top of concrete types: Lca(A, Any) = Any for concrete A
+        // Any is top of ALL types: Lca(A, Any) = Any for all A
+        // (none <: any, opt(T) <: any)
         foreach (var a in AllTypes())
         {
-            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
-                continue;
             var result = a.Lca(Any);
             Assert.AreEqual(Any, result,
                 $"LCA Any absorb violated: Lca({a}, Any)={result}");
@@ -90,14 +89,14 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Lca_TopAbsorbs() {
-        // Opt(Any) is true top: Lca(A, Opt(Any)) = Opt(Any)
-        var top = Optional(Any);
+    public void Lca_OptAnyEqualsAny() {
+        // opt(any) = any (collapses), so Lca(A, Opt(Any)) = Lca(A, Any) = Any
+        var optAny = Optional(Any);
         foreach (var a in AllTypes())
         {
-            var result = a.Lca(top);
-            Assert.AreEqual(top, result,
-                $"LCA Top absorb violated: Lca({a}, Opt(Any))={result}");
+            var result = a.Lca(optAny);
+            Assert.AreEqual(Any, result,
+                $"LCA Opt(Any) absorb violated: Lca({a}, Opt(Any))={result}");
         }
     }
 
@@ -198,11 +197,10 @@ public class AlgebraInvariantsTest {
 
     [Test]
     public void Gcd_AnyIsIdentity_ConcreteTypes() {
-        // Any is identity for GCD of concrete types
+        // Any is identity for GCD of ALL types: Gcd(A, Any) = A
+        // (none <: any, opt(T) <: any)
         foreach (var a in AllConcreteTypes())
         {
-            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
-                continue;
             var result = a.Gcd(Any);
             Assert.AreEqual(a, result,
                 $"GCD Any identity violated: Gcd({a}, Any)={result}, expected {a}");
@@ -210,14 +208,14 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Gcd_TopIsIdentity() {
-        // Opt(Any) is true identity for GCD
-        var top = Optional(Any);
+    public void Gcd_OptAnyIsIdentity() {
+        // opt(any) = any, so Gcd(A, Opt(Any)) = Gcd(A, Any) = A
+        var optAny = Optional(Any);
         foreach (var a in AllConcreteTypes())
         {
-            var result = a.Gcd(top);
+            var result = a.Gcd(optAny);
             Assert.AreEqual(a, result,
-                $"GCD Top identity violated: Gcd({a}, Opt(Any))={result}, expected {a}");
+                $"GCD Opt(Any) identity violated: Gcd({a}, Opt(Any))={result}, expected {a}");
         }
     }
 
@@ -277,15 +275,13 @@ public class AlgebraInvariantsTest {
     }
 
     [Test]
-    public void Unify_AnyIsCompatibleWithConcrete() {
-        // Unify(A, Any) is never null for concrete types
+    public void Unify_AnyIsCompatibleWithAll() {
+        // Unify(A, Any) is never null for any type (none <: any, opt(T) <: any)
         foreach (var a in AllTypes())
         {
-            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
-                continue;
             var result = a.UnifyOrNull(Any);
             Assert.IsNotNull(result,
-                $"Unify({a}, Any) should not be null — Any is compatible with concrete types");
+                $"Unify({a}, Any) should not be null — Any is top of all types");
         }
     }
 
@@ -531,19 +527,17 @@ public class AlgebraInvariantsTest {
 
     [Test]
     public void FitsInto_AnyAcceptsAllConcrete() {
+        // Any is top: all types fit into Any (including None and Optional)
         foreach (var a in AllConcreteTypes())
-        {
-            if (a is StateOptional || a is StatePrimitive { Name: PrimitiveTypeName.None })
-                continue;
             Assert.IsTrue(a.FitsInto(Any), $"{a} should fit into Any");
-        }
     }
 
     [Test]
-    public void FitsInto_TopAcceptsAll() {
-        var top = Optional(Any);
+    public void FitsInto_OptAnyAcceptsAll() {
+        // opt(any) = any, so all types fit into Opt(Any) too
+        var optAny = Optional(Any);
         foreach (var a in AllConcreteTypes())
-            Assert.IsTrue(a.FitsInto(top), $"{a} should fit into Opt(Any)");
+            Assert.IsTrue(a.FitsInto(optAny), $"{a} should fit into Opt(Any)");
     }
 
     [Test]

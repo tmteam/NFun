@@ -66,10 +66,18 @@ public class PushConstraintsFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) {
-        // None ≤ opt(T) and T ≤ opt(T) via implicit lift
-        if (ancestor is StateOptional)
+    public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor is StateOptional opt)
+        {
+            // None ≤ opt(T) for any T — no constraint on T
+            // T_value ≤ opt(T) — propagate: value ≤ T (element of optional)
+            if (descendant.Name != PrimitiveTypeName.None)
+            {
+                descendantNode.AddAncestor(opt.ElementNode);
+                SolvingFunctions.PushConstraints(descendantNode, opt.ElementNode);
+            }
             return true;
+        }
         return false;
     }
 
@@ -141,6 +149,13 @@ public class PushConstraintsFunctions : IStateFunction {
                 {
                     // Implicit lift: T ≤ opt(T) for any T (primitive/constrains)
                     descendantNode.RemoveAncestor(ancestorNode);
+                    // If descendant has non-None constraints, propagate to element
+                    if (!descendant.HasDescendant
+                        || descendant.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None })
+                    {
+                        descendantNode.AddAncestor(ancOpt.ElementNode);
+                        SolvingFunctions.PushConstraints(descendantNode, ancOpt.ElementNode);
+                    }
                     return true;
                 }
                 if (result.ElementNode == ancOpt.ElementNode)
