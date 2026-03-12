@@ -225,8 +225,20 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(StructFieldAccessSyntaxNode node) {
         if (!node.Source.Accept(this))
             return false;
-        _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+        if (node.IsSafeAccess || HasSafeAccessAncestor(node.Source))
+            _ticTypeGraph.SetSafeFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+        else
+            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
         return true;
+    }
+
+    private static bool HasSafeAccessAncestor(ISyntaxNode node) {
+        var current = node;
+        while (current is StructFieldAccessSyntaxNode f) {
+            if (f.IsSafeAccess) return true;
+            current = f.Source;
+        }
+        return false;
     }
 
     public bool Visit(StructInitSyntaxNode node) {
@@ -324,6 +336,20 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             if (signature != null)
                 _parentFunctionArgType = signature.ArgTypes[i];
             node.Args[i].Accept(this);
+        }
+
+        // Safe array access (?[]) — handled as TIC graph operation (like ?.)
+        // to properly flatten opt(opt(T)) via LCA instead of generic function wrapping
+        if (node.Id == CoreFunNames.SafeGetElementName)
+        {
+#if DEBUG
+            Trace(node, $"SafeArrayAccess({node.Args[0].OrderNumber},{node.Args[1].OrderNumber},{node.OrderNumber})");
+#endif
+            _ticTypeGraph.SetSafeArrayAccess(
+                node.Args[0].OrderNumber,
+                node.Args[1].OrderNumber,
+                node.OrderNumber);
+            return true;
         }
 
         //Setup ids arrays

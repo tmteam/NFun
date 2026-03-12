@@ -3,6 +3,7 @@ namespace NFun.UnitTests.TicTests.StateExtensions;
 using NUnit.Framework;
 using static LcaTestTools;
 using static SolvingStates;
+using NFun.Tic.SolvingStates;
 using static Tic.SolvingStates.StatePrimitive;
 
 public class LcaFunsTest {
@@ -98,10 +99,15 @@ public class LcaFunsTest {
     [Test]
     public void FunReturnsConstrainWithDescType_ReturnsFunThatReturnsLca() {
         foreach (var types in PrimitiveTypesLca)
+        {
+            var retExpected = types.Lca.Equals(StatePrimitive.Any)
+                ? (ITicNodeState)types.Lca
+                : Constrains(desc: types.Lca);
             AssertLca(
                 Fun(Any, Constrains(desc: types.Left)),
                 Fun(Any, Constrains(desc: types.Right)),
-                Fun(Any, types.Lca));
+                Fun(Any, retExpected));
+        }
     }
 
     [Test]

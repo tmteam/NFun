@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Functions;
@@ -107,6 +108,25 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(StructFieldAccessSyntaxNode node) {
         var structNode = ReadNode(node.Source);
+
+        if (node.IsSafeAccess)
+        {
+            if (structNode.Type.BaseType != BaseFunnyType.Optional)
+                throw Errors.SafeAccessOnNonOptional(node.Interval);
+            var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
+            if (!innerType.StructTypeSpecification.ContainsKey(node.FieldName))
+                throw Errors.FieldNotExists(node.FieldName, node.Interval);
+            return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
+        }
+
+        if (structNode.Type.BaseType == BaseFunnyType.Optional)
+        {
+            var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
+            if (!innerType.StructTypeSpecification.ContainsKey(node.FieldName))
+                throw Errors.FieldNotExists(node.FieldName, node.Interval);
+            return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
+        }
+
         // Funtic allows default values for not specified types
         // so call:
         //  y = {}.missingField
@@ -203,6 +223,31 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(FunCallSyntaxNode node) {
         var id = node.Id;
+
+        // Safe array access (?[]) — handled as special expression node (TIC graph op, not generic func)
+        if (id == CoreFunNames.SafeGetElementName)
+        {
+            var source = ReadNode(node.Args[0]);
+            var index = ReadNode(node.Args[1]);
+            // Compute element converter: source array element type may differ from result element type
+            // (e.g. source has U8[] but coalesce pushes I32 to result)
+            Func<object, object> elementConverter = null;
+            var sourceType = source.Type;
+            if (sourceType.BaseType == BaseFunnyType.Optional)
+                sourceType = sourceType.OptionalTypeSpecification.ElementType;
+            if (sourceType.BaseType == BaseFunnyType.ArrayOf)
+            {
+                var actualElemType = sourceType.ArrayTypeSpecification.FunnyType;
+                var resultType = node.OutputType;
+                var expectedElemType = resultType.BaseType == BaseFunnyType.Optional
+                    ? resultType.OptionalTypeSpecification.ElementType
+                    : resultType;
+                if (actualElemType != expectedElemType)
+                    elementConverter = VarTypeConverter.GetConverterOrNull(
+                        _dialect.Converter.TypeBehaviour, actualElemType, expectedElemType);
+            }
+            return new SafeArrayAccessExpressionNode(source, index, node.OutputType, elementConverter, node.Interval);
+        }
 
         var someFunc = node.FunctionSignature ?? _functions.GetOrNull(id, node.Args.Length);
 

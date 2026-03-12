@@ -1,5 +1,6 @@
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.Functions;
@@ -36,4 +37,28 @@ public class ForceUnwrapFunction : GenericFunctionBase {
         args[0] is FunnyNone
             ? throw new FunnyRuntimeException("Force unwrap of none value")
             : args[0];
+}
+
+/// <summary>
+/// Safe array index: (T[]?, int) -> T?
+/// Returns element if array is not none, otherwise returns none.
+/// </summary>
+public class SafeGetElementFunction : GenericFunctionBase {
+    public SafeGetElementFunction()
+        : base(
+            CoreFunNames.SafeGetElementName,
+            GenericConstrains.Any,
+            FunnyType.OptionalOf(FunnyType.Generic(0)),
+            FunnyType.OptionalOf(FunnyType.ArrayOf(FunnyType.Generic(0))),
+            FunnyType.Int32) { }
+
+    protected override object Calc(object[] args) {
+        if (args[0] is FunnyNone)
+            return FunnyNone.Instance;
+        var arr = (IFunnyArray)args[0];
+        var index = (int)args[1];
+        if (index < 0 || index >= arr.Count)
+            throw new FunnyRuntimeException("Argument out of range");
+        return arr.GetElementOrNull(index) ?? throw new FunnyRuntimeException("Argument out of range");
+    }
 }

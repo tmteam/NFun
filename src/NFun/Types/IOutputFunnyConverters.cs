@@ -173,7 +173,11 @@ public class OptionalOutputFunnyConverter : IOutputFunnyConverter {
     public OptionalOutputFunnyConverter(IOutputFunnyConverter elementConverter) {
         _elementConverter = elementConverter;
         FunnyType = FunnyType.OptionalOf(elementConverter.FunnyType);
-        ClrType = elementConverter.ClrType;
+        // Value types (int, bool, etc.) can't represent null — use Nullable<T>
+        // This ensures arrays like int?[] become Nullable<int>[] which can hold null for FunnyNone
+        ClrType = elementConverter.ClrType.IsValueType
+            ? typeof(Nullable<>).MakeGenericType(elementConverter.ClrType)
+            : elementConverter.ClrType;
     }
 
     public Type ClrType { get; }

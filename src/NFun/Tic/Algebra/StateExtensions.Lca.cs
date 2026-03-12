@@ -24,8 +24,11 @@ public static partial class StateExtensions {
             var comparable = ac.IsComparable && bc.IsComparable;
             if (lcaDesc == null)
                 return ConstraintsState.Of(isComparable: comparable);
-            // If result is a solved concrete type and no comparable constraint — return it directly
-            if (lcaDesc is ITypeState { IsSolved: true } && !comparable)
+            // Collapse when lcaDesc is a solved composite type (arrays, funs, structs, optionals
+            // have no type hierarchy beyond Any) or when lcaDesc is Any itself.
+            // Keep constraint wrapper for primitives where further widening is possible
+            // (e.g., [I24..] means "at least I24" — could resolve to I32, I64, Real).
+            if (!comparable && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
                 return lcaDesc;
             return ConstraintsState.Of(lcaDesc, null, comparable);
         }
@@ -91,14 +94,18 @@ public static partial class StateExtensions {
             var bField = b.GetFieldOrNull(aField.Key);
             if (bField == null) continue;
 
-            // When at least one field is solved, use covariant Lca.
+            // Resolve refs to get actual field states
+            var aState = aField.Value.GetNonReference().State;
+            var bState = bField.GetNonReference().State;
+
             // When both are unsolved constraints, use UnifyOrNull to
             // correctly intersect constraint intervals.
+            // Otherwise use covariant Lca (handles mixed ConstraintsState/composite cases).
             ITicNodeState fieldType;
-            if (aField.Value.IsSolved || bField.IsSolved)
-                fieldType = Lca(aField.Value.State, bField.State);
+            if (aState is ConstraintsState && bState is ConstraintsState)
+                fieldType = UnifyOrNull(aState, bState);
             else
-                fieldType = UnifyOrNull(aField.Value.State, bField.State);
+                fieldType = Lca(aState, bState);
 
             if (fieldType == null) continue;
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));

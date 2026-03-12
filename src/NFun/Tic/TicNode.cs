@@ -101,6 +101,12 @@ public class TicNode {
 
 
     public bool IsMemberOfAnything { get; set; }
+    /// <summary>
+    /// True if this node is the element of a StateOptional composite.
+    /// Used by PropagateOptionalUpward to avoid double-wrapping: if a node is already
+    /// the element of opt(T), wrapping it again would create opt(opt(T)).
+    /// </summary>
+    internal bool IsOptionalElement { get; set; }
     public bool IsSolved => _state.IsSolved;
     public bool IsMutable => _state.IsMutable;
 
@@ -114,6 +120,20 @@ public class TicNode {
 
             if (value is StateArray array)
                 array.ElementNode.IsMemberOfAnything = true;
+            else if (value is StateOptional optional)
+            {
+                optional.ElementNode.IsMemberOfAnything = true;
+                optional.ElementNode.IsOptionalElement = true;
+                // Flatten nested optionals at assignment time: opt(opt(T)) → opt(T)
+                // NFun doesn't support nested optionals, so any nesting is a solver artifact
+                var innerNonRef = optional.ElementNode.GetNonReference();
+                if (innerNonRef.State is StateOptional innerOpt)
+                {
+                    value = innerOpt;
+                    innerOpt.ElementNode.IsMemberOfAnything = true;
+                    innerOpt.ElementNode.IsOptionalElement = true;
+                }
+            }
             else
                 Debug.Assert(!(value is StateRefTo refTo && refTo.Node == this), "Self referencing node");
             _state = value;
@@ -208,4 +228,23 @@ public class TicNode {
     public override int GetHashCode() => _uid;
 
     public void ClearAncestors() => _ancestors.Clear();
+
+    /// <summary>
+    /// If this node has nested optional state opt(opt(T)), flatten to opt(T).
+    /// Bypasses the normal state setter assertion since the node may already be solved.
+    /// NFun doesn't support nested optionals — any nesting is a solver artifact.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void FlattenNestedOptional() {
+        if (_state is StateOptional outerOpt)
+        {
+            var innerNonRef = outerOpt.ElementNode.GetNonReference();
+            if (innerNonRef.State is StateOptional innerOpt)
+            {
+                _state = innerOpt;
+                innerOpt.ElementNode.IsMemberOfAnything = true;
+                innerOpt.ElementNode.IsOptionalElement = true;
+            }
+        }
+    }
 }

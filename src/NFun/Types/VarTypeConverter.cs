@@ -81,8 +81,26 @@ public static class VarTypeConverter {
             return NoConvertion;
 
         // T → Optional(T): implicit wrapping (boxed value is already valid)
+        // At runtime, value might be FunnyNone (from coalesce chains); pass it through.
         if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
-            return GetConverterOrNull(typeBehaviour, from, to.OptionalTypeSpecification.ElementType) ?? NoConvertion;
+        {
+            var inner = GetConverterOrNull(typeBehaviour, from, to.OptionalTypeSpecification.ElementType);
+            if (inner == null || inner == NoConvertion) return NoConvertion;
+            return o => o is FunnyNone ? o : inner(o);
+        }
+
+        // opt(T) → T: optional pass-through for implicit unwrap contexts (e.g., coalesce chains).
+        // TIC verified type compatibility; at runtime the value is either FunnyNone (handled by caller)
+        // or the actual T value. Convert element type if needed, but pass FunnyNone through.
+        if (from.BaseType == BaseFunnyType.Optional && to.BaseType != BaseFunnyType.Optional)
+        {
+            var elemType = from.OptionalTypeSpecification.ElementType;
+            if (elemType == to) return NoConvertion;
+            var elementConverter = GetConverterOrNull(typeBehaviour, elemType, to);
+            if (elementConverter == null) return null;
+            if (elementConverter == NoConvertion) return NoConvertion;
+            return o => o is FunnyNone ? o : elementConverter(o);
+        }
 
         if (from.BaseType == BaseFunnyType.Char)
             return typeBehaviour.GetFromCharToNumberConverterOrNull(to.BaseType);
@@ -206,6 +224,10 @@ public static class VarTypeConverter {
             // T → Optional(T) - implicit wrapping
             if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
                 return CanBeConverted(from, to.OptionalTypeSpecification.ElementType);
+
+            // opt(T) → T: optional pass-through (TIC verified compatibility)
+            if (from.BaseType == BaseFunnyType.Optional && to.BaseType != BaseFunnyType.Optional)
+                return CanBeConverted(from.OptionalTypeSpecification.ElementType, to);
 
             if (to.BaseType == from.BaseType)
             {

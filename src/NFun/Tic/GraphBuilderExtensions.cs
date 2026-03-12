@@ -135,6 +135,60 @@ public static class GraphBuilderExtensions {
         b.MergeOrSetNode(opId, new StateRefTo(memberNode));
     }
 
+    /// <summary>
+    /// x?.field where x: opt(struct{field: T}) → result: opt(T)
+    /// When T is already optional (e.g. int?), result becomes opt(opt(int))
+    /// which TIC flattens to opt(int) during Destruction/Finalization.
+    /// The runtime SafeFieldAccessExpressionNode also handles this by not
+    /// double-wrapping optional field types.
+    /// </summary>
+    public static void SetSafeFieldAccess(this GraphBuilder b, int sourceNodeId, int opId, string fieldName) {
+        // T — the field's type variable (shared between source and result constraints)
+        var fieldTypeNode = b.CreateVarType();
+
+        // struct{fieldName: T}
+        var fields = new Dictionary<string, TicNode> { { fieldName, fieldTypeNode } };
+        var structNode = b.CreateVarType(new StateStruct(fields, false));
+
+        // Source type: opt(struct{fieldName: T})
+        var sourceType = StateOptional.Of(structNode);
+
+        // Result type: opt(T)
+        var resultType = StateOptional.Of(fieldTypeNode);
+
+        // Use SetCall: [arg_type, return_type], [arg_id, return_id]
+        b.SetCall(
+            new ITicNodeState[] { sourceType, resultType },
+            new[] { sourceNodeId, opId });
+    }
+
+    /// <summary>
+    /// x?[i] where x: opt(arr(T)) → result: LCA(T, None)
+    /// Uses the if-else/LCA pattern: both T and None are subtypes of result.
+    /// This naturally flattens opt(opt(X)) → opt(X) when T is already optional,
+    /// unlike the SetCall approach which has pull-order issues for chained ?[]?[].
+    /// The runtime SafeArrayAccessExpressionNode handles element type conversion
+    /// when the array element type differs from the result element type.
+    /// </summary>
+    public static void SetSafeArrayAccess(this GraphBuilder b, int sourceNodeId, int indexNodeId, int resultNodeId) {
+        // T — the array element type variable
+        var elemNode = b.CreateVarType();
+
+        // Source: opt(arr(T))
+        var arrNode = b.CreateVarType(StateArray.Of(elemNode));
+        var sourceType = StateOptional.Of(arrNode);
+        b.SetCallArgument(sourceType, sourceNodeId);
+
+        // Index: I32
+        b.SetCallArgument(StatePrimitive.I32, indexNodeId);
+
+        // Result = LCA(T, None) — like if-else, both T and None are subtypes of result
+        var resultNode = b.GetOrCreateNode(resultNodeId);
+        elemNode.AddAncestor(resultNode);
+        var noneNode = b.CreateVarType(StatePrimitive.None);
+        noneNode.AddAncestor(resultNode);
+    }
+
     public static void SetStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
         var fields = new Dictionary<string, TicNode>(fieldNames.Length);
         for (int i = 0; i < fieldNames.Length; i++)

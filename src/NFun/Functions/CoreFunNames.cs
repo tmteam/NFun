@@ -31,6 +31,7 @@ internal static class CoreFunNames {
     public const string Negate = "-negate";
     public const string NullCoalesce = "??";
     public const string ForceUnwrap = "___forceUnwrap___";
+    public const string SafeGetElementName = "?[]";
     public const string ToText = "toText";
 
     // UsedInInterpolation:

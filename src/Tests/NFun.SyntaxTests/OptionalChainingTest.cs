@@ -5,7 +5,6 @@ using NUnit.Framework;
 namespace NFun.SyntaxTests;
 
 [TestFixture]
-[Ignore("Optional chaining (?. and ?[) requires struct field type specification")]
 public class OptionalChainingTest {
 
 
@@ -42,7 +41,7 @@ public class OptionalChainingTest {
 
     [Test]
     public void OptionalChaining_RealField_HasValue() =>
-        "x:{num:real}? = {num = 3.14}\r y = x?.num".AssertResultHas("y", 3.14);
+        "x:{n:real}? = {n = 3.14}\r y = x?.n".AssertResultHas("y", 3.14);
 
 
     [Test]
@@ -421,9 +420,10 @@ public class OptionalChainingTest {
 
 
     [Test]
+    [Ignore("Requires {name:type = value} struct literal field spec syntax")]
     public void NestedOptionalStruct_ChainAccess() =>
         Assert.DoesNotThrow(() =>
-            "s = {inner:{num:int?}? = {num = 42}}\r y = s.inner?.num".Build());
+            "s = {inner:{n:int?}? = {n = 42}}\r y = s.inner?.n".Build());
 
 
     // --- Optional struct with optional field — double optional ---
@@ -458,25 +458,25 @@ public class OptionalChainingTest {
 
     [Test]
     public void Combo_ChainingCoalesceUnwrap_HasValue() =>
-        "s:{inner:{num:int?}?}? = {inner = {num = 42}}\r y = (s?.inner?.num ?? 0)"
+        "s:{inner:{n:int?}?}? = {inner = {n = 42}}\r y = (s?.inner?.n ?? 0)"
             .AssertResultHas("y", 42);
 
 
     [Test]
     public void Combo_ChainingCoalesceUnwrap_NoneOuter() =>
-        "s:{inner:{num:int?}?}? = none\r y = (s?.inner?.num ?? 0)"
+        "s:{inner:{n:int?}?}? = none\r y = (s?.inner?.n ?? 0)"
             .AssertResultHas("y", 0);
 
 
     [Test]
     public void Combo_ChainingCoalesceUnwrap_NoneInner() =>
-        "s:{inner:{num:int?}?} = {inner = none}\r y = (s.inner?.num ?? 0)"
+        "s:{inner:{n:int?}?} = {inner = none}\r y = (s.inner?.n ?? 0)"
             .AssertResultHas("y", 0);
 
 
     [Test]
     public void Combo_ChainingCoalesceUnwrap_NoneLeaf() =>
-        "s:{inner:{num:int?}?} = {inner = {num = none}}\r y = (s.inner?.num ?? 0)"
+        "s:{inner:{n:int?}?} = {inner = {n = none}}\r y = (s.inner?.n ?? 0)"
             .AssertResultHas("y", 0);
 
 
@@ -526,36 +526,36 @@ public class OptionalChainingTest {
 
     [Test]
     public void Combo_ChainCoalesceUnwrap_AllThree() =>
-        "s:{num:int?}? = {num = 10}\r y = (s?.num ?? 0)".AssertResultHas("y", 10);
+        "s:{n:int?}? = {n = 10}\r y = (s?.n ?? 0)".AssertResultHas("y", 10);
 
 
     [Test]
     public void Combo_ChainUnwrapArithmetic() =>
-        "s:{num:int}? = {num = 5}\r y = s!.num + 1".AssertResultHas("y", 6);
+        "s:{n:int}? = {n = 5}\r y = s!.n + 1".AssertResultHas("y", 6);
 
 
     [Test]
     public void Combo_ChainUnwrapArithmetic_None_RuntimeError() =>
-        "s:{num:int}? = none\r y = s!.num + 1".AssertObviousFailsOnRuntime();
+        "s:{n:int}? = none\r y = s!.n + 1".AssertObviousFailsOnRuntime();
 
 
     // --- ?. with ?? with arithmetic ---
 
     [Test]
     public void Combo_ChainingCoalesceArithmetic() =>
-        "s:{num:int}? = {num = 5}\r y = (s?.num ?? 0) + 10"
+        "s:{n:int}? = {n = 5}\r y = (s?.n ?? 0) + 10"
             .AssertResultHas("y", 15);
 
 
     [Test]
     public void Combo_ChainingCoalesceArithmetic_None() =>
-        "s:{num:int}? = none\r y = (s?.num ?? 0) + 10"
+        "s:{n:int}? = none\r y = (s?.n ?? 0) + 10"
             .AssertResultHas("y", 10);
 
 
     [Test]
     public void Combo_ChainingCoalesceMultiply() =>
-        "s:{num:int}? = {num = 3}\r y = (s?.num ?? 1) * 2"
+        "s:{n:int}? = {n = 3}\r y = (s?.n ?? 1) * 2"
             .AssertResultHas("y", 6);
 
 
@@ -627,24 +627,24 @@ public class OptionalChainingTest {
 
     [Test]
     public void Combo_TripleOperator_ChainCoalesceFallbackUnwrap() =>
-        @"s:{num:int}? = {num = 42}
+        @"s:{n:int}? = {n = 42}
           fallback:int? = 99
-          y = s?.num ?? fallback!"
+          y = s?.n ?? fallback!"
             .AssertResultHas("y", 42);
 
 
     [Test]
     public void Combo_TripleOperator_ChainNone_CoalesceFallbackUnwrap() =>
-        @"s:{num:int}? = none
+        @"s:{n:int}? = none
           fallback:int? = 99
-          y = s?.num ?? fallback!"
+          y = s?.n ?? fallback!"
             .AssertResultHas("y", 99);
 
 
     [Test]
     public void Combo_TripleOperator_ChainNone_FallbackNone_RuntimeError() =>
-        @"s:{num:int}? = none
+        @"s:{n:int}? = none
           fallback:int? = none
-          y = s?.num ?? fallback!"
+          y = s?.n ?? fallback!"
             .AssertObviousFailsOnRuntime();
 }

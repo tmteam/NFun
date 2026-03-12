@@ -88,7 +88,8 @@ internal static class BaseFunctions {
             new ReverseGenericFunctionDefinition(),
 
             new NullCoalesceFunction(),
-            new ForceUnwrapFunction()
+            new ForceUnwrapFunction(),
+            new SafeGetElementFunction()
         };
 
         ConcreteFunctions = new IConcreteFunction[] {

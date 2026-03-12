@@ -177,7 +177,7 @@ public class OptionalTypeTest {
 
     [Test]
     public void ArrayOfOptionalInts_WithValues() =>
-        "y:int?[] = [1, 2, 3]".AssertReturns("y", new[] { 1, 2, 3 });
+        "y:int?[] = [1, 2, 3]".AssertReturns("y", new int?[] { 1, 2, 3 });
 
 
     [Test]
@@ -198,6 +198,26 @@ public class OptionalTypeTest {
     [Test]
     public void ArrayOfOptionalBools_WithNone() =>
         Assert.DoesNotThrow(() => "y:bool?[] = [true, none, false]".Build());
+
+
+    [Test]
+    public void ArrayOfOptionalInts_NoneIsNull() {
+        var result = "y:int?[] = [1, none, 3]".Calc();
+        var arr = (int?[])result.Get("y");
+        Assert.AreEqual(1, arr[0]);
+        Assert.IsNull(arr[1], "none should be null, not 0");
+        Assert.AreEqual(3, arr[2]);
+    }
+
+
+    [Test]
+    public void ArrayOfOptionalBools_NoneIsNull() {
+        var result = "y:bool?[] = [true, none, false]".Calc();
+        var arr = (bool?[])result.Get("y");
+        Assert.AreEqual(true, arr[0]);
+        Assert.IsNull(arr[1], "none should be null, not false");
+        Assert.AreEqual(false, arr[2]);
+    }
 
 
     // --- Optional array: T[]? ---
@@ -1167,7 +1187,7 @@ public class OptionalTypeTest {
 
     // --- Generic function with optional ---
 
-    [TestCase("f(x) = x ?? 0\r y = f(none)", 0)]
+    [TestCase("f(x) = x ?? 0\r y = f(none)", 0.0)]
     [TestCase("f(x) = x ?? 'default'\r y = f(none)", "default")]
     public void GenericFunc_WithCoalesce(string expr, object expected) =>
         expr.AssertReturns("y", expected);

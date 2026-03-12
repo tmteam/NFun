@@ -31,21 +31,6 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // When ancestor has only None as descendant (from if-else/array None branch)
-        // and descendant is NOT also None-only, wrap ancestor in Optional instead of unifying.
-        // This prevents None from "infecting" unconstrained type variables.
-        // Example: if(cond) x else none → result = opt(x), x stays generic
-        if (ancestor.HasDescendant
-            && ancestor.Descendant is StatePrimitive { Name: PrimitiveTypeName.None }
-            && !ancestor.HasAncestor && !ancestor.IsComparable
-            && !(descendant.HasDescendant
-                 && descendant.Descendant is StatePrimitive { Name: PrimitiveTypeName.None }))
-        {
-            ancestorNode.State = new StateOptional(descendantNode);
-            descendantNode.RemoveAncestor(ancestorNode);
-            return true;
-        }
-
         var result = ancestor.MergeOrNull(descendant);
         if (result == null)
             return false;
@@ -82,10 +67,10 @@ public class DestructionFunctions : IStateFunction {
         }
 
         TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
-        // When the actual descendant (from solved expression) contains Optional-wrapped
-        // elements that the stale constraint snapshot doesn't know about, the constraint's
-        // Descendant is outdated (e.g. arr(U8) vs actual arr(opt(T))). In this case,
-        // adopt the actual descendant directly instead of using the stale snapshot.
+
+        // When the actual descendant contains Optional-wrapped elements that
+        // the stale constraint snapshot doesn't know about (e.g. arr(opt(T))
+        // vs snapshot arr(U8)), adopt the actual descendant directly.
         if (DescendantHasOptionalLift(ancestor.Descendant, descendant))
         {
             ancestorNode.State = new StateRefTo(descendantNode);
@@ -95,6 +80,9 @@ public class DestructionFunctions : IStateFunction {
 
         if (descendant.GetType() == ancestor.Descendant?.GetType())
         {
+            // Use the snapshot type and recursively destruct element-by-element.
+            // This propagates type constraints at the element level (e.g., Real
+            // from one branch to U8 from another in [[0x1],[1.0]]).
             ancestorNode.State = ancestor.Descendant;
             descendantNode.RemoveAncestor(ancestorNode);
             return descendant switch {
@@ -237,7 +225,7 @@ public class DestructionFunctions : IStateFunction {
     /// <summary>
     /// Checks if the actual descendant composite contains Optional-wrapped elements
     /// that the stale constraint descendant doesn't (e.g. arr(opt(T)) vs arr(U8)).
-    /// This happens when Pull phase wraps array/struct elements in Optional after
+    /// This happens when Phase 2 wraps array/struct elements in Optional after
     /// the constraint's Descendant was already set.
     /// </summary>
     private static bool DescendantHasOptionalLift(ITicNodeState staleDescendant, ICompositeState actual) =>

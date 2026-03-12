@@ -104,4 +104,55 @@ public class MostConcreteStateTest {
         Assert.AreEqual(
             Struct("foo", Constrains(U24, Real)),
             Struct("foo", Constrains(U24, Real)).Concretest());
+
+    // ═══════════════════════════════════════════════════════════════
+    // Optional Concretest
+    //
+    // Invariant: Concretest(opt(T)) = opt(Concretest(T))
+    // Exception: Concretest(opt(Any)) = Any (opt(Any) = Any)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void Opt_Primitive() =>
+        Assert.AreEqual(Optional(I32), Optional(I32).Concretest());
+
+    [Test]
+    public void Opt_Any_CollapseToAny() =>
+        // opt(any) = any is a design choice
+        Assert.AreEqual(Any, Optional(Any).Concretest());
+
+    [Test]
+    public void Opt_ConstraintsWithDesc() =>
+        // opt(C[U8..Real]) → opt(U8) — inner Concretest resolves to descendant
+        Assert.AreEqual(Optional(U8), Optional(Constrains(U8, Real)).Concretest());
+
+    [Test]
+    public void Opt_EmptyConstraints() =>
+        // opt(C[]) → opt(C[]) — no descendant to resolve
+        Assert.AreEqual(Optional(EmptyConstraints), Optional(EmptyConstraints).Concretest());
+
+    [Test]
+    public void Opt_Array() =>
+        Assert.AreEqual(Optional(Array(I32)), Optional(Array(I32)).Concretest());
+
+    [Test]
+    public void Opt_ArrayWithConstraints() =>
+        Assert.AreEqual(
+            Optional(Array(U16)).StateDescription,
+            Optional(Array(Constrains(U16, Real))).Concretest().StateDescription);
+
+    [Test]
+    public void Opt_Struct() =>
+        Assert.AreEqual(
+            Optional(Struct("a", I32)),
+            Optional(Struct("a", I32)).Concretest());
+
+    [Test]
+    public void Opt_Bool() =>
+        Assert.AreEqual(Optional(Bool), Optional(Bool).Concretest());
+
+    [Test]
+    public void Opt_None() =>
+        // opt(None) stays opt(None) — Concretest of None is None
+        Assert.AreEqual(Optional(None), Optional(None).Concretest());
 }

@@ -124,7 +124,12 @@ public static partial class StateExtensions {
     /// </summary>
     private static bool CanBeFitConverted(ICompositeState desc, ICompositeState to) {
         if (desc.GetType() != to.GetType())
+        {
+            // Implicit lift: T fits into opt(T) — lower bound T is satisfied by opt(T)
+            if (to is StateOptional toOpt)
+                return CanBeFitConverted((ITicNodeState)desc, toOpt.Element);
             return false;
+        }
         return desc switch {
             StateArray descA     => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
             StateFun descF       => CanBeFitConverted(descF, (StateFun)to),

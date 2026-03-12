@@ -175,8 +175,9 @@ class OptionalCompositeTests {
 
     #region Optional of Optional
 
-    [Test(Description = "x:opt(opt(i32)); y = x → y = opt(opt(i32))")]
-    public void NestedOptional_Propagates() {
+    [Test(Description = "x:opt(opt(i32)); y = x → y = opt(i32) (nested optionals flatten)")]
+    public void NestedOptional_Flattens() {
+        // NFun doesn't support nested optionals — opt(opt(T)) flattens to opt(T)
         var graph = new GraphBuilder();
         graph.SetVarType("x", StateOptional.Of(StateOptional.Of(I32)));
         graph.SetVar("x", 0);
@@ -184,7 +185,7 @@ class OptionalCompositeTests {
 
         var result = graph.Solve();
         result.AssertNoGenerics();
-        result.AssertNamed(StateOptional.Of(StateOptional.Of(I32)), "y");
+        result.AssertNamed(StateOptional.Of(I32), "y");
     }
 
     [Test(Description = "x:opt(i32); y = if(a) x else none → y = opt(i32), not opt(opt(i32))")]
@@ -388,6 +389,176 @@ class OptionalCompositeTests {
         var result = graph.Solve();
         result.AssertNoGenerics();
         result.AssertNamed(Bool, "y");
+    }
+
+    #endregion
+
+    #region Safe field access (?.)
+
+    [Test(Description = "x:opt({age:i32}); y = x?.age → y = opt(i32)")]
+    public void SafeFieldAccess_OptStruct_ReturnsOptField() {
+        // x:opt({age:i32})
+        // y = x?.age  →  SetSafeFieldAccess(x, y, "age")
+        var graph = new GraphBuilder();
+        graph.SetVarType("x", StateOptional.Of(StateStruct.Of("age", I32)));
+        graph.SetVar("x", 0);
+        graph.SetSafeFieldAccess(0, 1, "age");
+        graph.SetDef("y", 1);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateOptional.Of(I32), "y");
+    }
+
+    [Test(Description = "x = if(c) {age=42i} else none; y = x?.age → y = opt(i32)")]
+    public void SafeFieldAccess_IfElseStructOrNone() {
+        // x = if(c) {age = 42i} else none
+        // y = x?.age
+        var graph = new GraphBuilder();
+        graph.SetVar("c", 0);
+        graph.SetConst(1, I32);
+        graph.SetStructInit(new[] { "age" }, new[] { 1 }, 2);
+        graph.SetConst(3, None);
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 3 }, 4);
+        graph.SetDef("x", 4);
+
+        graph.SetVar("x", 5);
+        graph.SetSafeFieldAccess(5, 6, "age");
+        graph.SetDef("y", 6);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateOptional.Of(I32), "y");
+    }
+
+    [Test(Description = "x:i32; SetSafeFieldAccess(x, y, 'name') → TicError")]
+    public void SafeFieldAccess_NonStruct_Fails() {
+        TestHelper.AssertThrowsTicError(() => {
+            var graph = new GraphBuilder();
+            graph.SetVarType("x", I32);
+            graph.SetVar("x", 0);
+            graph.SetSafeFieldAccess(0, 1, "name");
+            graph.SetDef("y", 1);
+            graph.Solve();
+        });
+    }
+
+    [Test(Description = "x:opt({b:opt({c:i32})}); y = x?.b?.c → y = opt(i32) — chained safe access with optional field")]
+    public void SafeFieldAccess_ChainedWithOptionalField() {
+        // x:{a:{b:{c:int}?}?} → x.a = opt(struct{b: opt(struct{c: i32})})
+        // x.a?.b → opt(opt(struct{c: i32})) → flattened: opt(struct{c: i32})
+        // (x.a?.b)?.c → opt(i32)
+        var graph = new GraphBuilder();
+        graph.SetVarType("x",
+            StateOptional.Of(StateStruct.Of(("b", StateOptional.Of(StateStruct.Of("c", I32))))));
+        graph.SetVar("x", 0);
+        graph.SetSafeFieldAccess(0, 1, "b");   // x?.b
+        graph.SetSafeFieldAccess(1, 2, "c");   // (x?.b)?.c
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateOptional.Of(I32), "y");
+    }
+
+    [Test(Description = "x:{a:{b:{c:int}?}?}; y = x.a?.b?.c → opt(i32) — field access then chained safe access")]
+    public void SafeFieldAccess_FieldThenChainedSafeAccess() {
+        // x:{a:{b:{c:int}?}?}  → x.a = opt(struct{b: opt(struct{c: int})})
+        // x.a?.b → opt(struct{c: int})   (flattens opt(opt(...)))
+        // (x.a?.b)?.c → opt(int)
+        var graph = new GraphBuilder();
+        graph.SetVarType("x",
+            StateStruct.Of(("a", StateOptional.Of(StateStruct.Of(("b", StateOptional.Of(StateStruct.Of("c", I32))))))));
+        graph.SetVar("x", 0);
+        graph.SetFieldAccess(0, 1, "a");          // x.a → opt({b: opt({c: i32})})
+        graph.SetSafeFieldAccess(1, 2, "b");      // (x.a)?.b → opt({c: i32})
+        graph.SetSafeFieldAccess(2, 3, "c");      // ((x.a)?.b)?.c → opt(i32)
+        graph.SetDef("y", 3);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateOptional.Of(I32), "y");
+    }
+
+    [Test(Description = "x:opt({b:{c:i32}}); y = x?.b?.c → y = opt(i32) — chained safe access, non-optional field")]
+    public void SafeFieldAccess_ChainedNonOptionalField() {
+        // x?.b → opt(struct{c: i32})
+        // (x?.b)?.c → opt(i32)
+        var graph = new GraphBuilder();
+        graph.SetVarType("x",
+            StateOptional.Of(StateStruct.Of(("b", StateStruct.Of("c", I32)))));
+        graph.SetVar("x", 0);
+        graph.SetSafeFieldAccess(0, 1, "b");
+        graph.SetSafeFieldAccess(1, 2, "c");
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateOptional.Of(I32), "y");
+    }
+
+    #endregion
+
+    #region Implicit unwrap rejection (opt(composite) ≤ composite is invalid)
+
+    [Test(Description = "x:opt(arr(i32)); count(x) → TicError (opt(arr) can't satisfy arr)")]
+    public void OptionalArray_PassedToArrayFunc_Fails() {
+        // Simulates: x:int[]?; y = x.count()
+        // count: arr(T) → I32. opt(arr(int)) can't satisfy arr(T).
+        TestHelper.AssertThrowsTicError(() => {
+            var graph = new GraphBuilder();
+            var t = graph.InitializeVarNode();
+            graph.SetVarType("x", StateOptional.Of(StateArray.Of(I32)));
+            graph.SetVar("x", 0);
+            graph.SetCall(new ITicNodeState[] { StateArray.Of(t), I32 }, new[] { 0, 1 });
+            graph.SetDef("y", 1);
+            graph.Solve();
+        });
+    }
+
+    [Test(Description = "x:arr(i32); count(x) → I32 (non-optional array is fine)")]
+    public void NonOptionalArray_PassedToArrayFunc_Succeeds() {
+        // Simulates: x:int[]; y = x.count()
+        var graph = new GraphBuilder();
+        var t = graph.InitializeVarNode();
+        graph.SetVarType("x", StateArray.Of(I32));
+        graph.SetVar("x", 0);
+        graph.SetCall(new ITicNodeState[] { StateArray.Of(t), I32 }, new[] { 0, 1 });
+        graph.SetDef("y", 1);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "y");
+    }
+
+    [Test(Description = "x:opt(fun(i32)→bool); call(x,1) → TicError (opt(fun) can't satisfy fun)")]
+    public void OptionalFun_CalledDirectly_Fails() {
+        // opt(fun(i32)→bool) can't be called — must unwrap first.
+        TestHelper.AssertThrowsTicError(() => {
+            var graph = new GraphBuilder();
+            graph.SetVarType("x", StateOptional.Of(StateFun.Of(I32, Bool)));
+            graph.SetVar("x", 0);
+            graph.SetConst(1, I32);
+            graph.SetCall(0, 1, 2);
+            graph.SetDef("y", 2);
+            graph.Solve();
+        });
+    }
+
+    [Test(Description = "x:opt({age:i32}); f(x) where f:struct→bool → TicError")]
+    public void OptionalStruct_PassedToStructFunc_Fails() {
+        TestHelper.AssertThrowsTicError(() => {
+            var graph = new GraphBuilder();
+            var s = StateStruct.Of("age", I32);
+            graph.SetVarType("x", StateOptional.Of(s));
+            graph.SetVar("x", 0);
+            // f: {age:i32} → bool
+            graph.SetVarType("f", StateFun.Of(s, Bool));
+            graph.SetVar("f", 1);
+            graph.SetCall(1, 0, 2);
+            graph.SetDef("y", 2);
+            graph.Solve();
+        });
     }
 
     #endregion

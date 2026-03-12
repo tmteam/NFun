@@ -238,4 +238,168 @@ public class ConstraintsFitsTest {
         target.FitsInto(constrains).AssertTrue();
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // Optional FitsInto — invariant: opt(T) is a separate type layer
+    //
+    // Key rules:
+    //   None ≤ opt(T)       for any T
+    //   T ≤ opt(T)          implicit lift
+    //   opt(A) ≤ opt(B)     iff A ≤ B (covariant)
+    //   opt(T) ≤ Any        always
+    //   opt(T) ≤ T          NEVER (must unwrap explicitly)
+    //   opt(T) ≤ opt(U)     iff T ≤ U
+    // ═══════════════════════════════════════════════════════════════
+
+    // --- None ≤ opt(T) ---
+
+    [Test]
+    public void None_FitsInto_OptI32() =>
+        None.FitsInto(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void None_FitsInto_OptBool() =>
+        None.FitsInto(Optional(Bool)).AssertTrue();
+
+    [Test]
+    public void None_FitsInto_OptArray() =>
+        None.FitsInto(Optional(Array(I32))).AssertTrue();
+
+    [Test]
+    public void None_FitsInto_OptStruct() =>
+        None.FitsInto(Optional(Struct("a", I32))).AssertTrue();
+
+    [Test]
+    public void None_DoesNotFitInto_I32() =>
+        None.FitsInto(I32).AssertFalse();
+
+    [Test]
+    public void None_DoesNotFitInto_Array() =>
+        None.FitsInto(Array(I32)).AssertFalse();
+
+    [Test]
+    public void None_FitsInto_None() =>
+        None.FitsInto(None).AssertTrue();
+
+    [Test]
+    public void None_FitsInto_Any() =>
+        None.FitsInto(Any).AssertTrue();
+
+    // --- T ≤ opt(T): implicit lift ---
+
+    [Test]
+    public void I32_FitsInto_OptI32() =>
+        I32.FitsInto(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void Bool_FitsInto_OptBool() =>
+        Bool.FitsInto(Optional(Bool)).AssertTrue();
+
+    [Test]
+    public void U8_FitsInto_OptI32() =>
+        // U8 ≤ I32, so U8 ≤ opt(I32) via implicit lift + widening
+        U8.FitsInto(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void ArrayI32_FitsInto_OptArrayI32() =>
+        Array(I32).FitsInto(Optional(Array(I32))).AssertTrue();
+
+    [Test]
+    public void Struct_FitsInto_OptStruct() =>
+        Struct("a", I32).FitsInto(Optional(Struct("a", I32))).AssertTrue();
+
+    // --- Implicit lift does NOT widen kind ---
+
+    [Test]
+    public void Bool_DoesNotFitInto_OptI32() =>
+        // Bool ≰ I32, so Bool ≰ opt(I32)
+        Bool.FitsInto(Optional(I32)).AssertFalse();
+
+    [Test]
+    public void ArrayI32_DoesNotFitInto_OptI32() =>
+        // arr(I32) ≰ I32
+        Array(I32).FitsInto(Optional(I32)).AssertFalse();
+
+    [Test]
+    public void I32_DoesNotFitInto_OptArrayI32() =>
+        // I32 ≰ arr(I32)
+        I32.FitsInto(Optional(Array(I32))).AssertFalse();
+
+    // --- opt(A) ≤ opt(B) covariant ---
+
+    [Test]
+    public void OptI32_FitsInto_OptI32() =>
+        Optional(I32).FitsInto(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void OptU8_FitsInto_OptI32() =>
+        // U8 ≤ I32 → opt(U8) ≤ opt(I32)
+        Optional(U8).FitsInto(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void OptI32_FitsInto_OptReal() =>
+        Optional(I32).FitsInto(Optional(Real)).AssertTrue();
+
+    [Test]
+    public void OptI32_DoesNotFitInto_OptBool() =>
+        // I32 ≰ Bool → opt(I32) ≰ opt(Bool)
+        Optional(I32).FitsInto(Optional(Bool)).AssertFalse();
+
+    [Test]
+    public void OptBool_DoesNotFitInto_OptI32() =>
+        Optional(Bool).FitsInto(Optional(I32)).AssertFalse();
+
+    [Test]
+    public void OptArrayI32_FitsInto_OptArrayReal() =>
+        // arr(I32) ≤ arr(Real) → opt(arr(I32)) ≤ opt(arr(Real))
+        Optional(Array(I32)).FitsInto(Optional(Array(Real))).AssertTrue();
+
+    [Test]
+    public void OptArrayReal_DoesNotFitInto_OptArrayI32() =>
+        Optional(Array(Real)).FitsInto(Optional(Array(I32))).AssertFalse();
+
+    // --- opt(T) does NOT fit into T (must unwrap) ---
+
+    [Test]
+    public void OptI32_DoesNotFitInto_I32() =>
+        Optional(I32).FitsInto(I32).AssertFalse();
+
+    [Test]
+    public void OptBool_DoesNotFitInto_Bool() =>
+        Optional(Bool).FitsInto(Bool).AssertFalse();
+
+    [Test]
+    public void OptArrayI32_DoesNotFitInto_ArrayI32() =>
+        Optional(Array(I32)).FitsInto(Array(I32)).AssertFalse();
+
+    // --- opt(T) ≤ Any ---
+
+    [Test]
+    public void OptI32_FitsInto_Any() =>
+        Optional(I32).FitsInto(Any).AssertTrue();
+
+    [Test]
+    public void OptArray_FitsInto_Any() =>
+        Optional(Array(I32)).FitsInto(Any).AssertTrue();
+
+    // --- opt(T) vs constraints ---
+
+    [Test]
+    public void OptI32_FitsInto_EmptyConstraints() =>
+        Optional(I32).FitsInto(EmptyConstraints).AssertTrue();
+
+    [Test]
+    public void OptI32_FitsInto_ConstraintsWithOptDesc() =>
+        // C[desc=opt(U8)] — opt(I32) fits if opt(U8) ≤ opt(I32)
+        Optional(I32).FitsInto(Constrains(Optional(U8))).AssertTrue();
+
+    [Test]
+    public void OptI32_DoesNotFitInto_ConstraintsWithI32Anc() =>
+        // C[..I32] — opt(I32) can't pessimistically convert to I32
+        Optional(I32).FitsInto(Constrains(null, I32)).AssertFalse();
+
+    [Test]
+    public void I32_FitsInto_ConstraintsWithOptDesc() =>
+        // C[desc=opt(U8)] — I32 must satisfy: opt(U8) ≤ I32? No. CanBeFitConverted(opt(U8), I32) = false
+        I32.FitsInto(Constrains(Optional(U8))).AssertFalse();
 }
+

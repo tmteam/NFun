@@ -28,7 +28,7 @@ public static class SyntaxNodeReader {
 
     static SyntaxNodeReader() {
         var priorities = new List<TokType[]>(15) {
-            new[] { TokType.ArrOBr, TokType.Dot, TokType.SafeAccess, TokType.ForceUnwrap, TokType.ParenthObr },
+            new[] { TokType.ArrOBr, TokType.Dot, TokType.SafeAccess, TokType.Question, TokType.ForceUnwrap, TokType.ParenthObr },
             new[] { TokType.Pow },
             new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
             new[] { TokType.Plus, TokType.Minus },
@@ -369,6 +369,16 @@ public static class SyntaxNodeReader {
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
                 leftNode = SyntaxNodeFactory.SafeFieldAccess(leftNode, id);
             }
+            else if (opToken.Type == TokType.Question)
+            {
+                // ?[ safe array access: ? followed by [
+                if (flow.IsPrevious(TokType.NewLine))
+                    return leftNode;
+                flow.MoveNext(); // consume ?
+                if (!flow.IsCurrent(TokType.ArrOBr))
+                    throw Errors.UnexpectedTokenAfterQuestion(opToken, flow.Current);
+                leftNode = ReadSafeArrayAccess(flow, leftNode);
+            }
             else if (opToken.Type == TokType.ForceUnwrap)
             {
                 flow.MoveNext();
@@ -385,7 +395,9 @@ public static class SyntaxNodeReader {
 
     private static ISyntaxNode ReadBinOperator(TokFlow flow, ISyntaxNode leftNode, Tok opToken, int priority) {
         flow.MoveNext();
-        var rightNode = ReadNodeOrNull(flow, priority - 1)
+        // ?? is right-associative (like C#): a ?? b ?? c  →  a ?? (b ?? c)
+        var rightPriority = opToken.Type == TokType.NullCoalesce ? priority : priority - 1;
+        var rightNode = ReadNodeOrNull(flow, rightPriority)
                         ?? throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
 
         //building the tree from the left
@@ -651,6 +663,23 @@ public static class SyntaxNodeReader {
 
         return SyntaxNodeFactory.OperatorCall(
             CoreFunNames.SliceName, new[] { arrayNode, index, end, step }, openBraket.Start, flow.CurrentTokenFinishPosition);
+    }
+
+    /// <summary>
+    /// Read safe array access: ?[index]
+    /// </summary>
+    private static ISyntaxNode ReadSafeArrayAccess(TokFlow flow, ISyntaxNode arrayNode) {
+        var openBracket = flow.Current;
+        flow.MoveNext(); // consume [
+        var index = ReadNodeOrNull(flow);
+        if (index == null)
+            throw Errors.ArrayIndexExpected(openBracket, flow.Current);
+        if (!flow.MoveIf(TokType.ArrCBr))
+            throw Errors.ArrayIndexCbrMissed(openBracket, flow.Current);
+        return SyntaxNodeFactory.OperatorCall(
+            CoreFunNames.SafeGetElementName,
+            new[] { arrayNode, index }, openBracket.Start,
+            flow.CurrentTokenFinishPosition);
     }
 
     /// <summary>

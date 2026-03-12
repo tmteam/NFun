@@ -16,8 +16,27 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __)
         => descendant.CanBePessimisticConvertedTo(ancestor);
 
-    public bool Apply(ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
-        => ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
+    public bool Apply(ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.Name == PrimitiveTypeName.None)
+        {
+            // Only wrap in Optional when ancestor already has a non-None, non-Optional descendant
+            // (established by Phase 1). This matches the old PullNoneNode's condition.
+            // Standalone None or None+None → standard path (Destruction resolves to None).
+            if (ancestor.HasDescendant
+                && ancestor.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None }
+                && ancestor.Descendant is not StateOptional)
+            {
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
+                    ancestor.GetCopy());
+                ancestorNode.State = new StateOptional(innerNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
+            }
+            return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
+        }
+        return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
+    }
 
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
@@ -31,8 +50,33 @@ public class PullConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(
-        ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
-        => ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
+        ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant is StateOptional descOpt)
+        {
+            if (ancestorNode.IsOptionalElement)
+            {
+                descOpt.ElementNode.AddAncestor(ancestorNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
+            }
+            // Verify ancestor constraints are compatible with Optional.
+            // If ancestor has constraints that reject composite types (e.g., IsComparable
+            // for arithmetic, or HasAncestor with a non-Any bound), reject.
+            var probe = ancestor.GetCopy();
+            probe.AddDescendant(descendant);
+            if (probe.SimplifyOrNull() == null)
+                return false;
+            // Wrap ancestor in Optional, connecting element nodes for covariant propagation
+            var innerNode = TicNode.CreateTypeVariableNode(
+                "e" + ancestorNode.Name.ToString().ToLower() + "'",
+                ancestor.GetCopy());
+            descOpt.ElementNode.AddAncestor(innerNode);
+            ancestorNode.State = new StateOptional(innerNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
+    }
 
     public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor is StateOptional opt)
@@ -40,10 +84,8 @@ public class PullConstraintsFunctions : IStateFunction {
             descendantNode.RemoveAncestor(ancestorNode);
             if (descendant.Name != PrimitiveTypeName.None)
             {
-                // T_value ≤ opt(T): redirect edge to element node so T gets constrained
                 descendantNode.AddAncestor(opt.ElementNode);
             }
-            // None ≤ opt(T): no constraint on T
             return true;
         }
         return false;
@@ -89,12 +131,22 @@ public class PullConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
                 if (result == null)
                 {
+                    if (descendant.HasDescendant && descendant.Descendant is StateStruct)
+                    {
+                        // Struct descendant with explicit Optional ancestor
+                        // (e.g., ?.field sets opt(struct) ancestor on lambda param that already
+                        // has struct descendant from generic function binding).
+                        // Transform to opt(inner) carrying the struct constraints.
+                        var innerNode = TicNode.CreateTypeVariableNode(
+                            "e" + descendantNode.Name.ToString().ToLower() + "'",
+                            descendant.GetCopy());
+                        innerNode.AddAncestor(ancOpt.ElementNode);
+                        descendantNode.State = new StateOptional(innerNode);
+                        descendantNode.RemoveAncestor(ancestorNode);
+                        return true;
+                    }
                     // Implicit lift: T ≤ opt(T).
-                    // Redirect to element only for primitive/empty constraints.
-                    // Composite descendants (char[], int[]) must NOT be redirected —
-                    // PullNoneNode may later add None (LCA → opt(composite)),
-                    // which would conflict with the element-level ancestor.
-                    // Push handles composites correctly after PullNoneNode finishes.
+                    // Only redirect to element for primitive/empty constraints.
                     if (!descendant.HasDescendant || descendant.Descendant is StatePrimitive)
                     {
                         descendantNode.RemoveAncestor(ancestorNode);
@@ -131,9 +183,6 @@ public class PullConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Decompose struct constraint into field-level ancestor edges.
-        // Same pattern as Array (element ≤ element) and Fun (ret ≤ ret, arg ≥ arg).
-        // Struct fields are covariant: descField ≤ ancField.
         TraceLog.WriteLine($"  Pull Struct<-Struct: anc={ancestorNode.Name}:{ancestor.StateDescription} desc={descendantNode.Name}:{descendant.StateDescription}");
         foreach (var ancField in ancestor.Fields)
         {

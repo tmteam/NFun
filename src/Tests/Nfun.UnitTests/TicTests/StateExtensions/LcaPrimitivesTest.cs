@@ -27,14 +27,25 @@ public class LcaPrimitivesTest {
     [Test]
     public void ConstraintAndConstraint_ReturnsLcaOfDescAndDesc() {
         foreach (var types in PrimitiveTypesLca)
-            AssertLca(Constrains(types.Left), Constrains(types.Right),
-                types.Lca);
+        {
+            // LCA of two open-ended constraints preserves constraint-ness for primitives
+            // (since wider primitive types exist), but collapses to Any when LCA is Any.
+            var expected = types.Lca.Equals(StatePrimitive.Any)
+                ? (ITicNodeState)types.Lca
+                : Constrains(types.Lca);
+            AssertLca(Constrains(types.Left), Constrains(types.Right), expected);
+        }
     }
 
     [Test]
     public void ConstraintAndBottom_ReturnsfDesc() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Constrains(primitive), EmptyConstraints, primitive);
+        {
+            var expected = primitive.Equals(StatePrimitive.Any)
+                ? (ITicNodeState)primitive
+                : Constrains(primitive);
+            AssertLca(Constrains(primitive), EmptyConstraints, expected);
+        }
     }
 
     [Test]

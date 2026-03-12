@@ -41,6 +41,9 @@ internal static partial class Errors {
     internal static FunnyParseException FieldNotExists(string name, Interval interval) => new(
         828, $"Access to non exist field `{name}`", interval);
 
+    internal static FunnyParseException SafeAccessOnNonOptional(Interval interval) => new(
+        829, $"'?.' can only be used on optional types. Use '.' for non-optional struct access", interval);
+
     internal static FunnyParseException FieldIsMissed(string name, Interval interval) => new(
         831, $"Field `{name}` is missed in struct", interval);
 

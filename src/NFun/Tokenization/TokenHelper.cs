@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using NFun.Exceptions;
 using NFun.ParseErrors;
@@ -68,11 +69,26 @@ public static class TokenHelper {
         };
 
     public static FunnyType ReadType(this TokFlow flow) {
-        var cur = flow.Current;
-        var readType = ToFunnyType(cur);
+        FunnyType readType;
+        int lastPosition;
+        int typeStart;
 
-        flow.MoveNext();
-        var lastPosition = cur.Finish;
+        if (flow.IsCurrent(TokType.FiObr))
+        {
+            var openBrace = flow.Current;
+            typeStart = openBrace.Start;
+            flow.MoveNext(); // consume {
+            readType = ReadStructType(flow, openBrace);
+            lastPosition = flow.Previous.Finish; // end of } token
+        }
+        else
+        {
+            var cur = flow.Current;
+            typeStart = cur.Start;
+            readType = ToFunnyType(cur);
+            flow.MoveNext();
+            lastPosition = cur.Finish;
+        }
 
         while (true)
         {
@@ -84,7 +100,7 @@ public static class TokenHelper {
                 flow.MoveNext();
                 lastPosition = flow.Current.Finish;
                 if (!flow.MoveIf(TokType.ArrCBr))
-                    throw Errors.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
+                    throw Errors.ArrTypeCbrMissed(new Interval(typeStart, flow.Current.Start));
                 readType = FunnyType.ArrayOf(readType);
             }
             else if (flow.IsCurrent(TokType.Question))
@@ -104,6 +120,36 @@ public static class TokenHelper {
         return readType;
     }
 
+
+    private static FunnyType ReadStructType(TokFlow flow, Tok openBrace) {
+        var fields = new List<(string, FunnyType)>();
+        bool hasAnyDelimiter = true;
+        flow.SkipNewLines();
+
+        while (true)
+        {
+            if (flow.MoveIf(TokType.FiCbr))
+                break;
+            if (!hasAnyDelimiter)
+                throw Errors.StructTypeSeparatorExpected(flow.Current);
+
+            if (!flow.MoveIf(TokType.Id, out var idToken))
+                throw Errors.StructTypeFieldNameExpected(flow.Current);
+            if (!flow.MoveIf(TokType.Colon))
+                throw Errors.StructTypeColonExpected(idToken, flow.Current);
+
+            var fieldType = flow.ReadType(); // recursive — handles nested structs, arrays, optionals
+            fields.Add((idToken.Value, fieldType));
+
+            hasAnyDelimiter = false;
+            if (flow.MoveIf(TokType.Sep))
+                hasAnyDelimiter = true;
+            if (flow.SkipNewLines())
+                hasAnyDelimiter = true;
+        }
+
+        return FunnyType.StructOf(fields.ToArray());
+    }
 
     public static bool MoveIf(this TokFlow flow, TokType tokType) {
         if (!flow.IsCurrent(tokType)) return false;

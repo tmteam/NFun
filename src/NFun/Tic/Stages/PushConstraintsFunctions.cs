@@ -147,7 +147,25 @@ public class PushConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
                 if (result == null)
                 {
-                    // Implicit lift: T ≤ opt(T) for any T (primitive/constrains)
+                    if (descendant.HasDescendant && descendant.Descendant is StateStruct descStruct
+                                                 && !descStruct.IsSolved)
+                    {
+                        // Struct descendant with unsolved fields (from generic/inferred type, not literal).
+                        // Wrap descendant in Optional, carrying struct constraints into element.
+                        // This handles map lambda params on optional struct arrays where Pull
+                        // single-pass didn't propagate Optional to the lambda parameter.
+                        // Guard: only wrap unsolved structs — solved structs come from concrete values
+                        // and wrapping them would incorrectly make ?. work on non-optional structs.
+                        var innerNode = TicNode.CreateTypeVariableNode(
+                            "e" + descendantNode.Name.ToString().ToLower() + "'",
+                            descendant.GetCopy());
+                        innerNode.AddAncestor(ancOpt.ElementNode);
+                        descendantNode.State = new StateOptional(innerNode);
+                        descendantNode.RemoveAncestor(ancestorNode);
+                        SolvingFunctions.PushConstraints(innerNode, ancOpt.ElementNode);
+                        return true;
+                    }
+                    // Implicit lift: T ≤ opt(T) for primitive/empty constraints
                     descendantNode.RemoveAncestor(ancestorNode);
                     // If descendant has non-None constraints, propagate to element
                     if (!descendant.HasDescendant

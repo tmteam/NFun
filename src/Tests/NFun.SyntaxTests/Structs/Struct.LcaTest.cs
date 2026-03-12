@@ -195,4 +195,12 @@ public class StructLcaTest {
         arr = [a, b]
         out = arr[0].f
         ".Calc().AssertResultHas("out", 0));
+
+
+    [Test]
+    public void IfElseStruct_WithNestedStructField_ShouldPreserveFields() {
+        var result = "z1 = {b = 1}\r x = if(true) {a = z1} else none".Calc();
+        var x = result.Get("x");
+        Assert.IsNotNull(x, "x should not be null");
+    }
 }

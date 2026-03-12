@@ -128,6 +128,15 @@ internal static partial class Errors {
     internal static FunnyParseException UnexpectedSpaceBeforeArrayTypeBrackets(FunnyType elementType, Interval interval) => new(
         412, $"there should be no space before the square brackets when defining the array type. Example: 'a:{elementType}[]'", interval);
 
+    internal static FunnyParseException StructTypeFieldNameExpected(Tok token) => new(
+        414, $"Field name expected in struct type, but was {ToText(token)}", token.Interval);
+
+    internal static FunnyParseException StructTypeColonExpected(Tok fieldName, Tok token) => new(
+        415, $"':' expected after field name '{fieldName.Value}' in struct type", token.Interval);
+
+    internal static FunnyParseException StructTypeSeparatorExpected(Tok token) => new(
+        416, $"',' or ';' expected between struct type fields, but was {ToText(token)}", token.Interval);
+
     #endregion
 
 
@@ -264,6 +273,9 @@ internal static partial class Errors {
 
     internal static FunnyParseException FunctionOrStructMemberNameIsMissedAfterDot(Tok token) => new(
         558, $"Function name or field name expected after '.'{Nl} Example: [1,2].myFunction(){Nl} Example: user.name", token.Interval);
+
+    internal static FunnyParseException UnexpectedTokenAfterQuestion(Tok question, Tok next) => new(
+        559, $"'[' expected after '?' for safe array access{Nl} Example: arr?[0]", question.Start, next.Finish);
 
     internal static FunnyParseException FunctionCallObrMissed(int funStart, string name, int position, ISyntaxNode pipedVal) {
         if (pipedVal == null)
