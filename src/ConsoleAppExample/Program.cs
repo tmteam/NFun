@@ -5,29 +5,35 @@ using System.Linq;
 using System.Text;
 using NFun.Exceptions;
 using NFun.Runtime.Arrays;
+using NFun.Tic;
 
 namespace NFun.ConsoleApp;
 
 class Program {
     static int Main(string[] args) {
-        if (args.Length >= 2 && args[0] is "-e" or "--eval")
+        var argList = args.ToList();
+        if (argList.Remove("-t") || argList.Remove("--trace"))
+            TraceLog.IsEnabled = true;
+
+        if (argList.Count >= 2 && argList[0] is "-e" or "--eval")
         {
-            var expression = string.Join(" ", args.Skip(1));
+            var expression = string.Join(" ", argList.Skip(1));
             return ExecuteNonInteractive(expression);
         }
 
-        if (args.Length >= 2 && args[0] is "-s" or "--script")
+        if (argList.Count >= 2 && argList[0] is "-s" or "--script")
         {
-            var script = System.IO.File.ReadAllText(args[1]);
+            var script = System.IO.File.ReadAllText(argList[1]);
             return ExecuteNonInteractive(script);
         }
 
-        if (args.Length == 1 && args[0] is "-h" or "--help")
+        if (argList.Count == 1 && argList[0] is "-h" or "--help")
         {
             Console.WriteLine("Usage: nfun [options]");
             Console.WriteLine("  (no args)          Interactive REPL");
             Console.WriteLine("  -e, --eval <expr>  Evaluate expression and print results");
             Console.WriteLine("  -s, --script <file> Run script from file");
+            Console.WriteLine("  -t, --trace        Show TIC solver trace");
             Console.WriteLine("  -h, --help         Show this help");
             return 0;
         }
