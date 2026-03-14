@@ -188,7 +188,7 @@ An expression is anything from
 - variable
 - template text
 - function call
-- application of the operator (`[]`, `*`, `+`, `()`, `.`, `?.`, `?[`, `??`, `!`, `and`, `or`, `>>`, `|`, and so on)
+- application of the operator (`[]`, `*`, `+`, `()`, `.`, `?.`, `??`, `!`, `and`, `or`, `>>`, `|`, and so on)
 - default value - `default`
 - anonymous function - `rule`
 - array initializer `[...]`

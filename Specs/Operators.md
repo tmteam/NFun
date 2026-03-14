@@ -37,7 +37,7 @@ Within an expression, higher precedence operators will be evaluated first.
 
 | Operators                              | Explanation                          |
 |----------------------------------------|--------------------------------------|
-| `()` `[]` `.` `?.` `?[` `!` (*unary*)`-` | *Various*                         |
+| `()` `[]` `.` `?.` `!` (*unary*)`-`   | *Various*                            |
 | `**` `~`                               | Exponentiation, bitwise NOT          |
 | `*` `/` `//` `%`                       | Multiplication, divisions, remainder |
 | `+` `-`                                | Addition, subtraction                |
@@ -176,7 +176,6 @@ Here we give only a superficial description of them
 | [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          |
 | ??             | Optionals    | Null coalesce operator. Returns left operand if not `none`, otherwise right operand. Right-associative                                                                                                            | x ?? 0                    |
 | ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                |
-| ?[             | Optionals    | Safe index operator. Accesses an array element, returning `none` if the array is `none`                                                                                                                           | arr?[0]                   |
 | ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        |
 
 ## Allow to skip * operator right after the int or real constant

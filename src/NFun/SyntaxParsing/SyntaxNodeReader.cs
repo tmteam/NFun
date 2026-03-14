@@ -371,13 +371,11 @@ public static class SyntaxNodeReader {
             }
             else if (opToken.Type == TokType.Question)
             {
-                // ?[ safe array access: ? followed by [
+                // ?[ safe array access: syntax is reserved but not yet supported
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
                 flow.MoveNext(); // consume ?
-                if (!flow.IsCurrent(TokType.ArrOBr))
-                    throw Errors.UnexpectedTokenAfterQuestion(opToken, flow.Current);
-                leftNode = ReadSafeArrayAccess(flow, leftNode);
+                throw Errors.SafeArrayAccessNotSupported(opToken);
             }
             else if (opToken.Type == TokType.ForceUnwrap)
             {

@@ -277,6 +277,9 @@ internal static partial class Errors {
     internal static FunnyParseException UnexpectedTokenAfterQuestion(Tok question, Tok next) => new(
         559, $"'[' expected after '?' for safe array access{Nl} Example: arr?[0]", question.Start, next.Finish);
 
+    internal static FunnyParseException SafeArrayAccessNotSupported(Tok question) => new(
+        560, $"Safe array access '?[' is not yet supported", question.Interval);
+
     internal static FunnyParseException FunctionCallObrMissed(int funStart, string name, int position, ISyntaxNode pipedVal) {
         if (pipedVal == null)
             return new(

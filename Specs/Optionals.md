@@ -167,29 +167,6 @@ y = data?.inner.value ?? 0   # int  — 42 or 0
 
 Explicit `?.` on every level (e.g. `data?.inner?.value`) also works, but is not required when only the root is optional
 
-## Safe array indexing `?[`
-
-The `?[` operator safely accesses an element of an optional array. If the array is `none`, the result is `none`
-
-```
-expression?[index]
-```
-
-The left operand must be of optional array type `T[]?`. The index has type `int32`.
-The result type is `T?`
-
-```py
-arr:int[]? = [10, 20, 30]
-x = arr?[0]          # int? — 10
-y = arr?[1] ?? -1    # int  — 20
-
-empty:int[]? = none
-z = empty?[0]        # int? — none
-w = empty?[0] ?? -1  # int  — -1
-```
-
-If the array has a value but the index is out of bounds, a runtime exception is thrown (same as regular `[]`)
-
 ## Conditional expressions with `none`
 
 The `if-else` expression naturally supports optional types when one or both branches return `none`
@@ -217,7 +194,7 @@ The optional-related operators have the following precedence relative to other o
 
 | Operators                           | Explanation                            |
 |-------------------------------------|----------------------------------------|
-| `()` `[]` `.` `?.` `?[` `!`        | *Highest: access and unwrap*           |
+| `()` `[]` `.` `?.` `!`              | *Highest: access and unwrap*           |
 | `**` `~`                            | Exponentiation, bitwise NOT            |
 | `*` `/` `//` `%`                    | Multiplication, divisions, remainder   |
 | `+` `-`                             | Addition, subtraction                  |
@@ -249,10 +226,6 @@ user = if(loggedIn) {name = userName, level = 5} else none
 
 greeting = user?.name ?? 'Guest'    # text — user name or 'Guest'
 level    = user?.level ?? 0         # int  — level or 0
-
-# Optional array with safe indexing
-items:text[]? = if(hasData) ['a','b','c'] else none
-first = items?[0] ?? '(empty)'     # text — first item or fallback
 
 # Force unwrap when you are certain the value exists
 config:int? = 42

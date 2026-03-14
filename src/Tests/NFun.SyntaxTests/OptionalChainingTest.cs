@@ -347,42 +347,6 @@ public class OptionalChainingTest {
         expr.AssertObviousFailsOnParse();
 
 
-    // --- ?. on optional array indexing ---
-
-    [Test]
-    public void OptionalChaining_ArrayIndex_HasValue() =>
-        "x:int[]? = [10,20,30]\r y = x?[0]".AssertResultHas("y", 10);
-
-
-    [Test]
-    public void OptionalChaining_ArrayIndex_Second() =>
-        "x:int[]? = [10,20,30]\r y = x?[1]".AssertResultHas("y", 20);
-
-
-    [Test]
-    public void OptionalChaining_ArrayIndex_None() {
-        var result = "x:int[]? = none\r y = x?[0]".Calc();
-        Assert.IsNull(result.Get("y"));
-    }
-
-
-    [Test]
-    public void OptionalChaining_RealArrayIndex_HasValue() =>
-        "x:real[]? = [1.1, 2.2]\r y = x?[0]".AssertResultHas("y", 1.1);
-
-
-    [Test]
-    public void OptionalChaining_TextArrayIndex_HasValue() =>
-        "x:text[]? = ['hello', 'world']\r y = x?[0]".AssertResultHas("y", "hello");
-
-
-    [Test]
-    public void OptionalChaining_TextArrayIndex_None() {
-        var result = "x:text[]? = none\r y = x?[0]".Calc();
-        Assert.IsNull(result.Get("y"));
-    }
-
-
     // --- ?. on struct with optional field (field itself is optional) ---
 
     [Test]
@@ -591,18 +555,6 @@ public class OptionalChainingTest {
           fallback:int? = 100
           y = (root.child.leaf ?? fallback!) + 1"
             .AssertResultHas("y", 101);
-
-
-    // --- Array indexing with optional chains ---
-
-    [Test]
-    public void Combo_OptionalArrayIndexCoalesce() =>
-        "x:int[]? = [10,20,30]\r y = (x?[1]) ?? -1".AssertResultHas("y", 20);
-
-
-    [Test]
-    public void Combo_OptionalArrayIndexCoalesce_None() =>
-        "x:int[]? = none\r y = (x?[1]) ?? -1".AssertResultHas("y", -1);
 
 
     // --- Complex: multiple ?. and ?? in single line ---

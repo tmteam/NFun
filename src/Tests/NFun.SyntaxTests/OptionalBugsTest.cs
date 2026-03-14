@@ -13,18 +13,6 @@ namespace NFun.SyntaxTests;
 public class OptionalBugsTest {
 
     // ═══════════════════════════════════════════════════════════════
-    // Bug #92 FIXED: ?. on optional field + chained ?[] now works
-    // Previously failed because TIC created opt(opt(T)) constraints.
-    // Fixed by PullNoneNode refactoring + PropagateOptionalUpward improvements.
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test]
-    public void SafeFieldAccess_OptionalArrayField_ThenSafeIndex() =>
-        "x:int[]? = [1,2]\r s = if(true) {arr = x} else none\r y:int = s?.arr?[0] ?? -1"
-            .AssertResultHas("y", 1);
-
-
-    // ═══════════════════════════════════════════════════════════════
     // Bug #75 FIXED: Array of optional structs + consumer now works
     // Fixed by removing PullNoneNode (inline None handling in Pull dispatch)
     // ═══════════════════════════════════════════════════════════════
@@ -123,21 +111,5 @@ public class OptionalBugsTest {
         Assert.IsNull(result.Get("y"));
     }
 
-
-    // ═══════════════════════════════════════════════════════════════
-    // Bug #58 FIXED: Chained ?[]?[] on nested optional arrays
-    // (x?[0])?[1] previously failed with FU758.
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test]
-    public void ChainedSafeArrayAccess_HasValue() =>
-        "x:int[]?[]? = [[1,2], none, [3]]\r y = (x?[0])?[1]"
-            .AssertResultHas("y", 2);
-
-    [Test]
-    public void ChainedSafeArrayAccess_NoneInner() {
-        var result = "x:int[]?[]? = [none, [3]]\r y = (x?[0])?[1]".Calc();
-        Assert.IsNull(result.Get("y"));
-    }
 
 }

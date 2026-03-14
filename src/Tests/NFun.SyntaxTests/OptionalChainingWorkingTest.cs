@@ -4,62 +4,13 @@ using NUnit.Framework;
 namespace NFun.SyntaxTests;
 
 /// <summary>
-/// Tests for ?[ (safe array indexing) and ?. (safe field access) operators.
+/// Tests for ?. (safe field access) operator.
+/// Tests for ?[ (safe array indexing) are in SafeArrayAccessCandidateTest.cs.
 /// Tests that require {name:type} struct type annotation syntax remain in
 /// OptionalChainingTest.cs with class-level [Ignore].
 /// </summary>
 [TestFixture]
 public class OptionalChainingWorkingTest {
-
-    // ═══════════════════════════════════════════════════════════════
-    // ?[ safe array indexing
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test]
-    public void SafeArrayIndex_Int_HasValue() =>
-        "x:int[]? = [10,20,30]\r y = x?[0]".AssertResultHas("y", 10);
-
-
-    [Test]
-    public void SafeArrayIndex_Int_SecondElement() =>
-        "x:int[]? = [10,20,30]\r y = x?[1]".AssertResultHas("y", 20);
-
-
-    [Test]
-    public void SafeArrayIndex_Int_None() {
-        var result = "x:int[]? = none\r y = x?[0]".Calc();
-        Assert.IsNull(result.Get("y"));
-    }
-
-
-    [Test]
-    public void SafeArrayIndex_Real_HasValue() =>
-        "x:real[]? = [1.1, 2.2]\r y = x?[0]".AssertResultHas("y", 1.1);
-
-
-    [Test]
-    public void SafeArrayIndex_Text_HasValue() =>
-        "x:text[]? = ['hello', 'world']\r y = x?[0]".AssertResultHas("y", "hello");
-
-
-    [Test]
-    public void SafeArrayIndex_Text_None() {
-        var result = "x:text[]? = none\r y = x?[0]".Calc();
-        Assert.IsNull(result.Get("y"));
-    }
-
-
-    // --- ?[ with ?? coalesce ---
-
-    [Test]
-    public void SafeArrayIndex_WithCoalesce_HasValue() =>
-        "x:int[]? = [10,20,30]\r y = x?[1] ?? -1".AssertResultHas("y", 20);
-
-
-    [Test]
-    public void SafeArrayIndex_WithCoalesce_None() =>
-        "x:int[]? = none\r y = x?[1] ?? -1".AssertResultHas("y", -1);
-
 
     // ═══════════════════════════════════════════════════════════════
     // ?. safe field access (using if-else for optional struct inference)
@@ -114,22 +65,8 @@ public class OptionalChainingWorkingTest {
             .AssertResultHas("y", false);
 
 
-    // --- ?. then ?[ chaining ---
-
-    [Test]
-    public void SafeFieldAccess_ThenSafeArrayIndex() =>
-        "x = if(true) {items = [10,20,30]} else none\r y:int = (x?.items)?[1] ?? -1"
-            .AssertResultHas("y", 20);
-
-
-    [Test]
-    public void SafeFieldAccess_ThenSafeArrayIndex_None() =>
-        "x = if(false) {items = [10,20,30]} else none\r y:int = (x?.items)?[1] ?? -1"
-            .AssertResultHas("y", -1);
-
-
     // ═══════════════════════════════════════════════════════════════
-    // Negative tests: ?. and ?[ on wrong types
+    // Negative tests: ?. on wrong types
     // ═══════════════════════════════════════════════════════════════
 
     [TestCase("x:int\r y = x?.name")]
@@ -190,14 +127,6 @@ public class OptionalChainingWorkingTest {
     }
 
 
-    // --- ?. then ?[ without parens ---
-
-    [Test]
-    public void SafeFieldAccess_ThenSafeArrayIndex_NoParens() =>
-        "x = if(true) {data = [10,20,30]} else none\r y:int = x?.data?[1] ?? -1"
-            .AssertResultHas("y", 20);
-
-
     // --- Chained ?? with ?. (right-associative ??) ---
 
     [Test]
@@ -212,19 +141,4 @@ public class OptionalChainingWorkingTest {
             .AssertResultHas("y", 0);
 
 
-    // ═══════════════════════════════════════════════════════════════
-    // Chained ?[]?[] on nested optional arrays (Bug #58 fix)
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test]
-    public void ChainedSafeIndex_NestedOptionalArrays() =>
-        "x:int[]?[]? = [[1,2], none, [3]]\r y = (x?[0])?[1]"
-            .AssertResultHas("y", 2);
-
-
-    [Test]
-    public void ChainedSafeIndex_NestedOptionalArrays_None() {
-        var result = "x:int[]?[]? = [[1,2], none, [3]]\r y = (x?[1])?[0]".Calc();
-        Assert.IsNull(result.Get("y"));
-    }
 }
