@@ -184,11 +184,11 @@ y = 1+2 # this is also a comment
 An expression is a description of calculating a value of some type.
 
 An expression is anything from
-- literal (discrete, ip, numeric, character, or textual)
+- literal (discrete, ip, numeric, character, textual, or `none`)
 - variable
 - template text
 - function call
-- application of the operator (`[]`, `*`, `+`, `()`, `.`, `and`, `or`, `>>`, `|`, and so on)
+- application of the operator (`[]`, `*`, `+`, `()`, `.`, `?.`, `?[`, `??`, `!`, `and`, `or`, `>>`, `|`, and so on)
 - default value - `default`
 - anonymous function - `rule`
 - array initializer `[...]`
@@ -313,13 +313,13 @@ result =
 
 Examples:
 ```py
-a = 
+a =
     if(x>0) 'positive'
     if(x<0) 'negative'
     else 'zero'
 
-b = 
-    if(a == 'positive' and flag) 
+b =
+    if(a == 'positive' and flag)
         if(day == 1) 'mon'
         if(day == 2) 'tue'
         if(day == 3) 'wed'
@@ -331,6 +331,13 @@ b =
     else 'some day'
 ```
 
+If one branch is `none` and the other is a value, the result type becomes optional
+
+```py
+c = if(found) 42 else none   # int?
+d = if(flag) none else 'ok'  # text?
+```
+
 ### Expressions: Default value `default`
 
 Each type has a default value
@@ -339,6 +346,7 @@ This value is equal to:
 - zero for any numeric type
 - empty array for arrays
 - " (empty text) for `text`
+- `none` for any optional type `T?`
 - new object() for `any`
 - a structure with a 'default' value for each field in the structure type
 - a function that returns the `default` value for an anonymous function
@@ -401,6 +409,7 @@ The remaining expressions require a more detailed description and are described 
 - Texts
 - Structures
 - Rules (Anonymous functions)
+- Optionals
 
 # User functions
 

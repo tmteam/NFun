@@ -35,24 +35,25 @@ Following list shows operators precedence:
 operators with the highest precedence appear at the top of the list, those with the lowest appear at the bottom.
 Within an expression, higher precedence operators will be evaluated first.
 
-| Operators                  | Explanation                          |
-|----------------------------|--------------------------------------|
-| `()` `[]` `.` (*unary*)`-` | *Various*                            |
-| `**` `~`                   | Exponentiation, bitwise NOT          |
-| `*` `/` `//` `%`           | Multiplication, divisions, remainder | 
-| `+` `-`                    | Addition, subtraction                |
-| `<<`  `>>`                 | Bitwise Shifts                       |
-| `&`                        | Bitwise AND                          |
-| `^`                        | Bitwise XOR                          |
-| `&#124;`                   | Bitwise OR                           |
-| `>` `<` `>=` `<=`          | Comparisons                          |
-| `==` `!=` `in`             | Equality, membership                 |
-| `not`                      | Logical NOT                          |
-| `and`                      | Logical AND                          |
-| `xor`                      | Logical XOR                          |
-| `or`                       | Logical OR                           |
-| `rule`                     | Anonymous function                   |
-| `=`                        | Variable initialization              |
+| Operators                              | Explanation                          |
+|----------------------------------------|--------------------------------------|
+| `()` `[]` `.` `?.` `?[` `!` (*unary*)`-` | *Various*                         |
+| `**` `~`                               | Exponentiation, bitwise NOT          |
+| `*` `/` `//` `%`                       | Multiplication, divisions, remainder |
+| `+` `-`                                | Addition, subtraction                |
+| `<<`  `>>`                             | Bitwise Shifts                       |
+| `&`                                    | Bitwise AND                          |
+| `^`                                    | Bitwise XOR                          |
+| `&#124;`                               | Bitwise OR                           |
+| `>` `<` `>=` `<=`                      | Comparisons                          |
+| `==` `!=` `in`                         | Equality, membership                 |
+| `??`                                   | Null coalesce                        |
+| `not`                                  | Logical NOT                          |
+| `and`                                  | Logical AND                          |
+| `xor`                                  | Logical XOR                          |
+| `or`                                   | Logical OR                           |
+| `rule`                                 | Anonymous function                   |
+| `=`                                    | Variable initialization              |
 
 
 ## Arithmetic Operators
@@ -173,6 +174,10 @@ Here we give only a superficial description of them
 | in             | Arrays       | Membership operator. Returns true if the element (left operand) is contained in the array (right operand)                                                                                                         | 1 in [1,2,3]              |
 | []             | Arrays       | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | [1,0,2][2]                |
 | [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          |
+| ??             | Optionals    | Null coalesce operator. Returns left operand if not `none`, otherwise right operand. Right-associative                                                                                                            | x ?? 0                    |
+| ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                |
+| ?[             | Optionals    | Safe index operator. Accesses an array element, returning `none` if the array is `none`                                                                                                                           | arr?[0]                   |
+| ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        |
 
 ## Allow to skip * operator right after the int or real constant
 

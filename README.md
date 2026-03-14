@@ -127,6 +127,8 @@ Boring specification is better than no specification
 
 [Boring specification: Rules (Anonymous functions)](https://github.com/tmteam/NFun/blob/master/Specs/Rules.md)
 
+[Boring specification: Nullability support](https://github.com/tmteam/NFun/blob/master/Specs/Optionals.md)
+
 [Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
 
 
