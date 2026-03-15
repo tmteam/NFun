@@ -22,4 +22,8 @@
         <ProjectReference Include="..\..\NFun\NFun.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="History\" />
+    </ItemGroup>
+
 </Project>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun;
+using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NUnit.Framework;
@@ -12,271 +13,474 @@ namespace Nfun.Benchmarks;
 
 /// <summary>
 /// Quick A/B performance benchmark for comparing branches.
-/// Uses auto-balancing + shuffled slots for stable measurements on MacBook.
-///
-/// Three modes:
-///   Quick1 — single run (~13s), fast sanity check
-///   Quick3 — median of 3 runs (~40s), normal A/B comparison
-///   Quick5 — median of 5 runs (~65s), precise measurement for reports
-///
-/// Run with: dotnet test --filter "FullyQualifiedName~QuickBenchmark.Quick1" -v n
+/// Round-robin execution with isolated baseline for stable ±3% measurements.
+/// Run with: dotnet test --filter "FullyQualifiedName~QuickBenchmark" -v n
 /// </summary>
 [TestFixture]
-public class QuickBenchmark {
+[Category("Benchmark")]
+public class QuickBenchmark
+{
+    #region Configuration
 
-    // Scripts copied from Benchmarks/Scripts.cs — present in both master and branch
-    const string SimpleScript = "y = 10 * x + 1";
+    const int WarmupIterations = 500;
+    const int TargetBatchMs = 10;
+    const int CalibrationRuns = 50;
+    const int DefaultMeasurementSeconds = 25;
+    const double TrimFraction = 0.15;
+    const double DropFirstFraction = 0.10;
+    const int GcEveryNRounds = 100;
 
-    // From Benchmarks/Scripts.cs — generic function + if-else + array ops
-    const string MediumScript = @"multi(a,b) =
-                              if(a.count()!=b.count()) []
-                              else
-                                  [0..a.count()-1].map(rule a[it]*b[it])
+    #endregion
 
-                          a =  [1,2,3]
-                          b =  [4,5,6]
-                          expected = [4,10,18]
+    #region Baseline
 
-                          passed = a.multi(b)==expected";
+    const int BaselineBatch = 200;
+    const int BaselineRounds = 50;
 
-    // From GenericUserFunctionsTest.GenericBubbleSort (exact copy, known to pass)
-    const string ComplexScript = @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
-
-                          swap(arr, i, j)
-                            = arr.twiceSet(i,j,arr[j], arr[i])
-
-                          swapIfNotSorted(c, i)
-  	                        =	if   (c[i]<c[i+1]) c
-  		                        else c.swap(i, i+1)
-
-                          onelineSort(input) =
-  	                        [0..input.count()-2].fold(input, swapIfNotSorted)
-
-                          bubbleSort(input)= [0..input.count()-1].fold(input, rule onelineSort(it1))
-
-                          i:int[]  = [1,4,3,2,5].bubbleSort()
-                          r:real[] = [1,4,3,2,5].bubbleSort()";
-
-    const int WarmupIterations = 200;
-    const int CalibrationRuns = 30;
-    const int TargetBatchUs = 500; // each slot targets ~500μs
-    const int MaxRounds = 3000;
-    const int RandomSeed = 42;
-
-    const int BaselineN = 1000;
-    static readonly int[] BaselineSource = GenerateShuffled(BaselineN, seed: 123);
-
-    static int[] GenerateShuffled(int n, int seed) {
-        var arr = new int[n];
-        for (int i = 0; i < n; i++) arr[i] = i + 1;
-        var rng = new Random(seed);
-        for (int i = n - 1; i > 0; i--) { int j = rng.Next(i + 1); (arr[i], arr[j]) = (arr[j], arr[i]); }
-        return arr;
-    }
-
-    /// <summary>
-    /// Baseline: copy + sort int[1000] + linear scan + binary search.
-    /// ~8-10μs on M-series MacBook — good "parrot" scale for NFun measurements.
-    /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static int BaselineOp() {
-        var arr = new int[BaselineN];
-        Array.Copy(BaselineSource, arr, BaselineN);
-        Array.Sort(arr);
-        int sum = 0;
-        for (int i = 0; i < arr.Length; i++) sum += arr[i] * (i & 1);
-        sum += Array.BinarySearch(arr, 42);
-        sum += Array.BinarySearch(arr, 250);
-        sum += Array.BinarySearch(arr, 499);
+    static long BaselineOp()
+    {
+        long sum = 0;
+        for (int i = 0; i < 80_000; i++)
+        {
+            sum += (long)i * i;
+            sum ^= sum >> 7;
+        }
         return sum;
     }
 
-    [Test] public void Quick1() => RunMultiple(1);
-    [Test] public void Quick3() => RunMultiple(3);
-    [Test] public void Quick5() => RunMultiple(5);
+    #endregion
 
-    void RunMultiple(int totalRuns) {
-        // Collect medians from each run: [run][opIdx]
-        var allMedians = new double[totalRuns][];
-        var allBatchSizes = new int[0];
-        var allRounds = 0;
-        string[] opNames = null;
+    [Test]
+    public void VerifyAllScripts()
+    {
+        var set = BenchSets.V1();
+        var errors = new System.Text.StringBuilder();
+        foreach (var subset in set.Subsets)
+            for (int i = 0; i < subset.Scripts.Length; i++)
+            {
+                var s = subset.Scripts[i];
+                try
+                {
+                    var rt = Funny.Hardcore.Build(s.Script);
+                    // Verify declared inputs/outputs exist
+                    foreach (var inp in s.Inputs.Keys)
+                        if (rt[inp] == null)
+                            errors.AppendLine($"{subset.Name}[{i}]: input '{inp}' not found");
+                    foreach (var outp in s.Outputs)
+                        if (rt[outp] == null)
+                            errors.AppendLine($"{subset.Name}[{i}]: output '{outp}' not found");
+                }
+                catch (Exception ex) { errors.AppendLine($"{subset.Name}[{i}]: {ex.Message.Split('\n')[0]}"); }
+            }
+        if (errors.Length > 0)
+            throw new Exception(errors.ToString());
+    }
+
+    [TestCase(10, TestName = "Quick (~15s)")]
+    [TestCase(25, TestName = "Default (~30s)")]
+    [TestCase(60, TestName = "Precise (~70s)")]
+    [TestCase(120, TestName = "HighPrecision (~130s)")]
+    public void RunBenchmark(int measurementSeconds) => RunBench(BenchSets.V1(), measurementSeconds);
+
+    void RunBench(BenchSet benchSet, int measurementSeconds)
+    {
+        var originalPriority = System.Threading.Thread.CurrentThread.Priority;
+        System.Threading.Thread.CurrentThread.Priority = System.Threading.ThreadPriority.AboveNormal;
+        try { RunBenchCore(benchSet, measurementSeconds); }
+        finally { System.Threading.Thread.CurrentThread.Priority = originalPriority; }
+    }
+
+    void RunBenchCore(BenchSet benchSet, int measurementSeconds)
+    {
+        double ticksToUs = 1_000_000.0 / Stopwatch.Frequency;
+        int numSubsets = benchSet.Subsets.Length;
+
+        // ================================================================
+        // PRE-BUILD: runtimes and ops for each subset
+        // ================================================================
+        var subsetInfos = new SubsetInfo[numSubsets];
+        var ops = new List<(string name, int scriptCount, Action action)>();
+
+        for (int si = 0; si < numSubsets; si++)
+        {
+            var subset = benchSet.Subsets[si];
+            var allScripts = subset.Scripts.Select(s => s.Script).ToArray();
+            var allRuntimes = allScripts.Select(s => Funny.Hardcore.Build(s)).ToArray();
+
+            var updatePairs = subset.Scripts
+                .Select((s, i) => (script: s, rt: allRuntimes[i]))
+                .Where(x => x.script.Inputs.Count > 0)
+                .ToArray();
+
+            int nAll = allScripts.Length;
+            int nUpd = updatePairs.Length;
+
+            int parseIdx = ops.Count;
+            ops.Add(($"{subset.Name}.Parse", nAll, () => {
+                foreach (var s in allScripts) Parser.Parse(Tokenizer.ToFlow(s));
+            }));
+
+            int buildIdx = ops.Count;
+            ops.Add(($"{subset.Name}.Build", nAll, () => {
+                foreach (var s in allScripts) Funny.Hardcore.Build(s);
+            }));
+
+            int runIdx = ops.Count;
+            ops.Add(($"{subset.Name}.Run", nAll, () => {
+                foreach (var rt in allRuntimes) rt.Run();
+            }));
+
+            int updateIdx = ops.Count;
+            if (nUpd > 0)
+            {
+                ops.Add(($"{subset.Name}.Update", nUpd, () => {
+                    foreach (var (script, rt) in updatePairs)
+                    {
+                        foreach (var (varName, val) in script.Inputs)
+                            rt[varName].Value = val;
+                        rt.Run();
+                        foreach (var outName in script.Outputs)
+                            _ = rt[outName].Value;
+                    }
+                }));
+            }
+            else
+            {
+                ops.Add(($"{subset.Name}.Update", 1, () => { })); // placeholder
+            }
+
+            subsetInfos[si] = new SubsetInfo(subset, parseIdx, buildIdx, runIdx, updateIdx, nAll, nUpd);
+        }
+
+        var opsArr = ops.ToArray();
+        int numOps = opsArr.Length;
+
+        // ================================================================
+        // PHASE 1: WARMUP
+        // ================================================================
+        for (int w = 0; w < WarmupIterations; w++)
+        {
+            BaselineOp();
+            foreach (var (_, _, action) in opsArr)
+                action();
+        }
+        ForceGC();
+
+        // ================================================================
+        // PHASE 2: MEASURE BASELINE (isolated)
+        // ================================================================
+        for (int i = 0; i < 200; i++) BaselineOp();
+        ForceGC();
+
+        var baselineSamples = new List<double>(BaselineRounds);
+        for (int i = 0; i < BaselineRounds; i++)
+        {
+            long start = Stopwatch.GetTimestamp();
+            for (int b = 0; b < BaselineBatch; b++)
+                BaselineOp();
+            long end = Stopwatch.GetTimestamp();
+            baselineSamples.Add((end - start) * ticksToUs / BaselineBatch);
+        }
+
+        double baselineUs = TrimmedMean(baselineSamples);
+        double baselineCv = CV(baselineSamples);
+        ForceGC();
+
+        // ================================================================
+        // PHASE 3: CALIBRATE
+        // ================================================================
+        var calibrationTimes = new double[numOps];
+        for (int i = 0; i < numOps; i++)
+        {
+            var action = opsArr[i].action;
+            long total = 0;
+            for (int r = 0; r < CalibrationRuns; r++)
+            {
+                long s = Stopwatch.GetTimestamp();
+                action();
+                total += Stopwatch.GetTimestamp() - s;
+            }
+            calibrationTimes[i] = (double)total / CalibrationRuns * ticksToUs;
+        }
+
+        int targetBatchUs = TargetBatchMs * 1000;
+        var batchSizes = new int[numOps];
+        for (int i = 0; i < numOps; i++)
+            batchSizes[i] = Math.Max(1, (int)Math.Ceiling(targetBatchUs / Math.Max(calibrationTimes[i], 0.01)));
+
+        ForceGC();
+
+        // ================================================================
+        // PHASE 4: ROUND-ROBIN MEASUREMENT
+        // ================================================================
+        double roundMs = numOps * TargetBatchMs;
+        int maxRounds = (int)(measurementSeconds * 1000.0 / roundMs);
+
+        var results = new List<double>[numOps];
+        for (int i = 0; i < numOps; i++)
+            results[i] = new List<double>(maxRounds);
 
         var totalSw = Stopwatch.StartNew();
 
-        for (int run = 0; run < totalRuns; run++) {
-            var (medians, batchSizes, rounds, names) = RunSingle();
-            allMedians[run] = medians;
-            allBatchSizes = batchSizes;
-            allRounds = rounds;
-            opNames = names;
+        for (int round = 0; round < maxRounds; round++)
+        {
+            for (int i = 0; i < numOps; i++)
+            {
+                int batch = batchSizes[i];
+                var action = opsArr[i].action;
+
+                long start = Stopwatch.GetTimestamp();
+                for (int b = 0; b < batch; b++)
+                    action();
+                long end = Stopwatch.GetTimestamp();
+
+                results[i].Add((end - start) * ticksToUs / batch / opsArr[i].scriptCount);
+            }
+
+            if (round % GcEveryNRounds == GcEveryNRounds - 1)
+                GC.Collect(0, GCCollectionMode.Forced);
         }
 
         totalSw.Stop();
 
-        // Compute per-operation median across runs
-        int numOps = allMedians[0].Length;
-        var finalMedians = new double[numOps];
-        for (int op = 0; op < numOps; op++) {
-            var values = new double[totalRuns];
-            for (int run = 0; run < totalRuns; run++)
-                values[run] = allMedians[run][op];
-            Array.Sort(values);
-            finalMedians[op] = values[totalRuns / 2];
+        // ================================================================
+        // PHASE 5: MEMORY MEASUREMENT (allocations are deterministic)
+        // ================================================================
+        const int MemoryRuns = 5;
+        var allocKbPerScript = new double[numOps];
+        for (int i = 0; i < numOps; i++)
+        {
+            var action = opsArr[i].action;
+            var samples = new long[MemoryRuns];
+            for (int r = 0; r < MemoryRuns; r++)
+            {
+                ForceGC();
+                long before = GC.GetTotalAllocatedBytes(true);
+                action();
+                long after = GC.GetTotalAllocatedBytes(true);
+                samples[r] = after - before;
+            }
+            Array.Sort(samples);
+            allocKbPerScript[i] = samples[MemoryRuns / 2] / 1024.0 / opsArr[i].scriptCount;
         }
 
-        PrintReport(finalMedians, allBatchSizes, allRounds, opNames, totalRuns, totalSw.Elapsed);
+        // ================================================================
+        // PHASE 6: STATISTICAL PROCESSING
+        // ================================================================
+        int dropCount = (int)(maxRounds * DropFirstFraction);
+        for (int i = 0; i < numOps; i++)
+            results[i] = results[i].Skip(dropCount).ToList();
+
+        int usedRounds = maxRounds - dropCount;
+
+        var means = new double[numOps];
+        var cvs = new double[numOps];
+        for (int i = 0; i < numOps; i++)
+        {
+            means[i] = TrimmedMean(results[i]);
+            cvs[i] = CV(results[i]);
+        }
+
+        // ================================================================
+        // PHASE 7: REPORT
+        // ================================================================
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine($"NFun Quick Benchmark — {benchSet.Name}");
+        sb.AppendLine(new string('=', 90));
+
+        // --- Environment info ---
+        sb.AppendLine($"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine($"Machine: {Environment.MachineName}  OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
+        string buildConfig =
+#if DEBUG
+            "Debug";
+#else
+            "Release";
+#endif
+        sb.AppendLine($"Runtime: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}  CPU: {Environment.ProcessorCount} cores  Config: {buildConfig}");
+        sb.AppendLine($"Memory: {GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / (1024 * 1024)}MB available");
+        sb.Append(GetGitInfo());
+        sb.AppendLine(new string('-', 90));
+
+        sb.AppendLine($"Baseline: ArithLoop 80K = {baselineUs:F1} μs  (CV {baselineCv:F1}%)");
+        double turtleNsHeader = baselineUs / 10000 * 1000;
+        sb.AppendLine($"1 turtle (t) = {turtleNsHeader:F1} ns = baseline / 10000. Relative unit; lower = faster.");
+        foreach (var info in subsetInfos)
+            sb.Append($"  {info.Subset.Name}={info.TotalScripts}({info.UpdateScripts}upd)");
+        sb.AppendLine();
+        string mode = measurementSeconds <= 15 ? "Quick" :
+                      measurementSeconds <= 30 ? "Default" :
+                      measurementSeconds <= 90 ? "Precise" : "HighPrecision";
+        sb.AppendLine($"Mode: {mode} ({measurementSeconds}s measurement, {totalSw.Elapsed.TotalSeconds:F0}s total)");
+        sb.AppendLine($"Rounds: {maxRounds} ({dropCount} dropped, {usedRounds} used)  Batch: {TargetBatchMs}ms");
+
+        if (baselineCv > 5.0)
+            sb.AppendLine("!! Baseline CV > 5% — environment unstable, results unreliable");
+        sb.AppendLine();
+
+        // --- Absolute table (10-char columns with μs suffix) ---
+        sb.AppendLine("Absolute (μs per script):");
+        sb.AppendLine("           |  Parse   |  Build   | TIC+Asm  |   Run    |  Update  | Bld+10U  ");
+        sb.AppendLine("-----------+----------+----------+----------+----------+----------+----------");
+        foreach (var info in subsetInfos)
+        {
+            double parse = means[info.ParseIdx], build = means[info.BuildIdx];
+            double ticAsm = build - parse, run = means[info.RunIdx], update = means[info.UpdateIdx];
+            double bld10u = build + 10 * update;
+            sb.AppendLine($"{info.Subset.Name,-10} | {Fmt(parse),5} μs | {Fmt(build),5} μs | {Fmt(ticAsm),5} μs | {Fmt(run),5} μs | {Fmt(update),5} μs | {Fmt(bld10u),5} μs");
+        }
+        sb.AppendLine();
+
+        // --- Turtles table (relative units, lower = faster) ---
+        double turtleNs = baselineUs / 10000 * 1000;
+        double scale = 10000.0 / baselineUs;
+        sb.AppendLine($"Turtles (1t = {turtleNs:F1}ns = baseline/10000, lower is better):");
+        sb.AppendLine("           |  Parse   |  Build   | TIC+Asm  |   Run    |  Update  | Bld+10U  ");
+        sb.AppendLine("-----------+----------+----------+----------+----------+----------+----------");
+
+        // Collect turtle values for weighted average
+        var turtleRows = new double[numSubsets][];
+        for (int si = 0; si < numSubsets; si++)
+        {
+            var info = subsetInfos[si];
+            double parse = means[info.ParseIdx] * scale, build = means[info.BuildIdx] * scale;
+            double ticAsm = (means[info.BuildIdx] - means[info.ParseIdx]) * scale;
+            double run = means[info.RunIdx] * scale, update = means[info.UpdateIdx] * scale;
+            double bld10u = build + 10 * update;
+            turtleRows[si] = new[] { parse, build, ticAsm, run, update, bld10u };
+            sb.AppendLine($"{info.Subset.Name,-10} | {FmtScore(parse),6} t | {FmtScore(build),6} t | {FmtScore(ticAsm),6} t | {FmtScore(run),6} t | {FmtScore(update),6} t | {FmtScore(bld10u),6} t");
+        }
+
+        // Weighted average: (importance[0]*row[0] + ...) / sum(importance)
+        double totalWeight = subsetInfos.Sum(si => si.Subset.Importance);
+        var weightedTurtles = new double[6];
+        for (int col = 0; col < 6; col++)
+        {
+            double sum = 0;
+            for (int si = 0; si < numSubsets; si++)
+                sum += subsetInfos[si].Subset.Importance * turtleRows[si][col];
+            weightedTurtles[col] = sum / totalWeight;
+        }
+        sb.AppendLine("-----------+----------+----------+----------+----------+----------+----------");
+        sb.Append("Weighted   ");
+        for (int col = 0; col < 6; col++)
+            sb.Append($"| {FmtScore(weightedTurtles[col]),6} t ");
+        sb.AppendLine();
+        sb.AppendLine();
+
+        // --- Stability table ---
+        sb.AppendLine("Stability (CV%):");
+        sb.AppendLine("           | Parse  | Build  |  Run   | Update");
+        sb.AppendLine("-----------+--------+--------+--------+-------");
+        foreach (var info in subsetInfos)
+            sb.AppendLine($"{info.Subset.Name,-10} | {cvs[info.ParseIdx],4:F1}%  | {cvs[info.BuildIdx],4:F1}%  | {cvs[info.RunIdx],4:F1}%  | {cvs[info.UpdateIdx],4:F1}%");
+        sb.AppendLine();
+
+        // --- Memory table (KB allocated per script) ---
+        sb.AppendLine("Memory (KB allocated per script):");
+        sb.AppendLine("           |  Parse   |  Build   |   Run    |  Update  ");
+        sb.AppendLine("-----------+----------+----------+----------+----------");
+        foreach (var info in subsetInfos)
+        {
+            double parse = allocKbPerScript[info.ParseIdx], build = allocKbPerScript[info.BuildIdx];
+            double run = allocKbPerScript[info.RunIdx], update = allocKbPerScript[info.UpdateIdx];
+            sb.AppendLine($"{info.Subset.Name,-10} | {FmtKb(parse),5} KB | {FmtKb(build),5} KB | {FmtKb(run),5} KB | {FmtKb(update),5} KB");
+        }
+        sb.AppendLine();
+
+        // --- Compact ---
+        sb.AppendLine("Compact (μs/script):  Parse / Build / Run / Update / Bld+10U");
+        foreach (var info in subsetInfos)
+        {
+            double parse = means[info.ParseIdx], build = means[info.BuildIdx];
+            double run = means[info.RunIdx], update = means[info.UpdateIdx];
+            double bld10u = build + 10 * update;
+            sb.AppendLine($"  {info.Subset.Name,-8}  {Fmt(parse),7}  {Fmt(build),7}  {Fmt(run),7}  {Fmt(update),7}  {Fmt(bld10u),7}");
+        }
+        sb.AppendLine();
+
+        sb.AppendLine("Batch sizes: " + string.Join(", ", opsArr.Select((o, i) => $"{o.name}={batchSizes[i]}")));
+
+        string report = sb.ToString();
+        TestContext.WriteLine(report);
     }
 
-    (double[] medians, int[] batchSizes, int rounds, string[] names) RunSingle() {
-        // Pre-build runtimes for Run/Update measurements
-        var simpleRuntime = Funny.Hardcore.Build(SimpleScript);
-        var mediumRuntime = Funny.Hardcore.Build(MediumScript);
-        var complexRuntime = Funny.Hardcore.Build(ComplexScript);
+    record SubsetInfo(BenchSubSet Subset, int ParseIdx, int BuildIdx, int RunIdx, int UpdateIdx, int TotalScripts, int UpdateScripts);
 
-        // Update values array (cycle through to prevent constant-folding)
-        var updateValues = new double[] { 1.0, 42.0, 100.0, -3.14, 0.0, 999.9, 7.7, 13.0 };
-        int updateIdx = 0;
+    #region Statistics
 
-        // Define all operations
-        var ops = new (string name, Action action)[] {
-            ("Baseline",       () => { BaselineOp(); }),
-            ("Simple.Parse",   () => { Parser.Parse(Tokenizer.ToFlow(SimpleScript)); }),
-            ("Simple.Build",   () => { Funny.Hardcore.Build(SimpleScript); }),
-            ("Simple.Run",     () => { simpleRuntime.Run(); }),
-            ("Simple.Update",  () => {
-                simpleRuntime["x"].Value = updateValues[updateIdx++ & 7];
-                simpleRuntime.Run();
-            }),
-            ("Medium.Parse",   () => { Parser.Parse(Tokenizer.ToFlow(MediumScript)); }),
-            ("Medium.Build",   () => { Funny.Hardcore.Build(MediumScript); }),
-            ("Medium.Run",     () => { mediumRuntime.Run(); }),
-            ("Complex.Parse",  () => { Parser.Parse(Tokenizer.ToFlow(ComplexScript)); }),
-            ("Complex.Build",  () => { Funny.Hardcore.Build(ComplexScript); }),
-            ("Complex.Run",    () => { complexRuntime.Run(); }),
+    static (int start, int end) TrimRange(int count)
+    {
+        int trim = (int)(count * TrimFraction);
+        if (trim * 2 >= count - 1)
+            return (count / 2, count / 2 + 1); // median only
+        return (trim, count - trim);
+    }
+
+    static double TrimmedMean(List<double> samples)
+    {
+        var sorted = samples.OrderBy(x => x).ToArray();
+        var (start, end) = TrimRange(sorted.Length);
+        double sum = 0;
+        int count = 0;
+        for (int i = start; i < end; i++) { sum += sorted[i]; count++; }
+        return sum / count;
+    }
+
+    static double CV(List<double> samples)
+    {
+        var sorted = samples.OrderBy(x => x).ToArray();
+        var (start, end) = TrimRange(sorted.Length);
+        double sum = 0, sumSq = 0;
+        int count = 0;
+        for (int i = start; i < end; i++) { sum += sorted[i]; sumSq += sorted[i] * sorted[i]; count++; }
+        double mean = sum / count;
+        if (mean < 0.001) return 0;
+        double variance = sumSq / count - mean * mean;
+        return Math.Sqrt(Math.Max(0, variance)) / mean * 100.0;
+    }
+
+    static string GetGitInfo()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            string branch = RunGit("rev-parse --abbrev-ref HEAD");
+            string commit = RunGit("rev-parse --short HEAD");
+            bool dirty = RunGit("status --porcelain").Length > 0;
+            if (branch.Length > 0)
+                sb.AppendLine($"Git: {branch} @ {commit}{(dirty ? " (dirty)" : "")}");
+            return sb.ToString();
+        }
+        catch { return ""; }
+    }
+
+    static string RunGit(string args)
+    {
+        var psi = new System.Diagnostics.ProcessStartInfo("git", args)
+        {
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
         };
+        using var p = System.Diagnostics.Process.Start(psi);
+        string output = p!.StandardOutput.ReadToEnd().Trim();
+        p.WaitForExit(2000);
+        return output;
+    }
 
-        int numOps = ops.Length;
+    static string Fmt(double us) => us < 10 ? $"{us:F2}" : us < 100 ? $"{us:F1}" : $"{us:F0}";
+    static string FmtScore(double s) => s < 10 ? $"{s:F1}" : s < 1000 ? $"{s:F0}" : $"{s:N0}";
+    static string FmtKb(double kb) => kb < 10 ? $"{kb:F2}" : kb < 100 ? $"{kb:F1}" : $"{kb:F0}";
 
-        // === PHASE 1: WARMUP ===
-        for (int w = 0; w < WarmupIterations; w++)
-            foreach (var (_, action) in ops)
-                action();
-
+    static void ForceGC()
+    {
         GC.Collect(2, GCCollectionMode.Forced, true);
         GC.WaitForPendingFinalizers();
         GC.Collect(2, GCCollectionMode.Forced, true);
-
-        // === PHASE 2: CALIBRATE ===
-        var calibrationTimes = new double[numOps][];
-        for (int i = 0; i < numOps; i++)
-            calibrationTimes[i] = new double[CalibrationRuns];
-
-        double ticksToUs = 1_000_000.0 / Stopwatch.Frequency;
-
-        for (int r = 0; r < CalibrationRuns; r++) {
-            for (int i = 0; i < numOps; i++) {
-                long start = Stopwatch.GetTimestamp();
-                ops[i].action();
-                long end = Stopwatch.GetTimestamp();
-                calibrationTimes[i][r] = (end - start) * ticksToUs;
-            }
-        }
-
-        var batchSizes = new int[numOps];
-        for (int i = 0; i < numOps; i++) {
-            Array.Sort(calibrationTimes[i]);
-            double median = calibrationTimes[i][CalibrationRuns / 2];
-            batchSizes[i] = Math.Max(1, (int)Math.Ceiling(TargetBatchUs / Math.Max(median, 0.01)));
-        }
-
-        // === PHASE 3: CREATE & SHUFFLE SLOTS ===
-        int rounds = Math.Min(MaxRounds, (int)(15_000_000.0 / (numOps * TargetBatchUs)));
-        var slots = new List<int>(numOps * rounds);
-        for (int r = 0; r < rounds; r++)
-            for (int i = 0; i < numOps; i++)
-                slots.Add(i);
-
-        // Fisher-Yates shuffle with fixed seed
-        var rng = new Random(RandomSeed);
-        for (int i = slots.Count - 1; i > 0; i--) {
-            int j = rng.Next(i + 1);
-            (slots[i], slots[j]) = (slots[j], slots[i]);
-        }
-
-        // Prepare result storage
-        var results = new List<double>[numOps];
-        for (int i = 0; i < numOps; i++)
-            results[i] = new List<double>(rounds);
-
-        // === PHASE 4: EXECUTE ===
-        foreach (int opIdx in slots) {
-            int batch = batchSizes[opIdx];
-            var action = ops[opIdx].action;
-
-            long start = Stopwatch.GetTimestamp();
-            for (int b = 0; b < batch; b++)
-                action();
-            long end = Stopwatch.GetTimestamp();
-
-            double batchUs = (end - start) * ticksToUs;
-            results[opIdx].Add(batchUs / batch);
-        }
-
-        // === PHASE 5: COMPUTE MEDIANS ===
-        var medians = new double[numOps];
-        for (int i = 0; i < numOps; i++) {
-            var sorted = results[i].OrderBy(x => x).ToArray();
-            medians[i] = sorted[sorted.Length / 2];
-        }
-
-        return (medians, batchSizes, rounds, ops.Select(o => o.name).ToArray());
     }
 
-    void PrintReport(double[] medians, int[] batchSizes, int rounds,
-                     string[] opNames, int totalRuns, TimeSpan elapsed) {
-        double baselineUs = medians[0];
-
-        var table = new (string label, int parseIdx, int buildIdx, int runIdx, int updateIdx)[] {
-            ("Simple",  1, 2, 3, 4),
-            ("Medium",  5, 6, 7, -1),
-            ("Complex", 8, 9, 10, -1),
-        };
-
-        var report = new System.Text.StringBuilder();
-        report.AppendLine();
-        report.AppendLine($"NFun Quick Benchmark (Quick{totalRuns})");
-        report.AppendLine(new string('=', 72));
-        report.AppendLine($"Baseline: Sort+Scan int[{BaselineN}] = {baselineUs:F2} μs");
-        report.AppendLine($"Runs: {totalRuns} | Rounds/run: {rounds} | Total: {elapsed.TotalSeconds:F1}s");
-        report.AppendLine();
-        report.AppendLine("           |  Parse  |  Build  | TIC+Asm |   Run   | Update");
-        report.AppendLine("-----------+---------+---------+---------+---------+--------");
-
-        string Fmt(double us) => us < 1 ? $"{us,5:F2}" : $"{us,5:F1}";
-
-        foreach (var (label, pi, bi, ri, ui) in table) {
-            double parse = medians[pi];
-            double build = medians[bi];
-            double ticAsm = build - parse;
-            double run = medians[ri];
-            string updateStr = ui >= 0 ? $"{Fmt(medians[ui])} μs" : "   —   ";
-
-            report.AppendLine(
-                $"{label,-10} | {Fmt(parse)} μs | {Fmt(build)} μs | {Fmt(ticAsm)} μs | {Fmt(run)} μs | {updateStr}");
-
-            string updateParrots = ui >= 0 ? $"{medians[ui] / baselineUs,6:F1}x " : "   —   ";
-            report.AppendLine(
-                $"           | {parse / baselineUs,5:F1}x  | {build / baselineUs,5:F1}x  | {ticAsm / baselineUs,5:F1}x  | {run / baselineUs,5:F1}x  | {updateParrots}");
-        }
-
-        report.AppendLine();
-        report.AppendLine("Batch sizes: " + string.Join(", ",
-            opNames.Select((n, i) => $"{n}={batchSizes[i]}")));
-
-        string reportStr = report.ToString();
-        TestContext.WriteLine(reportStr);
-        Console.WriteLine(reportStr);
-    }
+    #endregion
 }
