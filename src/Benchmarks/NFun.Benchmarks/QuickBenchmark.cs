@@ -54,8 +54,15 @@ public class QuickBenchmark
     [Test]
     public void VerifyAllScripts()
     {
-        var set = BenchSets.V1();
         var errors = new System.Text.StringBuilder();
+        VerifyBenchSet(BenchSets.V1(), errors);
+        VerifyBenchSet(BenchSetsLcaOptional.LcaOptional(), errors);
+        if (errors.Length > 0)
+            throw new Exception(errors.ToString());
+    }
+
+    static void VerifyBenchSet(BenchSet set, System.Text.StringBuilder errors)
+    {
         foreach (var subset in set.Subsets)
             for (int i = 0; i < subset.Scripts.Length; i++)
             {
@@ -63,18 +70,15 @@ public class QuickBenchmark
                 try
                 {
                     var rt = Funny.Hardcore.Build(s.Script);
-                    // Verify declared inputs/outputs exist
                     foreach (var inp in s.Inputs.Keys)
                         if (rt[inp] == null)
-                            errors.AppendLine($"{subset.Name}[{i}]: input '{inp}' not found");
+                            errors.AppendLine($"{set.Name}/{subset.Name}[{i}]: input '{inp}' not found");
                     foreach (var outp in s.Outputs)
                         if (rt[outp] == null)
-                            errors.AppendLine($"{subset.Name}[{i}]: output '{outp}' not found");
+                            errors.AppendLine($"{set.Name}/{subset.Name}[{i}]: output '{outp}' not found");
                 }
-                catch (Exception ex) { errors.AppendLine($"{subset.Name}[{i}]: {ex.Message.Split('\n')[0]}"); }
+                catch (Exception ex) { errors.AppendLine($"{set.Name}/{subset.Name}[{i}]: {ex.Message.Split('\n')[0]}"); }
             }
-        if (errors.Length > 0)
-            throw new Exception(errors.ToString());
     }
 
     [TestCase(10, TestName = "Quick (~15s)")]
@@ -82,6 +86,12 @@ public class QuickBenchmark
     [TestCase(60, TestName = "Precise (~70s)")]
     [TestCase(120, TestName = "HighPrecision (~130s)")]
     public void RunBenchmark(int measurementSeconds) => RunBench(BenchSets.V1(), measurementSeconds);
+
+    [TestCase(10, TestName = "LcaOpt Quick")]
+    [TestCase(25, TestName = "LcaOpt Default")]
+    [TestCase(60, TestName = "LcaOpt Precise")]
+    [TestCase(120, TestName = "LcaOpt HighPrecision")]
+    public void RunLcaOptionalBenchmark(int measurementSeconds) => RunBench(BenchSetsLcaOptional.LcaOptional(), measurementSeconds);
 
     void RunBench(BenchSet benchSet, int measurementSeconds)
     {

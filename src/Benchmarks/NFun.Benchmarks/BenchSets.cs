@@ -13,10 +13,10 @@ record BenchSet(string Name, BenchSubSet[] Subsets);
 /// </summary>
 static class BenchSets
 {
-    static BenchScript Pure(string script) =>
+    internal static BenchScript Pure(string script) =>
         new(script, new Dictionary<string, object>(), Array.Empty<string>());
 
-    static BenchScript IntX(string script) =>
+    internal static BenchScript IntX(string script) =>
         new(script, new Dictionary<string, object> { ["x"] = 1 }, new[] { "y" });
 
     public static BenchSet V1() => new("v1", new[] { SimpleV1(), MediumV1(), ComplexV1() });
