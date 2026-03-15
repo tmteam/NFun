@@ -55,8 +55,8 @@ public class QuickBenchmark
     public void VerifyAllScripts()
     {
         var errors = new System.Text.StringBuilder();
-        VerifyBenchSet(BenchSets.V1(), errors);
-        VerifyBenchSet(BenchSetsLcaOptional.LcaOptional(), errors);
+        VerifyBenchSet(BenchSetV1.V1(), errors);
+        VerifyBenchSet(BenchSetV2.V2(), errors);
         if (errors.Length > 0)
             throw new Exception(errors.ToString());
     }
@@ -85,13 +85,13 @@ public class QuickBenchmark
     [TestCase(25, TestName = "Default 30s")]
     [TestCase(60, TestName = "Precise 70s")]
     [TestCase(120, TestName = "HighPrecision 130s")]
-    public void RunBenchmark(int measurementSeconds) => RunBench(BenchSets.V1(), measurementSeconds);
+    public void RunBenchmark(int measurementSeconds) => RunBench(BenchSetV1.V1(), measurementSeconds);
 
-    [TestCase(10, TestName = "LcaOpt Quick")]
-    [TestCase(25, TestName = "LcaOpt Default")]
-    [TestCase(60, TestName = "LcaOpt Precise")]
-    [TestCase(120, TestName = "LcaOpt HighPrecision")]
-    public void RunLcaOptionalBenchmark(int measurementSeconds) => RunBench(BenchSetsLcaOptional.LcaOptional(), measurementSeconds);
+    [TestCase(10, TestName = "V2 Quick")]
+    [TestCase(25, TestName = "V2 Default")]
+    [TestCase(60, TestName = "V2 Precise")]
+    [TestCase(120, TestName = "V2 HighPrecision")]
+    public void RunV2Benchmark(int measurementSeconds) => RunBench(BenchSetV2.V2(), measurementSeconds);
 
     void RunBench(BenchSet benchSet, int measurementSeconds)
     {
