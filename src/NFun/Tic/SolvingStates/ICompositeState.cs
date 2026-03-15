@@ -12,6 +12,8 @@ public interface ICompositeState : ITypeState {
     /// State of any Member node is 'RefTo'
     /// </summary>
     bool HasAnyReferenceMember { get; }
+    int MemberCount { get; }
+    TicNode GetMember(int index);
     IEnumerable<TicNode> Members { get; }
     IEnumerable<TicNode> AllLeafTypes { get; }
 }

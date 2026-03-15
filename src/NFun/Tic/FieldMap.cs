@@ -95,6 +95,20 @@ sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
         }
     }
 
+    /// <summary>Get value by positional index (0-based). For indexed member access.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TicNode GetValueAt(int index) {
+        if (_inlineCount >= 0)
+            return index == 0 ? _val0! : _val1!;
+        // Dictionary: iterate to index (rare path — 3+ fields)
+        int i = 0;
+        foreach (var v in _dict!.Values) {
+            if (i == index) return v;
+            i++;
+        }
+        throw new ArgumentOutOfRangeException(nameof(index));
+    }
+
     // --- Iteration ---
 
     public ValuesEnumerable Values => new(this);

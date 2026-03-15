@@ -58,6 +58,8 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public bool HasAnyReferenceMember => ElementNode.State is StateRefTo;
 
+    public int MemberCount => 1;
+    public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
     public IEnumerable<TicNode> AllLeafTypes

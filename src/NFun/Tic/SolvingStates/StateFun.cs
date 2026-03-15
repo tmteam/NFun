@@ -174,6 +174,8 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         }
     }
 
+    public int MemberCount => ArgNodes.Length + 1;
+    public TicNode GetMember(int index) => index < ArgNodes.Length ? ArgNodes[index] : RetNode;
     public IEnumerable<TicNode> Members => ArgNodes.Append(RetNode);
 
     public IEnumerable<TicNode> AllLeafTypes

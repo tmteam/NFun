@@ -136,8 +136,8 @@ public class NodeToposort {
             }
             else if (node.State is ICompositeState composite)
             {
-                foreach (var member in composite.Members)
-                    if (!Visit(member))
+                for (int mi = 0; mi < composite.MemberCount; mi++)
+                    if (!Visit(composite.GetMember(mi)))
                         ThrowRecursiveTypeDefinition(node);
             }
 

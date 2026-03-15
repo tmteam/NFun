@@ -213,8 +213,9 @@ public class GraphBuilder {
     }
 
     private void RegistrateCompositeType(ICompositeState composite) {
-        foreach (var member in composite.Members)
+        for (int mi = 0; mi < composite.MemberCount; mi++)
         {
+            var member = composite.GetMember(mi);
             if (!member.Registered)
             {
                 member.Registered = true;

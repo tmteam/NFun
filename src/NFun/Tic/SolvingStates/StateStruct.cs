@@ -103,6 +103,8 @@ public class StateStruct : ICompositeState {
         }
     }
 
+    public int MemberCount => _nodes.Count;
+    public TicNode GetMember(int index) => _nodes.GetValueAt(index).GetNonReference();
     public IEnumerable<TicNode> Members {
         get {
             foreach (var m in _nodes.Values)

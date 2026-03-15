@@ -81,10 +81,10 @@ public class QuickBenchmark
             }
     }
 
-    [TestCase(10, TestName = "Quick (~15s)")]
-    [TestCase(25, TestName = "Default (~30s)")]
-    [TestCase(60, TestName = "Precise (~70s)")]
-    [TestCase(120, TestName = "HighPrecision (~130s)")]
+    [TestCase(10, TestName = "Quick 15s")]
+    [TestCase(25, TestName = "Default 30s")]
+    [TestCase(60, TestName = "Precise 70s")]
+    [TestCase(120, TestName = "HighPrecision 130s")]
     public void RunBenchmark(int measurementSeconds) => RunBench(BenchSets.V1(), measurementSeconds);
 
     [TestCase(10, TestName = "LcaOpt Quick")]

@@ -376,14 +376,13 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            // ToArray() needed: ancestors can be modified during iteration
             foreach (var ancestor in node.Ancestors.ToArray())
                 PullConstrains(node, ancestor);
         }
 
         if (node.State is ICompositeState composite)
-            foreach (var member in composite.Members)
-                PullConstraintsRecursive(member);
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                PullConstraintsRecursive(composite.GetMember(mi));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -413,8 +412,8 @@ public static class SolvingFunctions {
             if (oldMakr == 1567)
                 throw TicErrors.RecursiveTypeDefinition(new[]{ node});
             node.VisitMark = 1567;
-            foreach (var member in composite.Members)
-                PushConstraintsRecursive(member);
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                PushConstraintsRecursive(composite.GetMember(mi));
             node.VisitMark = oldMakr;
         }
 
@@ -460,7 +459,7 @@ public static class SolvingFunctions {
         if (node.State is ICompositeState composite)
         {
             if (composite.HasAnyReferenceMember) node.State = composite.GetNonReferenced();
-            foreach (var member in composite.Members) DestructionRecursive(member);
+            for (int mi = 0; mi < composite.MemberCount; mi++) DestructionRecursive(composite.GetMember(mi));
             // Flatten nested optionals after member destruction — only needed for StateOptional.
             if (node.State is StateOptional)
                 node.FlattenNestedOptional();
@@ -644,8 +643,8 @@ public static class SolvingFunctions {
                     ThrowIfNodeHasRecursiveTypeDefinitionReq(refTo.Node, bypassNumber);
                     break;
                 case ICompositeState composite:
-                    foreach (var member in composite.Members)
-                        ThrowIfNodeHasRecursiveTypeDefinitionReq(member, bypassNumber);
+                    for (int mi = 0; mi < composite.MemberCount; mi++)
+                        ThrowIfNodeHasRecursiveTypeDefinitionReq(composite.GetMember(mi), bypassNumber);
                     break;
                 case ConstraintsState constrains:
                     if (constrains.HasDescendant)
@@ -679,9 +678,9 @@ public static class SolvingFunctions {
 
             if (node.State is ICompositeState composite)
             {
-                foreach (var compositeMember in composite.Members)
+                for (int mi = 0; mi < composite.MemberCount; mi++)
                 {
-                    if (FindRecursionTypeRoute(compositeMember, nodes))
+                    if (FindRecursionTypeRoute(composite.GetMember(mi), nodes))
                         return true;
                 }
             }
@@ -710,16 +709,7 @@ public static class SolvingFunctions {
             var node = toposortedNodes[i];
             FinalizeRecursive(node);
 
-            foreach (var member in node.GetAllLeafTypes())
-            {
-                if (member.VisitMark == typeVariableVisitedMark)
-                    continue;
-                member.VisitMark = typeVariableVisitedMark;
-                if (member.Type == TicNodeType.TypeVariable && member.State is ConstraintsState)
-                {
-                    typeVariables.Add(member);
-                }
-            }
+            CollectLeafTypeVariables(node, typeVariables, typeVariableVisitedMark);
 
             if (!node.IsSolved)
                 genericNodesCount++;
@@ -750,10 +740,13 @@ public static class SolvingFunctions {
             ThrowIfRecursiveTypeDefinition(node);
 
             if (composite.HasAnyReferenceMember)
+            {
                 node.State = composite.GetNonReferenced();
+                composite = (ICompositeState)node.State;
+            }
 
-            foreach (var member in ((ICompositeState)node.State).Members)
-                FinalizeRecursive(member);
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                FinalizeRecursive(composite.GetMember(mi));
 
             // Safety net: flatten any remaining nested optionals after member finalization
             node.FlattenNestedOptional();
@@ -778,7 +771,9 @@ public static class SolvingFunctions {
         {
             if (inputNode.State is StateFun stateFun)
             {
-                foreach (var leafNode in stateFun.GetAllNotSolvedContravariantLeafs())
+                var leafs = new List<TicNode>();
+                stateFun.CollectNotSolvedContravariantLeafs(leafs);
+                foreach (var leafNode in leafs)
                 {
                     if (leafNode.VisitMark == outputTypeMark)
                         continue;
@@ -806,10 +801,23 @@ public static class SolvingFunctions {
     #endregion
 
 
-    private static IEnumerable<TicNode> GetAllNotSolvedContravariantLeafs(this StateFun fun) =>
-        fun.ArgNodes
-            .SelectMany(n => n.GetAllLeafTypes())
-            .Where(t => t.State is ConstraintsState);
+    private static void CollectNotSolvedContravariantLeafs(this StateFun fun, List<TicNode> result) {
+        foreach (var argNode in fun.ArgNodes)
+            CollectLeafConstraints(argNode, result);
+    }
+
+    private static void CollectLeafConstraints(TicNode node, List<TicNode> result) {
+        var state = node.State;
+        if (state is ICompositeState composite) {
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                CollectLeafConstraints(composite.GetMember(mi), result);
+            return;
+        }
+        if (state is StateRefTo)
+            node = node.GetNonReference();
+        if (node.State is ConstraintsState)
+            result.Add(node);
+    }
 
 
     // Perf note: new[] { node } allocates a 1-element array, but yield return
@@ -820,6 +828,21 @@ public static class SolvingFunctions {
             StateRefTo => new[] { node.GetNonReference() },
             _ => new[] { node }
         };
+
+    private static void CollectLeafTypeVariables(TicNode node, List<TicNode> typeVariables, int visitMark) {
+        var state = node.State;
+        if (state is ICompositeState composite) {
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                CollectLeafTypeVariables(composite.GetMember(mi), typeVariables, visitMark);
+            return;
+        }
+        if (state is StateRefTo)
+            node = node.GetNonReference();
+        if (node.VisitMark == visitMark) return;
+        node.VisitMark = visitMark;
+        if (node.Type == TicNodeType.TypeVariable && node.State is ConstraintsState)
+            typeVariables.Add(node);
+    }
 
     private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
         node.State switch {
