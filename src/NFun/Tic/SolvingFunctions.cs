@@ -183,16 +183,23 @@ public static class SolvingFunctions {
 
     public static void PullConstraints(TicNode[] toposortedNodes) {
         // Phase 1: Pull all non-None nodes to establish constraint bounds
+        bool hasNoneNodes = false;
         foreach (var node in toposortedNodes)
         {
             if (node.IsMemberOfAnything)
                 continue;
             if (node.State is StatePrimitive { Name: PrimitiveTypeName.None })
+            {
+                hasNoneNodes = true;
                 continue;
+            }
             PullConstraintsRecursive(node);
         }
 
         // Phase 2: Pull None nodes — may transform ancestors to Optional
+        // Skip entirely when no None nodes exist (non-optional scripts)
+        if (!hasNoneNodes)
+            return;
         foreach (var node in toposortedNodes)
         {
             if (node.IsMemberOfAnything)
@@ -454,10 +461,9 @@ public static class SolvingFunctions {
         {
             if (composite.HasAnyReferenceMember) node.State = composite.GetNonReferenced();
             foreach (var member in composite.Members) DestructionRecursive(member);
-            // Flatten nested optionals after member destruction.
-            // A member (element of opt) may have become opt itself during its destruction,
-            // creating opt(opt(T)) which NFun doesn't support.
-            node.FlattenNestedOptional();
+            // Flatten nested optionals after member destruction — only needed for StateOptional.
+            if (node.State is StateOptional)
+                node.FlattenNestedOptional();
         }
 
         var ancSize = node.Ancestors.Count;
