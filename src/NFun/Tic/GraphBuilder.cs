@@ -10,14 +10,15 @@ namespace NFun.Tic;
 
 public class GraphBuilder {
     private readonly Dictionary<string, TicNode> _variables = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<TicNode> _syntaxNodes;
+    private TicNode[] _syntaxNodes;
+    private int _syntaxNodesLength;
     private readonly List<TicNode> _typeVariables = new();
     private int _varNodeId = 0;
     private readonly List<TicNode> _outputNodes = new();
     private readonly List<TicNode> _inputNodes = new();
 
-    public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
-    public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
+    public GraphBuilder() { _syntaxNodes = new TicNode[16]; _syntaxNodesLength = 16; }
+    public GraphBuilder(int maxSyntaxNodeId) { _syntaxNodes = new TicNode[maxSyntaxNodeId]; _syntaxNodesLength = maxSyntaxNodeId; }
 
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
         => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
@@ -29,13 +30,29 @@ public class GraphBuilder {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TicNode GetOrCreateNode(int id) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        if (id >= _syntaxNodesLength) GrowSyntaxNodes(id);
+        var alreadyExists = _syntaxNodes[id];
         if (alreadyExists != null)
             return alreadyExists;
 
         var res = TicNode.CreateSyntaxNode(id, ConstraintsState.Empty, true);
         _syntaxNodes[id] = res;
         return res;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private TicNode GetSyntaxNodeOrEnlarge(int id) {
+        if (id >= _syntaxNodesLength) GrowSyntaxNodes(id);
+        return _syntaxNodes[id];
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void GrowSyntaxNodes(int id) {
+        var newLen = Math.Max(id + 1, _syntaxNodesLength * 2);
+        var newArr = new TicNode[newLen];
+        Array.Copy(_syntaxNodes, newArr, _syntaxNodesLength);
+        _syntaxNodes = newArr;
+        _syntaxNodesLength = newLen;
     }
 
     public TicNode GetNamedNode(string name) {
@@ -74,7 +91,7 @@ public class GraphBuilder {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void MergeOrSetNode(int id, StateRefTo type) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
         if (alreadyExists == null)
         {
             var res = TicNode.CreateSyntaxNode(id, type, true);
@@ -93,7 +110,7 @@ public class GraphBuilder {
     }
 
     public void GetOrCreateArrayNode(int id, TicNode elementType) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
         if (alreadyExists != null)
         {
             alreadyExists.State =
@@ -107,7 +124,7 @@ public class GraphBuilder {
     }
 
     public TicNode GetOrCreateStructNode(int id, StateStruct stateStruct) {
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
         if (alreadyExists != null)
         {
             alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(stateStruct, alreadyExists.State) ??
@@ -123,7 +140,7 @@ public class GraphBuilder {
     public void SetOrCreateLambda(int lambdaId, TicNode[] args, TicNode ret) {
         var fun = StateFun.Of(args, ret);
 
-        var alreadyExists = _syntaxNodes.GetOrEnlarge(lambdaId);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(lambdaId);
         if (alreadyExists != null)
         {
             alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(fun, alreadyExists.State) ??
@@ -411,9 +428,9 @@ public class GraphBuilder {
 
     private TicNode[] Toposort() {
         var toposortAlgorithm = new NodeToposort(
-            capacity: _syntaxNodes.Count + _variables.Count + _typeVariables.Count);
+            capacity: _syntaxNodesLength + _variables.Count + _typeVariables.Count);
 
-        foreach (var node in _syntaxNodes) toposortAlgorithm.AddToTopology(node);
+        for (int i = 0; i < _syntaxNodesLength; i++) toposortAlgorithm.AddToTopology(_syntaxNodes[i]);
         foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node);
         foreach (var node in _typeVariables) toposortAlgorithm.AddToTopology(node);
 

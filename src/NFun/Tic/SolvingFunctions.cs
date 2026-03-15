@@ -697,7 +697,7 @@ public static class SolvingFunctions {
         TicNode[] toposortedNodes,
         IReadOnlyList<TicNode> outputNodes,
         IReadOnlyList<TicNode> inputNodes,
-        IReadOnlyList<TicNode> syntaxNodes,
+        TicNode[] syntaxNodes,
         Dictionary<string, TicNode> namedNodes,
         bool ignorePreferred) {
         var typeVariables = new List<TicNode>();

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic; 
@@ -9,12 +10,12 @@ public class TicResultsWithGenerics : ITicResults {
 
     private readonly Dictionary<string, TicNode> _namedNodes;
 
-    private readonly IReadOnlyList<TicNode> _syntaxNodes;
+    private readonly TicNode[] _syntaxNodes;
 
     public TicResultsWithGenerics(
         IReadOnlyList<TicNode> typeVariables,
         Dictionary<string, TicNode> namedNodes,
-        IReadOnlyList<TicNode> syntaxNodes) {
+        TicNode[] syntaxNodes) {
         _typeVariables = typeVariables;
         _namedNodes = namedNodes;
         _syntaxNodes = syntaxNodes;
@@ -25,8 +26,9 @@ public class TicResultsWithGenerics : ITicResults {
 
     public TicNode GetVariableNodeOrNull(string variableName) => CollectionExtensions.GetValueOrDefault(_namedNodes, variableName);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TicNode GetSyntaxNodeOrNull(int syntaxNode) {
-        if (syntaxNode >= _syntaxNodes.Count)
+        if ((uint)syntaxNode >= (uint)_syntaxNodes.Length)
             return null;
         return _syntaxNodes[syntaxNode];
     }

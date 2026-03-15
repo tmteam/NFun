@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic; 
 
 public class TicResultsWithoutGenerics : ITicResults {
     private readonly Dictionary<string, TicNode> _namedNodes;
-    private readonly IReadOnlyList<TicNode> _syntaxNodes;
+    private readonly TicNode[] _syntaxNodes;
 
-    public TicResultsWithoutGenerics(Dictionary<string, TicNode> namedNodes, IReadOnlyList<TicNode> syntaxNodes) {
+    public TicResultsWithoutGenerics(Dictionary<string, TicNode> namedNodes, TicNode[] syntaxNodes) {
         _namedNodes = namedNodes;
         _syntaxNodes = syntaxNodes;
     }
@@ -17,8 +18,9 @@ public class TicResultsWithoutGenerics : ITicResults {
 
     public TicNode GetVariableNodeOrNull(string variableName) => CollectionExtensions.GetValueOrDefault(_namedNodes, variableName);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TicNode GetSyntaxNodeOrNull(int syntaxNode) {
-        if (syntaxNode >= _syntaxNodes.Count)
+        if ((uint)syntaxNode >= (uint)_syntaxNodes.Length)
             return null;
         return _syntaxNodes[syntaxNode];
     }
