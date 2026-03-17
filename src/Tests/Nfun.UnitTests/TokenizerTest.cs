@@ -168,6 +168,25 @@ public class TokenizerTest {
     [TestCase("x = 1.5y10", TokType.Id, TokType.Def, TokType.RealNumber, TokType.Id)]
     [TestCase("x = 0x10y10", TokType.Id, TokType.Def, TokType.NotAToken)]
     [TestCase("123abc", TokType.IntNumber, TokType.Id)]
+    [TestCase("1e10", TokType.RealNumber)]
+    [TestCase("2.5e-3", TokType.RealNumber)]
+    [TestCase("1E10", TokType.RealNumber)]
+    [TestCase("1e+10", TokType.RealNumber)]
+    [TestCase("1e-0", TokType.RealNumber)]
+    [TestCase("0.123e34", TokType.RealNumber)]
+    [TestCase("1_000e2", TokType.RealNumber)]
+    [TestCase("1e10 + 1", TokType.RealNumber, TokType.Plus, TokType.IntNumber)]
+    [TestCase("y = 2.5e-3", TokType.Id, TokType.Def, TokType.RealNumber)]
+    // e without digits → IntNumber + Id (rollback)
+    [TestCase("1e", TokType.IntNumber, TokType.Id)]
+    [TestCase("1ex", TokType.IntNumber, TokType.Id)]
+    [TestCase("1e+x", TokType.IntNumber, TokType.Id, TokType.Plus, TokType.Id)]
+    // scientific notation with decimal mantissa in expressions
+    [TestCase("1.0e5", TokType.RealNumber)]
+    [TestCase("y = -1e10", TokType.Id, TokType.Def, TokType.Minus, TokType.RealNumber)]
+    [TestCase("1e3 * 2", TokType.RealNumber, TokType.Mult, TokType.IntNumber)]
+    // double-e: second e starts a new identifier
+    [TestCase("1e2e3", TokType.RealNumber, TokType.Id)]
     public void GeneralTokenFlow_ExpectEof(string exp, params TokType[] expected) {
         var tokens = new List<TokType>();
         foreach (var token in Tokenizer.ToTokens(exp))
@@ -324,6 +343,35 @@ public class TokenizerTest {
     [TestCase("0xGG.y", TokType.NotAToken, TokType.Dot, TokType.Id)]
     [TestCase("1y", TokType.NotAToken)]
     [TestCase("0.0f", TokType.NotAToken)]
+    [TestCase("1e10", TokType.RealNumber)]
+    [TestCase("1E10", TokType.RealNumber)]
+    [TestCase("1e+10", TokType.RealNumber)]
+    [TestCase("1e-10", TokType.RealNumber)]
+    [TestCase("2.5e3", TokType.RealNumber)]
+    [TestCase("2.5e-3", TokType.RealNumber)]
+    [TestCase("2.5e+3", TokType.RealNumber)]
+    [TestCase("0e0", TokType.RealNumber)]
+    [TestCase("1e0", TokType.RealNumber)]
+    [TestCase("1_000e2", TokType.RealNumber)]
+    [TestCase("1.5e1_0", TokType.RealNumber)]
+    // e without valid exponent → rollback
+    [TestCase("1e", TokType.IntNumber, TokType.Id)]
+    [TestCase("1E", TokType.IntNumber, TokType.Id)]
+    [TestCase("1e+", TokType.IntNumber, TokType.Id, TokType.Plus)]
+    [TestCase("1e-", TokType.IntNumber, TokType.Id, TokType.Minus)]
+    // underscore-only exponent → rollback (no real digits)
+    [TestCase("1e_", TokType.IntNumber, TokType.Id)]
+    // decimal mantissa with exponent rollback
+    [TestCase("1.0e", TokType.RealNumber, TokType.Id)]
+    [TestCase("1.0e-", TokType.RealNumber, TokType.Id, TokType.Minus)]
+    // exponent stops at dot
+    [TestCase("1.0e1.0", TokType.RealNumber, TokType.Dot, TokType.IntNumber)]
+    // double-e
+    [TestCase("1e2e3", TokType.RealNumber, TokType.Id)]
+    // hex takes precedence over sci notation
+    [TestCase("0xe10", TokType.HexOrBinaryNumber)]
+    // IP addresses should not trigger scientific notation
+    [TestCase("1.2.3.4e5", TokType.RealNumber, TokType.Dot, TokType.IntNumber, TokType.Dot, TokType.RealNumber)]
     public void ParseNumbersAndIpFromFlow_ExpectEof(string exp, params TokType[] expected) { }
 
     [TestCase("\t   true   \t", TokType.True)]

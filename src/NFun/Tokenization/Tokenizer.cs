@@ -221,6 +221,26 @@ public class Tokenizer {
             dotsCount--;
         }
 
+        // Scientific notation: e.g. 1e10, 2.5e-3, 1E+10
+        if (index < str.Length && dotsCount <= 1 && (str[index] == 'e' || str[index] == 'E'))
+        {
+            var ePos = index;
+            index++; // skip 'e'/'E'
+            if (index < str.Length && (str[index] == '+' || str[index] == '-'))
+                index++; // skip sign
+            var digitStart = index;
+            bool hasDigit = false;
+            while (index < str.Length && (IsDigit(str[index]) || str[index] == '_'))
+            {
+                if (IsDigit(str[index])) hasDigit = true;
+                index++;
+            }
+            if (hasDigit) // at least one real digit after e[+/-]
+                return Tok.SubString(str, TokType.RealNumber, position, index);
+            // No digits after e → rollback, treat e as start of next token
+            index = ePos;
+        }
+
         return dotsCount switch {
                    0 => Tok.SubString(str, TokType.IntNumber, position, index),
                    1 => Tok.SubString(str, TokType.RealNumber, position, index),

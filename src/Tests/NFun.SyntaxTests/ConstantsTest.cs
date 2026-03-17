@@ -41,6 +41,19 @@ public class ConstantsTest {
     [TestCase("y = 1111  ", 1111)]
     [TestCase("y = 11_11  ", 1111)]
     [TestCase("y = 1.1_11  ", 1.111)]
+    [TestCase("y = 1e10", 1e10)]
+    [TestCase("y = 2.5e-3", 0.0025)]
+    [TestCase("y = 1E10", 1e10)]
+    [TestCase("y = 1e+10", 1e10)]
+    [TestCase("y = 1e0", 1.0)]
+    [TestCase("y = 0e0", 0.0)]
+    [TestCase("y = 0.123e34", 0.123e34)]
+    [TestCase("y = 1_000e2", 100000.0)]
+    [TestCase("y = 1.5e1_0", 1.5e10)]
+    [TestCase("y = -1e10", -1e10)]
+    [TestCase("y = 1e3 * 2", 2000.0)]
+    [TestCase("y = 1e10 + 1", 1e10 + 1)]
+    [TestCase("y = 1.0e5", 1.0e5)]
     public void NumericConstantEqualsExpected(string expression, object expected) =>
         expression.AssertReturns("y", expected);
 

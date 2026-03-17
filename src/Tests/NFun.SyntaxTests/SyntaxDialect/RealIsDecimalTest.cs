@@ -21,6 +21,8 @@ public class RealIsDecimalTest {
     [TestCase("0.2 > 0.3", false)]
     [TestCase("0.2 < 0.3", true)]
     [TestCase("0.2 == 0.3", false)]
+    [TestCase("2.5e-3 == 0.0025", true)]
+    [TestCase("1e2 == 100.0", true)]
     public void ConstToBoolCalc(string expr, bool expected)
         => expr
             .BuildWithDialect(realClrType: RealClrType.IsDecimal)

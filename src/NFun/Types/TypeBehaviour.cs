@@ -243,7 +243,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
     public override object GetRealConstantValue(ulong d) => (double)d;
     public override object GetRealConstantValue(long d) => (double)d;
     public override object ParseOrNull(string text) => double.TryParse(text,
-        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign,
+        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign|NumberStyles.AllowExponent,
         CultureInfo.InvariantCulture, out var dbl) ? dbl : null;
     public override Type GetClrTypeFor(BaseFunnyType funnyType) =>
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(double);
@@ -332,8 +332,8 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
     
     public override object GetRealConstantValue(ulong d) => new decimal(d);
     public override object GetRealConstantValue(long d) => new decimal(d);
-    public override object ParseOrNull(string text) => decimal.TryParse(text, 
-        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign,
+    public override object ParseOrNull(string text) => decimal.TryParse(text,
+        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign|NumberStyles.AllowExponent,
         CultureInfo.InvariantCulture, out var dbl) ? dbl : null;
     
     public override Type GetClrTypeFor(BaseFunnyType funnyType) =>

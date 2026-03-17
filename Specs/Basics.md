@@ -248,6 +248,10 @@ The numbers in NFun can be written in various ways. Supported
 -123.456 # real literal
 
 123_456.7_89 # real literal with separator
+
+2.5e-3     # scientific notation real literal
+1E+10      # uppercase E and explicit positive exponent
+1_000e2_0  # scientific notation with separator
 ```
 
 A real literal always has the `real` type.
