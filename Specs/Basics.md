@@ -267,6 +267,19 @@ m = 1/k
 r = 1.5 #real
 ```
 
+### Implicit multiplication
+
+When a numeric literal is immediately followed (without whitespace) by a variable name or `(`, an implicit `*` operator is inserted:
+
+```py
+y = 2x         # equivalent to 2*x
+y = 3(x + 2)   # equivalent to 3*(x + 2)
+y = 0.5x       # equivalent to 0.5*x
+y = 2 x        # error! No space allowed
+y = 2sin(x)    # error! Implicit multiplication before a function call is not allowed
+y = 2(sin(x))  # equivalent to 2*sin(x)
+```
+
 ### Expressions: Character literal
 
 Character literals have the **char** type. Syntax: `/` prefix + single character in single quotes

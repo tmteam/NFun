@@ -305,11 +305,14 @@ public static class SyntaxNodeReader {
 
             var opToken = flow.Current;
 
-            // Check for hidden multiplication
+            // Check for implicit multiplication
             // like "10x" or "10(x)"
-            if (IsHiddenMultiplication(leftNode, opToken))
+            if (IsImplicitMultiplication(leftNode, opToken))
             {
-                var rightNode = ReadAtomicNodeOrNull(flow).NotNull("R node cannot be read in hidden multiplication");
+                var rightNode = ReadAtomicNodeOrNull(flow).NotNull("R node cannot be read in implicit multiplication");
+                // 2sin(x) is forbidden — only when trigger was Id followed by '(' (real function call)
+                if (opToken.Type == TokType.Id && rightNode is FunCallSyntaxNode funCall)
+                    throw Errors.ImplicitMultiplicationBeforeFunctionCall(leftNode, funCall);
                 return SyntaxNodeFactory.BinOperatorCall(CoreFunNames.Multiply, leftNode, rightNode);
             }
 
@@ -438,10 +441,10 @@ public static class SyntaxNodeReader {
     }
 
     /// <summary>
-    /// Check for hidden multiplication
+    /// Check for implicit multiplication
     ///  like "10x" or 10(x)
     /// </summary>
-    private static bool IsHiddenMultiplication(ISyntaxNode leftNode, Tok currentToken) {
+    private static bool IsImplicitMultiplication(ISyntaxNode leftNode, Tok currentToken) {
         // left node has to be numeric constant
         if (leftNode is not ConstantSyntaxNode && leftNode is not GenericIntSyntaxNode)
             return false;
@@ -449,7 +452,7 @@ public static class SyntaxNodeReader {
         // no space between number and variable name allowed
         if (leftNode.Interval.Finish != currentToken.Interval.Start)
             return false;
-        // hidden multiplication allowed before 'id' or '(..)'
+        // implicit multiplication allowed before 'id' or '(..)'
 
         return currentToken.Type == TokType.Id || currentToken.Type == TokType.ParenthObr;
     }

@@ -280,6 +280,13 @@ internal static partial class Errors {
     internal static FunnyParseException SafeArrayAccessNotSupported(Tok question) => new(
         560, $"Safe array access '?[' is not yet supported", question.Interval);
 
+    internal static FunnyParseException ImplicitMultiplicationBeforeFunctionCall(
+        ISyntaxNode leftNode, FunCallSyntaxNode funCall) => new(
+        562,
+        $"Implicit multiplication before function call is not supported: `{leftNode.ToShortText()}{funCall.Id}(...)`"
+        + $"{Nl}Write `{leftNode.ToShortText()} * {funCall.Id}(...)` instead",
+        leftNode.Interval.Start, funCall.Interval.Finish);
+
     internal static FunnyParseException FunctionCallObrMissed(int funStart, string name, int position, ISyntaxNode pipedVal) {
         if (pipedVal == null)
             return new(

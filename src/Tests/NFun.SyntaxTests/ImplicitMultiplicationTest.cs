@@ -3,7 +3,7 @@ namespace NFun.SyntaxTests;
 using NUnit.Framework;
 using TestTools;
 
-public class HiddenMultiplicationTest {
+public class ImplicitMultiplicationTest {
     [TestCase("10x", 2, 20)]
     [TestCase("1x", 2, 2)]
     [TestCase("1_0x", 2, 20)]
@@ -125,8 +125,27 @@ public class HiddenMultiplicationTest {
     [TestCase("1+ 1.0z", 2.0, 3.0)]
     [TestCase("1+ 1.5z", 2.0, 4.0)]
     [TestCase("1 -1.0z", 2.0, -1.0)]
-    public void SinglezVariaZleEquation(string expr, object arg, object expected) =>
+    public void SinglezVariableEquation(string expr, object arg, object expected) =>
         expr.Calc("z", arg).AssertReturns("out", expected);
+
+    // Scientific notation + implicit multiplication interaction
+    [TestCase("1e2x", 3.0, 300.0)]   // 1e2 * x = 100 * 3
+    [TestCase("1.5e2x", 2.0, 300.0)] // 1.5e2 * x = 150 * 2
+    [TestCase("1e2(x)", 3.0, 300.0)]
+    [TestCase("1e2(x+1)", 3.0, 400.0)]
+    public void ScientificNotationWithImplicitMultiplication(string expr, object arg, object expected) =>
+        expr.Calc("x", arg).AssertReturns("out", expected);
+
+    // Parenthesized function call is OK (not direct implicit mult before func)
+    [TestCase("2(sin(1.0))", 2 * 0.8414709848078965)]
+    [TestCase("2.0(max(3,5))", 10.0)]
+    public void ParenthesizedFunctionCallIsAllowed(string expr, object expected) =>
+        expr.Calc().AssertReturns("out", expected);
+
+    // Multiple implicit multiplications in one expression
+    [TestCase("y = 2x + 3x", 5, 25)]
+    public void MultipleImplicitMultiplications(string expr, object arg, object expected) =>
+        expr.Calc("x", arg).AssertReturns("y", expected);
 
     [TestCase("12.0.0.1x")]
     [TestCase("x = 0x10y10")]
@@ -135,5 +154,17 @@ public class HiddenMultiplicationTest {
     [TestCase("x = 0b10b")]
     [TestCase("0b")]
     [TestCase("0x")]
+    // Whitespace prevents implicit multiplication
+    [TestCase("2 x")]
+    [TestCase("2 10")]
+    [TestCase("2 (10)")]
+    [TestCase("2 (max(1,2))")]
+    // Implicit multiplication before function call is forbidden
+    [TestCase("2sin(1.0)")]
+    [TestCase("2max(1,2)")]
+    [TestCase("10abs(-5)")]
+    [TestCase("1.5sin(1.0)")]
+    [TestCase("1e2sin(1.0)")]
+    [TestCase("-2sin(1.0)")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 }
