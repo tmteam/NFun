@@ -124,4 +124,16 @@ public class OptionalChainingWorkingTest {
         "x = if(false) {a=1, b=2} else none\r y:int = x?.a ?? x?.b ?? 0"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("y", 0);
+
+    [Test]
+    public void ChainedCoalesce_WithTypedOptionalInput_HasValue() =>
+        "x:{a:int, b:int}? = {a=1, b=2}\r y = x?.a ?? x?.b ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas(("y", 1));
+
+    [Test]
+    public void ChainedCoalesce_WithTypedOptionalInput_None() =>
+        "x:{a:int, b:int}? = none\r y = x?.a ?? x?.b ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", 0);
 }

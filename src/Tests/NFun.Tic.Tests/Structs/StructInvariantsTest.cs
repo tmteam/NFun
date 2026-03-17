@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
@@ -7,22 +6,7 @@ namespace NFun.Tic.Tests.Structs;
 
 using static StatePrimitive;
 
-/// <summary>
-/// Invariant and boundary-condition tests for struct type inference.
-/// Written test-first from the algorithm specification, NOT from the implementation.
-///
-/// Covers:
-/// 1. Nested struct construction + field access
-/// 2. Struct LCA in if-else and arrays
-/// 3. Chained field access through multiple levels
-/// 4. Struct with arrays inside fields
-/// 5. Multiple references to the same struct variable
-/// </summary>
 public class StructInvariantsTest {
-    // ================================================================
-    // GROUP 1: Nested struct construction and field access
-    // ================================================================
-
     [Test]
     public void NestedStructFieldAccess_ConstantFields() {
         using var _ = TraceLog.Scope;

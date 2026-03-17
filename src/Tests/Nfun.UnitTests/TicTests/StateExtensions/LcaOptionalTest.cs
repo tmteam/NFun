@@ -8,17 +8,9 @@ using static Tic.SolvingStates.StatePrimitive;
 
 public class LcaOptionalTest {
 
-    // ===================================================================
-    // None x None
-    // ===================================================================
-
     [Test]
     public void None_LCA_None_ReturnsNone() =>
         AssertLca(None, None, None);
-
-    // ===================================================================
-    // None x Primitives (via Lca extension: LcaWithNone)
-    // ===================================================================
 
     [Test]
     public void None_LCA_Any_ReturnsAny() =>
@@ -81,10 +73,6 @@ public class LcaOptionalTest {
     public void None_LCA_I24_ReturnsOptI24() =>
         AssertLca(None, I24, Optional(I24));
 
-    // ===================================================================
-    // None x Optional
-    // ===================================================================
-
     [Test]
     public void None_LCA_OptI32_ReturnsOptI32() =>
         AssertLca(None, Optional(I32), Optional(I32));
@@ -108,10 +96,6 @@ public class LcaOptionalTest {
     [Test]
     public void None_LCA_OptArrayI32_ReturnsOptArrayI32() =>
         AssertLca(None, Optional(Array(I32)), Optional(Array(I32)));
-
-    // ===================================================================
-    // None x Composites
-    // ===================================================================
 
     [Test]
     public void None_LCA_ArrayI32_ReturnsOptArrayI32() =>
@@ -147,10 +131,6 @@ public class LcaOptionalTest {
     public void None_LCA_FunNoArgs_ReturnsOptFun() =>
         AssertLca(None, Fun(Real), Optional(Fun(Real)));
 
-    // ===================================================================
-    // None x Constraints
-    // ===================================================================
-
     [Test]
     public void None_LCA_EmptyConstraints_ReturnsNone() =>
         AssertLca(None, EmptyConstraints, None);
@@ -175,10 +155,6 @@ public class LcaOptionalTest {
     public void None_LCA_ConstrainsDescAny_ReturnsAny() =>
         // none <: any, LCA(None, Any) = Any
         AssertLca(None, Constrains(desc: Any), Any);
-
-    // ===================================================================
-    // Optional x Optional (covariant)
-    // ===================================================================
 
     [Test]
     public void OptI32_LCA_OptI32_ReturnsOptI32() =>
@@ -271,10 +247,6 @@ public class LcaOptionalTest {
             Optional(Struct("a", Real)),
             Optional(Struct("a", Real)));
 
-    // ===================================================================
-    // Optional x Primitives
-    // ===================================================================
-
     [Test]
     public void OptI32_LCA_I32_ReturnsOptI32() =>
         AssertLca(Optional(I32), I32, Optional(I32));
@@ -354,10 +326,6 @@ public class LcaOptionalTest {
     public void OptChar_LCA_Any_ReturnsAny() =>
         AssertLca(Optional(Char), Any, Any);
 
-    // ===================================================================
-    // Optional x Composites (mismatched inner kind)
-    // ===================================================================
-
     [Test]
     public void OptI32_LCA_ArrayI32_ReturnsAny() =>
         // LCA(I32, Array(I32)) = Any, opt(any) = any
@@ -377,10 +345,6 @@ public class LcaOptionalTest {
     public void OptBool_LCA_ArrayBool_ReturnsAny() =>
         // LCA(Bool, Array(Bool)) = Any, opt(any) = any
         AssertLca(Optional(Bool), Array(Bool), Any);
-
-    // ===================================================================
-    // Optional x Composites (matching inner kind)
-    // ===================================================================
 
     [Test]
     public void OptArrayI32_LCA_ArrayI32_ReturnsOptArrayI32() =>
@@ -425,10 +389,6 @@ public class LcaOptionalTest {
         // LCA(Fun(I32,I16), Fun(I32,U16)) = Fun(I32, I24)
         AssertLca(Optional(Fun(I32, I16)), Fun(I32, U16), Optional(Fun(I32, I24)));
 
-    // ===================================================================
-    // Optional x Constraints
-    // ===================================================================
-
     [Test]
     public void OptI32_LCA_EmptyConstraints_ReturnsOptI32() =>
         AssertLca(Optional(I32), EmptyConstraints, Optional(I32));
@@ -459,10 +419,6 @@ public class LcaOptionalTest {
     [Test]
     public void OptI32_LCA_ConstrainsDescI32_ReturnsOptI32() =>
         AssertLca(Optional(I32), Constrains(desc: I32), Optional(I32));
-
-    // ===================================================================
-    // Nested Optional compositions
-    // ===================================================================
 
     [Test]
     public void OptArrayOfArrayI32_LCA_ArrayOfArrayReal_ReturnsOptArrayOfArrayReal() =>
@@ -499,25 +455,17 @@ public class LcaOptionalTest {
     public void OptStruct_LCA_OptFun_ReturnsAny() =>
         AssertLca(Optional(Struct("a", I32)), Optional(Fun(I32, I32)), Any);
 
-    // ===================================================================
-    // Bulk: Optional x Optional for all primitive LCA combinations
-    // ===================================================================
-
     [Test]
     public void OptionalOfAllPrimitivePairs_ReturnsOptionalOfLcaOrAny() {
         foreach (var types in PrimitiveTypesLca)
         {
             // opt(any) collapses to any
             var expected = types.Lca.Equals(Any)
-                ? (ITicNodeState)Any
+                ? Any
                 : (ITicNodeState)Optional(types.Lca);
             AssertLca(Optional(types.Left), Optional(types.Right), expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: None x all primitives
-    // ===================================================================
 
     [Test]
     public void NoneAndAllPrimitives_ReturnsOptOrAny() {
@@ -525,15 +473,11 @@ public class LcaOptionalTest {
         {
             // none <: any, so LCA(None, Any) = Any; for others LCA(None, T) = Opt(T)
             var expected = primitive.Equals(Any)
-                ? (ITicNodeState)Any
+                ? Any
                 : (ITicNodeState)Optional(primitive);
             AssertLca(None, primitive, expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: Optional(T) x T for all primitives = Opt(T)
-    // ===================================================================
 
     [Test]
     public void OptionalPrimitive_LCA_SamePrimitive_ReturnsOptSelfOrAny() {
@@ -541,15 +485,11 @@ public class LcaOptionalTest {
         {
             // opt(any) = any
             var expected = primitive.Equals(Any)
-                ? (ITicNodeState)Any
+                ? Any
                 : (ITicNodeState)Optional(primitive);
             AssertLca(Optional(primitive), primitive, expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: Opt(Left) x Right for all primitive pairs
-    // ===================================================================
 
     [Test]
     public void OptionalLeft_LCA_PrimitiveRight_ReturnsOptLcaOrAny() {
@@ -557,15 +497,11 @@ public class LcaOptionalTest {
         {
             // LCA(Opt(Left), Right) = Opt(LCA(Left, Right)), but opt(any) = any
             var expected = types.Lca.Equals(Any)
-                ? (ITicNodeState)Any
+                ? Any
                 : (ITicNodeState)Optional(types.Lca);
             AssertLca(Optional(types.Left), types.Right, expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: None x Opt(T) for all primitives
-    // ===================================================================
 
     [Test]
     public void NoneAndAllOptionalPrimitives_ReturnsOptPrimitive() {
@@ -575,25 +511,17 @@ public class LcaOptionalTest {
             // For T=Any: LCA(None, Opt(Any)) = LCA(None, Any) = Any
             var opt = Optional(primitive);
             var expected = primitive.Equals(Any)
-                ? (ITicNodeState)Any
+                ? Any
                 : (ITicNodeState)opt;
             AssertLca(None, opt, expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: None x Array(T) for all primitives
-    // ===================================================================
 
     [Test]
     public void NoneAndArrayOfAllPrimitives_ReturnsOptArray() {
         foreach (var primitive in PrimitiveTypes)
             AssertLca(None, Array(primitive), Optional(Array(primitive)));
     }
-
-    // ===================================================================
-    // Bulk: Opt(Array(Left)) x Array(Right) for all pairs
-    // ===================================================================
 
     [Test]
     public void OptArrayLeft_LCA_ArrayRight_ReturnsOptArrayLca() {
@@ -605,10 +533,6 @@ public class LcaOptionalTest {
         }
     }
 
-    // ===================================================================
-    // Bulk: Opt(Arr(L)) x Opt(Arr(R)) for all pairs
-    // ===================================================================
-
     [Test]
     public void OptArrayLeft_LCA_OptArrayRight_ReturnsOptArrayLca() {
         foreach (var types in PrimitiveTypesLca)
@@ -618,10 +542,6 @@ public class LcaOptionalTest {
             AssertLca(Optional(Array(types.Left)), Optional(Array(types.Right)), expected);
         }
     }
-
-    // ===================================================================
-    // Edge cases
-    // ===================================================================
 
     [Test]
     public void OptAny_LCA_Primitives_ReturnsAny() {
@@ -655,10 +575,6 @@ public class LcaOptionalTest {
         var result = None;
         AssertLca(result, None, None);
     }
-
-    // ===================================================================
-    // MergeOrNull with None: algebra-level behavior
-    // ===================================================================
 
     [Test]
     public void MergeOrNull_NoneDesc_WithEmpty_ReturnsNoneDesc() {
@@ -700,8 +616,6 @@ public class LcaOptionalTest {
         var cs = (ConstraintsState)result;
         Assert.AreEqual(None, cs.Descendant);
     }
-
-    // ===================================================================
 
     [Test]
     public void OptI32_LCA_None_ReturnsOptI32() =>

@@ -111,6 +111,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         if (node.IsSafeAccess)
         {
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled)
+                throw Errors.SafeAccessNotSupported(node.Interval);
             if (structNode.Type.BaseType != BaseFunnyType.Optional)
                 throw Errors.SafeAccessOnNonOptional(node.Interval);
             var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
@@ -375,6 +377,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(ConstantSyntaxNode node) {
+        if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled
+            && node.Value is FunnyNone)
+            throw Errors.NoneLiteralNotSupported(node.Interval);
         var (enode, type) = GetConstantNodeOrNull(node.Value, node);
         return enode ?? new ConstantExpressionNode(node.Value, type, node.Interval);
     }

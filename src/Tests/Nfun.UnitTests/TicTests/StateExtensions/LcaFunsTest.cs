@@ -101,7 +101,7 @@ public class LcaFunsTest {
         foreach (var types in PrimitiveTypesLca)
         {
             var retExpected = types.Lca.Equals(StatePrimitive.Any)
-                ? (ITicNodeState)types.Lca
+                ? types.Lca
                 : Constrains(desc: types.Lca);
             AssertLca(
                 Fun(Any, Constrains(desc: types.Left)),

@@ -1,6 +1,7 @@
 namespace NFun.SyntaxTests.OptionalTypes;
 
 using System;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -1954,4 +1955,115 @@ public class OptionalTypeTest {
     [TestCase("x:int?\r y = x & x")]
     public void Combo_Negative_OptionalInArithmetic(string expr) =>
         expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+
+    [Test]
+    public void OptionalStructArray_Index_ShouldWork() {
+        var result = "x = [{a=1}, none]\r y = x[0]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.IsNotNull(result.Get("y"));
+    }
+
+    [Test]
+    public void OptionalStructArray_Map_ShouldWork() {
+        "x = [{a=1}, none, {a=3}]\r y = x.map(rule it?.a ?? 0)"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+    }
+
+    [Test]
+    public void FoldOnOptionalArray_WithArithmetic_GivesTypeError() {
+        Assert.Throws<FunnyParseException>(
+            () => "y = [1,none,3].fold(rule it1 + (it2 ?? 0))"
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void FoldOnOptionalArray_WithCoalesce_Works() {
+        "y = [1,none,3].map(rule it ?? 0).fold(rule it1 + it2)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", 4);
+    }
+
+    [Test]
+    public void OptionalIntArray_NoneDisplaysAsNull() {
+        var result = "x:int?[] = [1, none, 3]\r y = x"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (int?[])result.Get("y");
+        Assert.AreEqual(1, arr[0]);
+        Assert.IsNull(arr[1]);
+        Assert.AreEqual(3, arr[2]);
+    }
+
+    [Test]
+    public void OptionalBoolArray_NoneDisplaysAsNull() {
+        var result = "x:bool?[] = [true, none, false]\r y = x"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (bool?[])result.Get("y");
+        Assert.AreEqual(true, arr[0]);
+        Assert.IsNull(arr[1]);
+        Assert.AreEqual(false, arr[2]);
+    }
+
+    [Test]
+    public void InferredOptionalArray_WithCoalesce_XShouldBeOptional() {
+        var result = "x = [1, none, 3]\r y = x.map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var yArr = (int[])result.Get("y");
+        Assert.AreEqual(new[] { 1, 0, 3 }, yArr);
+        Assert.DoesNotThrow(
+            () => result.Get("x"),
+            "Reading x throws InvalidCastException because TIC inferred Int32[] instead of Int32?[]");
+    }
+
+    [Test]
+    public void InferredOptionalArray_ElementCoalesce_XShouldBeOptional() {
+        var result = "x = [1, none, 3]\r y = x[0] ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(1, result.Get("y"));
+        Assert.DoesNotThrow(
+            () => result.Get("x"),
+            "Reading x throws InvalidCastException because TIC inferred Int32[] instead of Int32?[]");
+    }
+
+    [Test]
+    public void AnnotatedOptionalArray_MapWithCoalesce_Works() =>
+        "x:int?[] = [1, none, 3]\r y = x.map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", new[] { 1, 0, 3 });
+
+    [Test]
+    public void InlineOptionalArray_MapWithCoalesce_Works() =>
+        "y = [1, none, 3].map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", new[] { 1, 0, 3 });
+
+    [Test]
+    public void TypedOptionalArray_TwoNoneLiterals_ShouldCompile() {
+        Assert.DoesNotThrow(
+            () => "x:int?[] = [1, none, none]"
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled),
+            "FU775 parse error on typed array with 2 none literals");
+    }
+
+    [Test]
+    public void TypedOptionalArray_ThreeNoneLiterals_ShouldCompile() {
+        Assert.DoesNotThrow(
+            () => "x:int?[] = [none, 1, none, 2, none]"
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled),
+            "FU775 parse error on typed array with 3 none literals");
+    }
+
+    [TestCase("x:int?[] = [1, none]", Description = "1 none works")]
+    [TestCase("x:int?[] = [none, 1]", Description = "1 none at start works")]
+    [TestCase("x:int?[] = [none, none]", Description = "only nones works")]
+    public void TypedOptionalArray_SingleOrAllNone_Works(string expr) {
+        Assert.DoesNotThrow(
+            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void UntypedArray_MultipleNones_Works() {
+        var result = "y = [1, none, none]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.IsNotNull(result.Get("y"));
+    }
 }

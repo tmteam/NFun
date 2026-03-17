@@ -14,8 +14,6 @@ public class ConstraintsStateTest {
         return c;
     }
 
-    // ==================== IntersectIntervalsOrNull ====================
-
     [Test]
     public void IntersectIntervalsOrNull_BothEmpty() =>
         Assert.AreEqual(C(), C().IntersectIntervalsOrNull(C()));
@@ -69,22 +67,20 @@ public class ConstraintsStateTest {
     [Test]
     public void IntersectIntervalsOrNull_DescIsComposite() =>
         Assert.AreEqual(
-            C(desc: (ITicNodeState)Array(Real)),
-            C(desc: (ITicNodeState)Array(I32)).IntersectIntervalsOrNull(C(desc: (ITicNodeState)Array(Real))));
+            C(desc: Array(Real)),
+            C(desc: Array(I32)).IntersectIntervalsOrNull(C(desc: Array(Real))));
 
     [Test]
     public void IntersectIntervalsOrNull_DescIsOptional() =>
         Assert.AreEqual(
-            C(desc: (ITicNodeState)Optional(Real)),
-            C(desc: (ITicNodeState)Optional(I32)).IntersectIntervalsOrNull(C(desc: (ITicNodeState)Optional(Real))));
+            C(desc: Optional(Real)),
+            C(desc: Optional(I32)).IntersectIntervalsOrNull(C(desc: Optional(Real))));
 
     [Test]
     public void IntersectIntervalsOrNull_DescPrimAndComposite() =>
         Assert.AreEqual(
             C(desc: Any),
-            C(desc: I32).IntersectIntervalsOrNull(C(desc: (ITicNodeState)Array(I32))));
-
-    // ==================== IntervalIsNonEmpty ====================
+            C(desc: I32).IntersectIntervalsOrNull(C(desc: Array(I32))));
 
     [Test]
     public void IntervalIsNonEmpty_EmptyConstraints() =>
@@ -124,9 +120,7 @@ public class ConstraintsStateTest {
 
     [Test]
     public void IntervalIsNonEmpty_CompositeDesc() =>
-        Assert.IsFalse(C(desc: (ITicNodeState)Array(I32), anc: Real).IntervalIsNonEmpty());
-
-    // ==================== CanBeConvertedTo ====================
+        Assert.IsFalse(C(desc: Array(I32), anc: Real).IntervalIsNonEmpty());
 
     [Test]
     public void CanBeConvertedTo_Empty_AnyPrimitive() =>
@@ -134,7 +128,7 @@ public class ConstraintsStateTest {
 
     [Test]
     public void CanBeConvertedTo_Empty_AnyArray() =>
-        Assert.IsTrue(C().CanBeConvertedTo((ITypeState)Array(I32)));
+        Assert.IsTrue(C().CanBeConvertedTo(Array(I32)));
 
     [Test]
     public void CanBeConvertedTo_DescOnly_FitsTarget() =>
@@ -174,17 +168,15 @@ public class ConstraintsStateTest {
 
     [Test]
     public void CanBeConvertedTo_Comparable_TextOk() =>
-        Assert.IsTrue(C(isComparable: true).CanBeConvertedTo((ITypeState)Array(Char)));
+        Assert.IsTrue(C(isComparable: true).CanBeConvertedTo(Array(Char)));
 
     [Test]
     public void CanBeConvertedTo_Comparable_NonTextArrayFails() =>
-        Assert.IsFalse(C(isComparable: true).CanBeConvertedTo((ITypeState)Array(I32)));
+        Assert.IsFalse(C(isComparable: true).CanBeConvertedTo(Array(I32)));
 
     [Test]
     public void CanBeConvertedTo_CompositeTarget_SameType() =>
-        Assert.IsTrue(C(desc: (ITicNodeState)Array(I32)).CanBeConvertedTo((ITypeState)Array(Real)));
-
-    // ==================== SolveCovariant ====================
+        Assert.IsTrue(C(desc: Array(I32)).CanBeConvertedTo(Array(Real)));
 
     [Test]
     public void SolveCovariant_Empty() =>
@@ -222,7 +214,7 @@ public class ConstraintsStateTest {
 
     [Test]
     public void SolveCovariant_CompositeDesc_Array() =>
-        Assert.AreEqual(Array(I32), C(desc: (ITicNodeState)Array(I32)).SolveCovariant());
+        Assert.AreEqual(Array(I32), C(desc: Array(I32)).SolveCovariant());
 
     [Test]
     public void SolveCovariant_CompositeDesc_Struct() {
@@ -232,13 +224,11 @@ public class ConstraintsStateTest {
 
     [Test]
     public void SolveCovariant_CompositeDesc_Optional() =>
-        Assert.AreEqual(Optional(I32), C(desc: (ITicNodeState)Optional(I32)).SolveCovariant());
+        Assert.AreEqual(Optional(I32), C(desc: Optional(I32)).SolveCovariant());
 
     [Test]
     public void SolveCovariant_IgnorePreferred() =>
         Assert.AreEqual(Real, C(desc: U8, anc: Real, preferred: I32).SolveCovariant(ignorePreferred: true));
-
-    // ==================== SolveContravariant ====================
 
     [Test]
     public void SolveContravariant_Empty() {
@@ -280,39 +270,14 @@ public class ConstraintsStateTest {
 
     [Test]
     public void SolveContravariant_Comparable_TextDesc() =>
-        Assert.AreEqual(Array(Char), C(desc: (ITicNodeState)Array(Char), isComparable: true).SolveContravariant());
+        Assert.AreEqual(Array(Char), C(desc: Array(Char), isComparable: true).SolveContravariant());
 
     [Test]
     public void SolveContravariant_CompositeDesc() =>
-        Assert.AreEqual(Array(I32), C(desc: (ITicNodeState)Array(I32)).SolveContravariant());
-
-    // ==================== Pipeline bug: if-else with None ====================
-    //
-    // Documents the algebra state transitions that cause IfElse_IntConstOrNone failure.
-    //
-    // Graph: y = if(a) intConst else none
-    //   Node intConst: [U8..Real]Real!
-    //   Node none:     None
-    //   Node result:   [] (empty)
-    //   Edges: intConst ≤ result, none ≤ result
-    //
-    // PullConstraints processes the two edges in order:
-    //   1) Pull intConst → result: result.AddDescendant(U8) → result = [U8..]
-    //   2) Pull none → result:     result.AddDescendant(None) → LCA(U8, None) = opt(U8)
-    //      Now result = [opt(U8)..]
-    //
-    // During Destruction, result merges with intConst:
-    //   [opt(U8)..].MergeOrNull([U8..Real]Real!) → null
-    //   because opt(U8) ≰ Real (Optional can't convert to primitive).
-    //
-    // The MergeOrNull returns null → destruction fails silently → generic destroyed.
-    // Root cause: PullConstraints LCA'd only the lower bound (U8) with None,
-    // producing opt(U8) instead of opt([U8..Real]). The upper bound was lost.
+        Assert.AreEqual(Array(I32), C(desc: Array(I32)).SolveContravariant());
 
     [Test]
     public void AddDescendant_None_OnPrimitiveBound_WrapsInOptional() {
-        // Step 1 of the pipeline bug: PullConstraints adds intConst's desc (U8)
-        // to the result, then adds None. LCA(U8, None) = opt(U8).
         var c = C(desc: U8);
         c.AddDescendant(None);
         Assert.AreEqual(Optional(U8), c.Descendant);
@@ -322,7 +287,7 @@ public class ConstraintsStateTest {
     public void IntervalIsNonEmpty_OptionalDescPrimitiveAnc_ReturnsFalse() {
         // Step 2: the intersected interval [opt(U8)..Real] is empty
         // because opt(U8) ≰ Real.
-        var c = C(desc: (ITicNodeState)Optional(U8), anc: Real);
+        var c = C(desc: Optional(U8), anc: Real);
         Assert.IsFalse(c.IntervalIsNonEmpty());
     }
 
@@ -330,7 +295,7 @@ public class ConstraintsStateTest {
     public void MergeOrNull_AfterPullWithNone_FailsAgainstIntConst() {
         // Step 3: Destruction tries [opt(U8)..].MergeOrNull([U8..Real]Real!)
         // and gets null — the intervals are incompatible.
-        var afterPull = C(desc: (ITicNodeState)Optional(U8));
+        var afterPull = C(desc: Optional(U8));
         var intConst = C(desc: U8, anc: Real, preferred: Real);
         var result = afterPull.MergeOrNull(intConst);
         Assert.IsNull(result);
@@ -342,8 +307,8 @@ public class ConstraintsStateTest {
         // and there is no ancestor or comparable constraint.
         // This collapse is correct algebra, but in the pipeline it happens
         // before the intConst's upper bound has been integrated.
-        var c1 = C(desc: (ITicNodeState)Optional(U8));
-        var c2 = C(desc: (ITicNodeState)Optional(U8));
+        var c1 = C(desc: Optional(U8));
+        var c2 = C(desc: Optional(U8));
         var result = c1.MergeOrNull(c2);
         Assert.IsInstanceOf<StateOptional>(result);
         Assert.AreEqual(Optional(U8), result);

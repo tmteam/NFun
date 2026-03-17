@@ -95,6 +95,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         if (node.OutputTypeSpecified)
         {
+            ThrowIfOptionalTypeDisabled(node.OutputType, node.Id, node.Interval);
             var type = node.OutputType.ConvertToTiType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
@@ -112,7 +113,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             argNames[i] = arg.Id;
             i++;
             if (arg.FunnyType != FunnyType.Empty)
+            {
+                ThrowIfOptionalTypeDisabled(arg.FunnyType, arg.Id, arg.Interval);
                 _ticTypeGraph.SetVarType(arg.Id, arg.FunnyType.ConvertToTiType());
+            }
         }
 
         ITypeState returnType = null;
@@ -689,6 +693,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         if (node.FunnyType != FunnyType.Empty)
         {
+            ThrowIfOptionalTypeDisabled(node.FunnyType, node.Id, node.Interval);
             var type = node.FunnyType.ConvertToTiType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
@@ -703,6 +708,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"VarDef {node.Id}:{node.FunnyType}  ");
 #endif
+        ThrowIfOptionalTypeDisabled(node.FunnyType, node.Id, node.Interval);
         var type = node.FunnyType.ConvertToTiType();
         if (!_ticTypeGraph.TrySetVarType(node.Id, type))
             throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
@@ -712,6 +718,21 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
 
     #region privates
+
+    private void ThrowIfOptionalTypeDisabled(FunnyType funnyType, string varId, Interval interval) {
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled)
+            return;
+        if (ContainsOptional(funnyType))
+            throw Errors.OptionalTypeNotSupported(varId, interval);
+    }
+
+    private static bool ContainsOptional(FunnyType type) =>
+        type.BaseType switch {
+            BaseFunnyType.Optional => true,
+            BaseFunnyType.ArrayOf  => ContainsOptional(type.ArrayTypeSpecification.FunnyType),
+            BaseFunnyType.None     => true,
+            _                      => false
+        };
 
     private StateRefTo[] InitializeGenericTypes(GenericConstrains[] constrains) {
         var genericTypes = new StateRefTo[constrains.Length];

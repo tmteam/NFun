@@ -1,7 +1,11 @@
-# NFun Optional Types
+# NFun Optional Types (experimental feature)
+
+
 
 Optional types allow values to represent either a concrete value or the absence of a value (`none`).
-This is useful for handling missing data, partial results, and conditional expressions where a value may not exist
+
+**NOTE**
+The feature is experimental and disabled by default. There is no guarantee that its syntax, semantics, or type inference will not change in the future.
 
 ## Optional type `T?`
 

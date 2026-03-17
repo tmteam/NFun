@@ -44,4 +44,18 @@ public class OptionalStructFieldSpecTest {
         "s:{n:int?} = {n = 42}\r y = s.n ?? 99"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("y", 42);
+
+    [Test]
+    public void StructInIfElse_NestedStruct_PreservesFields() {
+        var result = "z1 = {b=1}\r x = if(true) {a = z1} else none\r y = x"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.IsNotNull(result.Get("y"));
+    }
+
+    [Test]
+    public void StructInIfElse_NestedStruct_NoneCase() {
+        var result = "z1 = {b=1}\r x = if(false) {a = z1} else none\r y = x"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.IsNull(result.Get("y"));
+    }
 }

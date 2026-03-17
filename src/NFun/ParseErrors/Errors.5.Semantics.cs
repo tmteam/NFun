@@ -139,6 +139,15 @@ internal static partial class Errors {
         return new(882, $"Operator '{opSymbol}' requires optional types to be enabled", interval);
     }
 
+    internal static FunnyParseException NoneLiteralNotSupported(Interval interval) =>
+        new(883, "'none' literal requires optional types to be enabled", interval);
+
+    internal static FunnyParseException SafeAccessNotSupported(Interval interval) =>
+        new(884, "Operator '?.' requires optional types to be enabled", interval);
+
+    internal static FunnyParseException OptionalTypeNotSupported(string varId, Interval interval) =>
+        new(885, $"Optional type declaration for '{varId}' requires optional types to be enabled", interval);
+
     #endregion
 
 }

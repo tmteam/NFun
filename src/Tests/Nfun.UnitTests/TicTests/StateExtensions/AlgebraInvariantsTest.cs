@@ -50,10 +50,6 @@ public class AlgebraInvariantsTest {
     private static IEnumerable<ITicNodeState> AllTypes()
         => AllConcreteTypes().Concat(AllConstrainedTypes());
 
-    // ================================================================
-    // LCA invariants (Join in the type lattice)
-    // ================================================================
-
     [Test]
     public void Lca_Symmetry() {
         foreach (var a in AllTypes())
@@ -169,10 +165,6 @@ public class AlgebraInvariantsTest {
         }
     }
 
-    // ================================================================
-    // GCD invariants (Meet in the type lattice)
-    // ================================================================
-
     [Test]
     public void Gcd_Symmetry() {
         foreach (var a in AllConcreteTypes())
@@ -246,10 +238,6 @@ public class AlgebraInvariantsTest {
         Assert.IsNull(array.Gcd(fun));
         Assert.IsNull(struc.Gcd(fun));
     }
-
-    // ================================================================
-    // UnifyOrNull invariants (Intersection / Meet of constraint sets)
-    // ================================================================
 
     [Test]
     public void Unify_Symmetry() {
@@ -376,10 +364,6 @@ public class AlgebraInvariantsTest {
         Assert.IsNull(a.UnifyOrNull(b));
     }
 
-    // ================================================================
-    // Lca + Gcd duality
-    // ================================================================
-
     [Test]
     public void Lca_Gcd_Duality_ForPrimitives() {
         // GCD(A,B) ≤ A ≤ LCA(A,B)
@@ -431,10 +415,6 @@ public class AlgebraInvariantsTest {
             }
         }
     }
-
-    // ================================================================
-    // Struct-specific invariants
-    // ================================================================
 
     [Test]
     public void Lca_Struct_FieldIntersection() {
@@ -514,10 +494,6 @@ public class AlgebraInvariantsTest {
         Assert.IsNotNull(arr, "field should be array");
         Assert.AreEqual(Real, arr.Element);
     }
-
-    // ================================================================
-    // FitsInto invariants
-    // ================================================================
 
     [Test]
     public void FitsInto_Reflexive() {

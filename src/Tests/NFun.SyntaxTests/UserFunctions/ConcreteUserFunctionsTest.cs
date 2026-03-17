@@ -177,4 +177,9 @@ public class ConcreteUserFunctionsTest {
     [TestCase("F(x):real= 1; f(x):int = 2; out = f(1)")]
     [TestCase("f(x):real= 1; f(x):int = 2; out = F(1)")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    [TestCase("sum(a,b) = a + b\r y = sum(3,5)", 8, Description = "Different arity: works")]
+    [TestCase("max(a,b) = if(a>b) a else b\r y = max(3,5)", 5, Description = "max(2 args) shadows builtin max(2 args)")]
+    public void UserFunction_SameNameAsBuiltin_DifferentArityOrNonRecursive_Works(string expr, int expected) =>
+        expr.AssertResultHas("y", expected);
 }

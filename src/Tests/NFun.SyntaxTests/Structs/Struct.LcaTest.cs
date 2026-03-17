@@ -199,7 +199,8 @@ public class StructLcaTest {
 
     [Test]
     public void IfElseStruct_WithNestedStructField_ShouldPreserveFields() {
-        var result = "z1 = {b = 1}\r x = if(true) {a = z1} else none".Calc();
+        var result = "z1 = {b = 1}\r x = if(true) {a = z1} else none"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
         var x = result.Get("x");
         Assert.IsNotNull(x, "x should not be null");
     }

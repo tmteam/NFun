@@ -31,7 +31,7 @@ public class LcaPrimitivesTest {
             // LCA of two open-ended constraints preserves constraint-ness for primitives
             // (since wider primitive types exist), but collapses to Any when LCA is Any.
             var expected = types.Lca.Equals(StatePrimitive.Any)
-                ? (ITicNodeState)types.Lca
+                ? types.Lca
                 : Constrains(types.Lca);
             AssertLca(Constrains(types.Left), Constrains(types.Right), expected);
         }
@@ -42,7 +42,7 @@ public class LcaPrimitivesTest {
         foreach (var primitive in PrimitiveTypes)
         {
             var expected = primitive.Equals(StatePrimitive.Any)
-                ? (ITicNodeState)primitive
+                ? primitive
                 : Constrains(primitive);
             AssertLca(Constrains(primitive), EmptyConstraints, expected);
         }

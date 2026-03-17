@@ -9,17 +9,9 @@ using static Tic.SolvingStates.StatePrimitive;
 
 public class GcdOptionalTest {
 
-    // ===================================================================
-    // None x None
-    // ===================================================================
-
     [Test]
     public void None_GCD_None_ReturnsNone() =>
         AssertGcd(None, None, None);
-
-    // ===================================================================
-    // None x Primitives
-    // ===================================================================
 
     [Test]
     public void None_GCD_Any_ReturnsNone() =>
@@ -114,10 +106,6 @@ public class GcdOptionalTest {
     public void None_GCD_OptArrayI32_ReturnsNone() =>
         AssertGcd(None, Optional(Array(I32)), None);
 
-    // ===================================================================
-    // None x Composites
-    // ===================================================================
-
     [Test]
     public void None_GCD_ArrayI32_ReturnsNull() =>
         AssertGcd(None, Array(I32), null);
@@ -133,10 +121,6 @@ public class GcdOptionalTest {
     [Test]
     public void None_GCD_Fun_ReturnsNull() =>
         AssertGcd(None, Fun(I32, Real), null);
-
-    // ===================================================================
-    // Optional x Optional (covariant)
-    // ===================================================================
 
     [Test]
     public void OptI32_GCD_OptI32_ReturnsOptI32() =>
@@ -228,10 +212,6 @@ public class GcdOptionalTest {
             Optional(Struct("a", Real)),
             Optional(Struct("a", I32)));
 
-    // ===================================================================
-    // Optional x Primitives: GCD(Opt(A), B) = GCD(A, B)
-    // ===================================================================
-
     [Test]
     public void OptI32_GCD_I32_ReturnsI32() =>
         // GCD(Opt(I32), I32) = GCD(I32, I32) = I32
@@ -304,10 +284,6 @@ public class GcdOptionalTest {
     public void OptChar_GCD_Any_ReturnsOptChar() =>
         AssertGcd(Optional(Char), Any, Optional(Char));
 
-    // ===================================================================
-    // Optional x Composites: GCD(Opt(A), B) = GCD(A, B)
-    // ===================================================================
-
     [Test]
     public void OptI32_GCD_ArrayI32_ReturnsNull() =>
         // GCD(Opt(I32), Array(I32)) = GCD(I32, Array(I32)) = null (different kinds)
@@ -354,10 +330,6 @@ public class GcdOptionalTest {
         // GCD(Opt(I32), Fun) = GCD(I32, Fun) = null
         AssertGcd(Optional(I32), Fun(I32, Real), null);
 
-    // ===================================================================
-    // Optional x Optional (mismatched inner kind)
-    // ===================================================================
-
     [Test]
     public void OptArray_GCD_OptStruct_ReturnsNull() =>
         AssertGcd(Optional(Array(I32)), Optional(Struct("a", I32)), null);
@@ -374,10 +346,6 @@ public class GcdOptionalTest {
     public void OptI32_GCD_OptArrayI32_ReturnsNull() =>
         // GCD(I32, Array(I32)) = null → Opt(null) = null
         AssertGcd(Optional(I32), Optional(Array(I32)), null);
-
-    // ===================================================================
-    // Edge cases
-    // ===================================================================
 
     [Test]
     public void OptAny_GCD_Any_ReturnsAny() =>
@@ -417,10 +385,6 @@ public class GcdOptionalTest {
     public void OptArrayI32_GCD_None_ReturnsNone() =>
         AssertGcd(Optional(Array(I32)), None, None);
 
-    // ===================================================================
-    // Bulk: None x all primitives
-    // ===================================================================
-
     [Test]
     public void NoneAndAllPrimitives_GCD_ReturnsNullOrNone() {
         foreach (var primitive in PrimitiveTypes)
@@ -431,19 +395,11 @@ public class GcdOptionalTest {
         }
     }
 
-    // ===================================================================
-    // Bulk: None x Opt(T) for all primitives
-    // ===================================================================
-
     [Test]
     public void NoneAndAllOptionalPrimitives_GCD_ReturnsNone() {
         foreach (var primitive in PrimitiveTypes)
             AssertGcd(None, Optional(primitive), None);
     }
-
-    // ===================================================================
-    // Bulk: Opt(A) x Any for all primitives
-    // ===================================================================
 
     [Test]
     public void OptPrimitive_GCD_Any_ReturnsOptPrimitive() {
@@ -451,15 +407,11 @@ public class GcdOptionalTest {
         {
             // opt(T) <: any, so GCD(Opt(T), Any) = Opt(T); but opt(any)=any
             var expected = primitive.Equals(Any)
-                ? (ITicNodeState)Any
+                ? Any
                 : (ITicNodeState)Optional(primitive);
             AssertGcd(Optional(primitive), Any, expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: Opt(T) x T for all primitives = T
-    // ===================================================================
 
     [Test]
     public void OptPrimitive_GCD_SamePrimitive_ReturnsPrimitive() {
@@ -469,10 +421,6 @@ public class GcdOptionalTest {
             AssertGcd(Optional(primitive), primitive, primitive);
         }
     }
-
-    // ===================================================================
-    // Bulk: Opt(Arr(L)) x Arr(R) for compatible pairs
-    // ===================================================================
 
     [Test]
     public void OptArrayLeft_GCD_ArrayRight_Bulk() {
@@ -484,10 +432,6 @@ public class GcdOptionalTest {
             AssertGcd(Optional(Array(types.Left)), Array(types.Right), expected);
         }
     }
-
-    // ===================================================================
-    // Bulk: Opt(Arr(L)) x Opt(Arr(R))
-    // ===================================================================
 
     [Test]
     public void OptArrayLeft_GCD_OptArrayRight_Bulk() {

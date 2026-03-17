@@ -165,4 +165,9 @@ public class RecursiveUserFunctionsTest {
         expr.Build();
         TraceLog.IsEnabled = false;
     }
+
+    [Test]
+    public void RecursiveConcat_Range_BaseCase_ReturnsEmpty() =>
+        "range(a,b) = if(a>=b) [] else [a].concat(range(a+1,b))\r y = range(5,5)"
+            .AssertResultHas("y", System.Array.Empty<int>());
 }
