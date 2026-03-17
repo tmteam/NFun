@@ -1,25 +1,25 @@
 namespace NFun.Tic.Algebra;
 
 using System.Collections.Generic;
-using NFun.Tic.SolvingStates;
-using static NFun.Tic.SolvingStates.StatePrimitive;
+using SolvingStates;
+using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
     public static ITicNodeState Lca(this ITicNodeState a, ITicNodeState b) {
         if (a is StateRefTo aref)
-            return Lca(aref.Element, b);
+            return aref.Element.Lca(b);
         if (b is StateRefTo bref)
-            return Lca(a, bref.Element);
+            return a.Lca(bref.Element);
         if (a is ConstraintsState ac && b is ConstraintsState bc)
         {
             // Both are constraints — compute LCA of their concretest forms
             var descA = ac.HasDescendant ? ac.Descendant : null;
             var descB = bc.HasDescendant ? bc.Descendant : null;
-            ITicNodeState lcaDesc = (descA, descB) switch {
+            var lcaDesc = (descA, descB) switch {
                 (null, null) => null,
-                (null, _)    => Concretest(descB),
-                (_, null)    => Concretest(descA),
-                _            => Lca(descA, descB)
+                (null, _)    => descB.Concretest(),
+                (_, null)    => descA.Concretest(),
+                _            => descA.Lca(descB)
             };
             var comparable = ac.IsComparable && bc.IsComparable;
             if (lcaDesc == null)
@@ -33,16 +33,15 @@ public static partial class StateExtensions {
             return ConstraintsState.Of(lcaDesc, null, comparable);
         }
         if (b is ConstraintsState bc2)
-            return bc2.HasDescendant ? Lca(a, bc2.Descendant) : Concretest(a);
+            return bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();
         if (a is ConstraintsState)
-            return Lca(b, a);
+            return b.Lca(a);
 
         // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
         if (a is StatePrimitive { Name: PrimitiveTypeName.None })
             return LcaWithNone(b);
         if (b is StatePrimitive { Name: PrimitiveTypeName.None })
             return LcaWithNone(a);
-
         // Optional: covariant wrapper
         if (a is StateOptional aopt)
             return LcaWithOptional(aopt, b);
@@ -53,18 +52,17 @@ public static partial class StateExtensions {
             return b is StatePrimitive bp ? ap.GetLastCommonPrimitiveAncestor(bp) : Any;
         if (b is StatePrimitive)
             return Any;
-        if (a is StateArray aarr)
-            return b is StateArray barr ? StateArray.Of(Lca(aarr.Element, barr.Element)) : Any;
-        if (a is StateFun af)
-            return b is StateFun bf ? Lca(af, bf) : Any;
-        if (a is StateStruct astruct)
-            return b is StateStruct bstruct ? Lca(astruct, bstruct) : Any;
-        return Any;
+        return a switch {
+            StateArray aarr => b is StateArray barr ? StateArray.Of(aarr.Element.Lca(barr.Element)) : Any,
+            StateFun af => b is StateFun bf ? af.Lca(bf) : Any,
+            StateStruct astruct => b is StateStruct bstruct ? astruct.Lca(bstruct) : Any,
+            _ => Any
+        };
     }
 
     private static ITicNodeState LcaWithNone(ITicNodeState other) {
         if (other is StatePrimitive { Name: PrimitiveTypeName.None })
-            return StatePrimitive.None;
+            return None;
         if (other.Equals(Any))
             return Any; // None ≤ Any → LCA = Any
         if (other is StateOptional opt)
@@ -76,9 +74,9 @@ public static partial class StateExtensions {
     private static ITicNodeState LcaWithOptional(StateOptional opt, ITicNodeState other) {
         ITicNodeState inner;
         if (other is StateOptional otherOpt)
-            inner = Lca(opt.Element, otherOpt.Element);
+            inner = opt.Element.Lca(otherOpt.Element);
         else
-            inner = Lca(opt.Element, other);
+            inner = opt.Element.Lca(other);
         // opt(any) = any (collapses)
         if (inner.Equals(Any))
             return Any;
@@ -103,9 +101,9 @@ public static partial class StateExtensions {
             // Otherwise use covariant Lca (handles mixed ConstraintsState/composite cases).
             ITicNodeState fieldType;
             if (aState is ConstraintsState && bState is ConstraintsState)
-                fieldType = UnifyOrNull(aState, bState);
+                fieldType = aState.UnifyOrNull(bState);
             else
-                fieldType = Lca(aState, bState);
+                fieldType = aState.Lca(bState);
 
             if (fieldType == null) continue;
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));
@@ -117,14 +115,14 @@ public static partial class StateExtensions {
     private static ITicNodeState Lca(this StateFun a, StateFun b) {
         if (a.ArgsCount != b.ArgsCount)
             return Any;
-        var returnState = Lca(a.ReturnType, b.ReturnType);
+        var returnState = a.ReturnType.Lca(b.ReturnType);
         var argNodes = new TicNode[a.ArgsCount];
 
         for (var i = 0; i < a.ArgNodes.Length; i++)
         {
             var aNode = a.ArgNodes[i];
             var bNode = b.ArgNodes[i];
-            var gcd = Gcd(aNode.State, bNode.State);
+            var gcd = aNode.State.Gcd(bNode.State);
             if (gcd == null)
                 return Any;
             argNodes[i] = TicNode.CreateInvisibleNode(gcd);

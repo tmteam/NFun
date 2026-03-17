@@ -6,6 +6,7 @@ namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class RecursiveTypeDefinitionDetectionTest {
+
     [TestCase("r(x) = r(x.i)")]
     [TestCase("r(x) = {f = r(x)}")]
     public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr)

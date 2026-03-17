@@ -3,71 +3,86 @@ namespace NFun.Tic.Algebra;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Tic.SolvingStates;
-using static NFun.Tic.SolvingStates.StatePrimitive;
+using SolvingStates;
+using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
     public static ITicNodeState Gcd(this ITicNodeState a, ITicNodeState b) {
-        if (b is StateRefTo bref)
-            return Gcd(a, bref.Element);
-        if (a is StateRefTo aref)
-            return Gcd(aref.Element, b);
-        if (a is ConstraintsState ac)
-            return ac.Ancestor != null ? Gcd(ac.Ancestor, b) : Abstractest(b);
-        if (b is ConstraintsState bc)
-            return bc.Ancestor != null ? Gcd(a, bc.Ancestor) : Abstractest(a);
+        while (true)
+        {
+            if (b is StateRefTo bref)
+            {
+                b = bref.Element;
+                continue;
+            }
 
-        // None: GCD(None, Opt(T)) = None, GCD(None, Any) = None, GCD(None, T) = null
-        if (a is StatePrimitive { Name: PrimitiveTypeName.None })
-            return GcdWithNone(b);
-        if (b is StatePrimitive { Name: PrimitiveTypeName.None })
-            return GcdWithNone(a);
+            if (a is StateRefTo aref)
+            {
+                a = aref.Element;
+                continue;
+            }
 
-        // Optional: covariant GCD
-        if (a is StateOptional aopt)
-            return GcdWithOptional(aopt, b);
-        if (b is StateOptional bopt)
-            return GcdWithOptional(bopt, a);
+            if (a is ConstraintsState ac)
+            {
+                if (ac.Ancestor == null) return b.Abstractest();
+                a = ac.Ancestor;
+                continue;
 
-        if (a is StatePrimitive ap)
-            return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
-                a.Equals(Any) ? Abstractest(b) : null;
-        if (b.Equals(Any))
-            return Abstractest(a);
-        if (a.GetType() != b.GetType())
-            return null;
-        if (a is StateArray arrA)
-            return Gcd(arrA, (StateArray)b);
-        if (a is StateFun funA)
-            return Gcd(funA, (StateFun)b);
-        if (a is StateStruct astruct)
-            return Gcd(astruct, (StateStruct)b);
-        throw new NotSupportedException($"GCD is not supported for types {a} and {b}");
+            }
+
+            if (b is ConstraintsState bc)
+            {
+                if (bc.Ancestor == null) return a.Abstractest();
+                b = bc.Ancestor;
+                continue;
+
+            }
+
+            // None: GCD(None, Opt(T)) = None, GCD(None, Any) = None, GCD(None, T) = null
+            if (a is StatePrimitive { Name: PrimitiveTypeName.None }) return GcdWithNone(b);
+            if (b is StatePrimitive { Name: PrimitiveTypeName.None }) return GcdWithNone(a);
+
+            // Optional: covariant GCD
+            if (a is StateOptional aopt) return GcdWithOptional(aopt, b);
+            if (b is StateOptional bopt) return GcdWithOptional(bopt, a);
+
+            if (a is StatePrimitive ap)
+                return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
+                    a.Equals(Any) ? b.Abstractest() : null;
+            if (b.Equals(Any)) return a.Abstractest();
+            if (a.GetType() != b.GetType()) return null;
+            return a switch {
+                StateArray arrA => arrA.Gcd((StateArray)b),
+                StateFun funA => funA.Gcd((StateFun)b),
+                StateStruct structA => structA.Gcd((StateStruct)b),
+                _ => throw new NotSupportedException($"GCD is not supported for types {a} and {b}")
+            };
+        }
     }
 
     private static ITicNodeState GcdWithNone(ITicNodeState other) =>
         other switch {
-            StatePrimitive { Name: PrimitiveTypeName.None } => StatePrimitive.None,
-            StatePrimitive { Name: PrimitiveTypeName.Any } => StatePrimitive.None, // None ≤ Any → meet = None
-            StateOptional => StatePrimitive.None, // None ≤ Opt(T) → meet = None
+            StatePrimitive { Name: PrimitiveTypeName.None } => None,
+            StatePrimitive { Name: PrimitiveTypeName.Any } => None, // None ≤ Any → meet = None
+            StateOptional => None, // None ≤ Opt(T) → meet = None
             _ => null // None is not ≤ other concrete types
         };
 
     private static ITicNodeState GcdWithOptional(StateOptional opt, ITicNodeState other) {
         if (other is StateOptional otherOpt)
         {
-            var innerGcd = Gcd(opt.Element, otherOpt.Element);
+            var innerGcd = opt.Element.Gcd(otherOpt.Element);
             return innerGcd == null ? null : StateOptional.Of(innerGcd);
         }
         // Opt(T) ≤ Any, so GCD(Opt(T), Any) = Opt(T)
         if (other.Equals(Any))
-            return opt.Element.Equals(Any) ? Any : (ITicNodeState)opt;
+            return opt.Element.Equals(Any) ? Any : opt;
         // GCD(Opt(A), B) = GCD(A, B) — for non-Any B (common desc can't be optional since None ≰ B)
-        return Gcd(opt.Element, other);
+        return opt.Element.Gcd(other);
     }
 
     private static ITicNodeState Gcd(this StateArray arrA, StateArray arrB) {
-        var lcd = Gcd(arrA.Element, arrB.Element);
+        var lcd = arrA.Element.Gcd(arrB.Element);
         if (lcd == null)
             return null;
         return StateArray.Of(lcd);
@@ -83,7 +98,7 @@ public static partial class StateExtensions {
                 nodes.Add(name, aFieldNode);
             else
             {
-                var fieldGcd = Gcd(aFieldNode.State, bField.State);
+                var fieldGcd = aFieldNode.State.Gcd(bField.State);
                 if (fieldGcd == null)
                     return null;
                 nodes.Add(name, TicNode.CreateInvisibleNode(fieldGcd));
@@ -104,9 +119,9 @@ public static partial class StateExtensions {
             return null;
         var args = new ITicNodeState[funA.ArgsCount];
         for (int i = 0; i < funA.ArgsCount; i++)
-            args[i] = Lca(funA.ArgNodes[i].State, funB.ArgNodes[i].State);
+            args[i] = funA.ArgNodes[i].State.Lca(funB.ArgNodes[i].State);
 
-        var retType = Gcd(funA.ReturnType, funB.ReturnType);
+        var retType = funA.ReturnType.Gcd(funB.ReturnType);
         if (retType == null)
             return null;
         return StateFun.Of(args, retType);

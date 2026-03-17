@@ -1,13 +1,13 @@
+namespace NFun.Tic.SolvingStates;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-namespace NFun.Tic.SolvingStates;
+using Algebra;
 
 public class StateStruct : ICompositeState {
 
     public int FieldsCount => _nodes.Count;
-
     public IEnumerable<KeyValuePair<string, TicNode>> Fields => _nodes;
 
     private readonly FieldMap _nodes;
@@ -16,12 +16,10 @@ public class StateStruct : ICompositeState {
         _nodes.GetValueOrNull(fieldName);
 
     /// <summary>
-    /// Adds a field in-place and returns this.
-    /// Safe because all callers discard the old reference immediately.
+    /// Adds a field in-place.
     /// </summary>
-    public StateStruct With(string name, TicNode memberNode) {
+    public void AddField(string name, TicNode memberNode) {
         _nodes.Add(name, memberNode);
-        return this;
     }
 
     public static StateStruct Empty(bool isFrozen = true) => Of(isFrozen);
@@ -138,7 +136,7 @@ public class StateStruct : ICompositeState {
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
         // Delegate to StateExtensions.Lca which handles unsolved constraint fields
         // via UnifyOrNull (unlike the old inline logic which skipped ConstraintsState fields)
-        Algebra.StateExtensions.Lca(this, otherType) as ITypeState;
+        this.Lca(otherType) as ITypeState;
 
     public string PrintState(int depth) {
         if (depth > 100)
@@ -180,7 +178,7 @@ public class StateStruct : ICompositeState {
             return IsFrozen ? "{frozen}" : "{}";
         return "{" + (IsFrozen ? "F|" : "") +
                string.Join("; ",
-                   _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : $"..")}"))
+                   _nodes.Select(n => $"{n.Key}:{(n.Value.State is StatePrimitive p ? p.ToString() : "..")}"))
                + "}";
     }
 }

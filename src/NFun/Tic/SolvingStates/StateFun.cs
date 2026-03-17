@@ -1,8 +1,8 @@
-﻿using System;
+﻿namespace NFun.Tic.SolvingStates;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-
-namespace NFun.Tic.SolvingStates;
 
 public class StateFun : ICompositeState, ITypeState, ITicNodeState {
     public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType) {
@@ -87,7 +87,7 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
 
         var returnAnc = returnType.GetLastCommonAncestorOrNull(returnTypeB);
 
-        ITypeState[] argTypes = new ITypeState[ArgsCount];
+        var argTypes = new ITypeState[ArgsCount];
 
         for (int i = 0; i < ArgsCount; i++)
         {

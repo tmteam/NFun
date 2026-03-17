@@ -118,11 +118,11 @@ public class TypeInferenceTest {
         @"div11(x) = 2600/x
             supsum(n) = [1..n].map(div11).sum()
             y = [1..20].map(supsum).sum()", BaseFunnyType.Real)]
-    //todo
+    //round() function not available
     //[TestCase(
     //    @"div12(x) = 2600/x
-    //    supsum(n) = [1..n].map(div12).sum()
-    //    y = [1..20].map(supsum).sum().round()", BaseVarType.Int32)]
+    //        supsum(n) = [1..n].map(div12).sum()
+    //        y = [1..20].map(supsum).sum().round()", BaseFunnyType.Int32)]
     public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseFunnyType type) {
         var clrtype = FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(type)).ClrType;
 

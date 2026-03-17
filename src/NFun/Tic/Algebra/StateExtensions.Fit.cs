@@ -1,8 +1,8 @@
 namespace NFun.Tic.Algebra;
 
 using System;
-using NFun.Tic.SolvingStates;
-using static NFun.Tic.SolvingStates.StatePrimitive;
+using SolvingStates;
+using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
     public static bool FitsInto(this ITicNodeState target, ConstraintsState to) {
@@ -28,7 +28,7 @@ public static partial class StateExtensions {
 
     public static bool FitsInto(this ITicNodeState target, ITicNodeState to) {
         if (to is StateRefTo toR)
-            return FitsInto(target, toR.GetNonReference());
+            return target.FitsInto(toR.GetNonReference());
         if (to is ConstraintsState constrainsState)
             return target.FitsInto(constrainsState);
 
@@ -60,9 +60,9 @@ public static partial class StateExtensions {
                 ? targetS.FitsInto(structTo)
                 : to.Equals(Any),
             StatePrimitive => to is StatePrimitive p && target.CanBePessimisticConvertedTo(p),
-            ConstraintsState { HasDescendant: true } fc => FitsInto(fc.Descendant, to),
+            ConstraintsState { HasDescendant: true } fc => fc.Descendant.FitsInto(to),
             ConstraintsState => true,
-            StateRefTo targetR=> FitsInto(targetR.GetNonReference(), to),
+            StateRefTo targetR=> targetR.GetNonReference().FitsInto(to),
             _ => throw new NotImplementedException($"Type {target} :> {to} is not supported in FIT")
         };
     }
@@ -74,7 +74,7 @@ public static partial class StateExtensions {
         {
             var fromField = from.GetFieldOrNull(toField.Key);
             if (fromField == null) return false;
-            if (!FitsInto(fromField.State, toField.Value.State))
+            if (!fromField.State.FitsInto(toField.Value.State))
                 return false;
         }
         return true;
@@ -83,7 +83,7 @@ public static partial class StateExtensions {
     private static bool FitsInto(this StateFun target, StateFun to) {
         if (target.ArgsCount != to.ArgsCount)
             return false;
-        if (!FitsInto(target.ReturnType, to.ReturnType))
+        if (!target.ReturnType.FitsInto(to.ReturnType))
             return false;
         for (int i = 0; i < target.ArgsCount; i++)
         {
@@ -97,46 +97,53 @@ public static partial class StateExtensions {
     /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
     /// </summary>
     private static bool CanBeFitConverted(ITicNodeState desc, ITicNodeState to) {
-        if (to is StateRefTo rto)
-            return CanBeFitConverted(desc, rto.Element);
-        if (to.Equals(Any))
-            return true;
+        while (true)
+        {
+            if (to is StateRefTo rto)
+            {
+                to = rto.Element;
+                continue;
+            }
 
-        return desc switch {
-            StateRefTo descRef => CanBeFitConverted(descRef.Element, to),
-            StatePrimitive descP => to switch {
-                StatePrimitive toP => descP.CanBePessimisticConvertedTo(toP),
-                ConstraintsState toC => toC.Descendant!=null && descP.CanBeConvertedPessimisticTo(toC.Descendant),
-                _ => false
-            },
-            ConstraintsState fromDesc => fromDesc.Descendant==null || CanBeFitConverted(fromDesc.Descendant, to),
-            ICompositeState comp => to switch {
-                ConstraintsState constrAnc => constrAnc.Descendant is ICompositeState toComposite && CanBeFitConverted(comp, toComposite),
-                ICompositeState composite => CanBeFitConverted(comp, composite),
-                _ => false
-            },
-            _ => throw new NotSupportedException($"CBFC does not support {desc} to {to}")
-        };
+            if (to.Equals(Any)) return true;
+
+            return desc switch {
+                StateRefTo descRef => CanBeFitConverted(descRef.Element, to),
+                StatePrimitive descP => to switch {
+                    StatePrimitive toP => descP.CanBePessimisticConvertedTo(toP),
+                    ConstraintsState toC => toC.Descendant != null && descP.CanBeConvertedPessimisticTo(toC.Descendant),
+                    _ => false
+                },
+                ConstraintsState fromDesc => fromDesc.Descendant == null || CanBeFitConverted(fromDesc.Descendant, to),
+                ICompositeState comp => to switch {
+                    ConstraintsState constrAnc => constrAnc.Descendant is ICompositeState toComposite && CanBeFitConverted(comp, toComposite),
+                    ICompositeState composite => CanBeFitConverted(comp, composite),
+                    _ => false
+                },
+                _ => throw new NotSupportedException($"CBFC does not support {desc} to {to}")
+            };
+        }
     }
 
     /// <summary>
     /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
     /// </summary>
     private static bool CanBeFitConverted(ICompositeState desc, ICompositeState to) {
-        if (desc.GetType() != to.GetType())
+        if (desc.GetType() == to.GetType())
         {
-            // Implicit lift: T fits into opt(T) — lower bound T is satisfied by opt(T)
-            if (to is StateOptional toOpt)
-                return CanBeFitConverted((ITicNodeState)desc, toOpt.Element);
-            return false;
+            return desc switch {
+                StateArray descA => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
+                StateFun descF => CanBeFitConverted(descF, (StateFun)to),
+                StateStruct descS => CanBeFitConverted(descS, (StateStruct)to),
+                StateOptional descO => CanBeFitConverted(descO.Element, ((StateOptional)to).Element),
+                _ => false
+            };
         }
-        return desc switch {
-            StateArray descA     => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
-            StateFun descF       => CanBeFitConverted(descF, (StateFun)to),
-            StateStruct descS    => CanBeFitConverted(descS, (StateStruct)to),
-            StateOptional descO  => CanBeFitConverted(descO.Element, ((StateOptional)to).Element),
-            _ => false
-        };
+
+        // Implicit lift: T fits into opt(T) — lower bound T is satisfied by opt(T)
+        if (to is StateOptional toOpt)
+            return CanBeFitConverted(desc, toOpt.Element);
+        return false;
     }
 
     /// <summary>

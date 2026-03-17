@@ -33,7 +33,6 @@ public class PullConstraintsFunctions : IStateFunction {
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
             }
-            return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
         }
         return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
     }
@@ -196,7 +195,8 @@ public class PullConstraintsFunctions : IStateFunction {
                 }
 
                 TraceLog.WriteLine($"    Adding field '{ancField.Key}' to desc");
-                descendantNode.State = descendant.With(ancField.Key, ancField.Value);
+                descendant.AddField(ancField.Key, ancField.Value);
+                descendantNode.State = descendant;
             }
             else if (descField != ancField.Value)
             {

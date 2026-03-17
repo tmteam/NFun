@@ -1,7 +1,7 @@
 namespace NFun.Tic.Algebra;
 
-using NFun.Tic.SolvingStates;
-using static NFun.Tic.SolvingStates.StatePrimitive;
+using SolvingStates;
+using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
     /// <summary>
@@ -14,7 +14,7 @@ public static partial class StateExtensions {
             StatePrimitive => a,
             StateArray arr => StateArray.Of(arr.Element.Abstractest()),
             StateOptional opt => AbstractestOptional(opt),
-            StateFun f => f.Abstractest(),
+            StateFun f => AbstractestFun(f),
             StateStruct => a,
             _ => a
         };
@@ -22,11 +22,11 @@ public static partial class StateExtensions {
     private static ITicNodeState AbstractestOptional(StateOptional opt) {
         var inner = opt.Element.Abstractest();
         // opt(any) = any
-        return inner.Equals(StatePrimitive.Any) ? StatePrimitive.Any : StateOptional.Of(inner);
+        return inner.Equals(Any) ? Any : StateOptional.Of(inner);
     }
 
-    private static ITicNodeState Abstractest(this StateFun f) {
-        var returnNode = TicNode.CreateInvisibleNode(Abstractest(f.ReturnType));
+    private static ITicNodeState AbstractestFun(StateFun f) {
+        var returnNode = TicNode.CreateInvisibleNode(f.ReturnType.Abstractest());
         var argNodes = new TicNode[f.ArgsCount];
         for (int i = 0; i < f.ArgsCount; i++)
             argNodes[i] = TicNode.CreateInvisibleNode(f.ArgNodes[i].State.Concretest());

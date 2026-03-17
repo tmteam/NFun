@@ -5,14 +5,8 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests;
 
-/// <summary>
-/// Bugs found during stress testing (BugHunt: 100 stress tests).
-/// Each section documents a distinct bug with reproduction steps.
-/// Tests are active (not [Ignore]) — they document real bugs.
-/// </summary>
 [TestFixture]
 public class StressTestBugsTest {
-
     // ═══════════════════════════════════════════════════════════════
     // Bug: NullReferenceException when redefining builtin with same arity
     //
@@ -71,7 +65,8 @@ public class StressTestBugsTest {
         // It should be Int32?[] since [1, none, 3] contains none.
         // Reading x crashes with InvalidCastException because null can't
         // be stored in Int32[].
-        var result = "x = [1, none, 3]\r y = x.map(rule it ?? 0)".Calc();
+        var result = "x = [1, none, 3]\r y = x.map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
         // Reading y works (all nones are coalesced to 0)
         var yArr = (int[])result.Get("y");
         Assert.AreEqual(new[] { 1, 0, 3 }, yArr);
@@ -84,7 +79,8 @@ public class StressTestBugsTest {
     [Test]
     public void InferredOptionalArray_ElementCoalesce_XShouldBeOptional() {
         // x[0] ?? 0 causes TIC to resolve x as Int32[] instead of Int32?[]
-        var result = "x = [1, none, 3]\r y = x[0] ?? 0".Calc();
+        var result = "x = [1, none, 3]\r y = x[0] ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
         Assert.AreEqual(1, result.Get("y"));
         // x should still be readable as an optional array
         Assert.DoesNotThrow(
@@ -96,12 +92,14 @@ public class StressTestBugsTest {
     public void AnnotatedOptionalArray_MapWithCoalesce_Works() =>
         // Same expression with explicit type annotation works fine
         "x:int?[] = [1, none, 3]\r y = x.map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("y", new[] { 1, 0, 3 });
 
     [Test]
     public void InlineOptionalArray_MapWithCoalesce_Works() =>
         // Inline (no intermediate variable) works fine
         "y = [1, none, 3].map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("y", new[] { 1, 0, 3 });
 
 

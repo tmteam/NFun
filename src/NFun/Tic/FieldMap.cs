@@ -10,7 +10,7 @@ namespace NFun.Tic;
 /// 0-2 entries: inline key/value fields, no Dictionary allocation.
 /// 3+ entries: spills to Dictionary (one-way, no shrink-back).
 /// </summary>
-sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
+public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
     private string _key0, _key1;
     private TicNode _val0, _val1;
     private Dictionary<string, TicNode> _dict; // null when inlined

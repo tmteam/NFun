@@ -6,42 +6,36 @@ using SolvingStates;
 public static class StagesExtension {
     public static bool Invoke(this IStateFunction function, TicNode nodeA, TicNode nodeB) {
         if (nodeB.State is StateRefTo bRef)
-            return Invoke(function, nodeA, bRef.Node);
+            return function.Invoke(nodeA, bRef.Node);
         if (nodeA.State is StatePrimitive p)
         {
-            if (nodeB.State is StatePrimitive bp)
-                return function.Apply(p, bp, nodeA, nodeB);
-            else if (nodeB.State is ICompositeState bc)
-                return function.Apply(p, bc, nodeA, nodeB);
-            else if (nodeB.State is ConstraintsState bcon)
-                return function.Apply(p, bcon, nodeA, nodeB);
-            else
-                throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
+            return nodeB.State switch {
+                StatePrimitive bp => function.Apply(p, bp, nodeA, nodeB),
+                ICompositeState bc => function.Apply(p, bc, nodeA, nodeB),
+                ConstraintsState bcon => function.Apply(p, bcon, nodeA, nodeB),
+                _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
+            };
         }
         else if (nodeA.State is ConstraintsState con)
         {
-            if (nodeB.State is StatePrimitive bp)
-                return function.Apply(con, bp, nodeA, nodeB);
-            else if (nodeB.State is ICompositeState bc)
-                return function.Apply(con, bc, nodeA, nodeB);
-            else if (nodeB.State is ConstraintsState bcon)
-                return function.Apply(con, bcon, nodeA, nodeB);
-            else
-                throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
+            return nodeB.State switch {
+                StatePrimitive bp => function.Apply(con, bp, nodeA, nodeB),
+                ICompositeState bc => function.Apply(con, bc, nodeA, nodeB),
+                ConstraintsState bcon => function.Apply(con, bcon, nodeA, nodeB),
+                _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
+            };
         }
         else if (nodeA.State is ICompositeState c)
         {
-            if (nodeB.State is StatePrimitive bp)
-                return function.Apply(c, bp, nodeA, nodeB);
-            else if (nodeB.State is ConstraintsState bcon)
-                return function.Apply(c, bcon, nodeA, nodeB);
-            else if (nodeB.State is ICompositeState bc)
-                return c switch {
+            return nodeB.State switch {
+                StatePrimitive bp => function.Apply(c, bp, nodeA, nodeB),
+                ConstraintsState bcon => function.Apply(c, bcon, nodeA, nodeB),
+                ICompositeState bc => c switch {
                     StateArray arrA => bc switch {
                         StateArray arrB => function.Apply(arrA, arrB, nodeA, nodeB),
                         // During Destruction: wrap ancestor to converge types.
-                        StateOptional optB when function is DestructionFunctions =>
-                            WrapAncestorInOptional(function, nodeA, nodeB, optB),
+                        StateOptional optB when function is DestructionFunctions => WrapAncestorInOptional(function,
+                            nodeA, nodeB, optB),
                         // During Pull: opt(arr(T)) can't satisfy arr(T) — no implicit unwrap
                         StateOptional when function is PullConstraintsFunctions => false,
                         // During Push: unwrap optional descendant to propagate inner info
@@ -51,8 +45,8 @@ public static class StagesExtension {
                     },
                     StateFun funA => bc switch {
                         StateFun funB => function.Apply(funA, funB, nodeA, nodeB),
-                        StateOptional optB when function is DestructionFunctions =>
-                            WrapAncestorInOptional(function, nodeA, nodeB, optB),
+                        StateOptional optB when function is DestructionFunctions => WrapAncestorInOptional(function,
+                            nodeA, nodeB, optB),
                         StateOptional when function is PullConstraintsFunctions => false,
                         StateOptional optB => Invoke(function, nodeA, optB.ElementNode),
                         _ => false
@@ -64,10 +58,9 @@ public static class StagesExtension {
                         // This handles chained ?.b?.c where field b is optional:
                         // T_b gets struct constraint from ?.c, but source field is opt(struct).
                         // Unwrap is safe because T_b is already wrapped in opt() by the result node.
-                        StateOptional optB when nodeA.IsOptionalElement =>
-                            Invoke(function, nodeA, optB.ElementNode),
-                        StateOptional optB when function is DestructionFunctions =>
-                            WrapAncestorInOptional(function, nodeA, nodeB, optB),
+                        StateOptional optB when nodeA.IsOptionalElement => Invoke(function, nodeA, optB.ElementNode),
+                        StateOptional optB when function is DestructionFunctions => WrapAncestorInOptional(function,
+                            nodeA, nodeB, optB),
                         StateOptional when function is PullConstraintsFunctions => false,
                         StateOptional optB => Invoke(function, nodeA, optB.ElementNode),
                         _ => false
@@ -75,13 +68,13 @@ public static class StagesExtension {
                     StateOptional optA when bc is StateOptional optB => function.Apply(optA, optB, nodeA, nodeB),
                     // Implicit lift: opt(T) ancestor, non-optional T descendant.
                     // During Destruction: wrap descendant to converge types.
-                    StateOptional optA when function is DestructionFunctions =>
-                        WrapDescendantInOptional(function, nodeA, nodeB, optA),
+                    StateOptional optA when function is DestructionFunctions => WrapDescendantInOptional(function,
+                        nodeA, nodeB, optA),
                     StateOptional optA => Invoke(function, optA.ElementNode, nodeB),
                     _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
-                };
-            else
-                throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
+                },
+                _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
+            };
         }
         else if (nodeA.State is StateRefTo r)
             return Invoke(function, r.Node, nodeB);

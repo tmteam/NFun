@@ -160,8 +160,9 @@ public static class FunnyAssert {
     public static void AssertOutputsCount(this FunnyRuntime runtime, int count) =>
         Assert.AreEqual(count, runtime.Variables.Count(v => v.IsOutput));
 
-    public static void AssertObviousFailsOnRuntime(this string expression) {
-        var runtime = expression.Build();
+    public static void AssertObviousFailsOnRuntime(this string expression,
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled) {
+        var runtime = expression.BuildWithDialect(optionalTypesSupport: optionalTypesSupport);
         try
         {
             var res = runtime.Calc();
@@ -180,12 +181,14 @@ public static class FunnyAssert {
     public static void AssertObviousFailsOnParse(this string expression,
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble) {
+        RealClrType realClrType = RealClrType.IsDouble,
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled) {
         TraceLog.IsEnabled = true;
         try
         {
             var runtime = Funny.Hardcore
-                .WithDialect(ifExpressionSyntax, integerPreferredType, realClrType)
+                .WithDialect(ifExpressionSyntax, integerPreferredType, realClrType,
+                    optionalTypesSupport: optionalTypesSupport)
                 .Build(expression);
             if (runtime.Variables.Any(v => !v.IsOutput))
             {

@@ -129,7 +129,8 @@ public static class GraphBuilderExtensions {
         if (memberNode == null)
         {
             memberNode = b.CreateVarType();
-            node.State = state.With(fieldName, memberNode);
+            state.AddField(fieldName, memberNode);
+            node.State = state;
         }
 
         b.MergeOrSetNode(opId, new StateRefTo(memberNode));

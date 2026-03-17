@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.SolvingStates;
+using System;
+using System.Collections.Generic;
 
 public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     public StateArray(TicNode elementNode) => ElementNode = elementNode;
@@ -43,7 +43,7 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
         var ancestor = elementTypeA.GetLastCommonAncestorOrNull(elementTypeB);
         if (ancestor == null)
             return null;
-        return StateArray.Of(ancestor);
+        return Of(ancestor);
     }
 
     public string PrintState(int depth) {
@@ -57,12 +57,12 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
 
     public override bool Equals(object obj) {
         if (obj is StateArray arr)
-            return arr.Element.Equals(this.Element);
+            return arr.Element.Equals(Element);
         return false;
     }
 
     public ICompositeState GetNonReferenced()
-        => StateArray.Of(ElementNode.GetNonReference());
+        => Of(ElementNode.GetNonReference());
 
     public bool HasAnyReferenceMember => ElementNode.State is StateRefTo;
 

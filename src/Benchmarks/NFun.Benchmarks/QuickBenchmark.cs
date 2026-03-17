@@ -22,23 +22,23 @@ public class QuickBenchmark
 {
     #region Configuration
 
-    const int WarmupIterations = 500;
-    const int TargetBatchMs = 10;
-    const int CalibrationRuns = 50;
-    const int DefaultMeasurementSeconds = 25;
-    const double TrimFraction = 0.15;
-    const double DropFirstFraction = 0.10;
-    const int GcEveryNRounds = 100;
+    private const int WarmupIterations = 500;
+    private const int TargetBatchMs = 10;
+    private const int CalibrationRuns = 50;
+    private const int DefaultMeasurementSeconds = 25;
+    private const double TrimFraction = 0.15;
+    private const double DropFirstFraction = 0.10;
+    private const int GcEveryNRounds = 100;
 
     #endregion
 
     #region Baseline
 
-    const int BaselineBatch = 200;
-    const int BaselineRounds = 50;
+    private const int BaselineBatch = 200;
+    private const int BaselineRounds = 50;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static long BaselineOp()
+    private static long BaselineOp()
     {
         long sum = 0;
         for (int i = 0; i < 80_000; i++)
@@ -61,7 +61,7 @@ public class QuickBenchmark
             throw new Exception(errors.ToString());
     }
 
-    static void VerifyBenchSet(BenchSet set, System.Text.StringBuilder errors)
+    private static void VerifyBenchSet(BenchSet set, System.Text.StringBuilder errors)
     {
         foreach (var subset in set.Subsets)
             for (int i = 0; i < subset.Scripts.Length; i++)
@@ -69,7 +69,9 @@ public class QuickBenchmark
                 var s = subset.Scripts[i];
                 try
                 {
-                    var rt = Funny.Hardcore.Build(s.Script);
+                    var rt = Funny.Hardcore
+                        .WithDialect(optionalTypesSupport: set.OptionalTypes)
+                        .Build(s.Script);
                     foreach (var inp in s.Inputs.Keys)
                         if (rt[inp] == null)
                             errors.AppendLine($"{set.Name}/{subset.Name}[{i}]: input '{inp}' not found");
@@ -93,7 +95,7 @@ public class QuickBenchmark
     [TestCase(120, TestName = "V2 HighPrecision")]
     public void RunV2Benchmark(int measurementSeconds) => RunBench(BenchSetV2.V2(), measurementSeconds);
 
-    void RunBench(BenchSet benchSet, int measurementSeconds)
+    private void RunBench(BenchSet benchSet, int measurementSeconds)
     {
         var originalPriority = System.Threading.Thread.CurrentThread.Priority;
         System.Threading.Thread.CurrentThread.Priority = System.Threading.ThreadPriority.AboveNormal;
@@ -101,7 +103,7 @@ public class QuickBenchmark
         finally { System.Threading.Thread.CurrentThread.Priority = originalPriority; }
     }
 
-    void RunBenchCore(BenchSet benchSet, int measurementSeconds)
+    private void RunBenchCore(BenchSet benchSet, int measurementSeconds)
     {
         double ticksToUs = 1_000_000.0 / Stopwatch.Frequency;
         int numSubsets = benchSet.Subsets.Length;
@@ -116,7 +118,8 @@ public class QuickBenchmark
         {
             var subset = benchSet.Subsets[si];
             var allScripts = subset.Scripts.Select(s => s.Script).ToArray();
-            var allRuntimes = allScripts.Select(s => Funny.Hardcore.Build(s)).ToArray();
+            var builder = Funny.Hardcore.WithDialect(optionalTypesSupport: benchSet.OptionalTypes);
+            var allRuntimes = allScripts.Select(s => builder.Build(s)).ToArray();
 
             var updatePairs = subset.Scripts
                 .Select((s, i) => (script: s, rt: allRuntimes[i]))
@@ -133,7 +136,7 @@ public class QuickBenchmark
 
             int buildIdx = ops.Count;
             ops.Add(($"{subset.Name}.Build", nAll, () => {
-                foreach (var s in allScripts) Funny.Hardcore.Build(s);
+                foreach (var s in allScripts) builder.Build(s);
             }));
 
             int runIdx = ops.Count;
@@ -417,11 +420,11 @@ public class QuickBenchmark
         TestContext.WriteLine(report);
     }
 
-    record SubsetInfo(BenchSubSet Subset, int ParseIdx, int BuildIdx, int RunIdx, int UpdateIdx, int TotalScripts, int UpdateScripts);
+    private record SubsetInfo(BenchSubSet Subset, int ParseIdx, int BuildIdx, int RunIdx, int UpdateIdx, int TotalScripts, int UpdateScripts);
 
     #region Statistics
 
-    static (int start, int end) TrimRange(int count)
+    private static (int start, int end) TrimRange(int count)
     {
         int trim = (int)(count * TrimFraction);
         if (trim * 2 >= count - 1)
@@ -429,7 +432,7 @@ public class QuickBenchmark
         return (trim, count - trim);
     }
 
-    static double TrimmedMean(List<double> samples)
+    private static double TrimmedMean(List<double> samples)
     {
         var sorted = samples.OrderBy(x => x).ToArray();
         var (start, end) = TrimRange(sorted.Length);
@@ -439,7 +442,7 @@ public class QuickBenchmark
         return sum / count;
     }
 
-    static double CV(List<double> samples)
+    private static double CV(List<double> samples)
     {
         var sorted = samples.OrderBy(x => x).ToArray();
         var (start, end) = TrimRange(sorted.Length);
@@ -452,7 +455,7 @@ public class QuickBenchmark
         return Math.Sqrt(Math.Max(0, variance)) / mean * 100.0;
     }
 
-    static string GetGitInfo()
+    private static string GetGitInfo()
     {
         try
         {
@@ -467,7 +470,7 @@ public class QuickBenchmark
         catch { return ""; }
     }
 
-    static string RunGit(string args)
+    private static string RunGit(string args)
     {
         var psi = new System.Diagnostics.ProcessStartInfo("git", args)
         {
@@ -481,11 +484,11 @@ public class QuickBenchmark
         return output;
     }
 
-    static string Fmt(double us) => us < 10 ? $"{us:F2}" : us < 100 ? $"{us:F1}" : $"{us:F0}";
-    static string FmtScore(double s) => s < 10 ? $"{s:F1}" : s < 1000 ? $"{s:F0}" : $"{s:N0}";
-    static string FmtKb(double kb) => kb < 10 ? $"{kb:F2}" : kb < 100 ? $"{kb:F1}" : $"{kb:F0}";
+    private static string Fmt(double us) => us < 10 ? $"{us:F2}" : us < 100 ? $"{us:F1}" : $"{us:F0}";
+    private static string FmtScore(double s) => s < 10 ? $"{s:F1}" : s < 1000 ? $"{s:F0}" : $"{s:N0}";
+    private static string FmtKb(double kb) => kb < 10 ? $"{kb:F2}" : kb < 100 ? $"{kb:F1}" : $"{kb:F0}";
 
-    static void ForceGC()
+    private static void ForceGC()
     {
         GC.Collect(2, GCCollectionMode.Forced, true);
         GC.WaitForPendingFinalizers();

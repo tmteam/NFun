@@ -246,6 +246,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                     elementConverter = VarTypeConverter.GetConverterOrNull(
                         _dialect.Converter.TypeBehaviour, actualElemType, expectedElemType);
             }
+
             return new SafeArrayAccessExpressionNode(source, index, node.OutputType, elementConverter, node.Interval);
         }
 
@@ -292,11 +293,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
             var function = genericFunction.CreateConcrete(genericArgs, _dialect);
 
-            if (!_dialect.AllowOptionalTypes && id is CoreFunNames.ForceUnwrap or CoreFunNames.NullCoalesce)
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled
+                && id is CoreFunNames.ForceUnwrap or CoreFunNames.NullCoalesce)
                 throw Errors.OptionalTypesNotSupported(id, node.Interval);
 
             return CreateFunctionCall(node, function);
         }
+
         throw new NFunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
     }
 
@@ -311,7 +314,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var functionName = SyntaxNodeReader.GetOperatorFunctionName(op.Type)
                                ?? throw new NFunImpossibleException("MJ987");
             var genericFunction = _functions.GetOrNull(functionName, 2) as IGenericFunction
-                      ?? throw new NFunImpossibleException("MJ989");
+                                  ?? throw new NFunImpossibleException("MJ989");
             var ticType = _typeInferenceResults.GetSyntaxNodeTypeOrNull(node.Operands[i].OrderNumber);
             var gArg = _typesConverter.Convert(ticType);
             var concreteFunction = genericFunction.CreateConcrete(new[] { gArg }, _dialect);
@@ -319,14 +322,15 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
             var l = expressionNodes[i];
             if (l.Type != gArg)
-                converters[i*2] =
+                converters[i * 2] =
                     VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, l.Type, gArg, l.Interval);
 
             var r = expressionNodes[i + 1];
             if (r.Type != gArg)
-                converters[i*2+1] =
+                converters[i * 2 + 1] =
                     VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, r.Type, gArg, r.Interval);
         }
+
         return new ComparisonChainExpressionNode(expressionNodes, functions, converters, node.Interval);
     }
 

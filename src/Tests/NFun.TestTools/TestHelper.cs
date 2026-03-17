@@ -29,6 +29,22 @@ public static class TestHelper {
         return new CalculationResult(vals, runtime.Converter);
     }
 
+    public static CalculationResult CalcWithDialect(
+        this string expr,
+        IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+        IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
+        RealClrType realClrType = RealClrType.IsDouble,
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked,
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
+        params (string id, object clrValue)[] values) =>
+        Funny.Hardcore.WithDialect(
+            ifExpressionSyntax,
+            integerPreferredType,
+            realClrType,
+            integerOverflow,
+            allowUserFunctions,
+            optionalTypesSupport).Build(expr).Calc(values);
 
     public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
         Funny.Hardcore.Build(expr).Calc(values);
@@ -41,9 +57,16 @@ public static class TestHelper {
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
-        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
-        => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow,
-            allowUserFunctions).Build(expr);
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled
+        )
+        => Funny.Hardcore.WithDialect(
+            ifExpressionSyntax,
+            integerPreferredType,
+            realClrType,
+            integerOverflow,
+            allowUserFunctions,
+            optionalTypesSupport).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 

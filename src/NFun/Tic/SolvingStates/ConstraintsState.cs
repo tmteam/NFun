@@ -1,9 +1,7 @@
-﻿using System;
-using NFun.Tic.Algebra;
+﻿namespace NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.SolvingStates;
-
-using static StatePrimitive;
+using System;
+using Algebra;
 
 public class ConstraintsState : ITicNodeState {
     public StatePrimitive Ancestor { get; private set; }
@@ -34,28 +32,31 @@ public class ConstraintsState : ITicNodeState {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
             return false;
 
-        if (type is StatePrimitive primitive)
+        switch (type)
         {
-            if (HasDescendant && !Descendant.CanBePessimisticConvertedTo(primitive))
-                return false;
-            if (IsComparable && !primitive.IsComparable)
-                return false;
-            return true;
-        }
-        else if (type is ICompositeState)
-        {
-            if (IsComparable)
-                return type is StateArray a && a.Element.Equals(Char);
-            if (!HasDescendant)
+            case StatePrimitive primitive:
+            {
+                if (HasDescendant && !Descendant.CanBePessimisticConvertedTo(primitive))
+                    return false;
+                if (IsComparable && !primitive.IsComparable)
+                    return false;
                 return true;
-            if (!type.IsSolved || !Descendant.IsSolved)
+            }
+            case ICompositeState:
+            {
+                if (IsComparable)
+                    return type is StateArray a && a.Element.Equals(StatePrimitive.Char);
+                if (!HasDescendant)
+                    return true;
+                if (!type.IsSolved || !Descendant.IsSolved)
+                    return false;
+                if (Descendant.GetType() != type.GetType())
+                    return false;
+                return true;
+            }
+            default:
                 return false;
-            if (Descendant.GetType() != type.GetType())
-                return false;
-            return true;
         }
-        else
-            return false;
     }
 
     public bool TryAddAncestor(StatePrimitive type) {
@@ -174,7 +175,7 @@ public class ConstraintsState : ITicNodeState {
                 // Don't collapse — let preferred type survive to runtime resolution
             }
             else
-                return (ITicNodeState)result.Descendant;
+                return result.Descendant;
         }
 
         return result;
@@ -189,13 +190,12 @@ public class ConstraintsState : ITicNodeState {
     public ITicNodeState SolveCovariant(bool ignorePreferred = false) {
         if (!ignorePreferred && Preferred != null && CanBeConvertedTo(Preferred))
             return Preferred;
-        var ancestor = Ancestor ?? Any;
+        var ancestor = Ancestor ?? StatePrimitive.Any;
         if (IsComparable)
         {
             if (ancestor.IsComparable)
                 return ancestor;
-            else
-                return this;
+            return this;
         }
 
         if (Descendant is ICompositeState)
@@ -235,18 +235,17 @@ public class ConstraintsState : ITicNodeState {
             {
                 case StateArray a:
                 {
-                    if (a.Element.CanBeConvertedOptimisticTo(Char))
-                        return StateArray.Of(Char);
-                    else
-                        return null;
+                    if (a.Element.CanBeConvertedOptimisticTo(StatePrimitive.Char))
+                        return StateArray.Of(StatePrimitive.Char);
+                    return null;
                 }
                 case StatePrimitive primitive:
                 {
-                    if (primitive.Equals(Char)) //it is an endpoint
-                        return Char;
+                    if (primitive.Equals(StatePrimitive.Char)) //it is an endpoint
+                        return StatePrimitive.Char;
                     if (primitive.IsNumeric)
                     {
-                        if (!TryAddAncestor(Real)) return null;
+                        if (!TryAddAncestor(StatePrimitive.Real)) return null;
                     }
                     else return null;
 
@@ -280,8 +279,8 @@ public class ConstraintsState : ITicNodeState {
                 return this;
             return new ConstraintsState(constrainsState.Descendant, null, IsComparable);
         }
-        else if (Descendant.Equals(Any))
-            return Any;
+        else if (Descendant.Equals(StatePrimitive.Any))
+            return StatePrimitive.Any;
 
         return this;
     }
@@ -298,7 +297,7 @@ public class ConstraintsState : ITicNodeState {
     public string Description => ToString();
 
     public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
-        Equals(primitive, Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
+        Equals(primitive, StatePrimitive.Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
 
     public override bool Equals(object obj) {
         if (obj is not ConstraintsState constrainsState)

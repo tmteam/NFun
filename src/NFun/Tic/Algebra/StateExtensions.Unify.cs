@@ -2,8 +2,8 @@ namespace NFun.Tic.Algebra;
 
 using System;
 using System.Collections.Generic;
-using NFun.Tic.SolvingStates;
-using static NFun.Tic.SolvingStates.StatePrimitive;
+using SolvingStates;
+using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
     public static ITicNodeState UnifyOrNull(this ITicNodeState a, ITicNodeState b) {
@@ -11,9 +11,9 @@ public static partial class StateExtensions {
             return a;
 
         if (a is StateRefTo ar)
-            return UnifyOrNull(ar.GetNonReference(), b);
+            return ar.GetNonReference().UnifyOrNull(b);
         if (b is StateRefTo br)
-            return UnifyOrNull(a, br.GetNonReference());
+            return a.UnifyOrNull(br.GetNonReference());
 
         // Any is top of ALL types: None ≤ Any, Opt(T) ≤ Any
         if (a.Equals(Any))
@@ -24,7 +24,7 @@ public static partial class StateExtensions {
         if (a is ConstraintsState ac)
         {
             if (b is ConstraintsState bc)
-                return UnifyOrNull(ac, bc);
+                return ac.UnifyOrNull(bc);
             else if (b.FitsInto(ac))
                 return b;
             else
@@ -32,13 +32,13 @@ public static partial class StateExtensions {
         }
 
         if (b is ConstraintsState)
-            return UnifyOrNull(b, a);
+            return b.UnifyOrNull(a);
         // Optional: Unify(Opt(A), Opt(B)) = Opt(Unify(A,B)), Unify(Opt, None) = None
         if (a is StateOptional aOpt)
         {
             if (b is StateOptional bOpt)
             {
-                var elem = UnifyOrNull(aOpt.Element, bOpt.Element);
+                var elem = aOpt.Element.UnifyOrNull(bOpt.Element);
                 return elem == null ? null : StateOptional.Of(elem);
             }
             if (b is StatePrimitive { Name: PrimitiveTypeName.None })
@@ -46,7 +46,7 @@ public static partial class StateExtensions {
             return null;
         }
         if (b is StateOptional)
-            return UnifyOrNull(b, a);
+            return b.UnifyOrNull(a);
 
         if (a.GetType() != b.GetType())
             return null;
@@ -55,11 +55,11 @@ public static partial class StateExtensions {
         if (b is StatePrimitive)
             return null;
         if (a is StateArray aArr)
-            return UnifyOrNull(aArr, b as StateArray);
+            return aArr.UnifyOrNull(b as StateArray);
         if (a is StateFun aFun)
-            return UnifyOrNull(aFun, b as StateFun);
+            return aFun.UnifyOrNull(b as StateFun);
         if (a is StateStruct aStr)
-            return UnifyOrNull(aStr, b as StateStruct);
+            return aStr.UnifyOrNull(b as StateStruct);
         throw new NotSupportedException($"Unitype({a}, {b})");
     }
 
@@ -71,7 +71,7 @@ public static partial class StateExtensions {
         else if (!b.HasDescendant)
             descendant = a.Descendant;
         else
-            descendant = Lca(a.Descendant, b.Descendant);
+            descendant = a.Descendant.Lca(b.Descendant);
 
         StatePrimitive ancestor = null;
         if (!a.HasAncestor)
@@ -89,7 +89,7 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState UnifyOrNull(this StateArray a, StateArray b) {
-        var uniElement = UnifyOrNull(a.Element, b.Element);
+        var uniElement = a.Element.UnifyOrNull(b.Element);
         return uniElement == null ? null : StateArray.Of(uniElement);
     }
 
@@ -99,13 +99,13 @@ public static partial class StateExtensions {
         var argNodes = new TicNode[a.ArgsCount];
         for (int i = 0; i < a.ArgsCount; i++)
         {
-            var uniArg = UnifyOrNull(a.ArgNodes[i].State, b.ArgNodes[i].State);
+            var uniArg = a.ArgNodes[i].State.UnifyOrNull(b.ArgNodes[i].State);
             if (uniArg == null)
                 return null;
             argNodes[i] = TicNode.CreateInvisibleNode(uniArg);
         }
 
-        var retArg = UnifyOrNull(a.ReturnType, b.ReturnType);
+        var retArg = a.ReturnType.UnifyOrNull(b.ReturnType);
         if (retArg == null)
             return null;
         return StateFun.Of(argNodes, TicNode.CreateInvisibleNode(retArg));
@@ -120,7 +120,7 @@ public static partial class StateExtensions {
             var bField = b.GetFieldOrNull(aField.Key);
             if (bField == null)
                 return null;
-            var uniField = UnifyOrNull(aField.Value.State, bField.State);
+            var uniField = aField.Value.State.UnifyOrNull(bField.State);
             if (uniField == null)
                 return null;
             fields.Add(aField.Key, TicNode.CreateInvisibleNode(uniField));

@@ -125,9 +125,6 @@ public class ConstraintsFitsTest {
             .FitsInto(Constrains(StateFun.Of(new[] { Any }, U16)))
             .AssertTrue();
 
-    // Tests fixed: had wrong expectations due to copy-paste bug in CanBeFitConverted(StateFun)
-    // that skipped arg checking. With correct semantics (∀t∈to, ∃d∈desc: d ≤ t), these are false.
-
     [Test]
     public void FunFits_EmptyConstraintArg_returnsFalse() {
         var constrains = Constrains(StateFun.Of(EmptyConstraints, Constrains(U16)));

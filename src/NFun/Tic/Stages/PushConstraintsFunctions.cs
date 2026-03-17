@@ -235,8 +235,8 @@ public class PushConstraintsFunctions : IStateFunction {
             {
                 if (descendant.IsFrozen)
                     return false;
-                // With() adds the exact ancestor field node, so no push needed for new fields.
-                descendant = descendant.With(ancField.Key, ancField.Value);
+                // AddField adds the exact ancestor field node, so no push needed for new fields.
+                descendant.AddField(ancField.Key, ancField.Value);
                 descendantNode.State = descendant;
             }
             else

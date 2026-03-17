@@ -1,32 +1,32 @@
 namespace NFun.Tic.Algebra;
 
 using System;
-using NFun.Tic.SolvingStates;
-using static NFun.Tic.SolvingStates.StatePrimitive;
+using SolvingStates;
+using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
     /// <summary>
-    /// `from` can be converted to `to` in SOME case
+    /// `from` can be converted to `to` at least in SOME case
     /// </summary>
     public static bool CanBeConvertedOptimisticTo(this ITicNodeState from, ITicNodeState to) {
         if (from is StateRefTo fromRef)
-            return CanBeConvertedOptimisticTo(fromRef.Element, to);
+            return fromRef.Element.CanBeConvertedOptimisticTo(to);
         if (to is StateRefTo toRef)
-            return CanBeConvertedOptimisticTo(from, toRef.Element);
+            return from.CanBeConvertedOptimisticTo(toRef.Element);
 
         // None can only optimistically convert to None or Optional targets
         if (from is StatePrimitive { Name: PrimitiveTypeName.None })
             return to is StatePrimitive { Name: PrimitiveTypeName.None }
-                || (to is ICompositeState cs && CanBeConvertedOptimisticTo(from, cs));
-
-        // Optional can only optimistically convert to Optional targets
-        if (from is StateOptional)
-            return to is ICompositeState cs2 && CanBeConvertedOptimisticTo(from, cs2);
+                || (to is ICompositeState cs && from.CanBeConvertedOptimisticTo(cs));
 
         if (to.Equals(Any))
             return true;
+
+        // Optional can only optimistically convert to Optional targets
+        if (from is StateOptional)
+            return to is ICompositeState cs2 && from.CanBeConvertedOptimisticTo(cs2);
         if (to is ICompositeState compositeState)
-            return CanBeConvertedOptimisticTo(from, compositeState);
+            return from.CanBeConvertedOptimisticTo(compositeState);
         if (from is StatePrimitive)
             return to is StatePrimitive top2
                 ? from.CanBePessimisticConvertedTo(top2)
@@ -43,14 +43,14 @@ public static partial class StateExtensions {
                 if (ancestor == null || Equals(ancestor, Any))
                     return true;
                 //if there is ancestor, then either 'from.ancestor` either `from.desc` has to be converted to it
-                if (fromConstraints.HasAncestor && CanBeConvertedOptimisticTo(fromConstraints.Ancestor, ancestor))
+                if (fromConstraints.HasAncestor && fromConstraints.Ancestor.CanBeConvertedOptimisticTo(ancestor))
                     return true;
-                if (fromConstraints.HasDescendant && CanBeConvertedOptimisticTo(fromConstraints.Descendant, ancestor))
+                if (fromConstraints.HasDescendant && fromConstraints.Descendant.CanBeConvertedOptimisticTo(ancestor))
                     return true;
             }
 
             if (to is StatePrimitive toP)
-                return CanBeConvertedOptimisticTo(fromConstraints, toP);
+                return fromConstraints.CanBeConvertedOptimisticTo(toP);
         }
 
         if (from is ICompositeState)
@@ -90,32 +90,31 @@ public static partial class StateExtensions {
     /// <summary>
     /// `from` can be converted to `to` in SOME case
     /// </summary>
-    public static bool CanBeConvertedOptimisticTo(this ITicNodeState from, ICompositeState to) {
+    private static bool CanBeConvertedOptimisticTo(this ITicNodeState from, ICompositeState to) {
         if (from is StateRefTo r)
-            return CanBeConvertedOptimisticTo(r.Element, to);
+            return r.Element.CanBeConvertedOptimisticTo(to);
 
         // to is Optional: implicit lift from any compatible type
         if (to is StateOptional optTo)
         {
-            if (from is StatePrimitive { Name: PrimitiveTypeName.None })
-                return true;
-            if (from is StateOptional optFrom)
-                return optFrom.Element.CanBeConvertedOptimisticTo(optTo.Element);
-            return from.CanBeConvertedOptimisticTo(optTo.Element);
+            return from switch {
+                StatePrimitive { Name: PrimitiveTypeName.None } => true,
+                StateOptional optFrom => optFrom.Element.CanBeConvertedOptimisticTo(optTo.Element),
+                _ => from.CanBeConvertedOptimisticTo(optTo.Element)
+            };
         }
 
         // from is Optional: can only convert to Optional target (handled above)
         if (from is StateOptional)
             return false;
-
         if (from is ConstraintsState constrainsState)
             return !constrainsState.HasDescendant;
         if (from.GetType() != to.GetType())
             return false;
         return from switch {
-            StateArray arrayFrom => CanBeConvertedOptimisticTo(arrayFrom.Element, ((StateArray)to).Element),
-            StateFun funFrom => CanBeConvertedOptimisticTo(funFrom, (StateFun)to),
-            StateStruct structFrom => CanBeConvertedOptimisticTo(structFrom, (StateStruct)to),
+            StateArray arrayFrom => arrayFrom.Element.CanBeConvertedOptimisticTo(((StateArray)to).Element),
+            StateFun funFrom => funFrom.CanBeConvertedOptimisticTo((StateFun)to),
+            StateStruct structFrom => structFrom.CanBeConvertedOptimisticTo((StateStruct)to),
             _ => throw new NotSupportedException($"{from} is not supported for CanBeConvertedOptimistic")
         };
     }
@@ -144,7 +143,7 @@ public static partial class StateExtensions {
             var fromField = from.GetFieldOrNull(toField.Key);
             if (fromField == null)
                 return false;
-            var unitype = UnifyOrNull(fromField.State, toField.Value.State);
+            var unitype = fromField.State.UnifyOrNull(toField.Value.State);
             if (unitype == null)
                 return false;
         }
@@ -162,7 +161,7 @@ public static partial class StateExtensions {
         if (to.Ancestor != null && !from.CanBePessimisticConvertedTo(to.Ancestor))
             return false;
         if (to.IsComparable)
-            return from is StateArray array && CanBeConvertedPessimisticTo(from: StatePrimitive.Char, array.Element);
+            return from is StateArray array && StatePrimitive.Char.CanBeConvertedPessimisticTo(array.Element);
         // so state has to be converted to descendant, to allow this
         var toDescendant = to.Descendant;
         if (Equals(toDescendant, Any))
@@ -177,7 +176,7 @@ public static partial class StateExtensions {
     /// </summary>
     public static bool CanBeConvertedPessimisticTo(this ITicNodeState from, ITicNodeState to) {
         if (to is StateRefTo ancRef)
-            return CanBeConvertedPessimisticTo(from, ancRef.Element);
+            return from.CanBeConvertedPessimisticTo(ancRef.Element);
 
         // to is Optional: None → Opt(T) = true, Opt(A) → Opt(B) covariant, T → Opt(T) implicit lift
         if (to is StateOptional optTo)
@@ -185,8 +184,8 @@ public static partial class StateExtensions {
             if (from is StatePrimitive { Name: PrimitiveTypeName.None })
                 return true;
             if (from is StateOptional optFrom)
-                return CanBeConvertedPessimisticTo(optFrom.Element, optTo.Element);
-            return CanBeConvertedPessimisticTo(from, optTo.Element);
+                return optFrom.Element.CanBeConvertedPessimisticTo(optTo.Element);
+            return from.CanBeConvertedPessimisticTo(optTo.Element);
         }
 
         // None and Optional can't pessimistically convert to non-optional targets
@@ -199,18 +198,18 @@ public static partial class StateExtensions {
             return true;
 
         return from switch {
-            StateRefTo descRef => CanBeConvertedPessimisticTo(descRef.Element, to),
+            StateRefTo descRef => descRef.Element.CanBeConvertedPessimisticTo(to),
             StatePrimitive fromPrim => to switch {
                 StatePrimitive p => fromPrim.CanBePessimisticConvertedTo(p),
                 ConstraintsState c => (!c.IsComparable || fromPrim.IsComparable)
-                                     && c.HasDescendant && CanBeConvertedPessimisticTo(fromPrim, c.Descendant),
+                                     && c.HasDescendant && fromPrim.CanBeConvertedPessimisticTo(c.Descendant),
                 _ => false
             },
             ConstraintsState fromDesc => fromDesc.HasAncestor
-                ? CanBeConvertedPessimisticTo(fromDesc.Ancestor, to)
-                : CanBeConvertedPessimisticTo(Any, to),
+                ? fromDesc.Ancestor.CanBeConvertedPessimisticTo(to)
+                : Any.CanBeConvertedPessimisticTo(to),
             ICompositeState comp => to switch {
-                ConstraintsState constrAnc => CanBeConvertedPessimisticTo(comp, constrAnc),
+                ConstraintsState constrAnc => comp.CanBeConvertedPessimisticTo(constrAnc),
                 ICompositeState composite => CanBeConvertedPessimisticTo(comp, composite),
                 _ => false
             }
@@ -220,7 +219,7 @@ public static partial class StateExtensions {
     private static bool CanBeConvertedPessimisticTo(ICompositeState from, ICompositeState to) =>
         from switch {
             StateArray arrayDesc => to switch {
-                StateArray arrayAnc => CanBeConvertedPessimisticTo(arrayDesc.Element, arrayAnc.Element),
+                StateArray arrayAnc => arrayDesc.Element.CanBeConvertedPessimisticTo(arrayAnc.Element),
                 _ => false
             },
             StateFun fromFun => to switch {
@@ -228,11 +227,11 @@ public static partial class StateExtensions {
                 _ => false
             },
             StateStruct fromStr => to switch {
-                StateStruct toStr => CanBeConvertedPessimisticTo(fromStr, toStr),
+                StateStruct toStr => fromStr.CanBeConvertedPessimisticTo(toStr),
                 _ => false
             },
             StateOptional fromOpt => to switch {
-                StateOptional toOpt => CanBeConvertedPessimisticTo(fromOpt.Element, toOpt.Element),
+                StateOptional toOpt => fromOpt.Element.CanBeConvertedPessimisticTo(toOpt.Element),
                 _ => false
             },
             _ => throw new NotSupportedException($"type {from} is not supported for pessimistic convertion")

@@ -1,8 +1,8 @@
+namespace NFun.Tic.SolvingStates;
+
 using System;
 using System.Collections.Generic;
-using NFun.Tic.Algebra;
-
-namespace NFun.Tic.SolvingStates;
+using Algebra;
 
 public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public StateOptional(TicNode elementNode) => ElementNode = elementNode;
@@ -35,7 +35,7 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     }
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
-        StateExtensions.Lca(this, otherType) as ITypeState;
+        this.Lca(otherType) as ITypeState;
 
     public string PrintState(int depth) {
         if (depth > 100)
@@ -47,14 +47,14 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public override bool Equals(object obj) {
         if (obj is StateOptional opt)
-            return opt.Element.Equals(this.Element);
+            return opt.Element.Equals(Element);
         return false;
     }
 
     public override int GetHashCode() => Element.GetHashCode() * 31 + 7;
 
     public ICompositeState GetNonReferenced()
-        => StateOptional.Of(ElementNode.GetNonReference());
+        => Of(ElementNode.GetNonReference());
 
     public bool HasAnyReferenceMember => ElementNode.State is StateRefTo;
 

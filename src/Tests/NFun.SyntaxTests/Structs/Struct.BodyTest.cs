@@ -649,7 +649,6 @@ foo = [[[fooin]]]; bar = foo;".Build();
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 
 
-   // [Ignore("Bug #68")]
     [TestCase( @"
                 foo = {a = {id = 42}}
                 baz = foo.b.id

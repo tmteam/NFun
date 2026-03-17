@@ -23,7 +23,16 @@ public class LcaStructTest {
                 ("arr", Array(Array(Char))),
                 ("fun", Fun(Bool, I16))))
         );
-        var other = str.With("additional", TicNode.CreateInvisibleNode(Char));
+        var other = Struct(
+            ("prim", I32),
+            ("arr", Array(Array(Char))),
+            ("fun", Fun(Bool, I16)),
+            ("str", Struct(
+                ("prim", I32),
+                ("arr", Array(Array(Char))),
+                ("fun", Fun(Bool, I16)))),
+            ("additional", Char)
+        );
         AssertLca(str, other, str);
     }
 
