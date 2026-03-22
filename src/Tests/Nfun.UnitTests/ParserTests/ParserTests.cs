@@ -74,10 +74,10 @@ syntax-tree
 """
 syntax-tree
    fun 'y'
-      typed-var-def 'x:Empty'
+      typed-var-def 'x:'
       default
    fun 'g'
-      typed-var-def 'x:Empty'
+      typed-var-def 'x:'
       call 'y'
          id 'x'
    equation 'out'

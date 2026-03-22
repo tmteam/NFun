@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using NFun.Exceptions;
 using NFun.ParseErrors;
+using NFun.SyntaxParsing;
 
 namespace NFun.Tokenization;
 
@@ -49,27 +50,25 @@ public static class TokenHelper {
         return long.Parse(val);
     }
 
-    private static FunnyType ToFunnyType(this Tok token) =>
-        token.Type switch {
-            TokType.Int16Type                    => FunnyType.Int16,
-            TokType.Int32Type                    => FunnyType.Int32,
-            TokType.Int64Type                    => FunnyType.Int64,
-            TokType.UInt8Type                    => FunnyType.UInt8,
-            TokType.UInt16Type                   => FunnyType.UInt16,
-            TokType.UInt32Type                   => FunnyType.UInt32,
-            TokType.UInt64Type                   => FunnyType.UInt64,
-            TokType.RealType                     => FunnyType.Real,
-            TokType.BoolType                     => FunnyType.Bool,
-            TokType.CharType                     => FunnyType.Char,
-            TokType.TextType                     => FunnyType.Text,
-            TokType.AnythingType                 => FunnyType.Any,
-            TokType.Id when token.Value == "any" => FunnyType.Any,
-            TokType.Id when token.Value == "ip"  => FunnyType.Ip,
-            _                                    => throw Errors.TypeExpectedButWas(token)
-        };
+    private static string ToTypeName(this Tok token) => token.Type switch {
+        TokType.Int16Type    => "int16",
+        TokType.Int32Type    => "int32",
+        TokType.Int64Type    => "int64",
+        TokType.UInt8Type    => "uint8",
+        TokType.UInt16Type   => "uint16",
+        TokType.UInt32Type   => "uint32",
+        TokType.UInt64Type   => "uint64",
+        TokType.RealType     => "real",
+        TokType.BoolType     => "bool",
+        TokType.CharType     => "char",
+        TokType.TextType     => "text",
+        TokType.AnythingType => "any",
+        TokType.Id           => token.Value,
+        _ => throw Errors.TypeExpectedButWas(token)
+    };
 
-    public static FunnyType ReadType(this TokFlow flow) {
-        FunnyType readType;
+    public static TypeSyntax ReadTypeSyntax(this TokFlow flow) {
+        TypeSyntax readType;
         int lastPosition;
         int typeStart;
 
@@ -77,15 +76,15 @@ public static class TokenHelper {
         {
             var openBrace = flow.Current;
             typeStart = openBrace.Start;
-            flow.MoveNext(); // consume {
-            readType = ReadStructType(flow, openBrace);
-            lastPosition = flow.Previous.Finish; // end of } token
+            flow.MoveNext();
+            readType = ReadStructTypeSyntax(flow, openBrace);
+            lastPosition = flow.Previous.Finish;
         }
         else
         {
             var cur = flow.Current;
             typeStart = cur.Start;
-            readType = ToFunnyType(cur);
+            readType = new TypeSyntax.Named(cur.ToTypeName(), cur.Interval);
             flow.MoveNext();
             lastPosition = cur.Finish;
         }
@@ -101,15 +100,15 @@ public static class TokenHelper {
                 lastPosition = flow.Current.Finish;
                 if (!flow.MoveIf(TokType.ArrCBr))
                     throw Errors.ArrTypeCbrMissed(new Interval(typeStart, flow.Current.Start));
-                readType = FunnyType.ArrayOf(readType);
+                readType = new TypeSyntax.ArrayOf(readType);
             }
             else if (flow.IsCurrent(TokType.Question))
             {
                 if (flow.Current.Start != lastPosition)
-                    break; // space before ? means it's not a type suffix
+                    break;
                 lastPosition = flow.Current.Finish;
                 flow.MoveNext();
-                readType = FunnyType.OptionalOf(readType);
+                readType = new TypeSyntax.OptionalOf(readType);
             }
             else
             {
@@ -120,9 +119,8 @@ public static class TokenHelper {
         return readType;
     }
 
-
-    private static FunnyType ReadStructType(TokFlow flow, Tok openBrace) {
-        var fields = new List<(string, FunnyType)>();
+    private static TypeSyntax ReadStructTypeSyntax(TokFlow flow, Tok openBrace) {
+        var fields = new List<(string, TypeSyntax)>();
         bool hasAnyDelimiter = true;
         flow.SkipNewLines();
 
@@ -138,7 +136,7 @@ public static class TokenHelper {
             if (!flow.MoveIf(TokType.Colon))
                 throw Errors.StructTypeColonExpected(idToken, flow.Current);
 
-            var fieldType = flow.ReadType(); // recursive — handles nested structs, arrays, optionals
+            var fieldType = flow.ReadTypeSyntax(); // recursive
             fields.Add((idToken.Value, fieldType));
 
             hasAnyDelimiter = false;
@@ -148,7 +146,7 @@ public static class TokenHelper {
                 hasAnyDelimiter = true;
         }
 
-        return FunnyType.StructOf(fields.ToArray());
+        return new TypeSyntax.StructOf(fields.ToArray());
     }
 
     public static bool MoveIf(this TokFlow flow, TokType tokType) {

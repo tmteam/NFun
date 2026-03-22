@@ -162,6 +162,9 @@ public class VariableSource : IFunnyVar {
 
 
     private object GetDefaultValueOrNullFor(FunnyType type) {
+        if (type.BaseType == BaseFunnyType.Custom)
+            return type.CustomTypeDefinition?.DefaultValue;
+
         var defaultValue = _funnyConverter.TypeBehaviour.GetDefaultPrimitiveValueOrNull(type.BaseType);
         if (defaultValue != null)
             return defaultValue;

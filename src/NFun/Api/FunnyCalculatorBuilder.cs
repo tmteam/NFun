@@ -11,9 +11,11 @@ namespace NFun;
 public class FunnyCalculatorBuilder {
     internal static FunnyCalculatorBuilder Default => new();
     internal DialectSettings Dialect => _dialect;
+    internal FunnyConverter ConverterWithCustomTypes => _dialect.Converter.WithCustomTypes(_customTypes);
     private DialectSettings _dialect = Dialects.Origin;
     private readonly List<(string, object)> _constantList = new();
     private readonly List<Func<DialectSettings,IConcreteFunction>> _customFunctionFactories = new();
+    private ICustomTypeRegistry _customTypes = EmptyCustomTypeRegistry.Instance;
 
     private FunnyCalculatorBuilder WithDialect(DialectSettings dialect) {
         _dialect = dialect;
@@ -35,53 +37,59 @@ public class FunnyCalculatorBuilder {
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll) =>
         WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions));
 
+    public FunnyCalculatorBuilder WithCustomType(IFunnyCustomTypeDefinition typeDefinition) {
+        var customType = FunnyType.CustomOf(typeDefinition);
+        _customTypes = _customTypes.CloneWith(typeDefinition.Name, customType);
+        return this;
+    }
+
     public FunnyCalculatorBuilder WithConstant(string id, object value) {
         _constantList.Add((id, value));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) {
-        _customFunctionFactories.Add(d=> LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=> LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, TOut>(string name, Func<Tin1, Tin2, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter.WithCustomTypes(_customTypes)));
         return this;
     }
 
@@ -155,11 +163,14 @@ public class FunnyCalculatorBuilder {
         if (_customFunctionFactories.Any())
             dic = dic.CloneWith(_customFunctionFactories.Select(f=>f(_dialect)).ToArray());
 
+        var converter = _dialect.Converter.WithCustomTypes(_customTypes);
+
         return RuntimeBuilder.Build(
             script: expression,
             constants: constants ?? EmptyConstantList.Instance,
             functionDictionary: dic,
             aprioriTypesMap: aprioriTypes,
-            dialect: _dialect);
+            dialect: _dialect,
+            customTypes: _customTypes);
     }
 }

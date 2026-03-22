@@ -187,6 +187,29 @@ public class TokenizerTest {
     [TestCase("1e3 * 2", TokType.RealNumber, TokType.Mult, TokType.IntNumber)]
     // double-e: second e starts a new identifier
     [TestCase("1e2e3", TokType.RealNumber, TokType.Id)]
+    // Special characters: π, ∞, ≤, ≥, ≠
+    [TestCase("π", TokType.Id)]
+    [TestCase("∞", TokType.Id)]
+    [TestCase("x ≤ y", TokType.Id, TokType.LessOrEqual, TokType.Id)]
+    [TestCase("x ≥ y", TokType.Id, TokType.MoreOrEqual, TokType.Id)]
+    [TestCase("x ≠ y", TokType.Id, TokType.NotEqual, TokType.Id)]
+    [TestCase("y = π", TokType.Id, TokType.Def, TokType.Id)]
+    [TestCase("y = ∞", TokType.Id, TokType.Def, TokType.Id)]
+    [TestCase("y = -∞", TokType.Id, TokType.Def, TokType.Minus, TokType.Id)]
+    [TestCase("x ≤ 5 and x ≥ 1", TokType.Id, TokType.LessOrEqual, TokType.IntNumber, TokType.And, TokType.Id, TokType.MoreOrEqual, TokType.IntNumber)]
+    [TestCase("πr", TokType.Id)]  // π is a regular letter — πr is one identifier
+    // Superscript digits
+    [TestCase("x²", TokType.Id, TokType.Superscript)]
+    [TestCase("x³", TokType.Id, TokType.Superscript)]
+    [TestCase("x⁴", TokType.Id, TokType.Superscript)]
+    [TestCase("x⁵", TokType.Id, TokType.Superscript)]
+    [TestCase("x⁶", TokType.Id, TokType.Superscript)]
+    [TestCase("x⁷", TokType.Id, TokType.Superscript)]
+    [TestCase("x⁸", TokType.Id, TokType.Superscript)]
+    [TestCase("x⁹", TokType.Id, TokType.Superscript)]
+    // x²³ is forbidden — consecutive superscripts are not allowed
+    [TestCase("3² + 1", TokType.IntNumber, TokType.Superscript, TokType.Plus, TokType.IntNumber)]
+    [TestCase("2π", TokType.IntNumber, TokType.Id)]
     public void GeneralTokenFlow_ExpectEof(string exp, params TokType[] expected) {
         var tokens = new List<TokType>();
         foreach (var token in Tokenizer.ToTokens(exp))

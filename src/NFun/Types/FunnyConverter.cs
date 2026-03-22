@@ -41,6 +41,21 @@ public class FunnyConverter {
         _inputTypeFromPair.Count +
         _inputTypeFromClr.Count;
     
+    /// <summary>Custom type registry — checked before struct/class reflection path.</summary>
+    internal ICustomTypeRegistry CustomTypes { get; private set; } = EmptyCustomTypeRegistry.Instance;
+
+    /// <summary>
+    /// Creates a new FunnyConverter with custom types registered.
+    /// Does NOT mutate the original — returns a fresh instance.
+    /// </summary>
+    internal FunnyConverter WithCustomTypes(ICustomTypeRegistry customTypes) {
+        if (customTypes == null || customTypes.IsEmpty)
+            return this;
+        var clone = new FunnyConverter(TypeBehaviour);
+        clone.CustomTypes = customTypes;
+        return clone;
+    }
+
     public object ConvertInputOrThrow(object clrValue, FunnyType resultFunnyType) {
         if (clrValue == null)
         {
@@ -50,6 +65,9 @@ public class FunnyConverter {
         }
 
         var clrFromType = clrValue.GetType();
+        // Custom types: identity conversion — CLR value passes through as-is
+        if (resultFunnyType.BaseType == BaseFunnyType.Custom)
+            return clrValue;
         if (TypeBehaviour.GetClrTypeFor(resultFunnyType.BaseType) == clrFromType)
             return clrValue;
 
@@ -98,6 +116,9 @@ public class FunnyConverter {
         return converter;
         
         IOutputFunnyConverter CreateOutputConverterFor(Type clrType, int reqDeepthCheck) {
+            // Custom types: identity converter (CLR value passes through as-is)
+            if (CustomTypes.TryResolveByClrType(clrType, out var customFunnyType))
+                return new PrimitiveTypeOutputFunnyConverter(customFunnyType, clrType);
 
             if (Nullable.GetUnderlyingType(clrType) is { } underlyingType)
             {
@@ -181,6 +202,8 @@ public class FunnyConverter {
                 // convert funny struct to an IDictionary<string,object>
                 case BaseFunnyType.Struct:
                     return new StructToDictionaryOutputFunnyConverter(this, funnyType);
+                case BaseFunnyType.Custom:
+                    return new PrimitiveTypeOutputFunnyConverter(funnyType, funnyType.CustomTypeDefinition.DefaultValue.GetType());
                 default:
                     throw Errors.TypeCannotBeUsedAsOutputNfunType(funnyType);
             }
@@ -248,6 +271,9 @@ public class FunnyConverter {
                 return new OptionalInputFunnyConverter(elementConverter);
             }
 
+            if (funnyType.BaseType == BaseFunnyType.Custom)
+                return new PrimitiveTypeInputFunnyConverter(funnyType);
+
             if (funnyType.BaseType != BaseFunnyType.Struct)
                 return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
 
@@ -299,6 +325,10 @@ public class FunnyConverter {
         return converter;
         
         IInputFunnyConverter CreateInputConverterFor(Type clrType, int reqDeepthCheck) {
+            // Custom types: identity converter
+            if (CustomTypes.TryResolveByClrType(clrType, out var customFunnyType2))
+                return new PrimitiveTypeInputFunnyConverter(customFunnyType2);
+
             if (clrType == typeof(string))
                 return StringTypeInputFunnyConverter.Instance;
 

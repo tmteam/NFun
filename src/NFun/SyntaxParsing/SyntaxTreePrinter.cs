@@ -53,7 +53,7 @@ class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
 
     public string Visit(SyntaxTree node) => "syntax-tree";
 
-    public string Visit(TypedVarDefSyntaxNode node) => $"typed-var-def '{node.Id}:{node.FunnyType}'";
+    public string Visit(TypedVarDefSyntaxNode node) => $"typed-var-def '{node.Id}:{node.TypeSyntax}'";
 
     public string Visit(UserFunctionDefinitionSyntaxNode node) => $"fun '{node.Id}'";
 

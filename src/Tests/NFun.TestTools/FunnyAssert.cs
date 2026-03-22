@@ -182,13 +182,15 @@ public static class FunnyAssert {
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble,
-        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled) {
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
+        AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow) {
         TraceLog.IsEnabled = true;
         try
         {
             var runtime = Funny.Hardcore
                 .WithDialect(ifExpressionSyntax, integerPreferredType, realClrType,
-                    optionalTypesSupport: optionalTypesSupport)
+                    optionalTypesSupport: optionalTypesSupport,
+                    allowNewlineInStrings: allowNewlineInStrings)
                 .Build(expression);
             if (runtime.Variables.Any(v => !v.IsOutput))
             {

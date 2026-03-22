@@ -54,7 +54,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
 
     public string PrintState(int depth) => ToString();
 
-    public bool CanBePessimisticConvertedTo(StatePrimitive type) {
+    public virtual bool CanBePessimisticConvertedTo(StatePrimitive type) {
         // None ≤ Any (none is a value with toString/equals), but None is not ≤ any other primitive
         if (Name == PrimitiveTypeName.None)
             return type.Name == PrimitiveTypeName.None || type.Name == PrimitiveTypeName.Any;
@@ -63,15 +63,15 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         return Equals(LcaMap[Order, type.Order], type);
     }
 
-    public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
+    public virtual StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
         => GcdMap[Order, other.Order];
 
-    public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
+    public virtual ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
         otherType is StatePrimitive primitive
             ? GetLastCommonPrimitiveAncestor(primitive)
             : Any;
 
-    public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other) => LcaMap[Order, other.Order];
+    public virtual StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other) => LcaMap[Order, other.Order];
 
     public override bool Equals(object obj) => (obj as StatePrimitive)?.Name == Name;
     public override int GetHashCode() => (int)Name;

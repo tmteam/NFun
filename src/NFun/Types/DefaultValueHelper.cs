@@ -24,6 +24,8 @@ internal  static class DefaultValueHelper {
     };
 
     public static object GetDefaultFunnyValue(this FunnyType type) {
+        if (type.BaseType == BaseFunnyType.Custom)
+            return type.CustomTypeDefinition.DefaultValue;
         if (type.IsPrimitive)
             return PrimitiveTypeMap[type.BaseType];
         

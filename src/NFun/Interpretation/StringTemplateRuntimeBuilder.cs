@@ -4,6 +4,7 @@ using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Interpretation; 
 
@@ -15,7 +16,8 @@ internal static class StringTemplateRuntimeBuilder {
         IFunctionDictionary functionDictionary,
         DialectSettings dialect,
         IConstantList constants = null,
-        IAprioriTypesMap aprioriTypes = null) {
+        IAprioriTypesMap aprioriTypes = null,
+        ICustomTypeRegistry customTypes = null) {
         //not the most effective way to build interpolation runtime
         //but at least it works
         SeparateStringTemplate(script, out var texts, out var scripts);
@@ -25,7 +27,7 @@ internal static class StringTemplateRuntimeBuilder {
         for (int i = 0; i < scripts.Count; i++)
             sb.Append($"{AnonymIdPrefix}{i}={scripts[i]};;");
 
-        var runtime = RuntimeBuilder.Build(sb.ToString(), functionDictionary, dialect, constants, aprioriTypes);
+        var runtime = RuntimeBuilder.Build(sb.ToString(), functionDictionary, dialect, constants, aprioriTypes, customTypes);
         var outputVars = new IFunnyVar[scripts.Count];
 
         for (int i = 0; i < scripts.Count; i++)

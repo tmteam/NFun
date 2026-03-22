@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Types;
 using NFun.Tokenization;
 
 namespace NFun.Interpretation.Nodes;
@@ -15,7 +16,9 @@ internal class FunArgumentDeclarationRuntimeNode : IRuntimeNode {
                 interval: node.Interval),
             TypedVarDefSyntaxNode typeVarNode => new FunArgumentDeclarationRuntimeNode(
                 name: typeVarNode.Id,
-                type: typeVarNode.FunnyType,
+                type: typeVarNode.OutputType.BaseType != BaseFunnyType.Empty
+                    ? typeVarNode.OutputType
+                    : TypeInferenceAdapter.TypeSyntaxResolver.Resolve(typeVarNode.TypeSyntax),
                 interval: node.Interval),
             _ => throw Errors.InvalidArgTypeDefinition(node)
         };

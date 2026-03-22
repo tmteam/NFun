@@ -16,7 +16,7 @@ public static class StagesExtension {
                 _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
             };
         }
-        else if (nodeA.State is ConstraintsState con)
+        if (nodeA.State is ConstraintsState con)
         {
             return nodeB.State switch {
                 StatePrimitive bp => function.Apply(con, bp, nodeA, nodeB),
@@ -76,8 +76,8 @@ public static class StagesExtension {
                 _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
             };
         }
-        else if (nodeA.State is StateRefTo r)
-            return Invoke(function, r.Node, nodeB);
+        else if (nodeA.State is StateRefTo aRefFallback)
+            return Invoke(function, aRefFallback.Node, nodeB);
         else
             throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
     }

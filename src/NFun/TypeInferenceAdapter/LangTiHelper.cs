@@ -43,6 +43,7 @@ public static class LangTiHelper {
             BaseFunnyType.Ip => StatePrimitive.Ip,
             BaseFunnyType.Any => StatePrimitive.Any,
             BaseFunnyType.None => StatePrimitive.None,
+            BaseFunnyType.Custom => new StatePrimitiveCustom(origin.CustomTypeDefinition.Name, origin),
             BaseFunnyType.Optional => StateOptional.Of(
                 ConvertToTiType(origin.OptionalTypeSpecification.ElementType)),
             BaseFunnyType.ArrayOf => StateArray.Of(

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 
@@ -11,6 +12,14 @@ class InterpolationLayer {
     /// Difference between open and close interpolation brackets count
     /// </summary>
     public int FigureBracketsDiff;
+    public bool IsTripleQuoted;
+    public string TripleQuoteBaseline;
+    public int TripleQuoteClosingPosition;
+    /// <summary>
+    /// Number of $ signs before the opening quote. 0 = standard interpolation via {expr}.
+    /// N > 0 = interpolation via $...${expr} (N dollars + brace).
+    /// </summary>
+    public int EscapeLevel;
 }
 
 /// <summary>
@@ -19,11 +28,11 @@ class InterpolationLayer {
 public class Tokenizer {
     #region statics
 
-    public static TokFlow ToFlow(string input)
-        => new(ToTokens(input));
+    public static TokFlow ToFlow(string input, bool denyNewlineInStrings = false)
+        => new(ToTokens(input, denyNewlineInStrings));
 
-    public static IEnumerable<Tok> ToTokens(string input) {
-        var reader = new Tokenizer();
+    public static IEnumerable<Tok> ToTokens(string input, bool denyNewlineInStrings = false) {
+        var reader = new Tokenizer(denyNewlineInStrings);
         for (var i = 0;;)
         {
             var res = reader.TryReadNext(input, i);
@@ -150,8 +159,22 @@ public class Tokenizer {
 
     private static Tok ReadIdOrKeyword(string str, int position) {
         int finish = position;
-        for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++)
-        { }
+        while (finish < str.Length)
+        {
+            if (char.IsHighSurrogate(str[finish]) && finish + 1 < str.Length && char.IsLowSurrogate(str[finish + 1]))
+            {
+                var cp = char.ConvertToUtf32(str[finish], str[finish + 1]);
+                if (!IsIdentContinue(cp))
+                    break;
+                finish += 2;
+            }
+            else if (IsLetter(str[finish]) || IsDigit(str[finish]))
+            {
+                finish++;
+            }
+            else
+                break;
+        }
 
         var word = str.Substring(position, finish - position);
         //is it id or keyword
@@ -170,7 +193,38 @@ public class Tokenizer {
             return Tok.New(TokType.Id, word, position, finish);
     }
 
-    private static bool IsLetter(char val) => val == '_' || (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
+    private static bool IsLetter(char val) =>
+        val == '_' || char.IsLetter(val)
+        || char.GetUnicodeCategory(val) == UnicodeCategory.OtherSymbol;
+
+    /// <summary>
+    /// Check if code point (may be above BMP) is a valid identifier start character.
+    /// Covers surrogate pairs for emoji like 🎉, 🚀.
+    /// </summary>
+    private static bool IsIdentStart(int codePoint) {
+        var cat = CharUnicodeInfo.GetUnicodeCategory(codePoint);
+        return codePoint == '_'
+               || cat is UnicodeCategory.UppercaseLetter
+                   or UnicodeCategory.LowercaseLetter
+                   or UnicodeCategory.TitlecaseLetter
+                   or UnicodeCategory.ModifierLetter
+                   or UnicodeCategory.OtherLetter
+                   or UnicodeCategory.LetterNumber
+                   or UnicodeCategory.OtherSymbol;
+    }
+
+    /// <summary>
+    /// Check if code point (may be above BMP) is a valid identifier continuation character.
+    /// </summary>
+    private static bool IsIdentContinue(int codePoint) {
+        if (IsIdentStart(codePoint))
+            return true;
+        var cat = CharUnicodeInfo.GetUnicodeCategory(codePoint);
+        return cat is UnicodeCategory.NonSpacingMark
+            or UnicodeCategory.SpacingCombiningMark
+            or UnicodeCategory.DecimalDigitNumber
+            or UnicodeCategory.ConnectorPunctuation;
+    }
 
     private static bool IsDigit(char val) => char.IsDigit(val);
 
@@ -316,7 +370,20 @@ public class Tokenizer {
     #endregion
 
 
+    private static int TryGetSuperscriptDigit(char c) => c switch {
+        '²' => 2, '³' => 3, '⁴' => 4, '⁵' => 5,
+        '⁶' => 6, '⁷' => 7, '⁸' => 8, '⁹' => 9,
+        _ => -1
+    };
+
     private Tok TryReadUncommonSpecialSymbols(string str, int position, char current) {
+        // Superscript digits ²³⁴⁵⁶⁷⁸⁹ → single-digit postfix power
+        if (TryGetSuperscriptDigit(current) >= 0) {
+            if (position + 1 < str.Length && TryGetSuperscriptDigit(str[position + 1]) >= 0)
+                throw Errors.ConsecutiveSuperscripts(position);
+            return Tok.New(TokType.Superscript, TryGetSuperscriptDigit(current).ToString(), position, position + 1);
+        }
+
         char? next = position < str.Length - 1
             ? str[position + 1]
             : (char?)null;
@@ -337,8 +404,11 @@ public class Tokenizer {
             {
                 if (_isInInterpolation)
                 {
-                    if (_interpolationLayers.Peek().FigureBracketsDiff == 0)
+                    if (_interpolationLayers.Peek().FigureBracketsDiff == 0) {
+                        if (_interpolationLayers.Peek().IsTripleQuoted)
+                            return ReadTripleQuotedText(str, position);
                         return ReadText(str, position);
+                    }
                     _interpolationLayers.Peek().FigureBracketsDiff--;
                 }
 
@@ -378,13 +448,22 @@ public class Tokenizer {
             case '?' when next == '?': return Tok.New(TokType.NullCoalesce, position, position + 2);
             case '?' when next == '.': return Tok.New(TokType.SafeAccess, position, position + 2);
             case '?': return Tok.New(TokType.Question, position, position + 1);
+            case '∞': return Tok.New(TokType.Id, "∞", position, position + 1);
+            case '≤': return Tok.New(TokType.LessOrEqual, position, position + 1);
+            case '≥': return Tok.New(TokType.MoreOrEqual, position, position + 1);
+            case '≠': return Tok.New(TokType.NotEqual, position, position + 1);
             default:
                 return null;
         }
     }
 
+    private readonly bool _denyNewlineInStrings;
     private bool _isInInterpolation = false;
     private readonly Stack<InterpolationLayer> _interpolationLayers = new();
+
+    internal Tokenizer(bool denyNewlineInStrings = false) {
+        _denyNewlineInStrings = denyNewlineInStrings;
+    }
 
     internal Tok TryReadNext(string str, int position) {
         char current;
@@ -417,9 +496,32 @@ public class Tokenizer {
 
         if (IsLetter(current)) return ReadIdOrKeyword(str, position);
 
+        // Surrogate pair — check if it's an identifier start (emoji above BMP)
+        if (char.IsHighSurrogate(current) && position + 1 < str.Length && char.IsLowSurrogate(str[position + 1]))
+        {
+            var cp = char.ConvertToUtf32(current, str[position + 1]);
+            if (IsIdentStart(cp))
+                return ReadIdOrKeyword(str, position);
+        }
+
+        if (current == '$') {
+            var dollarCount = 1;
+            var j = position + 1;
+            while (j < str.Length && str[j] == '$') { dollarCount++; j++; }
+            if (j < str.Length && IsQuote(str[j])) {
+                if (IsTripleQuote(str, j))
+                    return ReadTripleQuotedText(str, position);
+                return ReadText(str, position);
+            }
+        }
+
         if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok) return tok;
 
-        if (IsQuote(current)) return ReadText(str, position);
+        if (IsQuote(current)) {
+            if (IsTripleQuote(str, position))
+                return ReadTripleQuotedText(str, position);
+            return ReadText(str, position);
+        }
 
         return Tok.New(TokType.NotAToken, current.ToString(), position, position + 1);
     }
@@ -492,32 +594,170 @@ public class Tokenizer {
         return Tok.New(TokType.CharLiteral, value.ToString(), start, finish);
     }
 
+    private static bool IsTripleQuote(string str, int position) =>
+        position + 2 < str.Length
+        && str[position + 1] == str[position]
+        && str[position + 2] == str[position];
+
+    /// <exception cref="FunnyParseException"></exception>
+    private Tok ReadTripleQuotedText(string str, int startPosition) {
+        char quoteChar;
+        string baseline;
+        int closingPosition;
+        bool closeInterpolation = false;
+        int contentStart;
+        int escapeLevel = 0;
+
+        if (str[startPosition] == '}') {
+            // Resuming after interpolation
+            closeInterpolation = true;
+            var layer = _interpolationLayers.Pop();
+            quoteChar = layer.OpenQuoteSymbol;
+            baseline = layer.TripleQuoteBaseline;
+            closingPosition = layer.TripleQuoteClosingPosition;
+            escapeLevel = layer.EscapeLevel;
+            _isInInterpolation = _interpolationLayers.Count > 0;
+            contentStart = startPosition + 1; // after '}'
+        } else {
+            // First call — skip dollar prefix if present
+            var pos = startPosition;
+            while (pos < str.Length && str[pos] == '$') { escapeLevel++; pos++; }
+
+            // Opening '''
+            quoteChar = str[pos];
+            var tripleEnd = pos + 3;
+
+            // Verify newline after '''
+            if (tripleEnd >= str.Length)
+                throw Errors.TripleQuotedStringNotClosed(quoteChar, startPosition, str.Length);
+
+            if (str[tripleEnd] != '\n' && str[tripleEnd] != '\r')
+                throw Errors.NewlineRequiredAfterTripleQuote(startPosition, tripleEnd + 1);
+
+            // Skip the newline after opening '''
+            contentStart = tripleEnd + 1;
+            if (str[tripleEnd] == '\r' && contentStart < str.Length && str[contentStart] == '\n')
+                contentStart++;
+
+            // Pre-scan for closing ''' and baseline
+            (closingPosition, baseline) = QuotationReader.FindTripleQuoteClosing(
+                str, contentStart, quoteChar, startPosition, escapeLevel);
+
+            // Skip baseline on the first content line
+            if (baseline.Length > 0 && contentStart < closingPosition)
+                contentStart = SkipFirstLineBaseline(str, contentStart, baseline, closingPosition);
+        }
+
+        // Read content with trim margin
+        var (result, endPosition) = QuotationReader.ReadTripleQuotation(
+            str, contentStart, quoteChar, baseline, closingPosition, escapeLevel);
+
+        if (endPosition == closingPosition) {
+            // Reached closing '''
+            var tokenFinish = closingPosition + 3; // past '''
+            if (closeInterpolation)
+                return Tok.New(TokType.TextCloseInterpolation, result, startPosition, tokenFinish);
+            return Tok.New(TokType.Text, result, startPosition, tokenFinish);
+        }
+
+        if (str[endPosition] == '{') {
+            // Entering interpolation
+            _isInInterpolation = true;
+            var layer = new InterpolationLayer {
+                FigureBracketsDiff = 0,
+                OpenQuoteSymbol = quoteChar,
+                IsTripleQuoted = true,
+                TripleQuoteBaseline = baseline,
+                TripleQuoteClosingPosition = closingPosition,
+                EscapeLevel = escapeLevel
+            };
+            _interpolationLayers.Push(layer);
+
+            if (closeInterpolation)
+                return Tok.New(TokType.TextMidInterpolation, result, startPosition, endPosition + 1);
+            return Tok.New(TokType.TextOpenInterpolation, result, startPosition, endPosition + 1);
+        }
+
+        // Should not happen
+        throw Errors.TripleQuotedStringNotClosed(quoteChar, startPosition, str.Length);
+    }
+
+    /// <summary>
+    /// Skip baseline indentation on the first content line of a triple-quoted string.
+    /// </summary>
+    private static int SkipFirstLineBaseline(string str, int contentStart, string baseline, int closingPosition) {
+        // Check if first line is blank (only whitespace before newline/closing)
+        var scanEnd = contentStart;
+        while (scanEnd < str.Length && str[scanEnd] != '\n' && str[scanEnd] != '\r')
+            scanEnd++;
+
+        // If first line is the closing line, no baseline to skip
+        if (contentStart >= closingPosition)
+            return contentStart;
+
+        var lineContent = str.Substring(contentStart, Math.Min(scanEnd, closingPosition) - contentStart);
+        if (string.IsNullOrWhiteSpace(lineContent))
+            return scanEnd < closingPosition ? scanEnd : closingPosition;
+
+        // Verify and skip baseline
+        for (var j = 0; j < baseline.Length; j++) {
+            if (contentStart + j >= str.Length || contentStart + j >= closingPosition)
+                throw Errors.InsufficientIndentation(contentStart, contentStart + j);
+            var actual = str[contentStart + j];
+            var expected = baseline[j];
+            if (actual != expected) {
+                if ((actual == ' ' || actual == '\t') && (expected == ' ' || expected == '\t'))
+                    throw Errors.MixedIndentation(contentStart, contentStart + j + 1);
+                throw Errors.InsufficientIndentation(contentStart, contentStart + j + 1);
+            }
+        }
+        return contentStart + baseline.Length;
+    }
+
     /// <exception cref="FunnyParseException"></exception>
     private Tok ReadText(string str, int startPosition) {
-        var openQuoteSymbol = str[startPosition];
+        char openQuoteSymbol;
         bool closeInterpolation = false;
-        if (openQuoteSymbol == '}')
-        {
+        int escapeLevel = 0;
+        int quotePosition;
+
+        if (str[startPosition] == '}') {
             closeInterpolation = true;
-            openQuoteSymbol = _interpolationLayers.Pop().OpenQuoteSymbol;
+            var layer = _interpolationLayers.Pop();
+            openQuoteSymbol = layer.OpenQuoteSymbol;
+            escapeLevel = layer.EscapeLevel;
+            quotePosition = startPosition;
             _isInInterpolation = _interpolationLayers.Count > 0;
+        } else if (str[startPosition] == '$') {
+            // Dollar-prefixed string: count $ signs, then find quote
+            var i = startPosition;
+            while (i < str.Length && str[i] == '$') { escapeLevel++; i++; }
+            openQuoteSymbol = str[i];
+            quotePosition = i;
+        } else {
+            openQuoteSymbol = str[startPosition];
+            quotePosition = startPosition;
         }
 
         var expectedClosingSymbol = openQuoteSymbol;
 
-        if (startPosition >= str.Length - 1)
+        if (quotePosition >= str.Length - 1)
             throw Errors.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
 
-        var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition, openQuoteSymbol);
+        var (result, endPosition) = QuotationReader.ReadQuotation(
+            str, quotePosition, openQuoteSymbol, _denyNewlineInStrings, escapeLevel);
         if (endPosition == -1)
             throw Errors.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length);
-
 
         var closeQuoteSymbol = str[endPosition];
         if (closeQuoteSymbol == '{')
         {
             _isInInterpolation = true;
-            var layer = new InterpolationLayer { FigureBracketsDiff = 0, OpenQuoteSymbol = openQuoteSymbol };
+            var layer = new InterpolationLayer {
+                FigureBracketsDiff = 0,
+                OpenQuoteSymbol = openQuoteSymbol,
+                EscapeLevel = escapeLevel
+            };
             _interpolationLayers.Push(layer);
 
             if (closeInterpolation)

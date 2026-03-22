@@ -128,6 +128,9 @@ internal static partial class Errors {
     internal static FunnyParseException UnexpectedSpaceBeforeArrayTypeBrackets(FunnyType elementType, Interval interval) => new(
         412, $"there should be no space before the square brackets when defining the array type. Example: 'a:{elementType}[]'", interval);
 
+    internal static FunnyParseException UnexpectedSpaceBeforeArrayTypeBrackets(object elementType, Interval interval) => new(
+        412, $"there should be no space before the square brackets when defining the array type. Example: 'a:{elementType}[]'", interval);
+
     internal static FunnyParseException StructTypeFieldNameExpected(Tok token) => new(
         414, $"Field name expected in struct type, but was {ToText(token)}", token.Interval);
 

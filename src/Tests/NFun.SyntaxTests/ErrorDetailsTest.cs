@@ -13,7 +13,7 @@ public class ErrorDetailsTest {
     [TestCase("s = x + ", "0x", "")]
     [TestCase("", "(", "")]
     [TestCase("y(x,y)", "qwe", " x+y\r j = y(1,2)")]
-    [TestCase("j = y(1,2) \r y(x,a):", "x", " +y")]
+    [TestCase("j = y(1,2) \r y(x,a):x ", "+", "y")]
     [TestCase("j = y(1,2) \r y(x,b) ", "=", "")]
     [TestCase("j = y(1,2) \r y(x,c) ", "= ", "")]
     [TestCase("j = y(1,2) \r y(x,d) ", "=  ", "")]

@@ -76,6 +76,11 @@ public static class VarTypeConverter {
         if (to.BaseType == BaseFunnyType.Any)
             return NoConvertion;
 
+        // Custom → same Custom: identity
+        if (from.BaseType == BaseFunnyType.Custom && to.BaseType == BaseFunnyType.Custom
+            && Equals(from.CustomTypeDefinition, to.CustomTypeDefinition))
+            return NoConvertion;
+
         // None → Optional(T): FunnyNone stays FunnyNone
         if (from.BaseType == BaseFunnyType.None && to.BaseType == BaseFunnyType.Optional)
             return NoConvertion;
@@ -248,6 +253,11 @@ public static class VarTypeConverter {
                         return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                 }
             }
+
+            // Custom types: convert only to same custom, Any, or Text (handled above)
+            if (from.BaseType == BaseFunnyType.Custom || to.BaseType == BaseFunnyType.Custom)
+                return from.BaseType == BaseFunnyType.Custom && to.BaseType == BaseFunnyType.Custom
+                    && Equals(from.CustomTypeDefinition, to.CustomTypeDefinition);
 
             if ((int)from.BaseType >= PrimitiveTypeCount || (int)to.BaseType >= PrimitiveTypeCount)
                 return false;

@@ -66,4 +66,22 @@ internal partial class Errors {
 
     internal static FunnyParseException UnclosedCharLiteral(int start, int end) => new(
         151, "Closing quote is missing in char literal", start, end);
+
+    internal static FunnyParseException NewlineInString(int start, int end) => new(
+        154, "Raw newline is not allowed in string literal. Use escape sequence \\n or \\r instead", start, end);
+
+    internal static FunnyParseException NewlineRequiredAfterTripleQuote(int start, int end) => new(
+        157, "Newline is required after opening triple-quote. Content must start on the next line", start, end);
+
+    internal static FunnyParseException TripleQuotedStringNotClosed(char quoteChar, int start, int end) => new(
+        160, $"Closing {quoteChar}{quoteChar}{quoteChar} is missed. It must be on its own line", start, end);
+
+    internal static FunnyParseException InsufficientIndentation(int start, int end) => new(
+        163, "Content line has less indentation than the closing triple-quote line", start, end);
+
+    internal static FunnyParseException MixedIndentation(int start, int end) => new(
+        166, "Mixed tabs and spaces in indentation are not allowed in triple-quoted strings", start, end);
+
+    internal static FunnyParseException ConsecutiveSuperscripts(int position) => new(
+        169, "Consecutive superscript digits are not allowed. Use single superscript: x² or x³", position, position + 2);
 }

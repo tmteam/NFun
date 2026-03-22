@@ -46,6 +46,8 @@ public abstract class TicTypesConverter {
                     case StateRefTo refTo:
                         type = refTo.Element;
                         continue;
+                    case StatePrimitiveCustom custom:
+                        return custom.OriginalFunnyType;
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstraintsState constrains when constrains.Preferred != null:
@@ -114,6 +116,7 @@ public abstract class TicTypesConverter {
         public override FunnyType Convert(ITicNodeState type)
             => type switch {
                    StateRefTo refTo           => Convert(refTo.Element),
+                   StatePrimitiveCustom custom         => custom.OriginalFunnyType,
                    StatePrimitive primitive   => ToConcrete(primitive.Name),
                    ConstraintsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
                    StateArray array           => ConvertToFunnyArray(array),
@@ -148,6 +151,8 @@ public abstract class TicTypesConverter {
                     case StateRefTo refTo:
                         type = refTo.Element;
                         continue;
+                    case StatePrimitiveCustom custom:
+                        return custom.OriginalFunnyType;
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstraintsState constrains:

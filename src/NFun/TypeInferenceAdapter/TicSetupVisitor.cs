@@ -33,6 +33,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         BaseFunctions.GetFunctions(typeBehaviour),
         EmptyConstantList.Instance,
         EmptyAprioriTypesMap.Instance,
+        EmptyCustomTypeRegistry.Instance,
         results, Dialects.Origin);
 
     internal static bool SetupTicForBody(
@@ -41,9 +42,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IFunctionDictionary functions,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
+        ICustomTypeRegistry customTypes,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect);
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect, customTypes);
 
         foreach (var syntaxNode in tree.Children)
         {
@@ -63,10 +65,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IFunctionDictionary functions,
         IConstantList constants,
         TypeInferenceResultsBuilder results,
-        DialectSettings dialect) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect);
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes = null) {
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect, customTypes);
         return userFunctionNode.Accept(visitor);
     }
+
+    private readonly ICustomTypeRegistry _customTypes;
 
     private TicSetupVisitor(
         GraphBuilder ticTypeGraph,
@@ -74,17 +79,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IConstantList constants,
         TypeInferenceResultsBuilder resultsBuilder,
         IAprioriTypesMap aprioriTypesMap,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes = null) {
         _aliasScope = new VariableScopeAliasTable();
         _dictionary = dictionary;
         _constants = constants;
         _resultsBuilder = resultsBuilder;
         _dialect = dialect;
         _ticTypeGraph = ticTypeGraph;
+        _customTypes = customTypes ?? EmptyCustomTypeRegistry.Instance;
 
         foreach (var apriori in aprioriTypesMap)
             _ticTypeGraph.SetVarType(apriori.Name, apriori.Type.ConvertToTiType());
     }
+
+    private FunnyType ResolveType(TypeSyntax syntax) =>
+        TypeSyntaxResolver.Resolve(syntax, _customTypes);
 
     public bool Visit(SyntaxTree node) => VisitChildren(node);
 
@@ -95,8 +105,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         if (node.OutputTypeSpecified)
         {
-            ThrowIfOptionalTypeDisabled(node.OutputType, node.Id, node.Interval);
-            var type = node.OutputType.ConvertToTiType();
+            var resolvedType = ResolveType(node.TypeSpecificationOrNull.TypeSyntax);
+            ThrowIfOptionalTypeDisabled(resolvedType, node.Id, node.Interval);
+            var type = resolvedType.ConvertToTiType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
@@ -112,16 +123,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             argNames[i] = arg.Id;
             i++;
-            if (arg.FunnyType != FunnyType.Empty)
+            if (arg.TypeSyntax is not TypeSyntax.EmptyType)
             {
-                ThrowIfOptionalTypeDisabled(arg.FunnyType, arg.Id, arg.Interval);
-                _ticTypeGraph.SetVarType(arg.Id, arg.FunnyType.ConvertToTiType());
+                ThrowIfOptionalTypeDisabled(ResolveType(arg.TypeSyntax), arg.Id, arg.Interval);
+                _ticTypeGraph.SetVarType(arg.Id, ResolveType(arg.TypeSyntax).ConvertToTiType());
             }
         }
 
         ITypeState returnType = null;
-        if (node.ReturnType != FunnyType.Empty)
-            returnType = (ITypeState)node.ReturnType.ConvertToTiType();
+        if (node.ReturnTypeSyntax is not TypeSyntax.EmptyType)
+            returnType = (ITypeState)ResolveType(node.ReturnTypeSyntax).ConvertToTiType();
 
 #if DEBUG
         TraceLog.WriteLine(
@@ -273,9 +284,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     //argument has type definition on it
                     originName = typed.Id;
                     anonymName = MakeAnonVariableName(node, originName);
-                    if (!typed.FunnyType.Equals(FunnyType.Empty))
+                    if (typed.TypeSyntax is not TypeSyntax.EmptyType)
                     {
-                        var ticType = typed.FunnyType.ConvertToTiType();
+                        var ticType = ResolveType(typed.TypeSyntax).ConvertToTiType();
                         _ticTypeGraph.SetVarType(anonymName, ticType);
                     }
 
@@ -308,11 +319,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"f({string.Join(" ", aliasNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
 #endif
-        if (node.ReturnType == FunnyType.Empty)
+        if (node.ReturnTypeSyntax is TypeSyntax.EmptyType)
             _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
         else
         {
-            var retType = (ITypeState)node.ReturnType.ConvertToTiType();
+            var retType = (ITypeState)ResolveType(node.ReturnTypeSyntax).ConvertToTiType();
             _ticTypeGraph.CreateLambda(
                 node.Body.OrderNumber,
                 node.OrderNumber,
@@ -689,12 +700,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(TypedVarDefSyntaxNode node) {
         VisitChildren(node);
 #if DEBUG
-        Trace(node, $"Tvar {node.Id}:{node.FunnyType}  ");
+        Trace(node, $"Tvar {node.Id}:{ResolveType(node.TypeSyntax)}  ");
 #endif
-        if (node.FunnyType != FunnyType.Empty)
+        if (node.TypeSyntax is not TypeSyntax.EmptyType)
         {
-            ThrowIfOptionalTypeDisabled(node.FunnyType, node.Id, node.Interval);
-            var type = node.FunnyType.ConvertToTiType();
+            ThrowIfOptionalTypeDisabled(ResolveType(node.TypeSyntax), node.Id, node.Interval);
+            var type = ResolveType(node.TypeSyntax).ConvertToTiType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
@@ -706,10 +717,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         VisitChildren(node);
 
 #if DEBUG
-        Trace(node, $"VarDef {node.Id}:{node.FunnyType}  ");
+        Trace(node, $"VarDef {node.Id}:{ResolveType(node.TypeSyntax)}  ");
 #endif
-        ThrowIfOptionalTypeDisabled(node.FunnyType, node.Id, node.Interval);
-        var type = node.FunnyType.ConvertToTiType();
+        ThrowIfOptionalTypeDisabled(ResolveType(node.TypeSyntax), node.Id, node.Interval);
+        var type = ResolveType(node.TypeSyntax).ConvertToTiType();
         if (!_ticTypeGraph.TrySetVarType(node.Id, type))
             throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         return true;

@@ -178,21 +178,10 @@ Here we give only a superficial description of them
 | ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                |
 | ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        |
 
-## Allow to skip * operator right after the int or real constant
+## Implicit Multiplication and Math Sugar
 
-You may skip * operator right after integer or real constant
+NFun supports implicit multiplication (`2x` = `2 * x`), Unicode operator aliases (`≤` `≥` `≠`),
+superscript powers (`x²`), and built-in math constants (`π`, `∞`).
 
-```
-x = 10y # equiualent to 10 * x
-a = 1.5b # equialent to 1.5 * b
-```
-
-0x,and 0b expressions are denied (as they are similar to hex and bin digits)
-
-```
-a = 0x # error
-b = 0b # error
-a = 0xGG # error
-b = 0b22 # error
-```
+See [Math-Sugar](Math-Sugar.md) for details.
 

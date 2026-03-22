@@ -190,5 +190,9 @@ public enum TokType {
     /// ! (postfix)
     /// </summary>
     ForceUnwrap,
+    /// <summary>
+    /// Superscript digit ²³⁴⁵⁶⁷⁸⁹ (postfix power)
+    /// </summary>
+    Superscript,
 
 }

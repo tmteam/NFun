@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using NFun.Types;
 
-namespace NFun.Interpretation; 
+namespace NFun.Interpretation;
 
 internal interface IConstantList {
     bool TryGetConstant(string id, out ConstantValueAndType constant);
@@ -32,7 +33,7 @@ internal class ConstantList : IConstantList {
             _dictionary.Add(id, new ConstantValueAndType(converter.ToFunObject(value), converter.FunnyType));
         }
     }
-    
+
     private readonly FunnyConverter _typeBehaviour;
     private readonly Dictionary<string, ConstantValueAndType> _dictionary;
 
@@ -40,6 +41,17 @@ internal class ConstantList : IConstantList {
         //constants are readonly so we need to use input converter
         var converter = _typeBehaviour.GetInputConverterFor(val.GetType());
         _dictionary.Add(id, new ConstantValueAndType(converter.ToFunObject(val), converter.FunnyType));
+    }
+
+    /// <summary>
+    /// Adds built-in math constants (π, ∞). Uses TryAdd so user constants take precedence.
+    /// π goes through converter (works with both double and decimal).
+    /// ∞ is always double (decimal doesn't support infinity).
+    /// </summary>
+    internal void AddBuiltIns() {
+        var piConverter = _typeBehaviour.GetInputConverterFor(typeof(double));
+        _dictionary.TryAdd("π", new ConstantValueAndType(piConverter.ToFunObject(Math.PI), piConverter.FunnyType));
+        _dictionary.TryAdd("∞", new ConstantValueAndType(double.PositiveInfinity, FunnyType.Real));
     }
 
     public bool TryGetConstant(string id, out ConstantValueAndType constant) =>

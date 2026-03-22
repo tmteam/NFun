@@ -11,9 +11,9 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode DefaultValue(Interval interval) =>
         new DefaultValueSyntaxNode(interval);
 
-    public static ISyntaxNode AnonymFunction(ISyntaxNode definition, FunnyType type, ISyntaxNode body) =>
+    public static ISyntaxNode AnonymFunction(ISyntaxNode definition, TypeSyntax typeSyntax, ISyntaxNode body) =>
         new AnonymFunctionSyntaxNode(
-            definition, body, type,
+            definition, body, typeSyntax,
             new Interval(definition.Interval.Start, body.Interval.Finish));
 
     public static ISyntaxNode SuperAnonymFunction(ISyntaxNode body) =>
@@ -49,8 +49,8 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode ListOf(IList<ISyntaxNode> elements, Interval interval, int parenthesesCount) =>
         new ListOfExpressionsSyntaxNode(elements, parenthesesCount, interval);
 
-    public static TypedVarDefSyntaxNode TypedVar(string name, FunnyType type, int start, int end) =>
-        new(name, type, new Interval(start, end));
+    public static TypedVarDefSyntaxNode TypedVar(string name, TypeSyntax typeSyntax, int start, int end) =>
+        new(name, typeSyntax, new Interval(start, end));
 
     public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, int start, int end) =>
         new FunCallSyntaxNode(name, args.ToArray(), new Interval(start, end), false, false);
@@ -104,8 +104,8 @@ public static class SyntaxNodeFactory {
         new VarDefinitionSyntaxNode(typed, attributes);
 
     public static ISyntaxNode UserFunctionDef(
-        List<TypedVarDefSyntaxNode> arguments, FunCallSyntaxNode fun, ISyntaxNode expression, FunnyType outputType) =>
-        new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputType);
+        List<TypedVarDefSyntaxNode> arguments, FunCallSyntaxNode fun, ISyntaxNode expression, TypeSyntax outputTypeSyntax) =>
+        new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputTypeSyntax);
 
     public static ISyntaxNode ComparisonChain(IList<ISyntaxNode> operands, IList<Tok> operators) =>
         new ComparisonChainSyntaxNode(operands, operators);

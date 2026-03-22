@@ -433,7 +433,6 @@ public static class SolvingFunctions {
     public static void PushConstraints(TicNode descendant, TicNode ancestor) {
         if (descendant == ancestor)
             return;
-
         if (!PushConstraintsFunctions.Singleton.Invoke(ancestor, descendant))
             throw TicErrors.IncompatibleNodes(ancestor, descendant);
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
-namespace NFun.SyntaxParsing.SyntaxNodes; 
+namespace NFun.SyntaxParsing.SyntaxNodes;
 
 //todo unite with TypedVarDefSyntaxNode
 public class VarDefinitionSyntaxNode : ISyntaxNode {
@@ -11,7 +11,7 @@ public class VarDefinitionSyntaxNode : ISyntaxNode {
     public int OrderNumber { get; set; }
     public int ParenthesesCount { get; set; }
     public string Id { get; }
-    public FunnyType FunnyType { get; }
+    public TypeSyntax TypeSyntax { get; }
     public FunnyAttribute[] Attributes { get; }
     public Interval Interval { get; set; }
     public override string ToString() => Id + ":" + OutputType;
@@ -20,7 +20,7 @@ public class VarDefinitionSyntaxNode : ISyntaxNode {
 
     public VarDefinitionSyntaxNode(TypedVarDefSyntaxNode node, FunnyAttribute[] attributes = null) {
         Id = node.Id;
-        FunnyType = node.FunnyType;
+        TypeSyntax = node.TypeSyntax;
         ParenthesesCount = node.ParenthesesCount;
         Attributes = attributes ?? Array.Empty<FunnyAttribute>();
         Interval = node.Interval;

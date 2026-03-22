@@ -7,7 +7,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes;
 
 public class AnonymFunctionSyntaxNode : ISyntaxNode {
     public AnonymFunctionSyntaxNode(
-        ISyntaxNode definition, ISyntaxNode body, FunnyType returnType, Interval interval) {
+        ISyntaxNode definition, ISyntaxNode body, TypeSyntax returnTypeSyntax, Interval interval) {
         if (definition is ListOfExpressionsSyntaxNode list)
             //it can be comlex: (x1,x2,x3)=>...
             ArgumentsDefinition = list.Expressions;
@@ -17,7 +17,7 @@ public class AnonymFunctionSyntaxNode : ISyntaxNode {
 
         Definition = definition;
         Body = body;
-        ReturnType = returnType;
+        ReturnTypeSyntax = returnTypeSyntax;
         Interval = interval;
     }
 
@@ -27,7 +27,7 @@ public class AnonymFunctionSyntaxNode : ISyntaxNode {
     /// <summary>
     /// Return type of anonymous function
     /// </summary>
-    public FunnyType ReturnType { get; }
+    public TypeSyntax ReturnTypeSyntax { get; }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
     public int ParenthesesCount { get; set; }

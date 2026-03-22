@@ -50,6 +50,7 @@ public static partial class StateExtensions {
 
         if (a.GetType() != b.GetType())
             return null;
+        // Same-type but not equal: different primitives or different custom types → incompatible
         if (a is StatePrimitive)
             return null;
         if (b is StatePrimitive)

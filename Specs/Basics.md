@@ -87,11 +87,19 @@ At the same time, it is guaranteed that there is no hidden, changing state betwe
 
 # Variables
 
-Variable names consist of uppercase and lowercase latin letters, numbers, and the _ symbol. The first character must be a latin letter
+Variable names can contain Unicode letters, digits, emoji, and the `_` symbol.
+The first character must be a Unicode letter, emoji, or `_` (not a digit).
 
-For example: `x`, `my_Name`, `id32`
+For example: `x`, `my_Name`, `id32`, `сумма`, `数量`, `größe`, `α`, `★`, `🎉`, `player_⭐`
 
-Nfun is case sensitive for variables, but you cannot create two variables whose names differ only by case
+The identifier rules are:
+- **Start character**: Unicode categories `Lu`, `Ll`, `Lt`, `Lm`, `Lo` (letters), `Nl` (letter numbers), `So` (symbols, including emoji), or `_`
+- **Continuation character**: all of the above, plus `Mn` (nonspacing marks), `Mc` (combining marks), `Nd` (decimal digits), `Pc` (connector punctuation)
+- **Excluded**: currency symbols (`$`, `€`), math symbols (`+`, `=`), punctuation, control characters, format characters (zero-width joiners)
+- **Surrogate pairs**: emoji above U+FFFF (like `🎉`, `🚀`) are supported
+- **No normalization**: code points are compared as-is (`é` as U+00E9 and `e` + U+0301 are different identifiers)
+
+Nfun is case insensitive for variables, but you cannot create two variables whose names differ only by case
 
 ```py
 x = 123
@@ -519,8 +527,8 @@ a = 42 # a has annotation 'supermega'
 ```
 here 'supermega' - is annotation for output variable 'a'
 
-Annotation name consist of uppercase and lowercase latin letters, numbers, and the _ symbol. 
-The first character must be a latin letter
+Annotation names follow the same rules as variable names (Unicode letters, digits, emoji, `_`).
+The first character must be a letter, emoji, or `_`
 
 For example: `private`, `hidden_id`, `id32`
 

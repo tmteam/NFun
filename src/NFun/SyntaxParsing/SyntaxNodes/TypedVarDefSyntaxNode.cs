@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
-namespace NFun.SyntaxParsing.SyntaxNodes; 
+namespace NFun.SyntaxParsing.SyntaxNodes;
 
 public class TypedVarDefSyntaxNode : ISyntaxNode {
-    public TypedVarDefSyntaxNode(string id, FunnyType funnyType, Interval interval) {
+    public TypedVarDefSyntaxNode(string id, TypeSyntax typeSyntax, Interval interval) {
         Id = id;
-        FunnyType = funnyType;
+        TypeSyntax = typeSyntax;
         Interval = interval;
     }
 
@@ -16,7 +16,7 @@ public class TypedVarDefSyntaxNode : ISyntaxNode {
     public int ParenthesesCount { get; set; }
     public FunnyType OutputType { get; set; }
     public string Id { get; }
-    public FunnyType FunnyType { get; }
+    public TypeSyntax TypeSyntax { get; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();

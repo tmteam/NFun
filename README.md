@@ -129,6 +129,8 @@ Boring specification is better than no specification
 
 [Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
 
+[Boring specification: Math sugar](https://github.com/tmteam/NFun/blob/master/Specs/Math-Sugar.md)
+
 ```                                                                                                           
      ';,                                                                                ;;      
    'lO0l                                                                               'dKkc    

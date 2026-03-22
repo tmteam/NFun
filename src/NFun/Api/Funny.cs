@@ -7,6 +7,8 @@ public static class Funny {
 
     public static HardcoreBuilder Hardcore { get; } = new();
 
+    public static FunnyCalculatorBuilder WithCustomType(IFunnyCustomTypeDefinition typeDefinition) =>
+        FunnyCalculatorBuilder.Default.WithCustomType(typeDefinition);
 
     #region calcs
 

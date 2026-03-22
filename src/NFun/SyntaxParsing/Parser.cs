@@ -112,7 +112,7 @@ public class Parser {
             else if (headNodeChild is NamedIdSyntaxNode varSyntax)
                 arguments.Add(
                     SyntaxNodeFactory.TypedVar(
-                        varSyntax.Id, headNodeChild.OutputType,
+                        varSyntax.Id, TypeSyntax.Empty,
                         headNodeChild.Interval.Start, headNodeChild.Interval.Finish));
             else
                 throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
@@ -121,9 +121,9 @@ public class Parser {
                 throw Errors.FunctionArgumentDefinitionIsInParenthesis(fun, headNodeChild);
         }
 
-        var outputType = FunnyType.Empty;
+        var outputType = TypeSyntax.Empty;
         if (_flow.MoveIf(TokType.Colon, out _))
-            outputType = _flow.ReadType();
+            outputType = _flow.ReadTypeSyntax();
 
         _flow.SkipNewLines();
         if (!_flow.MoveIf(TokType.Def, out var def))
@@ -160,7 +160,6 @@ public class Parser {
         if (equationHeader is TypedVarDefSyntaxNode typed)
         {
             equation.TypeSpecificationOrNull = typed;
-            equation.OutputType = typed.FunnyType;
         }
 
         _nodes.Add(equation);

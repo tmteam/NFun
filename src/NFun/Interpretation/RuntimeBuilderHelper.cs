@@ -63,7 +63,9 @@ internal static class RuntimeBuilderHelper {
         IFunctionDictionary functions,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
-        DialectSettings dialect) {
+        ICustomTypeRegistry customTypes,
+        DialectSettings dialect
+        ) {
         var resultBuilder = new TypeInferenceResultsBuilder();
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);
         try
@@ -74,8 +76,10 @@ internal static class RuntimeBuilderHelper {
                 functions: functions,
                 constants: constants,
                 aprioriTypes: aprioriTypes,
+                customTypes: customTypes,
                 results: resultBuilder,
-                dialect: dialect))
+                dialect: dialect
+                ))
                 AssertChecks.Panic("Types not solved due unknown reasons");
 
             var bodyTypeSolving = graph.Solve().NotNull("Type graph solve nothing");
@@ -161,7 +165,7 @@ internal static class RuntimeBuilderHelper {
         FunnyType actualType,
         FunnyConverter typeBehaviour) {
 
-        if (argSyntax.FunnyType != FunnyType.Empty)
+        if (argSyntax.TypeSyntax is not TypeSyntax.EmptyType)
             return VariableSource.CreateWithStrictTypeLabel(
                 name: argSyntax.Id,
                 type: actualType,

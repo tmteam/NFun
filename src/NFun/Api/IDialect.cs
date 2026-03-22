@@ -18,7 +18,8 @@ internal static class Dialects {
         RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
-        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
+        AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow
         )
         => new(
             ifExpressionSetup,
@@ -28,7 +29,8 @@ internal static class Dialects {
                 : FunnyConverter.RealIsDecimal,
             integerOverflow == IntegerOverflow.Unchecked,
             allowUserFunctions,
-            optionalTypesSupport);
+            optionalTypesSupport,
+            allowNewlineInStrings);
 }
 
 
@@ -38,21 +40,22 @@ public interface IFunctionSelectorContext {
 }
 
 internal sealed class DialectSettings : IFunctionSelectorContext {
-    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions, OptionalTypesSupport optionalTypesSupport =  OptionalTypesSupport.Disabled) {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions, OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled, AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
         AllowIntegerOverflow = allowIntegerOverflow;
         AllowUserFunctions = allowUserFunctions;
         OptionalTypesSupport = optionalTypesSupport;
+        AllowNewlineInStrings = allowNewlineInStrings;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
     public IntegerPreferredType IntegerPreferredType { get; }
     public bool AllowIntegerOverflow { get; }
     public AllowUserFunctions AllowUserFunctions { get; }
-
     public OptionalTypesSupport OptionalTypesSupport { get; }
+    public AllowNewlineInStrings AllowNewlineInStrings { get; }
 }
 
 public enum AllowUserFunctions {
@@ -87,4 +90,15 @@ public enum IntegerOverflow {
     /// Integer overflow causes runtime exception
     /// </summary>
     Checked
+}
+
+public enum AllowNewlineInStrings {
+    /// <summary>
+    /// Raw newline characters are allowed inside string literals (default, backward compatible)
+    /// </summary>
+    Allow,
+    /// <summary>
+    /// Raw newline characters in string literals cause a parse error. Escaped \n and \r are still allowed.
+    /// </summary>
+    Deny
 }

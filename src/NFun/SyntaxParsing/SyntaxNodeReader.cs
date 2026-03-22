@@ -28,7 +28,7 @@ public static class SyntaxNodeReader {
 
     static SyntaxNodeReader() {
         var priorities = new List<TokType[]>(15) {
-            new[] { TokType.ArrOBr, TokType.Dot, TokType.SafeAccess, TokType.Question, TokType.ForceUnwrap, TokType.ParenthObr },
+            new[] { TokType.ArrOBr, TokType.Dot, TokType.SafeAccess, TokType.Question, TokType.ForceUnwrap, TokType.Superscript, TokType.ParenthObr },
             new[] { TokType.Pow },
             new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
             new[] { TokType.Plus, TokType.Minus },
@@ -250,7 +250,7 @@ public static class SyntaxNodeReader {
             // variable with type definition
             //'id:int'
             var type = TryReadTypeDef(flow);
-            if (type != FunnyType.Empty)
+            if (type is not TypeSyntax.EmptyType)
                 return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.CurrentTokenFinishPosition);
             // just variable
             // 'id'
@@ -309,11 +309,14 @@ public static class SyntaxNodeReader {
             // like "10x" or "10(x)"
             if (IsImplicitMultiplication(leftNode, opToken))
             {
-                var rightNode = ReadAtomicNodeOrNull(flow).NotNull("R node cannot be read in implicit multiplication");
+                // Read right operand at postfix priority (0) so that e.g. 2x² → 2*(x²)
+                var rightNode = ReadNodeOrNull(flow, MinPriority)
+                    .NotNull("R node cannot be read in implicit multiplication");
                 // 2sin(x) is forbidden — only when trigger was Id followed by '(' (real function call)
-                if (opToken.Type == TokType.Id && rightNode is FunCallSyntaxNode funCall)
+                if (opToken.Type == TokType.Id && rightNode is FunCallSyntaxNode { IsOperator: false } funCall)
                     throw Errors.ImplicitMultiplicationBeforeFunctionCall(leftNode, funCall);
-                return SyntaxNodeFactory.BinOperatorCall(CoreFunNames.Multiply, leftNode, rightNode);
+                leftNode = SyntaxNodeFactory.BinOperatorCall(CoreFunNames.Multiply, leftNode, rightNode);
+                continue;
             }
 
             //if current token is not an operation
@@ -387,6 +390,13 @@ public static class SyntaxNodeReader {
                     CoreFunNames.ForceUnwrap, leftNode,
                     leftNode.Interval.Start, opToken.Finish);
             }
+            else if (opToken.Type == TokType.Superscript)
+            {
+                flow.MoveNext();
+                var exponent = int.Parse(opToken.Value);
+                var exponentNode = SyntaxNodeFactory.IntGenericConstant((ulong)exponent, opToken.Interval);
+                leftNode = SyntaxNodeFactory.BinOperatorCall(CoreFunNames.Pow, leftNode, exponentNode);
+            }
             else if (ComparisonChainOperators.Contains(opToken.Type))
                 leftNode = ReadComparisonChain(flow, leftNode, priority);
             else
@@ -454,7 +464,8 @@ public static class SyntaxNodeReader {
             return false;
         // implicit multiplication allowed before 'id' or '(..)'
 
-        return currentToken.Type == TokType.Id || currentToken.Type == TokType.ParenthObr;
+        return currentToken.Type == TokType.Id
+               || currentToken.Type == TokType.ParenthObr;
     }
 
     private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow) {
@@ -482,7 +493,7 @@ public static class SyntaxNodeReader {
             return SyntaxNodeFactory.AnonymFunction(definition, returnType, bodyOrTypeNotation);
         }
 
-        if (returnType != FunnyType.Empty)
+        if (returnType is not TypeSyntax.EmptyType)
             //If return type is specified, and there is no def after it - than it is an mistake
             throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, pos));
 
@@ -508,7 +519,7 @@ public static class SyntaxNodeReader {
                 throw Errors.StructFieldIdIsMissed(flow.Current);
 
             var type = TryReadTypeDef(flow);
-            if (type != FunnyType.Empty)
+            if (type is not TypeSyntax.EmptyType)
                 throw Errors.StructFieldSpecificationIsNotSupportedYet(new Interval(idToken.Finish + 1,
                     flow.CurrentTokenStartPosition - 1));
 
@@ -892,14 +903,14 @@ public static class SyntaxNodeReader {
         return read;
     }
 
-    private static FunnyType TryReadTypeDef(TokFlow flow) {
+    private static TypeSyntax TryReadTypeDef(TokFlow flow) {
         if (!flow.IsCurrent(TokType.Colon))
-            return FunnyType.Empty;
+            return TypeSyntax.Empty;
 
         flow.MoveNext();
         var current = flow.Current;
-        var type = flow.ReadType();
-        if (type == FunnyType.Empty)
+        var type = flow.ReadTypeSyntax();
+        if (type is TypeSyntax.EmptyType)
             throw Errors.TypeExpectedButWas(current);
         return type;
     }

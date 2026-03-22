@@ -77,16 +77,16 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(SyntaxTree node) => "Fun equations";
 
     public string Visit(TypedVarDefSyntaxNode node) =>
-        node.FunnyType.BaseType == BaseFunnyType.Empty
+        node.TypeSyntax is TypeSyntax.EmptyType
             ? node.Id
-            : $"{node.Id}:{node.FunnyType}";
+            : $"{node.Id}:{node.TypeSyntax}";
 
     public string Visit(UserFunctionDefinitionSyntaxNode node) => $"{node.Id}(...) = ...";
 
     public string Visit(VarDefinitionSyntaxNode node) =>
-        node.FunnyType.BaseType == BaseFunnyType.Empty
+        node.TypeSyntax is TypeSyntax.EmptyType
             ? node.Id
-            : $"{node.Id}:{node.FunnyType}";
+            : $"{node.Id}:{node.TypeSyntax}";
 
     public string Visit(NamedIdSyntaxNode node) => node.Id;
 

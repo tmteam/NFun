@@ -64,34 +64,6 @@ public class TokenHelperTest {
     public void ReadType_PrimitiveTypes(string expr, BaseFunnyType expected) =>
         AssertFunnyType(expr, FunnyType.PrimitiveOf(expected));
 
-    [TestCase("int10")]
-    [TestCase("uint10")]
-    [TestCase("uint9")]
-    [TestCase("uint1")]
-    [TestCase("real32")]
-    [TestCase("asdasd")]
-    [TestCase("a")]
-    [TestCase("")]
-    [TestCase("[[")]
-    [TestCase("|")]
-    [TestCase("*")]
-    [TestCase("rule")]
-    [TestCase("rule(?):?")]
-    [TestCase("fon")]
-    [TestCase("bool8")]
-    [TestCase("boolean")]
-    [TestCase("int[[;")]
-    [TestCase("int[;]")]
-    [TestCase("int[] []")]
-    [TestCase("int  []")]
-    [TestCase("anything")]
-    [TestCase("default")]
-    [TestCase("t")]
-    public void ReadType_Throws(string expr) {
-        var flow = Tokenizer.ToFlow(expr);
-        Assert.Catch(() => flow.ReadType());
-    }
-
     [TestCase("int8")]
     [TestCase("async")]
     public void ReservedWord_Throw(string expr) => FunnyAssert.ObviousFailsOnParse(() => Tokenizer.ToFlow(expr));

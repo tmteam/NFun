@@ -37,6 +37,7 @@ public static class TestHelper {
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
+        AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         params (string id, object clrValue)[] values) =>
         Funny.Hardcore.WithDialect(
             ifExpressionSyntax,
@@ -44,7 +45,8 @@ public static class TestHelper {
             realClrType,
             integerOverflow,
             allowUserFunctions,
-            optionalTypesSupport).Build(expr).Calc(values);
+            optionalTypesSupport,
+            allowNewlineInStrings).Build(expr).Calc(values);
 
     public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
         Funny.Hardcore.Build(expr).Calc(values);
@@ -58,7 +60,8 @@ public static class TestHelper {
         RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
-        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled
+        OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
+        AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow
         )
         => Funny.Hardcore.WithDialect(
             ifExpressionSyntax,
@@ -66,7 +69,8 @@ public static class TestHelper {
             realClrType,
             integerOverflow,
             allowUserFunctions,
-            optionalTypesSupport).Build(expr);
+            optionalTypesSupport,
+            allowNewlineInStrings).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 

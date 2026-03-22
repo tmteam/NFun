@@ -12,6 +12,7 @@ using NFun.Tic;
 using NFun.Tic.Errors;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
+using NFun.Types;
 
 namespace NFun.Interpretation;
 
@@ -21,9 +22,10 @@ internal static class RuntimeBuilder {
         IFunctionDictionary functionDictionary,
         DialectSettings dialect,
         IConstantList constants = null,
-        IAprioriTypesMap aprioriTypesMap = null) {
+        IAprioriTypesMap aprioriTypesMap = null,
+        ICustomTypeRegistry customTypes = null) {
 
-        var flow = Tokenizer.ToFlow(script);
+        var flow = Tokenizer.ToFlow(script, dialect.AllowNewlineInStrings == AllowNewlineInStrings.Deny);
         var syntaxTree = Parser.Parse(flow);
 
         //Set node numbers
@@ -33,9 +35,19 @@ internal static class RuntimeBuilder {
         return Build(
             syntaxTree,
             functionDictionary,
-            constants ?? EmptyConstantList.Instance,
+            EnsureBuiltInConstants(constants, dialect.Converter),
             aprioriTypesMap?? EmptyAprioriTypesMap.Instance,
-            dialect);
+            customTypes, dialect);
+    }
+
+    private static IConstantList EnsureBuiltInConstants(IConstantList userConstants, FunnyConverter converter) {
+        if (userConstants is ConstantList cl) {
+            cl.AddBuiltIns();
+            return cl;
+        }
+        var list = new ConstantList(converter);
+        list.AddBuiltIns();
+        return list;
     }
 
     private static FunnyRuntime Build(
@@ -43,6 +55,7 @@ internal static class RuntimeBuilder {
         IFunctionDictionary functionsDictionary,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
+        ICustomTypeRegistry customTypes,
         DialectSettings dialect) {
         #region build user functions
 
@@ -88,7 +101,7 @@ internal static class RuntimeBuilder {
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD BODY ====");
 
-        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypes, dialect);
+        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypes, customTypes, dialect);
 
 
         #region build body
@@ -127,9 +140,10 @@ internal static class RuntimeBuilder {
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(varDef.Id))
                     throw Errors.CannotUseSuperAnonymousVariableHere(varDef.Interval, varDef.Id);
 
+                var resolvedType = TypeSyntaxResolver.Resolve(varDef.TypeSyntax, customTypes);
                 var variableSource = VariableSource.CreateWithStrictTypeLabel(
                     varDef.Id,
-                    varDef.FunnyType,
+                    resolvedType,
                     varDef.Interval,
                     FunnyVarAccess.Input,
                     dialect.Converter,
@@ -178,10 +192,11 @@ internal static class RuntimeBuilder {
         IConstantList constants,
         IFunctionDictionary functionDictionary,
         IAprioriTypesMap aprioriTypes,
+        ICustomTypeRegistry customTypes,
         DialectSettings dialect) {
 
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
-            syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
+            syntaxTree, functionDictionary, constants, aprioriTypes, customTypes, dialect);
 
         var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
         foreach (var syntaxNode in syntaxTree.Nodes)
