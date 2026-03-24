@@ -144,7 +144,8 @@ public class TokenHelperTest {
 
     private void AssertFunnyType(string expr, FunnyType expected) {
         var flow = Tokenizer.ToFlow(expr);
-        var actual = flow.ReadType();
+        var syntax = flow.ReadTypeSyntax();
+        var actual = NFun.TypeInferenceAdapter.TypeSyntaxResolver.Resolve(syntax);
         Assert.AreEqual(expected, actual);
     }
 }

@@ -25,6 +25,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="NFun.UnitTests"/>
+    <InternalsVisibleTo Include="NFun.Tic.Tests"/>
+    <InternalsVisibleTo Include="NFun.SyntaxTests"/>
+    <InternalsVisibleTo Include="NFun.ApiTests"/>
+    <InternalsVisibleTo Include="NFun.ConcurrentTests"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="NFun.nuspec"/>
     <PackageReference Include="IndexRange" Version="1.0.2"/>
     <PackageReference Include="System.Memory" Version="4.5.5"/>
