@@ -586,7 +586,6 @@ class Program {
         TokType.If or TokType.Else or TokType.Then => ConsoleColor.Magenta,
         TokType.And or TokType.Or or TokType.Xor or TokType.Not => ConsoleColor.Magenta,
         TokType.In or TokType.Rule or TokType.Default => ConsoleColor.Magenta,
-        TokType.Step or TokType.None => ConsoleColor.Magenta,
         TokType.Reserved => ConsoleColor.DarkMagenta,
         TokType.True or TokType.False => ConsoleColor.DarkCyan,
         TokType.IntNumber or TokType.RealNumber or TokType.HexOrBinaryNumber => ConsoleColor.Cyan,

@@ -1,12 +1,12 @@
+namespace NFun.SyntaxTests.Functions;
+
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests;
-
 /// <summary>Vararg params syntax (#86)</summary>
 [TestFixture]
-public class ParamsTest {
+public class FunctionParamsTest {
 
     // ── Basic params ────────────────────────────────────────────────────────
 

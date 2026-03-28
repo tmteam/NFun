@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace NFun.SyntaxTests;
 
 [TestFixture]
-public class BuiltInNamedArgumentsTest {
+public class BuiltInFunctionsArgumentNamesTest {
 
     // ── Math: single-arg ────────────────────────────────────────────────────
 

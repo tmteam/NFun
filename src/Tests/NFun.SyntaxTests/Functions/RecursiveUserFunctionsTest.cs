@@ -1,9 +1,9 @@
+namespace NFun.SyntaxTests.Functions;
+
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
-
-namespace NFun.SyntaxTests.UserFunctions;
 
 [TestFixture]
 public class RecursiveUserFunctionsTest {

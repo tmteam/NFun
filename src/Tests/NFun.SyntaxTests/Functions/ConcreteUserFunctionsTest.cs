@@ -1,7 +1,7 @@
+namespace NFun.SyntaxTests.Functions;
+
 using NFun.TestTools;
 using NUnit.Framework;
-
-namespace NFun.SyntaxTests.UserFunctions;
 
 [TestFixture]
 public class ConcreteUserFunctionsTest {

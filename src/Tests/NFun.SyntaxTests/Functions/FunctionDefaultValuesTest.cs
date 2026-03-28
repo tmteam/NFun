@@ -1,12 +1,12 @@
+namespace NFun.SyntaxTests.Functions;
+
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests;
-
 /// <summary>Default values for function args (#87)</summary>
 [TestFixture]
-public class DefaultValuesTest {
+public class FunctionDefaultValuesTest {
 
     // ── Basic defaults ──────────────────────────────────────────────────────
 

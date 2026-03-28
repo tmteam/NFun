@@ -1,11 +1,11 @@
+namespace NFun.SyntaxTests.Functions;
+
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests;
-
 [TestFixture]
-public class NamedArgumentsTest {
+public class FunctionNamedArgumentsTest {
 
     // ── Basic named args ────────────────────────────────────────────────────
 

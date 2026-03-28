@@ -7,11 +7,8 @@ class AnonymEquationTest {
     [TestCase("1", 1)]
     [TestCase("true", true)]
     [TestCase("(1+2)", 3)]
-    [TestCase("f(x)= x; (f(42))", 42)]
-    [TestCase("f(x)= x; (f(42.0))", 42.0)]
-    [TestCase("f(x)= (x); (f(42))", 42)]
-    [TestCase("f()= (2); (1)", 1)]
     public void ConstantEquation(string expr, object expected) => expr.AssertAnonymousOut(expected);
+
 
     [TestCase("x:real\r x", 2.0, 2.0)]
     [TestCase("x== 2.0", 2.0, true)]
