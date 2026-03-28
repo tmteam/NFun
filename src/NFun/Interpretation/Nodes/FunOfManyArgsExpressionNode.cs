@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 
@@ -26,7 +28,9 @@ internal class FunOfManyArgsExpressionNode : IExpressionNode {
         var args = new object[_argsCount];
         for (int i = 0; i < _argsCount; i++)
             args[i] = _argsNodes[i].Calc();
-        return _fun.Calc(args);
+        try { return _fun.Calc(args); }
+        catch (FunnyRuntimeException) { throw; }
+        catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }
     }
 
     public IExpressionNode Clone(ICloneContext context) {

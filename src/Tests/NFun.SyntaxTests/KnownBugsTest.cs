@@ -19,26 +19,18 @@ public class KnownBugsTest {
     // Different arity (e.g. sum(a,b)) works fine.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: NullReferenceException when redefining builtin with same arity")]
-    public void RecursiveFunction_SameNameAsBuiltin_Sum_ShouldNotCrash() {
-        Assert.DoesNotThrow(
-            () => "sum(n) = if(n <= 0) 0 else n + sum(n-1)\r y = sum(10)".Calc(),
-            "NullReferenceException crash when redefining 'sum' with same arity as builtin");
-    }
+    [Test] // FIXED: user function takes priority over builtin at same arity in TicSetupVisitor
+    public void RecursiveFunction_SameNameAsBuiltin_Sum_ShouldNotCrash() =>
+        "sum(n) = if(n <= 0) 0 else n + sum(n-1)\r y = sum(10)".AssertReturns("y", 55);
 
-    [Test, Ignore("Bug: NullReferenceException when redefining builtin with same arity")]
-    public void RecursiveFunction_SameNameAsBuiltin_Count_ShouldNotCrash() {
-        Assert.DoesNotThrow(
-            () => "count(n) = if(n <= 0) 0 else 1 + count(n-1)\r y = count(5)".Calc(),
-            "NullReferenceException crash when redefining 'count' with same arity as builtin");
-    }
+    [Test] // FIXED
+    public void RecursiveFunction_SameNameAsBuiltin_Count_ShouldNotCrash() =>
+        "count(n) = if(n <= 0) 0 else 1 + count(n-1)\r y = count(5)".AssertReturns("y", 5.0);
 
-    [Test, Ignore("Bug: NullReferenceException when redefining builtin with same arity")]
-    public void RecursiveFunction_SameNameAsBuiltin_Fold_ShouldNotCrash() {
-        Assert.DoesNotThrow(
-            () => "fold(arr, acc) = if(arr.count()==0) acc else fold(arr[1:], acc+arr[0])\r y = fold([1,2,3], 0)".Calc(),
-            "NullReferenceException crash when redefining 'fold' with same arity as builtin");
-    }
+    [Test] // FIXED
+    public void RecursiveFunction_SameNameAsBuiltin_Fold_ShouldNotCrash() =>
+        "fold(arr, acc) = if(arr.count()==0) acc else fold(arr[1:], acc+arr[0])\r y = fold([1,2,3], 0)"
+            .AssertReturns("y", 6);
 
 
     // ═══════════════════════════════════════════════════════════════
@@ -120,7 +112,7 @@ public class KnownBugsTest {
     // to catch .NET OverflowException separately.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: OverflowException not wrapped as FunnyRuntimeException")]
+    [Test] // FIXED: CLR exceptions wrapped at expression node level
     public void IntegerOverflow_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = 2147483647 + 1".Build();
         Assert.Throws<FunnyRuntimeException>(
@@ -128,7 +120,7 @@ public class KnownBugsTest {
             "OverflowException should be wrapped as FunnyRuntimeException");
     }
 
-    [Test, Ignore("Bug: OverflowException not wrapped as FunnyRuntimeException")]
+    [Test] // FIXED
     public void IntegerUnderflow_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = -2147483648 - 1".Build();
         Assert.Throws<FunnyRuntimeException>(
@@ -136,7 +128,7 @@ public class KnownBugsTest {
             "OverflowException should be wrapped as FunnyRuntimeException");
     }
 
-    [Test, Ignore("Bug: OverflowException not wrapped as FunnyRuntimeException")]
+    [Test] // FIXED
     public void PowerOverflow_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = 2 ** 32".Build();
         Assert.Throws<FunnyRuntimeException>(
@@ -144,7 +136,7 @@ public class KnownBugsTest {
             "OverflowException should be wrapped as FunnyRuntimeException");
     }
 
-    [Test, Ignore("Bug: OverflowException not wrapped — Int64")]
+    [Test] // FIXED
     public void Int64Overflow_ShouldThrowFunnyRuntimeException() {
         var runtime = "y:int64 = 9223372036854775807 + 1".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
@@ -159,13 +151,13 @@ public class KnownBugsTest {
     // Real division (/) correctly returns Infinity.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: DivideByZeroException not wrapped as FunnyRuntimeException")]
+    [Test] // FIXED
     public void IntDivisionByZero_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = 1 // 0".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
     }
 
-    [Test, Ignore("Bug: DivideByZeroException not wrapped as FunnyRuntimeException")]
+    [Test] // FIXED
     public void ModuloByZero_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = 5 % 0".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
@@ -181,7 +173,7 @@ public class KnownBugsTest {
     // GetElementOrNull which doesn't handle negative indices.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: IndexOutOfRangeException in last() on empty array")]
+    [Test] // FIXED: added index < 0 check in ImmutableFunnyArray.GetElementOrNull
     public void LastOfEmptyArray_ShouldThrowFunnyRuntimeException() {
         var runtime = "y:int[] = []\r z = y.last()".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
@@ -196,13 +188,13 @@ public class KnownBugsTest {
     // instead of FunnyRuntimeException.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: InvalidOperationException in median() on empty array")]
+    [Test] // FIXED: throw FunnyRuntimeException instead of InvalidOperationException
     public void MedianOfEmptyArray_ShouldThrowFunnyRuntimeException() {
         var runtime = "y:int[] = []\r z = y.median()".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
     }
 
-    [Test, Ignore("Bug: InvalidOperationException in avg() on empty array")]
+    [Test] // FIXED: throw FunnyRuntimeException instead of InvalidOperationException
     public void AvgOfEmptyArray_ShouldThrowFunnyRuntimeException() {
         var runtime = "y:real[] = []\r z = y.avg()".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
@@ -216,7 +208,7 @@ public class KnownBugsTest {
     // instead of FunnyRuntimeException.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: ArgumentOutOfRangeException in repeat() with negative count")]
+    [Test] // FIXED: added count < 0 check in ConcreteRepeat.Calc
     public void RepeatNegativeCount_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = repeat(1, -1)".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
@@ -231,14 +223,14 @@ public class KnownBugsTest {
     // Should either throw FunnyRuntimeException or require optional type.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: max() on empty array returns null for non-optional type")]
+    [Test] // FIXED: throw FunnyRuntimeException on empty array
     public void MaxOfEmptyArray_ShouldThrowOrReturnOptional() {
         // Currently: z gets null despite being typed as Int32
         var runtime = "y:int[] = []\r z = y.max()".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
     }
 
-    [Test, Ignore("Bug: min() on empty array returns null for non-optional type")]
+    [Test] // FIXED: throw FunnyRuntimeException on empty array
     public void MinOfEmptyArray_ShouldThrowOrReturnOptional() {
         var runtime = "y:int[] = []\r z = y.min()".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
@@ -295,19 +287,19 @@ public class KnownBugsTest {
     // Fix: check (positionalArgCount + namedArgCount) >= requiredCount
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: All-named call to user function with defaults fails")]
+    [Test] // FIXED: maxArgs instead of providedArgs in FindUserFunctionByNameWithDefaults
     public void AllNamedCall_UserFunc_WithDefaults_ShouldWork() =>
         "f(a, b=0) = a+b \r y = f(a=5)".AssertReturns("y", 5);
 
-    [Test, Ignore("Bug: All-named call to user function with defaults fails")]
+    [Test] // FIXED: maxArgs instead of providedArgs in FindUserFunctionByNameWithDefaults
     public void AllNamedCall_UserFunc_WithMultipleDefaults_ShouldWork() =>
         "f(a, b=0, c=0) = a+b+c \r y = f(a=1, c=3)".AssertReturns("y", 4);
 
-    [Test, Ignore("Bug: All-named call to user function with defaults fails")]
+    [Test] // FIXED: maxArgs instead of providedArgs in FindUserFunctionByNameWithDefaults
     public void AllNamedCall_UserFunc_WithParams_ShouldWork() =>
         "f(a, ...rest) = a + rest.count() \r y = f(a=5)".AssertReturns("y", 5);
 
-    [Test, Ignore("Bug: All-named call to user function with defaults fails")]
+    [Test] // FIXED: maxArgs instead of providedArgs in FindUserFunctionByNameWithDefaults
     public void AllNamedCall_UserFunc_DefaultsAndParams_ShouldWork() =>
         "f(a, b=0, ...rest) = a+b+rest.sum() \r y = f(a=1)".AssertReturns("y", 1);
 
@@ -341,7 +333,7 @@ public class KnownBugsTest {
     // then the array size calculation overflows.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: OverflowException in backwards slice")]
+    [Test] // FIXED: CLR exceptions wrapped at expression node level
     public void BackwardsSlice_ShouldThrowFunnyRuntimeException() {
         var runtime = "y = [1,2,3,4,5][3:1]".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());

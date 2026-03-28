@@ -278,13 +278,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             if (hasParams)
             {
                 // With params: requires at least requiredCount args, no upper limit
-                if (providedArgs >= requiredCount)
+                // maxArgs includes both positional and named — either can fill required slots
+                if (maxArgs >= requiredCount)
                     return ufn;
             }
             else
             {
                 // Without params: requires [requiredCount, maxCount] args
-                if (providedArgs >= requiredCount && maxArgs <= maxCount)
+                if (maxArgs >= requiredCount && maxArgs <= maxCount)
                     return ufn;
             }
         }

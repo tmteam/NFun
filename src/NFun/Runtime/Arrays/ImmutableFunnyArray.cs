@@ -63,7 +63,7 @@ public class ImmutableFunnyArray : IFunnyArray {
     public IFunnyArray Slice(int? startIndex, int? endIndex, int? step) =>
         FunnyArrayTools.SliceToImmutable(ClrArray, ElementType, startIndex, endIndex, step);
 
-    public object GetElementOrNull(int index) => index >= ClrArray.Length ? null : ClrArray.GetValue(index);
+    public object GetElementOrNull(int index) => index < 0 || index >= ClrArray.Length ? null : ClrArray.GetValue(index);
 
     public bool IsEquivalent(IFunnyArray array) => TypeHelper.AreEquivalent(this, array);
 

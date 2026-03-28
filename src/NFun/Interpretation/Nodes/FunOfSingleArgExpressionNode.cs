@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 
@@ -18,8 +20,11 @@ internal class FunOfSingleArgExpressionNode : IExpressionNode {
     public FunnyType Type => _fun.ReturnType;
     public IEnumerable<IRuntimeNode> Children => new[] { _arg1 };
 
-    public object Calc() =>
-        _fun.Calc(_arg1.Calc());
+    public object Calc() {
+        try { return _fun.Calc(_arg1.Calc()); }
+        catch (FunnyRuntimeException) { throw; }
+        catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }
+    }
 
     public IExpressionNode Clone(ICloneContext context)
         => new FunOfSingleArgExpressionNode((FunctionWithSingleArg)_fun.Clone(context), _arg1.Clone(context), Interval);

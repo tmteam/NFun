@@ -1,4 +1,5 @@
 using System;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -56,13 +57,11 @@ public class IntegerOverflowBehaviour {
         try
         {
             var result = runtime.Calc();
-            Assert.Fail($"No exceptuin thrown: {result}");
+            Assert.Fail($"No exception thrown: {result}");
         }
-        catch (OverflowException)
+        catch (FunnyRuntimeException e) when (e.InnerException is OverflowException)
         {
             Assert.Pass();
         }
-
-        Assert.Fail("Ouch");
     }
 }

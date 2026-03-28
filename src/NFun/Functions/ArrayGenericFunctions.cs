@@ -253,7 +253,7 @@ public class MedianFunction : GenericFunctionBase {
 
         int count = temp.Length;
         if (count == 0)
-            throw new InvalidOperationException("Empty collection");
+            throw new FunnyRuntimeException("Array is empty");
         return temp[(count - 1) / 2];
     }
 }
@@ -265,6 +265,7 @@ public class MaxElementFunction : GenericFunctionBase {
 
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
+        if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
         return array.As<IComparable>().Max();
     }
 }
@@ -276,6 +277,7 @@ public class MinElementFunction : GenericFunctionBase {
 
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
+        if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
         return array.As<IComparable>().Min();
     }
 }
@@ -637,8 +639,11 @@ public class RepeatGenericFunctionDefinition : GenericFunctionBase {
     }
 
     private class ConcreteRepeat : FunctionWithTwoArgs {
-        public override object Calc(object a, object b)
-            => FunnyArrayTools.CreateEnumerable(Enumerable.Repeat(a, (int)b), ArgTypes[0]);
+        public override object Calc(object a, object b) {
+            var count = (int)b;
+            if (count < 0) throw new FunnyRuntimeException("Repeat count cannot be negative");
+            return FunnyArrayTools.CreateEnumerable(Enumerable.Repeat(a, count), ArgTypes[0]);
+        }
     }
 }
 

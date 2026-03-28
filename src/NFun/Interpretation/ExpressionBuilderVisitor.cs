@@ -279,9 +279,16 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 // Generic call arguments are unknown  in case of generic recursion function .
                 // Take them from type inference results
                 var recCallSignature = _typeInferenceResults
-                    .GetRecursiveCallOrNull(node.OrderNumber)
-                    //if generic call arguments not exist in type inference result - it is NFUN core error
-                    .NotNull($"MJ78. Function {id}`{args.Length} was not found");
+                    .GetRecursiveCallOrNull(node.OrderNumber);
+
+                if (recCallSignature == null)
+                    throw new NFunImpossibleException($"MJ78. Function {id}`{args.Length} was not found");
+
+                // If a user function shadows a builtin at the same arity, the scope dictionary
+                // contains the user's GenericUserFunction which should be used instead of the builtin.
+                var scopeFunc = _functions.GetOrNull(id, args.Length);
+                if (scopeFunc is IGenericFunction userGeneric && scopeFunc != genericFunction)
+                    genericFunction = userGeneric;
 
                 var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
                 //Calculate generic call arguments by concrete function signature

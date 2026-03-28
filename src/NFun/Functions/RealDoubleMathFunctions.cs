@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 
@@ -7,7 +8,11 @@ namespace NFun.Functions;
 
 public class AverageDoubleFunction : FunctionWithSingleArg {
     public AverageDoubleFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { ArgProperties = FunArgProperty.FromNames("arr"); }
-    public override object Calc(object a) => ((IFunnyArray)a).As<double>().Average();
+    public override object Calc(object a) {
+        var arr = (IFunnyArray)a;
+        if (arr.Count == 0) throw new FunnyRuntimeException("Array is empty");
+        return arr.As<double>().Average();
+    }
 }
 
 public class SqrtDoubleFunction : FunctionWithSingleArg {
