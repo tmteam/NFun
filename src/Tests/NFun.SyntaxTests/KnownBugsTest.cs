@@ -314,7 +314,7 @@ public class KnownBugsTest {
     // the parameter type annotation.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: Empty array default doesn't respect parameter type")]
+    [Test] // FIXED: empty [] default wrapped in DefaultValueSyntaxNode + SetDef constraint
     public void DefaultEmptyArray_ShouldInferFromParamType() =>
         "f(n, acc:int[]=[]) = if(n<=0) acc else f(n-1, acc.append(n)) \r y = f(3)"
             .AssertReturns("y", new[] { 3, 2, 1 });

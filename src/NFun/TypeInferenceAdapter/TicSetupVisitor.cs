@@ -185,15 +185,31 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 result[paramIndex] = named.Value;
         }
 
-        // Fill defaults for missing non-params args
+        // Fill defaults for missing non-params args.
         for (int i = 0; i < nonParamsCount; i++)
         {
             if (result[i] == null)
             {
-                if (userFun.Args[i].HasDefault)
-                    result[i] = userFun.Args[i].DefaultValue;
-                else
+                if (!userFun.Args[i].HasDefault)
                     throw Errors.MissingArgument(node.Id, userFun.Args[i].Id, node.Interval);
+
+                var defaultExpr = userFun.Args[i].DefaultValue;
+
+                // Empty containers ([], {}) can't infer their own type, so wrap them in a
+                // DefaultValueSyntaxNode with a fresh OrderNumber. TIC constrains the
+                // wrapper via SetCall, and ExpressionBuilder uses GetDefaultFunnyValue()
+                // which produces the correctly-typed empty container.
+                if (defaultExpr is ArraySyntaxNode { Expressions.Count: 0 }
+                    && userFun.Args[i].TypeSyntax is not TypeSyntax.EmptyType)
+                {
+                    result[i] = new DefaultValueSyntaxNode(defaultExpr.Interval) {
+                        OrderNumber = _nextSyntheticId++,
+                    };
+                }
+                else
+                {
+                    result[i] = defaultExpr;
+                }
             }
         }
 
@@ -324,8 +340,15 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             i++;
             if (arg.TypeSyntax is not TypeSyntax.EmptyType)
             {
-                ThrowIfOptionalTypeDisabled(ResolveType(arg.TypeSyntax), arg.Id, arg.Interval);
-                _ticTypeGraph.SetVarType(arg.Id, ResolveType(arg.TypeSyntax).ConvertToTiType());
+                var resolvedType = ResolveType(arg.TypeSyntax);
+                ThrowIfOptionalTypeDisabled(resolvedType, arg.Id, arg.Interval);
+                _ticTypeGraph.SetVarType(arg.Id, resolvedType.ConvertToTiType());
+
+                // Constrain default value expression to match parameter type.
+                // Only for expressions that can't infer their own type (e.g. empty []).
+                // Non-empty defaults ([1,2,3], {x=1}) already have concrete types.
+                if (arg.HasDefault && arg.DefaultValue is ArraySyntaxNode { Expressions.Count: 0 })
+                    _ticTypeGraph.SetDef(arg.Id, arg.DefaultValue.OrderNumber);
             }
         }
 
@@ -549,6 +572,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         var signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
         if (signature != null)
             _resultsBuilder.RememberResolvedCallSignature(node.OrderNumber, signature);
+
         //Apply visitor to child types
         for (int i = 0; i < allArgs.Length; i++)
         {
