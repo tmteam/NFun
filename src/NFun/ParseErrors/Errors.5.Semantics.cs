@@ -150,4 +150,22 @@ internal static partial class Errors {
 
     #endregion
 
+    #region named arguments
+
+    internal static FunnyParseException UnknownNamedArgument(string functionName, string argName, Interval interval) =>
+        new(890, $"Function '{functionName}' has no parameter named '{argName}'", interval);
+
+    internal static FunnyParseException NamedArgOverlapsPositional(string functionName, string argName, Interval interval) =>
+        new(891, $"Named argument '{argName}' overlaps with positional argument in call to '{functionName}'", interval);
+
+    internal static FunnyParseException DuplicateNamedArgument(string functionName, string argName, Interval interval) =>
+        new(892, $"Duplicate named argument '{argName}' in call to '{functionName}'", interval);
+
+    internal static FunnyParseException MissingArgument(string functionName, string paramName, Interval interval) =>
+        new(893, $"Missing argument '{paramName}' in call to '{functionName}'", interval);
+
+    internal static FunnyParseException NamedArgsNotSupportedForBuiltIn(string functionName, Interval interval) =>
+        new(894, $"Named arguments are not supported for built-in function '{functionName}'", interval);
+
+    #endregion
 }

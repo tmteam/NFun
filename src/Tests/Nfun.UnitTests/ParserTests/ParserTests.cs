@@ -41,7 +41,7 @@ syntax-tree
                gint '1'
                id 'x'
             anonym-fun
-               typed-var-def 'z:Int32'
+               typed-var-def 'z:int32'
                call '>'
                   id 'z'
                   gint '2'
@@ -57,8 +57,8 @@ syntax-tree
 """
 syntax-tree
    fun 'y'
-      typed-var-def 'x:Int32'
-      typed-var-def 'z:Int32'
+      typed-var-def 'x:int32'
+      typed-var-def 'z:int32'
       call 'min'
          id 'x'
          call '*'

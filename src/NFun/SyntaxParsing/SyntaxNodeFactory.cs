@@ -52,18 +52,19 @@ public static class SyntaxNodeFactory {
     public static TypedVarDefSyntaxNode TypedVar(string name, TypeSyntax typeSyntax, int start, int end) =>
         new(name, typeSyntax, new Interval(start, end));
 
-    public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, int start, int end) =>
-        new FunCallSyntaxNode(name, args.ToArray(), new Interval(start, end), false, false);
+    public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, int start, int end,
+        NamedCallArgument[] namedArgs = null) =>
+        new FunCallSyntaxNode(name, args.ToArray(), new Interval(start, end), false, false, namedArgs);
 
     public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, Interval interval) =>
         new FunCallSyntaxNode(name, args.ToArray(), interval, false, false);
 
     public static ISyntaxNode PipedFunCall(string name, ISyntaxNode headArg, IList<ISyntaxNode> addArgs, int start,
-        int end) {
+        int end, NamedCallArgument[] namedArgs = null) {
         var args = new ISyntaxNode[addArgs.Count + 1];
         args[0] = headArg;
         addArgs.CopyTo(args, 1);
-        return new FunCallSyntaxNode(name, args, new Interval(start, end), true, false);
+        return new FunCallSyntaxNode(name, args, new Interval(start, end), true, false, namedArgs);
     }
 
     public static ISyntaxNode OperatorCall(string name, ISyntaxNode[] args, int start, int end) =>

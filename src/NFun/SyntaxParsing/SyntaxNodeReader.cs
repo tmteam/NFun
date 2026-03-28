@@ -9,6 +9,7 @@ using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -866,15 +867,51 @@ public static class SyntaxNodeReader {
         if (!flow.MoveIf(TokType.ParenthObr))
             throw Errors.FunctionCallObrMissed(start, head.Value, flow.CurrentTokenFinishPosition, pipedVal);
 
-        var arguments = ReadNodeList(flow);
+        var positionalArgs = new List<ISyntaxNode>();
+        var namedArgs = new List<NamedCallArgument>();
+        bool seenNamed = false;
+
+        if (!flow.IsCurrent(TokType.ParenthCbr))
+        {
+            do
+            {
+                // Named argument: Id '=' expr
+                if (flow.IsCurrent(TokType.Id) && flow.Peek?.Type == TokType.Def)
+                {
+                    var nameTok = flow.Current;
+                    flow.MoveNext(); // skip Id
+                    flow.MoveNext(); // skip '='
+                    seenNamed = true;
+
+                    var exp = ReadNodeOrNull(flow);
+                    if (exp == null)
+                        throw Errors.FunctionArgumentError(head.Value, obrId, flow);
+                    namedArgs.Add(new NamedCallArgument(nameTok.Value, exp, nameTok.Interval));
+                }
+                else
+                {
+                    // Positional after named = error
+                    if (seenNamed)
+                        throw Errors.PositionalArgAfterNamed(head.Value, flow.Current?.Interval ?? new Interval(obrId, obrId));
+
+                    var exp = ReadNodeOrNull(flow);
+                    if (exp != null)
+                        positionalArgs.Add(exp);
+                    else
+                        break;
+                }
+            } while (flow.MoveIf(TokType.Sep, out _));
+        }
 
         if (!flow.MoveIf(TokType.ParenthCbr, out _))
             throw Errors.FunctionArgumentError(head.Value, obrId, flow);
 
+        var named = namedArgs.Count > 0 ? namedArgs.ToArray() : null;
+
         if (pipedVal == null)
-            return SyntaxNodeFactory.FunCall(head.Value, arguments, start, flow.CurrentTokenFinishPosition);
+            return SyntaxNodeFactory.FunCall(head.Value, positionalArgs, start, flow.CurrentTokenFinishPosition, named);
         else
-            return SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, arguments, start, flow.CurrentTokenFinishPosition);
+            return SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, positionalArgs, start, flow.CurrentTokenFinishPosition, named);
     }
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {

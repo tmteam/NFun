@@ -140,6 +140,9 @@ internal static partial class Errors {
     internal static FunnyParseException StructTypeSeparatorExpected(Tok token) => new(
         416, $"',' or ';' expected between struct type fields, but was {ToText(token)}", token.Interval);
 
+    internal static FunnyParseException PositionalArgAfterNamed(string functionName, Interval interval) => new(
+        420, $"Positional argument cannot appear after named arguments in call to '{functionName}'", interval);
+
     #endregion
 
 

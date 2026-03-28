@@ -225,12 +225,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(FunCallSyntaxNode node) {
         var id = node.Id;
+        var args = node.ResolvedArgs ?? node.Args;
 
         // Safe array access (?[]) — handled as special expression node (TIC graph op, not generic func)
         if (id == CoreFunNames.SafeGetElementName)
         {
-            var source = ReadNode(node.Args[0]);
-            var index = ReadNode(node.Args[1]);
+            var source = ReadNode(args[0]);
+            var index = ReadNode(args[1]);
             // Compute element converter: source array element type may differ from result element type
             // (e.g. source has U8[] but coalesce pushes I32 to result)
             Func<object, object> elementConverter = null;
@@ -252,7 +253,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return new SafeArrayAccessExpressionNode(source, index, node.OutputType, elementConverter, node.Interval);
         }
 
-        var someFunc = node.FunctionSignature ?? _functions.GetOrNull(id, node.Args.Length);
+        var someFunc = node.FunctionSignature ?? _functions.GetOrNull(id, args.Length);
 
         if (someFunc is null)
         {
@@ -280,7 +281,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 var recCallSignature = _typeInferenceResults
                     .GetRecursiveCallOrNull(node.OrderNumber)
                     //if generic call arguments not exist in type inference result - it is NFUN core error
-                    .NotNull($"MJ78. Function {id}`{node.Args.Length} was not found");
+                    .NotNull($"MJ78. Function {id}`{args.Length} was not found");
 
                 var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
                 //Calculate generic call arguments by concrete function signature
@@ -302,7 +303,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return CreateFunctionCall(node, function);
         }
 
-        throw new NFunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
+        throw new NFunImpossibleException($"MJ101. Function {id}`{args.Length} type is unknown");
     }
 
     public IExpressionNode Visit(ComparisonChainSyntaxNode node) {
@@ -511,7 +512,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function) {
-        var children = node.Args.SelectToArray(ReadNode);
+        var callArgs = node is FunCallSyntaxNode fc ? (fc.ResolvedArgs ?? fc.Args) : node.Args;
+        var children = callArgs.SelectToArray(ReadNode);
         var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
         if (converted.Type != node.OutputType)
         {

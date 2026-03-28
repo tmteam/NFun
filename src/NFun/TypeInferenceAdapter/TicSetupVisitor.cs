@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
 using NFun.Functions;
@@ -47,6 +48,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         DialectSettings dialect) {
         var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect, customTypes);
 
+        // Collect user function definitions for named argument resolution
+        foreach (var syntaxNode in tree.Children)
+        {
+            if (syntaxNode is UserFunctionDefinitionSyntaxNode ufn)
+                visitor._userFunctions[(ufn.Id, ufn.Args.Count)] = ufn;
+        }
+
         foreach (var syntaxNode in tree.Children)
         {
             if (syntaxNode is UserFunctionDefinitionSyntaxNode)
@@ -68,10 +76,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         DialectSettings dialect,
         ICustomTypeRegistry customTypes = null) {
         var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect, customTypes);
+        // Register this function for named arg resolution in recursive calls
+        visitor._userFunctions[(userFunctionNode.Id, userFunctionNode.Args.Count)] = userFunctionNode;
         return userFunctionNode.Accept(visitor);
     }
 
     private readonly ICustomTypeRegistry _customTypes;
+    internal readonly Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions = new();
 
     private TicSetupVisitor(
         GraphBuilder ticTypeGraph,
@@ -92,6 +103,66 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         foreach (var apriori in aprioriTypesMap)
             _ticTypeGraph.SetVarType(apriori.Name, apriori.Type.ConvertToTiType());
     }
+
+    /// <summary>
+    /// Resolves named arguments: merges positional + named into correct positional order.
+    /// If no named args, returns node.Args as-is.
+    /// </summary>
+    private ISyntaxNode[] ResolveNamedArgs(FunCallSyntaxNode node) {
+        if (!node.HasNamedArgs)
+            return node.Args;
+
+        // Find function definition to know parameter names
+        var totalArgCount = node.Args.Length + node.NamedArgs.Length;
+        var userFun = FindUserFunctionDefinition(node.Id, totalArgCount);
+
+        if (userFun == null)
+        {
+            // Built-in function — named args not supported yet (no param names available)
+            // TODO: support named args for built-in functions
+            throw Errors.NamedArgsNotSupportedForBuiltIn(node.Id, node.Interval);
+        }
+
+        var paramNames = new string[userFun.Args.Count];
+        for (int i = 0; i < userFun.Args.Count; i++)
+            paramNames[i] = userFun.Args[i].Id;
+
+        var result = new ISyntaxNode[paramNames.Length];
+
+        // Fill positional args
+        for (int i = 0; i < node.Args.Length; i++)
+            result[i] = node.Args[i];
+
+        // Fill named args
+        foreach (var named in node.NamedArgs)
+        {
+            int paramIndex = -1;
+            for (int i = 0; i < paramNames.Length; i++)
+            {
+                if (string.Equals(paramNames[i], named.Name, StringComparison.OrdinalIgnoreCase))
+                { paramIndex = i; break; }
+            }
+            if (paramIndex < 0)
+                throw Errors.UnknownNamedArgument(node.Id, named.Name, named.NameInterval);
+            if (paramIndex < node.Args.Length)
+                throw Errors.NamedArgOverlapsPositional(node.Id, named.Name, named.NameInterval);
+            if (result[paramIndex] != null)
+                throw Errors.DuplicateNamedArgument(node.Id, named.Name, named.NameInterval);
+            result[paramIndex] = named.Value;
+        }
+
+        // Check all args filled
+        for (int i = 0; i < result.Length; i++)
+        {
+            if (result[i] == null)
+                throw Errors.MissingArgument(node.Id, paramNames[i], node.Interval);
+        }
+
+        return result;
+    }
+
+    private UserFunctionDefinitionSyntaxNode FindUserFunctionDefinition(string name, int argCount) =>
+        _userFunctions.TryGetValue((name, argCount), out var ufn) ? ufn : null;
 
     private FunnyType ResolveType(TypeSyntax syntax) =>
         TypeSyntaxResolver.Resolve(syntax, _customTypes);
@@ -343,14 +414,18 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private FunnyType _parentFunctionArgType = FunnyType.Empty;
 
     public bool Visit(FunCallSyntaxNode node) {
-        var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
+        // Resolve named arguments → build merged positional arg list
+        var allArgs = ResolveNamedArgs(node);
+        node.ResolvedArgs = allArgs;
+
+        var signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
         node.FunctionSignature = signature;
         //Apply visitor to child types
-        for (int i = 0; i < node.Args.Length; i++)
+        for (int i = 0; i < allArgs.Length; i++)
         {
             if (signature != null)
                 _parentFunctionArgType = signature.ArgTypes[i];
-            node.Args[i].Accept(this);
+            allArgs[i].Accept(this);
         }
 
         // Safe array access (?[]) — handled as TIC graph operation (like ?.)
@@ -358,22 +433,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (node.Id == CoreFunNames.SafeGetElementName)
         {
 #if DEBUG
-            Trace(node, $"SafeArrayAccess({node.Args[0].OrderNumber},{node.Args[1].OrderNumber},{node.OrderNumber})");
+            Trace(node, $"SafeArrayAccess({allArgs[0].OrderNumber},{allArgs[1].OrderNumber},{node.OrderNumber})");
 #endif
             _ticTypeGraph.SetSafeArrayAccess(
-                node.Args[0].OrderNumber,
-                node.Args[1].OrderNumber,
+                allArgs[0].OrderNumber,
+                allArgs[1].OrderNumber,
                 node.OrderNumber);
             return true;
         }
 
         //Setup ids arrays
-        var ids = new int[node.Args.Length + 1];
-        for (int i = 0; i < node.Args.Length; i++)
-            ids[i] = node.Args[i].OrderNumber;
+        var ids = new int[allArgs.Length + 1];
+        for (int i = 0; i < allArgs.Length; i++)
+            ids[i] = allArgs[i].OrderNumber;
         ids[^1] = node.OrderNumber;
 
-        var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
+        var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, allArgs.Length);
         if (userFunction != null)
         {
             //Call user-function if it is being built at the same time as the current expression is being built
@@ -404,7 +479,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // Special case: pow with non-constant or negative exponent → force (real, real) -> real
         if (node.Id == CoreFunNames.Pow && signature is PureGenericFunctionBase)
         {
-            bool isConstNonNegativeInt = node.Args[1] is GenericIntSyntaxNode intNode
+            bool isConstNonNegativeInt = allArgs[1] is GenericIntSyntaxNode intNode
                 && !(intNode.Value is long l && l < 0);
 
             if (!isConstNonNegativeInt)
