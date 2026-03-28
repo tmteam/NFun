@@ -776,7 +776,7 @@ class Program {
     static int ExecuteNonInteractive(string expression) {
         try
         {
-            var runtime = Funny.Hardcore.Build(expression);
+            var runtime = Funny.Hardcore.WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).Build(expression);
             var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
 
             if (inputs.Count > 0)
@@ -822,7 +822,7 @@ class Program {
 
         try
         {
-            var runtime = Funny.Hardcore.Build(fullScript);
+            var runtime = Funny.Hardcore.WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).Build(fullScript);
             var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
             var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
 
