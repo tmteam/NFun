@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
@@ -54,17 +53,10 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
 
     public bool HasNamedArgs => NamedArgs.Length > 0;
 
-    /// <summary>
-    /// All arguments in positional order (after named arg resolution).
-    /// Set by TicSetupVisitor. Null before resolution.
-    /// </summary>
-    public ISyntaxNode[] ResolvedArgs { get; internal set; }
-
-    public IFunctionSignature FunctionSignature { get; set; }
     public Interval Interval { get; set; }
     public bool IsOperator { get; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children =>
-        HasNamedArgs ? Args.Concat(NamedArgs.Select(n => n.Value)) : Args;
+        HasNamedArgs ? Args.Concat(NamedArgs.Select(n => n.Value)).ToArray() : Args;
     public bool IsPipeForward { get; }
 }

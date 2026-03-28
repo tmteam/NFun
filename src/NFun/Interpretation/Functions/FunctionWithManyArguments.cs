@@ -18,6 +18,7 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
     }
 
     public FunnyType ReturnType { get; protected set; }
+    public FunArgProperty[] ArgProperties { get; protected init; }
     public abstract object Calc(object[] args);
     public virtual IConcreteFunction Clone(ICloneContext context) => this;
     

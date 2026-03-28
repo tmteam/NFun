@@ -83,6 +83,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
     private readonly ICustomTypeRegistry _customTypes;
     internal readonly Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions = new();
+    internal const int SyntheticIdStart = 100000;
+    private int _nextSyntheticId = SyntheticIdStart; // synthetic node IDs start high to avoid collision
 
     private TicSetupVisitor(
         GraphBuilder ticTypeGraph,
@@ -110,26 +112,110 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     /// </summary>
     private ISyntaxNode[] ResolveNamedArgs(FunCallSyntaxNode node) {
         // Try find user function definition (for named args, defaults, params)
-        var totalCallArgs = node.Args.Length + node.NamedArgs.Length;
-        var userFun = FindUserFunctionDefinition(node.Id, totalCallArgs)
-            ?? FindUserFunctionByNameWithDefaults(node.Id, node.Args.Length, totalCallArgs);
+        var userFun = FindUserFunctionForCall(node);
 
-        // No named args and no defaults/params needed → fast path
-        if (!node.HasNamedArgs && (userFun == null || userFun.Args.Count == node.Args.Length))
-            return node.Args;
-
+        // No user function found → check built-in with ArgProperties
         if (userFun == null)
         {
-            // Built-in function — named args not supported yet (no param names available)
-            // TODO: support named args for built-in functions
-            throw Errors.NamedArgsNotSupportedForBuiltIn(node.Id, node.Interval);
+            if (!node.HasNamedArgs)
+                return node.Args;
+            return ResolveNamedArgsForBuiltIn(node);
         }
 
-        var paramNames = new string[userFun.Args.Count];
-        for (int i = 0; i < userFun.Args.Count; i++)
-            paramNames[i] = userFun.Args[i].Id;
+        // Fast path: no named args, no defaults, no params, exact match
+        bool hasParams = userFun.Args.Count > 0 && userFun.Args[^1].IsParams;
+        bool hasDefaults = false;
+        foreach (var arg in userFun.Args) if (arg.HasDefault) { hasDefaults = true; break; }
 
-        var result = new ISyntaxNode[paramNames.Length];
+        if (!node.HasNamedArgs && !hasParams && !hasDefaults && userFun.Args.Count == node.Args.Length)
+            return node.Args;
+
+        var paramCount = userFun.Args.Count;
+        var nonParamsCount = hasParams ? paramCount - 1 : paramCount;
+        var result = new ISyntaxNode[paramCount];
+
+        // Fill positional args (up to non-params count)
+        int positionalFillCount = Math.Min(node.Args.Length, nonParamsCount);
+        for (int i = 0; i < positionalFillCount; i++)
+            result[i] = node.Args[i];
+
+        // Collect extra positional args into array for params
+        if (hasParams)
+        {
+            var paramsIndex = paramCount - 1;
+            if (node.Args.Length > nonParamsCount)
+            {
+                // Extra args → synthetic array
+                var extraArgs = new ISyntaxNode[node.Args.Length - nonParamsCount];
+                for (int i = 0; i < extraArgs.Length; i++)
+                    extraArgs[i] = node.Args[nonParamsCount + i];
+                var arr = new ArraySyntaxNode(extraArgs, node.Interval);
+                arr.OrderNumber = _nextSyntheticId++;
+                result[paramsIndex] = arr;
+            }
+            else
+            {
+                // No extra args → empty synthetic array
+                var arr = new ArraySyntaxNode(Array.Empty<ISyntaxNode>(), node.Interval);
+                arr.OrderNumber = _nextSyntheticId++;
+                result[paramsIndex] = arr;
+            }
+        }
+
+        // Fill named args
+        var paramsIdx = hasParams ? paramCount - 1 : -1;
+        foreach (var named in node.NamedArgs)
+        {
+            int paramIndex = -1;
+            for (int i = 0; i < paramCount; i++)
+            {
+                if (string.Equals(userFun.Args[i].Id, named.Name, StringComparison.OrdinalIgnoreCase))
+                { paramIndex = i; break; }
+            }
+            if (paramIndex < 0)
+                throw Errors.UnknownNamedArgument(node.Id, named.Name, named.NameInterval);
+            if (paramIndex < positionalFillCount)
+                throw Errors.NamedArgOverlapsPositional(node.Id, named.Name, named.NameInterval);
+            // Named arg targeting params slot replaces the synthetic array
+            if (paramIndex == paramsIdx)
+                result[paramIndex] = named.Value;
+            else if (result[paramIndex] != null)
+                throw Errors.DuplicateNamedArgument(node.Id, named.Name, named.NameInterval);
+            else
+                result[paramIndex] = named.Value;
+        }
+
+        // Fill defaults for missing non-params args
+        for (int i = 0; i < nonParamsCount; i++)
+        {
+            if (result[i] == null)
+            {
+                if (userFun.Args[i].HasDefault)
+                    result[i] = userFun.Args[i].DefaultValue;
+                else
+                    throw Errors.MissingArgument(node.Id, userFun.Args[i].Id, node.Interval);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Resolves named arguments for built-in functions using ArgProperties metadata.
+    /// </summary>
+    private ISyntaxNode[] ResolveNamedArgsForBuiltIn(FunCallSyntaxNode node) {
+        var namedNames = new string[node.NamedArgs.Length];
+        for (int i = 0; i < node.NamedArgs.Length; i++)
+            namedNames[i] = node.NamedArgs[i].Name;
+
+        var signature = _dictionary.FindOrNull(node.Id, node.Args.Length, namedNames);
+        var argProps = signature?.ArgProperties;
+        if (argProps == null)
+            throw Errors.NamedArgsNotSupportedForBuiltIn(node.Id, node.Interval);
+
+        var totalArgs = argProps.Length;
+
+        var result = new ISyntaxNode[totalArgs];
 
         // Fill positional args
         for (int i = 0; i < node.Args.Length; i++)
@@ -139,9 +225,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         foreach (var named in node.NamedArgs)
         {
             int paramIndex = -1;
-            for (int i = 0; i < paramNames.Length; i++)
+            for (int i = 0; i < argProps.Length; i++)
             {
-                if (string.Equals(paramNames[i], named.Name, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(argProps[i].Name, named.Name, StringComparison.OrdinalIgnoreCase))
                 { paramIndex = i; break; }
             }
             if (paramIndex < 0)
@@ -153,35 +239,54 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             result[paramIndex] = named.Value;
         }
 
-        // Fill defaults for missing args
-        for (int i = 0; i < result.Length; i++)
+        // Verify all args filled
+        for (int i = 0; i < totalArgs; i++)
         {
             if (result[i] == null)
-            {
-                if (userFun.Args[i].HasDefault)
-                    result[i] = userFun.Args[i].DefaultValue;
-                else
-                    throw Errors.MissingArgument(node.Id, paramNames[i], node.Interval);
-            }
+                throw Errors.MissingArgument(node.Id, argProps[i].Name, node.Interval);
         }
 
         return result;
     }
 
+    private UserFunctionDefinitionSyntaxNode FindUserFunctionForCall(FunCallSyntaxNode node) {
+        var totalCallArgs = node.Args.Length + node.NamedArgs.Length;
+
+        // Exact match by total arg count
+        var exact = FindUserFunctionDefinition(node.Id, totalCallArgs);
+        if (exact != null) return exact;
+
+        // Match with defaults/params: function with more params than provided args
+        return FindUserFunctionByNameWithDefaults(node.Id, node.Args.Length, totalCallArgs);
+    }
+
     private UserFunctionDefinitionSyntaxNode FindUserFunctionDefinition(string name, int argCount) =>
         _userFunctions.TryGetValue((name, argCount), out var ufn) ? ufn : null;
 
-    /// <summary>Find user function by name where arg count fits within [minArgs, maxArgs] considering defaults</summary>
+    /// <summary>Find user function by name where provided arg count fits considering defaults and params</summary>
     private UserFunctionDefinitionSyntaxNode FindUserFunctionByNameWithDefaults(string name, int providedArgs, int maxArgs) {
         foreach (var ((fn, _), ufn) in _userFunctions)
         {
             if (!string.Equals(fn, name, StringComparison.OrdinalIgnoreCase))
                 continue;
+            bool hasParams = ufn.Args.Count > 0 && ufn.Args[^1].IsParams;
             var requiredCount = 0;
+            var maxCount = ufn.Args.Count;
             foreach (var arg in ufn.Args)
-                if (!arg.HasDefault) requiredCount++;
-            if (providedArgs >= requiredCount && providedArgs <= ufn.Args.Count)
-                return ufn;
+                if (!arg.HasDefault && !arg.IsParams) requiredCount++;
+
+            if (hasParams)
+            {
+                // With params: requires at least requiredCount args, no upper limit
+                if (providedArgs >= requiredCount)
+                    return ufn;
+            }
+            else
+            {
+                // Without params: requires [requiredCount, maxCount] args
+                if (providedArgs >= requiredCount && maxArgs <= maxCount)
+                    return ufn;
+            }
         }
         return null;
     }
@@ -438,10 +543,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(FunCallSyntaxNode node) {
         // Resolve named arguments → build merged positional arg list
         var allArgs = ResolveNamedArgs(node);
-        node.ResolvedArgs = allArgs;
+        _resultsBuilder.RememberResolvedCallArgs(node.OrderNumber, allArgs);
 
         var signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
-        node.FunctionSignature = signature;
+        if (signature != null)
+            _resultsBuilder.RememberResolvedCallSignature(node.OrderNumber, signature);
         //Apply visitor to child types
         for (int i = 0; i < allArgs.Length; i++)
         {

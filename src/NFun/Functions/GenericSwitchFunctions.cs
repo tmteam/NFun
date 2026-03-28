@@ -15,7 +15,7 @@ public class MultiSumFunction : GenericFunctionBase {
     public MultiSumFunction() : base(
         Id, GenericConstrains.Arithmetical, FunnyType.Generic(0),
         FunnyType.ArrayOf(FunnyType.Generic(0)))
-    { }
+    { ArgProperties = FunArgProperty.FromNames("arr"); }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch
@@ -219,7 +219,7 @@ public class RangeFunction : GenericFunctionBase {
         CoreFunNames.RangeName,
         GenericConstrains.Numbers,
         FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0), FunnyType.Generic(0))
-    { }
+    { ArgProperties = FunArgProperty.FromNames("from", "to"); }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch
@@ -519,7 +519,7 @@ public class RangeStepFunction : GenericFunctionBase {
         CoreFunNames.RangeName,
         GenericConstrains.Numbers,
         FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0))
-    { }
+    { ArgProperties = FunArgProperty.FromNames("from", "to", "step"); }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch

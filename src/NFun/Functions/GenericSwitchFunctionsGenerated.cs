@@ -749,7 +749,7 @@ public class NegateFunction : PureGenericFunctionBase {
 
 
 public class AbsFunction : PureGenericFunctionBase {
-    public AbsFunction() : base("abs", GenericConstrains.SignedNumber, 1) { }
+    public AbsFunction() : base("abs", GenericConstrains.SignedNumber, 1) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
                                            BaseFunnyType.Int16 => Int16Function.Instance,            

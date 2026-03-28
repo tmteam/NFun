@@ -4,6 +4,8 @@ using System.Linq;
 using NFun.Exceptions;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 using NFun.Tic;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
@@ -17,11 +19,11 @@ internal static partial class Errors {
     internal static FunnyParseException ImpossibleCast(FunnyType from, FunnyType to, Interval interval) => new(
         710, $"Unable to cast from {from} to {to}", interval);
 
-    internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph) {
+    internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph, IFunctionDictionary functions = null) {
         var allTicNodes = graph.GetNodes();
         return ticException switch {
-                   TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx => TranslateIncompatibleAncestorError(rootToSearch, syntaxNodeEx, allTicNodes),
-                   TicCannotSetStateSyntaxNodeException stateException     => TranslateStateError(ticException, rootToSearch, stateException),
+                   TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx => TranslateIncompatibleAncestorError(rootToSearch, syntaxNodeEx, allTicNodes, functions),
+                   TicCannotSetStateSyntaxNodeException stateException     => TranslateStateError(ticException, rootToSearch, stateException, functions),
                    TicRecursiveTypeDefinitionException e                   => TranslateRecursiveTypeDefinitionError(rootToSearch, e, allTicNodes),
                    TicInvalidFunctionalVariableSignature signature         => TranslateInvalidFunctionalVarError(rootToSearch, signature, allTicNodes),
                    TicNodeIsNotAFunctionalVariableException notFun         => TranslateIsNotAFunctionalVar(rootToSearch,notFun,allTicNodes),
@@ -29,18 +31,18 @@ internal static partial class Errors {
                };
     }
 
-    private static FunnyParseException TranslateIncompatibleAncestorError(ISyntaxNode rootToSearch, TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx, TicNode[] allTicNodes) {
+    private static FunnyParseException TranslateIncompatibleAncestorError(ISyntaxNode rootToSearch, TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx, TicNode[] allTicNodes, IFunctionDictionary functions = null) {
         var ticAncestor = syntaxNodeEx.Ancestor;
         var ticDescendant = syntaxNodeEx.Descendant;
 
-        var error = GetAncestorToDescendantErrorOrNull(rootToSearch, ticAncestor, ticDescendant);
+        var error = GetAncestorToDescendantErrorOrNull(rootToSearch, ticAncestor, ticDescendant, functions);
         if (error != null)
             return error;
 
         var ancestor = FindConcreteTicNodeForGenericOrNull(ticAncestor, allTicNodes);
         var descendant = FindConcreteTicNodeForGenericOrNull(ticDescendant, allTicNodes);
 
-        var error2 = GetAncestorToDescendantErrorOrNull(rootToSearch, ancestor, descendant);
+        var error2 = GetAncestorToDescendantErrorOrNull(rootToSearch, ancestor, descendant, functions);
         if (error2 != null)
             return error2;
 
@@ -48,7 +50,7 @@ internal static partial class Errors {
     }
 
 
-    private static FunnyParseException TranslateStateError(TicException ticException, ISyntaxNode rootToSearch, TicCannotSetStateSyntaxNodeException stateException) {
+    private static FunnyParseException TranslateStateError(TicException ticException, ISyntaxNode rootToSearch, TicCannotSetStateSyntaxNodeException stateException, IFunctionDictionary functions = null) {
         var path = rootToSearch.FindSyntaxNodePath(stateException.Node.Name);
 
         if (path.Count != 0)
@@ -57,7 +59,7 @@ internal static partial class Errors {
             if (path.TryPeek(out var parent))
             {
                 if (parent is FunCallSyntaxNode functionCall)
-                    return InvalidFunctionArgument(failed, functionCall, stateException.Node);
+                    return InvalidFunctionArgument(failed, functionCall, functions, stateException.Node);
 
                 if (parent is StructFieldAccessSyntaxNode f)
                 {
@@ -132,7 +134,7 @@ internal static partial class Errors {
     }
 
 
-    private static FunnyParseException GetAncestorToDescendantErrorOrNull(ISyntaxNode rootToSearch, TicNode ticAncestorOrNull, TicNode ticDescendantOrNull) {
+    private static FunnyParseException GetAncestorToDescendantErrorOrNull(ISyntaxNode rootToSearch, TicNode ticAncestorOrNull, TicNode ticDescendantOrNull, IFunctionDictionary functions = null) {
         var ancestorPath = rootToSearch.FindSyntaxNodePath(ticAncestorOrNull?.Name);
         var descendantPath = rootToSearch.FindSyntaxNodePath(ticDescendantOrNull?.Name);
 
@@ -170,7 +172,7 @@ internal static partial class Errors {
             return new(758, $"'{ancestor?.ToShortText()}' cannot be used as an argument of '{ancFunc.Id}'", ancestor?.Interval?? Interval.Empty);
 
         if (descendantPath.Count > 1 && descendantPath.ElementAt(1) is FunCallSyntaxNode descFunc)
-            return InvalidFunctionArgument(desc, descFunc);
+            return InvalidFunctionArgument(desc, descFunc, functions);
 
         return desc switch {
                    null => new(761, $"Seems like expression `{ancestor.ToShortText()}` cannot be used here", ancestor.Interval),
@@ -212,19 +214,31 @@ internal static partial class Errors {
         return null;
     }
 
-    private static FunnyParseException InvalidFunctionArgument(ISyntaxNode failed, FunCallSyntaxNode functionCall, TicNode stateExceptionNode = null)
+    private static FunnyParseException InvalidFunctionArgument(ISyntaxNode failed, FunCallSyntaxNode functionCall, IFunctionDictionary functions = null, TicNode stateExceptionNode = null)
     {
+        var signature = functions?.GetOrNull(functionCall.Id, functionCall.Args.Length);
+        if (signature == null)
+        {
+            // Fallback when signature is unavailable
+            var msg = functionCall.IsOperator
+                ? $"Invalid operator call argument for '{functionCall.Id}'"
+                : $"Invalid function call argument for '{functionCall.Id}'";
+            if (stateExceptionNode != null)
+                msg += $", but was: {ToNFunString(stateExceptionNode.State)}";
+            return new(functionCall.IsOperator ? 780 : 783, msg, failed.Interval);
+        }
+
         var argNum = functionCall.Args.IndexOf(failed);
-        var argumentType = functionCall.FunctionSignature.ArgTypes[argNum];
+        var argumentType = signature.ArgTypes[argNum];
 
         if (functionCall.IsOperator)
             return new(780,
-                $"Invalid operator call argument: {Signature(functionCall.FunctionSignature)}. Expected: {argumentType}" +
+                $"Invalid operator call argument: {Signature(signature)}. Expected: {argumentType}" +
                 (stateExceptionNode == null ? "" : $", but was: {ToNFunString(stateExceptionNode.State)}"),
                 failed.Interval);
         else
             return new(783,
-                $"Invalid function call argument: {Signature(functionCall.FunctionSignature)}. Expected: {argumentType}" +
+                $"Invalid function call argument: {Signature(signature)}. Expected: {argumentType}" +
                 (stateExceptionNode == null ? "" : $", but was: {ToNFunString(stateExceptionNode.State)}"),
                 failed.Interval);
     }

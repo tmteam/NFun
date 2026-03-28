@@ -37,6 +37,24 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
     }
 
 
+    public override DfsEnterResult Visit(FunCallSyntaxNode node) {
+        var result = DefaultVisitEnter(node);
+        var resolvedArgs = _solving.GetResolvedCallArgsOrNull(node.OrderNumber);
+        if (resolvedArgs != null)
+        {
+            foreach (var arg in resolvedArgs)
+            {
+                // Synthetic nodes (params arrays) are not in the tree — apply type manually
+                if (arg.OrderNumber >= TicSetupVisitor.SyntheticIdStart)
+                {
+                    var type = _solving.GetSyntaxNodeTypeOrNull(arg.OrderNumber);
+                    arg.OutputType = type == null ? FunnyType.Empty : _tiToLangTypeConverter.Convert(type);
+                }
+            }
+        }
+        return result;
+    }
+
     public override DfsEnterResult Visit(UserFunctionDefinitionSyntaxNode node)
         => DfsEnterResult.Continue;
 }

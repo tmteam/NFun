@@ -155,6 +155,18 @@ public static class TokenHelper {
         return true;
     }
 
+    /// <summary>Moves if current token is Id with the given value (contextual keyword).</summary>
+    public static bool MoveIfIdEquals(this TokFlow flow, string value, out Tok tok) {
+        if (flow.IsCurrent(TokType.Id) && flow.Current.Value == value)
+        {
+            tok = flow.Current;
+            flow.MoveNext();
+            return true;
+        }
+        tok = null;
+        return false;
+    }
+
     public static bool MoveIf(this TokFlow flow, TokType tokType, out Tok tok) {
         if (flow.IsCurrent(tokType))
         {

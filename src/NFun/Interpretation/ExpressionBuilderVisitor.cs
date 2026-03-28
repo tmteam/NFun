@@ -225,7 +225,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(FunCallSyntaxNode node) {
         var id = node.Id;
-        var args = node.ResolvedArgs ?? node.Args;
+        var args = _typeInferenceResults.GetResolvedCallArgsOrNull(node.OrderNumber) ?? node.Args;
 
         // Safe array access (?[]) — handled as special expression node (TIC graph op, not generic func)
         if (id == CoreFunNames.SafeGetElementName)
@@ -253,7 +253,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return new SafeArrayAccessExpressionNode(source, index, node.OutputType, elementConverter, node.Interval);
         }
 
-        var someFunc = node.FunctionSignature ?? _functions.GetOrNull(id, args.Length);
+        var someFunc = _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber) ?? _functions.GetOrNull(id, args.Length);
 
         if (someFunc is null)
         {
@@ -512,7 +512,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function) {
-        var callArgs = node is FunCallSyntaxNode fc ? (fc.ResolvedArgs ?? fc.Args) : node.Args;
+        var callArgs = node is FunCallSyntaxNode fc
+            ? (_typeInferenceResults.GetResolvedCallArgsOrNull(fc.OrderNumber) ?? fc.Args)
+            : node.Args;
         var children = callArgs.SelectToArray(ReadNode);
         var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
         if (converted.Type != node.OutputType)

@@ -8,7 +8,7 @@ using NFun.Types;
 namespace NFun.Functions;
 
 public class ToTextFunction : FunctionWithSingleArg {
-    public ToTextFunction() : base(CoreFunNames.ToText, FunnyType.Text, FunnyType.Any) { }
+    public ToTextFunction() : base(CoreFunNames.ToText, FunnyType.Text, FunnyType.Any) { ArgProperties = FunArgProperty.FromNames("value"); }
 
     public override object Calc(object a) => new TextFunnyArray(TypeHelper.GetFunText(a));
 }
@@ -52,29 +52,29 @@ public class Concat3TextsFunction : FunctionWithManyArguments {
 }
 
 public class TrimFunction : FunctionWithSingleArg {
-    public TrimFunction() : base("trim", FunnyType.Text, FunnyType.Text) { }
+    public TrimFunction() : base("trim", FunnyType.Text, FunnyType.Text) { ArgProperties = FunArgProperty.FromNames("str"); }
 
     public override object Calc(object a) => ((IFunnyArray)a).ToText().Trim().AsFunText();
 }
 
 public class TrimStartFunction : FunctionWithSingleArg {
-    public TrimStartFunction() : base("trimStart", FunnyType.Text, FunnyType.Text) { }
+    public TrimStartFunction() : base("trimStart", FunnyType.Text, FunnyType.Text) { ArgProperties = FunArgProperty.FromNames("str"); }
 
     public override object Calc(object a) => ((IFunnyArray)a).ToText().TrimStart().AsFunText();
 }
 
 public class TrimEndFunction : FunctionWithSingleArg {
-    public TrimEndFunction() : base("trimEnd", FunnyType.Text, FunnyType.Text) { }
+    public TrimEndFunction() : base("trimEnd", FunnyType.Text, FunnyType.Text) { ArgProperties = FunArgProperty.FromNames("str"); }
     public override object Calc(object a) => ((IFunnyArray)a).ToText().TrimEnd().AsFunText();
 }
 
 public class ToUpperFunction : FunctionWithSingleArg {
-    public ToUpperFunction() : base("toUpper", FunnyType.Text, FunnyType.Text) { }
+    public ToUpperFunction() : base("toUpper", FunnyType.Text, FunnyType.Text) { ArgProperties = FunArgProperty.FromNames("str"); }
     public override object Calc(object a) => ((IFunnyArray)a).ToText().ToUpper().AsFunText();
 }
 
 public class ToLowerFunction : FunctionWithSingleArg {
-    public ToLowerFunction() : base("toLower", FunnyType.Text, FunnyType.Text) { }
+    public ToLowerFunction() : base("toLower", FunnyType.Text, FunnyType.Text) { ArgProperties = FunArgProperty.FromNames("str"); }
     public override object Calc(object a) => ((IFunnyArray)a).ToText().ToLower().AsFunText();
 }
 
@@ -84,6 +84,7 @@ public class SplitFunction : FunctionWithTwoArgs {
         FunnyType.ArrayOf(FunnyType.Text),
         FunnyType.Text,
         FunnyType.Text) {
+        ArgProperties = FunArgProperty.FromNames("str", "separator");
     }
 
 
@@ -102,7 +103,7 @@ public class SplitFunction : FunctionWithTwoArgs {
 }
 
 public class JoinFunction : FunctionWithTwoArgs {
-    public JoinFunction() : base("join", FunnyType.Text, FunnyType.ArrayOf(FunnyType.Any), FunnyType.Text) { }
+    public JoinFunction() : base("join", FunnyType.Text, FunnyType.ArrayOf(FunnyType.Any), FunnyType.Text) { ArgProperties = FunArgProperty.FromNames("arr", "separator"); }
 
     public override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;

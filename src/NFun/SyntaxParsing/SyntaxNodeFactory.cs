@@ -49,8 +49,9 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode ListOf(IList<ISyntaxNode> elements, Interval interval, int parenthesesCount) =>
         new ListOfExpressionsSyntaxNode(elements, parenthesesCount, interval);
 
-    public static TypedVarDefSyntaxNode TypedVar(string name, TypeSyntax typeSyntax, int start, int end) =>
-        new(name, typeSyntax, new Interval(start, end));
+    public static TypedVarDefSyntaxNode TypedVar(string name, TypeSyntax typeSyntax, int start, int end,
+        ISyntaxNode defaultValue = null, bool isParams = false) =>
+        new(name, typeSyntax, new Interval(start, end), defaultValue, isParams);
 
     public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, int start, int end,
         NamedCallArgument[] namedArgs = null) =>

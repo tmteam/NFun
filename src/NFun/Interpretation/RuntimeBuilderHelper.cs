@@ -89,7 +89,7 @@ internal static class RuntimeBuilderHelper {
         }
         catch (TicException e)
         {
-            throw Errors.TranslateTicError(e, syntaxTree, graph);
+            throw Errors.TranslateTicError(e, syntaxTree, graph, functions);
         }
     }
 

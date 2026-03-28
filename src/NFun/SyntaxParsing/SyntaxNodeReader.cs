@@ -733,7 +733,7 @@ public static class SyntaxNodeReader {
                 throw Errors.ArrayInitializeSecondIndexMissed(openBracket, lastToken, missedVal);
             }
 
-            if (flow.MoveIf(TokType.Step, out var step))
+            if (flow.MoveIfIdEquals("step", out var step))
             {
                 var thirdArg = ReadNodeOrNull(flow);
                 if (thirdArg == null)
@@ -888,6 +888,35 @@ public static class SyntaxNodeReader {
                         throw Errors.FunctionArgumentError(head.Value, obrId, flow);
                     namedArgs.Add(new NamedCallArgument(nameTok.Value, exp, nameTok.Interval));
                 }
+                else if (flow.IsCurrent(TokType.Spread))
+                {
+                    // ...x in function definition or spread in call (future)
+                    var spreadTok = flow.Current;
+                    flow.MoveNext();
+                    var exp = ReadNodeOrNull(flow);
+                    if (exp == null)
+                        throw Errors.FunctionArgumentError(head.Value, obrId, flow);
+                    // Mark as spread by wrapping — Parser.ReadFunDefinition will interpret
+                    if (exp is TypedVarDefSyntaxNode typedVar)
+                    {
+                        positionalArgs.Add(new TypedVarDefSyntaxNode(
+                            typedVar.Id, typedVar.TypeSyntax,
+                            new Interval(spreadTok.Start, exp.Interval.Finish),
+                            typedVar.DefaultValue, isParams: true));
+                    }
+                    else if (exp is NamedIdSyntaxNode namedId)
+                    {
+                        positionalArgs.Add(SyntaxNodeFactory.TypedVar(
+                            namedId.Id, TypeSyntax.Empty,
+                            spreadTok.Start, exp.Interval.Finish,
+                            isParams: true));
+                    }
+                    else
+                    {
+                        // ...expr in call context — future spread support
+                        positionalArgs.Add(exp);
+                    }
+                }
                 else
                 {
                     // Positional after named = error
@@ -895,10 +924,21 @@ public static class SyntaxNodeReader {
                         throw Errors.PositionalArgAfterNamed(head.Value, flow.Current?.Interval ?? new Interval(obrId, obrId));
 
                     var exp = ReadNodeOrNull(flow);
-                    if (exp != null)
-                        positionalArgs.Add(exp);
-                    else
+                    if (exp == null)
                         break;
+
+                    // Typed param with default: x:type = expr (in function definition context)
+                    if (exp is TypedVarDefSyntaxNode typedArg && flow.IsCurrent(TokType.Def))
+                    {
+                        flow.MoveNext(); // skip '='
+                        var defaultVal = ReadNodeOrNull(flow);
+                        if (defaultVal == null)
+                            throw Errors.FunctionArgumentError(head.Value, obrId, flow);
+                        positionalArgs.Add(new TypedVarDefSyntaxNode(
+                            typedArg.Id, typedArg.TypeSyntax, typedArg.Interval, defaultVal));
+                    }
+                    else
+                        positionalArgs.Add(exp);
                 }
             } while (flow.MoveIf(TokType.Sep, out _));
         }

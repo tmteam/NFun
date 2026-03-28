@@ -23,6 +23,7 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
     public string Name { get; internal set; }
     public FunnyType[] ArgTypes { get; internal set; }
     public FunnyType ReturnType { get; internal set; }
+    public FunArgProperty[] ArgProperties { get; protected init; }
     public abstract object Calc(object a, object b);
 
     public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);

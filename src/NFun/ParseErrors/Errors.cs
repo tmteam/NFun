@@ -93,7 +93,7 @@ internal static partial class Errors {
                 TokType.Colon => ":",
                 TokType.MetaInfo => "@",
                 TokType.TwoDots => "..",
-                TokType.Step => "step",
+                // TokType.Step removed — "step" is now a contextual keyword (parsed as Id)
                 TokType.TextType => "text",
                 TokType.Int16Type => "int16",
                 TokType.Int32Type => "int32",

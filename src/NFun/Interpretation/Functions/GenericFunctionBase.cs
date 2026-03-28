@@ -60,6 +60,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
     }
     
     public FunnyType ReturnType { get; }
+    public FunArgProperty[] ArgProperties { get; protected init; }
 
     protected virtual object Calc(object[] args) => throw new NotImplementedException();
 

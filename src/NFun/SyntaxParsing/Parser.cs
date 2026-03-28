@@ -105,35 +105,60 @@ public class Parser {
             throw Errors.UnexpectedParenthesisOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
 
         var arguments = new List<TypedVarDefSyntaxNode>();
-        bool seenDefault = false;
+        TypedVarDefSyntaxNode paramsArg = null;
 
-        // Positional args from fun.Args (required params)
+        // Positional args from fun.Args (required params + varargs)
         foreach (var headNodeChild in fun.Args)
         {
-            if (seenDefault)
-                throw Errors.RequiredArgAfterDefault(fun, headNodeChild);
-
+            TypedVarDefSyntaxNode arg;
             if (headNodeChild is TypedVarDefSyntaxNode varDef)
-                arguments.Add(varDef);
+                arg = varDef;
             else if (headNodeChild is NamedIdSyntaxNode varSyntax)
-                arguments.Add(
-                    SyntaxNodeFactory.TypedVar(
-                        varSyntax.Id, TypeSyntax.Empty,
-                        headNodeChild.Interval.Start, headNodeChild.Interval.Finish));
+                arg = SyntaxNodeFactory.TypedVar(
+                    varSyntax.Id, TypeSyntax.Empty,
+                    headNodeChild.Interval.Start, headNodeChild.Interval.Finish);
             else
                 throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
             if (headNodeChild.ParenthesesCount != 0)
                 throw Errors.FunctionArgumentDefinitionIsInParenthesis(fun, headNodeChild);
+
+            // Defer params arg — it must be last, after defaults
+            if (arg.IsParams)
+            {
+                if (paramsArg != null)
+                    throw Errors.MultipleParams(fun);
+                paramsArg = arg;
+            }
+            else if (paramsArg != null)
+                throw Errors.ParamsNotLast(fun, paramsArg);
+            else
+                arguments.Add(arg);
         }
 
         // Named args from fun.NamedArgs → default values
         foreach (var named in fun.NamedArgs)
         {
-            seenDefault = true;
             arguments.Add(new TypedVarDefSyntaxNode(
                 named.Name, TypeSyntax.Empty, named.NameInterval,
                 defaultValue: named.Value));
+        }
+
+        // Append params at the end (must be last)
+        if (paramsArg != null)
+            arguments.Add(paramsArg);
+
+        // Validate: no required args after defaults (params excluded — already last)
+        bool seenDefault = false;
+        for (int argIdx = 0; argIdx < arguments.Count; argIdx++)
+        {
+            var arg = arguments[argIdx];
+            if (arg.HasDefault)
+                seenDefault = true;
+            else if (arg.IsParams)
+                break; // params is always last, ok after defaults
+            else if (seenDefault)
+                throw Errors.RequiredArgAfterDefault(fun, arg);
         }
 
         var outputType = TypeSyntax.Empty;

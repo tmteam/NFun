@@ -6,12 +6,12 @@ using NFun.Runtime.Arrays;
 namespace NFun.Functions; 
 
 public class AverageDecimalFunction : FunctionWithSingleArg {
-    public AverageDecimalFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
+    public AverageDecimalFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { ArgProperties = FunArgProperty.FromNames("arr"); }
     public override object Calc(object a) => ((IFunnyArray)a).As<decimal>().Average();
 }
 
 public class SqrtDecimalFunction : FunctionWithSingleArg {
-    public SqrtDecimalFunction() : base("sqrt", FunnyType.Real, FunnyType.Real) { }
+    public SqrtDecimalFunction() : base("sqrt", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) =>  (Decimal)Math.Sqrt((double)(decimal)a);
 }
 
@@ -21,62 +21,62 @@ public class DivideDecimalFunction : FunctionWithTwoArgs {
 }
 
 public class CosDecimalFunction : FunctionWithSingleArg {
-    public CosDecimalFunction() : base("cos", FunnyType.Real, FunnyType.Real) { }
+    public CosDecimalFunction() : base("cos", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Cos((double)(decimal)a);
 }
 
 public class SinDecimalFunction : FunctionWithSingleArg {
-    public SinDecimalFunction() : base("sin", FunnyType.Real, FunnyType.Real) { }
+    public SinDecimalFunction() : base("sin", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
 
     public override object Calc(object a) => (decimal)Math.Sin((double)(decimal)a);
 }
 
 public class TanDecimalFunction : FunctionWithSingleArg {
-    public TanDecimalFunction() : base("tan", FunnyType.Real, FunnyType.Real) { }
+    public TanDecimalFunction() : base("tan", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Tan((double)(decimal)a);
 }
 
 public class Atan2DecimalFunction : FunctionWithTwoArgs {
-    public Atan2DecimalFunction() : base("atan2", FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
+    public Atan2DecimalFunction() : base("atan2", FunnyType.Real, FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("y", "x"); }
     public override object Calc(object a, object b) => (decimal)Math.Atan2((double)(decimal)a, (double)(decimal)b);
 }
 
 public class AtanDecimalFunction : FunctionWithSingleArg {
-    public AtanDecimalFunction() : base("atan", FunnyType.Real, FunnyType.Real) { }
+    public AtanDecimalFunction() : base("atan", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Atan((double)(decimal)a);
 }
 
 public class AsinDecimalFunction : FunctionWithSingleArg {
-    public AsinDecimalFunction() : base("asin", FunnyType.Real, FunnyType.Real) { }
+    public AsinDecimalFunction() : base("asin", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) =>(decimal)Math.Asin((double)(decimal)a);
 }
 
 public class AcosDecimalFunction : FunctionWithSingleArg {
-    public AcosDecimalFunction() : base("acos", FunnyType.Real, FunnyType.Real) { }
+    public AcosDecimalFunction() : base("acos", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Acos((double)(decimal)a);
 }
 
 public class ExpDecimalFunction : FunctionWithSingleArg {
-    public ExpDecimalFunction() : base("exp", FunnyType.Real, FunnyType.Real) { }
+    public ExpDecimalFunction() : base("exp", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Exp((double)(decimal)a);
 }
 
 public class LogEDecimalFunction : FunctionWithSingleArg {
-    public LogEDecimalFunction() : base("log", FunnyType.Real, FunnyType.Real) { }
+    public LogEDecimalFunction() : base("log", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Log((double)(decimal)a);
 }
 
 public class LogDecimalFunction : FunctionWithTwoArgs {
-    public LogDecimalFunction() : base("log", FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
+    public LogDecimalFunction() : base("log", FunnyType.Real, FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("value", "newBase"); }
     public override object Calc(object a, object b) => (decimal)Math.Log((double)(decimal)a, (double)(decimal)b);
 }
 
 public class Log10DecimalFunction : FunctionWithSingleArg {
-    public Log10DecimalFunction() : base("log10", FunnyType.Real, FunnyType.Real) { }
+    public Log10DecimalFunction() : base("log10", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override object Calc(object a) => (decimal)Math.Log10((double)(decimal)a);
 }
 
 public class RoundToDecimalFunction : FunctionWithTwoArgs {
-    public RoundToDecimalFunction() : base("round", FunnyType.Real, FunnyType.Real, FunnyType.Int32) { }
+    public RoundToDecimalFunction() : base("round", FunnyType.Real, FunnyType.Real, FunnyType.Int32) { ArgProperties = FunArgProperty.FromNames("value", "digits"); }
     public override object Calc(object a, object b) => Math.Round((decimal)a, (int)b);
 }

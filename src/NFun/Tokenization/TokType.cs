@@ -137,10 +137,6 @@ public enum TokType {
     /// '..'
     /// </summary>
     TwoDots,
-    /// <summary>
-    /// step
-    /// </summary>
-    Step,
     TextType,
     Int16Type,
     Int32Type,
@@ -194,5 +190,9 @@ public enum TokType {
     /// Superscript digit ²³⁴⁵⁶⁷⁸⁹ (postfix power)
     /// </summary>
     Superscript,
+    /// <summary>
+    /// ... (spread/params)
+    /// </summary>
+    Spread,
 
 }

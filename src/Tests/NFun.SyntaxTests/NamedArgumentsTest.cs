@@ -58,9 +58,13 @@ public class NamedArgumentsTest {
     // ── Named args with built-in functions ──────────────────────────────────
 
     [Test]
-    public void NamedArgs_BuiltInFunction_NotSupported() =>
+    public void NamedArgs_BuiltIn_Max_Reversed() =>
+        "y = max(b = 1, a = 5)".AssertReturns("y", 5);
+
+    [Test]
+    public void NamedArgs_BuiltIn_NoArgProperties_Throws() =>
         Assert.Throws<FunnyParseException>(() =>
-            "y = max(b = 1, a = 5)".Build());
+            "y = (1 + 2).toText(x = 3)".Build());
 
     // ── Named args in expressions ───────────────────────────────────────────
 
@@ -182,6 +186,20 @@ public class NamedArgumentsTest {
     public void NamedArgs_BoolExpressionAsValue() =>
         "f(a,b) = a and b \r y = f(b = true, a = true)".AssertReturns("y", true);
 
-    // ── Multiline ───────────────────────────────────────────────────────────
+    // ── Pipe-forward with named args ─────────────────────────────────────
+
+    [Test]
+    public void NamedArgs_PipeForward_SecondArgNamed() =>
+        "f(a,b) = a - b \r y = 10.f(b = 3)".AssertReturns("y", 7);
+
+    [Test]
+    public void NamedArgs_PipeForward_ThreeParams() =>
+        "f(a,b,c) = a * 100 + b * 10 + c \r y = 1.f(c = 3, b = 2)".AssertReturns("y", 123);
+
+    // ── Multiple user functions same name different arity ──────────────────
+
+    [Test]
+    public void NamedArgs_OverloadByArity() =>
+        "f(a) = a * 10 \r f(a,b) = a + b \r y = f(b = 3, a = 2)".AssertReturns("y", 5);
 
 }

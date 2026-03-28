@@ -45,7 +45,7 @@ public class Tokenizer {
     }
 
     private static readonly Dictionary<string, TokType> Keywords = new() {
-        { "step", TokType.Step },
+        // "step" is a contextual keyword, parsed as Id (only special in [a..b step c])
         { "in", TokType.In },
         { "rule", TokType.Rule },
 
@@ -99,7 +99,7 @@ public class Tokenizer {
 
         { "error", TokType.Reserved },
 
-        { "from", TokType.Reserved },
+        // "from" unreserved — used as argument name in range/slice
         { "finally", TokType.Reserved },
         { "for", TokType.Reserved },
         { "fail", TokType.Reserved },
@@ -112,7 +112,7 @@ public class Tokenizer {
         { "mod", TokType.Reserved },
         { "never", TokType.Reserved },
         { "number", TokType.Reserved },
-        { "num", TokType.Reserved },
+        // "num" unreserved
         { "nil", TokType.Reserved },
         { "null", TokType.Reserved },
         { "none", TokType.None },
@@ -130,7 +130,7 @@ public class Tokenizer {
         { "try", TokType.Reserved },
         { "time", TokType.Reserved },
         { "throw", TokType.Reserved },
-        { "to", TokType.Reserved },
+        // "to" unreserved — used as argument name in range/slice
         { "uint128", TokType.Reserved },
 
         { "var", TokType.Reserved },
@@ -441,6 +441,8 @@ public class Tokenizer {
             case '<': return Tok.New(TokType.Less, position, position + 1);
             case '=' when next == '=': return Tok.New(TokType.Equal, position, position + 2);
             case '=': return Tok.New(TokType.Def, position, position + 1);
+            case '.' when next == '.' && position + 2 < str.Length && str[position + 2] == '.':
+                return Tok.New(TokType.Spread, position, position + 3);
             case '.' when next == '.': return Tok.New(TokType.TwoDots, position, position + 2);
             case '.': return Tok.New(TokType.Dot, position, position + 1);
             case '!' when next == '=': return Tok.New(TokType.NotEqual, position, position + 2);

@@ -17,6 +17,7 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
     public string Name { get; internal set; }
     public FunnyType[] ArgTypes { get; internal set; }
     public FunnyType ReturnType { get; internal set; }
+    public FunArgProperty[] ArgProperties { get; protected init; }
     public abstract object Calc(object a);
 
     public object Calc(object[] parameters)

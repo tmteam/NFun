@@ -132,6 +132,38 @@ public class DefaultValuesTest {
 
     // ── Regression ──────────────────────────────────────────────────────────
 
+    // ── Typed params with defaults ───────────────────────────────────────
+
+    [Test]
+    public void Default_TypedWithDefault() =>
+        "f(a:int, b:int = 5) = a + b \r y = f(3)".AssertReturns("y", 8);
+
+    [Test]
+    public void Default_TypedWithDefault_Overridden() =>
+        "f(a:int, b:int = 5) = a + b \r y = f(3, 7)".AssertReturns("y", 10);
+
+    // ── Recursive with defaults ───────────────────────────────────────────
+
+    [Test]
+    public void Default_Recursive() =>
+        "countdown(n, s = 1) = if(n <= 0) 0 else n + countdown(n - s) \r y = countdown(5)".AssertReturns("y", 15);
+
+    [Test]
+    public void Default_Recursive_OverriddenStep() =>
+        "countdown(n, s = 1) = if(n <= 0) 0 else n + countdown(n - s, s) \r y = countdown(6, 2)".AssertReturns("y", 12);
+
+    // ── Pipe-forward with defaults ────────────────────────────────────────
+
+    [Test]
+    public void Default_PipeForward() =>
+        "f(a, b = 10) = a + b \r y = 5.f()".AssertReturns("y", 15);
+
+    [Test]
+    public void Default_PipeForward_Override() =>
+        "f(a, b = 10) = a + b \r y = 5.f(20)".AssertReturns("y", 25);
+
+    // ── Regression ──────────────────────────────────────────────────────
+
     [Test]
     public void Regression_NormalFunction_Unaffected() =>
         "f(a, b) = a + b \r y = f(3, 4)".AssertReturns("y", 7);

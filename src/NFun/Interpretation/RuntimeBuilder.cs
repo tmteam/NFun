@@ -294,7 +294,7 @@ internal static class RuntimeBuilder {
         }
         catch (TicException e)
         {
-            throw Errors.TranslateTicError(e, functionSyntaxNode, graph);
+            throw Errors.TranslateTicError(e, functionSyntaxNode, graph, functionsDictionary);
         }
 
         resultsBuilder.SetResults(types);

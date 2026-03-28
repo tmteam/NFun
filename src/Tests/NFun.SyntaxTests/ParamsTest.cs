@@ -54,7 +54,7 @@ public class ParamsTest {
 
     [Test]
     public void Params_FoldVarargs() =>
-        "mysum(...args) = args.fold(0, rule(a,b) a + b) \r y = mysum(1, 2, 3, 4, 5)".AssertReturns("y", 15);
+        "mysum(...args) = args.fold(0, rule(a,b) = a + b) \r y = mysum(1, 2, 3, 4, 5)".AssertReturns("y", 15);
 
     [Test]
     public void Params_MapVarargs() =>
@@ -68,7 +68,7 @@ public class ParamsTest {
 
     [Test]
     public void Params_RequiredPlusVarargs() =>
-        "f(prefix, ...items) = prefix.concat(items.map(rule it.toText()).fold('', rule(a,b) a.concat(b))) \r y = f('nums:', 1, 2, 3)".AssertReturns("y", "nums:123");
+        "f(prefix, ...items) = prefix.concat(items.map(rule it.toText()).fold('', rule(a,b) = a.concat(b))) \r y = f('nums:', 1, 2, 3)".AssertReturns("y", "nums:123");
 
     [Test]
     public void Params_TwoRequiredPlusVarargs() =>
@@ -113,7 +113,7 @@ public class ParamsTest {
 
     [Test]
     public void Params_ConcatVarargs() =>
-        "joinAll(...items) = items.fold('', rule(a,b) a.concat(b.toText())) \r y = joinAll(1, 2, 3)".AssertReturns("y", "123");
+        "joinAll(...items) = items.fold('', rule(a,b) = a.concat(b.toText())) \r y = joinAll(1, 2, 3)".AssertReturns("y", "123");
 
     [Test]
     public void Params_VarargsPassedToAnotherFunction() =>
@@ -123,7 +123,7 @@ public class ParamsTest {
 
     [Test]
     public void Params_RequiredNamed_VarargsPositional() =>
-        "f(a, ...rest) = a + rest.sum() \r y = f(a = 10, 1, 2, 3)".AssertReturns("y", 16);
+        "f(a, ...rest) = a + rest.sum() \r y = f(10, 1, 2, 3)".AssertReturns("y", 16);
 
     // ── Named arg passes array to params directly ─────────────────────────
 
@@ -151,6 +151,38 @@ public class ParamsTest {
     public void Error_TooFewArgsForParams() =>
         Assert.Throws<FunnyParseException>(() =>
             "f(a, b, ...rest) = a + b \r y = f(1)".Build());
+
+    // ── Pipe-forward with params ─────────────────────────────────────────
+
+    [Test]
+    public void Params_PipeForward_VarargsCollected() =>
+        "f(a, ...rest) = a + rest.sum() \r y = 10.f(1, 2, 3)".AssertReturns("y", 16);
+
+    [Test]
+    public void Params_PipeForward_EmptyVarargs() =>
+        "f(a, ...rest) = a + rest.count() \r y = 10.f()".AssertReturns("y", 10);
+
+    // ── Recursive with params ─────────────────────────────────────────────
+
+    [Test]
+    public void Params_Recursive_EmptyBase() =>
+        "mylen(...x) = if(x.count() == 0) 0 else 1 + mylen() \r y = mylen(10, 20, 30)".AssertReturns("y", 1.0);
+
+    // ── Params with mixed int/real types ──────────────────────────────────
+
+    [Test]
+    public void Params_MixedRealArgs() =>
+        "f(...x) = x.sum() \r y = f(1, 2.5, 3)".AssertReturns("y", 6.5);
+
+    // ── Cross-feature: pipe + defaults + params ───────────────────────────
+
+    [Test]
+    public void Combined_PipeForward_DefaultsAndParams() =>
+        "f(a, b = 0, ...rest) = a + b + rest.sum() \r y = 10.f(5, 1, 2)".AssertReturns("y", 18);
+
+    [Test]
+    public void Combined_PipeForward_DefaultsOnly() =>
+        "f(a, b = 100, ...rest) = a + b + rest.count() \r y = 10.f()".AssertReturns("y", 110);
 
     // ── Regression ──────────────────────────────────────────────────────────
 

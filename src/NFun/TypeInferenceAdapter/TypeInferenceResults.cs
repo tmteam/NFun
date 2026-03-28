@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using NFun.Interpretation.Functions;
+using NFun.SyntaxParsing;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 
@@ -10,6 +11,8 @@ public class TypeInferenceResultsBuilder {
     private readonly List<IFunctionSignature> _functionalVariable = new();
     private readonly List<StateFun> _recursiveCalls = new();
     private readonly Dictionary<string, StateFun> _userFunctionSignatures = new();
+    private readonly Dictionary<int, ISyntaxNode[]> _resolvedCallArgs = new();
+    private readonly Dictionary<int, IFunctionSignature> _resolvedCallSignatures = new();
 
     private ITicResults _bodyTypeSolving;
 
@@ -30,6 +33,12 @@ public class TypeInferenceResultsBuilder {
     public void RememberFunctionalVariable(int id, IFunctionSignature signature)
         => _functionalVariable.EnlargeAndSet(id, signature);
 
+    public void RememberResolvedCallArgs(int orderNumber, ISyntaxNode[] args)
+        => _resolvedCallArgs[orderNumber] = args;
+
+    public void RememberResolvedCallSignature(int orderNumber, IFunctionSignature signature)
+        => _resolvedCallSignatures[orderNumber] = signature;
+
     public void SetResults(ITicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
 
     public TypeInferenceResults Build() =>
@@ -37,7 +46,9 @@ public class TypeInferenceResultsBuilder {
             bodyTypeSolving: _bodyTypeSolving,
             genericFunctionTypes: _genericFunctionTypes.ToArray(),
             functionalVariables: _functionalVariable,
-            recursiveCalls: _recursiveCalls
+            recursiveCalls: _recursiveCalls,
+            resolvedCallArgs: _resolvedCallArgs,
+            resolvedCallSignatures: _resolvedCallSignatures
         );
 
     public void RememberRecursiveCall(int id, StateFun userFunction)
@@ -48,16 +59,22 @@ public class TypeInferenceResults {
     private readonly ITicResults _bodyTypeSolving;
     private readonly IList<IFunctionSignature> _functionalVariables;
     private readonly IList<StateFun> _recursiveCalls;
+    private readonly Dictionary<int, ISyntaxNode[]> _resolvedCallArgs;
+    private readonly Dictionary<int, IFunctionSignature> _resolvedCallSignatures;
 
     public TypeInferenceResults(
         ITicResults bodyTypeSolving,
         StateRefTo[][] genericFunctionTypes,
         IList<IFunctionSignature> functionalVariables,
-        IList<StateFun> recursiveCalls) {
+        IList<StateFun> recursiveCalls,
+        Dictionary<int, ISyntaxNode[]> resolvedCallArgs = null,
+        Dictionary<int, IFunctionSignature> resolvedCallSignatures = null) {
         GenericFunctionTypes = genericFunctionTypes;
         _bodyTypeSolving = bodyTypeSolving;
         _functionalVariables = functionalVariables;
         _recursiveCalls = recursiveCalls;
+        _resolvedCallArgs = resolvedCallArgs ?? new Dictionary<int, ISyntaxNode[]>();
+        _resolvedCallSignatures = resolvedCallSignatures ?? new Dictionary<int, IFunctionSignature>();
     }
 
     public IFunctionSignature GetFunctionalVariableOrNull(int id) =>
@@ -77,6 +94,12 @@ public class TypeInferenceResults {
 
     public  ITicNodeState[][] GenericFunctionTypes { get; }
     public IReadOnlyList<ConstraintsState> Generics => _bodyTypeSolving.GenericsStates;
+
+    public ISyntaxNode[] GetResolvedCallArgsOrNull(int id) =>
+        _resolvedCallArgs.TryGetValue(id, out var args) ? args : null;
+
+    public IFunctionSignature GetResolvedCallSignatureOrNull(int id) =>
+        _resolvedCallSignatures.TryGetValue(id, out var sig) ? sig : null;
 
     public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
         => _bodyTypeSolving.GetSyntaxNodeOrNull(id)?.State;

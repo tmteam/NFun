@@ -16,6 +16,7 @@ public class ConvertFunction : GenericFunctionBase {
         "convert",
         new[] { GenericConstrains.Any, GenericConstrains.Any },
         FunnyType.Generic(0), FunnyType.Generic(1)) {
+        ArgProperties = FunArgProperty.FromNames("value");
     }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
