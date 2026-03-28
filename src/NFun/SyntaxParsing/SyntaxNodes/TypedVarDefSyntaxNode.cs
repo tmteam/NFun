@@ -6,10 +6,13 @@ using NFun.Tokenization;
 namespace NFun.SyntaxParsing.SyntaxNodes;
 
 public class TypedVarDefSyntaxNode : ISyntaxNode {
-    public TypedVarDefSyntaxNode(string id, TypeSyntax typeSyntax, Interval interval) {
+    public TypedVarDefSyntaxNode(string id, TypeSyntax typeSyntax, Interval interval,
+        ISyntaxNode defaultValue = null, bool isParams = false) {
         Id = id;
         TypeSyntax = typeSyntax;
         Interval = interval;
+        DefaultValue = defaultValue;
+        IsParams = isParams;
     }
 
     public int OrderNumber { get; set; }
@@ -17,8 +20,19 @@ public class TypedVarDefSyntaxNode : ISyntaxNode {
     public FunnyType OutputType { get; set; }
     public string Id { get; }
     public TypeSyntax TypeSyntax { get; }
+
+    /// <summary>Default value expression. Null if no default.</summary>
+    public ISyntaxNode DefaultValue { get; }
+    public bool HasDefault => DefaultValue != null;
+
+    /// <summary>Whether this is a varargs/params parameter (prefixed with ...)</summary>
+    public bool IsParams { get; }
+
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-    public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
-    public override string ToString() => Id + ":" + OutputType;
+    public IEnumerable<ISyntaxNode> Children =>
+        DefaultValue != null ? new[] { DefaultValue } : Array.Empty<ISyntaxNode>();
+    public override string ToString() =>
+        (IsParams ? "..." : "") + Id + (TypeSyntax is TypeSyntax.EmptyType ? "" : ":" + TypeSyntax)
+        + (HasDefault ? "=" + DefaultValue : "");
 }

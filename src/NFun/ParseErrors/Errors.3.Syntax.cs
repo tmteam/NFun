@@ -143,6 +143,9 @@ internal static partial class Errors {
     internal static FunnyParseException PositionalArgAfterNamed(string functionName, Interval interval) => new(
         420, $"Positional argument cannot appear after named arguments in call to '{functionName}'", interval);
 
+    internal static FunnyParseException RequiredArgAfterDefault(FunCallSyntaxNode fun, ISyntaxNode arg) => new(
+        422, $"Required parameter cannot appear after parameters with default values in function '{fun.Id}'", arg.Interval);
+
     #endregion
 
 

@@ -104,9 +104,15 @@ public class Parser {
         if (fun.ParenthesesCount != 0)
             throw Errors.UnexpectedParenthesisOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
 
-        var arguments = new List<TypedVarDefSyntaxNode>(fun.Args.Length);
+        var arguments = new List<TypedVarDefSyntaxNode>();
+        bool seenDefault = false;
+
+        // Positional args from fun.Args (required params)
         foreach (var headNodeChild in fun.Args)
         {
+            if (seenDefault)
+                throw Errors.RequiredArgAfterDefault(fun, headNodeChild);
+
             if (headNodeChild is TypedVarDefSyntaxNode varDef)
                 arguments.Add(varDef);
             else if (headNodeChild is NamedIdSyntaxNode varSyntax)
@@ -119,6 +125,15 @@ public class Parser {
 
             if (headNodeChild.ParenthesesCount != 0)
                 throw Errors.FunctionArgumentDefinitionIsInParenthesis(fun, headNodeChild);
+        }
+
+        // Named args from fun.NamedArgs → default values
+        foreach (var named in fun.NamedArgs)
+        {
+            seenDefault = true;
+            arguments.Add(new TypedVarDefSyntaxNode(
+                named.Name, TypeSyntax.Empty, named.NameInterval,
+                defaultValue: named.Value));
         }
 
         var outputType = TypeSyntax.Empty;

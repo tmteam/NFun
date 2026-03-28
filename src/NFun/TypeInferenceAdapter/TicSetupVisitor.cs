@@ -109,12 +109,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     /// If no named args, returns node.Args as-is.
     /// </summary>
     private ISyntaxNode[] ResolveNamedArgs(FunCallSyntaxNode node) {
-        if (!node.HasNamedArgs)
-            return node.Args;
+        // Try find user function definition (for named args, defaults, params)
+        var totalCallArgs = node.Args.Length + node.NamedArgs.Length;
+        var userFun = FindUserFunctionDefinition(node.Id, totalCallArgs)
+            ?? FindUserFunctionByNameWithDefaults(node.Id, node.Args.Length, totalCallArgs);
 
-        // Find function definition to know parameter names
-        var totalArgCount = node.Args.Length + node.NamedArgs.Length;
-        var userFun = FindUserFunctionDefinition(node.Id, totalArgCount);
+        // No named args and no defaults/params needed → fast path
+        if (!node.HasNamedArgs && (userFun == null || userFun.Args.Count == node.Args.Length))
+            return node.Args;
 
         if (userFun == null)
         {
@@ -151,11 +153,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             result[paramIndex] = named.Value;
         }
 
-        // Check all args filled
+        // Fill defaults for missing args
         for (int i = 0; i < result.Length; i++)
         {
             if (result[i] == null)
-                throw Errors.MissingArgument(node.Id, paramNames[i], node.Interval);
+            {
+                if (userFun.Args[i].HasDefault)
+                    result[i] = userFun.Args[i].DefaultValue;
+                else
+                    throw Errors.MissingArgument(node.Id, paramNames[i], node.Interval);
+            }
         }
 
         return result;
@@ -163,6 +170,21 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
     private UserFunctionDefinitionSyntaxNode FindUserFunctionDefinition(string name, int argCount) =>
         _userFunctions.TryGetValue((name, argCount), out var ufn) ? ufn : null;
+
+    /// <summary>Find user function by name where arg count fits within [minArgs, maxArgs] considering defaults</summary>
+    private UserFunctionDefinitionSyntaxNode FindUserFunctionByNameWithDefaults(string name, int providedArgs, int maxArgs) {
+        foreach (var ((fn, _), ufn) in _userFunctions)
+        {
+            if (!string.Equals(fn, name, StringComparison.OrdinalIgnoreCase))
+                continue;
+            var requiredCount = 0;
+            foreach (var arg in ufn.Args)
+                if (!arg.HasDefault) requiredCount++;
+            if (providedArgs >= requiredCount && providedArgs <= ufn.Args.Count)
+                return ufn;
+        }
+        return null;
+    }
 
     private FunnyType ResolveType(TypeSyntax syntax) =>
         TypeSyntaxResolver.Resolve(syntax, _customTypes);
