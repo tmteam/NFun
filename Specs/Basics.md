@@ -497,7 +497,7 @@ y = greet(1, c=5)  # 16  — skip middle default by name
 
 ### Varargs (params)
 
-The last argument prefixed with `...` collects extra positional args into an array
+The `...` prefix collects extra positional args into an array
 
 ```py
 f(a, ...rest) = a + rest.sum()
@@ -508,6 +508,22 @@ y = f(a=10, rest=[1,2,3])    # 16  — named array for rest
 g(a, b=0, ...rest) = a+b+rest.sum()
 y = g(1, 2, 3, 4)            # 10  — defaults + params
 ```
+
+### Keyword-only arguments (after varargs)
+
+Arguments declared after `...` are keyword-only — they can only be passed by name
+
+```py
+join(...items, sep=' ') = items.map(rule it.toText()).fold('', rule(a,b) = a.concat(sep).concat(b))
+y = join(1, 2, 3)            # ' 1 2 3' — sep uses default
+y = join(1, 2, 3, sep='-')   # '-1-2-3' — sep by name only
+
+f(a, ...rest, verbose=false) = if(verbose) rest.count() else a + rest.sum()
+y = f(1, 2, 3)               # 6       — verbose=false (default)
+y = f(1, 2, 3, verbose=true) # 2       — verbose by name only, rest=[2,3]
+```
+
+Keyword-only args must have defaults (since they can't be filled positionally)
 
 ### Specific and generic user functions
 
