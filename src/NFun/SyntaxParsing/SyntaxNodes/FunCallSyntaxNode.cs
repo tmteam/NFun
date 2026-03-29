@@ -31,7 +31,8 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
         Interval interval,
         bool isPipeForward,
         bool isOperator = false,
-        NamedCallArgument[] namedArgs = null)
+        NamedCallArgument[] namedArgs = null,
+        int keywordOnlyNamedStartIndex = -1)
     {
         Id = id;
         Args = args;
@@ -39,6 +40,9 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
         IsPipeForward = isPipeForward;
         IsOperator = isOperator;
         NamedArgs = namedArgs ?? Array.Empty<NamedCallArgument>();
+        KeywordOnlyNamedStartIndex = keywordOnlyNamedStartIndex >= 0
+            ? keywordOnlyNamedStartIndex
+            : NamedArgs.Length; // default: no keyword-only args
     }
 
     public FunnyType OutputType { get; set; }
@@ -53,6 +57,12 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
     public NamedCallArgument[] NamedArgs { get; }
 
     public bool HasNamedArgs => NamedArgs.Length > 0;
+
+    /// <summary>
+    /// Index into NamedArgs where keyword-only args start (args after ... in definition).
+    /// Equals NamedArgs.Length if no keyword-only args.
+    /// </summary>
+    public int KeywordOnlyNamedStartIndex { get; }
 
     public Interval Interval { get; set; }
     public bool IsOperator { get; }

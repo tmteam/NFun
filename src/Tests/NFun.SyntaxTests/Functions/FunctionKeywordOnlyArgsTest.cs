@@ -82,9 +82,9 @@ public class FunctionKeywordOnlyArgsTest {
     // ── Error cases ─────────────────────────────────────────────────
 
     [Test]
-    public void Error_KeywordOnly_PassedPositionally() =>
-        Assert.Throws<FunnyParseException>(() =>
-            "f(...items, sep=' ') = sep \r y = f(1,2,3, '-')".Build());
+    public void KeywordOnly_ExtraPositionalGoesToVarargs() =>
+        // With varargs, extra positional args get absorbed into the varargs (Python-compatible)
+        "f(...items, sep=' ') = items.count() \r y = f(1,2,3, '-')".AssertReturns("y", 4);
 
     [Test]
     public void Error_KeywordOnly_WithoutDefault() =>
@@ -101,11 +101,69 @@ public class FunctionKeywordOnlyArgsTest {
         Assert.Throws<FunnyParseException>(() =>
             "f(...items, sep=' ') = sep \r y = f(1,2,3, unknown='-')".Build());
 
+    // ── Keyword-only order independence ─────────────────────────────
+
+    [Test]
+    public void KeywordOnly_ReversedOrder() =>
+        "f(...items, a=1, b=2) = a * 10 + b \r y = f(1, b=20, a=10)".AssertReturns("y", 120);
+
+    [Test]
+    public void KeywordOnly_PartialOverrideMultiple() =>
+        "f(...items, a=1, b=2, c=3) = a + b + c \r y = f(1, a=10, c=30)".AssertReturns("y", 42);
+
+    // ── Named positional + keyword-only ──────────────────────────────
+
+    [Test]
+    public void KeywordOnly_NamedPositionalPlusKeyword() =>
+        "f(a, ...rest, kw=1) = a + kw \r y = f(a=10, kw=5)".AssertReturns("y", 15);
+
+    [Test]
+    public void KeywordOnly_OnlyKeywordNamed_EmptyVarargs() =>
+        "f(a, ...items, sep='-') = a \r y = f(a=1, sep='|')".AssertReturns("y", 1);
+
+    // ── Pipe-forward edge cases ──────────────────────────────────────
+
+    [Test]
+    public void PipeForward_OnlyKeywordOverride() =>
+        "f(a, ...items, sep='-') = sep \r y = 1.f(sep='|')".AssertReturns("y", "|");
+
+    // ── Typed keyword-only ───────────────────────────────────────────
+
+    [Test]
+    public void KeywordOnly_TypedWithLiteralDefault() =>
+        "f(...items, scale:int=6) = items.map(rule it*scale) \r y = f(1,2)".AssertReturns("y", new[] { 6, 12 });
+
+    [Test]
+    public void KeywordOnly_BothTyped() =>
+        "f(...items:int[], count:int=0) = items.count() + count \r y = f(1,2,3, count=10)".AssertReturns("y", 13);
+
+    // ── Recursive with keyword-only ──────────────────────────────────
+
+    [Test]
+    public void KeywordOnly_Recursive() =>
+        "f(n, ...items, step=1) = if(n<=0) items.count() else f(n-step, step=step) \r y = f(3)".AssertReturns("y", 0);
+
     // ── Overload with keyword-only ──────────────────────────────────
 
     [Test]
     public void Overload_KeywordOnlyDoesNotChangeArity() =>
         "f(a) = a * 100 \r f(a, ...rest, sep='-') = a + rest.sum() \r y = f(5)".AssertReturns("y", 500);
+
+    [Test]
+    public void Overload_KeywordOnlyCallsCorrectOverload() =>
+        "f(a) = a * 100 \r f(a, ...rest, sep='-') = a + rest.sum() \r y = f(5, 1, 2, sep=':')".AssertReturns("y", 8);
+
+    // ── Error: name collisions ───────────────────────────────────────
+
+    [Test]
+    public void Error_KeywordOnly_NameSameAsPositional() =>
+        Assert.Throws<FunnyParseException>(() =>
+            "f(a, ...items, a=5) = a".Build());
+
+    [Test]
+    public void Error_KeywordOnly_NameSameAsVarargs() =>
+        Assert.Throws<FunnyParseException>(() =>
+            "f(...items, items=5) = items".Build());
 
     // ── Regression: regular params still work ───────────────────────
 

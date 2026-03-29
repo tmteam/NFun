@@ -51,22 +51,22 @@ public static class SyntaxNodeFactory {
         new ListOfExpressionsSyntaxNode(elements, parenthesesCount, interval);
 
     public static TypedVarDefSyntaxNode TypedVar(string name, TypeSyntax typeSyntax, int start, int end,
-        ISyntaxNode defaultValue = null, bool isParams = false) =>
-        new(name, typeSyntax, new Interval(start, end), defaultValue, isParams);
+        ISyntaxNode defaultValue = null, bool isParams = false, bool isKeywordOnly = false) =>
+        new(name, typeSyntax, new Interval(start, end), defaultValue, isParams, isKeywordOnly);
 
     public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, int start, int end,
-        NamedCallArgument[] namedArgs = null) =>
-        new FunCallSyntaxNode(name, args.ToArray(), new Interval(start, end), false, false, namedArgs);
+        NamedCallArgument[] namedArgs = null, int keywordOnlyNamedStartIndex = -1) =>
+        new FunCallSyntaxNode(name, args.ToArray(), new Interval(start, end), false, false, namedArgs, keywordOnlyNamedStartIndex);
 
     public static ISyntaxNode FunCall(string name, IList<ISyntaxNode> args, Interval interval) =>
         new FunCallSyntaxNode(name, args.ToArray(), interval, false, false);
 
     public static ISyntaxNode PipedFunCall(string name, ISyntaxNode headArg, IList<ISyntaxNode> addArgs, int start,
-        int end, NamedCallArgument[] namedArgs = null) {
+        int end, NamedCallArgument[] namedArgs = null, int keywordOnlyNamedStartIndex = -1) {
         var args = new ISyntaxNode[addArgs.Count + 1];
         args[0] = headArg;
         addArgs.CopyTo(args, 1);
-        return new FunCallSyntaxNode(name, args, new Interval(start, end), true, false, namedArgs);
+        return new FunCallSyntaxNode(name, args, new Interval(start, end), true, false, namedArgs, keywordOnlyNamedStartIndex);
     }
 
     public static ISyntaxNode OperatorCall(string name, ISyntaxNode[] args, int start, int end) =>

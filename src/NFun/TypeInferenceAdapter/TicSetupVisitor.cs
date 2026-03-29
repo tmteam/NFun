@@ -125,48 +125,58 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             return ResolveNamedArgsForBuiltIn(node);
         }
 
-        // Fast path: no named args, no defaults, no params, exact match
-        bool hasParams = userFun.Args.Count > 0 && userFun.Args[^1].IsParams;
-        bool hasDefaults = false;
-        foreach (var arg in userFun.Args) if (arg.HasDefault) { hasDefaults = true; break; }
+        var paramCount = userFun.Args.Count;
 
-        if (!node.HasNamedArgs && !hasParams && !hasDefaults && userFun.Args.Count == node.Args.Length)
+        // Compute argument layout: [positional..., defaults..., params, keyword-only...]
+        int fillableCount = 0; // slots that accept positional args (not params, not keyword-only)
+        int paramsIndex = -1;
+        bool hasDefaults = false;
+        bool hasKeywordOnly = false;
+        for (int i = 0; i < paramCount; i++)
+        {
+            var arg = userFun.Args[i];
+            if (arg.IsParams) paramsIndex = i;
+            else if (arg.IsKeywordOnly) hasKeywordOnly = true;
+            else
+            {
+                fillableCount++;
+                if (arg.HasDefault) hasDefaults = true;
+            }
+        }
+        bool hasParams = paramsIndex >= 0;
+
+        // Fast path: no named args, no defaults, no params, no keyword-only, exact match
+        if (!node.HasNamedArgs && !hasParams && !hasDefaults && !hasKeywordOnly && paramCount == node.Args.Length)
             return node.Args;
 
-        var paramCount = userFun.Args.Count;
-        var nonParamsCount = hasParams ? paramCount - 1 : paramCount;
         var result = new ISyntaxNode[paramCount];
 
-        // Fill positional args (up to non-params count)
-        int positionalFillCount = Math.Min(node.Args.Length, nonParamsCount);
+        // Fill positional args (up to fillable count — excludes params and keyword-only slots)
+        int positionalFillCount = Math.Min(node.Args.Length, fillableCount);
         for (int i = 0; i < positionalFillCount; i++)
             result[i] = node.Args[i];
 
         // Collect extra positional args into array for params
         if (hasParams)
         {
-            var paramsIndex = paramCount - 1;
-            if (node.Args.Length > nonParamsCount)
+            if (node.Args.Length > fillableCount)
             {
-                // Extra args → synthetic array
-                var extraArgs = new ISyntaxNode[node.Args.Length - nonParamsCount];
+                var extraArgs = new ISyntaxNode[node.Args.Length - fillableCount];
                 for (int i = 0; i < extraArgs.Length; i++)
-                    extraArgs[i] = node.Args[nonParamsCount + i];
+                    extraArgs[i] = node.Args[fillableCount + i];
                 var arr = new ArraySyntaxNode(extraArgs, node.Interval);
                 arr.OrderNumber = _nextSyntheticId++;
                 result[paramsIndex] = arr;
             }
             else
             {
-                // No extra args → empty synthetic array
                 var arr = new ArraySyntaxNode(Array.Empty<ISyntaxNode>(), node.Interval);
                 arr.OrderNumber = _nextSyntheticId++;
                 result[paramsIndex] = arr;
             }
         }
 
-        // Fill named args
-        var paramsIdx = hasParams ? paramCount - 1 : -1;
+        // Fill named args (match by name against all params including keyword-only)
         foreach (var named in node.NamedArgs)
         {
             int paramIndex = -1;
@@ -179,8 +189,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 throw Errors.UnknownNamedArgument(node.Id, named.Name, named.NameInterval);
             if (paramIndex < positionalFillCount)
                 throw Errors.NamedArgOverlapsPositional(node.Id, named.Name, named.NameInterval);
-            // Named arg targeting params slot replaces the synthetic array
-            if (paramIndex == paramsIdx)
+            if (paramIndex == paramsIndex)
                 result[paramIndex] = named.Value;
             else if (result[paramIndex] != null)
                 throw Errors.DuplicateNamedArgument(node.Id, named.Name, named.NameInterval);
@@ -188,39 +197,34 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 result[paramIndex] = named.Value;
         }
 
-        // Fill defaults for missing non-params args.
-        for (int i = 0; i < nonParamsCount; i++)
+        // Fill defaults for missing non-params args (including keyword-only)
+        for (int i = 0; i < paramCount; i++)
         {
-            if (result[i] == null)
+            if (i == paramsIndex || result[i] != null) continue;
+
+            if (!userFun.Args[i].HasDefault)
+                throw Errors.MissingArgument(node.Id, userFun.Args[i].Id, node.Interval);
+
+            var defaultExpr = userFun.Args[i].DefaultValue;
+
+            if (userFun.Args[i].PrecomputedDefaultValue != null)
             {
-                if (!userFun.Args[i].HasDefault)
-                    throw Errors.MissingArgument(node.Id, userFun.Args[i].Id, node.Interval);
-
-                var defaultExpr = userFun.Args[i].DefaultValue;
-
-                if (userFun.Args[i].PrecomputedDefaultValue != null)
-                {
-                    // Precomputed: create ConstantSyntaxNode with correct type + fresh OrderNumber
-                    result[i] = new ConstantSyntaxNode(
-                        userFun.Args[i].PrecomputedDefaultValue,
-                        userFun.Args[i].PrecomputedDefaultType,
-                        defaultExpr.Interval) {
-                        OrderNumber = _nextSyntheticId++,
-                    };
-                }
-                else if (userFun.Args[i].TypeSyntax is not TypeSyntax.EmptyType)
-                {
-                    // Typed param but precomputation failed (none, empty containers, etc.)
-                    // Use DefaultValueSyntaxNode: TIC constrains via SetCall,
-                    // ExpressionBuilder uses GetDefaultFunnyValue() for the type.
-                    result[i] = new DefaultValueSyntaxNode(defaultExpr.Interval) {
-                        OrderNumber = _nextSyntheticId++,
-                    };
-                }
-                else
-                {
-                    result[i] = defaultExpr;
-                }
+                result[i] = new ConstantSyntaxNode(
+                    userFun.Args[i].PrecomputedDefaultValue,
+                    userFun.Args[i].PrecomputedDefaultType,
+                    defaultExpr.Interval) {
+                    OrderNumber = _nextSyntheticId++,
+                };
+            }
+            else if (userFun.Args[i].TypeSyntax is not TypeSyntax.EmptyType)
+            {
+                result[i] = new DefaultValueSyntaxNode(defaultExpr.Interval) {
+                    OrderNumber = _nextSyntheticId++,
+                };
+            }
+            else
+            {
+                result[i] = defaultExpr;
             }
         }
 
@@ -297,11 +301,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             if (!string.Equals(fn, name, StringComparison.OrdinalIgnoreCase))
                 continue;
-            bool hasParams = ufn.Args.Count > 0 && ufn.Args[^1].IsParams;
+            bool hasParams = false;
             var requiredCount = 0;
             var maxCount = ufn.Args.Count;
             foreach (var arg in ufn.Args)
-                if (!arg.HasDefault && !arg.IsParams) requiredCount++;
+            {
+                if (arg.IsParams) hasParams = true;
+                else if (!arg.HasDefault && !arg.IsKeywordOnly) requiredCount++;
+            }
 
             if (hasParams)
             {

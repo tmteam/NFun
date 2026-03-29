@@ -870,6 +870,8 @@ public static class SyntaxNodeReader {
         var positionalArgs = new List<ISyntaxNode>();
         List<NamedCallArgument> namedArgs = null;
         bool seenNamed = false;
+        bool seenSpread = false;
+        int keywordOnlyNamedStartIndex = -1;
 
         if (!flow.IsCurrent(TokType.ParenthCbr))
         {
@@ -886,12 +888,16 @@ public static class SyntaxNodeReader {
                     var exp = ReadNodeOrNull(flow);
                     if (exp == null)
                         throw Errors.FunctionArgumentError(head.Value, obrId, flow);
+                    // Track where keyword-only args start (named args after ...)
+                    if (seenSpread && keywordOnlyNamedStartIndex < 0)
+                        keywordOnlyNamedStartIndex = namedArgs?.Count ?? 0;
                     (namedArgs ??= new List<NamedCallArgument>())
                         .Add(new NamedCallArgument(nameTok.Value, exp, nameTok.Interval));
                 }
                 else if (flow.IsCurrent(TokType.Spread))
                 {
                     // ...x in function definition or spread in call (future)
+                    seenSpread = true;
                     var spreadTok = flow.Current;
                     flow.MoveNext();
                     var exp = ReadNodeOrNull(flow);
@@ -950,9 +956,9 @@ public static class SyntaxNodeReader {
         var named = namedArgs is { Count: > 0 } ? namedArgs.ToArray() : null;
 
         if (pipedVal == null)
-            return SyntaxNodeFactory.FunCall(head.Value, positionalArgs, start, flow.CurrentTokenFinishPosition, named);
+            return SyntaxNodeFactory.FunCall(head.Value, positionalArgs, start, flow.CurrentTokenFinishPosition, named, keywordOnlyNamedStartIndex);
         else
-            return SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, positionalArgs, start, flow.CurrentTokenFinishPosition, named);
+            return SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, positionalArgs, start, flow.CurrentTokenFinishPosition, named, keywordOnlyNamedStartIndex);
     }
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {

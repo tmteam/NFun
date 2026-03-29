@@ -152,6 +152,12 @@ internal static partial class Errors {
     internal static FunnyParseException ParamsNotLast(FunCallSyntaxNode fun, TypedVarDefSyntaxNode param) => new(
         426, $"Params parameter '...{param.Id}' must be the last parameter in function '{fun.Id}'", param.Interval);
 
+    internal static FunnyParseException KeywordOnlyWithoutDefault(FunCallSyntaxNode fun, string argName, Interval interval) => new(
+        428, $"Keyword-only parameter '{argName}' in function '{fun.Id}' must have a default value", interval);
+
+    internal static FunnyParseException DuplicateKeywordOnlyArg(FunCallSyntaxNode fun, string argName, Interval interval) => new(
+        430, $"Duplicate parameter '{argName}' in function '{fun.Id}'", interval);
+
     #endregion
 
 

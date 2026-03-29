@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
@@ -107,6 +108,8 @@ public class Parser {
         var arguments = new List<TypedVarDefSyntaxNode>();
         TypedVarDefSyntaxNode paramsArg = null;
 
+        var keywordOnlyFromPositional = new List<TypedVarDefSyntaxNode>();
+
         // Positional args from fun.Args (required params + varargs)
         foreach (var headNodeChild in fun.Args)
         {
@@ -131,34 +134,65 @@ public class Parser {
                 paramsArg = arg;
             }
             else if (paramsArg != null)
-                throw Errors.ParamsNotLast(fun, paramsArg);
+            {
+                // Arg after ... → keyword-only (must have default)
+                if (!arg.HasDefault)
+                    throw Errors.KeywordOnlyWithoutDefault(fun, arg.Id, arg.Interval);
+                keywordOnlyFromPositional.Add(new TypedVarDefSyntaxNode(
+                    arg.Id, arg.TypeSyntax, arg.Interval, arg.DefaultValue, isKeywordOnly: true));
+            }
             else
                 arguments.Add(arg);
         }
 
-        // Named args from fun.NamedArgs → default values
-        foreach (var named in fun.NamedArgs)
+        // Named args BEFORE spread → regular defaults
+        var kwStart = fun.KeywordOnlyNamedStartIndex;
+        for (int i = 0; i < Math.Min(kwStart, fun.NamedArgs.Length); i++)
         {
+            var named = fun.NamedArgs[i];
             arguments.Add(new TypedVarDefSyntaxNode(
                 named.Name, TypeSyntax.Empty, named.NameInterval,
                 defaultValue: named.Value));
         }
 
-        // Append params at the end (must be last)
+        // Append params
         if (paramsArg != null)
             arguments.Add(paramsArg);
 
-        // Validate: no required args after defaults (params excluded — already last)
+        // Named args AFTER spread → keyword-only (must have defaults)
+        for (int i = kwStart; i < fun.NamedArgs.Length; i++)
+        {
+            var named = fun.NamedArgs[i];
+            if (named.Value == null)
+                throw Errors.KeywordOnlyWithoutDefault(fun, named.Name, named.NameInterval);
+            arguments.Add(new TypedVarDefSyntaxNode(
+                named.Name, TypeSyntax.Empty, named.NameInterval,
+                defaultValue: named.Value, isKeywordOnly: true));
+        }
+
+        // Typed keyword-only args from positional list (e.g., f(...items, sep:text='-'))
+        arguments.AddRange(keywordOnlyFromPositional);
+
+        // Validate: no required args after defaults (params/keyword-only excluded)
         bool seenDefault = false;
         for (int argIdx = 0; argIdx < arguments.Count; argIdx++)
         {
             var arg = arguments[argIdx];
             if (arg.HasDefault)
                 seenDefault = true;
-            else if (arg.IsParams)
-                break; // params is always last, ok after defaults
+            else if (arg.IsParams || arg.IsKeywordOnly)
+                break;
             else if (seenDefault)
                 throw Errors.RequiredArgAfterDefault(fun, arg);
+        }
+
+        // Validate: no duplicate keyword-only names (only check keyword-only against all)
+        for (int i = 0; i < arguments.Count; i++)
+        {
+            if (!arguments[i].IsKeywordOnly) continue;
+            for (int j = 0; j < i; j++)
+                if (string.Equals(arguments[i].Id, arguments[j].Id, StringComparison.OrdinalIgnoreCase))
+                    throw Errors.DuplicateKeywordOnlyArg(fun, arguments[i].Id, arguments[i].Interval);
         }
 
         var outputType = TypeSyntax.Empty;
