@@ -194,7 +194,7 @@ An expression is a description of calculating a value of some type.
 An expression is anything from
 - literal (discrete, ip, numeric, character, textual, or `none`)
 - variable
-- template text
+- template text — `'hello {name}'`
 - function call
 - application of the operator (`[]`, `*`, `+`, `()`, `.`, `?.`, `??`, `!`, `and`, `or`, `>>`, `|`, and so on)
 - default value - `default`
@@ -248,9 +248,9 @@ The numbers in NFun can be written in various ways. Supported
 -0x123    # hexadecimal literal
 0x123_456 # hexadecimal literal with separator
 
-0b123     # binary literal
--0b123    # binary literal
-0b123_456 # binary literal with separator
+0b1010     # binary literal
+-0b1010    # binary literal
+0b1010_0011 # binary literal with separator
 
 123.456  # real literal
 -123.456 # real literal
@@ -421,8 +421,8 @@ Where functionName is the function name, and arg1,arg2, argN are the first secon
 ```py
 i = reverse("hello") #'olleh'
 j = max(1,max(2,3)) #3
-k = 'hello'.concat ('world').inverse() #'olle dlrow'
-m = i.union(k) #'olleholle'
+k = 'hello'.concat(' world').reverse() #'dlrow olleh'
+m = i.unite(k) #'olle' (set union)
 ```
 
 ### Expressions not described in this document
@@ -450,7 +450,7 @@ here
 * *(optional)* **rtype** - function return type
 * **expression** - function expression (body) with local variables arg1,arg2..argN
 
-Only function arguments can be used as variables in the function body. The inputs and outputs of the script are not visible for the function 
+Only function arguments can be used as variables in the function body. The inputs and outputs of the script are not visible for the function
 
 ```py
 sumOf3(a,b,c) = a+b+c
@@ -461,10 +461,52 @@ b = maxOfReal(1,2,3) #3:real
 
 maxOfReal(a,b,c,):real = max(max(a,b),c)
 
-firstPositiveNumber(a:int[]) = if(a. any(rule>0)) a.filter(rule>0)[0] else default
+firstPositiveNumber(a:int[]) = if(a.any(rule it>0)) a.filter(rule it>0)[0] else default
 
 c = [-1,3,0,-4,5].firstPositiveNumber() #3
 
+```
+
+### Named arguments
+
+Arguments can be passed by name in any order
+
+```py
+f(a,b,c) = a*100 + b*10 + c
+y = f(c=3, a=1, b=2)          # 123
+y = f(1, c=3, b=2)            # 123 — positional then named
+y = 1.f(c=3, b=2)             # 123 — pipe-forward with named
+y = max(b=1, a=5)             # 5   — works for built-in functions too
+y = range(from=1, to=5)       # [1,2,3,4,5]
+```
+
+### Default values
+
+Arguments with `= expr` after the name get a default value. Required args must come before defaults
+
+```py
+f(a, b=10) = a + b
+y = f(5)           # 15  — b uses default
+y = f(5, 20)       # 25  — b overridden
+y = f(a=5)         # 15  — all-named with default
+y = f(5, b=20)     # 25  — mixed
+
+greet(a, b=10, c=20) = a+b+c
+y = greet(1, c=5)  # 16  — skip middle default by name
+```
+
+### Varargs (params)
+
+The last argument prefixed with `...` collects extra positional args into an array
+
+```py
+f(a, ...rest) = a + rest.sum()
+y = f(10, 1, 2, 3)           # 16
+y = f(10)                     # 10  — empty rest
+y = f(a=10, rest=[1,2,3])    # 16  — named array for rest
+
+g(a, b=0, ...rest) = a+b+rest.sum()
+y = g(1, 2, 3, 4)            # 10  — defaults + params
 ```
 
 ### Specific and generic user functions
@@ -506,7 +548,7 @@ b = threeSum(barg1, barg2, barg3)
 Other examples of generic user functions:
 
 ```py
-firstItem(a) = if(a.size()>0) a[0] else default
+firstItem(a) = if(a.count()>0) a[0] else default
 
 t = 'hello'.firstItem() #\'h'
 m = [1,2,3].firstItem() # 1

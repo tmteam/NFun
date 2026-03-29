@@ -9,7 +9,7 @@ Array size - the number of elements in the array
 
 Arrays are immutable - this means that you cannot change the elements in the array after receiving the array
 
-Arrays are covariant, which means that if type A is converted to type B, then an array of elements of type A is converted to an array of elements of type Byte
+Arrays are covariant, which means that if type A is converted to type B, then an array of elements of type A is converted to an array of elements of type B
 
 ## Initialization
 
@@ -58,7 +58,7 @@ This operator takes three arguments and has folowing syntax:
 ```
 [a..b step s] 
 ```
-where `a`,`b`,`s` is any of [Integers] types
+where `a`,`b`,`s` is any of [Numbers] types
 
 The operator is similar to 'Range Array Initialization Operator' but it allows you to specify the 'step' - difference between each next element
 
@@ -121,26 +121,23 @@ Allows you to get 'slice' - subarray, that starts from b-th element of origin ar
 
 `b` and `e` has type of `int32`. The enumeration starts with 0
 
-```
+```py
 array = [1,4,0,3]
 
-e = array[0:2] #returns [0,1,2]
-j = array[2:3] #returns [4,0]
+e = array[0:2] #returns [1,4,0]
+j = array[2:3] #returns [0,3]
 k = array[1:1] #returns [4]
-
-
 ``` 
 
 if `i` equals zero - it can be skipped
 if `j` equals to index of last array element - it also can be skipped
 
-```
+```py
 array = [1,4,0,3]
 
-e = array[:2] #returns [0,1,2]
-j = array[3:] #returns [0,3]
-k = array[2:] #returns [1,4,0,3]
-
+e = array[:2] #returns [1,4,0]
+j = array[3:] #returns [3]
+k = array[2:] #returns [0,3]
 ``` 
 ### Slice with step `[::]` 
 
@@ -167,7 +164,7 @@ c = array[::4] #[0,4,8]
 d = array[:4:3] #[0,3]
 
 e = array[1:2:] #[1,2]
-f = array[5::]  #[5,6,7,8,9,19]
+f = array[5::]  #[5,6,7,8,9,10]
 j = array[:2:]  #[0,1,2]
 ``` 
 

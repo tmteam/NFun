@@ -115,12 +115,15 @@ d = c ?? 0          # 0
 e = none ?? 'hello' # 'hello'
 ```
 
-The `??` operator is right-associative. This allows chaining
+The `??` operator is short-circuit and right-associative. The fallback is only evaluated if the left side is `none`
 
 ```py
-a:int? = none
-b:int? = none
-c = a ?? b ?? 42  # equivalent to: a ?? (b ?? 42)
+a:int? = 42
+b = a ?? ___throwError()  # 42 — fallback never evaluated
+
+c:int? = none
+d:int? = none
+e = c ?? d ?? 42  # equivalent to: c ?? (d ?? 42)
                   # result: 42
 ```
 
@@ -192,29 +195,7 @@ result =
     else none                  # text?
 ```
 
-## Operator precedence
-
-The optional-related operators have the following precedence relative to other operators
-
-| Operators                           | Explanation                            |
-|-------------------------------------|----------------------------------------|
-| `()` `[]` `.` `?.` `!`              | *Highest: access and unwrap*           |
-| `**` `~`                            | Exponentiation, bitwise NOT            |
-| `*` `/` `//` `%`                    | Multiplication, divisions, remainder   |
-| `+` `-`                             | Addition, subtraction                  |
-| `<<`  `>>`                          | Bitwise Shifts                         |
-| `&`                                 | Bitwise AND                            |
-| `^`                                 | Bitwise XOR                            |
-| `\|`                                | Bitwise OR                             |
-| `>` `<` `>=` `<=`                   | Comparisons                            |
-| `==` `!=` `in`                      | Equality, membership                   |
-| `??`                                | Null coalesce                          |
-| `not`                               | Logical NOT                            |
-| `and`                               | Logical AND                            |
-| `xor`                               | Logical XOR                            |
-| `or`                                | Logical OR                             |
-| `rule`                              | Anonymous function                     |
-| `=`                                 | Variable initialization                |
+For operator precedence of `?.`, `??`, `!` see **Operators.md**
 
 ## Complete example
 

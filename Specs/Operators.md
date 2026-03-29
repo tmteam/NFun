@@ -47,11 +47,11 @@ Within an expression, higher precedence operators will be evaluated first.
 | `&#124;`                               | Bitwise OR                           |
 | `>` `<` `>=` `<=`                      | Comparisons                          |
 | `==` `!=` `in`                         | Equality, membership                 |
-| `??`                                   | Null coalesce                        |
+| `??`                                   | Null coalesce (short-circuit)        |
 | `not`                                  | Logical NOT                          |
-| `and`                                  | Logical AND                          |
+| `and`                                  | Logical AND (short-circuit)          |
 | `xor`                                  | Logical XOR                          |
-| `or`                                   | Logical OR                           |
+| `or`                                   | Logical OR (short-circuit)           |
 | `rule`                                 | Anonymous function                   |
 | `=`                                    | Variable initialization              |
 
@@ -68,8 +68,8 @@ Assume variable A holds 6 and variable B holds 4 then:
 | −           | Arithmetics | Subtracts second operand from the first.	          | `B − A` = -2   |
 | *           | Arithmetics | Multiplies both operands.	                         | `A * B` = 24   |
 | %           | Arithmetics | Modulus Operator - remainder of after an division. | `A % B` = 2    |
-| //          | Integers    | Divides integer numerator by de-numerator.	        | `A / B` = 1.5  |
-| /           | `real`	     | Divides real numerator by de-numerator.	           | `A //B` = 1    |
+| /           | `real`      | Divides real numerator by de-numerator.	           | `A / B` = 1.5  |
+| //          | Integers    | Divides integer numerator by de-numerator.	        | `A // B` = 1   |
 | **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 |
 | − *(unary)* | Signed      | Multiply expression by -1.	                        | `−A` = -6      |
 
@@ -122,6 +122,14 @@ The truth tables for 'and', 'or', 'xor' and 'not' is as follows:
 | false | 	true  | false	  | true	   | true    | true  |
 | true  | 	true  | true	   | true	   | false   | false |
 | true  | 	false | false	  | true	   | true    | false |
+
+`and` and `or` are short-circuit: the right operand is only evaluated if needed
+
+```py
+false and ___throwError()  # false — right side never evaluated
+true or ___throwError()    # true  — right side never evaluated
+true and ___throwError()   # throws — right side evaluated
+```
 
 ## Bitwise Operators
 

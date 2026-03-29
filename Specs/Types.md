@@ -31,7 +31,7 @@ Some types do not have an identifier at all. It is true for `rule` and `struct`
 | Unsigned int 64 | `uint64`        | Integer value [0..18446744073709551615]                                                                  | `y:uint64 = 123 `                  |
 | Signed int 16   | `int16`         | Integer value [-32768..32767]                                                                            | `y:int16 = 123 `                   |
 | Signed int 32   | `int32` `int`   | Integer value [-2147483648..2147483647]                                                                  | `y:int32 = 123 `                   |
-| Signed int 64   | `int64`         | Integer value [-140737488355328..140737488355327]                                                        | `y:int64 = 123 `                   |
+| Signed int 64   | `int64`         | Integer value [-9223372036854775808..9223372036854775807]                                                | `y:int64 = 123 `                   |
 | Natural value   | `real`          | Non-integer numeric value . Depending on the settings, it can be either a double or a decimal clr number | `y:real = 123.5 `                  |
 | Ip Address      | `ip`            | Ip v4 address                                                                                            | `y:ip = 192.168.0.1 `              |
 
@@ -86,9 +86,9 @@ The return type of the function is contravariant
 
 The struct type describes a set of named fields
 
-The field types are invariant, which means that `{name:Ta}` is convertable to `{name:Tb}` only if `Ta` is `Tb`
+The field types are covariant, which means that `{name:Ta}` is convertable to `{name:Tb}` if `Ta` is convertable to `Tb`
 
-The set of fields of the structure is being expanded. This means that struct A is convertible to struct B if A contains all the fields of structure B (with the same names and types)
+The set of fields of the structure is being expanded. This means that struct A is convertible to struct B if A contains all the fields of structure B (with compatible types)
 At the same time, structure A can contain any number of additional fields.
 
 ## Type casting

@@ -15,7 +15,7 @@ f(2) # 4
 
 a = [1,2,3,4].filter(rule it>2) # using a rule to filter an array 
                              # only elements strictly larger than 2 will be selected
-x = [-1,-2,0,1,2,3].add(rule it1+it2) #sum of all array elements
+x = [-1,-2,0,1,2,3].fold(rule it1+it2) #sum of all array elements
 
 c = (rule 42)() #42
 
@@ -43,7 +43,7 @@ rule(arg1:type1, arg2:type2... argN:type):rtype = expression
 ```
 here
 * **arg1,arg2..argN** - the names of the 1st 2nd ... N-th arguments
-* *(optional)* **type1,type2...type2** - types of the 1st 2nd ... N-th arguments
+* *(optional)* **type1,type2...typeN** - types of the 1st 2nd ... N-th arguments
 * *(optional)* **rtype** - function return type
 * **expression** - function expression (body) with local variables arg1,arg2..argN
 

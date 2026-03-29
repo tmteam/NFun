@@ -11,17 +11,23 @@ Most functions may be applied for different types of operands. To simplify the d
 | Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
 | Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
 
+## Built-in constants
+
+| Constant | Type | Value |
+|----------|------|-------|
+| `π`      | real | 3.14159265... |
+| `∞`      | real | positive infinity |
+
 ## Concrete math functions
 
 | Function              | Returns	                                                                     |
 |-----------------------|------------------------------------------------------------------------------|
-| sqrt(real):real       | the square root of a specified number                                        |
-| pow(real,b:real):real | a specified number raised to the specified power                             |
-| cos(real):real        | the cosine of the specified angle                                            |
-| sin(real):real        | the sine of the specified angle                                              |
-| tan(real):real        | the tangent of the specified angle                                           |
-| atan(real):real       | the angle whose tangent is the specified number                              |
-| atan2(real):real      | the angle whose tangent is the quotient of two specified numbers             |
+| sqrt(real):real            | the square root of a specified number                                        |
+| cos(real):real             | the cosine of the specified angle                                            |
+| sin(real):real             | the sine of the specified angle                                              |
+| tan(real):real             | the tangent of the specified angle                                           |
+| atan(real):real            | the angle whose tangent is the specified number                              |
+| atan2(y:real, x:real):real | the angle whose tangent is the quotient of two specified numbers             |
 | asin(real):real       | the angle whose sine is the specified number                                 |
 | acos(real):real       | the angle whose cosine is the specified number	                              |
 | exp(real):real        | e raised to the specified power	                                             |
@@ -29,13 +35,16 @@ Most functions may be applied for different types of operands. To simplify the d
 | log(real,real):real   | the logarithm of a specified number in a specified base.                     |
 | log10(real):real      | the base 10 logarithm of a specified number                                  |
 | avg(real[]):real      | Computed average of an array of real numbers. Throws if input array is empty |
+| round(real,digits:int):real | the value rounded to the specified number of digits                    |
+| range(from:T, to:T):T[]    | array of numbers from `from` to `to` inclusive. `range(1,3)` → `[1,2,3]`. Descending if from > to |
+| range(from:T, to:T, step:T):T[] | array with step. `range(1,10,3)` → `[1,4,7,10]`                  |
 
 ## Generic functions
 | Function       | Constrains     | Returns	                                                                                                                                   |
 |----------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 | abs(T):T       | Signed, `real` | the absolute value                                                                                                                         |
-| min(T,T):bool  | Comparables    | first or second argument, whichever is smaller. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned |
-| max(T,T):bool  | Comparables    | first or second argument, whichever is bigger. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned  |
+| min(T,T):T     | Comparables    | first or second argument, whichever is smaller. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned |
+| max(T,T):T     | Comparables    | first or second argument, whichever is bigger. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned  |
 | convert(TA):TR | ----           | Converts argument of type TA to type TR if it is possible. For more information, see the conversion table                                  |
 
 ### Convertion tables for `convert` function
@@ -89,8 +98,9 @@ Same as Serialization to `byte[]`, but returns bit array
 ### Appliable to any arrays (without type constrains)
 | Function                           | Returns	                                                                                                                                                                 |
 |------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| first(T[]):T                       | first element of array. Throws if array is empty                                                                                                                         |
-| last(T[]):T                        | last element of array. Throws if array is empty                                                                                                                          |
+| first(arr:T[]):T                   | first element of array. Throws if array is empty                                                                                                                         |
+| last(arr:T[]):T                    | last element of array. Throws if array is empty                                                                                                                          |
+| set(arr:T[],index:int,value:T):T[] | copy of array with element at index replaced                                                                                                                             |
 | count(T[]):int                     | array size                                                                                                                                                               |
 | count(T[], rule(T):bool):int       | the number of array elements for which the rule is satisfied                                                                                                             |
 | find(T[], T):int                   | index of the first element equal to the specified, -1 if no such element found                                                                                           |
@@ -105,20 +115,22 @@ Same as Serialization to `byte[]`, but returns bit array
 | append(T[],T):T[]                  | array of elements from given array and specified element in the tail of resulting array                                                                                  |
 | except(T[],T[]):T[]                | array of elements that are contained in first array and not contained in second                                                                                          |
 | map(T[],rule(T):TR):TR[]           | Projects each element of a given into a new form by given rule                                                                                                           |
+| any(T[]):bool                      | `true` if the array is non-empty                                                                                                                                         |
 | any(T[],rule(T):bool):bool         | `true` if the specified rule is satisfied at least for single element of given array. `false` if it is not, or array is empty                                            |
-| all(T[],rule(T):bool):bool         | `true` if the specified rule is satisfied for all elements of given array. `false` if it is not, or array is empty                                                       |
+| all(T[],rule(T):bool):bool         | `true` if the specified rule is satisfied for all elements of given array. `true` if array is empty (vacuous truth)                                                      |
 | filter(T[],rule(T):bool):T[]       | an array consisting of elements of the original array for which the rule is satisfied                                                                                    |
-| repeat( T,n:int):T[]               | an array in which the specified element is repeated n times                                                                                                              |
+| repeat(element:T,count:int):T[]    | an array in which the specified element is repeated n times. Throws if count is negative                                                                                 |
 | reverse(T[]):T[]                   | reversed array                                                                                                                                                           |
 | take(T[],n:int):T[]                | takes first n elements of given array. Equals to `[:n]` operator call                                                                                                    |
 | skip(T[],n:int):T[]                | array, where first n elements of given array are skipped. Equals to `[n:]` operator call                                                                                 |
 
 | Function                          | Constrains                 | Returns	                                                                                          |
 |-----------------------------------|----------------------------|---------------------------------------------------------------------------------------------------|
-| sum(T[], rule(T):TR):TR           | Arithmetics                | the sum of all the elements of the array                                                          |
-| max(T[]):T                        | Comparables                | the maximum element in array                                                                      |
-| min(T[]):T                        | Comparables                | the minimum element in array                                                                      |
-| median(T[]):T                     | Comparables                | median element                                                                                    |
+| sum(T[]):T                        | Arithmetics                | the sum of all the elements of the array                                                          |
+| sum(T[], rule(T):TR):TR           | Arithmetics                | the sum of transformed elements                                                                   |
+| max(T[]):T                        | Comparables                | the maximum element in array. Throws if array is empty                                            |
+| min(T[]):T                        | Comparables                | the minimum element in array. Throws if array is empty                                            |
+| median(T[]):T                     | Comparables                | median element. Throws if array is empty                                                          |
 | sort(T[]):T[]                     | Comparables                | sorted array                                                                                      |
 | sortDescending(T[]):T[]           | Comparables                | sorted array in reverse order                                                                     |
 | sort(T[],rule(T):R):T[]           | T is All, R is Comparables | sorted array, where the element being compared is obtained by the specified rule                  |
@@ -128,10 +140,6 @@ Same as Serialization to `byte[]`, but returns bit array
 | Function                          | Returns	                                                                                                                |
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | toText(any):text                  | text presentation of given value                                                                                        |
-| concat(any[]):text                | concatenation of text representations of given values                                                                   |
-| concat(any,any):text              | concatenation of text representations of given values                                                                   |
-| concat(any,any,any):text          | concatenation of text representations of given values                                                                   |
-| format(text,any[]):text           | replaces the format item in a specified text with the text representation of a corresponding value in a specified array |
 | trim(text):text                   | removes all leading and trailing white-space characters from the current text                                           |
 | trimStart(text):text              | removes all the leading white-space characters from the current text                                                    |
 | trimEnd(text):text                | removes all the trailing white-space characters from the current string                                                 |

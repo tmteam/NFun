@@ -8,7 +8,7 @@ The text is an alias for the "char[]" type and inherits all arrays properties an
 
 ## Single Quote Text Literal
 
-A text literal is zero to several characters inside single(") or double ("") quotes written in one line
+A text literal is zero to several characters inside single (`'...'`) or double (`"..."`) quotes written in one line
 
 ```
 'hello world'
@@ -38,11 +38,11 @@ y = 'Kate said: "hi"!'
 z = "Kate said: 'hi'!"
 ```
 
-Special quotes ’ ” are also supported
+Left typographic quotes `’` and `”` are also supported as quote delimiters (same character for open and close)
 
 ```
-y = ”Kate said: "hi"!”
-z = ’Kate said: 'hi'!’
+y = ‘Kate said: “hi”!’
+z = “Kate said: ‘hi’!”
 ```
 
 ## Triple Quote Text Literal
