@@ -11,15 +11,7 @@ public class DefaultValueSyntaxNode : ISyntaxNode {
     public int OrderNumber { get; set; }
     public int ParenthesesCount { get; set; }
     public Interval Interval { get; set; }
-
-    /// <summary>
-    /// Original default value expression from the function definition.
-    /// When non-null, the expression builder should build this expression
-    /// instead of using GetDefaultFunnyValue().
-    /// </summary>
-    public ISyntaxNode OriginalExpression { get; init; }
-
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
-    public override string ToString() => OriginalExpression != null ? $"default({OriginalExpression})" : "default";
+    public override string ToString() => "default";
 }

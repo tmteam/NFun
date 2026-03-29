@@ -28,6 +28,14 @@ public class TypedVarDefSyntaxNode : ISyntaxNode {
     /// <summary>Whether this is a varargs/params parameter (prefixed with ...)</summary>
     public bool IsParams { get; }
 
+    /// <summary>
+    /// Precomputed default value and its type (evaluated at function compilation time).
+    /// Used when parameter has type annotation and default expression resolves
+    /// to a different preferred type (e.g. 10→Real but param says Int32).
+    /// </summary>
+    public object PrecomputedDefaultValue { get; set; }
+    public FunnyType PrecomputedDefaultType { get; set; }
+
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children =>

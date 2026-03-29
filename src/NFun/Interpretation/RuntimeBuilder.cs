@@ -300,9 +300,14 @@ internal static class RuntimeBuilder {
         resultsBuilder.SetResults(types);
         var typeInferenceResuls = resultsBuilder.Build();
 
+        // Precompute default values for typed parameters BEFORE body TIC setup.
+        // This is needed so call sites can create ConstantSyntaxNode with the right value.
+        PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsDictionary, dialect);
+
         if (!types.HasGenerics)
         {
             #region concreteFunction
+
 
             //set types to nodes
             functionSyntaxNode.ComeOver(
@@ -344,6 +349,37 @@ internal static class RuntimeBuilder {
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
             return function;
+        }
+    }
+
+    private static void PrecomputeDefaultValues(
+        UserFunctionDefinitionSyntaxNode functionSyntax,
+        TypeInferenceResults results,
+        IFunctionDictionary functions,
+        DialectSettings dialect) {
+        for (int i = 0; i < functionSyntax.Args.Count; i++)
+        {
+            var arg = functionSyntax.Args[i];
+            if (!arg.HasDefault || arg.TypeSyntax is TypeSyntax.EmptyType)
+                continue;
+            var paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax);
+            // none default → skip precomputation, use DefaultValueSyntaxNode at call site
+            if (arg.DefaultValue is ConstantSyntaxNode { Value: FunnyNone })
+                continue;
+            try
+            {
+                var defaultExprNode = ExpressionBuilderVisitor.BuildExpression(
+                    node: arg.DefaultValue,
+                    functions: functions,
+                    outputType: paramType,
+                    variables: new VariableDictionary(),
+                    typeInferenceResults: results,
+                    typesConverter: TicTypesConverter.Concrete,
+                    dialect: dialect);
+                arg.PrecomputedDefaultValue = defaultExprNode.Calc();
+                arg.PrecomputedDefaultType = paramType;
+            }
+            catch { /* conversion failed or non-constant — caller will use original expression */ }
         }
     }
 }

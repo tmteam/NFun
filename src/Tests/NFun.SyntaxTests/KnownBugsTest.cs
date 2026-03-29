@@ -338,4 +338,20 @@ public class KnownBugsTest {
         var runtime = "y = [1,2,3,4,5][3:1]".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
     }
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // Bug: none as typed default crashes with InvalidOperationException
+    //
+    // f(x:int, fallback:int?=none) → "Complex constant type is not supported"
+    // The none ConstantSyntaxNode from the function definition is reused in
+    // the caller's TIC graph. Visit(ConstantSyntaxNode) can't handle
+    // optional types (not StatePrimitive or StateArray).
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test, Ignore("Bug: none as typed optional default crashes")]
+    public void NoneDefaultForOptionalParam_ShouldWork() {
+        Assert.DoesNotThrow(() =>
+            "f(x:int, fallback:int?=none) = x + (fallback ?? 0) \r y = f(5)".Calc());
+    }
 }

@@ -195,13 +195,21 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
                 var defaultExpr = userFun.Args[i].DefaultValue;
 
-                // Empty containers ([], {}) can't infer their own type, so wrap them in a
-                // DefaultValueSyntaxNode with a fresh OrderNumber. TIC constrains the
-                // wrapper via SetCall, and ExpressionBuilder uses GetDefaultFunnyValue()
-                // which produces the correctly-typed empty container.
-                if (defaultExpr is ArraySyntaxNode { Expressions.Count: 0 }
-                    && userFun.Args[i].TypeSyntax is not TypeSyntax.EmptyType)
+                if (userFun.Args[i].PrecomputedDefaultValue != null)
                 {
+                    // Precomputed: create ConstantSyntaxNode with correct type + fresh OrderNumber
+                    result[i] = new ConstantSyntaxNode(
+                        userFun.Args[i].PrecomputedDefaultValue,
+                        userFun.Args[i].PrecomputedDefaultType,
+                        defaultExpr.Interval) {
+                        OrderNumber = _nextSyntheticId++,
+                    };
+                }
+                else if (userFun.Args[i].TypeSyntax is not TypeSyntax.EmptyType)
+                {
+                    // Typed param but precomputation failed (none, empty containers, etc.)
+                    // Use DefaultValueSyntaxNode: TIC constrains via SetCall,
+                    // ExpressionBuilder uses GetDefaultFunnyValue() for the type.
                     result[i] = new DefaultValueSyntaxNode(defaultExpr.Interval) {
                         OrderNumber = _nextSyntheticId++,
                     };
@@ -344,11 +352,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 ThrowIfOptionalTypeDisabled(resolvedType, arg.Id, arg.Interval);
                 _ticTypeGraph.SetVarType(arg.Id, resolvedType.ConvertToTiType());
 
-                // Constrain default value expression to match parameter type.
-                // Only for expressions that can't infer their own type (e.g. empty []).
-                // Non-empty defaults ([1,2,3], {x=1}) already have concrete types.
+                // For empty containers ([] without elements), constrain with parameter type.
+                // Other defaults resolve their own type; call-site wrapper handles mismatches.
                 if (arg.HasDefault && arg.DefaultValue is ArraySyntaxNode { Expressions.Count: 0 })
-                    _ticTypeGraph.SetDef(arg.Id, arg.DefaultValue.OrderNumber);
+                    _ticTypeGraph.SetDefaultValueConstraint(arg.Id, arg.DefaultValue.OrderNumber);
             }
         }
 

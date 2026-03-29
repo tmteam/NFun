@@ -267,6 +267,17 @@ public class GraphBuilder {
         }
     }
 
+    /// <summary>
+    /// Constrains expression node to be assignable to the named variable's type.
+    /// Like SetDef but without marking the variable as output.
+    /// Used for default value expressions in function parameters.
+    /// </summary>
+    public void SetDefaultValueConstraint(string varName, int exprNodeId) {
+        var exprNode = GetOrCreateNode(exprNodeId);
+        var varNode = GetNamedNode(varName);
+        exprNode.AddAncestor(varNode);
+    }
+
     public void SetDef(string name, int rightNodeId) {
         var exprNode = GetOrCreateNode(rightNodeId);
         var defNode = GetNamedNode(name);

@@ -142,6 +142,14 @@ public class FunctionDefaultValuesTest {
     public void Default_TypedWithDefault_Overridden() =>
         "f(a:int, b:int = 5) = a + b \r y = f(3, 7)".AssertReturns("y", 10);
 
+    [Test]
+    public void Default_TypedWithDefault_UsesValue() =>
+        "f(x, limit:int = 10) = x * limit \r y = f(5)".AssertReturns("y", 50);
+
+    [Test]
+    public void Default_TypedWithDefault_GenericFirstArg() =>
+        "f(x, scale:int = 2) = x * scale \r y = f(5)".AssertReturns("y", 10);
+
     // ── Recursive with defaults ───────────────────────────────────────────
 
     [Test]
@@ -161,6 +169,65 @@ public class FunctionDefaultValuesTest {
     [Test]
     public void Default_PipeForward_Override() =>
         "f(a, b = 10) = a + b \r y = 5.f(20)".AssertReturns("y", 25);
+
+    // ── All-named calls with defaults ─────────────────────────────────
+
+    [Test]
+    public void Default_AllNamed_RequiredOnly() =>
+        "f(a, b=10) = a+b \r y = f(a=5)".AssertReturns("y", 15);
+
+    [Test]
+    public void Default_AllNamed_AllProvided() =>
+        "f(a, b=10) = a+b \r y = f(a=5, b=20)".AssertReturns("y", 25);
+
+    [Test]
+    public void Default_AllDefaults_AllNamed() =>
+        "f(a=1, b=2) = a+b \r y = f(b=10)".AssertReturns("y", 11);
+
+    [Test]
+    public void Default_ThreeParams_NamedSkipMiddle() =>
+        "f(a, b=10, c=20) = a+b+c \r y = f(a=1, c=5)".AssertReturns("y", 16);
+
+    // ── Pipe-forward + defaults + named ─────────────────────────────────
+
+    [Test]
+    public void Default_PipeForward_Named() =>
+        "f(a, b=10, c=20) = a+b+c \r y = 1.f(c=5)".AssertReturns("y", 16);
+
+    // ── Recursive with defaults ─────────────────────────────────────────
+
+    [Test]
+    public void Default_Recursive_Accumulator() =>
+        "fact(n, acc=1) = if(n<=1) acc else fact(n-1, acc*n) \r y = fact(5)".AssertReturns("y", 120);
+
+    // ── Empty typed array default ───────────────────────────────────────
+
+    [Test]
+    public void Default_EmptyTypedArray() =>
+        "f(n, acc:int[]=[]) = if(n<=0) acc else f(n-1, acc.append(n)) \r y = f(3)"
+            .AssertReturns("y", new[] { 3, 2, 1 });
+
+    [Test]
+    public void Default_EmptyTypedArray_Simple() =>
+        "f(n, acc:int[]=[]) = acc \r y = f(3)".AssertReturns("y", new int[] { });
+
+    [Test]
+    public void Default_EmptyTypedArray_Override() =>
+        "f(n, acc:int[]=[]) = acc \r y = f(3, [10,20])".AssertReturns("y", new[] { 10, 20 });
+
+    // ── Defaults + params ───────────────────────────────────────────────
+
+    [Test]
+    public void Default_WithParams_AllNamed() =>
+        "f(a, b=0, ...rest) = a+b+rest.sum() \r y = f(a=1)".AssertReturns("y", 1);
+
+    [Test]
+    public void Default_WithParams_NamedDefault() =>
+        "f(a, b=0, ...rest) = a+b+rest.sum() \r y = f(1, b=5)".AssertReturns("y", 6);
+
+    [Test]
+    public void Default_WithParams_Overflow() =>
+        "f(a, b=0, ...rest) = a+b+rest.sum() \r y = f(1, 2, 3, 4)".AssertReturns("y", 10);
 
     // ── Regression ──────────────────────────────────────────────────────
 
