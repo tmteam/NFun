@@ -38,7 +38,9 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
             castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
         }
 
-        return new FunOfSingleArgExpressionNode(this, castedNode, interval);
+        var props = ArgProperties;
+        return new FunOfSingleArgExpressionNode(this, castedNode, interval,
+            lazy: props is { Length: > 0 } && props[0].IsLazy);
     }
     
     public override string ToString() => $"FUN-single {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";

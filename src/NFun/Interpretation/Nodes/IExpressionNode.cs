@@ -1,6 +1,6 @@
 namespace NFun.Interpretation.Nodes;
 
-public interface IExpressionNode: IRuntimeNode {
+public interface IExpressionNode: IRuntimeNode, ILazyFunnyValue {
     FunnyType Type { get; }
     object Calc();
     /// <summary>

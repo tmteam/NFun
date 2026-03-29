@@ -89,7 +89,8 @@ internal static class BaseFunctions {
 
             new NullCoalesceFunction(),
             new ForceUnwrapFunction(),
-            new SafeGetElementFunction()
+            new SafeGetElementFunction(),
+            new ThrowErrorFunction()
         };
 
         ConcreteFunctions = new IConcreteFunction[] {

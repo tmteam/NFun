@@ -1,6 +1,6 @@
-﻿using NFun.Interpretation.Functions;
+using NFun.Interpretation.Functions;
 
-namespace NFun.Functions; 
+namespace NFun.Functions;
 
 #region binaries
 
@@ -10,13 +10,25 @@ public class NotFunction : FunctionWithSingleArg {
 }
 
 public class AndFunction : FunctionWithTwoArgs {
-    public AndFunction() : base(CoreFunNames.And, FunnyType.Bool, FunnyType.Bool, FunnyType.Bool) { }
-    public override object Calc(object a, object b) => (bool)a && (bool)b;
+    public AndFunction() : base(CoreFunNames.And, FunnyType.Bool, FunnyType.Bool, FunnyType.Bool) {
+        ArgProperties = new[] {
+            new FunArgProperty { Name = "a" },
+            new FunArgProperty { Name = "b", IsLazy = true },
+        };
+    }
+    public override object Calc(object a, object b) =>
+        (bool)a && (bool)((ILazyFunnyValue)b).Calc();
 }
 
 public class OrFunction : FunctionWithTwoArgs {
-    public OrFunction() : base(CoreFunNames.Or, FunnyType.Bool, FunnyType.Bool, FunnyType.Bool) { }
-    public override object Calc(object a, object b) => (bool)a || (bool)b;
+    public OrFunction() : base(CoreFunNames.Or, FunnyType.Bool, FunnyType.Bool, FunnyType.Bool) {
+        ArgProperties = new[] {
+            new FunArgProperty { Name = "a" },
+            new FunArgProperty { Name = "b", IsLazy = true },
+        };
+    }
+    public override object Calc(object a, object b) =>
+        (bool)a || (bool)((ILazyFunnyValue)b).Calc();
 }
 
 public class XorFunction : FunctionWithTwoArgs {

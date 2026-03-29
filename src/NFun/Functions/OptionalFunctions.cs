@@ -15,10 +15,15 @@ public class NullCoalesceFunction : GenericFunctionBase {
             CoreFunNames.NullCoalesce,
             GenericConstrains.Any,
             FunnyType.Generic(0),
-            FunnyType.OptionalOf(FunnyType.Generic(0)), FunnyType.Generic(0)) { }
+            FunnyType.OptionalOf(FunnyType.Generic(0)), FunnyType.Generic(0)) {
+        ArgProperties = new[] {
+            new FunArgProperty { Name = "a" },
+            new FunArgProperty { Name = "b", IsLazy = true },
+        };
+    }
 
     protected override object Calc(object[] args) =>
-        args[0] is FunnyNone ? args[1] : args[0];
+        args[0] is FunnyNone ? ((ILazyFunnyValue)args[1]).Calc() : args[0];
 }
 
 /// <summary>

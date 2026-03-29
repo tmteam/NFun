@@ -69,6 +69,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
             calc: Calc,
             name: Name,
             returnType: FunnyType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
+            argProperties: ArgProperties,
             argTypes: SubstitudeArgTypes(concreteTypesMap));
 
     protected FunnyType[] SubstitudeArgTypes(FunnyType[] concreteTypes) {
@@ -113,6 +114,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
             calc: Calc,
             name: Name,
             returnType: FunnyType.SubstituteConcreteTypes(ReturnType, solvingParams),
+            argProperties: ArgProperties,
             argTypes: SubstitudeArgTypes(solvingParams));
     }
 
@@ -173,12 +175,16 @@ public abstract class GenericFunctionBase : IGenericFunction {
         private readonly Func<object[], object> _calc;
 
         public ConcreteGenericFunction(
-            Func<object[], object> calc, string name, FunnyType returnType, params FunnyType[] argTypes)
-            : base(TypeHelper.GetFunSignature(name, returnType, argTypes), returnType, argTypes) =>
+            Func<object[], object> calc, string name, FunnyType returnType,
+            FunArgProperty[] argProperties, params FunnyType[] argTypes)
+            : base(TypeHelper.GetFunSignature(name, returnType, argTypes), returnType, argTypes) {
             _calc = calc;
+            ArgProperties = argProperties;
+        }
 
         public override object Calc(object[] args) => _calc(args);
-        public override IConcreteFunction Clone(ICloneContext context) => new ConcreteGenericFunction(_calc, Name, ReturnType, ArgTypes);
+        public override IConcreteFunction Clone(ICloneContext context) =>
+            new ConcreteGenericFunction(_calc, Name, ReturnType, ArgProperties, ArgTypes);
         
         public override string ToString()
             => $"FUN-concrete-generic {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";

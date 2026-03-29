@@ -1809,13 +1809,13 @@ public class OptionalTypeTest {
 
 
 
-    // Note: ?? does not short-circuit (both args evaluated eagerly),
-    // so (a ?? b!) panics when b is none even if a has value.
-    [TestCase("a:int? = 5\r b:int? = none\r y = (a ?? b!)")]
+    // ?? is short-circuit (lazy second arg): b! is NOT evaluated when a has value.
+    // Only panics when a is none AND b is none (b! evaluated, fails).
     [TestCase("a:int? = none\r b:int? = none\r y = (a ?? b!)")]
     public void Combo_CoalesceAndUnwrap_UnwrapNone_RuntimeError(string expr) =>
         expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
 
+    [TestCase("a:int? = 5\r b:int? = none\r y = (a ?? b!)", 5)]  // short-circuit: b! not evaluated
     [TestCase("a:int? = none\r b:int? = 7\r y = a ?? b!", 7)]
     [TestCase("x:int? = 42\r y = (x ?? 0)!", 42)]
     public void Combo_CoalesceAndUnwrap(string expr, object expected) =>

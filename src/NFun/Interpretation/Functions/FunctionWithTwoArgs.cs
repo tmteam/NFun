@@ -49,7 +49,10 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
             i++;
         }
 
-        return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
+        var props = ArgProperties;
+        return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval,
+            lazy1: props is { Length: > 0 } && props[0].IsLazy,
+            lazy2: props is { Length: > 1 } && props[1].IsLazy);
     }
 
     public override string ToString() => $"FUN-two {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";

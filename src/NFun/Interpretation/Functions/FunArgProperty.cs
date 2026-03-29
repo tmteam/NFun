@@ -6,6 +6,8 @@ public readonly struct FunArgProperty {
     public bool HasDefault { get; init; }
     public object DefaultValue { get; init; }
     public bool IsParams { get; init; }
+    /// <summary>When true, argument is passed as ILazyFunnyValue instead of computed value.</summary>
+    public bool IsLazy { get; init; }
 
     /// <summary>Creates ArgProperties from argument names (no defaults, no params).</summary>
     public static FunArgProperty[] FromNames(params string[] names) {

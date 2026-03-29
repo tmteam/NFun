@@ -43,7 +43,20 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
             i++;
         }
 
-        return new FunOfManyArgsExpressionNode(this, castedChildren, interval);
+        var props = ArgProperties;
+        bool[] lazyArgs = null;
+        if (props != null)
+        {
+            for (int j = 0; j < props.Length; j++)
+            {
+                if (props[j].IsLazy)
+                {
+                    lazyArgs ??= new bool[props.Length];
+                    lazyArgs[j] = true;
+                }
+            }
+        }
+        return new FunOfManyArgsExpressionNode(this, castedChildren, interval, lazyArgs);
     }
 
     public override string ToString() => $"FUN-many {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
