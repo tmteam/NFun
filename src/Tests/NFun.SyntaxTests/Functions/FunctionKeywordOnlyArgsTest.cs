@@ -134,6 +134,14 @@ public class FunctionKeywordOnlyArgsTest {
         "f(...items, scale:int=6) = items.map(rule it*scale) \r y = f(1,2)".AssertReturns("y", new[] { 6, 12 });
 
     [Test]
+    public void KeywordOnly_ExpressionDefault() =>
+        "f(...items, scale=2*3) = items.map(rule it*scale) \r y = f(1,2)".AssertReturns("y", new[] { 6, 12 });
+
+    [Test]
+    public void KeywordOnly_TypedExpressionDefault() =>
+        "f(...items, scale:int=2*3) = items.map(rule it*scale) \r y = f(1,2)".AssertReturns("y", new[] { 6, 12 });
+
+    [Test]
     public void KeywordOnly_BothTyped() =>
         "f(...items:int[], count:int=0) = items.count() + count \r y = f(1,2,3, count=10)".AssertReturns("y", 13);
 

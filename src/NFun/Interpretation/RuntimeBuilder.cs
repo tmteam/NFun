@@ -304,10 +304,6 @@ internal static class RuntimeBuilder {
         resultsBuilder.SetResults(types);
         var typeInferenceResuls = resultsBuilder.Build();
 
-        // Precompute default values for typed parameters BEFORE body TIC setup.
-        // This is needed so call sites can create ConstantSyntaxNode with the right value.
-        PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
-
         if (!types.HasGenerics)
         {
             #region concreteFunction
@@ -318,6 +314,9 @@ internal static class RuntimeBuilder {
                 enterVisitor: new ApplyTiResultEnterVisitor(
                     solving: typeInferenceResuls,
                     tiToLangTypeConverter: TicTypesConverter.Concrete));
+
+            // Precompute default values AFTER ApplyTiResults so expression nodes have OutputType
+            PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
 
             var funType = TicTypesConverter.Concrete.Convert(
                 typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
@@ -346,6 +345,8 @@ internal static class RuntimeBuilder {
         }
         else
         {
+            // For generic functions, precompute defaults with best-effort type resolution
+            PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsRegistry,
                 dialect);
@@ -364,14 +365,39 @@ internal static class RuntimeBuilder {
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
             var arg = functionSyntax.Args[i];
-            if (!arg.HasDefault || arg.TypeSyntax is TypeSyntax.EmptyType)
+            if (!arg.HasDefault)
                 continue;
-            var paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax);
             // none default → skip precomputation, use DefaultValueSyntaxNode at call site
             if (arg.DefaultValue is ConstantSyntaxNode { Value: FunnyNone })
                 continue;
+
+            // Resolve param type: from annotation or from TIC inference
+            FunnyType paramType;
+            if (arg.TypeSyntax is not TypeSyntax.EmptyType)
+            {
+                paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax);
+            }
+            else
+            {
+                // Untyped param: get type from TIC results (default expression was visited in function TIC)
+                var ticType = results.GetSyntaxNodeTypeOrNull(arg.DefaultValue.OrderNumber);
+                if (ticType == null) continue;
+                // Unwrap RefTo first, then resolve constraints to preferred type
+                if (ticType is Tic.SolvingStates.StateRefTo refTo)
+                    ticType = refTo.GetNonReference();
+                if (ticType is Tic.SolvingStates.ConstraintsState cs)
+                    ticType = cs.Preferred ?? cs.Descendant;
+                if (ticType is not Tic.SolvingStates.StatePrimitive and not Tic.SolvingStates.StateArray)
+                    continue;
+                try { paramType = TicTypesConverter.Concrete.Convert(ticType); }
+                catch { continue; }
+            }
+
             try
             {
+                // Ensure OutputType is set on default expression nodes (may not be set for generic functions)
+                ApplyTiResultToSubtree(arg.DefaultValue, results);
+
                 var defaultExprNode = ExpressionBuilderVisitor.BuildExpression(
                     node: arg.DefaultValue,
                     functions: functions,
@@ -385,5 +411,27 @@ internal static class RuntimeBuilder {
             }
             catch { /* conversion failed or non-constant — caller will use original expression */ }
         }
+    }
+
+    /// <summary>Set OutputType on all nodes in a subtree from TIC results (for precomputing defaults).
+    /// Resolves generic constraints to preferred/descendant types for precomputation.</summary>
+    private static void ApplyTiResultToSubtree(ISyntaxNode node, TypeInferenceResults results) {
+        var ticType = results.GetSyntaxNodeTypeOrNull(node.OrderNumber);
+        if (ticType != null)
+        {
+            // Unwrap RefTo → resolve constraints to concrete preferred type
+            var resolved = ticType;
+            if (resolved is Tic.SolvingStates.StateRefTo refTo)
+                resolved = refTo.GetNonReference();
+            if (resolved is Tic.SolvingStates.ConstraintsState cs)
+                resolved = cs.Preferred ?? cs.Descendant;
+            if (resolved != null)
+            {
+                try { node.OutputType = TicTypesConverter.Concrete.Convert(resolved); }
+                catch { /* truly generic — leave as Empty */ }
+            }
+        }
+        foreach (var child in node.Children)
+            ApplyTiResultToSubtree(child, results);
     }
 }

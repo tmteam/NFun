@@ -382,17 +382,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         var result = VisitChildren(node);
 
-        // Visit default value expressions explicitly for TYPED parameters only.
-        // ExitVisitorBase.Visit(TypedVarDefSyntaxNode) returns true without visiting
-        // children, so DefaultValue is never visited by VisitChildren.
-        // Then constrain with parameter type so TIC propagates annotations.
+        // Constrain default expressions: type must be assignable to parameter type.
+        // DefaultValue is already visited by Visit(TypedVarDefSyntaxNode) → VisitChildren.
         foreach (var arg in node.Args)
         {
-            if (arg.HasDefault && arg.TypeSyntax is not TypeSyntax.EmptyType)
-            {
-                arg.DefaultValue.Accept(this);
+            if (arg.HasDefault)
                 _ticTypeGraph.SetDefaultValueConstraint(arg.Id, arg.DefaultValue.OrderNumber);
-            }
         }
 
         return result;

@@ -54,6 +54,14 @@ public class FunctionDefaultValuesTest {
     public void Default_ExpressionAsDefault() =>
         "f(a, b = 2 * 3) = a + b \r y = f(4)".AssertReturns("y", 10);
 
+    [Test]
+    public void Default_ExpressionAsDefault_TwoCalls() =>
+        "f(a, b = 2 * 3) = a + b \r y = f(1) + f(2)".AssertReturns("y", 15);
+
+    [Test]
+    public void Default_ExpressionAsDefault_Typed() =>
+        "f(a, b:int = 2 * 3) = a + b \r y = f(4)".AssertReturns("y", 10);
+
     // ── Error: required after default ───────────────────────────────────────
 
     [Test]
