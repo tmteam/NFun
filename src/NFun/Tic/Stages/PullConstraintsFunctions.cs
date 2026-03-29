@@ -166,7 +166,25 @@ public class PullConstraintsFunctions : IStateFunction {
 
     public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.ElementNode != ancestor.ElementNode)
-            descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+        {
+            // When descendant element is Optional but ancestor element is not,
+            // the ancestor element needs to be wrapped in Optional too.
+            // This happens during re-pull after PullNoneNode Phase 2 wraps inner elements.
+            if (descendant.ElementNode.State is StateOptional descOpt
+                && ancestor.ElementNode.State is ConstraintsState ancCon)
+            {
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + ancestor.ElementNode.Name.ToString().ToLower() + "'",
+                    ancCon.GetCopy());
+                descOpt.ElementNode.AddAncestor(innerNode);
+                ancestor.ElementNode.State = new StateOptional(innerNode);
+                ancestor.ElementNode.IsOptionalElement = true;
+            }
+            else
+            {
+                descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+            }
+        }
         descendantNode.RemoveAncestor(ancestorNode);
         return true;
     }

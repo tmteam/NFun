@@ -238,4 +238,14 @@ public class FunctionDefaultValuesTest {
     [Test]
     public void Regression_NamedArgs_StillWork() =>
         "f(a, b) = a - b \r y = f(b = 3, a = 10)".AssertReturns("y", 7);
+
+    // ── None typed default ──────────────────────────────────────────
+
+    [Test]
+    public void Default_NoneOptionalParam() {
+        var r = "f(x:int, fallback:int?=none) = x + (fallback ?? 0) \r y = f(5)"
+            .BuildWithDialect(optionalTypesSupport: NFun.OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(5, r["y"].Value);
+    }
 }

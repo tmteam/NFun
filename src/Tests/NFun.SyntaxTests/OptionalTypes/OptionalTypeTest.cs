@@ -2066,4 +2066,21 @@ public class OptionalTypeTest {
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
         Assert.IsNotNull(result.Get("y"));
     }
+
+    // ── Nested arrays with none ─────────────────────────────────────
+
+    [Test]
+    public void NestedArrayWithNone_Inline() {
+        Assert.DoesNotThrow(
+            () => "y = [[1,none],[none,2]]"
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+                .Calc());
+    }
+
+    [Test]
+    public void NestedArrayWithNone_Typed() {
+        Assert.DoesNotThrow(
+            () => "y:int?[][] = [[1,none],[none,2]]"
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
 }

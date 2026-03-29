@@ -170,4 +170,31 @@ public class RecursiveUserFunctionsTest {
     public void RecursiveConcat_Range_BaseCase_ReturnsEmpty() =>
         "range(a,b) = if(a>=b) [] else [a].concat(range(a+1,b))\r y = range(5,5)"
             .AssertResultHas("y", System.Array.Empty<int>());
+
+    // ── Recursive concat ────────────────────────────────────────────
+
+    [Test]
+    public void RecursiveConcat_Range() =>
+        "range(a,b) = if(a>=b) [] else [a].concat(range(a+1,b))\r y = range(0,3)"
+            .AssertResultHas("y", new[] { 0, 1, 2 });
+
+    [Test]
+    public void RecursiveConcat_SingleElement() =>
+        "range(a,b) = if(a>=b) [] else [a].concat(range(a+1,b))\r y = range(0,1)"
+            .AssertResultHas("y", new[] { 0 });
+
+    [Test]
+    public void RecursiveConcat_Expression() =>
+        "range(a,b) = if(a>=b) [] else [a*100].concat(range(a+1,b))\r y = range(0,3)"
+            .AssertResultHas("y", new[] { 0, 100, 200 });
+
+    [Test]
+    public void RecursiveConcat_Constant() =>
+        "range(a,b) = if(a>=b) [] else [99].concat(range(a+1,b))\r y = range(0,3)"
+            .AssertResultHas("y", new[] { 99.0, 99.0, 99.0 });
+
+    [Test]
+    public void RecursiveConcat_SecondParam() =>
+        "range(a,b) = if(a>=b) [] else [b].concat(range(a+1,b))\r y = range(0,3)"
+            .AssertResultHas("y", new[] { 3, 3, 3 });
 }

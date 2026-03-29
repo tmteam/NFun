@@ -812,4 +812,62 @@ class OptionalTests {
     }
 
     #endregion
+
+    #region Group: Nested arrays with None
+
+    [Test(Description = "y = [[1, none]] → y = opt(i32)[][]")]
+    public void NestedArray_InnerHasNone() {
+        // Inner: [1, none] → softArrayInit(2; 0, 1)
+        // Outer: [[...]]  → softArrayInit(3; 2)
+        // y = outer       → SetDef("y", 3)
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetConst(1, None);
+        graph.SetSoftArrayInit(2, 0, 1);  // inner: [1, none]
+        graph.SetSoftArrayInit(3, 2);      // outer: [[...]]
+        graph.SetDef("y", 3);
+
+        var result = graph.Solve();
+        // Expected: y = Array(Array(opt(i32)))
+        result.AssertNamed(StateArray.Of(StateArray.Of(StateOptional.Of(I32))), "y");
+    }
+
+    [Test(Description = "y:opt(i32)[][] = [[1,none],[none,2]] — concrete ints")]
+    public void NestedArray_TypedWithNone_ConcreteInts() {
+        var graph = new GraphBuilder();
+        graph.SetVarType("y", StateArray.Of(StateArray.Of(StateOptional.Of(I32))));
+        graph.SetConst(0, I32);     // 1 as concrete I32
+        graph.SetConst(1, None);    // none
+        graph.SetSoftArrayInit(4, 0, 1);   // [1, none]
+        graph.SetConst(2, None);    // none
+        graph.SetConst(3, I32);     // 2 as concrete I32
+        graph.SetSoftArrayInit(5, 2, 3);   // [none, 2]
+        graph.SetSoftArrayInit(6, 4, 5);   // outer
+        graph.SetDef("y", 6);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateArray.Of(StateArray.Of(StateOptional.Of(I32))), "y");
+    }
+
+    [Test(Description = "y:opt(i32)[][] = [[1,none],[none,2]] — generic ints (real scenario)")]
+    public void NestedArray_TypedWithNone_GenericInts() {
+        // Real parser: 1 → [U8..Re]I32!, none → None
+        var graph = new GraphBuilder();
+        graph.SetVarType("y", StateArray.Of(StateArray.Of(StateOptional.Of(I32))));
+        graph.SetIntConst(0, U8);   // 1 as [U8..Re] with preferred Real
+        graph.SetConst(1, None);    // none
+        graph.SetSoftArrayInit(4, 0, 1);   // [1, none]
+        graph.SetConst(2, None);    // none
+        graph.SetIntConst(3, U8);   // 2 as [U8..Re] with preferred Real
+        graph.SetSoftArrayInit(5, 2, 3);   // [none, 2]
+        graph.SetSoftArrayInit(6, 4, 5);   // outer
+        graph.SetDef("y", 6);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateArray.Of(StateArray.Of(StateOptional.Of(I32))), "y");
+    }
+
+    #endregion
 }

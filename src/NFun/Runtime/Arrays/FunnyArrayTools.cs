@@ -70,7 +70,10 @@ public static class FunnyArrayTools {
             var str = new string(s.ToArray());
             return new TextFunnyArray(str);
         }
-        return new EnumerableFunnyArray(items, elementType);
+        // Materialize immediately to avoid lazy LINQ evaluation issues.
+        // Lazy sequences capture mutable function argument slots by reference,
+        // causing stale values and StackOverflow in recursive scenarios.
+        return new ImmutableFunnyArray(items.ToArray(), elementType);
     }
 
     internal static IFunnyArray CreateEmptyArray(FunnyType elementType) {

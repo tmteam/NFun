@@ -351,11 +351,6 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 var resolvedType = ResolveType(arg.TypeSyntax);
                 ThrowIfOptionalTypeDisabled(resolvedType, arg.Id, arg.Interval);
                 _ticTypeGraph.SetVarType(arg.Id, resolvedType.ConvertToTiType());
-
-                // For empty containers ([] without elements), constrain with parameter type.
-                // Other defaults resolve their own type; call-site wrapper handles mismatches.
-                if (arg.HasDefault && arg.DefaultValue is ArraySyntaxNode { Expressions.Count: 0 })
-                    _ticTypeGraph.SetDefaultValueConstraint(arg.Id, arg.DefaultValue.OrderNumber);
             }
         }
 
@@ -374,7 +369,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             varNames: argNames);
         _resultsBuilder.RememberUserFunctionSignature(node.Id, fun);
 
-        return VisitChildren(node);
+        var result = VisitChildren(node);
+
+        // Visit default value expressions explicitly for TYPED parameters only.
+        // ExitVisitorBase.Visit(TypedVarDefSyntaxNode) returns true without visiting
+        // children, so DefaultValue is never visited by VisitChildren.
+        // Then constrain with parameter type so TIC propagates annotations.
+        foreach (var arg in node.Args)
+        {
+            if (arg.HasDefault && arg.TypeSyntax is not TypeSyntax.EmptyType)
+            {
+                arg.DefaultValue.Accept(this);
+                _ticTypeGraph.SetDefaultValueConstraint(arg.Id, arg.DefaultValue.OrderNumber);
+            }
+        }
+
+        return result;
     }
 
     public bool Visit(ArraySyntaxNode node) {

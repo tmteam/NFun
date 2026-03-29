@@ -273,4 +273,19 @@ public class FunctionOverloadTest {
     public void Error_TooManyArgsNoMatchingOverload() =>
         Assert.Throws<FunnyParseException>(() =>
             "f(a) = a \r f(a,b) = a+b \r y = f(1,2,3,4)".Build());
+
+    // ── Recursive shadow of builtin ─────────────────────────────────
+
+    [Test]
+    public void RecursiveShadow_Sum() =>
+        "sum(n) = if(n <= 0) 0 else n + sum(n-1)\r y = sum(10)".AssertReturns("y", 55);
+
+    [Test]
+    public void RecursiveShadow_Count() =>
+        "count(n) = if(n <= 0) 0 else 1 + count(n-1)\r y = count(5)".AssertReturns("y", 5.0);
+
+    [Test]
+    public void RecursiveShadow_Fold() =>
+        "fold(arr, acc) = if(arr.count()==0) acc else fold(arr[1:], acc+arr[0])\r y = fold([1,2,3], 0)"
+            .AssertReturns("y", 6);
 }

@@ -303,22 +303,32 @@ public static class SolvingFunctions {
                 // Propagate the Optional structure upward through ancestor edges
                 PropagateOptionalUpward(ancestorNode);
 
-                // Re-pull parent array node's own ancestor edges to update stale snapshots.
-                // Phase 1 stored Concretest() snapshots before Optional wrapping.
-                // After V0 becomes opt(ev0'), the array's Concretest() now includes Optional.
-                // We only pull the array node's direct ancestors — NOT recursively into V0,
-                // because V0 may have annotation-derived ancestors (e.g. I32) that conflict
-                // with the newly-wrapped opt(ev0') state.
-                foreach (var node in allNodes)
-                {
-                    if (node.State is StateArray arr && ReferenceEquals(arr.ElementNode, ancestorNode))
-                    {
-                        foreach (var anc in node.Ancestors.ToArray())
-                            PullConstrains(node, anc);
-                        break;
-                    }
-                }
+                RepullAncestorArrayChain(ancestorNode, allNodes);
             }
+        }
+    }
+
+    /// <summary>
+    /// After PullNoneNode updates an element node (Optional wrapping or None constraint),
+    /// walk up the element→array→element chain re-pulling ancestor edges to refresh
+    /// stale Concretest() snapshots in parent ConstraintsState.Descendant.
+    /// </summary>
+    private static void RepullAncestorArrayChain(TicNode elementNode, TicNode[] allNodes) {
+        var current = elementNode;
+        while (true)
+        {
+            TicNode arrayNode = null;
+            foreach (var node in allNodes)
+            {
+                if (node.State is StateArray a && ReferenceEquals(a.ElementNode, current))
+                { arrayNode = node; break; }
+            }
+            if (arrayNode == null) break;
+            foreach (var anc in arrayNode.Ancestors.ToArray())
+                PullConstrains(arrayNode, anc);
+            if (arrayNode.Ancestors.Count == 0) break;
+            current = arrayNode.Ancestors[0];
+            if (current.State is not ConstraintsState) break;
         }
     }
 

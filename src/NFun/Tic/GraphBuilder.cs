@@ -275,6 +275,7 @@ public class GraphBuilder {
     public void SetDefaultValueConstraint(string varName, int exprNodeId) {
         var exprNode = GetOrCreateNode(exprNodeId);
         var varNode = GetNamedNode(varName);
+        TraceLog.WriteLine($"  SetDefaultValueConstraint: {exprNodeId}({exprNode.State}).AddAncestor({varName}({varNode.State}))");
         exprNode.AddAncestor(varNode);
     }
 

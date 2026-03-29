@@ -513,8 +513,7 @@ public class ConcatArraysGenericFunctionDefinition : GenericFunctionWithTwoArgum
     protected override object Calc(object a, object b) {
         var arr1 = (IFunnyArray)a;
         var arr2 = (IFunnyArray)b;
-        var res = FunnyArrayTools.CreateEnumerable(arr1.Concat(arr2), arr1.ElementType);
-        return res;
+        return FunnyArrayTools.CreateEnumerable(arr1.Concat(arr2), arr1.ElementType);
     }
 }
 
