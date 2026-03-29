@@ -868,7 +868,7 @@ public static class SyntaxNodeReader {
             throw Errors.FunctionCallObrMissed(start, head.Value, flow.CurrentTokenFinishPosition, pipedVal);
 
         var positionalArgs = new List<ISyntaxNode>();
-        var namedArgs = new List<NamedCallArgument>();
+        List<NamedCallArgument> namedArgs = null;
         bool seenNamed = false;
 
         if (!flow.IsCurrent(TokType.ParenthCbr))
@@ -886,7 +886,8 @@ public static class SyntaxNodeReader {
                     var exp = ReadNodeOrNull(flow);
                     if (exp == null)
                         throw Errors.FunctionArgumentError(head.Value, obrId, flow);
-                    namedArgs.Add(new NamedCallArgument(nameTok.Value, exp, nameTok.Interval));
+                    (namedArgs ??= new List<NamedCallArgument>())
+                        .Add(new NamedCallArgument(nameTok.Value, exp, nameTok.Interval));
                 }
                 else if (flow.IsCurrent(TokType.Spread))
                 {
@@ -946,7 +947,7 @@ public static class SyntaxNodeReader {
         if (!flow.MoveIf(TokType.ParenthCbr, out _))
             throw Errors.FunctionArgumentError(head.Value, obrId, flow);
 
-        var named = namedArgs.Count > 0 ? namedArgs.ToArray() : null;
+        var named = namedArgs is { Count: > 0 } ? namedArgs.ToArray() : null;
 
         if (pipedVal == null)
             return SyntaxNodeFactory.FunCall(head.Value, positionalArgs, start, flow.CurrentTokenFinishPosition, named);

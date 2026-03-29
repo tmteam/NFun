@@ -23,7 +23,7 @@ public class PullConstraintsFunctions : IStateFunction {
             // (established by Phase 1). This matches the old PullNoneNode's condition.
             // Standalone None or None+None → standard path (Destruction resolves to None).
             if (ancestor.HasDescendant
-                && ancestor.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None }
+                && ancestor.Descendant != StatePrimitive.None
                 && ancestor.Descendant is not StateOptional)
             {
                 var innerNode = TicNode.CreateTypeVariableNode(
@@ -150,7 +150,7 @@ public class PullConstraintsFunctions : IStateFunction {
                     {
                         descendantNode.RemoveAncestor(ancestorNode);
                         if (!descendant.HasDescendant
-                            || descendant.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None })
+                            || descendant.Descendant != StatePrimitive.None)
                             descendantNode.AddAncestor(ancOpt.ElementNode);
                     }
                     return true;

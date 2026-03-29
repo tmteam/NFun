@@ -18,6 +18,32 @@ internal class EmptyConstantList : IConstantList {
     }
 }
 
+/// <summary>Singleton built-in constants (π, ∞). One per TypeBehaviour.</summary>
+internal class BuiltInConstantList : IConstantList {
+    internal static readonly BuiltInConstantList Double = Create(new RealIsDoubleTypeBehaviour());
+    internal static readonly BuiltInConstantList Decimal = Create(new RealIsDecimalTypeBehaviour());
+
+    private readonly Dictionary<string, ConstantValueAndType> _constants;
+
+    private static BuiltInConstantList Create(TypeBehaviour typeBehaviour) {
+        var converter = FunnyConverter.RealIsDouble; // default converter for built-in
+        if (typeBehaviour is RealIsDecimalTypeBehaviour)
+            converter = FunnyConverter.RealIsDecimal;
+        var piConverter = converter.GetInputConverterFor(typeof(double));
+        var dict = new Dictionary<string, ConstantValueAndType>(2) {
+            ["π"] = new(piConverter.ToFunObject(Math.PI), piConverter.FunnyType),
+            ["∞"] = new(double.PositiveInfinity, FunnyType.Real)
+        };
+        return new BuiltInConstantList(dict);
+    }
+
+    private BuiltInConstantList(Dictionary<string, ConstantValueAndType> constants) =>
+        _constants = constants;
+
+    public bool TryGetConstant(string id, out ConstantValueAndType constant) =>
+        _constants.TryGetValue(id, out constant);
+}
+
 internal class ConstantList : IConstantList {
     public ConstantList(FunnyConverter typeBehaviour) {
         _typeBehaviour = typeBehaviour;

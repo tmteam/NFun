@@ -22,7 +22,7 @@ public static partial class StateExtensions {
     private static ITicNodeState AbstractestOptional(StateOptional opt) {
         var inner = opt.Element.Abstractest();
         // opt(any) = any
-        return inner.Equals(Any) ? Any : StateOptional.Of(inner);
+        return inner== Any ? Any : StateOptional.Of(inner);
     }
 
     private static ITicNodeState AbstractestFun(StateFun f) {

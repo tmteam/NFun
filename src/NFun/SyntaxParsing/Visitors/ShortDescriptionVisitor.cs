@@ -100,4 +100,6 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
         $"{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
 
     public string Visit(DefaultValueSyntaxNode node) => "default";
+    public string Visit(BinOperatorSyntaxNode node) => $"({node.Id})";
+    public string Visit(UnaryOperatorSyntaxNode node) => $"{node.Id}";
 }

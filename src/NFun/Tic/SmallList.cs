@@ -125,6 +125,49 @@ public sealed class SmallList<T> : IReadOnlyList<T> where T : class {
         return result;
     }
 
+    /// <summary>
+    /// Returns a snapshot for safe iteration while the list may be mutated.
+    /// Zero allocation for 0-2 elements (95% of cases). ToArray() for 3+.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Snapshot ToSnapshot() => new(_count, _item0, _count > 1 ? _tail![0] : default, _count > 2 ? ToArray() : null);
+
+    public readonly struct Snapshot {
+        private readonly int _count;
+        private readonly T _item0;
+        private readonly T _item1;
+        private readonly T[] _array; // non-null only for 3+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Snapshot(int count, T item0, T item1, T[] array) {
+            _count = count; _item0 = item0; _item1 = item1; _array = array;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SnapshotEnumerator GetEnumerator() => new(_count, _item0, _item1, _array);
+
+        public struct SnapshotEnumerator {
+            private readonly int _count;
+            private readonly T _item0;
+            private readonly T _item1;
+            private readonly T[] _array;
+            private int _index;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal SnapshotEnumerator(int count, T item0, T item1, T[] array) {
+                _count = count; _item0 = item0; _item1 = item1; _array = array; _index = -1;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool MoveNext() => ++_index < _count;
+
+            public T Current {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _array != null ? _array[_index] : (_index == 0 ? _item0 : _item1);
+            }
+        }
+    }
+
     // Struct enumerator for non-boxing foreach
     public Enumerator GetEnumerator() => new(this);
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => new BoxedEnumerator(this);

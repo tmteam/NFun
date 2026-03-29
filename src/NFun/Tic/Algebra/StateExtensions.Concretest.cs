@@ -24,7 +24,7 @@ public static partial class StateExtensions {
     private static ITicNodeState ConcretestOptional(StateOptional opt) {
         var inner = opt.Element.Concretest();
         // opt(any) = any
-        return inner.Equals(StatePrimitive.Any) ? StatePrimitive.Any : StateOptional.Of(inner);
+        return inner== StatePrimitive.Any ? StatePrimitive.Any : StateOptional.Of(inner);
     }
 
     private static ITicNodeState ConcretestFun(StateFun f) {

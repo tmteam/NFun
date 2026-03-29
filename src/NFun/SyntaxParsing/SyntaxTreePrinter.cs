@@ -70,4 +70,6 @@ class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(StructInitSyntaxNode node) => "struct";
 
     public string Visit(DefaultValueSyntaxNode node) => "default";
+    public string Visit(BinOperatorSyntaxNode node) => $"binop '{node.Id}'";
+    public string Visit(UnaryOperatorSyntaxNode node) => $"unop '{node.Id}'";
 }

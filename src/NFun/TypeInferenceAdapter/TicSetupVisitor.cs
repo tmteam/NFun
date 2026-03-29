@@ -21,7 +21,7 @@ using static StatePrimitive;
 public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private readonly VariableScopeAliasTable _aliasScope;
     private readonly GraphBuilder _ticTypeGraph;
-    private readonly IFunctionDictionary _dictionary;
+    private readonly IFunctionRegistry _dictionary;
     private readonly IConstantList _constants;
     private readonly TypeInferenceResultsBuilder _resultsBuilder;
     private readonly DialectSettings _dialect;
@@ -40,7 +40,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     internal static bool SetupTicForBody(
         SyntaxTree tree,
         GraphBuilder ticGraph,
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
@@ -48,12 +48,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         DialectSettings dialect) {
         var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect, customTypes);
 
-        // Collect user function definitions for named argument resolution
+        // Collect user function definitions for named argument resolution (lazy dict)
         foreach (var syntaxNode in tree.Children)
         {
             if (syntaxNode is UserFunctionDefinitionSyntaxNode ufn)
-                visitor._userFunctions[(ufn.Id, ufn.Args.Count)] = ufn;
+                (visitor._userFunctions ??= new())[(ufn.Id, ufn.Args.Count)] = ufn;
         }
+        visitor._hasUserFunctions = visitor._userFunctions is { Count: > 0 };
 
         foreach (var syntaxNode in tree.Children)
         {
@@ -70,25 +71,27 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     internal static bool SetupTicForUserFunction(
         UserFunctionDefinitionSyntaxNode userFunctionNode,
         GraphBuilder ticGraph,
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         IConstantList constants,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect,
         ICustomTypeRegistry customTypes = null) {
         var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect, customTypes);
         // Register this function for named arg resolution in recursive calls
-        visitor._userFunctions[(userFunctionNode.Id, userFunctionNode.Args.Count)] = userFunctionNode;
+        (visitor._userFunctions ??= new())[(userFunctionNode.Id, userFunctionNode.Args.Count)] = userFunctionNode;
+        visitor._hasUserFunctions = true;
         return userFunctionNode.Accept(visitor);
     }
 
     private readonly ICustomTypeRegistry _customTypes;
-    internal readonly Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions = new();
+    internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
+    internal bool _hasUserFunctions;
     internal const int SyntheticIdStart = 100000;
     private int _nextSyntheticId = SyntheticIdStart; // synthetic node IDs start high to avoid collision
 
     private TicSetupVisitor(
         GraphBuilder ticTypeGraph,
-        IFunctionDictionary dictionary,
+        IFunctionRegistry dictionary,
         IConstantList constants,
         TypeInferenceResultsBuilder resultsBuilder,
         IAprioriTypesMap aprioriTypesMap,
@@ -285,10 +288,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     private UserFunctionDefinitionSyntaxNode FindUserFunctionDefinition(string name, int argCount) =>
-        _userFunctions.TryGetValue((name, argCount), out var ufn) ? ufn : null;
+        _userFunctions != null && _userFunctions.TryGetValue((name, argCount), out var ufn) ? ufn : null;
 
     /// <summary>Find user function by name where provided arg count fits considering defaults and params</summary>
     private UserFunctionDefinitionSyntaxNode FindUserFunctionByNameWithDefaults(string name, int providedArgs, int maxArgs) {
+        if (_userFunctions == null) return null;
         foreach (var ((fn, _), ufn) in _userFunctions)
         {
             if (!string.Equals(fn, name, StringComparison.OrdinalIgnoreCase))
@@ -582,13 +586,21 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private FunnyType _parentFunctionArgType = FunnyType.Empty;
 
     public bool Visit(FunCallSyntaxNode node) {
-        // Resolve named arguments → build merged positional arg list
-        var allArgs = ResolveNamedArgs(node);
-        _resultsBuilder.RememberResolvedCallArgs(node.OrderNumber, allArgs);
+        // Resolve named arguments if needed
+        ISyntaxNode[] allArgs;
+        if (_hasUserFunctions || node.HasNamedArgs)
+        {
+            allArgs = ResolveNamedArgs(node);
+            _resultsBuilder.RememberResolvedCallArgs(node.OrderNumber, allArgs);
+        }
+        else
+        {
+            allArgs = node.Args;
+        }
 
         var signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
-        if (signature != null)
-            _resultsBuilder.RememberResolvedCallSignature(node.OrderNumber, signature);
+        // Store signature on node directly — avoids dict write + dict read in ExpressionBuilder
+        node.ResolvedSignature = signature;
 
         //Apply visitor to child types
         for (int i = 0; i < allArgs.Length; i++)
@@ -618,7 +630,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             ids[i] = allArgs[i].OrderNumber;
         ids[^1] = node.OrderNumber;
 
-        var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, allArgs.Length);
+        // #10: operators are never user functions — skip user function lookup
+        var userFunction = node.IsOperator
+            ? null
+            : _resultsBuilder.GetUserFunctionSignature(node.Id, allArgs.Length);
         if (userFunction != null)
         {
             //Call user-function if it is being built at the same time as the current expression is being built
@@ -1028,4 +1043,92 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     #endregion
+
+    public bool Visit(BinOperatorSyntaxNode node) {
+        var signature = _dictionary.GetOrNull(node.Id, 2);
+        node.ResolvedSignature = signature;
+
+        if (signature != null) _parentFunctionArgType = signature.ArgTypes[0];
+        node.Left.Accept(this);
+        if (signature != null) _parentFunctionArgType = signature.ArgTypes[1];
+        node.Right.Accept(this);
+
+        // Special case: pow with non-constant or negative exponent
+        if (node.Op == BinOp.Pow && signature is PureGenericFunctionBase)
+        {
+            bool isConstNonNegativeInt = node.Right is GenericIntSyntaxNode intNode
+                && !(intNode.Value is long l && l < 0);
+            if (!isConstNonNegativeInt)
+            {
+                var genericType = _ticTypeGraph.InitializeVarNode(Real, Real, false);
+                _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[] { genericType });
+                _ticTypeGraph.SetCall(genericType,
+                    node.Left.OrderNumber, node.Right.OrderNumber, node.OrderNumber);
+                return true;
+            }
+        }
+
+        if (signature is PureGenericFunctionBase pure)
+        {
+            var genericType = InitializeGenericType(pure.Constrains[0]);
+            _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[] { genericType });
+            _ticTypeGraph.SetCall(genericType,
+                node.Left.OrderNumber, node.Right.OrderNumber, node.OrderNumber);
+            return true;
+        }
+
+        // Fallback for non-pure generic operators (rare)
+        var ids = new[] { node.Left.OrderNumber, node.Right.OrderNumber, node.OrderNumber };
+        if (signature == null) { _ticTypeGraph.SetCall(node.Id, ids); return true; }
+        if (signature is GenericFunctionBase g) {
+            var genericTypes = InitializeGenericTypes(g.Constrains);
+            _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
+            var types = new ITicNodeState[] {
+                signature.ArgTypes[0].ConvertToTiType(genericTypes),
+                signature.ArgTypes[1].ConvertToTiType(genericTypes),
+                signature.ReturnType.ConvertToTiType(genericTypes) };
+            _ticTypeGraph.SetCall(types, ids);
+        } else {
+            var types = new ITicNodeState[] {
+                signature.ArgTypes[0].ConvertToTiType(),
+                signature.ArgTypes[1].ConvertToTiType(),
+                signature.ReturnType.ConvertToTiType() };
+            _ticTypeGraph.SetCall(types, ids);
+        }
+        return true;
+    }
+
+    public bool Visit(UnaryOperatorSyntaxNode node) {
+        var signature = _dictionary.GetOrNull(node.Id, 1);
+        node.ResolvedSignature = signature;
+
+        if (signature != null) _parentFunctionArgType = signature.ArgTypes[0];
+        node.Operand.Accept(this);
+
+        if (signature is PureGenericFunctionBase pure)
+        {
+            var genericType = InitializeGenericType(pure.Constrains[0]);
+            _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[] { genericType });
+            _ticTypeGraph.SetCall(genericType,
+                node.Operand.OrderNumber, node.OrderNumber);
+            return true;
+        }
+
+        var ids = new[] { node.Operand.OrderNumber, node.OrderNumber };
+        if (signature == null) { _ticTypeGraph.SetCall(node.Id, ids); return true; }
+        if (signature is GenericFunctionBase g) {
+            var genericTypes = InitializeGenericTypes(g.Constrains);
+            _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
+            var types = new ITicNodeState[] {
+                signature.ArgTypes[0].ConvertToTiType(genericTypes),
+                signature.ReturnType.ConvertToTiType(genericTypes) };
+            _ticTypeGraph.SetCall(types, ids);
+        } else {
+            var types = new ITicNodeState[] {
+                signature.ArgTypes[0].ConvertToTiType(),
+                signature.ReturnType.ConvertToTiType() };
+            _ticTypeGraph.SetCall(types, ids);
+        }
+        return true;
+    }
 }

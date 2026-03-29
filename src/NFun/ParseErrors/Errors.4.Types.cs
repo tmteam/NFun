@@ -19,7 +19,7 @@ internal static partial class Errors {
     internal static FunnyParseException ImpossibleCast(FunnyType from, FunnyType to, Interval interval) => new(
         710, $"Unable to cast from {from} to {to}", interval);
 
-    internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph, IFunctionDictionary functions = null) {
+    internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph, IFunctionRegistry functions = null) {
         var allTicNodes = graph.GetNodes();
         return ticException switch {
                    TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx => TranslateIncompatibleAncestorError(rootToSearch, syntaxNodeEx, allTicNodes, functions),
@@ -31,7 +31,7 @@ internal static partial class Errors {
                };
     }
 
-    private static FunnyParseException TranslateIncompatibleAncestorError(ISyntaxNode rootToSearch, TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx, TicNode[] allTicNodes, IFunctionDictionary functions = null) {
+    private static FunnyParseException TranslateIncompatibleAncestorError(ISyntaxNode rootToSearch, TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx, TicNode[] allTicNodes, IFunctionRegistry functions = null) {
         var ticAncestor = syntaxNodeEx.Ancestor;
         var ticDescendant = syntaxNodeEx.Descendant;
 
@@ -50,7 +50,7 @@ internal static partial class Errors {
     }
 
 
-    private static FunnyParseException TranslateStateError(TicException ticException, ISyntaxNode rootToSearch, TicCannotSetStateSyntaxNodeException stateException, IFunctionDictionary functions = null) {
+    private static FunnyParseException TranslateStateError(TicException ticException, ISyntaxNode rootToSearch, TicCannotSetStateSyntaxNodeException stateException, IFunctionRegistry functions = null) {
         var path = rootToSearch.FindSyntaxNodePath(stateException.Node.Name);
 
         if (path.Count != 0)
@@ -134,7 +134,7 @@ internal static partial class Errors {
     }
 
 
-    private static FunnyParseException GetAncestorToDescendantErrorOrNull(ISyntaxNode rootToSearch, TicNode ticAncestorOrNull, TicNode ticDescendantOrNull, IFunctionDictionary functions = null) {
+    private static FunnyParseException GetAncestorToDescendantErrorOrNull(ISyntaxNode rootToSearch, TicNode ticAncestorOrNull, TicNode ticDescendantOrNull, IFunctionRegistry functions = null) {
         var ancestorPath = rootToSearch.FindSyntaxNodePath(ticAncestorOrNull?.Name);
         var descendantPath = rootToSearch.FindSyntaxNodePath(ticDescendantOrNull?.Name);
 
@@ -214,7 +214,7 @@ internal static partial class Errors {
         return null;
     }
 
-    private static FunnyParseException InvalidFunctionArgument(ISyntaxNode failed, FunCallSyntaxNode functionCall, IFunctionDictionary functions = null, TicNode stateExceptionNode = null)
+    private static FunnyParseException InvalidFunctionArgument(ISyntaxNode failed, FunCallSyntaxNode functionCall, IFunctionRegistry functions = null, TicNode stateExceptionNode = null)
     {
         var signature = functions?.GetOrNull(functionCall.Id, functionCall.Args.Length);
         if (signature == null)

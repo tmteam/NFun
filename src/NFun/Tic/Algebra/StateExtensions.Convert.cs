@@ -15,11 +15,11 @@ public static partial class StateExtensions {
             return from.CanBeConvertedOptimisticTo(toRef.Element);
 
         // None can only optimistically convert to None or Optional targets
-        if (from is StatePrimitive { Name: PrimitiveTypeName.None })
-            return to is StatePrimitive { Name: PrimitiveTypeName.None }
+        if (from == StatePrimitive.None)
+            return to == StatePrimitive.None
                 || (to is ICompositeState cs && from.CanBeConvertedOptimisticTo(cs));
 
-        if (to.Equals(Any))
+        if (to== Any)
             return true;
 
         // Optional can only optimistically convert to Optional targets
@@ -82,7 +82,7 @@ public static partial class StateExtensions {
             return to.CanBePessimisticConvertedTo(from.Ancestor);
 
         if (from.IsComparable)
-            return to.IsComparable || to.Equals(Any);
+            return to.IsComparable || to== Any;
         else
             return true;
     }
@@ -181,7 +181,7 @@ public static partial class StateExtensions {
         // to is Optional: None → Opt(T) = true, Opt(A) → Opt(B) covariant, T → Opt(T) implicit lift
         if (to is StateOptional optTo)
         {
-            if (from is StatePrimitive { Name: PrimitiveTypeName.None })
+            if (from == StatePrimitive.None)
                 return true;
             if (from is StateOptional optFrom)
                 return optFrom.Element.CanBeConvertedPessimisticTo(optTo.Element);
@@ -189,12 +189,12 @@ public static partial class StateExtensions {
         }
 
         // None and Optional can't pessimistically convert to non-optional targets
-        if (from is StatePrimitive { Name: PrimitiveTypeName.None })
-            return to is StatePrimitive { Name: PrimitiveTypeName.None };
+        if (from == StatePrimitive.None)
+            return to == StatePrimitive.None;
         if (from is StateOptional)
             return false;
 
-        if (to.Equals(Any))
+        if (to== Any)
             return true;
 
         return from switch {

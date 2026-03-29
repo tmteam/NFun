@@ -11,8 +11,8 @@ public class TypeInferenceResultsBuilder {
     private readonly List<IFunctionSignature> _functionalVariable = new();
     private readonly List<StateFun> _recursiveCalls = new();
     private readonly Dictionary<string, StateFun> _userFunctionSignatures = new();
-    private readonly Dictionary<int, ISyntaxNode[]> _resolvedCallArgs = new();
-    private readonly Dictionary<int, IFunctionSignature> _resolvedCallSignatures = new();
+    private Dictionary<int, ISyntaxNode[]> _resolvedCallArgs;
+    private Dictionary<int, IFunctionSignature> _resolvedCallSignatures;
 
     private ITicResults _bodyTypeSolving;
 
@@ -34,10 +34,10 @@ public class TypeInferenceResultsBuilder {
         => _functionalVariable.EnlargeAndSet(id, signature);
 
     public void RememberResolvedCallArgs(int orderNumber, ISyntaxNode[] args)
-        => _resolvedCallArgs[orderNumber] = args;
+        => (_resolvedCallArgs ??= new())[orderNumber] = args;
 
     public void RememberResolvedCallSignature(int orderNumber, IFunctionSignature signature)
-        => _resolvedCallSignatures[orderNumber] = signature;
+        => (_resolvedCallSignatures ??= new())[orderNumber] = signature;
 
     public void SetResults(ITicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
 
@@ -73,8 +73,8 @@ public class TypeInferenceResults {
         _bodyTypeSolving = bodyTypeSolving;
         _functionalVariables = functionalVariables;
         _recursiveCalls = recursiveCalls;
-        _resolvedCallArgs = resolvedCallArgs ?? new Dictionary<int, ISyntaxNode[]>();
-        _resolvedCallSignatures = resolvedCallSignatures ?? new Dictionary<int, IFunctionSignature>();
+        _resolvedCallArgs = resolvedCallArgs;
+        _resolvedCallSignatures = resolvedCallSignatures;
     }
 
     public IFunctionSignature GetFunctionalVariableOrNull(int id) =>
@@ -96,10 +96,10 @@ public class TypeInferenceResults {
     public IReadOnlyList<ConstraintsState> Generics => _bodyTypeSolving.GenericsStates;
 
     public ISyntaxNode[] GetResolvedCallArgsOrNull(int id) =>
-        _resolvedCallArgs.TryGetValue(id, out var args) ? args : null;
+        _resolvedCallArgs != null && _resolvedCallArgs.TryGetValue(id, out var args) ? args : null;
 
     public IFunctionSignature GetResolvedCallSignatureOrNull(int id) =>
-        _resolvedCallSignatures.TryGetValue(id, out var sig) ? sig : null;
+        _resolvedCallSignatures != null && _resolvedCallSignatures.TryGetValue(id, out var sig) ? sig : null;
 
     public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
         => _bodyTypeSolving.GetSyntaxNodeOrNull(id)?.State;

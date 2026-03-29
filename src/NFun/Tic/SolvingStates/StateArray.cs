@@ -53,7 +53,7 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     }
 
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
-        => type.Equals(StatePrimitive.Any);
+        => type== StatePrimitive.Any;
 
     public override bool Equals(object obj) {
         if (obj is StateArray arr)

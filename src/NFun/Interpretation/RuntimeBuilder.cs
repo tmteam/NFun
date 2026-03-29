@@ -19,7 +19,7 @@ namespace NFun.Interpretation;
 internal static class RuntimeBuilder {
     internal static FunnyRuntime Build(
         string script,
-        IFunctionDictionary functionDictionary,
+        IFunctionRegistry functionRegistry,
         DialectSettings dialect,
         IConstantList constants = null,
         IAprioriTypesMap aprioriTypesMap = null,
@@ -34,13 +34,17 @@ internal static class RuntimeBuilder {
         syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
         return Build(
             syntaxTree,
-            functionDictionary,
+            functionRegistry,
             EnsureBuiltInConstants(constants, dialect.Converter),
             aprioriTypesMap?? EmptyAprioriTypesMap.Instance,
             customTypes, dialect);
     }
 
     private static IConstantList EnsureBuiltInConstants(IConstantList userConstants, FunnyConverter converter) {
+        if (userConstants == null)
+            return converter.TypeBehaviour is RealIsDoubleTypeBehaviour
+                ? BuiltInConstantList.Double
+                : BuiltInConstantList.Decimal;
         if (userConstants is ConstantList cl) {
             cl.AddBuiltIns();
             return cl;
@@ -52,7 +56,7 @@ internal static class RuntimeBuilder {
 
     private static FunnyRuntime Build(
         SyntaxTree syntaxTree,
-        IFunctionDictionary functionsDictionary,
+        IFunctionRegistry functionsRegistry,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
@@ -66,18 +70,18 @@ internal static class RuntimeBuilder {
         //that refer to already compiled functions
         var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
         IUserFunction[] userFunctions;
-        IFunctionDictionary functionDictionary;
+        IFunctionRegistry functionRegistry;
         if (functionSolveOrder.Length == 0)
         {
-            functionDictionary = functionsDictionary;
+            functionRegistry = functionsRegistry;
             userFunctions = Array.Empty<IUserFunction>();
         }
         else
         {
             userFunctions = new IUserFunction[functionSolveOrder.Length];
 
-            var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary, functionSolveOrder.Length);
-            functionDictionary = scopeFunctionDictionary;
+            var scopeFunctionDictionary = new ScopeFunctionRegistry(functionsRegistry, functionSolveOrder.Length);
+            functionRegistry = scopeFunctionDictionary;
             //build user functions
             for (var i = 0; i < functionSolveOrder.Length; i++)
             {
@@ -101,7 +105,7 @@ internal static class RuntimeBuilder {
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD BODY ====");
 
-        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypes, customTypes, dialect);
+        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionRegistry, aprioriTypes, customTypes, dialect);
 
 
         #region build body
@@ -114,7 +118,7 @@ internal static class RuntimeBuilder {
             if (treeNode is EquationSyntaxNode node)
             {
                 var equation =
-                    BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving, dialect);
+                    BuildEquationAndPutItToVariables(node, functionRegistry, variables, bodyTypeSolving, dialect);
                 equations.Add(equation);
 
                 if (!variables.TryAdd(equation.OutputVariableSource))
@@ -190,13 +194,13 @@ internal static class RuntimeBuilder {
     private static TypeInferenceResults SolveBodyTypes(
         SyntaxTree syntaxTree,
         IConstantList constants,
-        IFunctionDictionary functionDictionary,
+        IFunctionRegistry functionRegistry,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
         DialectSettings dialect) {
 
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
-            syntaxTree, functionDictionary, constants, aprioriTypes, customTypes, dialect);
+            syntaxTree, functionRegistry, constants, aprioriTypes, customTypes, dialect);
 
         var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
         foreach (var syntaxNode in syntaxTree.Nodes)
@@ -214,7 +218,7 @@ internal static class RuntimeBuilder {
 
     private static Equation BuildEquationAndPutItToVariables(
         EquationSyntaxNode equation,
-        IFunctionDictionary functionsDictionary,
+        IFunctionRegistry functionsRegistry,
         VariableDictionary mutableVariables,
         TypeInferenceResults typeInferenceResults,
         DialectSettings dialect) {
@@ -223,7 +227,7 @@ internal static class RuntimeBuilder {
 
         var expression = ExpressionBuilderVisitor.BuildExpression(
             node: equation.Expression,
-            functions: functionsDictionary,
+            functions: functionsRegistry,
             outputType: equation.OutputType,
             variables: mutableVariables,
             typeInferenceResults: typeInferenceResults,
@@ -268,7 +272,7 @@ internal static class RuntimeBuilder {
     private static IUserFunction BuildFunctionAndPutItToDictionary(
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
         IConstantList constants,
-        ScopeFunctionDictionary functionsDictionary,
+        ScopeFunctionRegistry functionsRegistry,
         DialectSettings dialect) {
 
         if(TraceLog.IsEnabled)
@@ -284,7 +288,7 @@ internal static class RuntimeBuilder {
             if(!TicSetupVisitor.SetupTicForUserFunction(
                 userFunctionNode: functionSyntaxNode,
                 ticGraph: graph,
-                functions: functionsDictionary,
+                functions: functionsRegistry,
                 constants: constants,
                 results: resultsBuilder,
                 dialect: dialect))
@@ -294,7 +298,7 @@ internal static class RuntimeBuilder {
         }
         catch (TicException e)
         {
-            throw Errors.TranslateTicError(e, functionSyntaxNode, graph, functionsDictionary);
+            throw Errors.TranslateTicError(e, functionSyntaxNode, graph, functionsRegistry);
         }
 
         resultsBuilder.SetResults(types);
@@ -302,7 +306,7 @@ internal static class RuntimeBuilder {
 
         // Precompute default values for typed parameters BEFORE body TIC setup.
         // This is needed so call sites can create ConstantSyntaxNode with the right value.
-        PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsDictionary, dialect);
+        PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
 
         if (!types.HasGenerics)
         {
@@ -325,12 +329,12 @@ internal static class RuntimeBuilder {
             //make function prototype
             var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
             //add prototype to dictionary for future use
-            functionsDictionary.Add(prototype);
+            functionsRegistry.Add(prototype);
             var function =
                 functionSyntaxNode.BuildConcrete(
                     argTypes: argTypes,
                     returnType: returnType,
-                    functionsDictionary: functionsDictionary,
+                    functionsRegistry: functionsRegistry,
                     results: typeInferenceResuls,
                     converter: TicTypesConverter.Concrete,
                     dialect: dialect);
@@ -343,9 +347,9 @@ internal static class RuntimeBuilder {
         else
         {
             var function = GenericUserFunction.Create(
-                typeInferenceResuls, functionSyntaxNode, functionsDictionary,
+                typeInferenceResuls, functionSyntaxNode, functionsRegistry,
                 dialect);
-            functionsDictionary.Add(function);
+            functionsRegistry.Add(function);
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
             return function;
@@ -355,7 +359,7 @@ internal static class RuntimeBuilder {
     private static void PrecomputeDefaultValues(
         UserFunctionDefinitionSyntaxNode functionSyntax,
         TypeInferenceResults results,
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         DialectSettings dialect) {
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {

@@ -43,7 +43,7 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor.HasAncestor && !ancestor.Ancestor.Equals(StatePrimitive.Any))
+        if (ancestor.HasAncestor && ancestor.Ancestor != StatePrimitive.Any)
             return false;
 
         // If ancestor constrains has a struct descendant, propagate field constraints down.
@@ -56,7 +56,7 @@ public class PushConstraintsFunctions : IStateFunction {
                 var descField = descStruct.GetFieldOrNull(ancField.Key);
                 if (descField == null) continue;
 
-                if (descField.State is ConstraintsState && !ancField.Value.State.Equals(StatePrimitive.Any))
+                if (descField.State is ConstraintsState && ancField.Value.State != StatePrimitive.Any)
                     SolvingFunctions.MergeInplace(descField, ancField.Value);
                 else
                     SolvingFunctions.PushConstraints(descField, ancField.Value);
@@ -169,7 +169,7 @@ public class PushConstraintsFunctions : IStateFunction {
                     descendantNode.RemoveAncestor(ancestorNode);
                     // If descendant has non-None constraints, propagate to element
                     if (!descendant.HasDescendant
-                        || descendant.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None })
+                        || descendant.Descendant != StatePrimitive.None)
                     {
                         descendantNode.AddAncestor(ancOpt.ElementNode);
                         SolvingFunctions.PushConstraints(descendantNode, ancOpt.ElementNode);

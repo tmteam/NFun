@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
@@ -55,6 +56,10 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
 
     public Interval Interval { get; set; }
     public bool IsOperator { get; }
+
+    /// <summary>Resolved function signature, set during TIC setup. Avoids dict lookup in ExpressionBuilder.</summary>
+    public IFunctionSignature ResolvedSignature { get; set; }
+
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children =>
         HasNamedArgs ? Args.Concat(NamedArgs.Select(n => n.Value)).ToArray() : Args;

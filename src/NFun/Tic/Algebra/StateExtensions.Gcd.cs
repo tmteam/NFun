@@ -39,8 +39,8 @@ public static partial class StateExtensions {
             }
 
             // None: GCD(None, Opt(T)) = None, GCD(None, Any) = None, GCD(None, T) = null
-            if (a is StatePrimitive { Name: PrimitiveTypeName.None }) return GcdWithNone(b);
-            if (b is StatePrimitive { Name: PrimitiveTypeName.None }) return GcdWithNone(a);
+            if (a == StatePrimitive.None) return GcdWithNone(b);
+            if (b == StatePrimitive.None) return GcdWithNone(a);
 
             // Optional: covariant GCD
             if (a is StateOptional aopt) return GcdWithOptional(aopt, b);
@@ -48,8 +48,8 @@ public static partial class StateExtensions {
 
             if (a is StatePrimitive ap)
                 return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
-                    a.Equals(Any) ? b.Abstractest() : null;
-            if (b.Equals(Any)) return a.Abstractest();
+                    a== Any ? b.Abstractest() : null;
+            if (b== Any) return a.Abstractest();
             if (a.GetType() != b.GetType()) return null;
             return a switch {
                 StateArray arrA => arrA.Gcd((StateArray)b),
@@ -75,8 +75,8 @@ public static partial class StateExtensions {
             return innerGcd == null ? null : StateOptional.Of(innerGcd);
         }
         // Opt(T) ≤ Any, so GCD(Opt(T), Any) = Opt(T)
-        if (other.Equals(Any))
-            return opt.Element.Equals(Any) ? Any : opt;
+        if (other== Any)
+            return opt.Element== Any ? Any : opt;
         // GCD(Opt(A), B) = GCD(A, B) — for non-Any B (common desc can't be optional since None ≰ B)
         return opt.Element.Gcd(other);
     }

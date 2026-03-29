@@ -30,9 +30,11 @@ internal class FunOfTwoArgsExpressionNode : IExpressionNode {
 
     public object Calc() {
         try {
-            var a = _lazy1 ? (object)_arg1 : _arg1.Calc();
-            var b = _lazy2 ? (object)_arg2 : _arg2.Calc();
-            return _fun.Calc(a, b);
+            if (_lazy1 | _lazy2) // rare path: lazy evaluation
+                return _fun.Calc(
+                    _lazy1 ? (object)_arg1 : _arg1.Calc(),
+                    _lazy2 ? (object)_arg2 : _arg2.Calc());
+            return _fun.Calc(_arg1.Calc(), _arg2.Calc());
         }
         catch (FunnyRuntimeException) { throw; }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }

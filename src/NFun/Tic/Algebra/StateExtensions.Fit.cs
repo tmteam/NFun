@@ -15,7 +15,7 @@ public static partial class StateExtensions {
                 // the only comparable composite is arr(char)
                 if (target is not StateArray a)
                     return false;
-                if (!a.Element.Equals(StatePrimitive.Char))
+                if (a.Element != StatePrimitive.Char)
                     return false;
             }
 
@@ -35,7 +35,7 @@ public static partial class StateExtensions {
         // to is Optional: None ≤ Opt(T), T ≤ Opt(T) via implicit lift, Opt(A) ≤ Opt(B) covariant
         if (to is StateOptional optTo)
         {
-            if (target is StatePrimitive { Name: PrimitiveTypeName.None })
+            if (target == StatePrimitive.None)
                 return true;
             if (target is StateOptional targetOpt)
                 return targetOpt.Element.FitsInto(optTo.Element);
@@ -44,21 +44,21 @@ public static partial class StateExtensions {
         }
 
         // None fits into Opt(T) (handled above), None itself, or Any
-        if (target is StatePrimitive { Name: PrimitiveTypeName.None })
+        if (target == StatePrimitive.None)
             return to is StatePrimitive p && (p.Name == PrimitiveTypeName.None || p.Name == PrimitiveTypeName.Any);
 
         return target switch {
             // Opt(A) fits into Opt(B) (handled above) or Any
-            StateOptional => to.Equals(Any),
+            StateOptional => to== Any,
             StateArray targetA => to is StateArray arrTo
                 ? targetA.Element.FitsInto(arrTo.Element)
-                : to.Equals(Any),
+                : to== Any,
             StateFun targetF => to is StateFun funTo
                 ? targetF.FitsInto(funTo)
-                : to.Equals(Any),
+                : to== Any,
             StateStruct targetS => to is StateStruct structTo
                 ? targetS.FitsInto(structTo)
-                : to.Equals(Any),
+                : to== Any,
             StatePrimitive => to is StatePrimitive p && target.CanBePessimisticConvertedTo(p),
             ConstraintsState { HasDescendant: true } fc => fc.Descendant.FitsInto(to),
             ConstraintsState => true,
@@ -105,7 +105,7 @@ public static partial class StateExtensions {
                 continue;
             }
 
-            if (to.Equals(Any)) return true;
+            if (to== Any) return true;
 
             return desc switch {
                 StateRefTo descRef => CanBeFitConverted(descRef.Element, to),

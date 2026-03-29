@@ -341,6 +341,19 @@ public class GraphBuilder {
         SolvingFunctions.MergeInplace(funState.RetNode, returnNode);
     }
 
+    /// <summary>Binary pure generic call (T,T):T — zero array allocation.</summary>
+    public void SetCall(StateRefTo generic, int arg0Id, int arg1Id, int returnId) {
+        SetCallArgument(generic, arg0Id);
+        SetCallArgument(generic, arg1Id);
+        MergeOrSetNode(returnId, generic);
+    }
+
+    /// <summary>Unary pure generic call (T):T — zero array allocation.</summary>
+    public void SetCall(StateRefTo generic, int argId, int returnId) {
+        SetCallArgument(generic, argId);
+        MergeOrSetNode(returnId, generic);
+    }
+
     /// <summary>
     /// Set pure generic function call
     /// for signatures like (T,T...):T.

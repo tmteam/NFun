@@ -7,10 +7,10 @@ using NFun.Types;
 namespace NFun; 
 
 internal static class BaseFunctions {
-    internal static ImmutableFunctionDictionary GetFunctions(TypeBehaviour typeBehaviour) 
+    internal static ImmutableFunctionRegistry GetFunctions(TypeBehaviour typeBehaviour) 
         => typeBehaviour.RealTypeSelect(DefaultDoubleFunctions,DefaultDecimalFunctions);
-    private static ImmutableFunctionDictionary DefaultDoubleFunctions { get; }
-    private static ImmutableFunctionDictionary DefaultDecimalFunctions { get; }
+    private static ImmutableFunctionRegistry DefaultDoubleFunctions { get; }
+    private static ImmutableFunctionRegistry DefaultDecimalFunctions { get; }
     private static GenericFunctionBase[] GenericFunctions { get; }
     private static IConcreteFunction[] ConcreteFunctions { get; }
     private static IConcreteFunction[] ConcreteDoubleFunctions { get; }
@@ -152,10 +152,10 @@ internal static class BaseFunctions {
             new Log10DecimalFunction(),
             new RoundToDecimalFunction(),
         };
-        DefaultDoubleFunctions = new ImmutableFunctionDictionary(
+        DefaultDoubleFunctions = new ImmutableFunctionRegistry(
             ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray(),
             GenericFunctions);
-        DefaultDecimalFunctions = new ImmutableFunctionDictionary(
+        DefaultDecimalFunctions = new ImmutableFunctionRegistry(
             ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray(),
             GenericFunctions);
     }

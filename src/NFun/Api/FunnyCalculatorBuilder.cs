@@ -168,7 +168,7 @@ public class FunnyCalculatorBuilder {
         return RuntimeBuilder.Build(
             script: expression,
             constants: constants ?? EmptyConstantList.Instance,
-            functionDictionary: dic,
+            functionRegistry: dic,
             aprioriTypesMap: aprioriTypes,
             dialect: _dialect,
             customTypes: _customTypes);

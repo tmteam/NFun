@@ -25,8 +25,8 @@ internal class FunOfSingleArgExpressionNode : IExpressionNode {
 
     public object Calc() {
         try {
-            var a = _lazy ? (object)_arg1 : _arg1.Calc();
-            return _fun.Calc(a);
+            if (_lazy) return _fun.Calc((object)_arg1);
+            return _fun.Calc(_arg1.Calc());
         }
         catch (FunnyRuntimeException) { throw; }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }

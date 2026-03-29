@@ -24,4 +24,6 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(StructFieldAccessSyntaxNode node);
     T Visit(StructInitSyntaxNode node);
     T Visit(DefaultValueSyntaxNode node);
+    T Visit(BinOperatorSyntaxNode node);
+    T Visit(UnaryOperatorSyntaxNode node);
 }

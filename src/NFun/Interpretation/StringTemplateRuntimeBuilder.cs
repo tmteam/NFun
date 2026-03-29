@@ -13,7 +13,7 @@ internal static class StringTemplateRuntimeBuilder {
 
     internal static StringTemplateCalculator Build(
         string script,
-        IFunctionDictionary functionDictionary,
+        IFunctionRegistry functionRegistry,
         DialectSettings dialect,
         IConstantList constants = null,
         IAprioriTypesMap aprioriTypes = null,
@@ -27,7 +27,7 @@ internal static class StringTemplateRuntimeBuilder {
         for (int i = 0; i < scripts.Count; i++)
             sb.Append($"{AnonymIdPrefix}{i}={scripts[i]};;");
 
-        var runtime = RuntimeBuilder.Build(sb.ToString(), functionDictionary, dialect, constants, aprioriTypes, customTypes);
+        var runtime = RuntimeBuilder.Build(sb.ToString(), functionRegistry, dialect, constants, aprioriTypes, customTypes);
         var outputVars = new IFunnyVar[scripts.Count];
 
         for (int i = 0; i < scripts.Count; i++)

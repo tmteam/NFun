@@ -188,7 +188,7 @@ public static class SolvingFunctions {
         {
             if (node.IsMemberOfAnything)
                 continue;
-            if (node.State is StatePrimitive { Name: PrimitiveTypeName.None })
+            if (node.State == StatePrimitive.None)
             {
                 hasNoneNodes = true;
                 continue;
@@ -204,7 +204,7 @@ public static class SolvingFunctions {
         {
             if (node.IsMemberOfAnything)
                 continue;
-            if (node.State is not StatePrimitive { Name: PrimitiveTypeName.None })
+            if (node.State != StatePrimitive.None)
                 continue;
             PullNoneNode(node, toposortedNodes);
         }
@@ -217,7 +217,7 @@ public static class SolvingFunctions {
     /// After transformation, propagates the Optional structure upward.
     /// </summary>
     private static void PullNoneNode(TicNode noneNode, TicNode[] allNodes) {
-        foreach (var ancestorNode in noneNode.Ancestors.ToArray())
+        foreach (var ancestorNode in noneNode.Ancestors.ToSnapshot())
         {
             if (ancestorNode.State is not ConstraintsState ancestor
                 || ancestor.Descendant is StateOptional)
@@ -238,7 +238,7 @@ public static class SolvingFunctions {
             // 2. At least one non-None descendant EDGE even if constraints aren't propagated yet
             //    (e.g., map lambda where 'it' has empty constraints during Phase 1).
             bool hasNonNoneContent = ancestor.HasDescendant
-                && ancestor.Descendant is not StatePrimitive { Name: PrimitiveTypeName.None };
+                && ancestor.Descendant != StatePrimitive.None;
 
             if (!hasNonNoneContent)
             {
@@ -246,7 +246,7 @@ public static class SolvingFunctions {
                 foreach (var node in allNodes)
                 {
                     if (ReferenceEquals(node, noneNode)) continue;
-                    if (node.State is StatePrimitive { Name: PrimitiveTypeName.None }) continue;
+                    if (node.State == StatePrimitive.None) continue;
                     foreach (var anc in node.Ancestors)
                     {
                         if (ReferenceEquals(anc, ancestorNode))
@@ -286,7 +286,7 @@ public static class SolvingFunctions {
                 // another transformation.
                 foreach (var node in allNodes)
                 {
-                    if (node.State is StatePrimitive { Name: PrimitiveTypeName.None })
+                    if (node.State == StatePrimitive.None)
                         continue;
                     var ancs = node.Ancestors;
                     for (int i = 0; i < ancs.Count; i++)
@@ -324,7 +324,7 @@ public static class SolvingFunctions {
                 { arrayNode = node; break; }
             }
             if (arrayNode == null) break;
-            foreach (var anc in arrayNode.Ancestors.ToArray())
+            foreach (var anc in arrayNode.Ancestors.ToSnapshot())
                 PullConstrains(arrayNode, anc);
             if (arrayNode.Ancestors.Count == 0) break;
             current = arrayNode.Ancestors[0];
@@ -340,7 +340,7 @@ public static class SolvingFunctions {
     /// </summary>
     private static void PropagateOptionalUpward(TicNode optNode) {
         var optState = (StateOptional)optNode.State;
-        foreach (var ancestorNode in optNode.Ancestors.ToArray())
+        foreach (var ancestorNode in optNode.Ancestors.ToSnapshot())
         {
             if (ancestorNode.State is ConstraintsState ancestor)
             {
@@ -359,7 +359,7 @@ public static class SolvingFunctions {
 
                 // Check if ancestor constraints are compatible with Optional.
                 // opt(T) can't satisfy a primitive upper bound (e.g., [U24..Real] for arithmetic).
-                if (ancestor.HasAncestor && !ancestor.Ancestor.Equals(StatePrimitive.Any))
+                if (ancestor.HasAncestor && ancestor.Ancestor != StatePrimitive.Any)
                     throw TicErrors.IncompatibleNodes(ancestorNode, optNode);
 
                 // Create matching Optional wrapper for ancestor
@@ -386,7 +386,7 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            foreach (var ancestor in node.Ancestors.ToArray())
+            foreach (var ancestor in node.Ancestors.ToSnapshot())
                 PullConstrains(node, ancestor);
         }
 
@@ -434,7 +434,7 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            foreach (var ancestor in node.Ancestors.ToArray())
+            foreach (var ancestor in node.Ancestors.ToSnapshot())
                 PushConstraints(node, ancestor);
         }
     }
@@ -481,7 +481,7 @@ public static class SolvingFunctions {
         }
         else if (ancSize > 0)
         {
-            foreach (var ancestor in node.Ancestors.ToArray())
+            foreach (var ancestor in node.Ancestors.ToSnapshot())
                 Destruction(node, ancestor);
         }
     }
@@ -544,7 +544,7 @@ public static class SolvingFunctions {
         }
 
         // None ≤ opt(T): absorb None into opt layer, element stays unconstrained
-        if (descendant.HasDescendant && descendant.Descendant is StatePrimitive { Name: PrimitiveTypeName.None })
+        if (descendant.HasDescendant && descendant.Descendant == StatePrimitive.None)
         {
             var constrains = ConstraintsState.Empty;
             var eName = "e" + descNodeName.ToString().ToLower() + "'";

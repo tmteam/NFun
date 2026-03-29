@@ -38,9 +38,9 @@ public static partial class StateExtensions {
             return b.Lca(a);
 
         // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
-        if (a is StatePrimitive { Name: PrimitiveTypeName.None })
+        if (a == StatePrimitive.None)
             return LcaWithNone(b);
-        if (b is StatePrimitive { Name: PrimitiveTypeName.None })
+        if (b == StatePrimitive.None)
             return LcaWithNone(a);
         // Optional: covariant wrapper
         if (a is StateOptional aopt)
@@ -61,12 +61,12 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState LcaWithNone(ITicNodeState other) {
-        if (other is StatePrimitive { Name: PrimitiveTypeName.None })
+        if (other == StatePrimitive.None)
             return None;
-        if (other.Equals(Any))
+        if (other== Any)
             return Any; // None ≤ Any → LCA = Any
         if (other is StateOptional opt)
-            return opt.Element.Equals(Any) ? Any : other; // None ≤ Opt(T) → LCA = Opt(T); opt(any) = any
+            return opt.Element== Any ? Any : other; // None ≤ Opt(T) → LCA = Opt(T); opt(any) = any
         // None ^ T = Opt(T) for non-Any types
         return StateOptional.Of(other);
     }
@@ -78,7 +78,7 @@ public static partial class StateExtensions {
         else
             inner = opt.Element.Lca(other);
         // opt(any) = any (collapses)
-        if (inner.Equals(Any))
+        if (inner== Any)
             return Any;
         return StateOptional.Of(inner);
     }

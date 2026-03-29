@@ -45,7 +45,7 @@ public class ConstraintsState : ITicNodeState {
             case ICompositeState:
             {
                 if (IsComparable)
-                    return type is StateArray a && a.Element.Equals(StatePrimitive.Char);
+                    return type is StateArray a && a.Element== StatePrimitive.Char;
                 if (!HasDescendant)
                     return true;
                 if (!type.IsSolved || !Descendant.IsSolved)
@@ -218,7 +218,7 @@ public class ConstraintsState : ITicNodeState {
         if (IsComparable)
         {
             var isDescComparable = Descendant is StatePrimitive { IsComparable: true }
-                                   || (Descendant is StateArray a && a.Element.Equals(StatePrimitive.Char));
+                                   || (Descendant is StateArray a && a.Element== StatePrimitive.Char);
             if (!isDescComparable)
                 return this;
         }
@@ -241,7 +241,7 @@ public class ConstraintsState : ITicNodeState {
                 }
                 case StatePrimitive primitive:
                 {
-                    if (primitive.Equals(StatePrimitive.Char)) //it is an endpoint
+                    if (primitive== StatePrimitive.Char) //it is an endpoint
                         return StatePrimitive.Char;
                     if (primitive.IsNumeric)
                     {
@@ -279,7 +279,7 @@ public class ConstraintsState : ITicNodeState {
                 return this;
             return new ConstraintsState(constrainsState.Descendant, null, IsComparable);
         }
-        else if (Descendant.Equals(StatePrimitive.Any))
+        else if (Descendant== StatePrimitive.Any)
             return StatePrimitive.Any;
 
         return this;
@@ -297,7 +297,7 @@ public class ConstraintsState : ITicNodeState {
     public string Description => ToString();
 
     public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
-        Equals(primitive, StatePrimitive.Any) || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
+        primitive == StatePrimitive.Any || (Ancestor?.CanBePessimisticConvertedTo(primitive) ?? false);
 
     public override bool Equals(object obj) {
         if (obj is not ConstraintsState constrainsState)

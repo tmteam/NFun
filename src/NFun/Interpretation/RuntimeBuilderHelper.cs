@@ -21,7 +21,7 @@ internal static class RuntimeBuilderHelper {
         this UserFunctionDefinitionSyntaxNode functionSyntax,
         FunnyType[] argTypes,
         FunnyType returnType,
-        IFunctionDictionary functionsDictionary,
+        IFunctionRegistry functionsRegistry,
         TypeInferenceResults results,
         TicTypesConverter converter,
         DialectSettings dialect) {
@@ -39,7 +39,7 @@ internal static class RuntimeBuilderHelper {
 
         var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
             node: functionSyntax.Body,
-            functions: functionsDictionary,
+            functions: functionsRegistry,
             outputType: returnType,
             variables: vars,
             typeInferenceResults: results,
@@ -60,7 +60,7 @@ internal static class RuntimeBuilderHelper {
 
     public static TypeInferenceResults SolveBodyOrThrow(
         SyntaxTree syntaxTree,
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,

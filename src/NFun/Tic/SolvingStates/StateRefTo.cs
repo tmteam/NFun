@@ -19,7 +19,7 @@ public class StateRefTo : ITicNodeState {
     public string StateDescription => PrintState(0);
 
     public bool CanBePessimisticConvertedTo(StatePrimitive primitive) =>
-        primitive.Equals(StatePrimitive.Any);
+        primitive== StatePrimitive.Any;
     public override bool Equals(object obj) {
         if (obj is not StateRefTo refTo)
             return false;

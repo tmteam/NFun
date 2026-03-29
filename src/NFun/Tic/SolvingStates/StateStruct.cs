@@ -150,7 +150,7 @@ public class StateStruct : ICompositeState {
             + "}";
     }
 
-    public bool CanBePessimisticConvertedTo(StatePrimitive type) => type.Equals(StatePrimitive.Any);
+    public bool CanBePessimisticConvertedTo(StatePrimitive type) => type== StatePrimitive.Any;
 
     public static ITypeState WithField(string name, StatePrimitive type)
         => new StateStruct(name, TicNode.CreateNamedNode(type.ToString(), type), isFrozen: false);

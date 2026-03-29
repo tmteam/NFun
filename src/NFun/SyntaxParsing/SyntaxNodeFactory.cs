@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net;
+using NFun.Functions;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
@@ -71,11 +72,19 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode OperatorCall(string name, ISyntaxNode[] args, int start, int end) =>
         new FunCallSyntaxNode(name, args, new Interval(start, end), false, true);
 
-    public static ISyntaxNode UnarOperatorCall(string name, ISyntaxNode arg, int start, int end) =>
-        new FunCallSyntaxNode(name, new[] { arg }, new Interval(start, end), false, true);
+    public static ISyntaxNode UnarOperatorCall(string name, ISyntaxNode arg, int start, int end) {
+        var op = OperatorEnumHelper.TryParseUnOp(name);
+        return op.HasValue
+            ? new UnaryOperatorSyntaxNode(op.Value, arg, new Interval(start, end))
+            : new FunCallSyntaxNode(name, new[] { arg }, new Interval(start, end), false, true);
+    }
 
-    public static ISyntaxNode BinOperatorCall(string name, ISyntaxNode left, ISyntaxNode right) =>
-        new FunCallSyntaxNode(name, new[] { left, right }, left.Interval.Append(right.Interval), false, true);
+    public static ISyntaxNode BinOperatorCall(string name, ISyntaxNode left, ISyntaxNode right) {
+        var op = OperatorEnumHelper.TryParseBinOp(name);
+        return op.HasValue
+            ? new BinOperatorSyntaxNode(op.Value, left, right, left.Interval.Append(right.Interval))
+            : new FunCallSyntaxNode(name, new[] { left, right }, left.Interval.Append(right.Interval), false, true);
+    }
 
     public static ISyntaxNode Struct(List<EquationSyntaxNode> equations, Interval interval) =>
         new StructInitSyntaxNode(equations, interval);

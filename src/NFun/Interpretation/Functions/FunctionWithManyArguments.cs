@@ -3,7 +3,7 @@ using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions; 
+namespace NFun.Interpretation.Functions;
 
 public abstract class FunctionWithManyArguments : IConcreteFunction {
     public string Name { get; }
@@ -18,10 +18,30 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
     }
 
     public FunnyType ReturnType { get; protected set; }
-    public FunArgProperty[] ArgProperties { get; protected init; }
+
+    private FunArgProperty[] _argProperties;
+    private bool[] _lazyArgs;
+
+    public FunArgProperty[] ArgProperties {
+        get => _argProperties;
+        protected init {
+            _argProperties = value;
+            if (value != null)
+            {
+                for (int j = 0; j < value.Length; j++)
+                {
+                    if (value[j].IsLazy)
+                    {
+                        _lazyArgs ??= new bool[value.Length];
+                        _lazyArgs[j] = true;
+                    }
+                }
+            }
+        }
+    }
+
     public abstract object Calc(object[] args);
     public virtual IConcreteFunction Clone(ICloneContext context) => this;
-    
 
     public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
         var castedChildren = new IExpressionNode[children.Count];
@@ -43,20 +63,7 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
             i++;
         }
 
-        var props = ArgProperties;
-        bool[] lazyArgs = null;
-        if (props != null)
-        {
-            for (int j = 0; j < props.Length; j++)
-            {
-                if (props[j].IsLazy)
-                {
-                    lazyArgs ??= new bool[props.Length];
-                    lazyArgs[j] = true;
-                }
-            }
-        }
-        return new FunOfManyArgsExpressionNode(this, castedChildren, interval, lazyArgs);
+        return new FunOfManyArgsExpressionNode(this, castedChildren, interval, _lazyArgs);
     }
 
     public override string ToString() => $"FUN-many {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";

@@ -18,7 +18,7 @@ namespace NFun.Interpretation;
 using System;
 
 internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionNode> {
-    private readonly IFunctionDictionary _functions;
+    private readonly IFunctionRegistry _functions;
     private readonly VariableDictionary _variables;
     private readonly TypeInferenceResults _typeInferenceResults;
     private readonly TicTypesConverter _typesConverter;
@@ -26,7 +26,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     private static IExpressionNode BuildExpression(
         ISyntaxNode node,
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         VariableDictionary variables,
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
@@ -37,7 +37,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     internal static IExpressionNode BuildExpression(
         ISyntaxNode node,
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         FunnyType outputType,
         VariableDictionary variables,
         TypeInferenceResults typeInferenceResults,
@@ -55,7 +55,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     private ExpressionBuilderVisitor(
-        IFunctionDictionary functions,
+        IFunctionRegistry functions,
         VariableDictionary variables,
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
@@ -253,7 +253,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return new SafeArrayAccessExpressionNode(source, index, node.OutputType, elementConverter, node.Interval);
         }
 
-        var someFunc = _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber) ?? _functions.GetOrNull(id, args.Length);
+        var someFunc = node.ResolvedSignature
+            ?? _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber)
+            ?? _functions.GetOrNull(id, args.Length);
 
         if (someFunc is null)
         {
@@ -539,4 +541,38 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     private IExpressionNode ReadNode(ISyntaxNode node)
         => node.Accept(this);
+
+    public IExpressionNode Visit(BinOperatorSyntaxNode node) =>
+        VisitOperator(node, node.ResolvedSignature ?? _functions.GetOrNull(node.Id, 2));
+
+    public IExpressionNode Visit(UnaryOperatorSyntaxNode node) =>
+        VisitOperator(node, node.ResolvedSignature ?? _functions.GetOrNull(node.Id, 1));
+
+    private IExpressionNode VisitOperator(IFunCallSyntaxNode node, IFunctionSignature someFunc) {
+        if (someFunc is IConcreteFunction f)
+            return CreateFunctionCall(node, f);
+
+        if (someFunc is IGenericFunction genericFunction) {
+            var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
+            FunnyType[] genericArgs;
+            if (genericTypes == null) {
+                // Recursive operator call — extremely rare but handle for safety
+                var recSig = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
+                if (recSig == null)
+                    throw new NFunImpossibleException($"MJ78op. Operator {node.Accept(new ShortDescriptionVisitor())} was not found");
+                var scopeFunc = _functions.GetOrNull(node.Accept(new ShortDescriptionVisitor()), ((IFunCallSyntaxNode)node).Args.Length);
+                if (scopeFunc is IGenericFunction userGeneric && scopeFunc != genericFunction)
+                    genericFunction = userGeneric;
+                genericArgs = genericFunction.CalcGenericArgTypeList(
+                    _typesConverter.Convert(recSig).FunTypeSpecification);
+            } else {
+                genericArgs = new FunnyType[genericTypes.Length];
+                for (int i = 0; i < genericTypes.Length; i++)
+                    genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
+            }
+            return CreateFunctionCall(node, genericFunction.CreateConcrete(genericArgs, _dialect));
+        }
+
+        throw new NFunImpossibleException($"MJ101op. Operator type is unknown");
+    }
 }

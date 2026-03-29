@@ -28,8 +28,12 @@ internal class FunOfManyArgsExpressionNode : IExpressionNode {
 
     public object Calc() {
         var args = new object[_argsCount];
-        for (int i = 0; i < _argsCount; i++)
-            args[i] = _lazyArgs != null && _lazyArgs[i] ? (object)_argsNodes[i] : _argsNodes[i].Calc();
+        if (_lazyArgs != null)
+            for (int i = 0; i < _argsCount; i++)
+                args[i] = _lazyArgs[i] ? (object)_argsNodes[i] : _argsNodes[i].Calc();
+        else
+            for (int i = 0; i < _argsCount; i++)
+                args[i] = _argsNodes[i].Calc();
         try { return _fun.Calc(args); }
         catch (FunnyRuntimeException) { throw; }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }

@@ -16,9 +16,9 @@ public static partial class StateExtensions {
             return a.UnifyOrNull(br.GetNonReference());
 
         // Any is top of ALL types: None ≤ Any, Opt(T) ≤ Any
-        if (a.Equals(Any))
+        if (a== Any)
             return b;
-        if (b.Equals(Any))
+        if (b== Any)
             return a;
 
         if (a is ConstraintsState ac)
@@ -41,7 +41,7 @@ public static partial class StateExtensions {
                 var elem = aOpt.Element.UnifyOrNull(bOpt.Element);
                 return elem == null ? null : StateOptional.Of(elem);
             }
-            if (b is StatePrimitive { Name: PrimitiveTypeName.None })
+            if (b == StatePrimitive.None)
                 return b; // None ≤ Opt(T), intersection = None
             return null;
         }

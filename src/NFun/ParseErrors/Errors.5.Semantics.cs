@@ -99,7 +99,7 @@ internal static partial class Errors {
         ?? variableSource.TypeSpecificationIntervalOrNull
         ?? Interval.Empty );
 
-    internal static FunnyParseException FunctionNotFoundForHiOrderUsage(FunCallSyntaxNode node, IFunctionDictionary functions) {
+    internal static FunnyParseException FunctionNotFoundForHiOrderUsage(FunCallSyntaxNode node, IFunctionRegistry functions) {
         var candidates = functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
         var msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(_ => "_"))})' is not found. ");
         if (candidates.Any())

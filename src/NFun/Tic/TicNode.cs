@@ -188,7 +188,7 @@ public class TicNode {
     }
 
     public bool TrySetAncestor(StatePrimitive anc) {
-        if (anc.Equals(StatePrimitive.Any))
+        if (anc== StatePrimitive.Any)
             return true;
         var node = this;
         if (node.State is StateRefTo)

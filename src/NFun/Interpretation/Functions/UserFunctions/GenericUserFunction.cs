@@ -11,7 +11,7 @@ namespace NFun.Interpretation.Functions;
 public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     private readonly TypeInferenceResults _typeInferenceResults;
     private readonly UserFunctionDefinitionSyntaxNode _syntaxNode;
-    private readonly IFunctionDictionary _dictionary;
+    private readonly IFunctionRegistry _dictionary;
     private readonly DialectSettings _dialect;
 
     private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
@@ -20,7 +20,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     internal static GenericUserFunction Create(
         TypeInferenceResults typeInferenceResults,
         UserFunctionDefinitionSyntaxNode syntaxNode,
-        IFunctionDictionary dictionary,
+        IFunctionRegistry dictionary,
         DialectSettings dialect) {
         var ticGenerics = typeInferenceResults.Generics;
         var langConstrains = new GenericConstrains[ticGenerics.Count];
@@ -70,7 +70,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     private GenericUserFunction(
         TypeInferenceResults typeInferenceResults,
         UserFunctionDefinitionSyntaxNode syntaxNode,
-        IFunctionDictionary dictionary,
+        IFunctionRegistry dictionary,
         GenericConstrains[] constrains,
         FunnyType returnType,
         FunnyType[] argTypes,
@@ -111,7 +111,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         var function = _syntaxNode.BuildConcrete(
             argTypes: argTypes,
             returnType: returnType,
-            functionsDictionary: _dictionary,
+            functionsRegistry: _dictionary,
             results: _typeInferenceResults,
             converter: converter,
             dialect: _dialect);

@@ -3,7 +3,7 @@ using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions; 
+namespace NFun.Interpretation.Functions;
 
 public abstract class FunctionWithTwoArgs : IConcreteFunction {
     protected FunctionWithTwoArgs(string name, FunnyType returnType, params FunnyType[] argTypes) {
@@ -23,7 +23,19 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
     public string Name { get; internal set; }
     public FunnyType[] ArgTypes { get; internal set; }
     public FunnyType ReturnType { get; internal set; }
-    public FunArgProperty[] ArgProperties { get; protected init; }
+
+    private FunArgProperty[] _argProperties;
+    private bool _lazy1, _lazy2;
+
+    public FunArgProperty[] ArgProperties {
+        get => _argProperties;
+        protected init {
+            _argProperties = value;
+            if (value is { Length: > 0 }) _lazy1 = value[0].IsLazy;
+            if (value is { Length: > 1 }) _lazy2 = value[1].IsLazy;
+        }
+    }
+
     public abstract object Calc(object a, object b);
 
     public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);
@@ -49,10 +61,8 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
             i++;
         }
 
-        var props = ArgProperties;
         return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval,
-            lazy1: props is { Length: > 0 } && props[0].IsLazy,
-            lazy2: props is { Length: > 1 } && props[1].IsLazy);
+            _lazy1, _lazy2);
     }
 
     public override string ToString() => $"FUN-two {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";

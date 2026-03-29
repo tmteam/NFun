@@ -115,7 +115,9 @@ public class HardcoreBuilder {
         return RuntimeBuilder.Build(
             script,
             BaseFunctions.GetFunctions(converter.TypeBehaviour).CloneWith(_customFunctions),
-            _dialect, new ConstantList(converter, _constants), _mutableApriori,
+            _dialect,
+            _constants.Length > 0 ? new ConstantList(converter, _constants) : null,
+            _mutableApriori,
             _customTypes);
     }
 
@@ -123,6 +125,8 @@ public class HardcoreBuilder {
         StringTemplateRuntimeBuilder.Build(
             script,
             BaseFunctions.GetFunctions(Converter.TypeBehaviour).CloneWith(_customFunctions),
-            _dialect, new ConstantList(Converter, _constants), _mutableApriori,
+            _dialect,
+            _constants.Length > 0 ? new ConstantList(Converter, _constants) : null,
+            _mutableApriori,
             _customTypes);
 }
