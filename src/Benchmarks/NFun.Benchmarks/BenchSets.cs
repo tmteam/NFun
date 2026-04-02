@@ -5,7 +5,7 @@ namespace Nfun.Benchmarks;
 
 record BenchScript(string Script, Dictionary<string, object> Inputs, string[] Outputs);
 record BenchSubSet(string Name, int Importance, BenchScript[] Scripts);
-record BenchSet(string Name, BenchSubSet[] Subsets, NFun.OptionalTypesSupport OptionalTypes = NFun.OptionalTypesSupport.Disabled);
+record NfunBenchSet(string Name, BenchSubSet[] Subsets, NFun.OptionalTypesSupport OptionalTypes = NFun.OptionalTypesSupport.Disabled);
 
 /// <summary>
 /// Benchmark script collections. Each version captures the NFun feature set at that point.

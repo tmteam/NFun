@@ -2,7 +2,7 @@ namespace Nfun.Benchmarks;
 using static BenchSets;
 
 static class BenchSetV1 {
-    public static BenchSet V1() => new("v1", new[] { SimpleV1(), MediumV1(), ComplexV1() });
+    public static NfunBenchSet V1() => new("v1", new[] { SimpleV1(), MediumV1(), ComplexV1() });
 
     static BenchSubSet SimpleV1() => new("Simple", 64, new BenchScript[]
     {
