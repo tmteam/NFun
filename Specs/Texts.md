@@ -144,7 +144,66 @@ report = $$'''
     '''
 ```
 
-## Text Type 
+### Format specifiers
+
+Append `:format` after the expression inside `{}`. Multiple specifiers separated by `:`
+
+```py
+y = '{3.14159:0.00}'       # '3.14'       — numeric mask
+y = '{255:hex}'             # 'FF'         — named specifier
+y = '{42:>8}'               # '      42'   — alignment
+y = '{3.14:0.00:>10}'       # '      3.14' — mask + alignment
+```
+
+#### Numeric masks
+
+```py
+y = '{3.1:0.00}'            # '3.10'       — forced decimals
+y = '{3.1:#.##}'            # '3.1'        — optional decimals
+y = '{1234567:#,##0}'       # '1,234,567'  — thousands separator
+y = '{42:0000}'             # '0042'       — leading zeros
+y = '{0.5:0}'               # '1'          — rounding
+```
+
+| Char | Meaning |
+|------|---------|
+| `0` | required digit |
+| `#` | optional digit |
+| `,` | thousands separator |
+| `.` | decimal point |
+
+#### Named specifiers
+
+| Name  | Meaning     | Example              |
+|-------|-------------|----------------------|
+| `hex` | hexadecimal | `{255:hex}` → `FF`   |
+| `HEX` | hexadecimal | `{255:HEX}` → `FF`   |
+| `bin` | binary      | `{42:bin}` → `101010` |
+| `sci` | scientific (lowercase e) | `{3.14:sci}` → `3.140000e+000` |
+| `SCI` | scientific (uppercase E) | `{3.14:SCI}` → `3.140000E+000` |
+
+#### Alignment
+
+`>N` right, `<N` left, `^N` center (N = width in characters):
+
+```py
+y = '[{42:>8}]'             # '[      42]'
+y = '[{42:<8}]'             # '[42      ]'
+y = '[{42:^8}]'             # '[   42   ]'
+y = '[{'hello':^15}]'       # '[     hello     ]'
+```
+
+Combine with format (any order):
+
+```py
+y = '[{3.14:0.00:>10}]'     # '[      3.14]'
+y = '[{255:hex:>8}]'        # '[      FF]'
+y = '[{42:bin:^12}]'        # '[   101010   ]'
+```
+
+Invalid specifier → runtime error. Numeric mask on non-numeric type → error. Alignment works on any type.
+
+## Text Type
 
 The 'text' type is used to describe the text
 

@@ -571,9 +571,19 @@ public static class SyntaxNodeReader {
             if (allNext == null)
                 throw Errors.InterpolationExpressionIsMissing(concatenations.Last());
 
-            var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval);
-            concatenations.Add(toText);
-
+            // Check for format specifier: {expr:format}
+            ISyntaxNode textExpr;
+            if (flow.Current.Type is TokType.FormatSpec) {
+                var formatStr = flow.Current.Value;
+                var formatConst = SyntaxNodeFactory.Constant(
+                    new TextFunnyArray(formatStr), FunnyType.Text, flow.Current.Interval);
+                textExpr = SyntaxNodeFactory.FunCall(
+                    CoreFunNames.ToTextFormatted, new[] { allNext, formatConst }, allNext.Interval);
+                flow.MoveNext();
+            } else {
+                textExpr = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval);
+            }
+            concatenations.Add(textExpr);
 
             //interpolation end
             // }...'

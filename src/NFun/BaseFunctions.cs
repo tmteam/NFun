@@ -100,6 +100,7 @@ internal static class BaseFunctions {
             new XorFunction(),
 
             new ToTextFunction(),
+            new ToTextFormattedFunction(),
 
             new TrimFunction(),
             new TrimStartFunction(),

@@ -118,6 +118,8 @@ public enum TokType {
     TextOpenInterpolation,
     TextMidInterpolation,
     TextCloseInterpolation,
+    /// <summary>Format specifier after ':' in interpolation: '{x:0.00}'</summary>
+    FormatSpec,
     /// <summary>
     /// 192.168.0.1
     /// </summary>

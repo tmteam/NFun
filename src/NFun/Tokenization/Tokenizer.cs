@@ -12,6 +12,10 @@ class InterpolationLayer {
     /// Difference between open and close interpolation brackets count
     /// </summary>
     public int FigureBracketsDiff;
+    /// <summary>Parentheses depth inside interpolation expression.</summary>
+    public int ParenDepth;
+    /// <summary>Square bracket depth inside interpolation expression.</summary>
+    public int SquareDepth;
     public bool IsTripleQuoted;
     public string TripleQuoteBaseline;
     public int TripleQuoteClosingPosition;
@@ -424,11 +428,25 @@ public class Tokenizer {
             case '/': return Tok.New(TokType.Div, position, position + 1);
             case '+': return Tok.New(TokType.Plus, position, position + 1);
             case '%': return Tok.New(TokType.Rema, position, position + 1);
-            case '(': return Tok.New(TokType.ParenthObr, position, position + 1);
-            case ')': return Tok.New(TokType.ParenthCbr, position, position + 1);
-            case '[': return Tok.New(TokType.ArrOBr, position, position + 1);
-            case ']': return Tok.New(TokType.ArrCBr, position, position + 1);
-            case ':': return Tok.New(TokType.Colon, position, position + 1);
+            case '(':
+                if (_isInInterpolation) _interpolationLayers.Peek().ParenDepth++;
+                return Tok.New(TokType.ParenthObr, position, position + 1);
+            case ')':
+                if (_isInInterpolation) _interpolationLayers.Peek().ParenDepth--;
+                return Tok.New(TokType.ParenthCbr, position, position + 1);
+            case '[':
+                if (_isInInterpolation) _interpolationLayers.Peek().SquareDepth++;
+                return Tok.New(TokType.ArrOBr, position, position + 1);
+            case ']':
+                if (_isInInterpolation) _interpolationLayers.Peek().SquareDepth--;
+                return Tok.New(TokType.ArrCBr, position, position + 1);
+            case ':':
+                if (_isInInterpolation) {
+                    var layer = _interpolationLayers.Peek();
+                    if (layer.FigureBracketsDiff == 0 && layer.ParenDepth == 0 && layer.SquareDepth == 0)
+                        return ReadFormatSpec(str, position);
+                }
+                return Tok.New(TokType.Colon, position, position + 1);
             case '~': return Tok.New(TokType.BitInverse, position, position + 1);
             case '-': return Tok.New(TokType.Minus, position, position + 1);
             case '*' when next == '*': return Tok.New(TokType.Pow, position, position + 2);
@@ -714,6 +732,16 @@ public class Tokenizer {
             }
         }
         return contentStart + baseline.Length;
+    }
+
+    /// <summary>Read format specifier after ':' inside interpolation until '}'.</summary>
+    private static Tok ReadFormatSpec(string str, int position) {
+        // position is at ':'
+        int start = position + 1;
+        int i = start;
+        while (i < str.Length && str[i] != '}') i++;
+        string formatStr = str.Substring(start, i - start).Trim();
+        return Tok.New(TokType.FormatSpec, formatStr, position, i);
     }
 
     /// <exception cref="FunnyParseException"></exception>
