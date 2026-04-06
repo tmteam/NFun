@@ -79,7 +79,7 @@ public class FormatSpecifierTest {
         $"y = {expr}".AssertReturns("y", expected);
 
     // ═══════════════════════════════════════════════════════════════
-    // Format + alignment (any order)
+    // Format + alignment (format first, then alignment)
     // ═══════════════════════════════════════════════════════════════
 
     // mask:align
@@ -361,6 +361,9 @@ public class FormatSpecifierTest {
     [Test] public void AlignDynamic_LeftVariable() =>
         "w:int \r y = '[{42:<w}]'".Calc(("w", 8)).AssertReturns(("y", "[42      ]"));
 
-    [Test] public void Error_AlignExpressionWithoutParens() =>
+    [Test] public void Error_AlignInvalidWidth() =>
         Assert.Throws<FunnyParseException>(() => "y = '{42:>-5}'".Build());
+
+    [Test] public void Error_AlignExpressionWithoutParens() =>
+        Assert.That(() => "y = '{42:>w*2}'".Build(), Throws.Exception);
 }

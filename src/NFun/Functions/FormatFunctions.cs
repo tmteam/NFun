@@ -12,7 +12,7 @@ namespace NFun.Functions;
 // ═══════════════════════════════════════════════════════════════
 
 /// <summary>
-/// toFixedText(value:real, decimals:int=2, minDigits:int=0, thousands:bool=false, forceZeros:bool=true) → text
+/// toNumText(value:real, decimals:int=2, minDigits:int=0, thousands:bool=false, forceZeros:bool=true) → text
 /// </summary>
 public class ToNumTextFunction : FunctionWithManyArguments {
     public ToNumTextFunction() : base(
@@ -35,21 +35,19 @@ public class ToNumTextFunction : FunctionWithManyArguments {
         var thousands = (bool)args[3];
         var forceZeros = (bool)args[4];
 
-        char intChar = forceZeros || minDigits > 0 ? '0' : '#';
         char decChar = forceZeros ? '0' : '#';
 
-        var intPart = minDigits > 1
-            ? new string('0', minDigits)
-            : thousands ? "#,##0" : (minDigits == 1 ? "0" : intChar.ToString());
-
-        if (thousands && minDigits <= 1)
-            intPart = "#,##0";
-
-        string mask;
-        if (decimals > 0)
-            mask = intPart + "." + new string(decChar, decimals);
+        string intPart;
+        if (thousands)
+            intPart = minDigits > 1 ? new string('0', minDigits) : "#,##0";
+        else if (minDigits > 1)
+            intPart = new string('0', minDigits);
         else
-            mask = intPart;
+            intPart = minDigits == 1 || forceZeros ? "0" : "#";
+
+        string mask = decimals > 0
+            ? intPart + "." + new string(decChar, decimals)
+            : intPart;
 
         return new TextFunnyArray(value.ToString(mask, CultureInfo.InvariantCulture));
     }
@@ -97,7 +95,7 @@ public class PadLeftTextFunction : FunctionWithTwoArgs {
         ArgProperties = FunArgProperty.FromNames("text", "width");
     }
     public override object Calc(object a, object b) =>
-        new TextFunnyArray(((IFunnyArray)a).ToText().PadRight((int)b));
+        new TextFunnyArray(((IFunnyArray)a).ToText().PadLeft((int)b));
 }
 
 public class PadRightTextFunction : FunctionWithTwoArgs {
@@ -105,7 +103,7 @@ public class PadRightTextFunction : FunctionWithTwoArgs {
         ArgProperties = FunArgProperty.FromNames("text", "width");
     }
     public override object Calc(object a, object b) =>
-        new TextFunnyArray(((IFunnyArray)a).ToText().PadLeft((int)b));
+        new TextFunnyArray(((IFunnyArray)a).ToText().PadRight((int)b));
 }
 
 public class PadCenterTextFunction : FunctionWithTwoArgs {

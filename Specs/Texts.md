@@ -193,7 +193,7 @@ y = '[{42:^8}]'             # '[   42   ]'
 y = '[{'hello':^15}]'       # '[     hello     ]'
 ```
 
-Combine with format (any order):
+Combine format then alignment with `:`:
 
 ```py
 y = '[{3.14:0.00:>10}]'     # '[      3.14]'
@@ -201,7 +201,16 @@ y = '[{255:hex:>8}]'        # '[      FF]'
 y = '[{42:bin:^12}]'        # '[   101010   ]'
 ```
 
-Invalid specifier → runtime error. Numeric mask on non-numeric type → error. Alignment works on any type.
+Width can be a variable or expression in parentheses:
+
+```py
+y = '[{42:>w}]'              # variable width
+y = '[{42:>(w*2)}]'          # expression in parens
+```
+
+Invalid specifier → compile-time error. Numeric mask on non-numeric type → compile-time error. Alignment works on any type.
+
+Format specifiers compile to typed functions (`toNumText`, `toHexText`, `toBinText`, `toSciText`, `padLeftText`, `padRightText`, `padCenterText`) which are also available for direct use — see [Functions](Functions.md).
 
 ## Text Type
 

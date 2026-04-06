@@ -565,11 +565,13 @@ public static class SyntaxNodeReader {
         if (flow.Current.Type is not (TokType.AlignLeft or TokType.AlignRight or TokType.AlignCenter))
             return inner;
 
+        // < = left-align (text left, pad right) → padRightText
+        // > = right-align (text right, pad left) → padLeftText
         string padFunc = flow.Current.Type switch {
-            TokType.AlignLeft => CoreFunNames.PadLeftText,
-            TokType.AlignRight => CoreFunNames.PadRightText,
+            TokType.AlignLeft => CoreFunNames.PadRightText,
+            TokType.AlignRight => CoreFunNames.PadLeftText,
             TokType.AlignCenter => CoreFunNames.PadCenterText,
-            _ => CoreFunNames.PadRightText
+            _ => CoreFunNames.PadLeftText
         };
         flow.MoveNext();
 

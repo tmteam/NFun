@@ -147,3 +147,15 @@ Same as Serialization to `byte[]`, but returns bit array
 | toLower(text):text                | a copy of this string converted to lowercase                                                                            |
 | split(text,separator:text):text[] | splits a text into subtexts that are based on the provided text separator. Empty entries are removed                    |
 | join(any[],separator:text):text   | concatenation of text representations of an value array, using the specified separator between each element.            |
+
+## Formatting Functions
+
+| Function | Returns |
+|----------|---------|
+| toNumText(real, decimals:int=2, minDigits:int=0, thousands:bool=false, forceZeros:bool=true):text | formatted number. `toNumText(3.14, decimals=4)` → `'3.1416'` |
+| toHexText(int64):text | hexadecimal representation. `toHexText(255)` → `'FF'` |
+| toBinText(int64):text | binary representation. `toBinText(42)` → `'101010'` |
+| toSciText(real, uppercase:bool=true):text | scientific notation. `toSciText(3.14)` → `'3.140000E+000'` |
+| padLeftText(text, width:int):text | pads with spaces on the left. `padLeftText('hi', 10)` → `'        hi'` |
+| padRightText(text, width:int):text | pads with spaces on the right. `padRightText('hi', 10)` → `'hi        '` |
+| padCenterText(text, width:int):text | pads with spaces on both sides. `padCenterText('hi', 10)` → `'    hi    '` |
