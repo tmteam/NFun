@@ -92,6 +92,12 @@ internal static partial class Errors {
     internal static FunnyParseException InterpolationExpressionIsMissing(ISyntaxNode lastNode) => new(
         864, $"Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
 
+    internal static FunnyParseException InvalidFormatSpecifier(string spec, Interval interval) => new(
+        865, $"Invalid format specifier '{spec}'. Mask chars: 0 # . , or named: hex, bin, sci", interval);
+
+    internal static FunnyParseException UnknownFormatSpecifier(string spec, Interval interval) => new(
+        866, $"Unknown format specifier '{spec}'. Named specifiers: hex, HEX, bin, sci, SCI", interval);
+
     internal static FunnyParseException FunctionNameAndVariableNameConflict(VariableSource variableSource, VariableExpressionNode usages) => new(
         867, $"Function with name: {variableSource.Name} can not be used in expression because it's name conflict with function that exists in scope. Declare input variable",
         usages?.Source.TypeSpecificationIntervalOrNull

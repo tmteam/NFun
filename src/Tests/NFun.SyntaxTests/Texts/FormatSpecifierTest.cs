@@ -314,35 +314,34 @@ public class FormatSpecifierTest {
     [TestCase("'{42:hello}'")]
     [TestCase("'{42:X}'")]          // reserved for future named
     [TestCase("'{42:F2}'")]         // reserved for future named
-    public void Error_InvalidFormat(string expr) =>
-        Assert.Throws<FunnyRuntimeException>(() => $"y = {expr}".Calc());
+    public void Error_InvalidFormat_ParseTime(string expr) =>
+        Assert.Throws<FunnyParseException>(() => $"y = {expr}".Build());
 
     // ═══════════════════════════════════════════════════════════════
-    // Error: format on wrong type
+    // Error: format on wrong type (TIC catches at compile time)
     // ═══════════════════════════════════════════════════════════════
 
     [Test] public void Error_MaskOnText() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{'hello':0.00}'".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = '{'hello':0.00}'".Build());
 
     [Test] public void Error_MaskOnBool() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{true:0.00}'".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = '{true:0.00}'".Build());
 
     [Test] public void Error_BinOnReal() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{3.14:bin}'".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = '{3.14:bin}'".Build());
 
     [Test] public void Error_HexOnReal() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{3.14:hex}'".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = '{3.14:hex}'".Build());
 
     // ═══════════════════════════════════════════════════════════════
-    // Error: invalid alignment
+    // Error: invalid alignment (parse time)
     // ═══════════════════════════════════════════════════════════════
 
     [Test] public void Error_AlignNoWidth() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{42:>}'".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = '{42:>}'".Build());
 
-    [Test] public void Error_AlignBadWidth() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{42:>abc}'".Calc());
+    // {42:>abc} — reserved for future: dynamic width via variable/expression
 
     [Test] public void Error_AlignNegativeWidth() =>
-        Assert.Throws<FunnyRuntimeException>(() => "y = '{42:>-5}'".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = '{42:>-5}'".Build());
 }

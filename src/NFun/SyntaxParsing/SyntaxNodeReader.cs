@@ -550,6 +550,105 @@ public static class SyntaxNodeReader {
           return SyntaxNodeFactory.Struct(equations, interval);
     }
 
+    /// <summary>
+    /// Compile-time analysis of format spec → typed function calls.
+    /// Segments separated by ':'. First char determines type:
+    ///   0#., → numeric mask → toFixedText(value, decimals, minDigits, thousands, forceZeros)
+    ///   ><^  → alignment   → padLeftText/padRightText/padCenterText(text, width)
+    ///   letter → named     → toHexText/toBinText/toSciText(value)
+    /// </summary>
+    private static ISyntaxNode BuildFormatCall(ISyntaxNode valueExpr, string formatSpec, Interval interval) {
+        ISyntaxNode result = null;
+        char alignDir = '\0';
+        int alignWidth = 0;
+
+        foreach (var rawSeg in formatSpec.Split(':')) {
+            var seg = rawSeg.Trim();
+            if (seg.Length == 0) continue;
+
+            char first = seg[0];
+            if (first == '>' || first == '<' || first == '^') {
+                // Alignment
+                alignDir = first;
+                if (seg.Length < 2 || !int.TryParse(seg.Substring(1), out alignWidth) || alignWidth <= 0)
+                    throw Errors.InvalidFormatSpecifier(seg, interval);
+            } else if (char.IsLetter(first)) {
+                // Named specifier (case-sensitive for sci/SCI)
+                result = seg switch {
+                    "hex" or "HEX" => SyntaxNodeFactory.FunCall(CoreFunNames.ToHexText, new[] { valueExpr }, interval),
+                    "bin" => SyntaxNodeFactory.FunCall(CoreFunNames.ToBinText, new[] { valueExpr }, interval),
+                    "sci" => SyntaxNodeFactory.FunCall(CoreFunNames.ToSciText, new[] {
+                        valueExpr, ConstBool(false, interval) }, interval),
+                    "SCI" => SyntaxNodeFactory.FunCall(CoreFunNames.ToSciText, new[] {
+                        valueExpr, ConstBool(true, interval) }, interval),
+                    _ => throw Errors.UnknownFormatSpecifier(seg, interval)
+                };
+            } else {
+                // Numeric mask: parse into toFixedText parameters
+                var (decimals, minDigits, thousands, forceZeros) = ParseMask(seg, interval);
+                result = SyntaxNodeFactory.FunCall(CoreFunNames.ToNumText, new ISyntaxNode[] {
+                    valueExpr,
+                    ConstInt(decimals, interval),
+                    ConstInt(minDigits, interval),
+                    ConstBool(thousands, interval),
+                    ConstBool(forceZeros, interval),
+                }, interval);
+            }
+        }
+
+        // No format → just toText
+        result ??= SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { valueExpr }, interval);
+
+        // Wrap with alignment
+        if (alignDir != '\0') {
+            string padFunc = alignDir switch {
+                '<' => CoreFunNames.PadLeftText,
+                '>' => CoreFunNames.PadRightText,
+                '^' => CoreFunNames.PadCenterText,
+                _ => throw new InvalidOperationException()
+            };
+            result = SyntaxNodeFactory.FunCall(padFunc, new[] {
+                result, ConstInt(alignWidth, interval)
+            }, interval);
+        }
+
+        return result;
+    }
+
+    private static (int decimals, int minDigits, bool thousands, bool forceZeros) ParseMask(string mask, Interval interval) {
+        bool thousands = mask.Contains(",");
+        var clean = mask.Replace(",", "");
+
+        int dotIdx = clean.IndexOf('.');
+        string intPart, decPart;
+        if (dotIdx >= 0) {
+            intPart = clean.Substring(0, dotIdx);
+            decPart = clean.Substring(dotIdx + 1);
+        } else {
+            intPart = clean;
+            decPart = "";
+        }
+
+        // Validate characters
+        foreach (var c in clean)
+            if (c != '0' && c != '#' && c != '.' && c != ' ')
+                throw Errors.InvalidFormatSpecifier(mask, interval);
+
+        int decimals = decPart.Length;
+        bool forceZeros = decPart.Length == 0 || decPart.Contains("0");
+        int minDigits = 0;
+        foreach (var c in intPart)
+            if (c == '0') minDigits++;
+
+        return (decimals, minDigits, thousands, forceZeros);
+    }
+
+    private static ISyntaxNode ConstInt(int value, Interval interval) =>
+        SyntaxNodeFactory.Constant(value, FunnyType.Int32, interval);
+
+    private static ISyntaxNode ConstBool(bool value, Interval interval) =>
+        SyntaxNodeFactory.Constant(value, FunnyType.Bool, interval);
+
     private static ISyntaxNode ReadInterpolationText(TokFlow flow) {
         var openInterpolationToken = flow.AssertAndMove(TokType.TextOpenInterpolation);
         //interpolation
@@ -574,11 +673,7 @@ public static class SyntaxNodeReader {
             // Check for format specifier: {expr:format}
             ISyntaxNode textExpr;
             if (flow.Current.Type is TokType.FormatSpec) {
-                var formatStr = flow.Current.Value;
-                var formatConst = SyntaxNodeFactory.Constant(
-                    new TextFunnyArray(formatStr), FunnyType.Text, flow.Current.Interval);
-                textExpr = SyntaxNodeFactory.FunCall(
-                    CoreFunNames.ToTextFormatted, new[] { allNext, formatConst }, allNext.Interval);
+                textExpr = BuildFormatCall(allNext, flow.Current.Value, flow.Current.Interval);
                 flow.MoveNext();
             } else {
                 textExpr = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval);

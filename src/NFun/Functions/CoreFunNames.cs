@@ -33,7 +33,13 @@ internal static class CoreFunNames {
     public const string ForceUnwrap = "___forceUnwrap___";
     public const string SafeGetElementName = "?[]";
     public const string ToText = "toText";
-    public const string ToTextFormatted = "@toTextFormatted";
+    public const string ToNumText = "toFixedText";
+    public const string ToHexText = "toHexText";
+    public const string ToBinText = "toBinText";
+    public const string ToSciText = "toSciText";
+    public const string PadLeftText = "padLeftText";
+    public const string PadRightText = "padRightText";
+    public const string PadCenterText = "padCenterText";
 
     // UsedInInterpolation:
 

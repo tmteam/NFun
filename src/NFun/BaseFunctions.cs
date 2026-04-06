@@ -100,7 +100,13 @@ internal static class BaseFunctions {
             new XorFunction(),
 
             new ToTextFunction(),
-            new ToTextFormattedFunction(),
+            new ToNumTextFunction(),
+            new ToHexTextFunction(),
+            new ToBinTextFunction(),
+            new ToSciTextFunction(),
+            new PadLeftTextFunction(),
+            new PadRightTextFunction(),
+            new PadCenterTextFunction(),
 
             new TrimFunction(),
             new TrimStartFunction(),
