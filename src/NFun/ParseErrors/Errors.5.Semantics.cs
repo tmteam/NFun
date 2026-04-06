@@ -92,6 +92,9 @@ internal static partial class Errors {
     internal static FunnyParseException InterpolationExpressionIsMissing(ISyntaxNode lastNode) => new(
         864, $"Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
 
+    internal static FunnyParseException InterpolationExpressionIsMissing(Interval interval) => new(
+        864, $"Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", interval);
+
     internal static FunnyParseException InvalidFormatSpecifier(string spec, Interval interval) => new(
         865, $"Invalid format specifier '{spec}'. Mask chars: 0 # . , or named: hex, bin, sci", interval);
 

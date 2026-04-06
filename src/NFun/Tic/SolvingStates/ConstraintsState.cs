@@ -1,23 +1,38 @@
-﻿namespace NFun.Tic.SolvingStates;
+namespace NFun.Tic.SolvingStates;
 
 using System;
 using Algebra;
 
 public class ConstraintsState : ITicNodeState {
     public StatePrimitive Ancestor { get; private set; }
-    public ITicNodeState Descendant { get; private set; }
+    private ITicNodeState _descendant;
+
+    public ITicNodeState Descendant {
+        get => _descendant;
+        private set => _descendant = value;
+    }
+
     public bool HasAncestor => Ancestor != null;
-    public bool HasDescendant => Descendant != null;
+    public bool HasDescendant => _descendant != null;
+
+    /// <summary>
+    /// When true, this constraint represents an optional type: opt(inner).
+    /// Set when None is added as a descendant. The actual StateOptional is
+    /// materialized before Destruction, after all constraints are collected.
+    /// </summary>
+    public bool IsOptional { get; private set; }
+
     public bool IsSolved => false;
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
     public bool IsComparable { get; }
-    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;
+    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional;
 
     public static ConstraintsState Empty => new(null, null, false);
 
-    public static ConstraintsState Of(ITicNodeState desc = null, StatePrimitive anc = null, bool isComparable = false) =>
-        new(desc, anc, isComparable);
+    public static ConstraintsState Of(ITicNodeState desc = null, StatePrimitive anc = null,
+        bool isComparable = false, bool isOptional = false) =>
+        new(desc, anc, isComparable) { IsOptional = isOptional };
 
     private ConstraintsState(ITicNodeState desc, StatePrimitive anc, bool isComparable) {
         Descendant = desc;
@@ -25,8 +40,8 @@ public class ConstraintsState : ITicNodeState {
         IsComparable = isComparable;
     }
 
-    public ConstraintsState GetCopy() => new(Descendant, Ancestor, IsComparable) { Preferred = Preferred };
-
+    public ConstraintsState GetCopy() =>
+        new(_descendant, Ancestor, IsComparable) { Preferred = Preferred, IsOptional = IsOptional };
 
     public bool CanBeConvertedTo(ITypeState type) {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
@@ -84,17 +99,31 @@ public class ConstraintsState : ITicNodeState {
     public void AddDescendant(ITicNodeState type) {
         if (type == null)
             return;
+
+        // None sets the IsOptional flag instead of being stored as a descendant.
+        // This avoids stale snapshots: Optional is materialized before Destruction,
+        // after all constraints are fully propagated.
+        if (type.Equals(StatePrimitive.None)) {
+            IsOptional = true;
+            TraceLog.WriteLine($"    Constrains.AddDescendant: None => IsOptional=true");
+            return;
+        }
+
         if (!HasDescendant)
         {
-            Descendant = type.Concretest();
-            TraceLog.WriteLine($"    Constrains.AddDescendant: first={type} => concretest={Descendant}");
+            _descendant = type.Concretest();
+            TraceLog.WriteLine($"    Constrains.AddDescendant: first={type} => concretest={_descendant}");
         }
         else
         {
             var prev = Descendant;
-            Descendant = Descendant.Lca(type);
-            TraceLog.WriteLine($"    Constrains.AddDescendant: LCA({prev}, {type}) => {Descendant}");
+            // Concretest the incoming type so IsOptional flags are materialized
+            // into StateOptional before LCA. Without this, LCA(U8, ConstraintsState{IsOptional=true})
+            // would return U8 (losing the Optional), but LCA(U8, opt(empty)) returns opt(U8).
+            _descendant = Descendant.Lca(type.Concretest());
+            TraceLog.WriteLine($"    Constrains.AddDescendant: LCA({prev}, {type}) => {_descendant}");
         }
+
     }
 
     /// <summary>
@@ -102,11 +131,14 @@ public class ConstraintsState : ITicNodeState {
     ///   desc = LCA(this.Desc, other.Desc)
     ///   anc  = GCD(this.Anc,  other.Anc)
     ///   comp = this.IsComparable || other.IsComparable
+    ///   opt  = this.IsOptional || other.IsOptional
     /// Returns null if ancestors are incompatible (GCD fails).
     /// Does NOT merge Preferred or collapse composites.
     /// </summary>
     public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other) {
-        var result = new ConstraintsState(Descendant, Ancestor, IsComparable || other.IsComparable);
+        var result = new ConstraintsState(Descendant, Ancestor, IsComparable || other.IsComparable) {
+            IsOptional = IsOptional || other.IsOptional
+        };
         result.AddDescendant(other.Descendant);
         if (!result.TryAddAncestor(other.Ancestor))
             return null;
@@ -139,6 +171,8 @@ public class ConstraintsState : ITicNodeState {
             {
                 if (result.IsComparable && !result.Ancestor.IsComparable)
                     return null;
+                if (result.IsOptional)
+                    return StateOptional.Of(result.Ancestor);
                 return result.Ancestor;
             }
 
@@ -162,11 +196,7 @@ public class ConstraintsState : ITicNodeState {
                 result.Preferred = null;
 
         // If descendant is a fully solved struct/optional and there is no ancestor constraint,
-        // the composite type IS the result. Struct and Optional don't participate in the
-        // primitive type hierarchy (unlike Array/Fun whose elements can widen covariantly),
-        // so [struct/opt..] without a primitive upper bound is equivalent to the type itself.
-        // Exception: when Optional has a preferred type hint, keep as ConstraintsState
-        // so finalization/converter can apply preferred to the inner element.
+        // the composite type IS the result.
         if (!result.HasAncestor && !result.IsComparable &&
             result.Descendant is StateStruct { IsSolved: true } or StateOptional { IsSolved: true })
         {
@@ -174,6 +204,8 @@ public class ConstraintsState : ITicNodeState {
             {
                 // Don't collapse — let preferred type survive to runtime resolution
             }
+            else if (result.IsOptional)
+                return StateOptional.Of(result.Descendant);
             else
                 return result.Descendant;
         }
@@ -188,19 +220,22 @@ public class ConstraintsState : ITicNodeState {
     /// For most cases it means that ancestor type will be used
     /// </summary>
     public ITicNodeState SolveCovariant(bool ignorePreferred = false) {
+        // Resolve inner type (ignoring IsOptional), then wrap if needed
+        ITicNodeState inner;
         if (!ignorePreferred && Preferred != null && CanBeConvertedTo(Preferred))
-            return Preferred;
-        var ancestor = Ancestor ?? StatePrimitive.Any;
-        if (IsComparable)
-        {
-            if (ancestor.IsComparable)
-                return ancestor;
-            return this;
+            inner = Preferred;
+        else {
+            var ancestor = Ancestor ?? StatePrimitive.Any;
+            if (IsComparable) {
+                if (!ancestor.IsComparable)
+                    return this; // unresolved — keep as ConstraintsState
+                inner = ancestor;
+            } else if (Descendant is ICompositeState)
+                inner = Descendant;
+            else
+                inner = ancestor;
         }
-
-        if (Descendant is ICompositeState)
-            return Descendant;
-        return ancestor;
+        return IsOptional ? WrapOptional(inner) : inner;
     }
 
     /// <summary>
@@ -210,24 +245,28 @@ public class ConstraintsState : ITicNodeState {
     /// For most cases it means that descendant type will be used
     /// </summary>
     public ITicNodeState SolveContravariant() {
+        // Resolve inner type (ignoring IsOptional), then wrap if needed
+        ITicNodeState inner;
         if (Preferred != null && CanBeConvertedTo(Preferred))
-            return Preferred;
-        if (!HasDescendant)
-            return this;
-
-        if (IsComparable)
-        {
+            inner = Preferred;
+        else if (!HasDescendant)
+            return this; // unresolved
+        else if (IsComparable) {
             var isDescComparable = Descendant is StatePrimitive { IsComparable: true }
                                    || (Descendant is StateArray a && a.Element== StatePrimitive.Char);
             if (!isDescComparable)
-                return this;
-        }
-
-        return Descendant;
+                return this; // unresolved
+            inner = Descendant;
+        } else
+            inner = Descendant;
+        return IsOptional ? WrapOptional(inner) : inner;
     }
 
+    private static ITicNodeState WrapOptional(ITicNodeState inner) =>
+        inner == StatePrimitive.Any ? StatePrimitive.Any : StateOptional.Of(inner);
+
     public ITicNodeState SimplifyOrNull() {
-        if (!HasDescendant) return this;
+        if (!HasDescendant && !IsOptional) return this;
 
         if (IsComparable)
         {
@@ -256,6 +295,9 @@ public class ConstraintsState : ITicNodeState {
             }
         }
 
+        if (!HasDescendant)
+            return this; // IsOptional=true but no descendant yet — keep collecting constraints
+
         if (HasAncestor)
         {
             var d = Descendant;
@@ -263,30 +305,42 @@ public class ConstraintsState : ITicNodeState {
             {
                 d = constrains.Descendant;
                 if (d == null)
-                    return new ConstraintsState(null, Ancestor, false);
+                    return new ConstraintsState(null, Ancestor, false) { IsOptional = IsOptional };
             }
 
             if (Ancestor.Equals(d))
-                return Ancestor;
+            {
+                // Abstract types (I96, I48, U48, etc.) cannot be concrete results.
+                // If the interval collapses to an abstract point, reject.
+                if (Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract))
+                    return null;
+                return IsOptional ? StateOptional.Of(Ancestor) : (ITicNodeState)Ancestor;
+            }
             if (!(d is ITypeState descendant))
                 return this;
             if (!descendant.CanBePessimisticConvertedTo(Ancestor))
+                return null;
+            // opt(T) is a composite — it can't satisfy a primitive ancestor (except Any).
+            // {desc=U8, anc=Real, IsOptional=true} is contradictory: no opt(T) ≤ Real.
+            if (IsOptional && Ancestor is StatePrimitive pa && pa != StatePrimitive.Any)
                 return null;
         }
         else if (Descendant is ConstraintsState constrainsState)
         {
             if (constrainsState.IsComparable && !IsComparable)
                 return this;
-            return new ConstraintsState(constrainsState.Descendant, null, IsComparable);
+            return new ConstraintsState(constrainsState.Descendant, null, IsComparable) {
+                IsOptional = IsOptional || constrainsState.IsOptional
+            };
         }
         else if (Descendant== StatePrimitive.Any)
-            return StatePrimitive.Any;
+            return IsOptional ? StateOptional.Of(StatePrimitive.Any) : (ITicNodeState)StatePrimitive.Any;
 
         return this;
     }
 
     public override string ToString() {
-        var res = $"[{Descendant}..{Ancestor}]";
+        var res = IsOptional ? $"[{Descendant}..{Ancestor}]?" : $"[{Descendant}..{Ancestor}]";
         if (IsComparable)
             res += "<>";
         if (Preferred != null)
@@ -318,6 +372,9 @@ public class ConstraintsState : ITicNodeState {
         if (Preferred != null && !constrainsState.Preferred!.Equals(Preferred))
             return false;
 
+        if (IsOptional != constrainsState.IsOptional)
+            return false;
+
         return IsComparable == constrainsState.IsComparable;
     }
 
@@ -327,7 +384,9 @@ public class ConstraintsState : ITicNodeState {
         if (depth > 100)
             return "[..REQ..]";
         depth++;
-        var res = $"[{Descendant?.PrintState(depth)}..{Ancestor?.PrintState(depth)}]";
+        var res = IsOptional
+            ? $"[{Descendant?.PrintState(depth)}..{Ancestor?.PrintState(depth)}]?"
+            : $"[{Descendant?.PrintState(depth)}..{Ancestor?.PrintState(depth)}]";
         if (IsComparable)
             res += "<>";
         if (Preferred != null)

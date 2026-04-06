@@ -33,7 +33,7 @@ internal static class CoreFunNames {
     public const string ForceUnwrap = "___forceUnwrap___";
     public const string SafeGetElementName = "?[]";
     public const string ToText = "toText";
-    public const string ToNumText = "toFixedText";
+    public const string ToNumText = "toNumText";
     public const string ToHexText = "toHexText";
     public const string ToBinText = "toBinText";
     public const string ToSciText = "toSciText";

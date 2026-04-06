@@ -13,8 +13,21 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         StatePrimitive ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (ancestor.FitsInto(descendant))
-            descendantNode.State = ancestor;
+        if (ancestor.FitsInto(descendant)) {
+            // Ancestor is a concrete type (from annotation or solved node).
+            // It takes priority over Preferred — annotation beats default.
+            // Exception: Optional inner elements preserve their Preferred type
+            // to prevent ancestor widening (e.g., opt(I32) staying I32, not becoming Real).
+            var resolved = descendant.Preferred != null
+                           && descendantNode.IsOptionalElement
+                           && descendant.CanBeConvertedTo(descendant.Preferred)
+                ? (ITicNodeState)descendant.Preferred
+                : ancestor;
+            if (descendant.IsOptional && resolved != StatePrimitive.None)
+                descendantNode.State = StateOptional.Of(resolved);
+            else
+                descendantNode.State = resolved;
+        }
 
         return true;
     }
@@ -24,13 +37,31 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // None ≤ opt(T): no-op. None adds no information to an Optional constraint.
+        // MaterializeOptionalFlags resolves the final type after all branches are processed.
+        if (descendant == StatePrimitive.None && ancestor.IsOptional)
+            return true;
         if (ancestor.CanBeConvertedTo(descendant))
-            ancestorNode.State = descendant;
+            ancestorNode.State = ancestor.IsOptional
+                ? StateOptional.Of(descendant)
+                : (ITicNodeState)descendant;
         return true;
     }
 
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // When ancestor is Optional and descendant is not, wrap as opt(descendant)
+        // instead of flat-merging. This mirrors Apply(CS, StatePrimitive) which already
+        // does StateOptional.Of(descendant) for non-None primitives.
+        // Without this, a subsequent None descendant would collapse the flat-merged
+        // ConstraintsState to None, losing the Optional semantic.
+        if (ancestor.IsOptional && !descendant.IsOptional)
+        {
+            ancestorNode.State = new StateOptional(descendantNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+
         var result = ancestor.MergeOrNull(descendant);
         if (result == null)
             return false;
@@ -61,7 +92,15 @@ public class DestructionFunctions : IStateFunction {
         ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.FitsInto(ancestor))
         {
-            ancestorNode.State = new StateRefTo(descendantNode);
+            if (ancestor.IsOptional) {
+                // Wrap in Optional: ancestor becomes opt(descendant)
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
+                    new StateRefTo(descendantNode));
+                ancestorNode.State = new StateOptional(innerNode);
+            } else {
+                ancestorNode.State = new StateRefTo(descendantNode);
+            }
             descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
@@ -78,22 +117,47 @@ public class DestructionFunctions : IStateFunction {
             return true;
         }
 
+        // Reverse Optional lift: snapshot has Optional elements that actual descendant
+        // doesn't (e.g., snapshot arr(opt(U8)) from IsOptional LCA, actual arr(U8)).
+        // Use the snapshot (which includes Optional) and destruct element-by-element.
+        if (ancestor.Descendant is StateArray ancArr && descendant is StateArray descArr
+            && ancArr.Element is StateOptional && descArr.Element is not StateOptional)
+        {
+            TraceLog.WriteLine($"  Reverse Optional lift: snapshot={ancestor.Descendant}, actual={descendant}");
+            ancestorNode.State = ancestor.Descendant;
+            descendantNode.RemoveAncestor(ancestorNode);
+            return Apply(ancArr, descArr, ancestorNode, descendantNode);
+        }
+
         if (descendant.GetType() == ancestor.Descendant?.GetType())
         {
             // Use the snapshot type and recursively destruct element-by-element.
-            // This propagates type constraints at the element level (e.g., Real
-            // from one branch to U8 from another in [[0x1],[1.0]]).
-            ancestorNode.State = ancestor.Descendant;
+            // Preserve Optional wrapper when ancestor has IsOptional flag.
+            // Pass innerNode (not ancestorNode) to recursive Apply so it doesn't overwrite the Optional.
+            TicNode destructTarget;
+            if (ancestor.IsOptional)
+            {
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
+                    ancestor.Descendant);
+                ancestorNode.State = new StateOptional(innerNode);
+                destructTarget = innerNode;
+            }
+            else
+            {
+                ancestorNode.State = ancestor.Descendant;
+                destructTarget = ancestorNode;
+            }
             descendantNode.RemoveAncestor(ancestorNode);
             return descendant switch {
                 StateArray array =>
-                    Apply((StateArray)ancestor.Descendant, array, ancestorNode, descendantNode),
+                    Apply((StateArray)ancestor.Descendant, array, destructTarget, descendantNode),
                 StateFun fun =>
-                    Apply((StateFun)ancestor.Descendant, fun, ancestorNode, descendantNode),
+                    Apply((StateFun)ancestor.Descendant, fun, destructTarget, descendantNode),
                 StateStruct @struct =>
-                    Apply((StateStruct)ancestor.Descendant, @struct, ancestorNode, descendantNode),
+                    Apply((StateStruct)ancestor.Descendant, @struct, destructTarget, descendantNode),
                 StateOptional opt =>
-                    Apply((StateOptional)ancestor.Descendant, opt, ancestorNode, descendantNode),
+                    Apply((StateOptional)ancestor.Descendant, opt, destructTarget, descendantNode),
                 _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
             };
         }
@@ -123,7 +187,14 @@ public class DestructionFunctions : IStateFunction {
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.FitsInto(descendant))
         {
-            descendantNode.State = new StateRefTo(ancestorNode);
+            if (descendant.IsOptional) {
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + descendantNode.Name.ToString().ToLower() + "'",
+                    new StateRefTo(ancestorNode));
+                descendantNode.State = new StateOptional(innerNode);
+            } else {
+                descendantNode.State = new StateRefTo(ancestorNode);
+            }
             descendantNode.RemoveAncestor(ancestorNode);
         }
         else if (ancestor is StateStruct ancStruct
@@ -157,6 +228,18 @@ public class DestructionFunctions : IStateFunction {
                 {
                     TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
                 }
+            }
+            else if (descendant.IsOptional)
+            {
+                // Descendant has IsOptional flag — materialize to Optional, then
+                // do element-level destruction (opt vs opt).
+                var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+                innerCs.Preferred = descendant.Preferred;
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + descendantNode.Name.ToString().ToLower() + "'", innerCs);
+                descendantNode.State = new StateOptional(innerNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+                Apply(ancOpt, (StateOptional)descendantNode.State, ancestorNode, descendantNode);
             }
             else
             {

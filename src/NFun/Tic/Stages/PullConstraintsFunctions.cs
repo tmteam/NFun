@@ -17,23 +17,7 @@ public class PullConstraintsFunctions : IStateFunction {
         => descendant.CanBePessimisticConvertedTo(ancestor);
 
     public bool Apply(ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.Name == PrimitiveTypeName.None)
-        {
-            // Only wrap in Optional when ancestor already has a non-None, non-Optional descendant
-            // (established by Phase 1). This matches the old PullNoneNode's condition.
-            // Standalone None or None+None → standard path (Destruction resolves to None).
-            if (ancestor.HasDescendant
-                && ancestor.Descendant != StatePrimitive.None
-                && ancestor.Descendant is not StateOptional)
-            {
-                var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                    ancestor.GetCopy());
-                ancestorNode.State = new StateOptional(innerNode);
-                descendantNode.RemoveAncestor(ancestorNode);
-                return true;
-            }
-        }
+        // None is handled by AddDescendant setting IsOptional flag — no special wrapping needed.
         return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
     }
 
@@ -41,6 +25,10 @@ public class PullConstraintsFunctions : IStateFunction {
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
         ancestorCopy.AddDescendant(descendant.Descendant);
+        // Propagate IsOptional flag (OR semantics): if descendant is optional,
+        // the ancestor must be optional too. Uses AddDescendant(None) which sets the flag.
+        if (descendant.IsOptional)
+            ancestorCopy.AddDescendant(StatePrimitive.None);
         var result = ancestorCopy.SimplifyOrNull();
         if (result == null)
             return false;

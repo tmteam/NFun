@@ -14,13 +14,13 @@ public static partial class StateExtensions {
         if (to is StateRefTo toRef)
             return from.CanBeConvertedOptimisticTo(toRef.Element);
 
+        if (to== Any)
+            return true;
+
         // None can only optimistically convert to None or Optional targets
         if (from == StatePrimitive.None)
             return to == StatePrimitive.None
                 || (to is ICompositeState cs && from.CanBeConvertedOptimisticTo(cs));
-
-        if (to== Any)
-            return true;
 
         // Optional can only optimistically convert to Optional targets
         if (from is StateOptional)
@@ -188,14 +188,14 @@ public static partial class StateExtensions {
             return from.CanBeConvertedPessimisticTo(optTo.Element);
         }
 
-        // None and Optional can't pessimistically convert to non-optional targets
+        if (to== Any)
+            return true;
+
+        // None and Optional can't pessimistically convert to non-optional targets (except Any above)
         if (from == StatePrimitive.None)
             return to == StatePrimitive.None;
         if (from is StateOptional)
             return false;
-
-        if (to== Any)
-            return true;
 
         return from switch {
             StateRefTo descRef => descRef.Element.CanBeConvertedPessimisticTo(to),

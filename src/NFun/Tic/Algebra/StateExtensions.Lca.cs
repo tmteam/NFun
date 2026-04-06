@@ -22,20 +22,22 @@ public static partial class StateExtensions {
                 _            => descA.Lca(descB)
             };
             var comparable = ac.IsComparable && bc.IsComparable;
+            var isOptional = ac.IsOptional || bc.IsOptional;
             if (lcaDesc == null)
-                return ConstraintsState.Of(isComparable: comparable);
-            // Collapse when lcaDesc is a solved composite type (arrays, funs, structs, optionals
-            // have no type hierarchy beyond Any) or when lcaDesc is Any itself.
-            // Keep constraint wrapper for primitives where further widening is possible
-            // (e.g., [I24..] means "at least I24" — could resolve to I32, I64, Real).
-            if (!comparable && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
+                return ConstraintsState.Of(isComparable: comparable, isOptional: isOptional);
+            if (!comparable && !isOptional && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
                 return lcaDesc;
-            return ConstraintsState.Of(lcaDesc, null, comparable);
+            return ConstraintsState.Of(lcaDesc, null, comparable, isOptional);
         }
-        if (b is ConstraintsState bc2)
-            return bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();
+        if (b is ConstraintsState bc2) {
+            var inner = bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();
+            // Propagate IsOptional: LCA(T, C[.., opt=true]) = C[T.., opt=true]
+            if (bc2.IsOptional && !inner.Equals(Any))
+                return ConstraintsState.Of(inner, isOptional: true);
+            return inner;
+        }
         if (a is ConstraintsState)
-            return b.Lca(a);
+            return b.Lca(a); // symmetric: hits bc2 branch above
 
         // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
         if (a == StatePrimitive.None)
@@ -61,12 +63,12 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState LcaWithNone(ITicNodeState other) {
-        if (other == StatePrimitive.None)
+        if (other.Equals(None))
             return None;
-        if (other== Any)
+        if (other.Equals(Any))
             return Any; // None ≤ Any → LCA = Any
         if (other is StateOptional opt)
-            return opt.Element== Any ? Any : other; // None ≤ Opt(T) → LCA = Opt(T); opt(any) = any
+            return opt.Element.Equals(Any) ? Any : other; // None ≤ Opt(T) → LCA = Opt(T); opt(any) = any
         // None ^ T = Opt(T) for non-Any types
         return StateOptional.Of(other);
     }
@@ -78,7 +80,7 @@ public static partial class StateExtensions {
         else
             inner = opt.Element.Lca(other);
         // opt(any) = any (collapses)
-        if (inner== Any)
+        if (inner.Equals(Any))
             return Any;
         return StateOptional.Of(inner);
     }

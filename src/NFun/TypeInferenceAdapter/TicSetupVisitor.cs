@@ -270,10 +270,18 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             result[paramIndex] = named.Value;
         }
 
-        // Verify all args filled
+        // Fill defaults for missing args, verify required args filled
         for (int i = 0; i < totalArgs; i++)
         {
-            if (result[i] == null)
+            if (result[i] != null) continue;
+            if (argProps[i].HasDefault && argProps[i].DefaultValue != null)
+            {
+                result[i] = new ConstantSyntaxNode(
+                    argProps[i].DefaultValue,
+                    signature.ArgTypes[i],
+                    node.Interval) { OrderNumber = _nextSyntheticId++ };
+            }
+            else
                 throw Errors.MissingArgument(node.Id, argProps[i].Name, node.Interval);
         }
 
@@ -601,6 +609,35 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         }
 
         var signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
+
+        // Fallback: built-in with default args, called with fewer positional args
+        if (signature == null && !node.IsOperator)
+        {
+            var found = _dictionary.FindOrNull(node.Id, allArgs.Length, Array.Empty<string>());
+            if (found?.ArgProperties != null)
+            {
+                var props = found.ArgProperties;
+                var extended = new ISyntaxNode[found.ArgTypes.Length];
+                for (int i = 0; i < allArgs.Length; i++)
+                    extended[i] = allArgs[i];
+                bool valid = true;
+                for (int i = allArgs.Length; i < extended.Length; i++)
+                {
+                    if (props[i].HasDefault && props[i].DefaultValue != null)
+                        extended[i] = new ConstantSyntaxNode(
+                            props[i].DefaultValue, found.ArgTypes[i], node.Interval)
+                            { OrderNumber = _nextSyntheticId++ };
+                    else { valid = false; break; }
+                }
+                if (valid)
+                {
+                    allArgs = extended;
+                    signature = found;
+                    _resultsBuilder.RememberResolvedCallArgs(node.OrderNumber, allArgs);
+                }
+            }
+        }
+
         // Store signature on node directly — avoids dict write + dict read in ExpressionBuilder
         node.ResolvedSignature = signature;
 

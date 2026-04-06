@@ -112,5 +112,54 @@ public class PessimisticConvertTest {
             .CanBeConvertedPessimisticTo(
                 Constrains(Struct("a", I32))).AssertTrue();
 
+    #region Optional
 
+    [Test]
+    public void None_To_OptI32() => None.CanBeConvertedPessimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void None_To_OptBool() => None.CanBeConvertedPessimisticTo(Optional(Bool)).AssertTrue();
+
+    [Test]
+    public void None_To_I32_Fails() => None.CanBeConvertedPessimisticTo(I32).AssertFalse();
+
+    [Test]
+    public void None_To_Bool_Fails() => None.CanBeConvertedPessimisticTo(Bool).AssertFalse();
+
+    [Test]
+    public void None_To_None() => None.CanBeConvertedPessimisticTo(None).AssertTrue();
+
+    [Test]public void None_To_Any() => None.CanBeConvertedPessimisticTo(Any).AssertTrue();
+
+    [Test]
+    public void OptI32_To_OptReal() => ((ITicNodeState)Optional(I32)).CanBeConvertedPessimisticTo(Optional(Real)).AssertTrue();
+
+    [Test]
+    public void OptI32_To_OptI32() => ((ITicNodeState)Optional(I32)).CanBeConvertedPessimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void OptI32_To_Real_Fails() => ((ITicNodeState)Optional(I32)).CanBeConvertedPessimisticTo(Real).AssertFalse();
+
+    [Test]
+    public void OptI32_To_I32_Fails() => ((ITicNodeState)Optional(I32)).CanBeConvertedPessimisticTo(I32).AssertFalse();
+
+    [Test]public void OptI32_To_Any() => ((ITicNodeState)Optional(I32)).CanBeConvertedPessimisticTo(Any).AssertTrue();
+
+    [Test]
+    public void I32_To_OptI32() => I32.CanBeConvertedPessimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void I32_To_OptReal() => I32.CanBeConvertedPessimisticTo(Optional(Real)).AssertTrue();
+
+    [Test]
+    public void I32_To_OptBool_Fails() => I32.CanBeConvertedPessimisticTo(Optional(Bool)).AssertFalse();
+
+    [Test]public void OptArrayI32_To_Any() =>
+        ((ITicNodeState)Optional(Array(I32))).CanBeConvertedPessimisticTo(Any).AssertTrue();
+
+    [Test]
+    public void OptArrayI32_To_ArrayI32_Fails() =>
+        ((ITicNodeState)Optional(Array(I32))).CanBeConvertedPessimisticTo(Array(I32)).AssertFalse();
+
+    #endregion
 }

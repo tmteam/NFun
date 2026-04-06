@@ -85,3 +85,15 @@ public class RoundToDoubleFunction : FunctionWithTwoArgs {
     public RoundToDoubleFunction() : base("round", FunnyType.Real, FunnyType.Real, FunnyType.Int32) { ArgProperties = FunArgProperty.FromNames("value", "digits"); }
     public override object Calc(object a, object b) => Math.Round((double)a, (int)b);
 }
+
+public class CeilDoubleFunction : FunctionWithSingleArg {
+    public CeilDoubleFunction() : base("ceil", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
+    public override object Calc(object a) => Math.Ceiling((double)a);
+}
+
+public class FloorDoubleFunction : FunctionWithSingleArg {
+    public FloorDoubleFunction() : base("floor", FunnyType.Real, FunnyType.Real) { ArgProperties = FunArgProperty.FromNames("x"); }
+    public override object Calc(object a) => Math.Floor((double)a);
+}
+
+// sign is implemented as a generic function in GenericSwitchFunctionsGenerated.cs

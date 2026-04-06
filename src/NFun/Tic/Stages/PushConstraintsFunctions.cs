@@ -56,7 +56,17 @@ public class PushConstraintsFunctions : IStateFunction {
                 var descField = descStruct.GetFieldOrNull(ancField.Key);
                 if (descField == null) continue;
 
-                if (descField.State is ConstraintsState && ancField.Value.State != StatePrimitive.Any)
+                if (ancField.Value.State is StateOptional ancOpt && descField.State is ConstraintsState)
+                {
+                    // Merged struct field is Optional (LCA with none field).
+                    // Don't merge opt(T) into constraint — push inner element constraints instead.
+                    SolvingFunctions.PushConstraints(ancOpt.ElementNode, descField);
+                }
+                else if (descField.State is StateOptional descOpt && ancField.Value.State is ConstraintsState)
+                {
+                    SolvingFunctions.PushConstraints(descOpt.ElementNode, ancField.Value);
+                }
+                else if (descField.State is ConstraintsState && ancField.Value.State != StatePrimitive.Any)
                     SolvingFunctions.MergeInplace(descField, ancField.Value);
                 else
                     SolvingFunctions.PushConstraints(descField, ancField.Value);

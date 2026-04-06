@@ -24,7 +24,7 @@ syntax-tree
    equation 'x'
       gint '1'
    equation 'y'
-      call '+'
+      binop '+'
          id 'x'
          constant '1.0'
 """);
@@ -42,11 +42,11 @@ syntax-tree
                id 'x'
             anonym-fun
                typed-var-def 'z:int32'
-               call '>'
+               binop '>'
                   id 'z'
                   gint '2'
          super-anonym-def
-            call '**'
+            binop '**'
                id 'it'
                id 'it'
 """);
@@ -61,9 +61,9 @@ syntax-tree
       typed-var-def 'z:int32'
       call 'min'
          id 'x'
-         call '*'
+         binop '*'
             id 'z'
-            call '-'
+            binop '-'
                id 'x'
                id 'z'
 """);
@@ -92,7 +92,7 @@ syntax-tree
 """
 syntax-tree
    equation 'out'
-      call '<'
+      binop '<'
          id 'a'
          id 'b'
 """
@@ -105,11 +105,11 @@ syntax-tree
 """
 syntax-tree
    equation 'out'
-      call '=='
-         call '<'
+      binop '=='
+         binop '<'
             id 'a'
             id 'b'
-         call '<'
+         binop '<'
             id 'c'
             id 'd'
 """

@@ -79,9 +79,9 @@ public class MinFunction : PureGenericFunctionBase {
 
     private class MinConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            var left = (IComparable)a;
-            var right = (IComparable)b;
-            return left.CompareTo(right) > 0 ? b : a;
+            if (a is double da && double.IsNaN(da)) return a;
+            if (b is double db && double.IsNaN(db)) return b;
+            return ((IComparable)a).CompareTo(b) > 0 ? b : a;
         }
     }
 }
@@ -98,10 +98,9 @@ public class MaxFunction : PureGenericFunctionBase {
 
     private class MaxConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            var arg1 = (IComparable)a;
-            var arg2 = (IComparable)b;
-            var result = arg1.CompareTo(arg2) > 0 ? a : b;
-            return result;
+            if (a is double da && double.IsNaN(da)) return a;
+            if (b is double db && double.IsNaN(db)) return b;
+            return ((IComparable)a).CompareTo(b) > 0 ? a : b;
         }
     }
 }

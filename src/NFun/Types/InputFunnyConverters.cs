@@ -192,7 +192,7 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
                 return new ImmutableFunnyArray(funnyObjects, FunnyType.ArrayTypeSpecification.FunnyType);
             }
             case string str:
-                return new ImmutableFunnyArray(str.ToCharArray(), FunnyType.ArrayTypeSpecification.FunnyType);
+                return new TextFunnyArray(str);
             default:
                 throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
         }

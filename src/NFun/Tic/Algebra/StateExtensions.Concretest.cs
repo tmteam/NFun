@@ -10,9 +10,7 @@ public static partial class StateExtensions {
     public static ITicNodeState Concretest(this ITicNodeState a) =>
         a switch {
             StatePrimitive => a,
-            ConstraintsState cs => cs.HasDescendant
-                ? cs.Descendant.Concretest()
-                : ConstraintsState.Of(isComparable: cs.IsComparable),
+            ConstraintsState cs => ConcretestConstraints(cs),
             StateRefTo aref => aref.Element.Concretest(),
             StateArray arr => StateArray.Of(arr.Element.Concretest()),
             StateOptional opt => ConcretestOptional(opt),
@@ -20,6 +18,20 @@ public static partial class StateExtensions {
             StateStruct s => s.ConcretestStruct(),
             _ => a
         };
+
+    private static ITicNodeState ConcretestConstraints(ConstraintsState cs) {
+        var inner = cs.HasDescendant
+            ? cs.Descendant.Concretest()
+            : ConstraintsState.Of(isComparable: cs.IsComparable);
+        if (cs.IsOptional) {
+            // Wrap in Optional so snapshots (AddDescendant/LCA) see the optionality.
+            // opt(any) collapses to any.
+            if (inner == StatePrimitive.Any)
+                return StatePrimitive.Any;
+            return StateOptional.Of(inner);
+        }
+        return inner;
+    }
 
     private static ITicNodeState ConcretestOptional(StateOptional opt) {
         var inner = opt.Element.Concretest();

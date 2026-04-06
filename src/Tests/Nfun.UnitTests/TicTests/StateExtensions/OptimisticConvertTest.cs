@@ -429,4 +429,69 @@ public class OptimisticConvertTest {
         Struct("a",EmptyConstraints)
             .CanBeConvertedOptimisticTo(Any)
             .AssertTrue();
+
+    #region Optional
+
+    [Test]
+    public void None_To_OptI32() => None.CanBeConvertedOptimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void None_To_OptReal() => None.CanBeConvertedOptimisticTo(Optional(Real)).AssertTrue();
+
+    [Test]
+    public void None_To_OptBool() => None.CanBeConvertedOptimisticTo(Optional(Bool)).AssertTrue();
+
+    [Test]
+    public void None_To_I32_Fails() => None.CanBeConvertedOptimisticTo(I32).AssertFalse();
+
+    [Test]
+    public void None_To_Bool_Fails() => None.CanBeConvertedOptimisticTo(Bool).AssertFalse();
+
+    [Test]
+    public void None_To_Any() => None.CanBeConvertedOptimisticTo(Any).AssertTrue();
+
+    [Test]
+    public void None_To_None() => None.CanBeConvertedOptimisticTo(None).AssertTrue();
+
+    [Test]
+    public void OptI32_To_OptReal() => ((ITicNodeState)Optional(I32)).CanBeConvertedOptimisticTo(Optional(Real)).AssertTrue();
+
+    [Test]
+    public void OptI32_To_OptI32() => ((ITicNodeState)Optional(I32)).CanBeConvertedOptimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void OptI32_To_Real_Fails() => ((ITicNodeState)Optional(I32)).CanBeConvertedOptimisticTo(Real).AssertFalse();
+
+    [Test]
+    public void OptI32_To_I32_Fails() => ((ITicNodeState)Optional(I32)).CanBeConvertedOptimisticTo(I32).AssertFalse();
+
+    [Test]
+    public void OptI32_To_Any() => ((ITicNodeState)Optional(I32)).CanBeConvertedOptimisticTo(Any).AssertTrue();
+
+    [Test]
+    public void I32_To_OptI32() => I32.CanBeConvertedOptimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void I32_To_OptReal() => I32.CanBeConvertedOptimisticTo(Optional(Real)).AssertTrue();
+
+    [Test]
+    public void I32_To_OptBool_Fails() => I32.CanBeConvertedOptimisticTo(Optional(Bool)).AssertFalse();
+
+    [Test]
+    public void OptArrayI32_To_OptArrayReal() =>
+        ((ITicNodeState)Optional(Array(I32))).CanBeConvertedOptimisticTo(Optional(Array(Real))).AssertTrue();
+
+    [Test]
+    public void OptArrayI32_To_ArrayI32_Fails() =>
+        ((ITicNodeState)Optional(Array(I32))).CanBeConvertedOptimisticTo(Array(I32)).AssertFalse();
+
+    [Test]
+    public void EmptyCS_To_OptI32() =>
+        ((ITicNodeState)EmptyConstraints).CanBeConvertedOptimisticTo(Optional(I32)).AssertTrue();
+
+    [Test]
+    public void CS_DescI32_To_OptReal() =>
+        ((ITicNodeState)Constrains(I32)).CanBeConvertedOptimisticTo(Optional(Real)).AssertTrue();
+
+    #endregion
 }

@@ -385,6 +385,77 @@ public class OptionalTypeTest {
     public void CoalesceOperator_Chain(string expr, object expected) =>
         expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
 
+    // ?? with two optionals: result type is T? (Optional propagation)
+    [Test]
+    public void CoalesceOperator_TwoOptionals_BothNone_ResultIsOptionalNone() {
+        var result = "a:int? = none\r b:int? = none\r y = a ?? b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var y = result.Get("y");
+        Assert.IsTrue(y is null or NFun.Types.FunnyNone,
+            $"Expected none/null but got {y}");
+    }
+
+    [Test]
+    public void CoalesceOperator_TwoOptionals_RightHasValue() {
+        var result = "a:int? = none\r b:int? = 5\r y = a ?? b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(5, result.Get("y"));
+    }
+
+    [Test]
+    public void CoalesceOperator_TwoOptionals_LeftHasValue() {
+        var result = "a:int? = 3\r b:int? = 5\r y = a ?? b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(3, result.Get("y"));
+    }
+
+    // ?? chain: T? ?? T? ?? T → T
+    [TestCase("a:int? = none\r b:int? = none\r c:int = 0\r y = a ?? b ?? c", 0)]
+    [TestCase("a:int? = none\r b:int? = 5\r c:int = 0\r y = a ?? b ?? c", 5)]
+    [TestCase("a:int? = 3\r b:int? = 5\r c:int = 0\r y = a ?? b ?? c", 3)]
+    public void CoalesceOperator_ChainOptOptNonOpt(string expr, object expected) =>
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+
+    // ?? with widening: real? ?? int? → real?
+    [Test]
+    public void CoalesceOperator_Widening_RealOptIntOpt() {
+        var result = "a:real? = none\r b:int? = 5\r y = a ?? b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(5.0, result.Get("y"));
+    }
+
+    [Test]
+    public void CoalesceOperator_Widening_IntOptRealOpt() {
+        var result = "a:int? = none\r b:real? = 5.5\r y = a ?? b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(5.5, result.Get("y"));
+    }
+
+    // ?. chain with ??
+    [Test]
+    public void SafeAccess_ChainWithCoalesce_TrueCase() =>
+        "x = if(true) {a = {b = 10}} else none\r y = if(false) {a = {b = 20}} else none\r out = x?.a.b ?? y?.a.b ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 10);
+
+    [Test]
+    public void SafeAccess_ChainWithCoalesce_FalseCase() =>
+        "x = if(false) {a = {b = 10}} else none\r y = if(true) {a = {b = 20}} else none\r out = x?.a.b ?? y?.a.b ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 20);
+
+    [Test]
+    public void SafeAccess_ChainWithCoalesce_BothNone() =>
+        "x = if(false) {a = {b = 10}} else none\r y = if(false) {a = {b = 20}} else none\r out = x?.a.b ?? y?.a.b ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 0);
+
+    // map with ?? on optional array elements
+    [Test]
+    public void CoalesceOperator_MapWithCoalesce() =>
+        "scores:int?[] = [95, none, 82]\r y = scores.map(rule it ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", new[] { 95, 0, 82 });
 
     [TestCase("x:int? = none\r y = x ?? (1 + 2)", 3)]
     [TestCase("x:int? = none\r y = x ?? (10 * 2)", 20)]

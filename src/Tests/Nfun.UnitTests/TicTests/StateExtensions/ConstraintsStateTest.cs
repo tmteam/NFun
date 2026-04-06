@@ -277,10 +277,13 @@ public class ConstraintsStateTest {
         Assert.AreEqual(Array(I32), C(desc: Array(I32)).SolveContravariant());
 
     [Test]
-    public void AddDescendant_None_OnPrimitiveBound_WrapsInOptional() {
+    public void AddDescendant_None_OnPrimitiveBound_SetsIsOptional() {
+        // AddDescendant(None) sets IsOptional flag (deferred materialization).
+        // Descendant stays U8, not wrapped immediately.
         var c = C(desc: U8);
         c.AddDescendant(None);
-        Assert.AreEqual(Optional(U8), c.Descendant);
+        Assert.IsTrue(c.IsOptional, "IsOptional should be set");
+        Assert.AreEqual(U8, c.Descendant, "Descendant should stay U8");
     }
 
     [Test]
@@ -303,14 +306,183 @@ public class ConstraintsStateTest {
 
     [Test]
     public void MergeOrNull_SolvedOptionalDesc_CollapsesToOptional() {
-        // Shows how MergeOrNull collapses [opt(T)..] to opt(T) when T is solved
-        // and there is no ancestor or comparable constraint.
-        // This collapse is correct algebra, but in the pipeline it happens
-        // before the intConst's upper bound has been integrated.
         var c1 = C(desc: Optional(U8));
         var c2 = C(desc: Optional(U8));
         var result = c1.MergeOrNull(c2);
         Assert.IsInstanceOf<StateOptional>(result);
         Assert.AreEqual(Optional(U8), result);
     }
+
+    #region SimplifyOrNull with IsOptional
+
+    private static ConstraintsState Opt(ITicNodeState desc = null, StatePrimitive anc = null,
+        bool isComparable = false) {
+        var c = ConstraintsState.Of(desc, anc, isComparable);
+        c.AddDescendant(StatePrimitive.None); // sets IsOptional
+        return c;
+    }
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_NoConstraints_Valid() =>
+        Assert.IsNotNull(Opt().SimplifyOrNull());
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_DescOnly_Valid() =>
+        Assert.IsNotNull(Opt(desc: I32).SimplifyOrNull());
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_DescAndAnc_PrimitiveAnc_Null() =>
+        Assert.IsNull(Opt(desc: U8, anc: Real).SimplifyOrNull(),
+            "opt(T) can't satisfy primitive ancestor Real");
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_DescAndAnc_AnyAnc_Valid() =>
+        Assert.IsNotNull(Opt(desc: I32, anc: Any).SimplifyOrNull(),
+            "opt(T) ≤ Any is valid");
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_PinnedI32_ReturnsOptI32() {
+        var result = Opt(desc: I32, anc: I32).SimplifyOrNull();
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOf<StateOptional>(result);
+    }
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_AncI64_Null() =>
+        Assert.IsNull(Opt(desc: U8, anc: I64).SimplifyOrNull());
+
+    [Test]
+    public void SimplifyOrNull_IsOptional_PinnedBool_ReturnsOptBool() {
+        // desc==anc triggers early return: opt(Bool) — correct
+        var result = Opt(desc: Bool, anc: Bool).SimplifyOrNull();
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOf<StateOptional>(result);
+    }
+
+    #endregion
+
+    #region MergeOrNull with IsOptional
+
+    [Test]
+    public void MergeOrNull_OptionalAndNonOptional_ResultIsOptional() {
+        var a = Opt(desc: I32);
+        var b = C(desc: U8);
+        var result = a.MergeOrNull(b);
+        Assert.IsNotNull(result);
+        if (result is ConstraintsState cs)
+            Assert.IsTrue(cs.IsOptional);
+    }
+
+    [Test]
+    public void MergeOrNull_BothOptional_ResultIsOptional() {
+        var result = Opt().MergeOrNull(Opt());
+        Assert.IsNotNull(result);
+        if (result is ConstraintsState cs)
+            Assert.IsTrue(cs.IsOptional);
+    }
+
+    [Test]
+    public void MergeOrNull_BothNonOptional_ResultIsNonOptional() {
+        var result = C(desc: I32).MergeOrNull(C(desc: U8));
+        Assert.IsNotNull(result);
+        if (result is ConstraintsState cs)
+            Assert.IsFalse(cs.IsOptional);
+    }
+
+    [Test]
+    public void MergeOrNull_OptionalWithPrimAnc_NonOptional_MergesButSimplifyRejects() {
+        // MergeOrNull succeeds (doesn't call SimplifyOrNull),
+        // but SimplifyOrNull on the result detects the contradiction.
+        var merged = Opt(desc: I32, anc: Real).MergeOrNull(C(desc: U8));
+        Assert.IsNotNull(merged, "MergeOrNull itself should succeed");
+        if (merged is ConstraintsState cs)
+            Assert.IsNull(cs.SimplifyOrNull(), "SimplifyOrNull should reject opt+primitive ancestor");
+    }
+
+    #endregion
+
+    #region SolveCovariant / SolveContravariant with IsOptional
+
+    [Test]
+    public void SolveCovariant_IsOptional_NoDesc() {
+        var result = Opt().SolveCovariant();
+        // opt with no constraints → opt(Any) → Any (collapse)
+        Assert.AreEqual(Any, result);
+    }
+
+    [Test]
+    public void SolveCovariant_IsOptional_WithDescI32() {
+        // IsOptional wraps the covariant resolution: opt(Any) → Any
+        // Because Opt(desc:I32) has no ancestor, covariant = Any, opt(Any) = Any
+        var result = Opt(desc: I32).SolveCovariant();
+        Assert.AreEqual(Any, result);
+    }
+
+    [Test]
+    public void SolveContravariant_IsOptional_WithDescI32() {
+        var result = Opt(desc: I32).SolveContravariant();
+        Assert.IsInstanceOf<StateOptional>(result);
+    }
+
+    #endregion
+
+    #region CanBeConvertedTo with Optional targets
+
+    [Test]
+    public void CanBeConvertedTo_Empty_OptI32() =>
+        Assert.IsTrue(C().CanBeConvertedTo(Optional(I32)));
+
+    [Test]
+    public void CanBeConvertedTo_DescI32_OptI32_Fails() =>
+        Assert.IsFalse(C(desc: I32).CanBeConvertedTo(Optional(I32)),
+            "Constraint [I32..] can't resolve to composite opt(I32)");
+
+    [Test]
+    public void CanBeConvertedTo_DescI32_OptReal_Fails() =>
+        Assert.IsFalse(C(desc: I32).CanBeConvertedTo(Optional(Real)),
+            "Constraint [I32..] can't resolve to composite opt(Real)");
+
+    [Test]
+    public void CanBeConvertedTo_DescI32_OptBool_Fails() =>
+        Assert.IsFalse(C(desc: I32).CanBeConvertedTo(Optional(Bool)));
+
+    [Test]
+    public void CanBeConvertedTo_IsOptional_None() =>
+        Assert.IsTrue(Opt().CanBeConvertedTo(None));
+
+    [Test]
+    public void CanBeConvertedTo_NonOptional_None_WhenDescI32() =>
+        Assert.IsFalse(C(desc: I32).CanBeConvertedTo(None));
+
+    #endregion
+
+    #region AddDescendant with None
+
+    [Test]
+    public void AddDescendant_None_SetsIsOptional() {
+        var cs = ConstraintsState.Empty;
+        cs.AddDescendant(None);
+        Assert.IsTrue(cs.IsOptional);
+        Assert.IsFalse(cs.HasDescendant, "None not stored as descendant — only sets flag");
+    }
+
+    [Test]
+    public void AddDescendant_None_ThenI32_BothPresent() {
+        var cs = ConstraintsState.Empty;
+        cs.AddDescendant(None);
+        cs.AddDescendant(I32);
+        Assert.IsTrue(cs.IsOptional);
+        Assert.IsTrue(cs.HasDescendant);
+    }
+
+    [Test]
+    public void AddDescendant_I32_ThenNone_BothPresent() {
+        var cs = ConstraintsState.Empty;
+        cs.AddDescendant(I32);
+        cs.AddDescendant(None);
+        Assert.IsTrue(cs.IsOptional);
+        Assert.IsTrue(cs.HasDescendant);
+    }
+
+    #endregion
 }

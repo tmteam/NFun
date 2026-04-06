@@ -139,6 +139,8 @@ internal static class BaseFunctions {
             new LogEDoubleFunction(),
             new Log10DoubleFunction(),
             new RoundToDoubleFunction(),
+            new CeilDoubleFunction(),
+            new FloorDoubleFunction(),
         };
 
         ConcreteDecimalFunctions = new IConcreteFunction[] {
@@ -158,6 +160,8 @@ internal static class BaseFunctions {
             new LogEDecimalFunction(),
             new Log10DecimalFunction(),
             new RoundToDecimalFunction(),
+            new CeilDecimalFunction(),
+            new FloorDecimalFunction(),
         };
         DefaultDoubleFunctions = new ImmutableFunctionRegistry(
             ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray(),

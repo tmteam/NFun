@@ -16,9 +16,12 @@
 # Mono auto generated files
 mono_crash.*
 
-#swag of Rider 
+#swag of Rider
 .idea/
 .DS_Store
+
+# Claude Code worktrees (temporary agent directories)
+.claude/worktrees/
 
 # Build results
 [Dd]ebug/

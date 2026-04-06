@@ -553,7 +553,7 @@ public static class SyntaxNodeReader {
     /// <summary>
     /// Compile-time analysis of format spec → typed function calls.
     /// Segments separated by ':'. First char determines type:
-    ///   0#., → numeric mask → toFixedText(value, decimals, minDigits, thousands, forceZeros)
+    ///   0#., → numeric mask → toNumText(value, decimals, minDigits, thousands, forceZeros)
     ///   ><^  → alignment   → padLeftText/padRightText/padCenterText(text, width)
     ///   letter → named     → toHexText/toBinText/toSciText(value)
     /// </summary>
@@ -680,7 +680,11 @@ public static class SyntaxNodeReader {
             //{...}
             var allNext = ReadNodeOrNull(flow);
             if (allNext == null)
+            {
+                if (concatenations.Count == 0)
+                    throw Errors.InterpolationExpressionIsMissing(openInterpolationToken.Interval);
                 throw Errors.InterpolationExpressionIsMissing(concatenations.Last());
+            }
 
             // Check for format specifier: {expr:format}, {expr:>width}, {expr:format:>width}
             ISyntaxNode textExpr;
@@ -746,7 +750,9 @@ public static class SyntaxNodeReader {
                 flow.MoveNext();
             }
             else
-                throw new NFunImpossibleException("imp328. Invalid interpolation sequence");
+                throw Errors.InvalidFormatSpecifier(
+                    flow.Current.Value ?? "?",
+                    flow.Current.Interval);
         }
     }
 

@@ -190,13 +190,13 @@ public abstract class TicTypesConverter {
             PrimitiveTypeName.U16  => FunnyType.UInt16,
             PrimitiveTypeName.U8   => FunnyType.UInt8,
             PrimitiveTypeName.I96  => FunnyType.Int64,
-            PrimitiveTypeName.I48  => FunnyType.Int32,
+            PrimitiveTypeName.I48  => FunnyType.Int64,
             // Abstract types can appear as bare StatePrimitive when MergeOrNull collapses
             // a constraint interval to a single point (ancestor == descendant).
-            // Map each to its nearest concrete descendant in the type hierarchy.
-            PrimitiveTypeName.U48  => FunnyType.UInt32,
-            PrimitiveTypeName.U24  => FunnyType.UInt16,
-            PrimitiveTypeName.U12  => FunnyType.UInt8,
+            // Map each to its nearest concrete ancestor that fits all values.
+            PrimitiveTypeName.U48  => FunnyType.UInt64,
+            PrimitiveTypeName.U24  => FunnyType.UInt32,
+            PrimitiveTypeName.U12  => FunnyType.UInt16,
             PrimitiveTypeName.None => FunnyType.None,
             _ => throw new ArgumentOutOfRangeException()
         };

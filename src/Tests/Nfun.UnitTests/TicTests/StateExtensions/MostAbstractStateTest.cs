@@ -105,4 +105,41 @@ public class MostAbstractStateTest {
             Struct("foo", EmptyConstraints),
             Struct("foo", EmptyConstraints).Abstractest());
 
+    #region Optional
+
+    [Test]
+    public void OptI32() => Assert.AreEqual(Optional(I32), Optional(I32).Abstractest());
+
+    [Test]
+    public void OptReal() => Assert.AreEqual(Optional(Real), Optional(Real).Abstractest());
+
+    [Test]
+    public void OptBool() => Assert.AreEqual(Optional(Bool), Optional(Bool).Abstractest());
+
+    [Test]
+    public void OptAny_CollapsesToAny() => Assert.AreEqual(Any, Optional(Any).Abstractest());
+
+    [Test]
+    public void NoneStaysNone() => Assert.AreEqual(StatePrimitive.None, StatePrimitive.None.Abstractest());
+
+    [Test]
+    public void OptArrayI32() =>
+        Assert.AreEqual(Optional(Array(I32)), Optional(Array(I32)).Abstractest());
+
+    [Test]
+    public void OptArrayAny_StaysOptArrayAny() =>
+        Assert.AreEqual(Optional(Array(Any)), Optional(Array(Any)).Abstractest());
+
+    [Test]
+    public void CS_IsOptional_NoAnc() =>
+        Assert.AreEqual(Any, ((ITicNodeState)ConstraintsState.Of(isOptional: true)).Abstractest());
+
+    [Test]
+    public void CS_IsOptional_WithAnc() {
+        var cs = ConstraintsState.Of(null, Real, false);
+        cs.AddDescendant(StatePrimitive.None);
+        Assert.AreEqual(Real, ((ITicNodeState)cs).Abstractest());
+    }
+
+    #endregion
 }

@@ -77,7 +77,25 @@ public static class SolvingFunctions {
         {
             var bNode = strB.GetFieldOrNull(key);
             if (bNode != null)
-                MergeInplace(value, bNode);
+            {
+                // When merging None field with non-None field → wrap in Optional
+                var aRef = value.GetNonReference();
+                var bRef = bNode.GetNonReference();
+                if (aRef.State == StatePrimitive.None && bRef.State is not StatePrimitive { Name: PrimitiveTypeName.None })
+                {
+                    // b has content, a is None → result = opt(b's content)
+                    var innerNode = TicNode.CreateTypeVariableNode("e" + key + "'", bRef.State);
+                    value.State = new StateOptional(innerNode);
+                }
+                else if (bRef.State == StatePrimitive.None && aRef.State is not StatePrimitive { Name: PrimitiveTypeName.None })
+                {
+                    // a has content, b is None → result = opt(a's content)
+                    var innerNode = TicNode.CreateTypeVariableNode("e" + key + "'", aRef.State);
+                    value.State = new StateOptional(innerNode);
+                }
+                else
+                    MergeInplace(value, bNode);
+            }
             else if (strA.IsFrozen || strB.IsFrozen)
                 return null;
             result.Add(key, value);
@@ -182,199 +200,29 @@ public static class SolvingFunctions {
 
 
     public static void PullConstraints(TicNode[] toposortedNodes) {
-        // Phase 1: Pull all non-None nodes to establish constraint bounds
+        // Phase 1: Pull None nodes first — sets IsOptional flags on ancestor ConstraintsStates.
+        // Must run before non-None nodes so that Concretest snapshots in Phase 2
+        // see the IsOptional flag and produce opt() wrappers.
         bool hasNoneNodes = false;
         foreach (var node in toposortedNodes)
         {
             if (node.IsMemberOfAnything)
                 continue;
-            if (node.State == StatePrimitive.None)
-            {
+            if (node.State == StatePrimitive.None) {
                 hasNoneNodes = true;
-                continue;
+                PullConstraintsRecursive(node);
             }
-            PullConstraintsRecursive(node);
         }
 
-        // Phase 2: Pull None nodes — may transform ancestors to Optional
-        // Skip entirely when no None nodes exist (non-optional scripts)
-        if (!hasNoneNodes)
-            return;
+        // Phase 2: Pull all non-None nodes. IsOptional flags are already set,
+        // so AddDescendant's Concretest produces correct opt() snapshots.
         foreach (var node in toposortedNodes)
         {
             if (node.IsMemberOfAnything)
                 continue;
-            if (node.State != StatePrimitive.None)
+            if (node.State == StatePrimitive.None)
                 continue;
-            PullNoneNode(node, toposortedNodes);
-        }
-    }
-
-    /// <summary>
-    /// Processes a None node's ancestor edges. If the ancestor already has non-None
-    /// constraints (established in Phase 1), transforms it to Optional with an inner
-    /// node carrying the original constraints. Otherwise does a normal Pull.
-    /// After transformation, propagates the Optional structure upward.
-    /// </summary>
-    private static void PullNoneNode(TicNode noneNode, TicNode[] allNodes) {
-        foreach (var ancestorNode in noneNode.Ancestors.ToSnapshot())
-        {
-            if (ancestorNode.State is not ConstraintsState ancestor
-                || ancestor.Descendant is StateOptional)
-            {
-                // Not a constraints node or already Optional — normal pull
-                PullConstrains(noneNode, ancestorNode);
-                // Only propagate recursively if ancestor is still ConstraintsState.
-                // If it's StateOptional (transformed by a previous None in this batch),
-                // propagation was already done via PropagateOptionalUpward —
-                // re-propagating would try to pull opt(T) through incompatible ancestors.
-                if (ancestorNode.State is ConstraintsState)
-                    PullConstraintsRecursive(ancestorNode);
-                continue;
-            }
-
-            // Wrap ancestor in Optional when it has (or will have) non-None content:
-            // 1. Accumulated non-None descendant from Phase 1 (e.g., if-else with constant), OR
-            // 2. At least one non-None descendant EDGE even if constraints aren't propagated yet
-            //    (e.g., map lambda where 'it' has empty constraints during Phase 1).
-            bool hasNonNoneContent = ancestor.HasDescendant
-                && ancestor.Descendant != StatePrimitive.None;
-
-            if (!hasNonNoneContent)
-            {
-                // Check graph edges: does ancestorNode have any non-None descendant?
-                foreach (var node in allNodes)
-                {
-                    if (ReferenceEquals(node, noneNode)) continue;
-                    if (node.State == StatePrimitive.None) continue;
-                    foreach (var anc in node.Ancestors)
-                    {
-                        if (ReferenceEquals(anc, ancestorNode))
-                        {
-                            hasNonNoneContent = true;
-                            break;
-                        }
-                    }
-                    if (hasNonNoneContent) break;
-                }
-            }
-
-            if (!hasNonNoneContent)
-            {
-                // Only None descendants — normal pull (e.g., y = none)
-                PullConstrains(noneNode, ancestorNode);
-                PullConstraintsRecursive(ancestorNode);
-                continue;
-            }
-
-            {
-                // Ancestor has (or will have) non-None constraints.
-                // Transform to Optional, preserving inner constraints.
-                var innerState = ancestor.GetCopy();
-                var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                    innerState);
-                ancestorNode.State = new StateOptional(innerNode);
-                noneNode.RemoveAncestor(ancestorNode);
-
-                // Redirect remaining descendant edges from ancestorNode to innerNode.
-                // These are non-None nodes whose constraints were pulled in Phase 1.
-                // By redirecting, Push and Destruction operate on the element level
-                // without Optional wrapping complications.
-                // Skip other None nodes — they should keep pointing at the Optional
-                // wrapper so they resolve as None ≤ opt(T) without triggering
-                // another transformation.
-                foreach (var node in allNodes)
-                {
-                    if (node.State == StatePrimitive.None)
-                        continue;
-                    var ancs = node.Ancestors;
-                    for (int i = 0; i < ancs.Count; i++)
-                    {
-                        if (ReferenceEquals(ancs[i], ancestorNode))
-                        {
-                            node.RemoveAncestor(ancestorNode);
-                            node.AddAncestor(innerNode);
-                            break;
-                        }
-                    }
-                }
-
-                // Propagate the Optional structure upward through ancestor edges
-                PropagateOptionalUpward(ancestorNode);
-
-                RepullAncestorArrayChain(ancestorNode, allNodes);
-            }
-        }
-    }
-
-    /// <summary>
-    /// After PullNoneNode updates an element node (Optional wrapping or None constraint),
-    /// walk up the element→array→element chain re-pulling ancestor edges to refresh
-    /// stale Concretest() snapshots in parent ConstraintsState.Descendant.
-    /// </summary>
-    private static void RepullAncestorArrayChain(TicNode elementNode, TicNode[] allNodes) {
-        var current = elementNode;
-        while (true)
-        {
-            TicNode arrayNode = null;
-            foreach (var node in allNodes)
-            {
-                if (node.State is StateArray a && ReferenceEquals(a.ElementNode, current))
-                { arrayNode = node; break; }
-            }
-            if (arrayNode == null) break;
-            foreach (var anc in arrayNode.Ancestors.ToSnapshot())
-                PullConstrains(arrayNode, anc);
-            if (arrayNode.Ancestors.Count == 0) break;
-            current = arrayNode.Ancestors[0];
-            if (current.State is not ConstraintsState) break;
-        }
-    }
-
-    /// <summary>
-    /// After a node has been transformed to StateOptional during PullNoneNode,
-    /// propagate the Optional structure upward through its ancestor edges.
-    /// Each ConstraintsState ancestor gets wrapped in a matching Optional,
-    /// with element-level edges connecting the inner nodes.
-    /// </summary>
-    private static void PropagateOptionalUpward(TicNode optNode) {
-        var optState = (StateOptional)optNode.State;
-        foreach (var ancestorNode in optNode.Ancestors.ToSnapshot())
-        {
-            if (ancestorNode.State is ConstraintsState ancestor)
-            {
-                if (ancestorNode.IsOptionalElement)
-                {
-                    // Ancestor is specifically the element of a StateOptional (e.g., V0 in opt(V0)).
-                    // The optional layer already exists at the parent level.
-                    // Connect element-to-element instead of wrapping to avoid opt(opt(T)).
-                    // Array elements (IsMemberOfAnything but NOT IsOptionalElement) must still
-                    // be wrapped — their type needs to reflect the optionality.
-                    optState.ElementNode.AddAncestor(ancestorNode);
-                    optNode.RemoveAncestor(ancestorNode);
-                    PullConstraintsRecursive(optState.ElementNode);
-                    continue;
-                }
-
-                // Check if ancestor constraints are compatible with Optional.
-                // opt(T) can't satisfy a primitive upper bound (e.g., [U24..Real] for arithmetic).
-                if (ancestor.HasAncestor && ancestor.Ancestor != StatePrimitive.Any)
-                    throw TicErrors.IncompatibleNodes(ancestorNode, optNode);
-
-                // Create matching Optional wrapper for ancestor
-                var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                    ancestor.GetCopy());
-                // Connect element nodes: child.element ≤ parent.element
-                optState.ElementNode.AddAncestor(innerNode);
-                ancestorNode.State = new StateOptional(innerNode);
-                optNode.RemoveAncestor(ancestorNode);
-                // Pull element constraints through the new edge
-                PullConstraintsRecursive(optState.ElementNode);
-                // Continue propagating upward
-                PropagateOptionalUpward(ancestorNode);
-            }
+            PullConstraintsRecursive(node);
         }
     }
 
@@ -415,6 +263,9 @@ public static class SolvingFunctions {
     }
 
     private static void PushConstraintsRecursive(TicNode node) {
+        // None is a literal value — constraints can't be pushed into it.
+        if (node.State == StatePrimitive.None)
+            return;
 
         if (node.State is ICompositeState composite)
         {
@@ -459,7 +310,57 @@ public static class SolvingFunctions {
                 notSolvedCount++;
         }
 
+        // Materialize remaining IsOptional ConstraintsState → StateOptional
+        // after Destruction, before Finalization.
+        MaterializeOptionalFlags(toposorteNodes);
+
         return notSolvedCount == 0;
+    }
+
+    private static void MaterializeOptionalFlags(TicNode[] nodes) {
+        var visited = new HashSet<TicNode>(ReferenceEqualityComparer.Instance);
+        foreach (var node in nodes)
+            MaterializeOptionalNode(node, visited, nodes);
+    }
+
+    private static void MaterializeOptionalNode(TicNode node, HashSet<TicNode> visited, TicNode[] allNodes) {
+        var n = node.GetNonReference();
+        if (!visited.Add(n)) return;
+
+        if (n.State is ConstraintsState cs && cs.IsOptional) {
+            // Pure IsOptional with no type constraints: this is standalone None
+            // or all-None if-else. Resolve to None directly.
+            if (!cs.HasDescendant && !cs.HasAncestor && !cs.IsComparable)
+            {
+                TraceLog.WriteLine($"  Materialize: {n.Name}: {cs} → None (pure optional, no constraints)");
+                n.State = StatePrimitive.None;
+            }
+            else
+            {
+                TraceLog.WriteLine($"  Materialize: {n.Name}: {cs} → opt(inner)");
+                var innerCs = ConstraintsState.Of(cs.Descendant, cs.Ancestor, cs.IsComparable);
+                innerCs.Preferred = cs.Preferred;
+                var innerNode = TicNode.CreateTypeVariableNode(
+                    "e" + n.Name.ToString().ToLower() + "'", innerCs);
+                innerNode.IsOptionalElement = true;
+                n.State = new StateOptional(innerNode);
+
+                // Redirect syntax nodes (concrete values like constants) that were merged
+                // with the Optional node during Destruction. These should keep their non-Optional
+                // type (e.g., constant 1 stays I32, not opt(I32)).
+                foreach (var other in allNodes) {
+                    if (other.Type == TicNodeType.SyntaxNode
+                        && other.State is StateRefTo refTo
+                        && ReferenceEquals(refTo.Node, n)) {
+                        other.State = new StateRefTo(innerNode);
+                    }
+                }
+            }
+        }
+        if (n.State is ICompositeState composite) {
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                MaterializeOptionalNode(composite.GetMember(mi), visited, allNodes);
+        }
     }
 
     private static void DestructionRecursive(TicNode node) {
@@ -560,6 +461,25 @@ public static class SolvingFunctions {
             var eName = "e" + descNodeName.ToString().ToLower() + "'";
             constrains.AddDescendant(optDesc.Element);
             var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            return new StateOptional(node);
+        }
+
+        // IsOptional flag set with actual constraints — materialize now.
+        // This ensures opt-to-opt paths are used instead of implicit lift T ≤ opt(T),
+        // which would lose the inner type constraints (e.g., widening I32 to Real).
+        // Only materialize when there are constraints to preserve (desc or anc);
+        // pure IsOptional-only is handled by MaterializeOptionalFlags later.
+        if (descendant.IsOptional && (descendant.HasDescendant || descendant.HasAncestor))
+        {
+            var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+            // Preserve Preferred from the original constraint. If none exists but
+            // we have a concrete primitive descendant, use it as Preferred — this
+            // matches non-optional SetDef behavior where Preferred comes from the literal.
+            innerCs.Preferred = descendant.Preferred
+                ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp
+                    ? dp : null);
+            var eName = "e" + descNodeName.ToString().ToLower() + "'";
+            var node = TicNode.CreateTypeVariableNode(eName, innerCs);
             return new StateOptional(node);
         }
 

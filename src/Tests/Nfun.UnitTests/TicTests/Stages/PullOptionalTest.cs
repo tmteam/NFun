@@ -27,8 +27,8 @@ public class PullOptionalTest {
     // ═══════════════════════════════════════════════════════════════
 
     [Test]
-    public void Pull_Constraints_None_WhenAncHasDescendant_WrapsInOptional() {
-        // C[I32..] ← None  → ancestor becomes opt(C[I32..])
+    public void Pull_Constraints_None_WhenAncHasDescendant_SetsIsOptional() {
+        // C[I32..] ← None  → ancestor gets IsOptional flag (deferred materialization)
         var ancNode = Node("anc", Constrains(I32));
         var descNode = Node("desc", None);
         descNode.AddAncestor(ancNode);
@@ -37,13 +37,12 @@ public class PullOptionalTest {
             (ConstraintsState)ancNode.State, None, ancNode, descNode);
 
         Assert.IsTrue(result);
-        Assert.IsInstanceOf<StateOptional>(ancNode.State);
-        var opt = (StateOptional)ancNode.State;
-        // Inner element should preserve the original constraint
-        Assert.IsInstanceOf<ConstraintsState>(opt.Element);
-        var inner = (ConstraintsState)opt.Element;
-        Assert.IsTrue(inner.HasDescendant);
-        Assert.AreEqual(I32, inner.Descendant);
+        // Deferred: state stays ConstraintsState with IsOptional=true
+        Assert.IsInstanceOf<ConstraintsState>(ancNode.State);
+        var cs = (ConstraintsState)ancNode.State;
+        Assert.IsTrue(cs.IsOptional, "IsOptional should be set");
+        Assert.IsTrue(cs.HasDescendant, "Should preserve descendant");
+        Assert.AreEqual(I32, cs.Descendant, "Descendant I32 should be preserved");
     }
 
     [Test]

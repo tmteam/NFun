@@ -157,24 +157,27 @@ public class BuiltInFunctionsTest {
         expr.AssertAnonymousOut(expected);
     }
 
-    [Ignore("TODO ceil, floor, sign functions are not implemented")]
-    [TestCase("ceil(7.03)", 8)]
-    [TestCase("ceil(7.64)", 8)]
-    [TestCase("ceil(0.12)", 1)]
-    [TestCase("ceil(-0.12)", 0)]
-    [TestCase("ceil(-7.1)", -7)]
-    [TestCase("ceil(-7.6)", -7)]
-    [TestCase("floor(7.03)", 7)]
-    [TestCase("floor(7.64)", 7)]
-    [TestCase("floor(0.12)", 0)]
-    [TestCase("floor(-0.12)", -1)]
-    [TestCase("floor(-7.1)", -8)]
-    [TestCase("floor(-7.6)", -8)]
+    [TestCase("ceil(7.03)", 8.0)]
+    [TestCase("ceil(7.64)", 8.0)]
+    [TestCase("ceil(0.12)", 1.0)]
+    [TestCase("ceil(-0.12)", 0.0)]
+    [TestCase("ceil(-7.1)", -7.0)]
+    [TestCase("ceil(-7.6)", -7.0)]
+    [TestCase("floor(7.03)", 7.0)]
+    [TestCase("floor(7.64)", 7.0)]
+    [TestCase("floor(0.12)", 0.0)]
+    [TestCase("floor(-0.12)", -1.0)]
+    [TestCase("floor(-7.1)", -8.0)]
+    [TestCase("floor(-7.6)", -8.0)]
+    public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
+        => expr.AssertAnonymousOut(expected);
+
+    [Ignore("sign function not implemented — not in spec")]
     [TestCase("sign(-5)", -1)]
     [TestCase("sign(-5.0)", -1)]
     [TestCase("sign(5)", 1)]
     [TestCase("sign(5.2)", 1)]
-    public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
+    public void SignFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
     [TestCase("['a'].sort(rule it)", new[] { "a" })]
@@ -297,7 +300,6 @@ public class BuiltInFunctionsTest {
     [TestCase("y = [1,2] in [1,2,3,4]")]
     public void TodoObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
-    [Ignore("Todo: have to fail")]
     [TestCase("y= max([])")]
     public void ObviouslyFailsInRuntime(string expr) => expr.AssertObviousFailsOnRuntime();
 }

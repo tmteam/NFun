@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic;
@@ -14,7 +15,14 @@ public static class GraphBuilderExtensions {
         var namedNode = b.GetNamedNode(name);
         var idNode = b.GetOrCreateNode(node);
         if (idNode.State is ConstraintsState)
-            namedNode.AddAncestor(idNode);
+        {
+            // When the named variable has a concrete function type (from SetVarType),
+            // use RefTo so SetCall sees the StateFun directly — no scan needed.
+            if (namedNode.State is StateFun)
+                idNode.State = new StateRefTo(namedNode);
+            else
+                namedNode.AddAncestor(idNode);
+        }
         else
             throw new InvalidOperationException(
                 $"Node {node} cannot be referenced by '{name}' because it is not constrained node.");
@@ -193,7 +201,13 @@ public static class GraphBuilderExtensions {
     public static void SetStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
         var fields = new Dictionary<string, TicNode>(fieldNames.Length);
         for (int i = 0; i < fieldNames.Length; i++)
+        {
+            if (fields.ContainsKey(fieldNames[i]))
+                throw TicErrors.CannotSetState(
+                    b.GetOrCreateNode(id),
+                    new StateStruct(fields, false));
             fields.Add(fieldNames[i], b.GetOrCreateNode(fieldExpressionIds[i]));
+        }
 
         b.GetOrCreateStructNode(id, new StateStruct(fields, false));
     }

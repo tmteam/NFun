@@ -75,8 +75,8 @@ public static partial class StateExtensions {
             return innerGcd == null ? null : StateOptional.Of(innerGcd);
         }
         // Opt(T) ≤ Any, so GCD(Opt(T), Any) = Opt(T)
-        if (other== Any)
-            return opt.Element== Any ? Any : opt;
+        if (other.Equals(Any))
+            return opt.Element.Equals(Any) ? Any : opt;
         // GCD(Opt(A), B) = GCD(A, B) — for non-Any B (common desc can't be optional since None ≰ B)
         return opt.Element.Gcd(other);
     }
