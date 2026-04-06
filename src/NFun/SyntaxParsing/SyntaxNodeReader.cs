@@ -557,62 +557,72 @@ public static class SyntaxNodeReader {
     ///   ><^  → alignment   → padLeftText/padRightText/padCenterText(text, width)
     ///   letter → named     → toHexText/toBinText/toSciText(value)
     /// </summary>
+    /// <summary>
+    /// If current token is alignment direction, read width (literal, id, or parenthesized expr) and wrap.
+    /// Only allows: >10, >w, >(w*2) — not >w*2.
+    /// </summary>
+    private static ISyntaxNode TryWrapWithAlignment(TokFlow flow, ISyntaxNode inner, Interval interval) {
+        if (flow.Current.Type is not (TokType.AlignLeft or TokType.AlignRight or TokType.AlignCenter))
+            return inner;
+
+        string padFunc = flow.Current.Type switch {
+            TokType.AlignLeft => CoreFunNames.PadLeftText,
+            TokType.AlignRight => CoreFunNames.PadRightText,
+            TokType.AlignCenter => CoreFunNames.PadCenterText,
+            _ => CoreFunNames.PadRightText
+        };
+        flow.MoveNext();
+
+        // Read exactly one atom: integer literal, identifier, or (expr)
+        ISyntaxNode widthExpr;
+        if (flow.Current.Type is TokType.IntNumber) {
+            widthExpr = SyntaxNodeFactory.Constant(
+                int.Parse(flow.Current.Value), FunnyType.Int32, flow.Current.Interval);
+            flow.MoveNext();
+        } else if (flow.Current.Type is TokType.Id) {
+            widthExpr = SyntaxNodeFactory.Var(flow.Current);
+            flow.MoveNext();
+        } else if (flow.Current.Type is TokType.ParenthObr) {
+            widthExpr = ReadNodeOrNull(flow); // reads (expr) naturally
+        } else {
+            throw Errors.InvalidFormatSpecifier("alignment width must be a number, variable, or (expression)", interval);
+        }
+
+        if (widthExpr == null)
+            throw Errors.InvalidFormatSpecifier("alignment width is missing", interval);
+
+        return SyntaxNodeFactory.FunCall(padFunc, new[] { inner, widthExpr }, interval);
+    }
+
     private static ISyntaxNode BuildFormatCall(ISyntaxNode valueExpr, string formatSpec, Interval interval) {
-        ISyntaxNode result = null;
-        char alignDir = '\0';
-        int alignWidth = 0;
+        if (string.IsNullOrWhiteSpace(formatSpec))
+            return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { valueExpr }, interval);
 
-        foreach (var rawSeg in formatSpec.Split(':')) {
-            var seg = rawSeg.Trim();
-            if (seg.Length == 0) continue;
+        var seg = formatSpec.Trim();
+        char first = seg[0];
 
-            char first = seg[0];
-            if (first == '>' || first == '<' || first == '^') {
-                // Alignment
-                alignDir = first;
-                if (seg.Length < 2 || !int.TryParse(seg.Substring(1), out alignWidth) || alignWidth <= 0)
-                    throw Errors.InvalidFormatSpecifier(seg, interval);
-            } else if (char.IsLetter(first)) {
-                // Named specifier (case-sensitive for sci/SCI)
-                result = seg switch {
-                    "hex" or "HEX" => SyntaxNodeFactory.FunCall(CoreFunNames.ToHexText, new[] { valueExpr }, interval),
-                    "bin" => SyntaxNodeFactory.FunCall(CoreFunNames.ToBinText, new[] { valueExpr }, interval),
-                    "sci" => SyntaxNodeFactory.FunCall(CoreFunNames.ToSciText, new[] {
-                        valueExpr, ConstBool(false, interval) }, interval),
-                    "SCI" => SyntaxNodeFactory.FunCall(CoreFunNames.ToSciText, new[] {
-                        valueExpr, ConstBool(true, interval) }, interval),
-                    _ => throw Errors.UnknownFormatSpecifier(seg, interval)
-                };
-            } else {
-                // Numeric mask: parse into toFixedText parameters
-                var (decimals, minDigits, thousands, forceZeros) = ParseMask(seg, interval);
-                result = SyntaxNodeFactory.FunCall(CoreFunNames.ToNumText, new ISyntaxNode[] {
-                    valueExpr,
-                    ConstInt(decimals, interval),
-                    ConstInt(minDigits, interval),
-                    ConstBool(thousands, interval),
-                    ConstBool(forceZeros, interval),
-                }, interval);
-            }
-        }
-
-        // No format → just toText
-        result ??= SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { valueExpr }, interval);
-
-        // Wrap with alignment
-        if (alignDir != '\0') {
-            string padFunc = alignDir switch {
-                '<' => CoreFunNames.PadLeftText,
-                '>' => CoreFunNames.PadRightText,
-                '^' => CoreFunNames.PadCenterText,
-                _ => throw new InvalidOperationException()
+        if (char.IsLetter(first)) {
+            // Named specifier (case-sensitive for sci/SCI)
+            return seg switch {
+                "hex" or "HEX" => SyntaxNodeFactory.FunCall(CoreFunNames.ToHexText, new[] { valueExpr }, interval),
+                "bin" => SyntaxNodeFactory.FunCall(CoreFunNames.ToBinText, new[] { valueExpr }, interval),
+                "sci" => SyntaxNodeFactory.FunCall(CoreFunNames.ToSciText, new[] {
+                    valueExpr, ConstBool(false, interval) }, interval),
+                "SCI" => SyntaxNodeFactory.FunCall(CoreFunNames.ToSciText, new[] {
+                    valueExpr, ConstBool(true, interval) }, interval),
+                _ => throw Errors.UnknownFormatSpecifier(seg, interval)
             };
-            result = SyntaxNodeFactory.FunCall(padFunc, new[] {
-                result, ConstInt(alignWidth, interval)
-            }, interval);
         }
 
-        return result;
+        // Numeric mask
+        var (decimals, minDigits, thousands, forceZeros) = ParseMask(seg, interval);
+        return SyntaxNodeFactory.FunCall(CoreFunNames.ToNumText, new ISyntaxNode[] {
+            valueExpr,
+            ConstInt(decimals, interval),
+            ConstInt(minDigits, interval),
+            ConstBool(thousands, interval),
+            ConstBool(forceZeros, interval),
+        }, interval);
     }
 
     private static (int decimals, int minDigits, bool thousands, bool forceZeros) ParseMask(string mask, Interval interval) {
@@ -670,11 +680,17 @@ public static class SyntaxNodeReader {
             if (allNext == null)
                 throw Errors.InterpolationExpressionIsMissing(concatenations.Last());
 
-            // Check for format specifier: {expr:format}
+            // Check for format specifier: {expr:format}, {expr:>width}, {expr:format:>width}
             ISyntaxNode textExpr;
             if (flow.Current.Type is TokType.FormatSpec) {
                 textExpr = BuildFormatCall(allNext, flow.Current.Value, flow.Current.Interval);
                 flow.MoveNext();
+                // Check for alignment after format
+                textExpr = TryWrapWithAlignment(flow, textExpr, allNext.Interval);
+            } else if (flow.Current.Type is TokType.AlignLeft or TokType.AlignRight or TokType.AlignCenter) {
+                // Alignment only, no format
+                textExpr = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval);
+                textExpr = TryWrapWithAlignment(flow, textExpr, allNext.Interval);
             } else {
                 textExpr = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval);
             }

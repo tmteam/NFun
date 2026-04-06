@@ -120,6 +120,10 @@ public enum TokType {
     TextCloseInterpolation,
     /// <summary>Format specifier after ':' in interpolation: '{x:0.00}'</summary>
     FormatSpec,
+    /// <summary>Alignment direction in interpolation: > (right), &lt; (left), ^ (center)</summary>
+    AlignLeft,
+    AlignRight,
+    AlignCenter,
     /// <summary>
     /// 192.168.0.1
     /// </summary>

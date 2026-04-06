@@ -88,10 +88,6 @@ public class FormatSpecifierTest {
     [TestCase("'[{3.14:0.00:^10}]'", "[   3.14   ]")]
     [TestCase("'[{1234:#,##0:>12}]'", "[       1,234]")]
 
-    // align:mask (reversed order — same result)
-    [TestCase("'[{3.14:>10:0.00}]'", "[      3.14]")]
-    [TestCase("'[{255:>6:hex}]'", "[    FF]")]
-
     // named:align
     [TestCase("'[{255:hex:>6}]'", "[    FF]")]
     [TestCase("'[{42:bin:>10}]'", "[    101010]")]
@@ -340,8 +336,31 @@ public class FormatSpecifierTest {
     [Test] public void Error_AlignNoWidth() =>
         Assert.Throws<FunnyParseException>(() => "y = '{42:>}'".Build());
 
-    // {42:>abc} — reserved for future: dynamic width via variable/expression
+    // ═══════════════════════════════════════════════════════════════
+    // Dynamic alignment width (expressions)
+    // ═══════════════════════════════════════════════════════════════
 
-    [Test] public void Error_AlignNegativeWidth() =>
+    [Test] public void AlignDynamic_Variable() =>
+        "w:int \r y = '[{42:>w}]'".Calc(("w", 8)).AssertReturns(("y", "[      42]"));
+
+    [Test] public void AlignDynamic_Expression() =>
+        "w:int \r y = '[{42:>(w*2)}]'".Calc(("w", 4)).AssertReturns(("y", "[      42]"));
+
+    [Test] public void AlignDynamic_FunctionCall() =>
+        "y = '[{42:>(max(6,10))}]'".AssertReturns("y", "[        42]");
+
+    [Test] public void AlignDynamic_FormatPlusVariable() =>
+        "w:int \r y = '[{3.14:0.00:>w}]'".Calc(("w", 10)).AssertReturns(("y", "[      3.14]"));
+
+    [Test] public void AlignDynamic_NamedPlusVariable() =>
+        "w:int \r y = '[{255:hex:>w}]'".Calc(("w", 6)).AssertReturns(("y", "[    FF]"));
+
+    [Test] public void AlignDynamic_CenterVariable() =>
+        "w:int \r y = '[{42:^w}]'".Calc(("w", 8)).AssertReturns(("y", "[   42   ]"));
+
+    [Test] public void AlignDynamic_LeftVariable() =>
+        "w:int \r y = '[{42:<w}]'".Calc(("w", 8)).AssertReturns(("y", "[42      ]"));
+
+    [Test] public void Error_AlignExpressionWithoutParens() =>
         Assert.Throws<FunnyParseException>(() => "y = '{42:>-5}'".Build());
 }

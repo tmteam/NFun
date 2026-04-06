@@ -734,12 +734,33 @@ public class Tokenizer {
         return contentStart + baseline.Length;
     }
 
-    /// <summary>Read format specifier after ':' inside interpolation until '}'.</summary>
+    /// <summary>
+    /// Read format specifier after ':' inside interpolation.
+    /// Reads mask/named text until ':' or '}'.
+    /// If first char is alignment direction (> &lt; ^), emits alignment token
+    /// and returns to expression mode for width parsing.
+    /// </summary>
     private static Tok ReadFormatSpec(string str, int position) {
         // position is at ':'
         int start = position + 1;
+        if (start >= str.Length)
+            return Tok.New(TokType.FormatSpec, "", position, start);
+
+        // Check if this segment starts with alignment direction
+        char first = str[start];
+        if (first == '>' || first == '<' || first == '^') {
+            var tokType = first switch {
+                '<' => TokType.AlignLeft,
+                '>' => TokType.AlignRight,
+                '^' => TokType.AlignCenter,
+                _ => TokType.AlignRight
+            };
+            return Tok.New(tokType, position, start + 1);
+        }
+
+        // Read mask/named text until ':' or '}'
         int i = start;
-        while (i < str.Length && str[i] != '}') i++;
+        while (i < str.Length && str[i] != '}' && str[i] != ':') i++;
         string formatStr = str.Substring(start, i - start).Trim();
         return Tok.New(TokType.FormatSpec, formatStr, position, i);
     }
