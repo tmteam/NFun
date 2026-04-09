@@ -141,6 +141,22 @@ public static class GraphBuilderExtensions {
             node.State = state;
         }
 
+        // For named type constructors: check if an ancestor declares this field as Optional.
+        // If so, use the ancestor's field node to preserve the declared type.
+        if (b.NamedTypeRegistry != null) {
+            for (int ai = 0; ai < node.Ancestors.Count; ai++) {
+                var ancNr = node.Ancestors[ai].GetNonReference();
+                if (ancNr.State is StateStruct ancStruct) {
+                    var ancField = ancStruct.GetFieldOrNull(fieldName);
+                    if (ancField != null && ancField != memberNode
+                        && ancField.GetNonReference().State is StateOptional) {
+                        memberNode = ancField;
+                        break;
+                    }
+                }
+            }
+        }
+
         b.MergeOrSetNode(opId, new StateRefTo(memberNode));
     }
 
@@ -210,6 +226,18 @@ public static class GraphBuilderExtensions {
         }
 
         b.GetOrCreateStructNode(id, new StateStruct(fields, false));
+    }
+
+    /// <summary>
+    /// Sets an ancestor type constraint on a struct init node.
+    /// Used for named type constructors so TIC knows field types at any nesting depth.
+    /// </summary>
+    public static void SetStructInitType(this GraphBuilder b, int structNodeId, ITicNodeState ancestorType) {
+        if (ancestorType is not ITypeState typeState)
+            return;
+        var structNode = b.GetOrCreateNode(structNodeId);
+        var ancestorNode = b.CreateVarType(typeState);
+        structNode.AddAncestor(ancestorNode);
     }
 
     public static void SetCompareChain(this GraphBuilder b, int nodeOrderNumber, StateRefTo[] generics, int[] ids) {

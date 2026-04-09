@@ -75,22 +75,39 @@ public class StateStruct : ICompositeState {
         IsFrozen = isFrozen;
     }
 
+    // IsSolvedMark must be a CONSTANT shared across all recursive IsSolved calls
+    // so that cycles are detected. Negative value avoids collision with incrementing _nextMark.
+    private const int IsSolvedMark = -55000;
     public bool IsSolved {
         get {
-            foreach (var n in _nodes)
-                if (!n.Value.IsSolved) return false;
+            if (TypeName != null) return true; // Named types are always solved
+            foreach (var n in _nodes) {
+                var node = n.Value;
+                if (node.VisitMark == IsSolvedMark) continue;
+                var prev = node.VisitMark;
+                node.VisitMark = IsSolvedMark;
+                bool solved = node.IsSolved;
+                node.VisitMark = prev;
+                if (!solved) return false;
+            }
             return true;
         }
     }
-    public bool IsMutable => true;
+    public bool IsMutable => TypeName == null; // Named types are solved (declared, not inferred)
     public string Description => ToString();
     public bool IsFrozen { get; }
+
+    /// <summary>
+    /// Name of the declared type this struct represents (e.g. "node").
+    /// null for anonymous struct literals. Named structs are always solved.
+    /// </summary>
+    public string TypeName { get; set; }
 
     public ICompositeState GetNonReferenced() {
         var nodeCopy = new FieldMap();
         foreach (var (key, value) in _nodes)
             nodeCopy.Add(key, value.GetNonReference());
-        return new StateStruct(nodeCopy, IsFrozen);
+        return new StateStruct(nodeCopy, IsFrozen) { TypeName = TypeName };
     }
 
     public bool HasAnyReferenceMember {
@@ -110,21 +127,19 @@ public class StateStruct : ICompositeState {
         }
     }
 
-    public IEnumerable<TicNode> AllLeafTypes
-    {
-        get
-        {
-            foreach (var member in Members)
-            {
-                if (member.State is ICompositeState composite)
-                {
+    private const int LeafMark = -56000;
+
+    public IEnumerable<TicNode> AllLeafTypes {
+        get {
+            foreach (var member in Members) {
+                if (member.State is ICompositeState composite) {
+                    if (member.VisitMark == LeafMark) continue; // cycle guard
+                    var prev = member.VisitMark;
+                    member.VisitMark = LeafMark;
                     foreach (var leaf in composite.AllLeafTypes)
-                    {
                         yield return leaf;
-                    }
-                }
-                else
-                {
+                    member.VisitMark = prev;
+                } else {
                     yield return member;
                 }
             }
@@ -157,6 +172,7 @@ public class StateStruct : ICompositeState {
 
     public override bool Equals(object obj) {
         if (obj is not StateStruct stateStruct) return false;
+        if (ReferenceEquals(this, stateStruct)) return true;
         if (_nodes.Count != stateStruct._nodes.Count) return false;
 
         foreach (var (key, value) in _nodes)
@@ -167,7 +183,6 @@ public class StateStruct : ICompositeState {
             if (!f.State.Equals(value.State))
                 return false;
         }
-
         return true;
     }
 

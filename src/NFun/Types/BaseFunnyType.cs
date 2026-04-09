@@ -20,5 +20,6 @@ public enum BaseFunnyType {
     Struct = 16,
     Optional = 17,
     None = 18,
-    Custom = 19
+    Custom = 19,
+    NamedStruct = 20
 }

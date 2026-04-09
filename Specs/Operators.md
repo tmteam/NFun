@@ -73,6 +73,36 @@ Assume variable A holds 6 and variable B holds 4 then:
 | **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 |
 | − *(unary)* | Signed      | Multiply expression by -1.	                        | `−A` = -6      |
 
+### Integer overflow
+
+By default, integer arithmetic is **checked** — overflow throws a runtime error:
+
+```py
+y:uint32 = 0xFFFF_FFFF + 1   # runtime error: overflow
+y:int32 = 2_147_483_647 + 1  # runtime error: overflow
+```
+
+The `AllowIntegerOverflow` dialect setting switches to unchecked arithmetic (silent wrap).
+
+### Division by zero
+
+Integer division `//` by zero throws a runtime error:
+
+```py
+y = 4 // 0   # runtime error: division by zero
+```
+
+Real division `/` follows IEEE 754: dividing by zero produces infinity or NaN:
+
+```py
+y = 2.0 / 0.0   # ∞ (positive infinity)
+y = -2.0 / 0.0  # -∞ (negative infinity)
+y = 0.0 / 0.0   # NaN (not a number)
+```
+
+NaN propagates through arithmetic: any operation with NaN produces NaN.
+`min` and `max` return NaN if any argument is NaN.
+
 ## Relational Operators
 The following table shows all the relational operators supported by NFun. 
 All of them returns true if condition is satisfied, and false otherwise

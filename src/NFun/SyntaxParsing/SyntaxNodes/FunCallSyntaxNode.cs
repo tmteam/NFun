@@ -74,4 +74,7 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
     public IEnumerable<ISyntaxNode> Children =>
         HasNamedArgs ? Args.Concat(NamedArgs.Select(n => n.Value)).ToArray() : Args;
     public bool IsPipeForward { get; }
+
+    /// <summary>True when this call was made via ?. (safe piped call on optional).</summary>
+    public bool IsSafeAccess { get; set; }
 }

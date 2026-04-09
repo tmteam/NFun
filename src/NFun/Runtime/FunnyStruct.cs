@@ -45,12 +45,23 @@ public class FunnyStruct : IReadOnlyDictionary<string, object> {
             return false;
         foreach (var (key, value) in _values)
         {
-            var otherValue = str.GetValue(key);
+            if (!str._values.TryGetValue(key, out var otherValue))
+                return false;
             if (!otherValue.Equals(value))
                 return false;
         }
 
         return true;
+    }
+
+    public override int GetHashCode() {
+        // Must be consistent with Equals: structurally equal structs → same hash.
+        // XOR of (fieldName hash ^ value hash) — order-independent.
+        var hash = _values.Count;
+        foreach (var (key, value) in _values)
+            hash ^= StringComparer.InvariantCultureIgnoreCase.GetHashCode(key)
+                   * 397 + (value?.GetHashCode() ?? 0);
+        return hash;
     }
 
     public bool ContainsKey(string key) => _values.ContainsKey(key);

@@ -9,9 +9,11 @@ namespace NFun.Runtime;
 
 public class FunnyRuntime {
     internal FunnyRuntime(IList<Equation> equations, IReadonlyVariableDictionary variableDictionary,
-        IReadOnlyList<IUserFunction> userFunctions, FunnyConverter converter) {
+        IReadOnlyList<IUserFunction> userFunctions, FunnyConverter converter,
+        TypeRegistry typeRegistry = null) {
         UserFunctions = userFunctions;
         Converter = converter;
+        TypeRegistry = typeRegistry ?? TypeRegistry.Empty;
         _equations = equations;
         VariableDictionary = variableDictionary;
         _variables = new Lazy<IReadOnlyList<IFunnyVar>>(() => VariableDictionary.GetAllAsArray());
@@ -27,6 +29,12 @@ public class FunnyRuntime {
     public IReadOnlyList<IUserFunction> UserFunctions { get; }
 
     public FunnyConverter Converter { get; }
+
+    /// <summary>
+    /// Registry of named type definitions from this script.
+    /// Empty if no named types were defined.
+    /// </summary>
+    public TypeRegistry TypeRegistry { get; }
 
     /// <summary>
     /// All inputs and outputs of current runtime
@@ -54,6 +62,6 @@ public class FunnyRuntime {
         var context = new CloneContext(dictionaryCopy);
         var equations = _equations.SelectToArray(e => e.Clone(context));
         //origin user functions are used here as they are used only in info puprposes.
-        return new FunnyRuntime(equations, dictionaryCopy, UserFunctions, Converter);
+        return new FunnyRuntime(equations, dictionaryCopy, UserFunctions, Converter, TypeRegistry);
     }
 }

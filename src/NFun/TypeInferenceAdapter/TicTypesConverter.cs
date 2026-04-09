@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
@@ -7,8 +8,7 @@ using NFun.Types;
 namespace NFun.TypeInferenceAdapter;
 
 public abstract class TicTypesConverter {
-    public static readonly TicTypesConverter Concrete
-        = new OnlyConcreteTypesConverter();
+    public static readonly TicTypesConverter Concrete = new OnlyConcreteTypesConverter();
 
     public static TicTypesConverter GenericSignatureConverter(IReadOnlyList<ConstraintsState> constrainsMap)
         => new ConstrainsConverter(constrainsMap);
@@ -18,12 +18,51 @@ public abstract class TicTypesConverter {
         => new GenericMapConverter(constrainsMap, genericArgs);
 
     public abstract FunnyType Convert(ITicNodeState type);
+    /// <summary>Per-conversion unique mark. Set once per ConvertToFunnyStruct entry.</summary>
+    private int _convertMark;
+    /// <summary>Named struct types currently being converted (for self-referential cycle detection).</summary>
+    private HashSet<string> _convertingNamedTypes;
+
     private FunnyType ConvertToFunnyStruct(StateStruct str) {
+        if (_convertMark == 0) _convertMark = Tic.SolvingFunctions.NextMark();
+
+        // Struct-level cycle detection for self-referential named types.
+        // When TIC solving fills a recursion boundary with the enclosing named struct,
+        // field nodes are shared between levels. Per-node marks can miss this cycle,
+        // so we also track by TypeName.
+        if (str.TypeName != null) {
+            _convertingNamedTypes ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!_convertingNamedTypes.Add(str.TypeName))
+                return FunnyType.NamedStructOf(str.TypeName);
+        }
+
         var fields = new StructTypeSpecification(str.FieldsCount, isFrozen: str.IsFrozen);
         foreach (var ticField in str.Fields)
         {
-            fields.Add(ticField.Key.ToLower(), Convert(ticField.Value.GetNonReference().State));
+            var fieldNode = ticField.Value.GetNonReference();
+            if (fieldNode.VisitMark == _convertMark)
+            {
+                // Cycle detected — use TypeName if available (from node state or parent chain)
+                if (fieldNode.State is Tic.SolvingStates.StateStruct { TypeName: { } tn })
+                    fields.Add(ticField.Key.ToLower(), FunnyType.NamedStructOf(tn));
+                // If this is a StateStruct (TypeName lost via GetNonReferenced)
+                // and we're inside a named struct conversion, use the parent's TypeName.
+                else if (fieldNode.State is Tic.SolvingStates.StateStruct
+                         && _convertingNamedTypes is { Count: > 0 })
+                    fields.Add(ticField.Key.ToLower(),
+                        FunnyType.NamedStructOf(_convertingNamedTypes.First()));
+                else
+                    fields.Add(ticField.Key.ToLower(), FunnyType.Any);
+                continue;
+            }
+            var prev = fieldNode.VisitMark;
+            fieldNode.VisitMark = _convertMark;
+            fields.Add(ticField.Key.ToLower(), Convert(fieldNode.State));
+            fieldNode.VisitMark = prev;
         }
+
+        if (str.TypeName != null)
+            _convertingNamedTypes!.Remove(str.TypeName);
 
         return FunnyType.StructOf(fields);
     }
@@ -34,10 +73,21 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
-    private FunnyType ConvertToFunnyOptional(StateOptional opt)
-        => FunnyType.OptionalOf(Convert(opt.Element));
+    private const int OptionalConvertMark = -58000;
+    private FunnyType ConvertToFunnyOptional(StateOptional opt) {
+        // Cycle guard: generic functions with if..else none create cyclic Optionals
+        var elem = opt.ElementNode;
+        if (elem.VisitMark == OptionalConvertMark)
+            return FunnyType.Any; // break cycle
+        var prev = elem.VisitMark;
+        elem.VisitMark = OptionalConvertMark;
+        var result = FunnyType.OptionalOf(Convert(opt.Element));
+        elem.VisitMark = prev;
+        return result;
+    }
 
     class OnlyConcreteTypesConverter : TicTypesConverter {
+        public OnlyConcreteTypesConverter() { }
         public override FunnyType Convert(ITicNodeState type) {
             while (true)
             {
@@ -48,6 +98,12 @@ public abstract class TicTypesConverter {
                         continue;
                     case StatePrimitiveCustom custom:
                         return custom.OriginalFunnyType;
+                    case StatePrimitive { Name: PrimitiveTypeName.Any }
+                        when _convertingNamedTypes is { Count: > 0 }:
+                        // Inside a named struct conversion, Any at the recursion boundary
+                        // should be NamedStructOf so the call site matches by named type
+                        // rather than trying to merge struct with Any.
+                        return FunnyType.NamedStructOf(_convertingNamedTypes.First());
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstraintsState constrains when constrains.Preferred != null:
@@ -57,6 +113,9 @@ public abstract class TicTypesConverter {
                     case ConstraintsState constrains when !constrains.HasAncestor:
                     {
                         if (constrains.IsComparable) return FunnyType.Real;
+                        // Inside a named struct: Empty constraint = recursion boundary
+                        if (_convertingNamedTypes is { Count: > 0 } && constrains.NoConstrains)
+                            return FunnyType.NamedStructOf(_convertingNamedTypes.First());
                         return FunnyType.Any;
                     }
                     case ConstraintsState constrains:

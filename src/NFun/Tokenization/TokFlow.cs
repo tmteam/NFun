@@ -10,6 +10,8 @@ public class TokFlow {
 
     private readonly Tok[] _tokens;
 
+    public TokFlow(Tok[] tokens) => _tokens = tokens;
+
     public TokFlow(IEnumerable<Tok> tokens) => _tokens = tokens.ToArray();
 
     public bool IsDone => _tokens.Length <= CurrentTokenPosition;

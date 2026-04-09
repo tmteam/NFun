@@ -113,10 +113,14 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         {
             if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled)
                 throw Errors.SafeAccessNotSupported(node.Interval);
+            if (structNode.Type.BaseType == BaseFunnyType.None)
+                // none?.field = none — safe access on None always returns None
+                return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
             if (structNode.Type.BaseType != BaseFunnyType.Optional)
                 throw Errors.SafeAccessOnNonOptional(node.Interval);
             var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
-            if (!innerType.StructTypeSpecification.ContainsKey(node.FieldName))
+            if (innerType.BaseType == BaseFunnyType.Struct
+                && !innerType.StructTypeSpecification.ContainsKey(node.FieldName))
                 throw Errors.FieldNotExists(node.FieldName, node.Interval);
             return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
         }
@@ -124,7 +128,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         if (structNode.Type.BaseType == BaseFunnyType.Optional)
         {
             var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
-            if (!innerType.StructTypeSpecification.ContainsKey(node.FieldName))
+            if (innerType.BaseType == BaseFunnyType.Struct
+                && !innerType.StructTypeSpecification.ContainsKey(node.FieldName))
                 throw Errors.FieldNotExists(node.FieldName, node.Interval);
             return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
         }
@@ -136,6 +141,14 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
             throw Errors.FieldNotExists(node.FieldName, node.Interval);
+
+        // If TIC resolved this field as Optional (e.g., from named type ancestor declaring
+        // the field as Optional), use the TIC output type for the result.
+        // This handles inline constructor access: a{b=val}.b where b is declared Optional.
+        if (node.OutputType.BaseType == BaseFunnyType.Optional
+            && structNode.Type.BaseType == BaseFunnyType.Struct)
+            return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval,
+                overrideType: node.OutputType);
 
         return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
     }
@@ -153,11 +166,17 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             types.Add(field.Name, field.Node.OutputType);
         }
 
-        foreach (var (key, _) in node.OutputType.StructTypeSpecification)
-        {
-            if (!types.ContainsKey(key))
-                throw Errors.FieldIsMissed(key, node.Interval);
-        }
+        // StructInit always produces a struct. If TIC resolved it as Optional (from merge
+        // with Optional in if-else branches), unwrap to get the struct type.
+        var structType = node.OutputType;
+        while (structType.BaseType == BaseFunnyType.Optional)
+            structType = structType.OptionalTypeSpecification.ElementType;
+        if (structType.BaseType == BaseFunnyType.Struct)
+            foreach (var (key, _) in structType.StructTypeSpecification)
+            {
+                if (!types.ContainsKey(key))
+                    throw Errors.FieldIsMissed(key, node.Interval);
+            }
 
         return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
     }
@@ -525,6 +544,15 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             ? (_typeInferenceResults.GetResolvedCallArgsOrNull(fc.OrderNumber) ?? fc.Args)
             : node.Args;
         var children = callArgs.SelectToArray(ReadNode);
+
+        // ?.method() — safe piped call: if source is None, return None; else call and wrap in Optional
+        if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true } && children.Length > 0)
+        {
+            var sourceExpr = children[0];
+            var innerCall = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
+            return new Nodes.SafePipedCallExpressionNode(sourceExpr, innerCall, node.OutputType, node.Interval);
+        }
+
         var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
         if (converted.Type != node.OutputType)
         {
@@ -575,4 +603,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         throw new NFunImpossibleException($"MJ101op. Operator type is unknown");
     }
+
+    public IExpressionNode Visit(TypeDeclarationSyntaxNode node) =>
+        throw new NFunImpossibleException("TypeDeclarationSyntaxNode should be removed during elaboration");
+
+    public IExpressionNode Visit(NamedTypeConstructorSyntaxNode node) =>
+        throw new NFunImpossibleException("NamedTypeConstructorSyntaxNode should be removed during elaboration");
 }

@@ -254,6 +254,54 @@ internal static partial class Errors {
     internal static FunnyParseException StructIsUndone(int position) => new(
         510, "Struct definition is undone. Closing bracket '}' is missed", Interval.Position(position));
 
+    internal static FunnyParseException TypeNameExpected(Tok tok) => new(
+        511, $"Type name expected, but '{ToText(tok)}' was found", tok.Interval);
+
+    internal static FunnyParseException TypeDefTokenIsMissed(string typeName, Tok tok) => new(
+        512, $"'=' expected after 'type {typeName}', but '{ToText(tok)}' was found", tok.Interval);
+
+    internal static FunnyParseException TypeBodyExpected(string typeName, Tok tok) => new(
+        513, $"'{{' expected after 'type {typeName} =', but '{ToText(tok)}' was found", tok.Interval);
+
+    internal static FunnyParseException TypeFieldMustHaveTypeOrDefault(Tok fieldId) => new(
+        514, $"Type field '{fieldId.Value}' must have a type annotation or a default value", fieldId.Interval);
+
+    internal static FunnyParseException NamedTypeNotDefined(string typeName, Interval interval) => new(
+        515, $"Named type '{typeName}' is not defined", interval);
+
+    internal static FunnyParseException NamedTypeMissingRequiredField(string typeName, string fieldName, Interval interval) => new(
+        516, $"Required field '{fieldName}' is missing in constructor of type '{typeName}'", interval);
+
+    internal static FunnyParseException NamedTypeUnknownField(string typeName, string fieldName, Interval interval) => new(
+        517, $"Unknown field '{fieldName}' in constructor of type '{typeName}'", interval);
+
+    internal static FunnyParseException NamedTypeAlreadyDefined(string typeName, Interval interval) => new(
+        518, $"Type '{typeName}' is already defined", interval);
+
+    internal static FunnyParseException NamedTypeDuplicateField(string typeName, string fieldName, Interval interval) => new(
+        519, $"Duplicate field '{fieldName}' in type '{typeName}'", interval);
+
+    internal static FunnyParseException NamedTypeDefaultCannotReferenceVariable(string typeName, string fieldName, string varName, Interval interval) => new(
+        520, $"Default value for field '{fieldName}' in type '{typeName}' cannot reference variable '{varName}'. Defaults must be constant expressions.", interval);
+
+    internal static FunnyParseException NamedTypeDefaultCannotCallFunction(string typeName, string fieldName, Interval interval) => new(
+        521, $"Default value for field '{fieldName}' in type '{typeName}' cannot call functions. Defaults must be constant expressions.", interval);
+
+    internal static FunnyParseException NamedTypeDefaultMustBeConstant(string typeName, string fieldName, Interval interval) => new(
+        522, $"Default value for field '{fieldName}' in type '{typeName}' must be a constant expression.", interval);
+
+    internal static FunnyParseException NamedTypesNotSupported(Interval interval) => new(
+        523, "Named types are an experimental feature. Enable with NamedTypesSupport.ExperimentalEnabled", interval);
+
+    internal static FunnyParseException NamedTypeRecursiveCycle(string typeName) => new(
+        524, $"Type '{typeName}' has a non-optional recursive cycle. Use optional (T?) fields to break recursion", Interval.Empty);
+
+    internal static FunnyParseException NamedTypeRecursiveDefault(string typeName, Interval interval) => new(
+        526, $"Type '{typeName}' has a recursive default value (constructor references its own type). Use 'none' for recursive defaults", interval);
+
+    internal static FunnyParseException CircularTypeAlias(string[] chain) => new(
+        525, $"Circular type alias: {string.Join(" -> ", chain)}. Non-struct type aliases cannot form cycles", Interval.Empty);
+
 
     #endregion
 

@@ -277,7 +277,7 @@ public class ArithmeticalOperatorsTest {
     public void TwoVariablesEquation(string expr, object arg1, object arg2, object expected) =>
         expr.Calc(("x1", arg1), ("x2", arg2)).AssertResultHas("y", expected);
 
-    [Ignore("TODO Arithmetical unchecked or checked UB")]
+    // Integer overflow with checked arithmetic (default dialect) → runtime error
     [TestCase("y:uint64 = 2-3")]
     [TestCase("y:uint64 = 0-100")]
     [TestCase("y:uint32 = 2-3")]
@@ -286,10 +286,9 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y:int32  = 2_147_483_647 * 2")]
     [TestCase("y:int64  = 9_223372_036854_775807 * 2")]
     [TestCase("y:int64  = 9_223372_036854_775807 + 1")]
-    [TestCase("y = 2/0")]
-    [TestCase("y = 0/0")]
     [TestCase("y:uint32 = 0-100")]
-    public void Oops(string expression) => expression.AssertObviousFailsOnRuntime();
+    public void IntegerOverflow_CheckedArithmetic_ThrowsRuntimeError(string expression)
+        => expression.AssertObviousFailsOnRuntime();
 
     [TestCase("y = /2")]
     [TestCase("y = *2")]

@@ -163,16 +163,25 @@ age  = user?.age       # int?  — 30 or none
 safe = user?.name ?? 'Guest'  # text — 'Alice' or 'Guest'
 ```
 
-After `?.`, the `none` propagates through subsequent `.` field accesses automatically. You only need one `?.` at the beginning of the chain
+After `?.`, `none` propagates through the entire chain — both field accesses and method calls. You only need one `?.` at the beginning (TypeScript-style)
 
 ```py
 data = if(found) {inner = {value = 42}} else none
 
-x = data?.inner.value        # int? — 42 or none (propagates through .inner and .value)
+x = data?.inner.value        # int? — 42 or none
 y = data?.inner.value ?? 0   # int  — 42 or 0
 ```
 
-Explicit `?.` on every level (e.g. `data?.inner?.value`) also works, but is not required when only the root is optional
+Method calls also propagate:
+```py
+arr:int[]? = if(hasData) [3,1,2] else none
+
+arr?.sort().reverse() ?? []        # int[] — [3,2,1] or []
+arr?.sort().reverse().count() ?? 0 # int   — 3 or 0
+arr?.count() ?? 0                  # int   — 3 or 0
+```
+
+Explicit `?.` on every level (`data?.inner?.value`) also works but is not required
 
 ## Conditional expressions with `none`
 

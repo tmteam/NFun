@@ -35,8 +35,10 @@ internal static class TypeHelper {
     public static bool AreEqual(object left, object right) {
         if (left is IFunnyArray le)
             return right is IFunnyArray re && AreEquivalent(le, re);
-        else
-            return left.GetType() == right.GetType() && left.Equals(right);
+        // Use == for doubles to get IEEE 754 NaN semantics (NaN != NaN)
+        if (left is double d)
+            return right is double d2 && d == d2;
+        return left.GetType() == right.GetType() && left.Equals(right);
     }
 
     public static T[] ToArrayOf<T>(this IFunnyArray a) => a.As<T>().ToArray(a.Count);

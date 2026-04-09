@@ -33,6 +33,17 @@ public abstract class TypeSyntax {
         public override string ToString() => Element + "?";
     }
 
+    public sealed class FunOf : TypeSyntax {
+        public TypeSyntax[] ArgTypes { get; }
+        public TypeSyntax ReturnType { get; }
+        public FunOf(TypeSyntax[] argTypes, TypeSyntax returnType) {
+            ArgTypes = argTypes;
+            ReturnType = returnType;
+        }
+        public override string ToString() =>
+            "rule(" + string.Join(", ", System.Array.ConvertAll(ArgTypes, a => a.ToString())) + ")->" + ReturnType;
+    }
+
     public sealed class StructOf : TypeSyntax {
         public (string FieldName, TypeSyntax FieldType)[] Fields { get; }
         public bool IsFrozen { get; }

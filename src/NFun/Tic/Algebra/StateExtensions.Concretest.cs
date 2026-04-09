@@ -24,6 +24,12 @@ public static partial class StateExtensions {
             ? cs.Descendant.Concretest()
             : ConstraintsState.Of(isComparable: cs.IsComparable);
         if (cs.IsOptional) {
+            // For Optional snapshots, use Preferred type when available.
+            // Without this, [1, none] resolves to UInt8?[] instead of Int32?[]
+            // because the snapshot uses U8 (narrowest) instead of I32 (preferred).
+            if (cs.Preferred != null && inner is StatePrimitive ip
+                && ip.CanBePessimisticConvertedTo(cs.Preferred))
+                inner = cs.Preferred;
             // Wrap in Optional so snapshots (AddDescendant/LCA) see the optionality.
             // opt(any) collapses to any.
             if (inner == StatePrimitive.Any)

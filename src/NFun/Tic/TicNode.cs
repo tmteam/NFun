@@ -58,7 +58,7 @@ public class TicNode {
         => new("invisible", state, TicNodeType.TypeVariable) { Registered = false };
 
     private TicNode(object name, ITicNodeState state, TicNodeType type) {
-        _uid = Interlocked.Increment(ref _interlockedId);
+        _uid = ++_interlockedId;
         Name = name;
         State = state;
         Type = type;
@@ -72,7 +72,6 @@ public class TicNode {
     public void AddAncestor(TicNode node) {
         if(node == this)
             AssertChecks.Panic("Circular ancestor 0");
-
         _ancestors.Add(node);
     }
 
@@ -116,8 +115,9 @@ public class TicNode {
         set
         {
             Debug.Assert(value != null);
-            Debug.Assert(_state == null || IsMutable || value.Equals(_state), "Node is already solved");
-
+            Debug.Assert(_state == null || IsMutable || value.Equals(_state)
+                || value is StateRefTo || (value is StateOptional && _state is StateOptional),
+                "Node is already solved");
             if (value is StateArray array)
                 array.ElementNode.IsMemberOfAnything = true;
             else if (value is StateOptional optional)
@@ -134,8 +134,11 @@ public class TicNode {
                     innerOpt.ElementNode.IsOptionalElement = true;
                 }
             }
-            else
-                Debug.Assert(!(value is StateRefTo refTo && refTo.Node == this), "Self referencing node");
+            else if (value is StateRefTo refTo && refTo.Node == this)
+            {
+                TraceLog.WriteLine($"  Skip self-referencing node {Name}");
+                return; // Skip self-referencing (occurs with recursive struct types)
+            }
             _state = value;
         }
     }

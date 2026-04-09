@@ -67,4 +67,55 @@ class ReqursionTest {
         Assert.AreEqual(fun.ReturnType, generic.GetNonReference().State);
         Assert.AreEqual(fun.ArgNodes.First().GetNonReference().State, generic.GetNonReference().State);
     }
+
+    [Test]
+    public void RecursiveWithLambdaArg() {
+        // applyN(x, f, n:int) = if(n > 0) applyN(f(x), f, n-1) else x
+        //
+        // Node layout:
+        //   Named: x, f, n (n:int)
+        //   0: n ref in condition
+        //   1: 0 literal
+        //   2: n > 0 condition result
+        //   3: x ref in f(x)
+        //   4: f(x) result  (higher-order call: f is variable)
+        //   5: f ref in recursive call args
+        //   6: n ref in n-1
+        //   7: 1 literal (for n-1)
+        //   8: n-1 result
+        //   9: recursive call result: applyN(f(x), f, n-1)
+        //   10: x ref in else branch
+        //   11: if-else result = function body
+
+        var graph = new GraphBuilder();
+
+        // Define function: applyN(x, f, n:int) with body at node 11
+        graph.SetVarType("n", I32);
+        var fun = graph.SetFunDef("applyN'3", 11, null, "x", "f", "n");
+
+        // Condition: n > 0
+        graph.SetVar("n", 0);
+        graph.SetIntConst(1, StatePrimitive.U8);
+        graph.SetComparable(0, 1, 2);
+
+        // f(x) — higher-order call using variable f
+        graph.SetVar("x", 3);
+        graph.SetCall("f", new[] { 3, 4 });
+
+        // Recursive call: applyN(f(x), f, n-1)
+        graph.SetVar("f", 5);
+        graph.SetVar("n", 6);
+        graph.SetIntConst(7, StatePrimitive.U8);
+        graph.SetArith(6, 7, 8);  // n - 1
+        graph.SetCall(fun, new[] { 4, 5, 8, 9 });
+
+        // Else branch: x
+        graph.SetVar("x", 10);
+
+        // if(n > 0) [recursive_call_result] else [x]
+        graph.SetIfElse(new[] { 2 }, new[] { 9, 10 }, 11);
+
+        var result = graph.Solve();
+        // Expected: x is generic T, f is (T)->T, result is T
+    }
 }

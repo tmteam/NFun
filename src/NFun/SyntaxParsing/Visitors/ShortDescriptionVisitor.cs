@@ -102,4 +102,6 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(DefaultValueSyntaxNode node) => "default";
     public string Visit(BinOperatorSyntaxNode node) => $"({node.Id})";
     public string Visit(UnaryOperatorSyntaxNode node) => $"{node.Id}";
+    public string Visit(TypeDeclarationSyntaxNode node) => $"type {node.TypeName}";
+    public string Visit(NamedTypeConstructorSyntaxNode node) => $"{node.TypeName}{{...}}";
 }

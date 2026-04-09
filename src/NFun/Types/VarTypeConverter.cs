@@ -71,14 +71,28 @@ public static class VarTypeConverter {
     
     public static Func<object, object> GetConverterOrNull(TypeBehaviour typeBehaviour, FunnyType @from, FunnyType to) {
         //todo coverage
+        if (from.Equals(to))
+            return NoConvertion;
         if (to.IsText)
             return ToText;
         if (to.BaseType == BaseFunnyType.Any)
+            return NoConvertion;
+        // Any → T: recursive type cycle placeholder — runtime value has the actual type
+        if (from.BaseType == BaseFunnyType.Any)
             return NoConvertion;
 
         // Custom → same Custom: identity
         if (from.BaseType == BaseFunnyType.Custom && to.BaseType == BaseFunnyType.Custom
             && Equals(from.CustomTypeDefinition, to.CustomTypeDefinition))
+            return NoConvertion;
+
+        // NamedStruct ↔ Struct: named type boundary in recursive types.
+        // Runtime values are FunnyStruct regardless of named vs anonymous typing.
+        if (to.BaseType == BaseFunnyType.NamedStruct && from.BaseType == BaseFunnyType.Struct)
+            return NoConvertion;
+        if (from.BaseType == BaseFunnyType.NamedStruct && to.BaseType == BaseFunnyType.Struct)
+            return NoConvertion;
+        if (from.BaseType == BaseFunnyType.NamedStruct && to.BaseType == BaseFunnyType.NamedStruct)
             return NoConvertion;
 
         // None → Optional(T): FunnyNone stays FunnyNone
@@ -226,6 +240,12 @@ public static class VarTypeConverter {
             if (from.BaseType == BaseFunnyType.None && to.BaseType == BaseFunnyType.Optional)
                 return true;
 
+            // NamedStruct ↔ Struct: always compatible at runtime
+            if ((to.BaseType == BaseFunnyType.NamedStruct && from.BaseType == BaseFunnyType.Struct) ||
+                (from.BaseType == BaseFunnyType.NamedStruct && to.BaseType == BaseFunnyType.Struct) ||
+                (from.BaseType == BaseFunnyType.NamedStruct && to.BaseType == BaseFunnyType.NamedStruct))
+                return true;
+
             // T → Optional(T) - implicit wrapping
             if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
                 return CanBeConverted(from, to.OptionalTypeSpecification.ElementType);
@@ -258,6 +278,11 @@ public static class VarTypeConverter {
             if (from.BaseType == BaseFunnyType.Custom || to.BaseType == BaseFunnyType.Custom)
                 return from.BaseType == BaseFunnyType.Custom && to.BaseType == BaseFunnyType.Custom
                     && Equals(from.CustomTypeDefinition, to.CustomTypeDefinition);
+
+            // NamedStruct: same name = convertible; otherwise only to Any/Text (handled above)
+            if (from.BaseType == BaseFunnyType.NamedStruct || to.BaseType == BaseFunnyType.NamedStruct)
+                return from.BaseType == BaseFunnyType.NamedStruct && to.BaseType == BaseFunnyType.NamedStruct
+                    && string.Equals(from.NamedStructTypeName, to.NamedStructTypeName, StringComparison.OrdinalIgnoreCase);
 
             if ((int)from.BaseType >= PrimitiveTypeCount || (int)to.BaseType >= PrimitiveTypeCount)
                 return false;

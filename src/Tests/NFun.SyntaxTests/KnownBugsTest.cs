@@ -32,7 +32,7 @@ public class KnownBugsTest {
     // Bug: Cannot mix typed array and [none] in array literal
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: Cannot mix typed array and [none] in array literal")]
+    [Test]
     public void ArrayWithNoneSubarray_ShouldInferOptional() {
         // [[1,2,3],[none]] → "Unable to cast from none to Real"
         // Root cause: output generic resolution [opt(U8)..Re] → Real, losing Optional
@@ -56,35 +56,35 @@ public class KnownBugsTest {
     // Affects: if-else branches, array literals, struct field LCA.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: LCA of [int] vs [none] in if-else")]
+    [Test]
     public void IfElse_ArrayWithNone_VsArrayWithInt() {
         Assert.DoesNotThrow(() =>
             "y = if(true) [1] else [none]"
                 .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
     }
 
-    [Test, Ignore("Bug: LCA of {a=int} vs {a=none} in if-else")]
+    [Test]
     public void IfElse_StructFieldNone() {
         Assert.DoesNotThrow(() =>
             "y = if(true) {a=1} else {a=none}"
                 .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
     }
 
-    [Test, Ignore("Bug: LCA of {a=int} vs {a=none} in array")]
+    [Test]
     public void Array_StructsWithNoneField() {
         Assert.DoesNotThrow(() =>
             "y = [{a=1},{a=none}]"
                 .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
     }
 
-    [Test, Ignore("Bug: LCA of [[int]] vs [[none]] in if-else")]
+    [Test]
     public void IfElse_NestedArrayWithNone() {
         Assert.DoesNotThrow(() =>
             "y = if(true) [[1]] else [[none]]"
                 .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
     }
 
-    [Test, Ignore("Bug: map producing [int] vs [none] branches")]
+    [Test]
     public void Map_IfElse_ArrayWithNone() {
         Assert.DoesNotThrow(() =>
             "y = [1,2,3].map(rule if(it>1) [it] else [none])"

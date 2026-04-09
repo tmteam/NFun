@@ -45,8 +45,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
         TypeInferenceResultsBuilder results,
-        DialectSettings dialect) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect, customTypes);
+        DialectSettings dialect,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect, customTypes, namedTypeFieldRegistry);
 
         // Collect user function definitions for named argument resolution (lazy dict)
         foreach (var syntaxNode in tree.Children)
@@ -75,8 +76,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IConstantList constants,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect,
-        ICustomTypeRegistry customTypes = null) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect, customTypes);
+        ICustomTypeRegistry customTypes = null,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect, customTypes, namedTypeFieldRegistry);
         // Register this function for named arg resolution in recursive calls
         (visitor._userFunctions ??= new())[(userFunctionNode.Id, userFunctionNode.Args.Count)] = userFunctionNode;
         visitor._hasUserFunctions = true;
@@ -84,6 +86,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     private readonly ICustomTypeRegistry _customTypes;
+    private readonly INamedTypeFieldRegistry _namedTypeFieldRegistry;
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
     internal bool _hasUserFunctions;
     internal const int SyntheticIdStart = 100000;
@@ -96,7 +99,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         TypeInferenceResultsBuilder resultsBuilder,
         IAprioriTypesMap aprioriTypesMap,
         DialectSettings dialect,
-        ICustomTypeRegistry customTypes = null) {
+        ICustomTypeRegistry customTypes = null,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
         _aliasScope = new VariableScopeAliasTable();
         _dictionary = dictionary;
         _constants = constants;
@@ -104,10 +108,21 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         _dialect = dialect;
         _ticTypeGraph = ticTypeGraph;
         _customTypes = customTypes ?? EmptyCustomTypeRegistry.Instance;
+        _namedTypeFieldRegistry = namedTypeFieldRegistry;
+        _ticTypeGraph.NamedTypeRegistry = namedTypeFieldRegistry;
 
         foreach (var apriori in aprioriTypesMap)
-            _ticTypeGraph.SetVarType(apriori.Name, apriori.Type.ConvertToTiType());
+            _ticTypeGraph.SetVarType(apriori.Name, ConvertType(apriori.Type));
     }
+
+    /// <summary>
+    /// Converts FunnyType to TIC state, using the named type field registry for NamedStruct resolution.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ITicNodeState ConvertType(FunnyType t) =>
+        _namedTypeFieldRegistry != null
+            ? t.ConvertToTiType(_namedTypeFieldRegistry)
+            : t.ConvertToTiType();
 
     /// <summary>
     /// Resolves named arguments: merges positional + named into correct positional order.
@@ -349,7 +364,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             var resolvedType = ResolveType(node.TypeSpecificationOrNull.TypeSyntax);
             ThrowIfOptionalTypeDisabled(resolvedType, node.Id, node.Interval);
-            var type = resolvedType.ConvertToTiType();
+            var type = ConvertType(resolvedType);
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
@@ -369,13 +384,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             {
                 var resolvedType = ResolveType(arg.TypeSyntax);
                 ThrowIfOptionalTypeDisabled(resolvedType, arg.Id, arg.Interval);
-                _ticTypeGraph.SetVarType(arg.Id, resolvedType.ConvertToTiType());
+                _ticTypeGraph.SetVarType(arg.Id, ConvertType(resolvedType));
             }
         }
 
         ITypeState returnType = null;
         if (node.ReturnTypeSyntax is not TypeSyntax.EmptyType)
-            returnType = (ITypeState)ResolveType(node.ReturnTypeSyntax).ConvertToTiType();
+            returnType = (ITypeState)ConvertType(ResolveType(node.ReturnTypeSyntax));
 
 #if DEBUG
         TraceLog.WriteLine(
@@ -497,6 +512,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _ticTypeGraph.SetSafeFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
         else
             _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+
         return true;
     }
 
@@ -515,6 +531,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         _ticTypeGraph.SetStructInit(
             node.Fields.SelectToArray(f => f.Name.ToLower()),
             node.Fields.SelectToArray(f => f.Node.OrderNumber), node.OrderNumber);
+        // If OutputType is pre-set (from named type constructor expansion),
+        // set ancestor constraint so TIC knows the struct shape for recursive types.
+        // This ensures `none` defaults are recognized as Optional at any nesting depth.
+        if (node.OutputType.BaseType != BaseFunnyType.Empty) {
+            var ancestorState = ConvertType(node.OutputType);
+            _ticTypeGraph.SetStructInitType(node.OrderNumber, ancestorState);
+
+        }
         return true;
     }
 
@@ -539,7 +563,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     anonymName = MakeAnonVariableName(node, originName);
                     if (typed.TypeSyntax is not TypeSyntax.EmptyType)
                     {
-                        var ticType = ResolveType(typed.TypeSyntax).ConvertToTiType();
+                        var ticType = ConvertType(ResolveType(typed.TypeSyntax));
                         _ticTypeGraph.SetVarType(anonymName, ticType);
                     }
 
@@ -576,7 +600,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
         else
         {
-            var retType = (ITypeState)ResolveType(node.ReturnTypeSyntax).ConvertToTiType();
+            var retType = (ITypeState)ConvertType(ResolveType(node.ReturnTypeSyntax));
             _ticTypeGraph.CreateLambda(
                 node.Body.OrderNumber,
                 node.OrderNumber,
@@ -669,6 +693,31 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             ids[i] = allArgs[i].OrderNumber;
         ids[^1] = node.OrderNumber;
 
+        // ?.method() — safe piped call on Optional.
+        // Source is opt(T), function expects T. Unwrap for the call, wrap result in opt(R).
+        if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true })
+        {
+            var sourceId = ids[0];
+            var resultId = ids[^1];
+
+            // 1. Unwrap source: create synthetic node for T, constrain source = opt(T)
+            var unwrappedId = _nextSyntheticId++;
+            var unwrappedNode = _ticTypeGraph.GetOrCreateNode(unwrappedId);
+            _ticTypeGraph.SetCallArgument(
+                Tic.SolvingStates.StateOptional.Of(unwrappedNode), sourceId);
+            ids[0] = unwrappedId; // function sees T, not opt(T)
+
+            // 2. Wrap result: raw function result → actual result = LCA(raw, None) = opt(R)
+            var rawResultId = _nextSyntheticId++;
+            var rawResultNode = _ticTypeGraph.GetOrCreateNode(rawResultId);
+            var noneNode = _ticTypeGraph.CreateVarType(Tic.SolvingStates.StatePrimitive.None);
+            // Both raw result and None are subtypes of the actual result → LCA gives opt(R)
+            var actualResultNode = _ticTypeGraph.GetOrCreateNode(resultId);
+            rawResultNode.AddAncestor(actualResultNode);
+            noneNode.AddAncestor(actualResultNode);
+            ids[^1] = rawResultId; // function writes to raw result
+        }
+
         // #10: operators are never user functions — skip user function lookup
         var userFunction = node.IsOperator
             ? null
@@ -740,11 +789,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         var types = new ITicNodeState[signature.ArgTypes.Length + 1];
         for (int i = 0; i < signature.ArgTypes.Length; i++)
-            types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
-        types[^1] = signature.ReturnType.ConvertToTiType(genericTypes);
+            types[i] = ConvertFunArgType(signature.ArgTypes[i], genericTypes);
+        types[^1] = ConvertFunArgType(signature.ReturnType, genericTypes);
 
         _ticTypeGraph.SetCall(types, ids);
         return true;
+    }
+
+    /// <summary>
+    /// Converts a function argument FunnyType to TIC state, using the named type registry
+    /// when available. This ensures NamedStruct types are properly expanded instead of
+    /// being converted to ConstraintsState.Empty (which happens without the registry).
+    /// </summary>
+    private ITicNodeState ConvertFunArgType(FunnyType type, StateRefTo[] genericTypes) {
+        if (genericTypes.Length == 0 && _namedTypeFieldRegistry != null)
+            return type.ConvertToTiType(_namedTypeFieldRegistry);
+        return type.ConvertToTiType(genericTypes);
     }
 
     public bool Visit(ComparisonChainSyntaxNode node) {
@@ -799,7 +859,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"Constant {node.Value}:{node.ClrTypeName}");
 #endif
-        var type = node.OutputType.ConvertToTiType();
+        var type = ConvertType(node.OutputType);
 
         if (type is StatePrimitive p)
             _ticTypeGraph.SetConst(node.OrderNumber, p);
@@ -962,7 +1022,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             node.IdType = NamedIdNodeType.Constant;
             node.IdContent = constant;
 
-            var tiType = constant.Type.ConvertToTiType();
+            var tiType = ConvertType(constant.Type);
             switch (tiType)
             {
                 case StatePrimitive primitive:
@@ -1004,7 +1064,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (node.TypeSyntax is not TypeSyntax.EmptyType)
         {
             ThrowIfOptionalTypeDisabled(ResolveType(node.TypeSyntax), node.Id, node.Interval);
-            var type = ResolveType(node.TypeSyntax).ConvertToTiType();
+            var type = ConvertType(ResolveType(node.TypeSyntax));
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
@@ -1019,7 +1079,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         Trace(node, $"VarDef {node.Id}:{ResolveType(node.TypeSyntax)}  ");
 #endif
         ThrowIfOptionalTypeDisabled(ResolveType(node.TypeSyntax), node.Id, node.Interval);
-        var type = ResolveType(node.TypeSyntax).ConvertToTiType();
+        var type = ConvertType(ResolveType(node.TypeSyntax));
         if (!_ticTypeGraph.TrySetVarType(node.Id, type))
             throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         return true;
@@ -1129,9 +1189,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _ticTypeGraph.SetCall(types, ids);
         } else {
             var types = new ITicNodeState[] {
-                signature.ArgTypes[0].ConvertToTiType(),
-                signature.ArgTypes[1].ConvertToTiType(),
-                signature.ReturnType.ConvertToTiType() };
+                ConvertType(signature.ArgTypes[0]),
+                ConvertType(signature.ArgTypes[1]),
+                ConvertType(signature.ReturnType) };
             _ticTypeGraph.SetCall(types, ids);
         }
         return true;
@@ -1164,10 +1224,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _ticTypeGraph.SetCall(types, ids);
         } else {
             var types = new ITicNodeState[] {
-                signature.ArgTypes[0].ConvertToTiType(),
-                signature.ReturnType.ConvertToTiType() };
+                ConvertType(signature.ArgTypes[0]),
+                ConvertType(signature.ReturnType) };
             _ticTypeGraph.SetCall(types, ids);
         }
         return true;
     }
+
+    public bool Visit(TypeDeclarationSyntaxNode node) =>
+        throw new NFunImpossibleException("TypeDeclarationSyntaxNode should be removed during elaboration");
+
+    public bool Visit(NamedTypeConstructorSyntaxNode node) =>
+        throw new NFunImpossibleException("NamedTypeConstructorSyntaxNode should be removed during elaboration");
 }

@@ -103,7 +103,7 @@ public class ConstraintsState : ITicNodeState {
         // None sets the IsOptional flag instead of being stored as a descendant.
         // This avoids stale snapshots: Optional is materialized before Destruction,
         // after all constraints are fully propagated.
-        if (type.Equals(StatePrimitive.None)) {
+        if (type == StatePrimitive.None) {
             IsOptional = true;
             TraceLog.WriteLine($"    Constrains.AddDescendant: None => IsOptional=true");
             return;
@@ -117,12 +117,11 @@ public class ConstraintsState : ITicNodeState {
         else
         {
             var prev = Descendant;
-            // Concretest the incoming type so IsOptional flags are materialized
-            // into StateOptional before LCA. Without this, LCA(U8, ConstraintsState{IsOptional=true})
-            // would return U8 (losing the Optional), but LCA(U8, opt(empty)) returns opt(U8).
-            _descendant = Descendant.Lca(type.Concretest());
+            // Concretest ConstraintsState to materialize IsOptional into StateOptional before LCA.
+            _descendant = Descendant.Lca(type is ConstraintsState ? type.Concretest() : type);
             TraceLog.WriteLine($"    Constrains.AddDescendant: LCA({prev}, {type}) => {_descendant}");
         }
+
 
     }
 

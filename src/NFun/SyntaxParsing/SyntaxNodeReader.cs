@@ -248,6 +248,10 @@ public static class SyntaxNodeReader {
             if (flow.IsCurrent(TokType.ParenthObr))
                 return ReadFunctionCall(flow, headToken);
 
+            // Named type constructor: Name{field=expr, ...}
+            if (flow.IsCurrent(TokType.FiObr) && !flow.IsPrevious(TokType.NewLine))
+                return ReadNamedTypeConstructor(flow, headToken);
+
             // variable with type definition
             //'id:int'
             var type = TryReadTypeDef(flow);
@@ -364,8 +368,13 @@ public static class SyntaxNodeReader {
                 if (!flow.MoveIf(TokType.Id, out var id))
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
                 // Open parenthesis. It means call
-                if (flow.IsCurrent(TokType.ParenthObr))
-                    leftNode = ReadFunctionCall(flow, id, leftNode);
+                if (flow.IsCurrent(TokType.ParenthObr)) {
+                    // Propagate safe access: if piped source is safe (?.method() or ?.field),
+                    // chain is safe too (TypeScript-style: a?.foo().bar(), a?.field.count())
+                    bool propagateSafe = leftNode is FunCallSyntaxNode { IsSafeAccess: true }
+                        || leftNode is StructFieldAccessSyntaxNode { IsSafeAccess: true };
+                    leftNode = ReadFunctionCall(flow, id, leftNode, isSafeCall: propagateSafe);
+                }
                 else //else it is struct field
                     leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
             }
@@ -374,7 +383,11 @@ public static class SyntaxNodeReader {
                 flow.MoveNext(); // ?.
                 if (!flow.MoveIf(TokType.Id, out var id))
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
-                leftNode = SyntaxNodeFactory.SafeFieldAccess(leftNode, id);
+                // ?.method() — safe piped function call
+                if (flow.IsCurrent(TokType.ParenthObr))
+                    leftNode = ReadFunctionCall(flow, id, leftNode, isSafeCall: true);
+                else // ?.field — safe field access
+                    leftNode = SyntaxNodeFactory.SafeFieldAccess(leftNode, id);
             }
             else if (opToken.Type == TokType.Question)
             {
@@ -476,7 +489,7 @@ public static class SyntaxNodeReader {
         if (bodyOrTypeNotation == null)
             throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
 
-        var returnType = TryReadTypeDef(flow);
+        var returnType = TryReadTypeDef(flow, allowArrow: true);
         if (flow.Current.Is(TokType.Def))
         {
             if (bodyOrTypeNotation.ParenthesesCount != 1)
@@ -990,7 +1003,7 @@ public static class SyntaxNodeReader {
         return SyntaxNodeFactory.IfElse(ifThenNodes.ToArray(), elseResult, ifElseStart, flow.CurrentTokenFinishPosition);
     }
 
-    private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null) {
+    private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null, bool isSafeCall = false) {
         var obrId = flow.CurrentTokenPosition;
         var start = pipedVal?.Interval.Start ?? head.Start;
         if (!flow.MoveIf(TokType.ParenthObr))
@@ -1086,8 +1099,10 @@ public static class SyntaxNodeReader {
 
         if (pipedVal == null)
             return SyntaxNodeFactory.FunCall(head.Value, positionalArgs, start, flow.CurrentTokenFinishPosition, named, keywordOnlyNamedStartIndex);
-        else
-            return SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, positionalArgs, start, flow.CurrentTokenFinishPosition, named, keywordOnlyNamedStartIndex);
+        var result = SyntaxNodeFactory.PipedFunCall(head.Value, pipedVal, positionalArgs, start, flow.CurrentTokenFinishPosition, named, keywordOnlyNamedStartIndex);
+        if (isSafeCall && result is FunCallSyntaxNode funCall)
+            funCall.IsSafeAccess = true;
+        return result;
     }
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {
@@ -1116,8 +1131,8 @@ public static class SyntaxNodeReader {
         return read;
     }
 
-    private static TypeSyntax TryReadTypeDef(TokFlow flow) {
-        if (!flow.IsCurrent(TokType.Colon))
+    private static TypeSyntax TryReadTypeDef(TokFlow flow, bool allowArrow = false) {
+        if (!flow.IsCurrent(TokType.Colon) && !(allowArrow && flow.IsCurrent(TokType.Arrow)))
             return TypeSyntax.Empty;
 
         flow.MoveNext();
@@ -1126,5 +1141,49 @@ public static class SyntaxNodeReader {
         if (type is TypeSyntax.EmptyType)
             throw Errors.TypeExpectedButWas(current);
         return type;
+    }
+
+    /// <summary>
+    /// Reads named type constructor: Name{field=expr, ...}
+    /// headToken is the type name, flow is at '{'
+    /// </summary>
+    private static ISyntaxNode ReadNamedTypeConstructor(TokFlow flow, Tok headToken) {
+        flow.MoveNext(); // skip '{'
+        var equations = new List<EquationSyntaxNode>();
+        bool hasAnyDelimiter = true;
+        flow.SkipNewLines();
+
+        while (true)
+        {
+            if (flow.MoveIf(TokType.FiCbr))
+                break;
+            if (!hasAnyDelimiter)
+                throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.CurrentTokenStartPosition - 1,
+                    flow.CurrentTokenFinishPosition));
+
+            if (!flow.MoveIf(TokType.Id, out var idToken))
+                throw Errors.StructFieldIdIsMissed(flow.Current);
+
+            if (!flow.MoveIf(TokType.Def))
+                throw Errors.StructFieldDefinitionTokenIsMissed(flow.Current);
+
+            flow.SkipNewLines();
+            var body = ReadNodeOrNull(flow);
+            if (body == null)
+                throw Errors.StructFieldBodyIsMissed(idToken);
+            var equation = SyntaxNodeFactory.Equation(idToken, body);
+            equations.Add(equation);
+            hasAnyDelimiter = flow.Previous.Type == TokType.NewLine;
+            if (flow.MoveIf(TokType.Sep))
+                hasAnyDelimiter = true;
+            if (flow.SkipNewLines())
+                hasAnyDelimiter = true;
+            if (flow.IsDoneOrEof())
+                throw Errors.StructIsUndone(flow.CurrentTokenFinishPosition);
+        }
+
+        var interval = new Interval(headToken.Start, flow.CurrentTokenFinishPosition);
+        return new SyntaxNodes.NamedTypeConstructorSyntaxNode(
+            headToken.Value, headToken.Interval, equations, interval);
     }
 }

@@ -80,6 +80,32 @@ public static class TokenHelper {
             readType = ReadStructTypeSyntax(flow, openBrace);
             lastPosition = flow.Previous.Finish;
         }
+        else if (flow.IsCurrent(TokType.Rule) && flow.Peek?.Type == TokType.ParenthObr)
+        {
+            // Function type: rule(argTypes...)->returnType
+            typeStart = flow.Current.Start;
+            flow.MoveNext(); // skip 'rule'
+            flow.MoveNext(); // skip '('
+
+            var argTypes = new System.Collections.Generic.List<TypeSyntax>();
+            if (!flow.IsCurrent(TokType.ParenthCbr)) {
+                argTypes.Add(ReadTypeSyntax(flow));
+                while (flow.MoveIf(TokType.Sep, out _))
+                    argTypes.Add(ReadTypeSyntax(flow));
+            }
+            if (!flow.MoveIf(TokType.ParenthCbr, out _))
+                throw new NFun.Exceptions.FunnyParseException(
+                    541, "Expected ')' after rule type arguments", flow.Current.Start, flow.Current.Finish);
+
+            // Arrow is required for function type syntax
+            if (!flow.MoveIf(TokType.Arrow, out _))
+                throw new NFun.Exceptions.FunnyParseException(
+                    540, "Expected '->' after rule type arguments", flow.Current.Start, flow.Current.Finish);
+
+            var returnType = ReadTypeSyntax(flow);
+            readType = new TypeSyntax.FunOf(argTypes.ToArray(), returnType);
+            lastPosition = flow.Previous.Finish;
+        }
         else
         {
             var cur = flow.Current;

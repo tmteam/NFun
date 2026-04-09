@@ -33,6 +33,12 @@ User function - the function described in the script
 ```py
 myFunc(a,b) = 2*a+b #example of a custom function
 ```
+User functions can have default parameter values:
+```py
+greet(name:text, greeting:text = 'Hello') = greeting + ' ' + name
+y = greet('Alice')               # 'Hello Alice'
+z = greet('Bob', 'Hi')           # 'Hi Bob'
+```
 
 # Nfun script
 
@@ -441,14 +447,14 @@ The remaining expressions require a more detailed description and are described 
 In the body of the script, you can describe the function available for calling in the script
 
 ```py
-functionName(arg1:type1,arg2:type2...argN:type):rtype = expression
+functionName(arg1:type1, arg2:type2)->rtype = expression
 ```
 here
 * **functionName** - the name of the function
 * **arg1,arg2..argN** - 1st,2nd ... n-th names of arguments. Trail comma supported
 * *(optional)* **type1,type2...typeN** - types of the 1st 2nd ... N-th argument
-* *(optional)* **rtype** - function return type
-* **expression** - function expression (body) with local variables arg1,arg2..argN
+* *(optional)* **rtype** - return type (`->` or `:`)
+* **expression** - function body
 
 Only function arguments can be used as variables in the function body. The inputs and outputs of the script are not visible for the function
 
@@ -536,7 +542,7 @@ divideBy2(a) = a/2 # the function takes a:real and returns real
 
 multiplyReal(a: real, b) = a*b # the function takes a: real, b: real and returns real
 
-maxOf3(a,b,c):int =max(a,b).max(c) # the function takes a:int, b:int, c:int and returns int
+maxOf3(a,b,c)->int = max(a,b).max(c) # the function takes a:int, b:int, c:int and returns int
 ```
 
 If the function is valid for various types (including with some restrictions on them), such a function is called **generic**.

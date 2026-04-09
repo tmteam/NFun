@@ -64,7 +64,8 @@ internal static class RuntimeBuilderHelper {
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
-        DialectSettings dialect
+        DialectSettings dialect,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null
         ) {
         var resultBuilder = new TypeInferenceResultsBuilder();
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);
@@ -78,7 +79,8 @@ internal static class RuntimeBuilderHelper {
                 aprioriTypes: aprioriTypes,
                 customTypes: customTypes,
                 results: resultBuilder,
-                dialect: dialect
+                dialect: dialect,
+                namedTypeFieldRegistry: namedTypeFieldRegistry
                 ))
                 AssertChecks.Panic("Types not solved due unknown reasons");
 

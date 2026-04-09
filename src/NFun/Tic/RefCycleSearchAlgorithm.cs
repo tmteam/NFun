@@ -15,7 +15,7 @@ class RefCycleSearchAlgorithm {
         if (node.VisitMark == RefVisitedMark)
             return null;
 
-        _refRoute = new Stack<TicNode>();
+        _refRoute = null; // lazy — only allocated if cycle found
         var nonReference = GetNonReferenceNodeOrNull(node);
         if (nonReference != null)
             return nonReference;
@@ -53,7 +53,7 @@ class RefCycleSearchAlgorithm {
         node.VisitMark = RefVisitingMark;
         var res = GetNonReferenceNodeOrNull(refTo.Node);
         if (res == null)
-            _refRoute.Push(node);
+            (_refRoute ??= new Stack<TicNode>()).Push(node);
         else
         {
             node.VisitMark = -1;

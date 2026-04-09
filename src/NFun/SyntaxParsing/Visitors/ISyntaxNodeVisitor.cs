@@ -26,4 +26,6 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(DefaultValueSyntaxNode node);
     T Visit(BinOperatorSyntaxNode node);
     T Visit(UnaryOperatorSyntaxNode node);
+    T Visit(TypeDeclarationSyntaxNode node);
+    T Visit(NamedTypeConstructorSyntaxNode node);
 }

@@ -36,6 +36,8 @@ Most functions may be applied for different types of operands. To simplify the d
 | log10(real):real      | the base 10 logarithm of a specified number                                  |
 | avg(real[]):real      | Computed average of an array of real numbers. Throws if input array is empty |
 | round(real,digits:int):real | the value rounded to the specified number of digits                    |
+| ceil(real):real        | the smallest integer greater than or equal to the argument. `ceil(7.03)` → `8.0` |
+| floor(real):real       | the largest integer less than or equal to the argument. `floor(7.03)` → `7.0`    |
 | range(from:T, to:T):T[]    | array of numbers from `from` to `to` inclusive. `range(1,3)` → `[1,2,3]`. Descending if from > to |
 | range(from:T, to:T, step:T):T[] | array with step. `range(1,10,3)` → `[1,4,7,10]`                  |
 
@@ -102,23 +104,23 @@ Same as Serialization to `byte[]`, but returns bit array
 | last(arr:T[]):T                    | last element of array. Throws if array is empty                                                                                                                          |
 | set(arr:T[],index:int,value:T):T[] | copy of array with element at index replaced                                                                                                                             |
 | count(T[]):int                     | array size                                                                                                                                                               |
-| count(T[], rule(T):bool):int       | the number of array elements for which the rule is satisfied                                                                                                             |
+| count(T[], rule(T)->bool):int       | the number of array elements for which the rule is satisfied                                                                                                             |
 | find(T[], T):int                   | index of the first element equal to the specified, -1 if no such element found                                                                                           |
 | chunk(T[],n:int):T[][]             | Chunks (splits) the array into many smaller arrays with size of n. Last array may have size less than n. Throws if n is non positive                                     |
 | flat(T[][]):T[]                    | Array with sequential enumeration of elements of all specified subarays                                                                                                  |
-| fold(T[],rule(T,T):T):T            | Applies an accumulator rule over an array. Throws if given array is empty                                                                                                |
-| fold(T[],seed:TR,rule(TR,T):TR):TR | Applies an accumulator rule over an array. The specified seed value is used as the initial accumulator value, and the specified rule is used to select the result value. |
+| fold(T[],rule(T,T)->T):T            | Applies an accumulator rule over an array. Throws if given array is empty                                                                                                |
+| fold(T[],seed:TR,rule(TR,T)->TR):TR | Applies an accumulator rule over an array. The specified seed value is used as the initial accumulator value, and the specified rule is used to select the result value. |
 | unite(T[],T[]):T[]                 | the set union of two arrays                                                                                                                                              |
 | unique(T[],T[]):T[]                | array of elements that are contained in only one of the arrays                                                                                                           |
 | intersect(T[],T[]):T[]             | array of elements that are contained in both arrays                                                                                                                      |
 | concat(T[],T[]):T[]                | concatenation of two arrays                                                                                                                                              |
 | append(T[],T):T[]                  | array of elements from given array and specified element in the tail of resulting array                                                                                  |
 | except(T[],T[]):T[]                | array of elements that are contained in first array and not contained in second                                                                                          |
-| map(T[],rule(T):TR):TR[]           | Projects each element of a given into a new form by given rule                                                                                                           |
+| map(T[],rule(T)->TR):TR[]           | Projects each element of a given into a new form by given rule                                                                                                           |
 | any(T[]):bool                      | `true` if the array is non-empty                                                                                                                                         |
-| any(T[],rule(T):bool):bool         | `true` if the specified rule is satisfied at least for single element of given array. `false` if it is not, or array is empty                                            |
-| all(T[],rule(T):bool):bool         | `true` if the specified rule is satisfied for all elements of given array. `true` if array is empty (vacuous truth)                                                      |
-| filter(T[],rule(T):bool):T[]       | an array consisting of elements of the original array for which the rule is satisfied                                                                                    |
+| any(T[],rule(T)->bool):bool         | `true` if the specified rule is satisfied at least for single element of given array. `false` if it is not, or array is empty                                            |
+| all(T[],rule(T)->bool):bool         | `true` if the specified rule is satisfied for all elements of given array. `true` if array is empty (vacuous truth)                                                      |
+| filter(T[],rule(T)->bool):T[]       | an array consisting of elements of the original array for which the rule is satisfied                                                                                    |
 | repeat(element:T,count:int):T[]    | an array in which the specified element is repeated n times. Throws if count is negative                                                                                 |
 | reverse(T[]):T[]                   | reversed array                                                                                                                                                           |
 | take(T[],n:int):T[]                | takes first n elements of given array. Equals to `[:n]` operator call                                                                                                    |
@@ -127,14 +129,14 @@ Same as Serialization to `byte[]`, but returns bit array
 | Function                          | Constrains                 | Returns	                                                                                          |
 |-----------------------------------|----------------------------|---------------------------------------------------------------------------------------------------|
 | sum(T[]):T                        | Arithmetics                | the sum of all the elements of the array                                                          |
-| sum(T[], rule(T):TR):TR           | Arithmetics                | the sum of transformed elements                                                                   |
+| sum(T[], rule(T)->TR):TR           | Arithmetics                | the sum of transformed elements                                                                   |
 | max(T[]):T                        | Comparables                | the maximum element in array. Throws if array is empty                                            |
 | min(T[]):T                        | Comparables                | the minimum element in array. Throws if array is empty                                            |
 | median(T[]):T                     | Comparables                | median element. Throws if array is empty                                                          |
 | sort(T[]):T[]                     | Comparables                | sorted array                                                                                      |
 | sortDescending(T[]):T[]           | Comparables                | sorted array in reverse order                                                                     |
-| sort(T[],rule(T):R):T[]           | T is All, R is Comparables | sorted array, where the element being compared is obtained by the specified rule                  |
-| sortDescending(T[],rule(T):R):T[] | T is All, R is Comparables | Sorted array in reverse order, where the element being compared is obtained by the specified rule |
+| sort(T[],rule(T)->R):T[]           | T is All, R is Comparables | sorted array, where the element being compared is obtained by the specified rule                  |
+| sortDescending(T[],rule(T)->R):T[] | T is All, R is Comparables | Sorted array in reverse order, where the element being compared is obtained by the specified rule |
 
 ## Text Functions
 | Function                          | Returns	                                                                                                                |

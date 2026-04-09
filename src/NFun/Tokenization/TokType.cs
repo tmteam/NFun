@@ -193,6 +193,10 @@ public enum TokType {
     /// </summary>
     ForceUnwrap,
     /// <summary>
+    /// -> (return type arrow)
+    /// </summary>
+    Arrow,
+    /// <summary>
     /// Superscript digit ²³⁴⁵⁶⁷⁸⁹ (postfix power)
     /// </summary>
     Superscript,
@@ -200,5 +204,9 @@ public enum TokType {
     /// ... (spread/params)
     /// </summary>
     Spread,
+    /// <summary>
+    /// 'type' keyword for named type definitions
+    /// </summary>
+    TypeKeyword,
 
 }

@@ -36,15 +36,15 @@ i = [1,2].fold(rule it)      # ERRROR
 ```
 
 ## Annotated syntax
-There is an extended form of rule-expression, with the ability to specify the types of arguments and or the type of return value
+There is an extended form of rule-expression, with the ability to specify the types of arguments and/or the type of return value
 
 ```py
-rule(arg1:type1, arg2:type2... argN:type):rtype = expression
+rule(arg1:type1, arg2:type2)->rtype = expression
 ```
 here
 * **arg1,arg2..argN** - the names of the 1st 2nd ... N-th arguments
 * *(optional)* **type1,type2...typeN** - types of the 1st 2nd ... N-th arguments
-* *(optional)* **rtype** - function return type
+* *(optional)* **rtype** - function return type (specified with `->` or `:`)
 * **expression** - function expression (body) with local variables arg1,arg2..argN
 
 the trailing comma after last argument is supported
@@ -54,14 +54,14 @@ a = rule(a) = a+1
 b = rule(a,b) = a+b
 c = rule() = 42 
 
-d = [1,2,3].all(rule(i) = i >0)          # check that all numbers in the array are positive
-e = [1,2,3].all(rule(i:int):bool = i >0) # check that all numbers in the array are positive 
-                                         # (all types explicitly specified)
-f = [0..3].fold(rule(a,b,)= a+b) #the sum of all integers of the array       
+d = [1,2,3].all(rule(i) = i >0)            # check that all numbers in the array are positive
+e = [1,2,3].all(rule(i:int)->bool = i >0)   # all types explicitly specified (arrow syntax)
+f = [1,2,3].all(rule(i:int):bool = i >0)    # colon syntax also works
+g = [0..3].fold(rule(a,b,)= a+b)            # sum of all integers
 
-g = [-1,-2,0,1,2,3]
+h = [-1,-2,0,1,2,3]
        .filter(rule(i)= i>0)
-       .fold(rule(a:int,b)= a+b) #the sum of all positive integers of the array
+       .fold(rule(a:int,b)= a+b) # sum of all positive integers
 ```
 ## Capturing variables
 

@@ -172,14 +172,6 @@ public class BuiltInFunctionsTest {
     public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
-    [Ignore("sign function not implemented — not in spec")]
-    [TestCase("sign(-5)", -1)]
-    [TestCase("sign(-5.0)", -1)]
-    [TestCase("sign(5)", 1)]
-    [TestCase("sign(5.2)", 1)]
-    public void SignFunction(string expr, object expected)
-        => expr.AssertAnonymousOut(expected);
-
     [TestCase("['a'].sort(rule it)", new[] { "a" })]
     [TestCase("['a'].sort()", new[] { "a" })]
     [TestCase("[12].sort(rule it)", new[] { 12 })]

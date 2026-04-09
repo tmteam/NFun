@@ -28,18 +28,103 @@ internal static class RuntimeBuilder {
         var flow = Tokenizer.ToFlow(script, dialect.AllowNewlineInStrings == AllowNewlineInStrings.Deny);
         var syntaxTree = Parser.Parse(flow);
 
+        // Named types: elaborate only when enabled, skip entirely otherwise
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null;
+        Runtime.TypeRegistry typeRegistry = null;
+        if (dialect.NamedTypesSupport == NamedTypesSupport.ExperimentalEnabled)
+        {
+            syntaxTree = NamedTypeElaborator.Elaborate(syntaxTree, out var namedTypes);
+            if (namedTypes.Count > 0)
+            {
+                // Pass 1: register all struct type names as NamedStruct (for forward refs)
+                foreach (var nt in namedTypes)
+                    if (!nt.Value.IsAlias)
+                        customTypes = customTypes.CloneWith(nt.Key, FunnyType.NamedStructOf(nt.Key));
+
+                // Pass 2: resolve aliases. May need multiple passes for chaining (type b = a; type a = int).
+                // Most aliases resolve in one pass. Second pass only if there were unresolved forward refs.
+                var aliases = new List<KeyValuePair<string, NamedTypeDefinition>>();
+                foreach (var nt in namedTypes)
+                    if (nt.Value.IsAlias)
+                        aliases.Add(nt);
+
+                for (int pass = 0; pass < aliases.Count + 1; pass++)
+                {
+                    bool anyUnresolved = false;
+                    foreach (var alias in aliases)
+                    {
+                        if (customTypes.TryResolve(alias.Key, out _))
+                            continue; // already resolved
+                        try {
+                            var resolved = TypeSyntaxResolver.Resolve(alias.Value.AliasTypeSyntax, customTypes);
+                            customTypes = customTypes.CloneWith(alias.Key, resolved);
+                        } catch {
+                            anyUnresolved = true; // forward ref — try next pass
+                        }
+                    }
+                    if (!anyUnresolved) break;
+                }
+
+                // Pass 3: build field registry for struct types
+                var hasStructTypes = false;
+                var registry = new NamedTypeFieldRegistry();
+                foreach (var nt in namedTypes)
+                {
+                    if (nt.Value.IsAlias)
+                        continue;
+                    hasStructTypes = true;
+                    var fields = new (string name, FunnyType type)[nt.Value.Fields.Count];
+                    for (int i = 0; i < nt.Value.Fields.Count; i++)
+                    {
+                        var f = nt.Value.Fields[i];
+                        fields[i] = (f.Name, f.TypeSyntax is TypeSyntax.EmptyType
+                            ? InferTypeFromConstantOrAny(f.DefaultValue)
+                            : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes));
+                    }
+                    registry.Register(nt.Key, fields);
+                }
+                if (hasStructTypes)
+                    namedTypeFieldRegistry = registry;
+
+                // Build TypeRegistry for runtime introspection
+                var typeInfos = new Dictionary<string, Runtime.NamedTypeInfo>(StringComparer.OrdinalIgnoreCase);
+                foreach (var nt in namedTypes) {
+                    if (nt.Value.IsAlias) {
+                        customTypes.TryResolve(nt.Key, out var resolved);
+                        typeInfos[nt.Key] = new Runtime.NamedTypeInfo(nt.Key, resolved);
+                    } else {
+                        var fieldInfos = new Runtime.NamedTypeFieldInfo[nt.Value.Fields.Count];
+                        for (int i = 0; i < nt.Value.Fields.Count; i++) {
+                            var f = nt.Value.Fields[i];
+                            var ft = f.TypeSyntax is TypeSyntax.EmptyType
+                                ? InferTypeFromConstantOrAny(f.DefaultValue)
+                                : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes);
+                            fieldInfos[i] = new Runtime.NamedTypeFieldInfo(f.Name, ft, f.HasDefault);
+                        }
+                        customTypes.TryResolve(nt.Key, out var structType);
+                        typeInfos[nt.Key] = new Runtime.NamedTypeInfo(nt.Key, structType, fieldInfos);
+                    }
+                }
+                typeRegistry = new Runtime.TypeRegistry(typeInfos);
+            }
+        }
+
         //Set node numbers
         var setNodeNumberVisitor = new SetNodeNumberVisitor(0);
         syntaxTree.ComeOver(setNodeNumberVisitor);
         syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
+
         return Build(
             syntaxTree,
             functionRegistry,
             EnsureBuiltInConstants(constants, dialect.Converter),
             aprioriTypesMap?? EmptyAprioriTypesMap.Instance,
-            customTypes, dialect);
+            customTypes, dialect,
+            namedTypeFieldRegistry,
+            typeRegistry);
     }
 
+    /// <summary>
     private static IConstantList EnsureBuiltInConstants(IConstantList userConstants, FunnyConverter converter) {
         if (userConstants == null)
             return converter.TypeBehaviour is RealIsDoubleTypeBehaviour
@@ -60,7 +145,9 @@ internal static class RuntimeBuilder {
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null,
+        Runtime.TypeRegistry typeRegistry = null) {
         #region build user functions
 
         //get topology sort of the functions call
@@ -95,7 +182,9 @@ internal static class RuntimeBuilder {
                     functionSolveOrder[i],
                     constants,
                     scopeFunctionDictionary,
-                    dialect);
+                    dialect,
+                    customTypes,
+                    namedTypeFieldRegistry);
             }
         }
 
@@ -105,7 +194,7 @@ internal static class RuntimeBuilder {
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD BODY ====");
 
-        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionRegistry, aprioriTypes, customTypes, dialect);
+        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionRegistry, aprioriTypes, customTypes, dialect, namedTypeFieldRegistry);
 
 
         #region build body
@@ -188,7 +277,7 @@ internal static class RuntimeBuilder {
             }
         }
 
-        return new FunnyRuntime(equations, variables, userFunctions, dialect.Converter);
+        return new FunnyRuntime(equations, variables, userFunctions, dialect.Converter, typeRegistry);
     }
 
     private static TypeInferenceResults SolveBodyTypes(
@@ -197,10 +286,11 @@ internal static class RuntimeBuilder {
         IFunctionRegistry functionRegistry,
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
 
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
-            syntaxTree, functionRegistry, constants, aprioriTypes, customTypes, dialect);
+            syntaxTree, functionRegistry, constants, aprioriTypes, customTypes, dialect, namedTypeFieldRegistry);
 
         var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
         foreach (var syntaxNode in syntaxTree.Nodes)
@@ -273,7 +363,9 @@ internal static class RuntimeBuilder {
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
         IConstantList constants,
         ScopeFunctionRegistry functionsRegistry,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes = null,
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
 
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD {functionSyntaxNode.Id}(..) ====");
@@ -291,7 +383,9 @@ internal static class RuntimeBuilder {
                 functions: functionsRegistry,
                 constants: constants,
                 results: resultsBuilder,
-                dialect: dialect))
+                dialect: dialect,
+                customTypes: customTypes,
+                namedTypeFieldRegistry: namedTypeFieldRegistry))
                 AssertChecks.Panic($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
             // solve the types. We ignore prefered types to get most common ancestor for function argument types instead of preferred type
             types = graph.Solve(ignorePrefered: true);
@@ -323,10 +417,33 @@ internal static class RuntimeBuilder {
 
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;
+
+            // For named struct params, use NamedStructOf in the external prototype.
+            // The function body uses the structural expansion (argTypes).
+            // Call sites use NamedStructOf to avoid depth-mismatch in recursive types.
+            var protoArgTypes = argTypes;
+            if (namedTypeFieldRegistry != null) {
+                FunnyType[] overridden = null;
+                for (int i = 0; i < functionSyntaxNode.Args.Count && i < argTypes.Length; i++) {
+                    if (functionSyntaxNode.Args[i].TypeSyntax is TypeSyntax.EmptyType)
+                        continue;
+                    var resolved = TypeSyntaxResolver.Resolve(
+                        functionSyntaxNode.Args[i].TypeSyntax, customTypes);
+                    if (resolved.BaseType == BaseFunnyType.NamedStruct) {
+                        if (overridden == null) {
+                            overridden = new FunnyType[argTypes.Length];
+                            Array.Copy(argTypes, overridden, argTypes.Length);
+                        }
+                        overridden[i] = resolved;
+                    }
+                }
+                if (overridden != null) protoArgTypes = overridden;
+            }
+
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Generic {functionSyntaxNode.Id} {funType}");
             //make function prototype
-            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
+            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, protoArgTypes);
             //add prototype to dictionary for future use
             functionsRegistry.Add(prototype);
             var function =
@@ -390,7 +507,7 @@ internal static class RuntimeBuilder {
                 if (ticType is not Tic.SolvingStates.StatePrimitive and not Tic.SolvingStates.StateArray)
                     continue;
                 try { paramType = TicTypesConverter.Concrete.Convert(ticType); }
-                catch { continue; }
+                catch (Exception) { continue; }
             }
 
             try
@@ -409,9 +526,22 @@ internal static class RuntimeBuilder {
                 arg.PrecomputedDefaultValue = defaultExprNode.Calc();
                 arg.PrecomputedDefaultType = paramType;
             }
-            catch { /* conversion failed or non-constant — caller will use original expression */ }
+            catch (Exception) { /* conversion failed or non-constant — caller will use original expression */ }
         }
     }
+
+    /// <summary>
+    /// Infers a FunnyType from a constant expression syntax node (used for named type fields
+    /// with no explicit type annotation but a default value, e.g. {retries = 3}).
+    /// Falls back to FunnyType.Any if the expression is null or type cannot be determined.
+    /// </summary>
+    private static FunnyType InferTypeFromConstantOrAny(ISyntaxNode defaultExpr) =>
+        defaultExpr switch {
+            ConstantSyntaxNode c => c.OutputType,
+            GenericIntSyntaxNode => FunnyType.Int32,
+            SyntaxParsing.SyntaxNodes.IpAddressConstantSyntaxNode => FunnyType.Ip,
+            _ => FunnyType.Any
+        };
 
     /// <summary>Set OutputType on all nodes in a subtree from TIC results (for precomputing defaults).
     /// Resolves generic constraints to preferred/descendant types for precomputation.</summary>
@@ -428,7 +558,7 @@ internal static class RuntimeBuilder {
             if (resolved != null)
             {
                 try { node.OutputType = TicTypesConverter.Concrete.Convert(resolved); }
-                catch { /* truly generic — leave as Empty */ }
+                catch (Exception) { /* truly generic — leave as Empty */ }
             }
         }
         foreach (var child in node.Children)

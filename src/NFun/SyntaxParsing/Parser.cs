@@ -35,6 +35,13 @@ public class Parser {
             _startOfTheLine = flow.IsStartOfTheLine();
             _exprStartPosition = flow.Current.Start;
 
+            // type keyword — parse named type declaration
+            if (flow.IsCurrent(TokType.TypeKeyword))
+            {
+                ReadTypeDeclaration(flow);
+                continue;
+            }
+
             var e = SyntaxNodeReader.ReadNodeOrNull(flow) ??
                     throw Errors.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
 
@@ -45,7 +52,7 @@ public class Parser {
                 else
                     ReadInputVariableSpecification(typed);
             }
-            else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
+            else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon) || flow.IsCurrent(TokType.Arrow))
             {
                 if (e is NamedIdSyntaxNode variable)
                     ReadEquation(variable, variable.Id);
@@ -196,7 +203,7 @@ public class Parser {
         }
 
         var outputType = TypeSyntax.Empty;
-        if (_flow.MoveIf(TokType.Colon, out _))
+        if (_flow.MoveIf(TokType.Colon, out _) || _flow.MoveIf(TokType.Arrow, out _))
             outputType = _flow.ReadTypeSyntax();
 
         _flow.SkipNewLines();
@@ -247,5 +254,99 @@ public class Parser {
         if (exNode == null)
             throw Errors.VarExpressionIsMissed(start, id, _flow.Current);
         return SyntaxNodeFactory.Equation(id, exNode, start, _attributes);
+    }
+
+    /// <summary>
+    /// Parse: type name = {field defs}
+    /// Fields can be: name:type, name:type = default_expr, name = default_expr
+    /// </summary>
+    private void ReadTypeDeclaration(TokFlow flow) {
+        var start = flow.Current.Start;
+        flow.MoveNext(); // skip 'type'
+
+        if (!flow.MoveIf(TokType.Id, out var nameToken))
+            throw Errors.TypeNameExpected(flow.Current);
+
+        if (!flow.MoveIf(TokType.Def, out _))
+            throw Errors.TypeDefTokenIsMissed(nameToken.Value, flow.Current);
+
+        // type name = {...}  → struct type
+        // type name = type   → type alias (int, int[], text?, other_name, etc.)
+        if (!flow.IsCurrent(TokType.FiObr))
+        {
+            // Type alias: read type syntax
+            var aliasType = flow.ReadTypeSyntax();
+            if (aliasType is TypeSyntax.EmptyType)
+                throw Errors.TypeBodyExpected(nameToken.Value, flow.Current);
+            var aliasInterval = new Interval(start, flow.CurrentTokenFinishPosition);
+            _nodes.Add(new SyntaxNodes.TypeDeclarationSyntaxNode(nameToken.Value, aliasType, aliasInterval));
+            return;
+        }
+
+        flow.MoveNext(); // skip '{'
+
+        var fields = new List<SyntaxNodes.TypeFieldDefinition>();
+        bool hasAnyDelimiter = true;
+        flow.SkipNewLines();
+
+        while (true)
+        {
+            if (flow.MoveIf(TokType.FiCbr))
+                break;
+
+            if (!hasAnyDelimiter)
+                throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.CurrentTokenStartPosition - 1,
+                    flow.CurrentTokenFinishPosition));
+
+            if (!flow.MoveIf(TokType.Id, out var fieldId))
+                throw Errors.StructFieldIdIsMissed(flow.Current);
+
+            var fieldStart = fieldId.Start;
+
+            // Try read type annotation
+            var typeSyntax = TypeSyntax.Empty;
+            if (flow.IsCurrent(TokType.Colon))
+            {
+                flow.MoveNext();
+                typeSyntax = flow.ReadTypeSyntax();
+                if (typeSyntax is TypeSyntax.EmptyType)
+                    throw Errors.TypeExpectedButWas(flow.Current);
+            }
+
+            // Try read default value
+            ISyntaxNode defaultValue = null;
+            if (flow.MoveIf(TokType.Def))
+            {
+                flow.SkipNewLines();
+                defaultValue = SyntaxNodeReader.ReadNodeOrNull(flow);
+                if (defaultValue == null)
+                    throw Errors.StructFieldBodyIsMissed(fieldId);
+            }
+
+            // All four formats are valid:
+            // {a}            — generic, required (no type, no default)
+            // {a:int}        — typed, required
+            // {a = 42}       — generic default (type inferred)
+            // {a:int = 42}   — typed with default
+
+            // Check for duplicate field names
+            if (fields.Any(f => string.Equals(f.Name, fieldId.Value, StringComparison.OrdinalIgnoreCase)))
+                throw Errors.NamedTypeDuplicateField(nameToken.Value, fieldId.Value, fieldId.Interval);
+
+            var fieldFinish = defaultValue?.Interval.Finish ?? flow.CurrentTokenFinishPosition;
+            fields.Add(new SyntaxNodes.TypeFieldDefinition(
+                fieldId.Value, typeSyntax, defaultValue, new Interval(fieldStart, fieldFinish)));
+
+            hasAnyDelimiter = flow.Previous.Type == TokType.NewLine;
+            if (flow.MoveIf(TokType.Sep))
+                hasAnyDelimiter = true;
+            if (flow.SkipNewLines())
+                hasAnyDelimiter = true;
+            if (flow.IsDoneOrEof())
+                throw Errors.StructIsUndone(flow.CurrentTokenFinishPosition);
+        }
+
+        var interval = new Interval(start, flow.CurrentTokenFinishPosition);
+        _nodes.Add(new SyntaxNodes.TypeDeclarationSyntaxNode(nameToken.Value, fields, interval));
     }
 }

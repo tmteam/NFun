@@ -25,6 +25,9 @@ public class PullConstraintsFunctions : IStateFunction {
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
         ancestorCopy.AddDescendant(descendant.Descendant);
+        // Propagate Preferred from descendant (e.g., integer constants with Preferred=I32).
+        if (ancestorCopy.Preferred == null && descendant.Preferred != null)
+            ancestorCopy.Preferred = descendant.Preferred;
         // Propagate IsOptional flag (OR semantics): if descendant is optional,
         // the ancestor must be optional too. Uses AddDescendant(None) which sets the flag.
         if (descendant.IsOptional)
@@ -206,6 +209,14 @@ public class PullConstraintsFunctions : IStateFunction {
             }
             else if (descField != ancField.Value)
             {
+                // None field: skip connection. None ≤ opt(T) is valid for any T,
+                // but None cannot be directly connected to a bare struct/array/fun ancestor.
+                // The Optional compatibility is handled at the outer level.
+                if (descField.GetNonReference().State == StatePrimitive.None)
+                {
+                    TraceLog.WriteLine($"    Field '{ancField.Key}': None desc → skip (handled by outer Optional)");
+                    continue;
+                }
                 TraceLog.WriteLine($"    Field '{ancField.Key}': desc ≤ anc ({descField.State} ≤ {ancField.Value.State})");
                 descField.AddAncestor(ancField.Value);
             }

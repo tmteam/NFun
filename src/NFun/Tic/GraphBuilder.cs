@@ -17,6 +17,9 @@ public class GraphBuilder {
     private readonly List<TicNode> _outputNodes = new();
     private readonly List<TicNode> _inputNodes = new();
 
+    /// <summary>Registry of named type definitions for lazy expansion of recursive types.</summary>
+    internal Types.INamedTypeFieldRegistry NamedTypeRegistry { get; set; }
+
     public GraphBuilder() { _syntaxNodes = new TicNode[16]; _syntaxNodesLength = 16; }
     public GraphBuilder(int maxSyntaxNodeId) { _syntaxNodes = new TicNode[maxSyntaxNodeId]; _syntaxNodesLength = maxSyntaxNodeId; }
 
@@ -222,7 +225,14 @@ public class GraphBuilder {
             }
             case StateRefTo refTo:
             {
-                node.AddAncestor(refTo.Node);
+                // Guard against self-loop: if the call arg already references the same
+                // target node, adding it as ancestor would create a trivial cycle
+                // (the toposort ref-transfer would produce node.AddAncestor(node)).
+                // This occurs in recursive calls that pass a parameter unchanged.
+                var target = refTo.Node.GetNonReference();
+                if (node.State is StateRefTo existingRef && existingRef.Node.GetNonReference() == target)
+                    break;
+                node.AddAncestor(target);
                 break;
             }
             default: throw new NotSupportedException();
@@ -330,9 +340,19 @@ public class GraphBuilder {
 
         for (int i = 0; i < funState.ArgsCount; i++)
         {
-            var state = funState.ArgNodes[i].State;
-            if (state is ConstraintsState)
-                state = new StateRefTo(funState.ArgNodes[i]);
+            var argNode = funState.ArgNodes[i];
+            var state = argNode.State;
+            // Use StateRefTo for unconstrained (generic) and unsolved composite args.
+            // For unsolved ICompositeState (e.g., StateFun from higher-order params):
+            //   passing the state directly causes SetCallArgument to create a new node
+            //   sharing the same ICompositeState object. When the caller is a recursive
+            //   call passing the same parameter through, this shared state causes
+            //   "Circular ancestor" during PullConstraints (both the original and the
+            //   clone share the same member nodes).
+            // Using StateRefTo avoids this: the call arg gets a constraint edge to the
+            // parameter node, not a cloned copy of its state.
+            if (state is ConstraintsState || (state is ICompositeState comp && !comp.IsSolved))
+                state = new StateRefTo(argNode);
             SetCallArgument(state, argThenReturnIds[i]);
         }
 
@@ -425,13 +445,13 @@ public class GraphBuilder {
         var sorted = Toposort();
         PrintTrace("1. Toposorted", sorted);
 
-        SolvingFunctions.PullConstraints(sorted);
+        bool hasOptionalTypes = SolvingFunctions.PullConstraints(sorted);
         PrintTrace("2. PullConstraints", sorted);
 
         SolvingFunctions.PushConstraints(sorted);
         PrintTrace("3. PushConstraints", sorted);
 
-        bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
+        bool allTypesAreSolved = SolvingFunctions.Destruction(sorted, hasOptionalTypes);
         PrintTrace("4. Destructed");
 
         if (allTypesAreSolved)

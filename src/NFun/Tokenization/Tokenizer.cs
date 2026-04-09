@@ -33,7 +33,20 @@ public class Tokenizer {
     #region statics
 
     public static TokFlow ToFlow(string input, bool denyNewlineInStrings = false)
-        => new(ToTokens(input, denyNewlineInStrings));
+        => new(ToTokenArray(input, denyNewlineInStrings));
+
+    private static Tok[] ToTokenArray(string input, bool denyNewlineInStrings) {
+        var reader = new Tokenizer(denyNewlineInStrings);
+        var tokens = new List<Tok>();
+        for (var i = 0;;)
+        {
+            var res = reader.TryReadNext(input, i);
+            tokens.Add(res);
+            if (res.Is(TokType.Eof))
+                return tokens.ToArray();
+            i = res.Finish;
+        }
+    }
 
     public static IEnumerable<Tok> ToTokens(string input, bool denyNewlineInStrings = false) {
         var reader = new Tokenizer(denyNewlineInStrings);
@@ -130,7 +143,7 @@ public class Tokenizer {
         { "return", TokType.Reserved },
         { "struct", TokType.Reserved },
         { "switch", TokType.Reserved },
-        { "type", TokType.Reserved },
+        { "type", TokType.TypeKeyword },
         { "try", TokType.Reserved },
         { "time", TokType.Reserved },
         { "throw", TokType.Reserved },
@@ -328,8 +341,54 @@ public class Tokenizer {
         if (index - position == 2)
             return Tok.SubString(str, TokType.NotAToken, position, index);
 
+        // Check for IP address: hex octet followed by .octet.octet.octet
+        // e.g., 0xFF.0.0xA.0xFA or 0xFF.168.0.1
+        if (index < str.Length && str[index] == '.') {
+            var ipResult = TryReadIpFromHexStart(str, position, index);
+            if (ipResult != null)
+                return ipResult;
+        }
+
         return Tok.New(TokType.HexOrBinaryNumber, str.Substring(position, index - position), position, index);
     }
+
+    /// <summary>
+    /// After reading a hex octet (0xFF), check if followed by .octet.octet.octet forming an IP.
+    /// Each octet can be decimal (0-255) or hex (0x00-0xFF).
+    /// Returns null if not a valid IP pattern.
+    /// </summary>
+    private static Tok TryReadIpFromHexStart(string str, int position, int afterFirstOctet) {
+        int dots = 0;
+        int index = afterFirstOctet;
+        while (dots < 3 && index < str.Length && str[index] == '.') {
+            dots++;
+            index++; // skip dot
+            if (index >= str.Length)
+                return null;
+            // Read next octet: either 0xHH or decimal digits
+            if (index + 1 < str.Length && str[index] == '0'
+                && (str[index + 1] == 'x' || str[index + 1] == 'X')) {
+                index += 2; // skip 0x
+                int hexStart = index;
+                while (index < str.Length && IsHexDigit(str[index]))
+                    index++;
+                if (index == hexStart)
+                    return null; // no digits after 0x
+            } else {
+                int digitStart = index;
+                while (index < str.Length && IsDigit(str[index]))
+                    index++;
+                if (index == digitStart)
+                    return null; // no digits
+            }
+        }
+        if (dots == 3)
+            return Tok.SubString(str, TokType.IpAddress, position, index);
+        return null;
+    }
+
+    private static bool IsHexDigit(char c) =>
+        IsDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 
     private static Tok ReadBinNumber(string str, int position) {
         if (str[position] != '0' || str[position + 1] != 'b')
@@ -448,6 +507,7 @@ public class Tokenizer {
                 }
                 return Tok.New(TokType.Colon, position, position + 1);
             case '~': return Tok.New(TokType.BitInverse, position, position + 1);
+            case '-' when next == '>': return Tok.New(TokType.Arrow, position, position + 2);
             case '-': return Tok.New(TokType.Minus, position, position + 1);
             case '*' when next == '*': return Tok.New(TokType.Pow, position, position + 2);
             case '*': return Tok.New(TokType.Mult, position, position + 1);

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Interpretation.Nodes;
 
@@ -9,6 +10,14 @@ internal class StructFieldAccessExpressionNode : IExpressionNode {
         _fieldName = fieldName;
         _source = source;
         Type = source.Type.StructTypeSpecification[fieldName];
+        Interval = interval;
+    }
+
+    public StructFieldAccessExpressionNode(string fieldName, IExpressionNode source, Interval interval,
+        FunnyType overrideType) {
+        _fieldName = fieldName;
+        _source = source;
+        Type = overrideType;
         Interval = interval;
     }
 
@@ -23,5 +32,5 @@ internal class StructFieldAccessExpressionNode : IExpressionNode {
         ((FunnyStruct)_source.Calc()).GetValue(_fieldName);
 
     public IExpressionNode Clone(ICloneContext context) =>
-        new StructFieldAccessExpressionNode(_fieldName, _source.Clone(context), Interval);
+        new StructFieldAccessExpressionNode(_fieldName, _source.Clone(context), Interval, Type);
 }

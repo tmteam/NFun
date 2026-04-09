@@ -15,9 +15,6 @@ Type identifier is the type name used in the code
 An example of such an identifier would be `bool` for boolean type, `text` for an array of characters (string), etc
 Some types have multiple identifiers like `byte` and `uint8` for a byte, and `int32` and `int` for a 32-bit integer
 
-Some types do not have an identifier at all. It is true for `rule` and `struct`
-
-
 ## Primitive types
 
 | Name            | Identifier      | Description                                                                                              | Example                            |
@@ -67,20 +64,22 @@ You can read more about arrays in the boring **Arrays** section
 
 The `text` is an alias for an array of characters, but the comparison operator is allowed on the `text` type
 
-## Functional type rule
+## Function type `rule`
 
-A higher-order function, i.e. an anonymous function created via rule-syntax is an expression with the type of `rule`
 ```
-rule(T1,T2...TN)->TR
+rule(T1, T2, ...TN)->TR
 ```
 
-Here T1..Tn - types of the 1st..Nth elements. `Tr` is the return type of the function
+Function type with argument types `T1..TN` and return type `TR`. Used for higher-order function parameters:
 
-The types of function arguments are covariant,
-that means: `rule(Ta)->TR` is converted to `rule(Tb)->TR` if `Ta` is converted to `Tb`
+```py
+apply(f:rule(int)->int, x:int)->int = f(x)
+y = apply(rule it*2, 21)   # 42
+```
 
-The return type of the function is contravariant
-, that is, `rule(T)->Ta` is converted to `rule(T)->Tb` if `Tb` is converted to `Ta`
+Postfix `?` and `[]` apply to the return type: `rule(int)->int?` = function returning `int?`
+
+Argument types are covariant, return type is contravariant
 
 ## Struct type struct
 

@@ -22,7 +22,22 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public static StateOptional Of(ITypeState type) => new(TicNode.CreateTypeVariableNode(type));
 
     public TicNode ElementNode { get; }
-    public bool IsSolved => Element.IsSolved;
+
+    /// <summary>Sentinel for cycle detection (generic functions with if..else none create cyclic Optional).</summary>
+    private const int OptionalCycleGuard = -55001;
+
+    public bool IsSolved {
+        get {
+            var elem = ElementNode;
+            if (elem.VisitMark == OptionalCycleGuard)
+                return false; // cycle → not resolved yet
+            var prev = elem.VisitMark;
+            elem.VisitMark = OptionalCycleGuard;
+            var result = elem.State.IsSolved;
+            elem.VisitMark = prev;
+            return result;
+        }
+    }
     public bool IsMutable => !IsSolved;
 
     public ITicNodeState Element => ElementNode.State;
@@ -46,12 +61,17 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public bool CanBePessimisticConvertedTo(StatePrimitive type) => type.Name == PrimitiveTypeName.Any;
 
     public override bool Equals(object obj) {
-        if (obj is StateOptional opt)
-            return opt.Element.Equals(Element);
-        return false;
+        if (obj is not StateOptional opt) return false;
+        var elem = ElementNode;
+        if (elem.VisitMark == OptionalCycleGuard) return true; // cycle → treat as equal
+        var prev = elem.VisitMark;
+        elem.VisitMark = OptionalCycleGuard;
+        var result = opt.Element.Equals(Element);
+        elem.VisitMark = prev;
+        return result;
     }
 
-    public override int GetHashCode() => Element.GetHashCode() * 31 + 7;
+    public override int GetHashCode() => 7; // stable for cyclic Optionals
 
     public ICompositeState GetNonReferenced()
         => Of(ElementNode.GetNonReference());
@@ -62,13 +82,22 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
+    private const int LeafMark = -56000;
+
     public IEnumerable<TicNode> AllLeafTypes
     {
         get
         {
-            if (ElementNode.State is ICompositeState composite)
-                return composite.AllLeafTypes;
-            return new[] { ElementNode };
+            if (ElementNode.State is ICompositeState composite) {
+                if (ElementNode.VisitMark == LeafMark) yield break;
+                var prev = ElementNode.VisitMark;
+                ElementNode.VisitMark = LeafMark;
+                foreach (var leaf in composite.AllLeafTypes)
+                    yield return leaf;
+                ElementNode.VisitMark = prev;
+            } else {
+                yield return ElementNode;
+            }
         }
     }
 

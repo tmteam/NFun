@@ -261,7 +261,7 @@ public static partial class StateExtensions {
             var fromField = from.GetFieldOrNull(toField.Key);
             if (fromField == null || !fromField.IsSolved)
                 return false;
-            if (toField.Value.State.StateDescription != fromField.State.StateDescription)
+            if (!toField.Value.State.Equals(fromField.State))
                 return false;
         }
 

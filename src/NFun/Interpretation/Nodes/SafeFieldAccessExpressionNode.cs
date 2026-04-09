@@ -12,10 +12,23 @@ internal class SafeFieldAccessExpressionNode : IExpressionNode {
     public SafeFieldAccessExpressionNode(string fieldName, IExpressionNode source, Interval interval) {
         _fieldName = fieldName;
         _source = source;
-        var innerStructType = source.Type.OptionalTypeSpecification.ElementType;
-        var fieldType = innerStructType.StructTypeSpecification[fieldName];
-        // Don't double-wrap: if field is already optional, result is opt(T) not opt(opt(T))
-        Type = fieldType.BaseType == BaseFunnyType.Optional ? fieldType : FunnyType.OptionalOf(fieldType);
+        if (source.Type.BaseType == BaseFunnyType.None) {
+            // none?.field = none — safe access on None always returns None
+            Type = FunnyType.None;
+        } else {
+            // Determine the inner struct type — unwrap Optional if present
+            var innerStructType = source.Type.BaseType == BaseFunnyType.Optional
+                ? source.Type.OptionalTypeSpecification.ElementType
+                : source.Type; // struct source (inline constructor with Optional declared field)
+            FunnyType fieldType;
+            if (innerStructType.BaseType == BaseFunnyType.Struct
+                && innerStructType.StructTypeSpecification.TryGetValue(fieldName, out var ft))
+                fieldType = ft;
+            else
+                fieldType = FunnyType.Any; // recursive type cycle — field type unknown at compile time
+            // Don't double-wrap: if field is already optional, result is opt(T) not opt(opt(T))
+            Type = fieldType.BaseType == BaseFunnyType.Optional ? fieldType : FunnyType.OptionalOf(fieldType);
+        }
         Interval = interval;
     }
 

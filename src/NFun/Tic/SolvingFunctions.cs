@@ -24,6 +24,12 @@ public static class SolvingFunctions {
                 return !constrainsB.CanBeConvertedTo(typeA) ? null : typeA;
         }
 
+        // None fits into any Optional type
+        if (stateA is StatePrimitive { Name: PrimitiveTypeName.None } && stateB is StateOptional optB1)
+            return optB1;
+        if (stateB is StatePrimitive { Name: PrimitiveTypeName.None } && stateA is StateOptional optA1)
+            return optA1;
+
         switch (stateA)
         {
             case StateArray arrayA when stateB is StateArray arrayB:
@@ -83,15 +89,20 @@ public static class SolvingFunctions {
                 var bRef = bNode.GetNonReference();
                 if (aRef.State == StatePrimitive.None && bRef.State is not StatePrimitive { Name: PrimitiveTypeName.None })
                 {
-                    // b has content, a is None → result = opt(b's content)
-                    var innerNode = TicNode.CreateTypeVariableNode("e" + key + "'", bRef.State);
-                    value.State = new StateOptional(innerNode);
+                    if (bRef.State is StateOptional)
+                        value.State = bRef.State; // None merges cleanly with Optional
+                    else {
+                        var innerNode = TicNode.CreateTypeVariableNode("e" + key + "'", bRef.State);
+                        value.State = new StateOptional(innerNode);
+                    }
                 }
                 else if (bRef.State == StatePrimitive.None && aRef.State is not StatePrimitive { Name: PrimitiveTypeName.None })
                 {
-                    // a has content, b is None → result = opt(a's content)
-                    var innerNode = TicNode.CreateTypeVariableNode("e" + key + "'", aRef.State);
-                    value.State = new StateOptional(innerNode);
+                    if (aRef.State is not StateOptional) {
+                        var innerNode = TicNode.CreateTypeVariableNode("e" + key + "'", aRef.State);
+                        value.State = new StateOptional(innerNode);
+                    }
+                    // else: a is already Optional — keep it
                 }
                 else
                     MergeInplace(value, bNode);
@@ -126,6 +137,28 @@ public static class SolvingFunctions {
         if (secondary.GetNonReference() == main)
             return;
         var res = GetMergedStateOrNull(main.State, secondary.State);
+        // Implicit lift: T ≤ opt(T). When one side is composite T and the other is opt(T'),
+        // the non-Optional side can be lifted. Merge the inner types.
+        // Syntax nodes (concrete expressions) keep their type — the Optional side "wins".
+        if (res == null
+            && main.State is ICompositeState && !(main.State is StateOptional)
+            && secondary.State is StateOptional optSec) {
+            var innerMerge = GetMergedStateOrNull(main.State, optSec.Element);
+            if (innerMerge != null) {
+                // Non-optional merges into Optional's element. Optional node is the result.
+                main.State = new StateRefTo(secondary);
+                return;
+            }
+        }
+        if (res == null
+            && secondary.State is ICompositeState && !(secondary.State is StateOptional)
+            && main.State is StateOptional optMain) {
+            var innerMerge = GetMergedStateOrNull(optMain.Element, secondary.State);
+            if (innerMerge != null) {
+                secondary.State = new StateRefTo(main);
+                return;
+            }
+        }
         if (res == null)
             throw TicErrors.CannotMerge(main, secondary);
 
@@ -151,27 +184,29 @@ public static class SolvingFunctions {
     /// Returns 'main'
     /// </summary>
     public static TicNode MergeGroup(IEnumerable<TicNode> cycleRoute) {
-        // Materialize to avoid repeated enumeration of lazy IEnumerable
-        var cycleSet = new HashSet<TicNode>(cycleRoute);
+        // Materialize cycle to array — cycles are small (2-5 nodes typically)
+        var cycle = cycleRoute as TicNode[] ?? cycleRoute.ToArray();
 
         TicNode main = null;
-        foreach (var c in cycleSet)
+        foreach (var c in cycle)
             if (c.State is not StateRefTo) { main = c; break; }
-        main ??= cycleSet.First();
+        main ??= cycle[0];
 
-        foreach (var current in cycleSet)
+        foreach (var current in cycle)
         {
             if (current == main)
                 continue;
 
             if (current.State is StateRefTo refState)
             {
-                if (!cycleSet.Contains(refState.Node))
-                    throw new InvalidOperationException();
+                // Validate: ref target must be in the cycle
+                bool found = false;
+                foreach (var c in cycle)
+                    if (c == refState.Node) { found = true; break; }
+                if (!found) throw new InvalidOperationException();
             }
             else
             {
-                //merge main and current
                 main.State = GetMergedStateOrNull(main.State, current.State) ??
                              throw TicErrors.CannotMerge(main, current);
             }
@@ -184,14 +219,23 @@ public static class SolvingFunctions {
                 current.State = new StateRefTo(main);
         }
 
-        // Filter ancestors: remove cycle members, deduplicate
-        var newAncestors = new HashSet<TicNode>();
-        foreach (var a in main.Ancestors)
-            if (!cycleSet.Contains(a))
-                newAncestors.Add(a);
+        // Filter ancestors: remove cycle members, keep unique
+        // Cycles are small → linear scan is faster than HashSet
+        var keptAncestors = new List<TicNode>();
+        foreach (var a in main.Ancestors) {
+            bool isCycleMember = false;
+            foreach (var c in cycle)
+                if (a == c) { isCycleMember = true; break; }
+            if (isCycleMember) continue;
+            bool isDuplicate = false;
+            foreach (var k in keptAncestors)
+                if (a == k) { isDuplicate = true; break; }
+            if (!isDuplicate)
+                keptAncestors.Add(a);
+        }
 
         main.ClearAncestors();
-        foreach (var a in newAncestors)
+        foreach (var a in keptAncestors)
             main.AddAncestor(a);
         return main;
     }
@@ -199,31 +243,40 @@ public static class SolvingFunctions {
     #endregion
 
 
-    public static void PullConstraints(TicNode[] toposortedNodes) {
-        // Phase 1: Pull None nodes first — sets IsOptional flags on ancestor ConstraintsStates.
-        // Must run before non-None nodes so that Concretest snapshots in Phase 2
-        // see the IsOptional flag and produce opt() wrappers.
+    public static bool PullConstraints(TicNode[] toposortedNodes) {
+        // Quick scan: check if any None nodes exist.
+        // Most expressions have no None — can do single pass.
         bool hasNoneNodes = false;
-        foreach (var node in toposortedNodes)
-        {
-            if (node.IsMemberOfAnything)
-                continue;
-            if (node.State == StatePrimitive.None) {
+        for (int i = 0; i < toposortedNodes.Length; i++) {
+            if (toposortedNodes[i].State == StatePrimitive.None) {
                 hasNoneNodes = true;
-                PullConstraintsRecursive(node);
+                break;
             }
         }
 
-        // Phase 2: Pull all non-None nodes. IsOptional flags are already set,
-        // so AddDescendant's Concretest produces correct opt() snapshots.
-        foreach (var node in toposortedNodes)
-        {
-            if (node.IsMemberOfAnything)
-                continue;
+        if (!hasNoneNodes) {
+            // No None: single pass, pull all.
+            foreach (var node in toposortedNodes) {
+                if (node.IsMemberOfAnything) continue;
+                PullConstraintsRecursive(node);
+            }
+            return false;
+        }
+
+        // Phase 1: Pull None nodes first — sets IsOptional flags.
+        foreach (var node in toposortedNodes) {
+            if (node.IsMemberOfAnything) continue;
             if (node.State == StatePrimitive.None)
-                continue;
+                PullConstraintsRecursive(node);
+        }
+
+        // Phase 2: Pull non-None — Concretest sees IsOptional.
+        foreach (var node in toposortedNodes) {
+            if (node.IsMemberOfAnything) continue;
+            if (node.State == StatePrimitive.None) continue;
             PullConstraintsRecursive(node);
         }
+        return true;
     }
 
     private static void PullConstraintsRecursive(TicNode node) {
@@ -238,9 +291,17 @@ public static class SolvingFunctions {
                 PullConstrains(node, ancestor);
         }
 
+        const int pullCycleGuardMark = -1568;
         if (node.State is ICompositeState composite)
+        {
+            var oldMark = node.VisitMark;
+            if (oldMark == pullCycleGuardMark)
+                return; // Cycle detected — recursive named struct
+            node.VisitMark = pullCycleGuardMark;
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 PullConstraintsRecursive(composite.GetMember(mi));
+            node.VisitMark = oldMark;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -267,15 +328,16 @@ public static class SolvingFunctions {
         if (node.State == StatePrimitive.None)
             return;
 
+        const int pushCycleGuardMark = -1567;
         if (node.State is ICompositeState composite)
         {
-            var oldMakr = node.VisitMark;
-            if (oldMakr == 1567)
-                throw TicErrors.RecursiveTypeDefinition(new[]{ node});
-            node.VisitMark = 1567;
+            var oldMark = node.VisitMark;
+            if (oldMark == pushCycleGuardMark)
+                return; // Cycle detected — valid for recursive named types
+            node.VisitMark = pushCycleGuardMark;
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 PushConstraintsRecursive(composite.GetMember(mi));
-            node.VisitMark = oldMakr;
+            node.VisitMark = oldMark;
         }
 
         var ancSize = node.Ancestors.Count;
@@ -298,34 +360,66 @@ public static class SolvingFunctions {
             throw TicErrors.IncompatibleNodes(ancestor, descendant);
     }
 
-    public static bool Destruction(TicNode[] toposorteNodes) {
+    public static bool Destruction(TicNode[] toposorteNodes, bool hasOptionalTypes = true) {
         int notSolvedCount = 0;
         for (int i = toposorteNodes.Length - 1; i >= 0; i--)
         {
             var descendant = toposorteNodes[i];
             if (descendant.IsMemberOfAnything)
                 continue;
+            _destructionMark = NextMark();
             DestructionRecursive(descendant);
             if (!descendant.IsSolved)
                 notSolvedCount++;
         }
 
         // Materialize remaining IsOptional ConstraintsState → StateOptional
-        // after Destruction, before Finalization.
-        MaterializeOptionalFlags(toposorteNodes);
+        // after Destruction, before Finalization. Skip when no Optional types present.
+        if (hasOptionalTypes)
+            MaterializeOptionalFlags(toposorteNodes);
 
         return notSolvedCount == 0;
     }
 
+    /// <summary>
+    /// Shared monotonic counter for VisitMark values across all solving phases.
+    /// Each phase increments to get a unique mark — no collisions between phases.
+    /// </summary>
+    private static int _nextMark = 1000;
+
+    /// <summary>Get the next unique VisitMark value.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int NextMark() => ++_nextMark;
+    private static int _materializeMark;
+
     private static void MaterializeOptionalFlags(TicNode[] nodes) {
-        var visited = new HashSet<TicNode>(ReferenceEqualityComparer.Instance);
+        // Quick scan: skip if no node (or composite member) has IsOptional flag
+        bool hasOptional = false;
+        foreach (var node in nodes) {
+            var s = node.GetNonReference().State;
+            if (s is ConstraintsState { IsOptional: true }) {
+                hasOptional = true;
+                break;
+            }
+            if (s is ICompositeState c)
+                for (int mi = 0; mi < c.MemberCount; mi++)
+                    if (c.GetMember(mi).GetNonReference().State is ConstraintsState { IsOptional: true }) {
+                        hasOptional = true;
+                        break;
+                    }
+            if (hasOptional) break;
+        }
+        if (!hasOptional) return;
+
+        _materializeMark = NextMark();
         foreach (var node in nodes)
-            MaterializeOptionalNode(node, visited, nodes);
+            MaterializeOptionalNode(node, nodes);
     }
 
-    private static void MaterializeOptionalNode(TicNode node, HashSet<TicNode> visited, TicNode[] allNodes) {
+    private static void MaterializeOptionalNode(TicNode node, TicNode[] allNodes) {
         var n = node.GetNonReference();
-        if (!visited.Add(n)) return;
+        if (n.VisitMark == _materializeMark) return;
+        n.VisitMark = _materializeMark;
 
         if (n.State is ConstraintsState cs && cs.IsOptional) {
             // Pure IsOptional with no type constraints: this is standalone None
@@ -359,11 +453,18 @@ public static class SolvingFunctions {
         }
         if (n.State is ICompositeState composite) {
             for (int mi = 0; mi < composite.MemberCount; mi++)
-                MaterializeOptionalNode(composite.GetMember(mi), visited, allNodes);
+                MaterializeOptionalNode(composite.GetMember(mi), allNodes);
         }
     }
 
+    private static int _destructionMark;
+
     private static void DestructionRecursive(TicNode node) {
+        if (node.VisitMark == _destructionMark)
+            return; // cycle — recursive struct
+        var prevMark = node.VisitMark;
+        node.VisitMark = _destructionMark;
+
         ThrowIfRecursiveTypeDefinition(node);
 
         if (node.State is ICompositeState composite)
@@ -385,6 +486,7 @@ public static class SolvingFunctions {
             foreach (var ancestor in node.Ancestors.ToSnapshot())
                 Destruction(node, ancestor);
         }
+        node.VisitMark = prevMark;
     }
 
     public static bool Destruction(TicNode descendantNode, TicNode ancestorNode) {
@@ -562,40 +664,57 @@ public static class SolvingFunctions {
         return null;
     }
 
+    /// <summary>
+    /// Detects invalid recursive type definitions in the TIC graph.
+    /// Two kinds of invalid cycles:
+    /// 1. struct/fun → struct/fun (direct, no Optional/Array break)
+    /// 2. arr → arr → self (array self-reference without struct)
+    ///
+    /// Valid cycles (named recursive types like `type node = {next: node?}`)
+    /// go through Optional or Array from a struct field — these are skipped.
+    /// </summary>
     private static void ThrowIfRecursiveTypeDefinition(TicNode node) {
-        ThrowIfStateHasRecursiveTypeDefinitionReq(node.State, 1);
+        ThrowIfRecursiveReq(node.State, 1, fromStruct: false);
 
-        static void ThrowIfStateHasRecursiveTypeDefinitionReq(ITicNodeState state, int bypassNumber) {
+        static void ThrowIfRecursiveReq(ITicNodeState state, int mark, bool fromStruct) {
             switch (state)
             {
                 case StateRefTo refTo:
-                    ThrowIfNodeHasRecursiveTypeDefinitionReq(refTo.Node, bypassNumber);
+                    ThrowIfNodeReq(refTo.Node, mark, fromStruct);
+                    break;
+                case StateOptional:
+                    break; // Optional always breaks recursion (none is the base case)
+                case StateArray arr:
+                    if (fromStruct)
+                        break; // Valid: struct field → array → struct (named recursive type)
+                    // Standalone array chain — check for arr(arr(...self...))
+                    ThrowIfNodeReq(arr.ElementNode, mark, fromStruct: false);
                     break;
                 case ICompositeState composite:
+                    var isStruct = state is StateStruct;
                     for (int mi = 0; mi < composite.MemberCount; mi++)
-                        ThrowIfNodeHasRecursiveTypeDefinitionReq(composite.GetMember(mi), bypassNumber);
+                        ThrowIfNodeReq(composite.GetMember(mi), mark, fromStruct || isStruct);
                     break;
-                case ConstraintsState constrains:
-                    if (constrains.HasDescendant)
-                        ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Descendant, bypassNumber);
-                    if (constrains.HasAncestor)
-                        ThrowIfStateHasRecursiveTypeDefinitionReq(constrains.Ancestor, bypassNumber);
+                case ConstraintsState cs:
+                    if (cs.HasDescendant)
+                        ThrowIfRecursiveReq(cs.Descendant, mark, fromStruct);
+                    if (cs.HasAncestor)
+                        ThrowIfRecursiveReq(cs.Ancestor, mark, fromStruct);
                     break;
             }
         }
 
-        static void ThrowIfNodeHasRecursiveTypeDefinitionReq(TicNode node, int bypassNumber) {
-            if (node.VisitMark == bypassNumber)
+        static void ThrowIfNodeReq(TicNode node, int mark, bool fromStruct) {
+            if (node.VisitMark == mark)
             {
                 var route = new HashSet<TicNode>();
                 FindRecursionTypeRoute(node, route);
                 throw TicErrors.RecursiveTypeDefinition(route.ToArray());
             }
-
-            var markBefore = node.VisitMark;
-            node.VisitMark = bypassNumber;
-            ThrowIfStateHasRecursiveTypeDefinitionReq(node.State, bypassNumber);
-            node.VisitMark = markBefore;
+            var prev = node.VisitMark;
+            node.VisitMark = mark;
+            ThrowIfRecursiveReq(node.State, mark, fromStruct);
+            node.VisitMark = prev;
         }
 
         static bool FindRecursionTypeRoute(TicNode node, ISet<TicNode> nodes) {
@@ -632,10 +751,11 @@ public static class SolvingFunctions {
         var typeVariables = new List<TicNode>();
 
         int genericNodesCount = 0;
-        const int typeVariableVisitedMark = 123;
+        const int typeVariableVisitedMark = -123;
         for (int i = toposortedNodes.Length - 1; i >= 0; i--)
         {
             var node = toposortedNodes[i];
+            _finalizeMark = NextMark();
             FinalizeRecursive(node);
 
             CollectLeafTypeVariables(node, typeVariables, typeVariableVisitedMark);
@@ -648,14 +768,40 @@ public static class SolvingFunctions {
             return new TicResultsWithoutGenerics(namedNodes, syntaxNodes);
 
         SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes, ignorePreferred);
+
+        // After resolving useless generics, check if any real generics remain.
+        // Recursion boundary placeholders (ConstraintsState.Empty inside named structs)
+        // may have been left unresolved — resolve them now.
+        // But only promote to concrete if NO ConstraintsState remains anywhere.
+        {
+            bool anyConstraints = false;
+            // Check all sources of generics: typeVariables, namedNodes, syntaxNodes
+            foreach (var tv in typeVariables)
+                if (tv.State is ConstraintsState) { anyConstraints = true; break; }
+            if (!anyConstraints)
+                foreach (var kv in namedNodes)
+                    if (kv.Value?.State is ConstraintsState) { anyConstraints = true; break; }
+            if (!anyConstraints)
+                foreach (var sn in syntaxNodes)
+                    if (sn?.State is ConstraintsState) { anyConstraints = true; break; }
+            if (!anyConstraints)
+                return new TicResultsWithoutGenerics(namedNodes, syntaxNodes);
+        }
+
         return new TicResultsWithGenerics(typeVariables, namedNodes, syntaxNodes);
     }
 
+    private static int _finalizeMark;
+
     private static void FinalizeRecursive(TicNode node) {
+        if (node.VisitMark == _finalizeMark)
+            return; // cycle — recursive struct
+        var prevMark = node.VisitMark;
+        node.VisitMark = _finalizeMark;
+
         if (node.State is StateRefTo refTo)
         {
             ThrowIfRecursiveTypeDefinition(refTo.Node);
-
             var originalOne = refTo.Node.GetNonReference();
 
             if (originalOne.State is ITypeState)
@@ -680,6 +826,7 @@ public static class SolvingFunctions {
             // Safety net: flatten any remaining nested optionals after member finalization
             node.FlattenNestedOptional();
         }
+        node.VisitMark = prevMark;
     }
 
     private static void SolveUselessGenerics(
@@ -689,7 +836,7 @@ public static class SolvingFunctions {
         bool ignorePreferred) {
         //We have to solve all generic types that are not output
 
-        const int outputTypeMark = 77;
+        const int outputTypeMark = -77;
         // Firstly - get all outputs and mark them with output mark
         foreach (var outputNode in outputNodes)
             foreach (var outputType in outputNode.GetAllOutputTypes())
@@ -735,11 +882,18 @@ public static class SolvingFunctions {
             CollectLeafConstraints(argNode, result);
     }
 
+    private const int LeafCollectMark = -1569;
+
     private static void CollectLeafConstraints(TicNode node, List<TicNode> result) {
         var state = node.State;
         if (state is ICompositeState composite) {
+            if (node.VisitMark == LeafCollectMark)
+                return; // Cycle — recursive named struct
+            var prev = node.VisitMark;
+            node.VisitMark = LeafCollectMark;
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 CollectLeafConstraints(composite.GetMember(mi), result);
+            node.VisitMark = prev;
             return;
         }
         if (state is StateRefTo)
@@ -761,6 +915,9 @@ public static class SolvingFunctions {
     private static void CollectLeafTypeVariables(TicNode node, List<TicNode> typeVariables, int visitMark) {
         var state = node.State;
         if (state is ICompositeState composite) {
+            // Guard before recursion to prevent infinite loop on recursive structs
+            if (node.VisitMark == visitMark) return;
+            node.VisitMark = visitMark;
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 CollectLeafTypeVariables(composite.GetMember(mi), typeVariables, visitMark);
             return;
@@ -794,12 +951,11 @@ public static class SolvingFunctions {
         void ReqPrintNode(TicNode node) {
             if (node == null)
                 return;
-            if (alreadyPrinted.Contains(node))
+            if (!alreadyPrinted.Add(node))
                 return;
             if (node.State is StateArray arr)
                 ReqPrintNode(arr.ElementNode);
             node.PrintToConsole();
-            alreadyPrinted.Add(node);
         }
 
         foreach (var node in nodes)

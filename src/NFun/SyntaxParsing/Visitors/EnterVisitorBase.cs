@@ -31,4 +31,6 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<DfsEnterResult> {
     public virtual DfsEnterResult Visit(NamedIdSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(BinOperatorSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(UnaryOperatorSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(TypeDeclarationSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(NamedTypeConstructorSyntaxNode node) => DefaultVisitEnter(node);
 }

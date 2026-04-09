@@ -203,18 +203,23 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     private static bool TryMergeStructFields(StateStruct ancStruct, StateStruct descStruct) {
-        TraceLog.WriteLine($"  Push MergeStructFields: anc={ancStruct.StateDescription} desc={descStruct.StateDescription}");
         foreach (var ancField in ancStruct.Fields)
         {
             var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
             if (descFieldNode == null)
-            {
-                TraceLog.WriteLine($"    FAIL: desc missing field '{ancField.Key}'");
                 return false;
-            }
-            TraceLog.WriteLine($"    Merging field '{ancField.Key}': desc={descFieldNode.State} anc={ancField.Value.State}");
-            // descFieldNode is the main node: struct fields are covariant, so descendant field is the primary.
-            SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
+            var descNr = descFieldNode.GetNonReference();
+            var ancNr = ancField.Value.GetNonReference();
+            if (descNr == ancNr)
+                continue;
+            // None desc field: skip — None ≤ opt(T) handled by outer Optional layer.
+            if (descNr.State == StatePrimitive.None)
+                continue;
+            // None anc field: push constraints to propagate None → descendant.
+            if (ancNr.State == StatePrimitive.None)
+                SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
+            else
+                SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
         }
 
         return true;
@@ -251,6 +256,12 @@ public class PushConstraintsFunctions : IStateFunction {
             }
             else
             {
+                // None field: skip push. None ≤ opt(T) is valid for any T,
+                // but None ≰ T directly when T is composite.
+                // The None compatibility is handled by the outer Optional layer
+                // (StagesExtension unwraps opt before reaching struct-struct Push).
+                if (descField.GetNonReference().State == StatePrimitive.None)
+                    continue;
                 SolvingFunctions.PushConstraints(descField, ancField.Value);
             }
         }

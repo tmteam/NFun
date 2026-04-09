@@ -19,7 +19,8 @@ internal static class Dialects {
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
-        AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow
+        AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
+        NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled
         )
         => new(
             ifExpressionSetup,
@@ -30,7 +31,8 @@ internal static class Dialects {
             integerOverflow == IntegerOverflow.Unchecked,
             allowUserFunctions,
             optionalTypesSupport,
-            allowNewlineInStrings);
+            allowNewlineInStrings,
+            namedTypesSupport);
 }
 
 
@@ -40,7 +42,7 @@ public interface IFunctionSelectorContext {
 }
 
 internal sealed class DialectSettings : IFunctionSelectorContext {
-    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions, OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled, AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow) {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow, AllowUserFunctions allowUserFunctions, OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled, AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow, NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -48,6 +50,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         AllowUserFunctions = allowUserFunctions;
         OptionalTypesSupport = optionalTypesSupport;
         AllowNewlineInStrings = allowNewlineInStrings;
+        NamedTypesSupport = namedTypesSupport;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
@@ -56,6 +59,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
     public AllowUserFunctions AllowUserFunctions { get; }
     public OptionalTypesSupport OptionalTypesSupport { get; }
     public AllowNewlineInStrings AllowNewlineInStrings { get; }
+    public NamedTypesSupport NamedTypesSupport { get; }
 }
 
 public enum AllowUserFunctions {
@@ -65,6 +69,11 @@ public enum AllowUserFunctions {
 }
 
 public enum OptionalTypesSupport {
+    Disabled,
+    ExperimentalEnabled
+}
+
+public enum NamedTypesSupport {
     Disabled,
     ExperimentalEnabled
 }

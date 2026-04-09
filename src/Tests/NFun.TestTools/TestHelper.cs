@@ -38,6 +38,7 @@ public static class TestHelper {
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
+        NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         params (string id, object clrValue)[] values) =>
         Funny.Hardcore.WithDialect(
             ifExpressionSyntax,
@@ -46,10 +47,17 @@ public static class TestHelper {
             integerOverflow,
             allowUserFunctions,
             optionalTypesSupport,
-            allowNewlineInStrings).Build(expr).Calc(values);
+            allowNewlineInStrings,
+            namedTypesSupport).Build(expr).Calc(values);
 
     public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
         Funny.Hardcore.Build(expr).Calc(values);
+
+    public static CalculationResult CalcWithNamedTypes(this string expr, params (string id, object val)[] values) =>
+        Funny.Hardcore.WithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled).Build(expr).Calc(values);
+
+    public static FunnyRuntime BuildWithNamedTypes(this string expr) =>
+        Funny.Hardcore.WithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled).Build(expr);
 
     public static object CalcAnonymousOut(this string expr, params (string id, object val)[] values) =>
         Calc(expr, values).Get(Parser.AnonymousEquationId);

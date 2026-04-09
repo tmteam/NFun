@@ -19,6 +19,9 @@ internal static class TypeSyntaxResolver {
             TypeSyntax.StructOf s => FunnyType.StructOf(
                 s.IsFrozen,
                 s.Fields.Select(f => (f.FieldName, Resolve(f.FieldType, customTypes))).ToArray()),
+            TypeSyntax.FunOf f => FunnyType.FunOf(
+                Resolve(f.ReturnType, customTypes),
+                f.ArgTypes.Select(a => Resolve(a, customTypes)).ToArray()),
             _ => throw new ArgumentException($"Unknown TypeSyntax: {syntax}")
         };
 

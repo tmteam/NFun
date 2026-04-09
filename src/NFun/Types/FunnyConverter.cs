@@ -202,6 +202,10 @@ public class FunnyConverter {
                 // convert funny struct to an IDictionary<string,object>
                 case BaseFunnyType.Struct:
                     return new StructToDictionaryOutputFunnyConverter(this, funnyType);
+                case BaseFunnyType.NamedStruct:
+                    // Recursion boundary in named types — runtime value is FunnyStruct or null.
+                    // Use dynamic converter since the actual type depends on recursion depth.
+                    return DynamicTypeOutputFunnyConverter.AnyConverter;
                 case BaseFunnyType.Custom:
                     return new PrimitiveTypeOutputFunnyConverter(funnyType, funnyType.CustomTypeDefinition.DefaultValue.GetType());
                 default:

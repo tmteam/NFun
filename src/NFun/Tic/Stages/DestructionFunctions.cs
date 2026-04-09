@@ -32,8 +32,13 @@ public class DestructionFunctions : IStateFunction {
         return true;
     }
 
-    public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __)
-        => true;
+    public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Composite can only fit into Any. However, during Optional solving, Optional element
+        // nodes may temporarily have Optional state before Destruction resolves them.
+        if (!descendant.CanBePessimisticConvertedTo(ancestor) && !descendantNode.IsOptionalElement)
+            throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
+        return true;
+    }
 
     public bool Apply(
         ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
@@ -185,28 +190,62 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // When ancestor is Optional and descendant has IsOptional, materialize descendant
+        // to Optional and do element-level destruction. Guard against cycles: if ancestor's
+        // element chain leads back to descendantNode, use ancestor edge instead of recursive Apply.
+        if (ancestor is StateOptional ancOptEarly && descendant.IsOptional)
+        {
+            var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+            innerCs.Preferred = descendant.Preferred;
+            var innerNode = TicNode.CreateTypeVariableNode(
+                "e" + descendantNode.Name.ToString().ToLower() + "'", innerCs);
+            descendantNode.State = new StateOptional(innerNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            // Check for cycle: does ancestor element resolve to descendantNode?
+            var ancElem = ancOptEarly.ElementNode.GetNonReference();
+            if (ancElem == descendantNode || ancElem == innerNode) {
+                // Cycle — connect via ancestor edge instead of recursive Apply
+                if (ancElem.IsSolved)
+                    innerNode.State = ancElem.State;
+                else
+                    innerNode.AddAncestor(ancElem);
+            } else {
+                // No cycle — safe to do element-level destruction
+                Apply(ancOptEarly, (StateOptional)descendantNode.State, ancestorNode, descendantNode);
+            }
+            return true;
+        }
+
         if (ancestor.FitsInto(descendant))
         {
-            if (descendant.IsOptional) {
-                var innerNode = TicNode.CreateTypeVariableNode(
+            descendantNode.State = descendant.IsOptional
+                ? new StateOptional(TicNode.CreateTypeVariableNode(
                     "e" + descendantNode.Name.ToString().ToLower() + "'",
-                    new StateRefTo(ancestorNode));
-                descendantNode.State = new StateOptional(innerNode);
-            } else {
-                descendantNode.State = new StateRefTo(ancestorNode);
-            }
+                    new StateRefTo(ancestorNode)))
+                : new StateRefTo(ancestorNode);
             descendantNode.RemoveAncestor(ancestorNode);
         }
         else if (ancestor is StateStruct ancStruct
                  && descendant.HasDescendant && descendant.Descendant is StateStruct)
         {
-            // Transform descendant constrains to struct, then destruct field-by-field
+            // Transform descendant constrains to struct, then destruct field-by-field.
+            // Preserve IsOptional: if the constraint was Optional, wrap result in Optional.
             var descStruct = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
             if (descStruct != null)
             {
-                descendantNode.State = descStruct;
-                descendantNode.RemoveAncestor(ancestorNode);
-                Apply(ancStruct, descStruct, ancestorNode, descendantNode);
+                if (descendant.IsOptional) {
+                    var innerNode = TicNode.CreateTypeVariableNode(
+                        "e" + descendantNode.Name.ToString().ToLower() + "'", descStruct);
+                    var optState = new StateOptional(innerNode);
+                    descendantNode.State = optState;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    // Destruct inner struct with ancestor
+                    SolvingFunctions.Destruction(innerNode, ancestorNode);
+                } else {
+                    descendantNode.State = descStruct;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    Apply(ancStruct, descStruct, ancestorNode, descendantNode);
+                }
             }
             else
             {
