@@ -67,6 +67,12 @@ internal static class RuntimeBuilderHelper {
         DialectSettings dialect,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null
         ) {
+        // Fast path: primitive-only bodies can be solved with interval arithmetic
+        if (namedTypeFieldRegistry == null
+            && SimpleExpressionDetector.IsSimpleBody(syntaxTree, functions)
+            && AllAprioriTypesArePrimitive(aprioriTypes))
+            return Tic.SimplePrimitiveSolver.Solve(syntaxTree, constants, aprioriTypes, dialect);
+
         var resultBuilder = new TypeInferenceResultsBuilder();
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);
         try
@@ -93,6 +99,17 @@ internal static class RuntimeBuilderHelper {
         {
             throw Errors.TranslateTicError(e, syntaxTree, graph, functions);
         }
+    }
+
+    private static bool AllAprioriTypesArePrimitive(IAprioriTypesMap aprioriTypes) {
+        foreach (var a in aprioriTypes) {
+            if (!a.Type.IsNumeric() && a.Type.BaseType is not (
+                    Types.BaseFunnyType.Bool or Types.BaseFunnyType.Char
+                    or Types.BaseFunnyType.Ip or Types.BaseFunnyType.Any
+                    or Types.BaseFunnyType.Empty))
+                return false;
+        }
+        return true;
     }
 
     private static void ThrowIfSomeVariablesNotExistsInTheList(
