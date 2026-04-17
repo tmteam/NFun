@@ -89,6 +89,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private readonly INamedTypeFieldRegistry _namedTypeFieldRegistry;
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
     internal bool _hasUserFunctions;
+    private System.Collections.Generic.HashSet<string> _narrowedFieldPaths;
     internal const int SyntheticIdStart = 100000;
     private int _nextSyntheticId = SyntheticIdStart; // synthetic node IDs start high to avoid collision
 
@@ -508,6 +509,31 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(StructFieldAccessSyntaxNode node) {
         if (!node.Source.Accept(this))
             return false;
+
+        // Field path narrowing: if "s.age" is narrowed, unwrap the optional field result.
+        // SetFieldAccess produces opt(T) for optional fields. We wrap it with SetNarrowedVariable
+        // to produce T instead.
+        if (_narrowedFieldPaths != null && !node.IsSafeAccess
+            && node.Source is NamedIdSyntaxNode srcVar) {
+            var fieldPath = srcVar.Id + "." + node.FieldName;
+            if (_narrowedFieldPaths.Contains(fieldPath)) {
+                // Field is narrowed: access produces opt(T), we want T.
+                // Use the same pattern as safe access narrowing:
+                // 1. Create element type variable T
+                // 2. Field access result = opt(T) via normal SetFieldAccess
+                // 3. Merge field result with opt(T) to extract T
+                // 4. Override node result to T
+                _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+                var fieldNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
+                var elementNode = _ticTypeGraph.CreateVarType();
+                var optNode = _ticTypeGraph.CreateVarType(Tic.SolvingStates.StateOptional.Of(elementNode));
+                Tic.SolvingFunctions.MergeInplace(optNode, fieldNode);
+                // Replace field result with the unwrapped element
+                fieldNode.State = new Tic.SolvingStates.StateRefTo(elementNode);
+                return true;
+            }
+        }
+
         if (node.IsSafeAccess || HasSafeAccessAncestor(node.Source))
             _ticTypeGraph.SetSafeFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
         else
@@ -835,22 +861,79 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     public bool Visit(IfThenElseSyntaxNode node) {
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled)
+            return VisitIfThenElseWithNarrowing(node);
         VisitChildren(node);
+        SetupIfElseConstraints(node);
+        return true;
+    }
 
+    private bool VisitIfThenElseWithNarrowing(IfThenElseSyntaxNode node) {
+        // Accumulate WhenFalse from all conditions for the else branch.
+        // if(x==none) ... if(z==none) ... else x+z
+        // → else reached only when ALL conditions are false → union of all WhenFalse
+        System.Collections.Generic.HashSet<string> elseNarrowed = null;
+
+        for (int i = 0; i < node.Ifs.Length; i++) {
+            var ifCase = node.Ifs[i];
+            if (!ifCase.Condition.Accept(this)) return false;
+            var narrowing = Interpretation.NarrowingAnalyzer.Analyze(ifCase.Condition);
+            if (!VisitWithNarrowing(ifCase.Expression, narrowing.WhenTrue, node.OrderNumber))
+                return false;
+            // Accumulate else narrowing: union of all WhenFalse
+            if (narrowing.WhenFalse.Count > 0) {
+                if (elseNarrowed == null) elseNarrowed = new(narrowing.WhenFalse);
+                else elseNarrowed.UnionWith(narrowing.WhenFalse);
+            }
+        }
+
+        // Else branch: all conditions were false → all WhenFalse facts apply
+        if (elseNarrowed is { Count: > 0 })
+            { if (!VisitWithNarrowing(node.ElseExpr, elseNarrowed, node.OrderNumber)) return false; }
+        else
+            { if (!node.ElseExpr.Accept(this)) return false; }
+        SetupIfElseConstraints(node);
+        return true;
+    }
+
+    private bool VisitWithNarrowing(ISyntaxNode expr, System.Collections.Generic.HashSet<string> narrowedVars, int scopeId) {
+        if (narrowedVars.Count == 0) return expr.Accept(this);
+        _aliasScope.EnterScope(scopeId);
+        foreach (var id in narrowedVars) {
+            if (Interpretation.NarrowingAnalyzer.IsFieldPath(id)) {
+                // Field path narrowing: "s.age" → track for Visit(StructFieldAccessSyntaxNode)
+                (_narrowedFieldPaths ??= new()).Add(id);
+                continue;
+            }
+            if (!_ticTypeGraph.HasNamedNode(id)) continue;
+            var varNode = _ticTypeGraph.GetNamedNode(id);
+            if (varNode.State is Tic.SolvingStates.StatePrimitive
+                || (varNode.State is Tic.SolvingStates.ICompositeState cs && cs is not Tic.SolvingStates.StateOptional))
+                continue;
+            var alias = scopeId + "~" + id;
+            _aliasScope.AddVariableAlias(id, alias);
+            _ticTypeGraph.SetNarrowedVariable(id, alias);
+        }
+        var result = expr.Accept(this);
+        _aliasScope.ExitScope();
+        // Clean up field paths after scope exit
+        if (_narrowedFieldPaths != null) {
+            foreach (var id in narrowedVars)
+                if (Interpretation.NarrowingAnalyzer.IsFieldPath(id))
+                    _narrowedFieldPaths.Remove(id);
+        }
+        return result;
+    }
+
+    private void SetupIfElseConstraints(IfThenElseSyntaxNode node) {
         var conditions = node.Ifs.SelectToArray(i => i.Condition.OrderNumber);
         var expressions = node.Ifs.SelectToArrayAndAppendTail(
             tail: node.ElseExpr.OrderNumber,
             mapFunc: i => i.Expression.OrderNumber);
-
 #if DEBUG
         Trace(node, $"if({string.Join(",", conditions)}): {string.Join(",", expressions)}");
 #endif
-
-        _ticTypeGraph.SetIfElse(
-            conditions,
-            expressions,
-            node.OrderNumber);
-        return true;
+        _ticTypeGraph.SetIfElse(conditions, expressions, node.OrderNumber);
     }
 
     public bool Visit(IfCaseSyntaxNode node) => VisitChildren(node);
@@ -1048,8 +1131,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             //ID is variable
             var localId = _aliasScope.GetVariableAlias(node.Id);
-            _ticTypeGraph.SetVar(localId, node.OrderNumber);
 
+            _ticTypeGraph.SetVar(localId, node.OrderNumber);
             node.IdType = NamedIdNodeType.Variable;
         }
 
@@ -1149,9 +1232,25 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         if (signature != null) _parentFunctionArgType = signature.ArgTypes[0];
         node.Left.Accept(this);
+
+        // Progressive narrowing in AND: after visiting left side of `x != none and x > 0`,
+        // the right side `x > 0` should see x as narrowed (non-optional).
+        if (node.Op == BinOp.And && _dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled) {
+            var leftNarrowing = Interpretation.NarrowingAnalyzer.Analyze(node.Left);
+            if (leftNarrowing.WhenTrue.Count > 0) {
+                if (signature != null) _parentFunctionArgType = signature.ArgTypes[1];
+                return VisitWithNarrowing(node.Right, leftNarrowing.WhenTrue, node.OrderNumber)
+                    && FinishBinOp(node, signature);
+            }
+        }
+
         if (signature != null) _parentFunctionArgType = signature.ArgTypes[1];
         node.Right.Accept(this);
 
+        return FinishBinOp(node, signature);
+    }
+
+    private bool FinishBinOp(BinOperatorSyntaxNode node, IFunctionSignature signature) {
         // Special case: pow with non-constant or negative exponent
         if (node.Op == BinOp.Pow && signature is PureGenericFunctionBase)
         {

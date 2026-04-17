@@ -250,4 +250,19 @@ public static class GraphBuilderExtensions {
 
         b.SetOrCreatePrimitive(nodeOrderNumber, StatePrimitive.Bool);
     }
+
+    /// <summary>
+    /// Sets up type narrowing: narrowedName has type T where originalName has type opt(T).
+    /// Used for type narrowing in if-then-else branches where x != none guarantees non-optional.
+    /// </summary>
+    public static void SetNarrowedVariable(this GraphBuilder b, string originalName, string narrowedName) {
+        var originalNode = b.GetNamedNode(originalName);
+        var narrowedNode = b.GetNamedNode(narrowedName);
+        // T — the unwrapped element type, merged with the narrowed variable
+        var elementNode = b.CreateVarType();
+        SolvingFunctions.MergeInplace(elementNode, narrowedNode);
+        // original = opt(T): merge original with opt(T)
+        var optNode = b.CreateVarType(StateOptional.Of(elementNode));
+        SolvingFunctions.MergeInplace(optNode, originalNode);
+    }
 }

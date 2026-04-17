@@ -395,7 +395,7 @@ public static class SyntaxNodeReader {
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
                 flow.MoveNext(); // consume ?
-                throw Errors.SafeArrayAccessNotSupported(opToken);
+                return ReadSafeArrayAccess(flow, leftNode);
             }
             else if (opToken.Type == TokType.ForceUnwrap)
             {

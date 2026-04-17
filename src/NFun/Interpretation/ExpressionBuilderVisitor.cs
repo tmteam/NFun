@@ -475,6 +475,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var node1 = new VariableExpressionNode(source, node.Interval);
         if (node1.Source.Name != node.Id)
             throw Errors.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
+
         return node1;
     }
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
@@ -42,6 +43,26 @@ public class ForceUnwrapFunction : GenericFunctionBase {
         args[0] is FunnyNone
             ? throw new FunnyRuntimeException("Force unwrap of none value")
             : args[0];
+}
+
+/// <summary>
+/// Filter none values from optional array: (T?[]) -> T[]
+/// Removes all none elements and narrows the element type.
+/// </summary>
+public class FilterNotNullFunction : GenericFunctionBase {
+    public FilterNotNullFunction()
+        : base(
+            "filterNotNull",
+            GenericConstrains.Any,
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.OptionalOf(FunnyType.Generic(0)))) { }
+
+    protected override object Calc(object[] args) {
+        var arr = (IFunnyArray)args[0];
+        return FunnyArrayTools.CreateEnumerable(
+            arr.Where(e => e is not FunnyNone),
+            arr.ElementType.OptionalTypeSpecification.ElementType);
+    }
 }
 
 /// <summary>

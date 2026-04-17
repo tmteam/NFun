@@ -90,6 +90,7 @@ internal static class BaseFunctions {
             new NullCoalesceFunction(),
             new ForceUnwrapFunction(),
             new SafeGetElementFunction(),
+            new FilterNotNullFunction(),
             new ThrowErrorFunction()
         };
 
