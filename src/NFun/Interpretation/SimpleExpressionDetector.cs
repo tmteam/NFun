@@ -85,7 +85,9 @@ internal static class SimpleExpressionDetector {
 
     /// <summary>Resolve + cache signature on FunCall node.</summary>
     private static bool IsSimpleFunction(FunCallSyntaxNode call, IFunctionRegistry functions) {
-        if (call.IsOperator) return true; // operators handled by IsSimpleOperator above
+        // Note: IsOperator=true FunCallSyntaxNodes (e.g. range, get, slice from [1..5], x[i])
+        // are NOT handled by IsSimpleOperator (which only handles BinOperatorSyntaxNode/UnaryOperatorSyntaxNode).
+        // They must be resolved and checked here like any other function call.
         var sig = functions.GetOrNull(call.Id, call.Args.Length);
         call.ResolvedSignature = sig;
         if (sig is PureGenericFunctionBase) return true;

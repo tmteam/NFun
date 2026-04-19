@@ -172,7 +172,7 @@ public static class GraphBuilderExtensions {
         var fieldTypeNode = b.CreateVarType();
 
         // struct{fieldName: T}
-        var fields = new Dictionary<string, TicNode> { { fieldName, fieldTypeNode } };
+        var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase) { { fieldName, fieldTypeNode } };
         var structNode = b.CreateVarType(new StateStruct(fields, false));
 
         // Source type: opt(struct{fieldName: T})
@@ -215,7 +215,7 @@ public static class GraphBuilderExtensions {
     }
 
     public static void SetStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
-        var fields = new Dictionary<string, TicNode>(fieldNames.Length);
+        var fields = new Dictionary<string, TicNode>(fieldNames.Length, StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < fieldNames.Length; i++)
         {
             if (fields.ContainsKey(fieldNames[i]))

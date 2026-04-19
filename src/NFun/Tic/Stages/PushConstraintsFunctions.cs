@@ -34,7 +34,8 @@ public class PushConstraintsFunctions : IStateFunction {
         if (!ancestor.HasAncestor)
             return true;
 
-        descendant.AddAncestor(ancestor.Ancestor);
+        if (!descendant.TryAddAncestor(ancestor.Ancestor))
+            return false;
         var result = descendant.SimplifyOrNull();
         if (result == null)
             return false;
@@ -96,6 +97,22 @@ public class PushConstraintsFunctions : IStateFunction {
         ConstraintsState descendant,
         TicNode ancestorNode,
         TicNode descendantNode) {
+        // Algebraic rule: if descendant is optional (has None branch) and ancestor is
+        // a non-Optional composite, the descendant must become opt(composite).
+        // Transform to Optional first, then push the composite constraint into the element.
+        // This is uniform for Array, Fun, Struct — not a special case per composite type.
+        if (descendant.IsOptional && ancestor is not StateOptional) {
+            var innerNode = TicNode.CreateTypeVariableNode(
+                "e" + descendantNode.Name.ToString().ToLower() + "'",
+                ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable));
+            innerNode.IsOptionalElement = true;
+            descendantNode.State = new SolvingStates.StateOptional(innerNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            innerNode.AddAncestor(ancestorNode);
+            SolvingFunctions.PushConstraints(innerNode, ancestorNode);
+            return true;
+        }
+
         switch (ancestor)
         {
             // if ancestor is composite type then descendant HAS to have same composite type

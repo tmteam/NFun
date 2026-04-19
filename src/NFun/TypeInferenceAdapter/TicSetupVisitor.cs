@@ -523,7 +523,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 // 2. Field access result = opt(T) via normal SetFieldAccess
                 // 3. Merge field result with opt(T) to extract T
                 // 4. Override node result to T
-                _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+                _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
                 var fieldNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
                 var elementNode = _ticTypeGraph.CreateVarType();
                 var optNode = _ticTypeGraph.CreateVarType(Tic.SolvingStates.StateOptional.Of(elementNode));
@@ -535,9 +535,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         }
 
         if (node.IsSafeAccess || HasSafeAccessAncestor(node.Source))
-            _ticTypeGraph.SetSafeFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+            _ticTypeGraph.SetSafeFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
         else
-            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
+            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
 
         return true;
     }
@@ -555,7 +555,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (!VisitChildren(node))
             return false;
         _ticTypeGraph.SetStructInit(
-            node.Fields.SelectToArray(f => f.Name.ToLower()),
+            node.Fields.SelectToArray(f => f.Name),
             node.Fields.SelectToArray(f => f.Node.OrderNumber), node.OrderNumber);
         // If OutputType is pre-set (from named type constructor expansion),
         // set ancestor constraint so TIC knows the struct shape for recursive types.
@@ -759,6 +759,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             //in the case of generic user function  - we dont know generic arg types yet
             //we need to remember generic TIC signature to used it at the end of interpritation
             _resultsBuilder.RememberRecursiveCall(node.OrderNumber, userFunction);
+            // Clear ResolvedSignature — it may point to a built-in with the same name/arity.
+            // ExpressionBuilderVisitor must find the user function via _functions registry instead.
+            node.ResolvedSignature = null;
             return true;
         }
 
@@ -1190,17 +1193,25 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private StateRefTo[] InitializeGenericTypes(GenericConstrains[] constrains) {
         var genericTypes = new StateRefTo[constrains.Length];
         for (int i = 0; i < constrains.Length; i++)
-            genericTypes[i] = InitializeGenericType(constrains[i]);
+            genericTypes[i] = InitializeGenericType(constrains[i], genericTypes);
 
         return genericTypes;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private StateRefTo InitializeGenericType(GenericConstrains constrains) =>
-        _ticTypeGraph.InitializeVarNode(
+    private StateRefTo InitializeGenericType(GenericConstrains constrains, StateRefTo[] genericTypes = null) {
+        if (constrains.HasStructDescendant && genericTypes != null)
+        {
+            // Convert the FunnyType struct to a TIC StateStruct, resolving
+            // generic field references (Generic(i)) to already-initialized type variables.
+            var ticStruct = (ITypeState)constrains.StructDescendant.ConvertToTiType(genericTypes);
+            return _ticTypeGraph.InitializeVarNode(ticStruct, constrains.Ancestor, constrains.IsComparable);
+        }
+        return _ticTypeGraph.InitializeVarNode(
             constrains.Descendant,
             constrains.Ancestor,
             constrains.IsComparable);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Trace(ISyntaxNode node, string text) {

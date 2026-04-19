@@ -34,8 +34,10 @@ internal class SafeArrayAccessExpressionNode : IExpressionNode {
         var arr = (IFunnyArray)source;
         var index = (int)_index.Calc();
         if (index < 0 || index >= arr.Count)
-            throw new FunnyRuntimeException("Argument out of range");
-        var element = arr.GetElementOrNull(index) ?? throw new FunnyRuntimeException("Argument out of range");
+            return FunnyNone.Instance;
+        var element = arr.GetElementOrNull(index);
+        if (element == null)
+            return FunnyNone.Instance;
         return _elementConverter != null ? _elementConverter(element) : element;
     }
 

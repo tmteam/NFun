@@ -128,6 +128,25 @@ public class StructGenericFunctionTest {
                   y = fact({field=x})".Calc("x", x)
             .AssertReturns("y", y);
 
+    [Test]
+    public void GenericUserFunction_StructFieldsPreserved_FoldReturnAccessesExtraField() =>
+        ("getMax(items) = items.fold(rule if(it1.v > it2.v) it1 else it2);" +
+         "out = getMax([{v=3,name='a'},{v=1,name='b'},{v=5,name='c'}]).name")
+        .AssertResultHas("out", "c");
+
+    [Test]
+    public void GenericUserFunction_StructFieldsPreserved_FoldReturnAccessesOriginalField() =>
+        ("getMax(items) = items.fold(rule if(it1.v > it2.v) it1 else it2);" +
+         "out = getMax([{v=3,name='a'},{v=1,name='b'},{v=5,name='c'}]).v")
+        .AssertResultHas("out", 5);
+
+    [Test]
+    public void GenericUserFunction_StructFieldsPreserved_ViaIntermediateVariable() =>
+        ("getMax(items) = items.fold(rule if(it1.v > it2.v) it1 else it2)\r\n" +
+        "best = getMax([{v=3,name='a'},{v=1,name='b'},{v=5,name='c'}])\r\n" +
+        "out = best.name")
+        .AssertResultHas("out", "c");
+
     [TestCase("f(x) = x.a; y = f({nonExistField = 1})")]
     [TestCase("f(x) = x.a; y = f({})")]
     [TestCase("f(x) = x.a; y:bool = f({x = 1})")]

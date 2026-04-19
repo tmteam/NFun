@@ -84,7 +84,7 @@ public class SafeGetElementFunction : GenericFunctionBase {
         var arr = (IFunnyArray)args[0];
         var index = (int)args[1];
         if (index < 0 || index >= arr.Count)
-            throw new FunnyRuntimeException("Argument out of range");
+            return FunnyNone.Instance;
         return arr.GetElementOrNull(index) ?? throw new FunnyRuntimeException("Argument out of range");
     }
 }

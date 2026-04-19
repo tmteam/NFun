@@ -21,7 +21,7 @@ public class BitShiftLeftFunction : GenericFunctionBase {
                BaseFunnyType.Int32  => new Int32Function(),
                BaseFunnyType.Int64  => new Int64Function(),
                BaseFunnyType.Int16  => new Int16Function(),
-               _                    => throw new ArgumentOutOfRangeException()
+               _                    => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
            };
 
     private class Int16Function : FunctionWithTwoArgs {
@@ -89,7 +89,7 @@ public class BitShiftRightFunction : GenericFunctionBase {
                BaseFunnyType.Int32  => new Int32Function(),
                BaseFunnyType.Int64  => new Int64Function(),
                BaseFunnyType.Int16  => new Int16Function(),
-               _                    => throw new ArgumentOutOfRangeException()
+               _                    => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
            };
 
     private class Int16Function : FunctionWithTwoArgs {

@@ -21,7 +21,7 @@ namespace NFun.Functions {
     WriteTwoArgFunction("BitAnd",integers,"&");
     WriteTwoArgFunction("BitOr",integers,"|");
     WriteSingleArgFunction("BitInverse", "CoreFunNames.BitInverse", integers, "~");
-    WriteSingleArgFunction("Negate", "CoreFunNames.Negate", signedNumber, "-");
+    WriteSingleArgFunction("Negate", "CoreFunNames.Negate", signedNumber, "-", overflowIntegers: true);
     WriteSingleArgFunction("Abs", "\"abs\"", signedNumber, "Math.Abs");
 #>
 }
@@ -47,7 +47,7 @@ namespace NFun.Functions {
     }
 
     void WriteEndSelector() {
-#>        _                   => throw new ArgumentOutOfRangeException()
+#>        _                   => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
 <#
     }
@@ -143,8 +143,22 @@ namespace NFun.Functions {
                 }
 <#}
 
-    
-    void WriteSingleArgFunction(string className, string name, string[] types, string op) {
+    void WriteSingleArgOverflowTypeSelector(string type) {
+#>                                           BaseFunnyType.<#= type #> =>context.AllowIntegerOverflow? <#= type #>Function.Instance: <#= type #>CheckedFunction.Instance,
+<#
+    }
+
+    void WriteSingleArgOverflowConcrete(string type, string op) {
+        var clrType = type == "UInt8" ? "byte" : type;
+        #>
+                private class <#= type #>CheckedFunction : FunctionWithSingleArg {
+                    public static <#=type#>CheckedFunction Instance = new <#=type#>CheckedFunction();
+                    public override object Calc(object a){ checked { return (<#= clrType #>)(<#= op #>((<#= clrType #>)a)); }}
+                }
+<#}
+
+
+    void WriteSingleArgFunction(string className, string name, string[] types, string op, bool overflowIntegers = false) {
 #>
 
 
@@ -155,14 +169,16 @@ public class <#= className #>Function : PureGenericFunctionBase {
 <#
         foreach (string type in types)
         {
-            if (type != "Real")
-                WriteSimpleTypeSelector(type);
-            else
+            if (type == "Real")
                 WriteRealTypeSelector("FunctionWithSingleArg");
+            else if (overflowIntegers)
+                WriteSingleArgOverflowTypeSelector(type);
+            else
+                WriteSimpleTypeSelector(type);
         }
         WriteEndSelector();
 #>
-        result.Name = CoreFunNames.Negate;
+        result.Name = <#= name #>;
         result.ArgTypes = concreteTypes;
         result.ReturnType = concreteTypes[0];
         return result;
@@ -170,14 +186,16 @@ public class <#= className #>Function : PureGenericFunctionBase {
 <#
         foreach (string type in types)
         {
-            if (type != "Real")
-            {
-                WriteSingleArgConcrete(type, op);
-            }
-            else
+            if (type == "Real")
             {
                 WriteSingleArgConcrete("Double",op);
                 WriteSingleArgConcrete("Decimal",op);
+            }
+            else
+            {
+                WriteSingleArgConcrete(type, op);
+                if(overflowIntegers)
+                    WriteSingleArgOverflowConcrete(type, op);
             }
         }
         #>

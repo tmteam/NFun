@@ -67,11 +67,15 @@ internal static class RuntimeBuilderHelper {
         DialectSettings dialect,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null
         ) {
-        // Fast path: primitive-only bodies can be solved with interval arithmetic
+        // Fast path: primitive-only bodies can be solved with interval arithmetic.
+        // Returns null when constraints are unsatisfiable (e.g. type annotation conflicts),
+        // in which case we fall through to the full TIC solver for proper error reporting.
         if (namedTypeFieldRegistry == null
             && SimpleExpressionDetector.IsSimpleBody(syntaxTree, functions)
-            && AllAprioriTypesArePrimitive(aprioriTypes))
-            return Tic.SimplePrimitiveSolver.Solve(syntaxTree, constants, aprioriTypes, dialect);
+            && AllAprioriTypesArePrimitive(aprioriTypes)) {
+            var fastResult = Tic.SimplePrimitiveSolver.Solve(syntaxTree, constants, aprioriTypes, dialect, customTypes);
+            if (fastResult != null) return fastResult;
+        }
 
         var resultBuilder = new TypeInferenceResultsBuilder();
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);

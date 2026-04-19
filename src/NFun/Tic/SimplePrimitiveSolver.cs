@@ -462,7 +462,7 @@ internal sealed class SimplePrimitiveSolver {
         if (d != null && a != null) {
             if (d.Equals(a)) return d;
             if (d.CanBePessimisticConvertedTo(a)) return a;
-            return d; // desc > anc: implicit widening → use LCA (desc)
+            return null; // desc > anc: unsatisfiable constraint, fall back to full TIC
         }
         if (a != null) return a;
         var p = _pref[r];
@@ -480,16 +480,23 @@ internal sealed class SimplePrimitiveSolver {
 
         for (int i = 0; i < _nodeGroup.Length; i++) {
             if (_nodeGroup[i] < 0) continue;
-            syntaxNodes[i] = TicNode.CreateSyntaxNode(i, ResolveGroup(_nodeGroup[i]), true);
+            var resolved = ResolveGroup(_nodeGroup[i]);
+            if (resolved == null) return null;
+            syntaxNodes[i] = TicNode.CreateSyntaxNode(i, resolved, true);
         }
 
-        foreach (var (name, gid) in _varGroup)
-            namedNodes[name] = TicNode.CreateNamedNode(name, ResolveGroup(gid));
+        foreach (var (name, gid) in _varGroup) {
+            var resolved = ResolveGroup(gid);
+            if (resolved == null) return null;
+            namedNodes[name] = TicNode.CreateNamedNode(name, resolved);
+        }
 
         // Generic call arguments — scan the array (sparse but no dictionary overhead)
         for (int i = 0; i < _callGenericGroup.Length; i++) {
             if (_callGenericGroup[i] < 0) continue;
-            var ticNode = TicNode.CreateTypeVariableNode("T", ResolveGroup(_callGenericGroup[i]), true);
+            var resolved = ResolveGroup(_callGenericGroup[i]);
+            if (resolved == null) return null;
+            var ticNode = TicNode.CreateTypeVariableNode("T", resolved, true);
             resultBuilder.RememberGenericCallArguments(i, new[] { new StateRefTo(ticNode) });
         }
 
@@ -505,7 +512,8 @@ internal sealed class SimplePrimitiveSolver {
         SyntaxTree tree,
         IConstantList constants,
         IAprioriTypesMap aprioriTypes,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes = null) {
         var solver = new SimplePrimitiveSolver(tree.MaxNodeId, constants, dialect);
 
         foreach (var a in aprioriTypes) {
@@ -520,7 +528,7 @@ internal sealed class SimplePrimitiveSolver {
                     solver.WalkExpression(eq.Expression);
                     var defGid = solver.GetOrCreateVarGroup(eq.Id);
                     if (eq.OutputTypeSpecified) {
-                        var resolved = TypeSyntaxResolver.Resolve(eq.TypeSpecificationOrNull.TypeSyntax);
+                        var resolved = TypeSyntaxResolver.Resolve(eq.TypeSpecificationOrNull.TypeSyntax, customTypes);
                         solver.SetConcrete(defGid, ToPrimitive(resolved));
                     }
                     var exprGid = solver.GetOrCreateNodeGroup(eq.Expression.OrderNumber);
@@ -533,7 +541,7 @@ internal sealed class SimplePrimitiveSolver {
                     solver.AddEdge(exprGid, defGid);
                     break;
                 case VarDefinitionSyntaxNode vd:
-                    var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax);
+                    var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax, customTypes);
                     solver.SetConcrete(solver.GetOrCreateVarGroup(vd.Id), ToPrimitive(resolved2));
                     break;
             }

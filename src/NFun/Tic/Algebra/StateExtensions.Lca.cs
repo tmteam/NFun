@@ -1,5 +1,6 @@
 namespace NFun.Tic.Algebra;
 
+using System;
 using System.Collections.Generic;
 using SolvingStates;
 using static SolvingStates.StatePrimitive;
@@ -85,9 +86,28 @@ public static partial class StateExtensions {
         return StateOptional.Of(inner);
     }
 
+    // Cycle guard for recursive struct LCA (e.g., tree = {children: tree[]}).
+    // Uses ReferenceEquals — structural Equals would also infinitely recurse.
+    [ThreadStatic] private static List<(StateStruct, StateStruct)> _structLcaInProgress;
+
     private static ITicNodeState Lca(this StateStruct a, StateStruct b) {
+        // LCA(T, T) = T — on cycle, return as-is (structurally equivalent).
+        var guard = _structLcaInProgress ??= new();
+        for (int i = 0; i < guard.Count; i++)
+            if (ReferenceEquals(guard[i].Item1, a) && ReferenceEquals(guard[i].Item2, b)
+                || ReferenceEquals(guard[i].Item1, b) && ReferenceEquals(guard[i].Item2, a))
+                return a;
+        guard.Add((a, b));
+        try {
+            return LcaStructFields(a, b);
+        } finally {
+            guard.RemoveAt(guard.Count - 1);
+        }
+    }
+
+    private static ITicNodeState LcaStructFields(StateStruct a, StateStruct b) {
         // Struct LCA = intersection of field names, with covariant field type LCA.
-        var nodes = new Dictionary<string, TicNode>();
+        var nodes = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
         foreach (var aField in a.Fields)
         {
             var bField = b.GetFieldOrNull(aField.Key);

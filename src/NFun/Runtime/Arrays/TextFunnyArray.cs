@@ -81,6 +81,8 @@ public class TextFunnyArray : IFunnyArray, IComparable {
     public IEnumerable<T> As<T>() {
         if (typeof(T) == typeof(char))
             return _text as IEnumerable<T>;
+        if (typeof(T).IsAssignableFrom(typeof(char)))
+            return System.Linq.Enumerable.Select<char, T>(_text, c => (T)(object)c);
         throw new InvalidCastException($"Cannot cast Text to {typeof(T).Name}[]");
     }
 

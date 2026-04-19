@@ -105,4 +105,34 @@ public class NoneInStructSafeAccessTest {
         "inner:{x:int, child:{x:int}?} = {x = 2, child = {x = 42}}\r a = {x = 1, inner = inner}\r out = a.inner.child?.x ?? -1"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("out", 42);
+
+    // ===== BUG FIX: if-else with none as struct field + chained safe access =====
+    // Bug: y?.a?.b fails when both optional levels are from inline if(cond) struct else none.
+    // Root cause: PushConstraintsFunctions.Apply(StateStruct, ConstraintsState) called
+    // TransformToStructOrNull which stripped the IsOptional flag from the inner if-else result.
+
+    [Test]
+    public void IfElseNone_AsStructField_ChainedSafeAccess_HasValue() =>
+        "y = if(true) {a = if(true) {b=42} else none} else none\r out = y?.a?.b ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
+
+    [Test]
+    public void IfElseNone_AsStructField_ChainedSafeAccess_OuterNone() =>
+        "y = if(false) {a = if(true) {b=42} else none} else none\r out = y?.a?.b ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", -1);
+
+    [Test]
+    public void IfElseNone_AsStructField_ChainedSafeAccess_InnerNone() =>
+        "y = if(true) {a = if(false) {b=42} else none} else none\r out = y?.a?.b ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", -1);
+
+    [Test]
+    public void IfElseNone_AsStructField_Decomposed_Works() =>
+        // Decomposed version always worked; this is the regression guard.
+        "y = if(true) {a = if(true) {b=42} else none} else none\r w = y?.a\r out = w?.b ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
 }

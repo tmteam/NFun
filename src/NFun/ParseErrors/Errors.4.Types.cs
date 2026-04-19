@@ -11,6 +11,7 @@ using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
+using NFun.Types;
 
 namespace NFun.ParseErrors;
 
@@ -18,6 +19,16 @@ internal static partial class Errors {
 
     internal static FunnyParseException ImpossibleCast(FunnyType from, FunnyType to, Interval interval) => new(
         710, $"Unable to cast from {from} to {to}", interval);
+
+    internal static FunnyParseException IncompatibleGenericResolution(
+        IFunctionSignature function, int genericIndex, ISyntaxNode node) {
+        var sig = TypeHelper.GetFunSignature(function.Name, function.ReturnType, function.ArgTypes);
+        return new FunnyParseException(
+            711,
+            $"Type mismatch in generic function '{sig}': " +
+            $"generic T{genericIndex} cannot be resolved (argument types are structurally incompatible)",
+            node.Interval);
+    }
 
     internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph, IFunctionRegistry functions = null) {
         var allTicNodes = graph.GetNodes();

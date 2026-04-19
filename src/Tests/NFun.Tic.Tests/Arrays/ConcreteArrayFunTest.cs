@@ -179,4 +179,50 @@ public class ConcreteArrayFunTest {
                 Assert.Fail();
             });
     }
+
+    [Test(Description = "'h' in 'hello' — text in text: TIC resolves T=Any (expression builder catches the error)")]
+    public void TextInText_ResolvesToAny() {
+        //        2     0       1
+        //y = isIn('h', 'hello')   signature: (T, T[]) -> Bool
+        // Both args are text (char[]). T gets desc=LCA(char[], char)=Any.
+        // TIC resolves this (T=Any), but the expression builder rejects T=Any
+        // because T appears at different structural depths in the signature.
+        var graph = new GraphBuilder();
+        graph.SetArrayConst(0, Char); // 'h' (text)
+        graph.SetArrayConst(1, Char); // 'hello' (text)
+
+        var t = graph.InitializeVarNode();
+        // Signature: (T, T[]) -> Bool
+        graph.SetCall(
+            new ITicNodeState[] { t, StateArray.Of(t), Bool },
+            new[] { 0, 1, 2 });
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        // TIC resolves successfully with T=Any — the structural mismatch
+        // is caught at the expression builder level, not here.
+        result.AssertNamed(Bool, "y");
+        var tState = t.Node.GetNonReference().State;
+        Assert.AreEqual(Any, tState, "T should resolve to Any from LCA(char[], char)");
+    }
+
+    [Test(Description = "/'h' in 'hello' — char in text should work")]
+    public void CharInText_Solved() {
+        //        2     0       1
+        //y = isIn(/'h', 'hello')   signature: (T, T[]) -> Bool
+        var graph = new GraphBuilder();
+        graph.SetConst(0, Char); // /'h' (char)
+        graph.SetArrayConst(1, Char); // 'hello' (text)
+
+        var t = graph.InitializeVarNode();
+        // Signature: (T, T[]) -> Bool
+        graph.SetCall(
+            new ITicNodeState[] { t, StateArray.Of(t), Bool },
+            new[] { 0, 1, 2 });
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(Bool, "y");
+    }
 }

@@ -96,7 +96,7 @@ public class MultiMapSumFunction : GenericFunctionBase {
                            BaseFunnyType.Real => context.RealTypeSelect(
                                ifIsDouble: new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0),
                                ifIsDecimal: new ConcreteMapSumBase((a, b) => (decimal)a + (decimal)b, (decimal)0)),
-                           _ => throw new ArgumentOutOfRangeException()
+                           _ => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
                        };
         concrete.Name = Id;
         concrete.ArgTypes = SubstitudeArgTypes(concreteTypes);
@@ -266,7 +266,15 @@ public class MaxElementFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
         if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
-        return array.As<IComparable>().Max();
+        // IEEE 754: NaN propagates through max — LINQ Max ignores NaN, so use manual loop
+        object result = null;
+        foreach (var item in array)
+        {
+            if (item is double d && double.IsNaN(d)) return item;
+            if (result == null || ((IComparable)item).CompareTo(result) > 0)
+                result = item;
+        }
+        return result;
     }
 }
 
@@ -278,7 +286,15 @@ public class MinElementFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
         if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
-        return array.As<IComparable>().Min();
+        // IEEE 754: NaN propagates through min — LINQ Min ignores NaN, so use manual loop
+        object result = null;
+        foreach (var item in array)
+        {
+            if (item is double d && double.IsNaN(d)) return item;
+            if (result == null || ((IComparable)item).CompareTo(result) < 0)
+                result = item;
+        }
+        return result;
     }
 }
 

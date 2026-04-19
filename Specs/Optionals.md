@@ -183,6 +183,32 @@ arr?.count() ?? 0                  # int   — 3 or 0
 
 Explicit `?.` on every level (`data?.inner?.value`) also works but is not required
 
+## Safe array access `?[`
+
+The `?[` operator safely indexes into an optional array. Returns `none` if the array is `none` OR if the index is out of bounds
+
+```
+expression?[index]
+```
+
+```py
+arr:int[]? = if(hasData) [10, 20, 30] else none
+
+arr?[0]          # int? — 10 or none (if arr is none)
+arr?[99]         # int? — none (out of bounds)
+arr?[-1]         # int? — none (negative index)
+arr?[1] ?? 0     # int  — 20 or 0
+```
+
+This is fully safe — `?[` never throws a runtime error. Compare with regular `[]` which throws on `none` array or out-of-bounds index.
+
+Non-optional arrays can also use `?[` for bounds-safe access:
+
+```py
+arr = [10, 20, 30]
+arr?[99] ?? 0    # int — 0 (out of bounds returns none, coalesced to 0)
+```
+
 ## Conditional expressions with `none`
 
 The `if-else` expression naturally supports optional types when one or both branches return `none`

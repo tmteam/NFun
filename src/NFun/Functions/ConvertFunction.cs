@@ -32,7 +32,7 @@ public class ConvertFunction : GenericFunctionBase {
                     return new TextFunnyArray(Encoding.Unicode.GetString(array.ToArrayOf<byte>()));
                 }, from, to);
             else
-                return new ConcreteConverter(o => new TextFunnyArray(o.ToString()), from, to);
+                return new ConcreteConverter(o => new TextFunnyArray(TypeHelper.GetFunText(o)), from, to);
         }
 
 

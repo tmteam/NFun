@@ -322,6 +322,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                     genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
             }
 
+            ValidateGenericResolution(genericFunction, genericArgs, node);
             var function = genericFunction.CreateConcrete(genericArgs, _dialect);
 
             if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled
@@ -599,10 +600,61 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 for (int i = 0; i < genericTypes.Length; i++)
                     genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
             }
+            ValidateGenericResolution(genericFunction, genericArgs, node);
             return CreateFunctionCall(node, genericFunction.CreateConcrete(genericArgs, _dialect));
         }
 
         throw new NFunImpossibleException($"MJ101op. Operator type is unknown");
+    }
+
+    /// <summary>
+    /// WORKAROUND: Validates that generic type resolutions are not vacuous.
+    /// When a generic T resolves to Any and the function uses T at different
+    /// structural depths in its INPUT arguments (e.g., bare T in one arg and T[] in another),
+    /// the Any resolution came from merging structurally incompatible constraints
+    /// (e.g., 'h' in 'hello' where T would need to be both char[] and char).
+    /// Only checks input argument types (not return type) because T=Any in the return
+    /// position is legitimate for get-element from any[], fold of untyped array, etc.
+    /// The proper fix belongs in the TIC solver.
+    /// </summary>
+    private static void ValidateGenericResolution(
+        IGenericFunction function, FunnyType[] genericArgs, IFunCallSyntaxNode node) {
+        for (int i = 0; i < genericArgs.Length; i++) {
+            if (genericArgs[i].BaseType != BaseFunnyType.Any)
+                continue;
+            // Generic resolved to Any — check if it appears at multiple structural
+            // depths across input arguments only.
+            bool hasDepth0 = false;
+            bool hasNonZeroDepth = false;
+            foreach (var argType in function.ArgTypes)
+                CheckGenericDepths(argType, i, 0, ref hasDepth0, ref hasNonZeroDepth);
+            if (hasDepth0 && hasNonZeroDepth)
+                throw Errors.IncompatibleGenericResolution(function, i, node);
+        }
+    }
+
+    private static void CheckGenericDepths(
+        FunnyType type, int genericIndex, int depth,
+        ref bool hasDepth0, ref bool hasNonZeroDepth) {
+        if (type.BaseType == BaseFunnyType.Generic && type.GenericId == genericIndex) {
+            if (depth == 0)
+                hasDepth0 = true;
+            else
+                hasNonZeroDepth = true;
+            return;
+        }
+        if (type.BaseType == BaseFunnyType.ArrayOf)
+            CheckGenericDepths(type.ArrayTypeSpecification.FunnyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.Fun) {
+            foreach (var input in type.FunTypeSpecification.Inputs)
+                CheckGenericDepths(input, genericIndex, depth + 1, ref hasDepth0, ref hasNonZeroDepth);
+            CheckGenericDepths(type.FunTypeSpecification.Output, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        }
+        else if (type.BaseType == BaseFunnyType.Optional)
+            CheckGenericDepths(type.OptionalTypeSpecification.ElementType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
     }
 
     public IExpressionNode Visit(TypeDeclarationSyntaxNode node) =>

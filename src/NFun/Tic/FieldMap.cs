@@ -44,8 +44,8 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TicNode GetValueOrNull(string key) {
         if (_inlineCount >= 0) {
-            if (_inlineCount >= 1 && _key0 == key) return _val0;
-            if (_inlineCount >= 2 && _key1 == key) return _val1;
+            if (_inlineCount >= 1 && string.Equals(_key0, key, StringComparison.OrdinalIgnoreCase)) return _val0;
+            if (_inlineCount >= 2 && string.Equals(_key1, key, StringComparison.OrdinalIgnoreCase)) return _val1;
             return null;
         }
         _dict!.TryGetValue(key, out var result);
@@ -74,7 +74,7 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void SpillToDictionary() {
-        _dict = new Dictionary<string, TicNode>(4) {
+        _dict = new Dictionary<string, TicNode>(4, StringComparer.OrdinalIgnoreCase) {
             { _key0!, _val0! }, { _key1!, _val1! }
         };
         _key0 = _key1 = null;
@@ -86,8 +86,8 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
     public TicNode this[string key] {
         set {
             if (_inlineCount >= 0) {
-                if (_inlineCount >= 1 && _key0 == key) { _val0 = value; return; }
-                if (_inlineCount >= 2 && _key1 == key) { _val1 = value; return; }
+                if (_inlineCount >= 1 && string.Equals(_key0, key, StringComparison.OrdinalIgnoreCase)) { _val0 = value; return; }
+                if (_inlineCount >= 2 && string.Equals(_key1, key, StringComparison.OrdinalIgnoreCase)) { _val1 = value; return; }
                 Add(key, value);
                 return;
             }

@@ -1,4 +1,5 @@
 using NFun.Tic.SolvingStates;
+using NFun.Types;
 
 namespace NFun.Interpretation.Functions;
 
@@ -8,11 +9,23 @@ public readonly struct GenericConstrains {
     public readonly StatePrimitive Ancestor;
     public readonly StatePrimitive Descendant;
     public readonly bool IsComparable;
+    /// <summary>
+    /// Struct descendant constraint as a FunnyType (lang-level type).
+    /// When set, the generic type must be a struct with at least these fields.
+    /// The struct fields may reference other generics via FunnyType.Generic(i).
+    /// This preserves struct field constraints for generic user functions,
+    /// allowing callers to pass structs with additional fields beyond
+    /// what the function body accesses.
+    /// </summary>
+    public readonly FunnyType StructDescendant;
+
+    public bool HasStructDescendant => StructDescendant.BaseType == BaseFunnyType.Struct;
 
     public override string ToString() {
-        if (Ancestor == null && Descendant == null && IsComparable)
+        if (Ancestor == null && Descendant == null && !HasStructDescendant && IsComparable)
             return "<>";
-        return $"[{Descendant}..{Ancestor}]" + (IsComparable ? "<>" : "");
+        var desc = HasStructDescendant ? StructDescendant.ToString() : Descendant?.ToString();
+        return $"[{desc}..{Ancestor}]" + (IsComparable ? "<>" : "");
     }
 
     public static readonly GenericConstrains Comparable = new(null, null, true);
@@ -41,11 +54,15 @@ public readonly struct GenericConstrains {
     public static GenericConstrains FromTicConstrains(ConstraintsState constraintsState)
         => new(constraintsState.Ancestor, constraintsState.Descendant as StatePrimitive, constraintsState.IsComparable);
 
+    internal static GenericConstrains WithStructDescendant(FunnyType structType)
+        => new(null, null, false, structType);
+
     private GenericConstrains(
         StatePrimitive ancestor = null, StatePrimitive descendant = null,
-        bool isComparable = false) {
+        bool isComparable = false, FunnyType structDescendant = default) {
         Ancestor = ancestor;
         Descendant = descendant;
         IsComparable = isComparable;
+        StructDescendant = structDescendant;
     }
 }

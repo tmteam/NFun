@@ -270,4 +270,99 @@ public class NoneStructSafeAccessTest {
         result.AssertNoGenerics();
         result.AssertNamed(I32, "y");
     }
+
+    // ═══════ BUG: if-else with none as struct field value + chained safe access ═══════
+
+    /// <summary>
+    /// Exact repro of syntax-level bug:
+    ///   y = if(true) {a = if(true) {b=42} else none} else none
+    ///   z = y?.a?.b ?? -1
+    ///
+    /// The inner if-else produces opt({b:int}), used as field 'a' in outer struct.
+    /// Outer if-else produces opt({a: opt({b:int})}).
+    /// Chained y?.a?.b should work.
+    /// </summary>
+    [Test]
+    public void IfElseNone_AsStructField_ChainedSafeAccess_Coalesce() {
+        var graph = new GraphBuilder();
+
+        // Inner if-else: if(true) {b=42} else none
+        graph.SetConst(0, Bool);   // inner condition
+        graph.SetIntConst(1, StatePrimitive.U8);     // 42
+        graph.SetStructInit(new[] { "b" }, new[] { 1 }, 2);   // {b=42}
+        graph.SetConst(3, None);   // none
+        // Inner if-else result = node 4
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 3 }, 4);
+
+        // Outer struct: {a = <inner if-else result>}
+        graph.SetStructInit(new[] { "a" }, new[] { 4 }, 5);
+
+        // Outer if-else: if(true) {a=...} else none
+        graph.SetConst(6, Bool);   // outer condition
+        graph.SetConst(7, None);   // none
+        graph.SetIfElse(new[] { 6 }, new[] { 5, 7 }, 8);
+        graph.SetDef("y", 8);
+
+        // z = y?.a?.b ?? -1
+        graph.SetVar("y", 9);
+        graph.SetSafeFieldAccess(9, 10, "a");         // y?.a
+        graph.SetSafeFieldAccess(10, 11, "b");         // ?.b
+        graph.SetIntConst(12, StatePrimitive.U8);      // -1
+        var t = graph.InitializeVarNode();
+        graph.SetCall(new ITicNodeState[] { StateOptional.Of(t), t, t }, new[] { 11, 12, 13 });  // ?? coalesce
+        graph.SetDef("z", 13);
+
+        var result = graph.Solve();
+        // Output generics (int literal constraint) are OK — resolved at runtime
+        var zNode = result.GetVariableNode("z").GetNonReference();
+        // z should be a concrete numeric type or a constraint interval
+        Assert.IsTrue(
+            zNode.State is StatePrimitive or ConstraintsState { HasAncestor: true },
+            $"z should be numeric, got {zNode.State}");
+    }
+
+    /// <summary>
+    /// Same bug without coalesce — diagnose what TIC resolves for each node.
+    /// y = if(true) {a = if(true) {b=42} else none} else none
+    /// z = y?.a?.b
+    /// </summary>
+    [Test]
+    public void IfElseNone_AsStructField_ChainedSafeAccess() {
+        var graph = new GraphBuilder();
+
+        // Inner if-else: if(true) {b=42} else none
+        graph.SetConst(0, Bool);
+        graph.SetIntConst(1, StatePrimitive.U8);
+        graph.SetStructInit(new[] { "b" }, new[] { 1 }, 2);
+        graph.SetConst(3, None);
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 3 }, 4);
+
+        // Outer struct: {a = <inner if-else result>}
+        graph.SetStructInit(new[] { "a" }, new[] { 4 }, 5);
+
+        // Outer if-else: if(true) {a=...} else none
+        graph.SetConst(6, Bool);
+        graph.SetConst(7, None);
+        graph.SetIfElse(new[] { 6 }, new[] { 5, 7 }, 8);
+        graph.SetDef("y", 8);
+
+        // z = y?.a?.b
+        graph.SetVar("y", 9);
+        graph.SetSafeFieldAccess(9, 10, "a");
+        graph.SetSafeFieldAccess(10, 11, "b");
+        graph.SetDef("z", 11);
+
+        var result = graph.Solve();
+
+        // Inner if-else must be opt(struct), not bare struct.
+        // If it's bare struct, the runtime will fail casting none to struct.
+        var node4 = result.GetSyntaxNodeOrNull(4);
+        var innerIfElse = node4?.GetNonReference();
+        Assert.IsTrue(innerIfElse?.State is StateOptional,
+            $"Inner if-else should be opt(struct), got {innerIfElse?.State}");
+
+        var z = result.GetVariableNode("z").GetNonReference();
+        Assert.IsTrue(z.State is StateOptional or ConstraintsState,
+            $"z should be optional or constrained, got {z.State}");
+    }
 }

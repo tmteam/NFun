@@ -10,12 +10,14 @@ namespace NFun.TypeInferenceAdapter;
 public abstract class TicTypesConverter {
     public static readonly TicTypesConverter Concrete = new OnlyConcreteTypesConverter();
 
-    public static TicTypesConverter GenericSignatureConverter(IReadOnlyList<ConstraintsState> constrainsMap)
-        => new ConstrainsConverter(constrainsMap);
+    public static TicTypesConverter GenericSignatureConverter(IReadOnlyList<ConstraintsState> constrainsMap,
+        IReadOnlyList<(StateStruct, ConstraintsState)> structGenericMap = null)
+        => new ConstrainsConverter(constrainsMap, structGenericMap);
 
     public static TicTypesConverter ReplaceGenericTypesConverter(
-        IReadOnlyList<ConstraintsState> constrainsMap, IList<FunnyType> genericArgs)
-        => new GenericMapConverter(constrainsMap, genericArgs);
+        IReadOnlyList<ConstraintsState> constrainsMap, IList<FunnyType> genericArgs,
+        IReadOnlyList<(StateStruct, ConstraintsState)> structGenericMap = null)
+        => new GenericMapConverter(constrainsMap, genericArgs, structGenericMap);
 
     public abstract FunnyType Convert(ITicNodeState type);
     /// <summary>Per-conversion unique mark. Set once per ConvertToFunnyStruct entry.</summary>
@@ -44,20 +46,20 @@ public abstract class TicTypesConverter {
             {
                 // Cycle detected — use TypeName if available (from node state or parent chain)
                 if (fieldNode.State is Tic.SolvingStates.StateStruct { TypeName: { } tn })
-                    fields.Add(ticField.Key.ToLower(), FunnyType.NamedStructOf(tn));
+                    fields.Add(ticField.Key, FunnyType.NamedStructOf(tn));
                 // If this is a StateStruct (TypeName lost via GetNonReferenced)
                 // and we're inside a named struct conversion, use the parent's TypeName.
                 else if (fieldNode.State is Tic.SolvingStates.StateStruct
                          && _convertingNamedTypes is { Count: > 0 })
-                    fields.Add(ticField.Key.ToLower(),
+                    fields.Add(ticField.Key,
                         FunnyType.NamedStructOf(_convertingNamedTypes.First()));
                 else
-                    fields.Add(ticField.Key.ToLower(), FunnyType.Any);
+                    fields.Add(ticField.Key, FunnyType.Any);
                 continue;
             }
             var prev = fieldNode.VisitMark;
             fieldNode.VisitMark = _convertMark;
-            fields.Add(ticField.Key.ToLower(), Convert(fieldNode.State));
+            fields.Add(ticField.Key, Convert(fieldNode.State));
             fieldNode.VisitMark = prev;
         }
 
@@ -169,8 +171,13 @@ public abstract class TicTypesConverter {
 
     private class ConstrainsConverter : TicTypesConverter {
         private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
+        private readonly IReadOnlyList<(StateStruct Struct, ConstraintsState Wrapper)> _structGenericMap;
 
-        public ConstrainsConverter(IReadOnlyList<ConstraintsState> constrainsMap) => _constrainsMap = constrainsMap;
+        public ConstrainsConverter(IReadOnlyList<ConstraintsState> constrainsMap,
+            IReadOnlyList<(StateStruct, ConstraintsState)> structGenericMap = null) {
+            _constrainsMap = constrainsMap;
+            _structGenericMap = structGenericMap;
+        }
 
         public override FunnyType Convert(ITicNodeState type)
             => type switch {
@@ -181,7 +188,7 @@ public abstract class TicTypesConverter {
                    StateArray array           => ConvertToFunnyArray(array),
                    StateOptional opt          => ConvertToFunnyOptional(opt),
                    StateFun fun               => ConvertToFunnyFun(fun),
-                   StateStruct str            => ConvertToFunnyStruct(str),
+                   StateStruct str            => TryGetStructGenericIndex(str, out var idx) ? FunnyType.Generic(idx) : ConvertToFunnyStruct(str),
                    _                          => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
                };
 
@@ -191,15 +198,52 @@ public abstract class TicTypesConverter {
                 throw new InvalidOperationException("Unknown constraints");
             return index;
         }
+
+        private bool TryGetStructGenericIndex(StateStruct str, out int index) {
+            if (_structGenericMap != null)
+            {
+                for (int i = 0; i < _structGenericMap.Count; i++)
+                {
+                    if (StructMatchesByFields(_structGenericMap[i].Struct, str))
+                    {
+                        // The wrapper's position in the extended constrains map gives the generic index
+                        index = _constrainsMap.IndexOf(_structGenericMap[i].Wrapper);
+                        return index >= 0;
+                    }
+                }
+            }
+            index = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// Match struct generics by field names.
+        /// The actual struct must have at least all fields of the expected struct.
+        /// This handles the case where TIC solving creates new StateStruct objects
+        /// via MergeStructs, and where the actual struct might have additional fields.
+        /// </summary>
+        private static bool StructMatchesByFields(StateStruct expected, StateStruct actual) {
+            if (ReferenceEquals(expected, actual)) return true;
+            // The actual struct must contain all fields from the expected (struct generic) pattern.
+            // It may have additional fields (from other constraints or merges during solving).
+            foreach (var (key, _) in expected.Fields)
+            {
+                if (actual.GetFieldOrNull(key) == null) return false;
+            }
+            return true;
+        }
     }
 
     private class GenericMapConverter : TicTypesConverter {
         private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
         private readonly IList<FunnyType> _argTypes;
+        private readonly IReadOnlyList<(StateStruct Struct, ConstraintsState Wrapper)> _structGenericMap;
 
-        public GenericMapConverter(IReadOnlyList<ConstraintsState> constrainsMap, IList<FunnyType> argTypes) {
+        public GenericMapConverter(IReadOnlyList<ConstraintsState> constrainsMap, IList<FunnyType> argTypes,
+            IReadOnlyList<(StateStruct, ConstraintsState)> structGenericMap = null) {
             _constrainsMap = constrainsMap;
             _argTypes = argTypes;
+            _structGenericMap = structGenericMap;
         }
 
         public override FunnyType Convert(ITicNodeState type) {
@@ -225,11 +269,46 @@ public abstract class TicTypesConverter {
                     case StateFun fun:
                         return ConvertToFunnyFun(fun);
                     case StateStruct str:
+                        if (TryGetStructGenericType(str, out var concreteType))
+                            return concreteType;
                         return ConvertToFunnyStruct(str);
                     default:
                         throw new NotSupportedException();
                 }
             }
+        }
+
+        private bool TryGetStructGenericType(StateStruct str, out FunnyType concreteType) {
+            if (_structGenericMap != null)
+            {
+                for (int i = 0; i < _structGenericMap.Count; i++)
+                {
+                    if (StructMatchesByFields(_structGenericMap[i].Struct, str))
+                    {
+                        var wrapperIndex = _constrainsMap.IndexOf(_structGenericMap[i].Wrapper);
+                        if (wrapperIndex >= 0)
+                        {
+                            concreteType = _argTypes[wrapperIndex];
+                            return true;
+                        }
+                    }
+                }
+            }
+            concreteType = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Match struct generics by field names.
+        /// Same logic as ConstrainsConverter.StructMatchesByFields.
+        /// </summary>
+        private static bool StructMatchesByFields(StateStruct expected, StateStruct actual) {
+            if (ReferenceEquals(expected, actual)) return true;
+            foreach (var (key, _) in expected.Fields)
+            {
+                if (actual.GetFieldOrNull(key) == null) return false;
+            }
+            return true;
         }
     }
 

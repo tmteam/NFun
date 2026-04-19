@@ -19,6 +19,7 @@ internal static class TypeHelper {
     internal static string GetFunText(object obj) =>
         obj switch {
             IFunnyArray funArray => funArray.ToText(),
+            bool b               => b ? "true" : "false",
             double dbl           => dbl.ToString(CultureInfo.InvariantCulture),
             Decimal dec          => dec.ToString(CultureInfo.InvariantCulture),
             _                    => obj.ToString()

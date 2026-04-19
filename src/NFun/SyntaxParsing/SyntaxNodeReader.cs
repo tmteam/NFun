@@ -369,10 +369,9 @@ public static class SyntaxNodeReader {
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
                 // Open parenthesis. It means call
                 if (flow.IsCurrent(TokType.ParenthObr)) {
-                    // Propagate safe access: if piped source is safe (?.method() or ?.field),
-                    // chain is safe too (TypeScript-style: a?.foo().bar(), a?.field.count())
-                    bool propagateSafe = leftNode is FunCallSyntaxNode { IsSafeAccess: true }
-                        || leftNode is StructFieldAccessSyntaxNode { IsSafeAccess: true };
+                    // Propagate safe access through the entire chain:
+                    // x?.a.b.reverse() — leftNode is x?.a.b, need to walk Source chain to find ?.
+                    bool propagateSafe = IsInSafeAccessChain(leftNode);
                     leftNode = ReadFunctionCall(flow, id, leftNode, isSafeCall: propagateSafe);
                 }
                 else //else it is struct field
@@ -462,6 +461,30 @@ public static class SyntaxNodeReader {
             return SyntaxNodeFactory.BinOperatorCall(OperatorFunNames[operators[0].Type], operands[0], operands[1]);
         else
             return SyntaxNodeFactory.ComparisonChain(operands, operators);
+    }
+
+    /// <summary>
+    /// Checks if a node is part of a safe access chain (has ?. somewhere in its source chain).
+    /// Walks through field accesses and piped function calls to find the original ?. operator.
+    /// Example: x?.a.b.count() — .b and .count() are both in the safe chain started by ?.a
+    /// </summary>
+    private static bool IsInSafeAccessChain(ISyntaxNode node) {
+        var current = node;
+        while (true) {
+            switch (current) {
+                case StructFieldAccessSyntaxNode f:
+                    if (f.IsSafeAccess) return true;
+                    current = f.Source;
+                    continue;
+                case FunCallSyntaxNode fc when fc.IsSafeAccess:
+                    return true;
+                case FunCallSyntaxNode fc when fc.IsPipeForward && fc.Args.Length > 0:
+                    current = fc.Args[0];
+                    continue;
+                default:
+                    return false;
+            }
+        }
     }
 
     /// <summary>

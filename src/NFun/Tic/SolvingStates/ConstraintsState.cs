@@ -294,8 +294,12 @@ public class ConstraintsState : ITicNodeState {
             }
         }
 
-        if (!HasDescendant)
+        if (!HasDescendant) {
+            // IsOptional=true but no comparable descendant → None alone is not comparable → reject
+            if (IsComparable && IsOptional)
+                return null;
             return this; // IsOptional=true but no descendant yet — keep collecting constraints
+        }
 
         if (HasAncestor)
         {

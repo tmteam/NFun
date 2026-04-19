@@ -78,7 +78,7 @@ public static class SolvingFunctions {
     }
 
     private static StateStruct MergeStructs(StateStruct strA, StateStruct strB) {
-        var result = new Dictionary<string, TicNode>();
+        var result = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
         foreach (var (key, value) in strA.Fields)
         {
             var bNode = strB.GetFieldOrNull(key);
@@ -650,7 +650,7 @@ public static class SolvingFunctions {
             // For perfomance
             bool allFieldsAreSolved = true;
 
-            var newFields = new Dictionary<string, TicNode>(structDesc.MembersCount);
+            var newFields = new Dictionary<string, TicNode>(structDesc.MembersCount, StringComparer.OrdinalIgnoreCase);
             foreach (var (key, value) in structDesc.Fields)
             {
                 var nrField = value.GetNonReference();

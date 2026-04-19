@@ -106,7 +106,9 @@ public static class TestHelper {
             case string astr:
                 return astr.Equals((string)b);
             case double resultD:
-                return Math.Abs(resultD - (double)b) < 0.01;
+                var expectedD = (double)b;
+                if (double.IsNaN(resultD) && double.IsNaN(expectedD)) return true;
+                return Math.Abs(resultD - expectedD) < 0.01;
             case decimal resultDec:
                 return resultDec.Equals((decimal)b);
             case IPAddress ipAddress:

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
@@ -25,9 +26,9 @@ public class MoreFunction : GenericFunctionWithTwoArguments {
         FunnyType.Generic(0)) { }
 
     protected override object Calc(object a, object b) {
-        var left = (IComparable)a;
-        var right = (IComparable)b;
-        return left.CompareTo(right) > 0;
+        // IEEE 754: NaN is unordered — any comparison with NaN returns false
+        if (IEEE754Guard.EitherIsNaN(a, b)) return false;
+        return ((IComparable)a).CompareTo(b) > 0;
     }
 }
 
@@ -37,9 +38,9 @@ public class MoreOrEqualFunction : GenericFunctionWithTwoArguments {
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
     protected override object Calc(object a, object b) {
-        var left = (IComparable)a;
-        var right = (IComparable)b;
-        return left.CompareTo(right) >= 0;
+        // IEEE 754: NaN is unordered — any comparison with NaN returns false
+        if (IEEE754Guard.EitherIsNaN(a, b)) return false;
+        return ((IComparable)a).CompareTo(b) >= 0;
     }
 }
 
@@ -49,9 +50,9 @@ public class LessFunction : GenericFunctionWithTwoArguments {
         FunnyType.Generic(0)) { }
 
     protected override object Calc(object a, object b) {
-        var left = (IComparable)a;
-        var right = (IComparable)b;
-        return left.CompareTo(right) < 0;
+        // IEEE 754: NaN is unordered — any comparison with NaN returns false
+        if (IEEE754Guard.EitherIsNaN(a, b)) return false;
+        return ((IComparable)a).CompareTo(b) < 0;
     }
 }
 
@@ -61,10 +62,20 @@ public class LessOrEqualFunction : GenericFunctionWithTwoArguments {
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
     protected override object Calc(object a, object b) {
-        var left = (IComparable)a;
-        var right = (IComparable)b;
-        return left.CompareTo(right) <= 0;
+        // IEEE 754: NaN is unordered — any comparison with NaN returns false
+        if (IEEE754Guard.EitherIsNaN(a, b)) return false;
+        return ((IComparable)a).CompareTo(b) <= 0;
     }
+}
+
+/// <summary>
+/// IEEE 754: NaN is unordered. IComparable.CompareTo treats NaN as the smallest value,
+/// which violates IEEE 754. This helper detects double NaN operands.
+/// </summary>
+internal static class IEEE754Guard {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool EitherIsNaN(object a, object b)
+        => a is double da && double.IsNaN(da) || b is double db && double.IsNaN(db);
 }
 
 public class MinFunction : PureGenericFunctionBase {
@@ -79,9 +90,12 @@ public class MinFunction : PureGenericFunctionBase {
 
     private class MinConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            if (a is double da && double.IsNaN(da)) return a;
-            if (b is double db && double.IsNaN(db)) return b;
-            return ((IComparable)a).CompareTo(b) > 0 ? b : a;
+            // IEEE 754: NaN propagates through min
+            if (IEEE754Guard.EitherIsNaN(a, b))
+                return a is double da && double.IsNaN(da) ? a : b;
+            var left = (IComparable)a;
+            var right = (IComparable)b;
+            return left.CompareTo(right) > 0 ? b : a;
         }
     }
 }
@@ -98,9 +112,13 @@ public class MaxFunction : PureGenericFunctionBase {
 
     private class MaxConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            if (a is double da && double.IsNaN(da)) return a;
-            if (b is double db && double.IsNaN(db)) return b;
-            return ((IComparable)a).CompareTo(b) > 0 ? a : b;
+            // IEEE 754: NaN propagates through max
+            if (IEEE754Guard.EitherIsNaN(a, b))
+                return a is double da && double.IsNaN(da) ? a : b;
+            var arg1 = (IComparable)a;
+            var arg2 = (IComparable)b;
+            var result = arg1.CompareTo(arg2) > 0 ? a : b;
+            return result;
         }
     }
 }
