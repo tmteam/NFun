@@ -25,17 +25,18 @@ public class NodeToposort {
 
     private int _visitDepth = 0;
 
-    public void OptimizeTopology() {
-        //Trying to find ancestor cycles
-
+    /// <summary>
+    /// Topological sort + optional per-node callback (streaming Pull fusion).
+    /// If onNodeReady is provided, it is called for each non-reference node
+    /// immediately after post-processing, in toposort order.
+    /// </summary>
+    public void OptimizeTopology(Action<TicNode> onNodeReady = null) {
         _path = new Stack<TicNode>(_allNodes.Count);
 
         foreach (var nonReferenceNode in _allNodes)
-        {
             Visit(nonReferenceNode);
-        }
 
-        //at this moment we have garanties that graph has no cycles
+        // Post-process: dereference ancestors, transfer RefTo edges, build result array.
         NonReferenceOrdered = new TicNode[_path.Count - _referenceNodesCount];
         var nonRefId = 0;
         foreach (var node in _path)
@@ -60,6 +61,9 @@ public class NodeToposort {
 
                 if (node.State is ICompositeState composite)
                     node.State = composite.GetNonReferenced();
+
+                // Streaming: process node immediately in toposort order
+                onNodeReady?.Invoke(node);
             }
         }
     }

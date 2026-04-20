@@ -503,8 +503,8 @@ class OptionalCompositeTests {
 
     [Test(Description = "x:opt(arr(i32)); count(x) → TicError (opt(arr) can't satisfy arr)")]
     public void OptionalArray_PassedToArrayFunc_Fails() {
-        // Simulates: x:int[]?; y = x.count()
-        // count: arr(T) → I32. opt(arr(int)) can't satisfy arr(T).
+        // x:int[]?; y = count(x). Param shape is pinned (SyntaxNode) — wrapping throws.
+        // TIC catches Opt(Arr(I32)) ≤ Arr(T) as type error.
         TestHelper.AssertThrowsTicError(() => {
             var graph = new GraphBuilder();
             var t = graph.InitializeVarNode();
@@ -533,7 +533,8 @@ class OptionalCompositeTests {
 
     [Test(Description = "x:opt(fun(i32)→bool); call(x,1) → TicError (opt(fun) can't satisfy fun)")]
     public void OptionalFun_CalledDirectly_Fails() {
-        // opt(fun(i32)→bool) can't be called — must unwrap first.
+        // SetCall creates a SyntaxNode for the call expression with Fun type.
+        // SyntaxNode can't be wrapped in Optional → TIC error (correct).
         TestHelper.AssertThrowsTicError(() => {
             var graph = new GraphBuilder();
             graph.SetVarType("x", StateOptional.Of(StateFun.Of(I32, Bool)));
@@ -547,6 +548,7 @@ class OptionalCompositeTests {
 
     [Test(Description = "x:opt({age:i32}); f(x) where f:struct→bool → TicError")]
     public void OptionalStruct_PassedToStructFunc_Fails() {
+        // SetCall creates a SyntaxNode — can't wrap in Optional → TIC error (correct).
         TestHelper.AssertThrowsTicError(() => {
             var graph = new GraphBuilder();
             var s = StateStruct.Of("age", I32);

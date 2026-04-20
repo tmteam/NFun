@@ -279,6 +279,9 @@ public static class SolvingFunctions {
         return true;
     }
 
+    /// <summary>Pull constraints for a single node (streaming toposort+Pull fusion).</summary>
+    public static void PullConstraintsForNode(TicNode node) => PullConstraintsRecursive(node);
+
     private static void PullConstraintsRecursive(TicNode node) {
         var ancSize = node.Ancestors.Count;
         if (ancSize == 1)

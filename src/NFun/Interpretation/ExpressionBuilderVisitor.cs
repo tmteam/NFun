@@ -289,7 +289,6 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         if (someFunc is IConcreteFunction f) //concrete function
             return CreateFunctionCall(node, f);
 
-
         if (someFunc is IGenericFunction genericFunction) //generic function
         {
             FunnyType[] genericArgs;

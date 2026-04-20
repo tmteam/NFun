@@ -106,6 +106,11 @@ public class TicNode {
     /// the element of opt(T), wrapping it again would create opt(opt(T)).
     /// </summary>
     internal bool IsOptionalElement { get; set; }
+    /// <summary>
+    /// True if this node's composite shape comes from a function signature parameter.
+    /// Prevents Optional wrapping: Opt(T) ≤ T is invalid for signature-given types.
+    /// </summary>
+    internal bool IsSignatureParam { get; set; }
     public bool IsSolved => _state.IsSolved;
     public bool IsMutable => _state.IsMutable;
 
@@ -217,15 +222,16 @@ public class TicNode {
     }
 
     public TicNode GetNonReference() {
-        var result = this;
-        if (result.State is StateRefTo referenceA)
-        {
-            result = referenceA.Node;
-            if (result.State is StateRefTo)
-                return result.GetNonReference();
-        }
-
-        return result;
+        if (State is not StateRefTo refTo)
+            return this;
+        // Path compression: find root, then flatten chain
+        var root = refTo.Node;
+        while (root.State is StateRefTo nextRef)
+            root = nextRef.Node;
+        // Compress: point directly to root (skip intermediate nodes)
+        if (refTo.Node != root)
+            State = new StateRefTo(root);
+        return root;
     }
 
     public override int GetHashCode() => _uid;

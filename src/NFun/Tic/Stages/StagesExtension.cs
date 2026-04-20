@@ -33,44 +33,24 @@ public static class StagesExtension {
                 ICompositeState bc => c switch {
                     StateArray arrA => bc switch {
                         StateArray arrB => function.Apply(arrA, arrB, nodeA, nodeB),
-                        // During Destruction: wrap ancestor to converge types.
-                        StateOptional optB when function is DestructionFunctions => WrapAncestorInOptional(function,
-                            nodeA, nodeB, optB),
-                        // During Pull: opt(arr(T)) can't satisfy arr(T) — no implicit unwrap
-                        StateOptional when function is PullConstraintsFunctions => false,
-                        // During Push: unwrap optional descendant to propagate inner info
-                        // (Destruction will wrap the ancestor later if needed)
-                        StateOptional optB => Invoke(function, nodeA, optB.ElementNode),
+                        // LCA(F<...>, Opt(F<...>)) = Opt(F<...>): wrap ancestor.
+                        StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
                     StateFun funA => bc switch {
                         StateFun funB => function.Apply(funA, funB, nodeA, nodeB),
-                        StateOptional optB when function is DestructionFunctions => WrapAncestorInOptional(function,
-                            nodeA, nodeB, optB),
-                        StateOptional when function is PullConstraintsFunctions => false,
-                        StateOptional optB => Invoke(function, nodeA, optB.ElementNode),
+                        StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
                     StateStruct strA => bc switch {
                         StateStruct strB => function.Apply(strA, strB, nodeA, nodeB),
-                        // When nodeA is an optional element (inner node of opt(T) from SetSafeFieldAccess),
-                        // unwrap the optional descendant instead of wrapping/rejecting.
-                        // This handles chained ?.b?.c where field b is optional:
-                        // T_b gets struct constraint from ?.c, but source field is opt(struct).
-                        // Unwrap is safe because T_b is already wrapped in opt() by the result node.
                         StateOptional optB when nodeA.IsOptionalElement => Invoke(function, nodeA, optB.ElementNode),
-                        StateOptional optB when function is DestructionFunctions => WrapAncestorInOptional(function,
-                            nodeA, nodeB, optB),
-                        StateOptional when function is PullConstraintsFunctions => false,
-                        StateOptional optB => Invoke(function, nodeA, optB.ElementNode),
+                        StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
                     StateOptional optA when bc is StateOptional optB => function.Apply(optA, optB, nodeA, nodeB),
-                    // Implicit lift: opt(T) ancestor, non-optional T descendant.
-                    // During Destruction: wrap descendant to converge types.
-                    StateOptional optA when function is DestructionFunctions => WrapDescendantInOptional(function,
-                        nodeA, nodeB, optA),
-                    StateOptional optA => Invoke(function, optA.ElementNode, nodeB),
+                    // LCA(Opt(T), T) = Opt(T): wrap descendant in Optional.
+                    StateOptional optA => WrapDescendantInOptional(function, nodeA, nodeB, optA),
                     _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
                 },
                 _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
@@ -83,14 +63,14 @@ public static class StagesExtension {
     }
 
     /// <summary>
-    /// During Destruction, when ancestor is non-Optional composite (struct/array/fun) and
-    /// descendant is Optional, wrap the ancestor in Optional to make types converge.
-    /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) are left as-is.
+    /// LCA(F&lt;...&gt;, Opt(F&lt;...&gt;)) = Opt(F&lt;...&gt;): wrap ancestor in Optional.
+    /// This is a standard LCA operation — ancestor widens to accommodate Optional descendant.
+    /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) indicate a type error.
     /// </summary>
     private static bool WrapAncestorInOptional(
         IStateFunction function, TicNode nodeA, TicNode nodeB, StateOptional optB) {
         TraceLog.WriteLine($"  WrapAncestorInOptional: nodeA={nodeA.Name}({nodeA.Type}):{nodeA.State} nodeB={nodeB.Name}:{nodeB.State}");
-        if (nodeA.Type == TicNodeType.SyntaxNode || nodeA.IsSolved)
+        if (nodeA.Type == TicNodeType.SyntaxNode || nodeA.IsSolved || nodeA.IsSignatureParam)
             throw Errors.TicErrors.IncompatibleNodes(nodeA, nodeB); // opt(T) ≤ T is invalid
         var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeA.Name, nodeA.State);
         innerNode.IsOptionalElement = true;
@@ -100,9 +80,8 @@ public static class StagesExtension {
     }
 
     /// <summary>
-    /// During Destruction, when ancestor is Optional and descendant is non-Optional composite,
-    /// wrap the descendant in Optional to make types converge.
-    /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) are left as-is.
+    /// LCA(Opt(T), T) = Opt(T): wrap descendant in Optional.
+    /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) use fallback unwrap.
     /// </summary>
     private static bool WrapDescendantInOptional(
         IStateFunction function, TicNode nodeA, TicNode nodeB, StateOptional optA) {

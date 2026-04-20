@@ -21,6 +21,12 @@ TIC Graph — направленный граф, в котором:
 
 Вид влияет только на привязку к AST. Алгебраически все узлы равноценны.
 
+### Свойства узлов
+
+- **IsMemberOfAnything** — узел является компонентой composite (element массива, поле struct, и т.д.). Пропускается в основных циклах Pull/Push — обрабатывается рекурсивно через component links.
+- **IsOptionalElement** — узел является element-ом StateOptional. Используется в двух контекстах: (1) предотвращает двойное Optional-wrapping в Pull/Push (если узел уже element Opt, повторное wrapping создало бы Opt(Opt(T))); (2) в StagesExtension: когда Struct ancestor помечен IsOptionalElement (из `?.` safe access), Optional descendant **unwrap-ится** вместо wrapping — обрабатывает цепочки `x?.b?.c` где поле b — Optional. Компенсирует отсутствие parent-ссылок на TicNode (accepted design, см. CLAUDE.md).
+- **IsSignatureParam** — composite-состояние задано сигнатурой функции (shape-rigid). Optional wrapping запрещён: форма конструктора фиксирована, компоненты внутри — flexible. Устанавливается при инстанциации вызова функции (Build фаза). Аналог rigid/skolem переменных в HM.
+
 ## BNF — грамматика типов
 
 Формальная грамматика типовых выражений в TIC:

@@ -220,6 +220,10 @@ public class GraphBuilder {
             {
                 RegistrateCompositeType(composite);
                 var ancestor = CreateVarType(composite);
+                // Function signature params have fixed composite shape.
+                // WrapAncestorInOptional checks this flag and throws TIC error.
+                // Algebraic meaning: Opt(T) ≤ T is invalid — param shape is a given, not inferred.
+                ancestor.IsSignatureParam = true;
                 node.AddAncestor(ancestor);
                 break;
             }
@@ -341,6 +345,10 @@ public class GraphBuilder {
         for (int i = 0; i < funState.ArgsCount; i++)
         {
             var argNode = funState.ArgNodes[i];
+            // Mark composite params from function signature as pinned —
+            // prevents Optional wrapping (Opt(T) ≤ T is invalid for given types).
+            if (argNode.State is ICompositeState)
+                argNode.IsSignatureParam = true;
             var state = argNode.State;
             // Use StateRefTo for unconstrained (generic) and unsolved composite args.
             // For unsolved ICompositeState (e.g., StateFun from higher-order params):
@@ -442,11 +450,30 @@ public class GraphBuilder {
     #region solving
 
     public ITicResults Solve(bool ignorePrefered = false) {
-        var sorted = Toposort();
-        PrintTrace("1. Toposorted", sorted);
+        // Check if any None nodes exist (quick scan during AddToTopology).
+        // If no None: fused Toposort+Pull (streaming, saves one O(n) pass).
+        // If None: separate two-phase Pull needed (IsOptional flag ordering).
+        bool hasNone = false;
+        for (int i = 0; i < _syntaxNodesLength; i++)
+            if (_syntaxNodes[i]?.State == StatePrimitive.None) { hasNone = true; break; }
 
-        bool hasOptionalTypes = SolvingFunctions.PullConstraints(sorted);
-        PrintTrace("2. PullConstraints", sorted);
+        bool hasOptionalTypes;
+        TicNode[] sorted;
+        if (!hasNone) {
+            // Fast path: fused Toposort+Pull (no None → single pass)
+            sorted = Toposort(node => {
+                if (!node.IsMemberOfAnything)
+                    SolvingFunctions.PullConstraintsForNode(node);
+            });
+            hasOptionalTypes = false;
+            PrintTrace("1+2. Toposorted+Pulled (fused)", sorted);
+        } else {
+            // Slow path: separate Toposort then two-phase Pull
+            sorted = Toposort();
+            PrintTrace("1. Toposorted", sorted);
+            hasOptionalTypes = SolvingFunctions.PullConstraints(sorted);
+            PrintTrace("2. PullConstraints (two-phase)", sorted);
+        }
 
         SolvingFunctions.PushConstraints(sorted);
         PrintTrace("3. PushConstraints", sorted);
@@ -471,7 +498,7 @@ public class GraphBuilder {
 
     public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s => s != null)).ToArray();
 
-    private TicNode[] Toposort() {
+    private TicNode[] Toposort(Action<TicNode> onNodeReady = null) {
         var toposortAlgorithm = new NodeToposort(
             capacity: _syntaxNodesLength + _variables.Count + _typeVariables.Count);
 
@@ -479,7 +506,7 @@ public class GraphBuilder {
         foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node);
         foreach (var node in _typeVariables) toposortAlgorithm.AddToTopology(node);
 
-        toposortAlgorithm.OptimizeTopology();
+        toposortAlgorithm.OptimizeTopology(onNodeReady);
         return toposortAlgorithm.NonReferenceOrdered;
     }
 
