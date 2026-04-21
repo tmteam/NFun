@@ -104,4 +104,5 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(UnaryOperatorSyntaxNode node) => $"{node.Id}";
     public string Visit(TypeDeclarationSyntaxNode node) => $"type {node.TypeName}";
     public string Visit(NamedTypeConstructorSyntaxNode node) => $"{node.TypeName}{{...}}";
+    public string Visit(TryCatchSyntaxNode node) => "try ... catch ...";
 }

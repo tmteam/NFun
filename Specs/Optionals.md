@@ -230,6 +230,63 @@ result =
     else none                  # text?
 ```
 
+## Type narrowing
+
+The compiler tracks `!= none` checks and narrows optional types in the corresponding scope.
+
+### Basic narrowing in if
+
+```py
+x:int? = getValue()
+
+if x != none:
+    y = x + 1        # x: int (not int?) — narrowed, no ! or ?. needed
+```
+
+### Narrowing in if-else
+
+```py
+x:int? = getValue()
+
+result = if(x != none) x + 1 else 0    # x narrowed to int in true branch
+```
+
+### Progressive narrowing with `and`
+
+Short-circuit `and` enables progressive narrowing — each condition narrows for the next:
+
+```py
+x:int? = getValue()
+
+if x != none and x > 0:     # x narrowed to int after first check
+    y = x * 2               # x: int
+```
+
+### Narrowing in collections
+
+```py
+items:int?[] = [1, none, 3, none, 5]
+
+# filter with != none narrows element type
+clean = items.filter(rule it != none)    # int[] (not int?[])
+```
+
+### What does NOT narrow
+
+- Arbitrary predicates: `if myCheck(x)` does NOT narrow
+- `== none` narrows only in the else branch
+- `or` does NOT narrow (either condition could be false)
+- Negation of compound conditions does NOT narrow
+
+### Safe access as narrowing alternative
+
+When narrowing is not available, use `?.` and `??`:
+
+```py
+user?.name ?? 'Guest'     # always works, no narrowing needed
+user?.age ?? 0
+```
+
 For operator precedence of `?.`, `??`, `!` see **Operators.md**
 
 ## Complete example

@@ -271,6 +271,9 @@ public static class SyntaxNodeReader {
         if (flow.IsCurrent(TokType.If))
             return ReadIfThenElseNode(flow);
 
+        if (flow.IsCurrent(TokType.Try))
+            return ReadTryCatchNode(flow);
+
         // '[' can be used as array index, only if there is new line
         if (flow.IsCurrent(TokType.ArrOBr))
             return ReadInitializeArrayNode(flow);
@@ -1208,5 +1211,47 @@ public static class SyntaxNodeReader {
         var interval = new Interval(headToken.Start, flow.CurrentTokenFinishPosition);
         return new SyntaxNodes.NamedTypeConstructorSyntaxNode(
             headToken.Value, headToken.Interval, equations, interval);
+    }
+
+    /// <summary>
+    /// Parses: try expr catch expr
+    /// </summary>
+    private static ISyntaxNode ReadTryCatchNode(TokFlow flow) {
+        var start = flow.CurrentTokenPosition;
+        flow.MoveNext(); // skip 'try'
+
+        var tryExpr = ReadNodeOrNull(flow);
+        if (tryExpr == null)
+            throw Errors.ThenExpressionIsMissing(start, flow.CurrentTokenFinishPosition);
+
+        if (!flow.MoveIf(TokType.Catch))
+            throw Errors.ElseKeywordIsMissing(start, flow.CurrentTokenFinishPosition);
+
+        // Lookahead: catch(id) = error binding, catch (expr) = fallback
+        // Save position, try to read (id) pattern, restore if not matched
+        string errorVarName = null;
+        if (flow.IsCurrent(TokType.ParenthObr)) {
+            var savedPos = flow.CurrentTokenPosition;
+            flow.MoveNext(); // skip '('
+            if (flow.IsCurrent(TokType.Id)) {
+                var idValue = flow.Current.Value;
+                flow.MoveNext(); // skip id
+                if (flow.IsCurrent(TokType.ParenthCbr)) {
+                    flow.MoveNext(); // skip ')'
+                    errorVarName = idValue; // matched: catch(id)
+                } else {
+                    flow.Move(savedPos); // restore — not (id)
+                }
+            } else {
+                flow.Move(savedPos); // restore — not (id)
+            }
+        }
+
+        var catchExpr = ReadNodeOrNull(flow);
+        if (catchExpr == null)
+            throw Errors.ElseExpressionIsMissing(start, flow.CurrentTokenFinishPosition);
+
+        return new SyntaxNodes.TryCatchSyntaxNode(tryExpr, catchExpr, errorVarName,
+            new Interval(start, flow.CurrentTokenFinishPosition));
     }
 }

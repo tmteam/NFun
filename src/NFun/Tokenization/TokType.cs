@@ -208,5 +208,13 @@ public enum TokType {
     /// 'type' keyword for named type definitions
     /// </summary>
     TypeKeyword,
+    /// <summary>
+    /// 'try' keyword for error handling
+    /// </summary>
+    Try,
+    /// <summary>
+    /// 'catch' keyword for error handling
+    /// </summary>
+    Catch,
 
 }

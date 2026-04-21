@@ -1346,4 +1346,38 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
     public bool Visit(NamedTypeConstructorSyntaxNode node) =>
         throw new NFunImpossibleException("NamedTypeConstructorSyntaxNode should be removed during elaboration");
+
+    public bool Visit(TryCatchSyntaxNode node) {
+        // Visit try expression (no error variable scope)
+        node.TryExpr.Accept(this);
+
+        if (node.ErrorVariableName != null) {
+            // Enter scope for catch body — error variable visible only inside
+            _aliasScope.EnterScope(node.OrderNumber);
+            var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
+            _aliasScope.AddVariableAlias(node.ErrorVariableName, aliasName);
+
+            // Create error variable: {message: text, data: any}
+            var charType = new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.Char);
+            var textType = (Tic.SolvingStates.ITicNodeState)new Tic.SolvingStates.StateArray(
+                Tic.TicNode.CreateTypeVariableNode(charType));
+            var any = (Tic.SolvingStates.ITicNodeState)new Tic.SolvingStates.StatePrimitive(
+                Tic.SolvingStates.PrimitiveTypeName.Any);
+            var errorType = Tic.SolvingStates.StateStruct.Of(
+                ("message", textType),
+                ("data", any));
+            _ticTypeGraph.SetVarType(aliasName, errorType);
+
+            // Visit catch expression inside scope
+            node.CatchExpr.Accept(this);
+            _aliasScope.ExitScope();
+        } else {
+            node.CatchExpr.Accept(this);
+        }
+
+        // try and catch branches unify like if-else: result = LCA(try, catch)
+        var expressions = new[] { node.TryExpr.OrderNumber, node.CatchExpr.OrderNumber };
+        _ticTypeGraph.SetIfElse(System.Array.Empty<int>(), expressions, node.OrderNumber);
+        return true;
+    }
 }

@@ -661,4 +661,20 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(NamedTypeConstructorSyntaxNode node) =>
         throw new NFunImpossibleException("NamedTypeConstructorSyntaxNode should be removed during elaboration");
+
+    public IExpressionNode Visit(TryCatchSyntaxNode node) {
+        var tryNode = CastExpressionNode.GetConvertedOrOriginOrThrow(
+            ReadNode(node.TryExpr), node.OutputType, _dialect.Converter.TypeBehaviour);
+        var catchNode = CastExpressionNode.GetConvertedOrOriginOrThrow(
+            ReadNode(node.CatchExpr), node.OutputType, _dialect.Converter.TypeBehaviour);
+
+        VariableSource errorVar = null;
+        if (node.ErrorVariableName != null) {
+            var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
+            errorVar = _variables.GetOrNull(aliasName)
+                       ?? _variables.GetOrNull(node.ErrorVariableName);
+        }
+
+        return new TryCatchExpressionNode(tryNode, catchNode, errorVar, node.Interval, node.OutputType);
+    }
 }

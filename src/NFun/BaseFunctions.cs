@@ -91,7 +91,10 @@ internal static class BaseFunctions {
             new ForceUnwrapFunction(),
             new SafeGetElementFunction(),
             new FilterNotNullFunction(),
-            new ThrowErrorFunction()
+            new ThrowErrorFunction(),
+            new OopsFunction0(),
+            new OopsFunction1(),
+            new OopsFunction2()
         };
 
         ConcreteFunctions = new IConcreteFunction[] {

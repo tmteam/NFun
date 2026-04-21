@@ -68,6 +68,8 @@ FitsInto(∅, T) = true
 | Переменная `x` | `usage →c x` | — | `[∅..∅]` |
 | Определение `y = e` | `e →c y` | — | y: output |
 | `if(c) a else b` | `a →c R`, `b →c R` | — | R: `[∅..∅]` |
+| `try a catch b` | `a →c R`, `b →c R` | — | R: `[∅..∅]` |
+| `try a catch(e) b` | `a →c R`, `b →c R` | — | R: `[∅..∅]`, e: `{message:text, data:any}` (scoped) |
 | `[a, b, c]` | `a →c E`, `b →c E`, `c →c E` | `Arr →comp E` | Arr: Array(E) |
 | `{x:a, y:b}` | `a →c Nₓ`, `b →c Nᵧ` | `S →comp Nₓ`, `S →comp Nᵧ` | S: Struct (frozen) |
 | `s.field` | — | `s →comp N` | s: Struct{field:N} (mutable) |
@@ -102,6 +104,8 @@ FitsInto(∅, T) = true
 [[x]]                = node(usage) →c node(x)                  (использование переменной)
 [[y = e]]            = [[e]] →c node(y);  output(y)            (определение)
 [[if(c) a else b]]   = [[c]] →c Bool;  [[a]] →c R;  [[b]] →c R;  R : [∅..∅]
+[[try a catch b]]    = [[a]] →c R;  [[b]] →c R;  R : [∅..∅]
+[[try a catch(e) b]] = [[a]] →c R;  scope(e:{message:text, data:any}){ [[b]] } →c R;  R : [∅..∅]
 [[ [a₁,...,aₙ] ]]    = ∀i: [[aᵢ]] →c E;  Arr : Array(E);  Arr →comp E
 [[{f₁:a₁,...}]]      = ∀i: [[aᵢ]] →c Nᵢ;  S : Struct{f₁:N₁,...} (frozen);  S →comp Nᵢ
 [[e.f]]              = [[e]] becomes Struct{f:N} (mutable);  result = N

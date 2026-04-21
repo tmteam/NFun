@@ -74,4 +74,5 @@ class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(UnaryOperatorSyntaxNode node) => $"unop '{node.Id}'";
     public string Visit(TypeDeclarationSyntaxNode node) => $"type-decl '{node.TypeName}'";
     public string Visit(NamedTypeConstructorSyntaxNode node) => $"type-ctor '{node.TypeName}'";
+    public string Visit(TryCatchSyntaxNode node) => "try-catch";
 }

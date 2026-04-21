@@ -28,4 +28,5 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(UnaryOperatorSyntaxNode node);
     T Visit(TypeDeclarationSyntaxNode node);
     T Visit(NamedTypeConstructorSyntaxNode node);
+    T Visit(TryCatchSyntaxNode node);
 }

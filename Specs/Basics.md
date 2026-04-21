@@ -369,6 +369,54 @@ c = if(found) 42 else none   # int?
 d = if(flag) none else 'ok'  # text?
 ```
 
+### Error expression `oops()`
+
+`oops()` is a built-in function that throws a runtime error. It acts as a bottom type — fits any expression context.
+
+```py
+oops()                    # throw with default message "oops"
+oops('not found')         # throw with custom message
+oops('fail', errorData)   # throw with message and data payload
+```
+
+Common patterns:
+
+```py
+value = x ?? oops('x is missing')          # unwrap-or-throw
+y = if(x > 0) x else oops('must be > 0')   # assertion
+```
+
+`oops()` in dead branches is not evaluated (lazy), same as `if-else` branches.
+
+### Error handling expression `try/catch`
+
+`try/catch` is an expression. It evaluates the try branch; if a runtime error occurs, evaluates the catch branch instead.
+
+```py
+y = try riskyExpr catch fallbackExpr
+```
+
+Type of result = LCA(try branch, catch branch). Catch branch is lazy (not evaluated on success).
+
+```py
+y = try oops('fail') catch 0          # 0
+y = try 42 catch oops('unreachable')  # 42 — catch not evaluated
+```
+
+With error object access:
+
+```py
+y = try oops('bad') catch(e) e.message    # 'bad'
+```
+
+`e` is a struct `{message: text, data: any}`, scoped to the catch expression only.
+
+Nested try/catch:
+
+```py
+y = try (try oops() catch oops('inner')) catch 0    # 0
+```
+
 ### Expressions: Default value `default`
 
 Each type has a default value

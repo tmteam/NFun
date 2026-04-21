@@ -28,4 +28,5 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(UnaryOperatorSyntaxNode node) => true;
     public virtual bool Visit(TypeDeclarationSyntaxNode node) => true;
     public virtual bool Visit(NamedTypeConstructorSyntaxNode node) => true;
+    public virtual bool Visit(TryCatchSyntaxNode node) => true;
 }

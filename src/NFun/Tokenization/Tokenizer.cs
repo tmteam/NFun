@@ -108,7 +108,7 @@ public class Tokenizer {
         { "bigInt", TokType.Reserved },
 
         { "case", TokType.Reserved },
-        { "catch", TokType.Reserved },
+        { "catch", TokType.Catch },
 
         { "date", TokType.Reserved },
         { "decimal", TokType.Reserved },
@@ -137,14 +137,14 @@ public class Tokenizer {
         { "optional", TokType.Reserved },
         { "output", TokType.Reserved },
         { "outputs", TokType.Reserved },
-        { "oops", TokType.Reserved },
+        // "oops" is a built-in function (not reserved) — registered in BaseFunctions
         { "pass", TokType.Reserved },
         { "rem", TokType.Reserved },
         { "return", TokType.Reserved },
         { "struct", TokType.Reserved },
         { "switch", TokType.Reserved },
         { "type", TokType.TypeKeyword },
-        { "try", TokType.Reserved },
+        { "try", TokType.Try },
         { "time", TokType.Reserved },
         { "throw", TokType.Reserved },
         // "to" unreserved — used as argument name in range/slice
