@@ -125,8 +125,11 @@ internal static class NarrowingAnalyzer {
     }
 
     private static Result CombineOr(Result a, Result b) {
-        if (a.IsEmpty) return b;
-        if (b.IsEmpty) return a;
+        // No early return: IsEmpty means "no narrowing info" (e.g., literal `true`).
+        // For OR, WhenTrue = Intersect (both sides must prove non-none independently),
+        // so intersecting with empty correctly yields empty.
+        // Early return would incorrectly preserve the other side's WhenTrue.
+        // Example: `x != none or true` — WhenTrue must be {} (true branch is always taken).
         return new Result(Intersect(a.WhenTrue, b.WhenTrue), Union(a.WhenFalse, b.WhenFalse));
     }
 

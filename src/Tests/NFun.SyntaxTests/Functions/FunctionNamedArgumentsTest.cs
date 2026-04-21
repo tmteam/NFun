@@ -202,4 +202,26 @@ public class FunctionNamedArgumentsTest {
     public void NamedArgs_OverloadByArity() =>
         "f(a) = a * 10 \r f(a,b) = a + b \r y = f(b = 3, a = 2)".AssertReturns("y", 5);
 
+    // ── Cross-function: named args used inside another user function body ──
+
+    [Test]
+    public void NamedArgs_CalledFromAnotherFunction() =>
+        "f(a,b) = a - b \r g(x) = f(b = 10, a = x) \r y = g(5)".AssertReturns("y", -5);
+
+    [Test]
+    public void NamedArgs_CalledFromAnotherFunction_Reversed() =>
+        "f(a,b) = a + b \r g(x) = f(b = 10, a = x) \r y = g(5)".AssertReturns("y", 15);
+
+    [Test]
+    public void NamedArgs_CalledFromAnotherFunction_ThreeParams() =>
+        "f(a,b,c) = a*100 + b*10 + c \r g(x) = f(c = 3, a = x, b = 2) \r y = g(1)".AssertReturns("y", 123);
+
+    [Test]
+    public void NamedArgs_CalledFromAnotherFunction_MixedPositionalNamed() =>
+        "f(a,b,c) = a + b + c \r g(x) = f(x, c = 3, b = 2) \r y = g(1)".AssertReturns("y", 6);
+
+    [Test]
+    public void NamedArgs_CalledFromAnotherFunction_WithDefaults() =>
+        "f(a, b=10) = a + b \r g(x) = f(a = x) \r y = g(5)".AssertReturns("y", 15);
+
 }

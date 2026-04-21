@@ -292,6 +292,18 @@ public class TypeNarrowingTest {
             () => "x:int? = 42\r z:int? = 10\r y:int = if(x != none or z != none) z else 0"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
 
+    [Test]
+    public void Negative_OrTrue_DoesNotNarrow_MustFail() =>
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+            () => "x:int? = none\r y = if(x != none or true) x + 1 else 0"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+
+    [Test]
+    public void Negative_OrTrue_Reversed_DoesNotNarrow_MustFail() =>
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+            () => "x:int? = none\r y = if(true or x != none) x + 1 else 0"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+
     // ==================================================================
     // Regression: existing features unbroken by narrowing
     // ==================================================================

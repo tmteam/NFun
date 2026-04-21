@@ -25,7 +25,8 @@ public readonly struct GenericConstrains {
         if (Ancestor == null && Descendant == null && !HasStructDescendant && IsComparable)
             return "<>";
         var desc = HasStructDescendant ? StructDescendant.ToString() : Descendant?.ToString();
-        return $"[{desc}..{Ancestor}]" + (IsComparable ? "<>" : "");
+        var suffix = IsComparable ? "<>" : "";
+        return $"[{desc}..{Ancestor}]" + suffix;
     }
 
     public static readonly GenericConstrains Comparable = new(null, null, true);

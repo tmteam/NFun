@@ -29,7 +29,8 @@ public readonly struct FunnyType {
 
     public static FunnyType ArrayOf(FunnyType type) => new(type);
 
-    public static FunnyType OptionalOf(FunnyType type) => new(type, isOptional: true);
+    public static FunnyType OptionalOf(FunnyType type) =>
+        type.BaseType == BaseFunnyType.Optional ? type : new(type, isOptional: true);
 
     internal static FunnyType StructOf(StructTypeSpecification fields) => new(fields);
 

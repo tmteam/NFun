@@ -56,10 +56,14 @@ public class PullConstraintsFunctions : IStateFunction {
             probe.AddDescendant(descendant);
             if (probe.SimplifyOrNull() == null)
                 return false;
-            // Wrap ancestor in Optional, connecting element nodes for covariant propagation
+            // Wrap ancestor in Optional, connecting element nodes for covariant propagation.
+            // The inner element gets a copy of ancestor constraints WITHOUT IsOptional —
+            // the Optional wrapper consumes the IsOptional flag.
+            var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
+            innerCs.Preferred = ancestor.Preferred;
             var innerNode = TicNode.CreateTypeVariableNode(
                 "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                ancestor.GetCopy());
+                innerCs);
             descOpt.ElementNode.AddAncestor(innerNode);
             ancestorNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
@@ -114,6 +118,22 @@ public class PullConstraintsFunctions : IStateFunction {
                 if (result == null)
                     return false;
                 descendantNode.State = result;
+                // Width propagation: descendant struct may have more fields than
+                // ancestor (e.g., generic T constrained to {a} via SetFieldAccess,
+                // but input provides {a,b}). Add extra fields to non-frozen ancestor
+                // to preserve type info through generic constraint graph.
+                if (!ancStruct.IsFrozen)
+                {
+                    foreach (var descField in result.Fields)
+                    {
+                        if (ancStruct.GetFieldOrNull(descField.Key) == null)
+                        {
+                            TraceLog.WriteLine($"    Width propagation (CS→Struct): adding field '{descField.Key}' to ancestor {ancestorNode.Name}");
+                            ancStruct.AddField(descField.Key, descField.Value);
+                            ancestorNode.State = ancStruct;
+                        }
+                    }
+                }
                 return true;
             }
             case StateOptional ancOpt:
@@ -219,6 +239,25 @@ public class PullConstraintsFunctions : IStateFunction {
                 }
                 TraceLog.WriteLine($"    Field '{ancField.Key}': desc ≤ anc ({descField.State} ≤ {ancField.Value.State})");
                 descField.AddAncestor(ancField.Value);
+            }
+        }
+
+        // Width propagation: when descendant has extra fields and ancestor is mutable
+        // (inferred/generic, not frozen), add them to ancestor. This preserves type
+        // information through generic constraints (e.g., sort(T[],rule(T)->R):T[]
+        // where T must carry all input struct fields, not just those accessed in rule).
+        // Algebraic basis: desc ≤ anc, anc is being inferred → anc should be as
+        // narrow (specific) as possible → absorb all descendant fields.
+        if (!ancestor.IsFrozen)
+        {
+            foreach (var descField in descendant.Fields)
+            {
+                if (ancestor.GetFieldOrNull(descField.Key) == null)
+                {
+                    TraceLog.WriteLine($"    Width propagation: adding field '{descField.Key}' to ancestor");
+                    ancestor.AddField(descField.Key, descField.Value);
+                    ancestorNode.State = ancestor;
+                }
             }
         }
 

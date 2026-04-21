@@ -1,6 +1,7 @@
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tic.SolvingStates;
 
 namespace NFun.TypeInferenceAdapter;
 
@@ -15,18 +16,7 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
 
     public override DfsEnterResult Visit(EquationSyntaxNode node) {
         var type = _solving.GetVariableType(node.Id);
-        var funnyType = _tiToLangTypeConverter.Convert(type);
-
-        // WORKAROUND: ?? and ! must return non-Optional, but TIC resolves T as opt(T) when
-        // the Optional element comes from a frozen type annotation (named struct field).
-        // Root cause: TIC shares a single TicNode for T in both opt(T) and the return type.
-        // IsOptional from opt(T) context leaks to the return.
-        if (funnyType.BaseType == Types.BaseFunnyType.Optional
-            && node.Expression is SyntaxParsing.SyntaxNodes.FunCallSyntaxNode call
-            && call.Id is NFun.Functions.CoreFunNames.NullCoalesce or NFun.Functions.CoreFunNames.ForceUnwrap)
-            funnyType = funnyType.OptionalTypeSpecification.ElementType;
-
-        node.OutputType = funnyType;
+        node.OutputType = _tiToLangTypeConverter.Convert(type);
         return DfsEnterResult.Continue;
     }
 
@@ -50,11 +40,6 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
 
     public override DfsEnterResult Visit(FunCallSyntaxNode node) {
         var result = DefaultVisitEnter(node);
-
-        // WORKAROUND: Same as Visit(EquationSyntaxNode) — unwrap Optional on ??/! results
-        if (node.Id is NFun.Functions.CoreFunNames.NullCoalesce or NFun.Functions.CoreFunNames.ForceUnwrap
-            && node.OutputType.BaseType == Types.BaseFunnyType.Optional)
-            node.OutputType = node.OutputType.OptionalTypeSpecification.ElementType;
 
         var resolvedArgs = _solving.GetResolvedCallArgsOrNull(node.OrderNumber);
         if (resolvedArgs != null)

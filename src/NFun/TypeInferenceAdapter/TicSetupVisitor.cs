@@ -77,9 +77,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         TypeInferenceResultsBuilder results,
         DialectSettings dialect,
         ICustomTypeRegistry customTypes = null,
-        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null,
+        UserFunctionDefinitionSyntaxNode[] allUserFunctions = null) {
         var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect, customTypes, namedTypeFieldRegistry);
-        // Register this function for named arg resolution in recursive calls
+        // Register all user functions for named arg / default param resolution in cross-function calls
+        if (allUserFunctions != null)
+        {
+            foreach (var ufn in allUserFunctions)
+                (visitor._userFunctions ??= new())[(ufn.Id, ufn.Args.Count)] = ufn;
+        }
+        // Always register the current function (for recursive calls)
         (visitor._userFunctions ??= new())[(userFunctionNode.Id, userFunctionNode.Args.Count)] = userFunctionNode;
         visitor._hasUserFunctions = true;
         return userFunctionNode.Accept(visitor);
@@ -699,6 +706,20 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             allArgs[i].Accept(this);
         }
 
+        // ?? (null coalesce) — TIC special form: (opt(U), V) → LCA(U, V)
+        // Unwraps left Optional, computes LCA with right. Supports optional right operand.
+        if (node.Id == CoreFunNames.NullCoalesce && allArgs.Length == 2)
+        {
+#if DEBUG
+            Trace(node, $"Coalesce({allArgs[0].OrderNumber},{allArgs[1].OrderNumber},{node.OrderNumber})");
+#endif
+            _ticTypeGraph.SetCoalesce(
+                allArgs[0].OrderNumber,
+                allArgs[1].OrderNumber,
+                node.OrderNumber);
+            return true;
+        }
+
         // Safe array access (?[]) — handled as TIC graph operation (like ?.)
         // to properly flatten opt(opt(T)) via LCA instead of generic function wrapping
         if (node.Id == CoreFunNames.SafeGetElementName)
@@ -821,6 +842,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             types[i] = ConvertFunArgType(signature.ArgTypes[i], genericTypes);
         types[^1] = ConvertFunArgType(signature.ReturnType, genericTypes);
 
+        // Prevent IsOptionalElement leak: when a generic node appears both as element of
+        // StateOptional and directly as StateRefTo, create a fresh proxy for the Optional element.
+        // This isolates IsOptionalElement flag from the shared generic node.
+        IsolateSharedOptionalElements(types);
+
         _ticTypeGraph.SetCall(types, ids);
         return true;
     }
@@ -834,6 +860,34 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (genericTypes.Length == 0 && _namedTypeFieldRegistry != null)
             return type.ConvertToTiType(_namedTypeFieldRegistry);
         return type.ConvertToTiType(genericTypes);
+    }
+
+    /// <summary>
+    /// When a generic TicNode appears both inside StateOptional and directly as StateRefTo,
+    /// the IsOptionalElement flag leaks from the Optional context to all other uses.
+    /// Fix: replace the shared element with a fresh proxy linked via MergeInplace (RefTo).
+    /// The proxy gets IsOptionalElement; the original generic node stays clean.
+    /// </summary>
+    private void IsolateSharedOptionalElements(Tic.SolvingStates.ITicNodeState[] types) {
+        // Collect all nodes used directly (as StateRefTo)
+        System.Collections.Generic.HashSet<Tic.TicNode> directNodes = null;
+        for (int i = 0; i < types.Length; i++) {
+            if (types[i] is Tic.SolvingStates.StateRefTo refTo) {
+                directNodes ??= new();
+                directNodes.Add(refTo.Node);
+            }
+        }
+        if (directNodes == null) return;
+
+        // For any StateOptional whose element is also used directly, replace with fresh proxy
+        for (int i = 0; i < types.Length; i++) {
+            if (types[i] is Tic.SolvingStates.StateOptional opt && directNodes.Contains(opt.ElementNode)) {
+                var fresh = _ticTypeGraph.CreateVarType();
+                Tic.SolvingFunctions.MergeInplace(opt.ElementNode, fresh);
+                // fresh.State = RefTo(opt.ElementNode) — types unify, flags isolated
+                types[i] = new Tic.SolvingStates.StateOptional(fresh);
+            }
+        }
     }
 
     public bool Visit(ComparisonChainSyntaxNode node) {
@@ -1246,11 +1300,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         // Progressive narrowing in AND: after visiting left side of `x != none and x > 0`,
         // the right side `x > 0` should see x as narrowed (non-optional).
-        if (node.Op == BinOp.And && _dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled) {
+        // Progressive narrowing in OR: after visiting left side of `x == none or x < 0`,
+        // if left is false (x != none), right side should see x as narrowed.
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled) {
             var leftNarrowing = Interpretation.NarrowingAnalyzer.Analyze(node.Left);
-            if (leftNarrowing.WhenTrue.Count > 0) {
+            var narrowSet = node.Op == BinOp.And ? leftNarrowing.WhenTrue
+                          : node.Op == BinOp.Or  ? leftNarrowing.WhenFalse
+                          : null;
+            if (narrowSet is { Count: > 0 }) {
                 if (signature != null) _parentFunctionArgType = signature.ArgTypes[1];
-                return VisitWithNarrowing(node.Right, leftNarrowing.WhenTrue, node.OrderNumber)
+                return VisitWithNarrowing(node.Right, narrowSet, node.OrderNumber)
                     && FinishBinOp(node, signature);
             }
         }

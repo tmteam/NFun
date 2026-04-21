@@ -102,17 +102,29 @@ The `??` operator returns the left operand if it is not `none`, otherwise return
 expression ?? fallback
 ```
 
-The left operand must be of optional type `T?`. The right operand must be of type `T`.
-The result type is `T` (non-optional)
+The left operand is of type `U?` (non-optional values are implicitly lifted via `U → U?`).
+The right operand can be any type `V`. The result type is `LCA(U, V)` — the lowest common ancestor of the unwrapped left element type and the right operand type
 
 ```py
 a:int? = 42
-b = a ?? 0          # 42
+b = a ?? 0          # int — 42
 
 c:int? = none
-d = c ?? 0          # 0
+d = c ?? 0          # int — 0
 
-e = none ?? 'hello' # 'hello'
+e = none ?? 'hello' # text — 'hello'
+```
+
+The right operand can itself be optional:
+
+```py
+a:int? = 42
+b:int? = none
+c = a ?? b          # int? — 42
+d = b ?? a          # int? — 42
+
+e:real? = 1.5
+f = a ?? e          # real? — LCA(int, real?) = real?
 ```
 
 The `??` operator is short-circuit and right-associative. The fallback is only evaluated if the left side is `none`
@@ -124,6 +136,7 @@ b = a ?? ___throwError()  # 42 — fallback never evaluated
 c:int? = none
 d:int? = none
 e = c ?? d ?? 42  # equivalent to: c ?? (d ?? 42)
+                  # d ?? 42 : int, then c ?? int : int
                   # result: 42
 ```
 
@@ -135,7 +148,8 @@ The postfix `!` operator extracts the value from an optional. If the value is `n
 expression!
 ```
 
-The operand must be of optional type `T?`. The result type is `T` (non-optional)
+The operand is of type `T?` (non-optional values are implicitly lifted via `T → T?`).
+The result type is `T` (non-optional)
 
 ```py
 a:int? = 42
@@ -209,39 +223,9 @@ arr = [10, 20, 30]
 arr?[99] ?? 0    # int — 0 (out of bounds returns none, coalesced to 0)
 ```
 
-## Conditional expressions with `none`
-
-The `if-else` expression naturally supports optional types when one or both branches return `none`
-
-```py
-y = if(condition) 42 else none       # int?
-z = if(condition) none else 'hello'  # text?
-w = if(condition) none else none     # none
-```
-
-This is the standard way to produce optional values from conditions.
-The `else` clause is always required — there is no implicit `else none`
-
-```py
-# Multiple branches
-result =
-    if(x > 100) 'high'
-    if(x > 0)   'positive'
-    else none                  # text?
-```
-
 ## Type narrowing
 
 The compiler tracks `!= none` checks and narrows optional types in the corresponding scope.
-
-### Basic narrowing in if
-
-```py
-x:int? = getValue()
-
-if x != none:
-    y = x + 1        # x: int (not int?) — narrowed, no ! or ?. needed
-```
 
 ### Narrowing in if-else
 
@@ -258,36 +242,18 @@ Short-circuit `and` enables progressive narrowing — each condition narrows for
 ```py
 x:int? = getValue()
 
-if x != none and x > 0:     # x narrowed to int after first check
-    y = x * 2               # x: int
-```
-
-### Narrowing in collections
-
-```py
-items:int?[] = [1, none, 3, none, 5]
-
-# filter with != none narrows element type
-clean = items.filter(rule it != none)    # int[] (not int?[])
+y = if(x != none and x > 0) x * 2 else 0   # x narrowed to int after first check
 ```
 
 ### What does NOT narrow
 
-- Arbitrary predicates: `if myCheck(x)` does NOT narrow
+- Arbitrary predicates: `if(myCheck(x))` does NOT narrow
 - `== none` narrows only in the else branch
-- `or` does NOT narrow (either condition could be false)
 - Negation of compound conditions does NOT narrow
-
-### Safe access as narrowing alternative
-
-When narrowing is not available, use `?.` and `??`:
-
-```py
-user?.name ?? 'Guest'     # always works, no narrowing needed
-user?.age ?? 0
-```
+- Collection operations: `filter`, `map`, `all`, `any` do NOT narrow element types. Use `filterNotNull()` to narrow `T?[] → T[]`
 
 For operator precedence of `?.`, `??`, `!` see **Operators.md**
+
 
 ## Complete example
 

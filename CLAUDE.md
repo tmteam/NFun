@@ -18,7 +18,7 @@ If you can't state the rule — you don't understand the fix. Stop and think.
 - No `if (specificType) then specialBehavior` — every Apply/Merge overload must handle ALL inputs of its declared types
 - No flags that exist to patch one scenario (`IsOptionalElement` is a known debt — track it, don't add more)
 - No post-hoc fixups in expression builder for what TIC should have resolved
-- When a workaround exists (e.g., `ApplyTiResultEnterVisitor` ?? unwrap), it MUST have a `// WORKAROUND:` comment explaining the root cause and the proper fix
+- When a workaround exists, it MUST have a `// WORKAROUND:` comment explaining the root cause and the proper fix
 
 ### 3. Performance Matters
 
@@ -64,11 +64,12 @@ dotnet run --project src/ConsoleAppExample/ConsoleAppExample.csproj -p:SignAssem
 
 Track here. Each item must have: what's wrong, why it exists, what the clean fix is.
 
-1. **`ApplyTiResultEnterVisitor` ?? unwrap** — WORKAROUND. TIC shares one TicNode for T between `opt(T)` and return `T` in generic functions. `IsOptional` leaks between contexts. `StateOptional.Of(StateRefTo)` fresh-node fix caused Circular Ancestor crashes in TIC tests. Clean fix requires deeper restructuring of generic instantiation.
+*(No current items — all resolved.)*
 
 ### Accepted Design (not debt)
 
 - **`IsOptionalElement` flag** — compensates for lack of parent references on TicNode. Used in 4 decision points. Alternative (parent tracking) adds memory/complexity for minimal benefit.
 - **`IsSignatureParam` flag** — marks composite param nodes from function signatures as shape-rigid. Prevents Optional wrapping (LCA widening) of function params: `Opt(T[]) ≤ T[]` is invalid because it would change the function contract. 1 decision point (WrapAncestorInOptional), set in 2 places (SetCallArgument, SetCall(StateFun)). Analogous to rigid/skolem type variables in HM — shape is given, components are flexible.
 - **`FlattenNestedOptional`** — reactive flatten of `opt(opt(T))` in State setter + Destruction + Finalize. Correct approach for deferred constraint resolution (element state changes asynchronously through propagation).
+- **`SetCoalesce` TIC special form** — `??` operator uses `SetCoalesce(left, right, result)` instead of a generic function. Creates fresh node U, constrains `left ≤ opt(U)`, `U →c result`, `right →c result`. Result = LCA(U, right). Supports optional right operand: `int? ?? int?` = `int?`. Same pattern as `?.` and `?[` — operators with Optional-specific semantics get TIC special forms rather than generic function signatures.
 - **FU711 `ValidateGenericResolution`** — in ExpressionBuilderVisitor, rejects generic T=Any when T appears at different structural depths in input args (e.g., `'h' in 'hello'` where T must be both `char[]` and `char`). Lives in ExpressionBuilder (not TIC) because TIC constraints don't carry structural depth info — the check requires function signature metadata. TIC-level fix attempted and rejected: breaks 21 legitimate tests (heterogeneous arrays, optional LCA).

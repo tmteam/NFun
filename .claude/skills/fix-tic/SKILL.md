@@ -130,7 +130,15 @@ Launch **3 parallel agents** (subagent_type: general-purpose). Give each:
 
 **Common context for all three** (include in their prompts):
 ```
-Read these directories thoroughly before analysis:
+FIRST: Read the TIC specification documents:
+- Specs/Tic/TicAlgorithm.md — Build, Toposort, Pull, Push phases, convergence proof
+- Specs/Tic/TicAlgorithm_Destruction.md — Destruction, Finalize, resolution strategy
+- Specs/Tic/Algebra.md — 6 algebraic operators (LCA, GCD, FitsInto, Unify, Concretest, Abstractest)
+- Specs/Tic/TicTypeSystem.md — type system (primitives, composites, subtyping rules)
+- Specs/Tic/TicGraph.md — constraint graph structure (nodes, edges, states, BNF)
+- Specs/Tic/TicTechnicalDebt.md — known limitations and proper fix paths
+
+THEN: Read the implementation:
 - src/NFun/Tic/Stages/ — PullConstraintsFunctions.cs, PushConstraintsFunctions.cs, DestructionFunctions.cs, StagesExtension.cs
 - src/NFun/Tic/Algebra/ — all StateExtensions files
 - src/NFun/Tic/SolvingStates/ — ConstraintsState.cs and all State*.cs
@@ -141,6 +149,7 @@ Read these directories thoroughly before analysis:
 IMPORTANT: TIC is a precise algorithm. Solutions must be theoretically clean.
 No hacks, no special-case if-statements for specific types.
 The fix must follow from the algebra of the type system.
+Check TicTechnicalDebt.md — if the bug relates to a known limitation, follow the documented fix path.
 
 YOU ARE READ-ONLY. THIS IS A HARD CONSTRAINT, NOT A SUGGESTION.
 - You MUST NOT modify any .cs file. Not logic, not Console.WriteLine, nothing.

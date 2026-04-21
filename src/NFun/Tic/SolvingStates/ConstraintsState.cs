@@ -136,7 +136,7 @@ public class ConstraintsState : ITicNodeState {
     /// </summary>
     public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other) {
         var result = new ConstraintsState(Descendant, Ancestor, IsComparable || other.IsComparable) {
-            IsOptional = IsOptional || other.IsOptional
+            IsOptional = IsOptional || other.IsOptional,
         };
         result.AddDescendant(other.Descendant);
         if (!result.TryAddAncestor(other.Ancestor))
@@ -333,7 +333,7 @@ public class ConstraintsState : ITicNodeState {
             if (constrainsState.IsComparable && !IsComparable)
                 return this;
             return new ConstraintsState(constrainsState.Descendant, null, IsComparable) {
-                IsOptional = IsOptional || constrainsState.IsOptional
+                IsOptional = IsOptional || constrainsState.IsOptional,
             };
         }
         else if (Descendant== StatePrimitive.Any)

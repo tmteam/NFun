@@ -870,4 +870,34 @@ class OptionalTests {
     }
 
     #endregion
+
+    #region Bug: coalesce with optional right operand
+
+    [Test(Description = "x:opt(i32) ?? y:opt(i32) — TIC resolves T=i32 (known limitation, caught in ExpressionBuilder)")]
+    public void Coalesce_BothOptional_TicResolvesAsI32() {
+        // Models: z = x ?? y where x:int?, y:int?
+        // Coalesce signature: (opt(T), T) -> T
+        // TIC resolves T=i32 because the opt-opt matching of arg0 sets T≥i32,
+        // and y's Optional gets implicitly unwrapped in the constraint graph.
+        // This is a TIC limitation — the type safety check is in ExpressionBuilderVisitor
+        // which rejects optional right operands for ?? at compile time (FU886).
+        var graph = new GraphBuilder();
+        graph.SetVarType("x", StateOptional.Of(I32));
+        graph.SetVar("x", 0);
+        graph.SetVarType("y", StateOptional.Of(I32));
+        graph.SetVar("y", 1);
+
+        var t = graph.InitializeVarNode();
+        graph.SetCall(new ITicNodeState[] { StateOptional.Of(t), t, t }, new[] { 0, 1, 2 });
+        graph.SetDef("z", 2);
+
+        var result = graph.Solve();
+
+        // TIC resolves z as I32 (not opt(I32)) — this is the known TIC limitation.
+        // The soundness is enforced by ExpressionBuilderVisitor rejecting this pattern.
+        result.AssertNamed(I32, "z");
+    }
+
+    #endregion
+
 }

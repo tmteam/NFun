@@ -256,4 +256,26 @@ public class FunctionDefaultValuesTest {
         r.Run();
         Assert.AreEqual(5, r["y"].Value);
     }
+
+    // ── Cross-function: defaults used inside another user function body ────
+
+    [Test]
+    public void Default_CalledFromAnotherFunction() =>
+        "f(a, b = 10) = a + b \r g(x) = f(x) \r y = g(5)".AssertReturns("y", 15);
+
+    [Test]
+    public void Default_CalledFromAnotherFunction_Overridden() =>
+        "f(a, b = 10) = a + b \r g(x) = f(x, 20) \r y = g(5)".AssertReturns("y", 25);
+
+    [Test]
+    public void Default_CalledFromAnotherFunction_AllDefaults() =>
+        "f(a = 1, b = 2) = a + b \r g() = f() \r y = g()".AssertReturns("y", 3);
+
+    [Test]
+    public void Default_CalledFromAnotherFunction_Typed() =>
+        "f(a:int, b:int = 5) = a + b \r g(x) = f(x) \r y = g(3)".AssertReturns("y", 8);
+
+    [Test]
+    public void Default_CalledFromAnotherFunction_Chain() =>
+        "f(a, b = 10) = a + b \r g(x, c = 5) = f(x) + c \r h(z) = g(z) \r y = h(1)".AssertReturns("y", 16);
 }

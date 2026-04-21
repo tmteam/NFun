@@ -214,6 +214,26 @@ public static class GraphBuilderExtensions {
         noneNode.AddAncestor(resultNode);
     }
 
+    /// <summary>
+    /// left ?? right: (opt(U), V) → LCA(U, V)
+    /// Unwraps left Optional element U, computes LCA(U, right) as result.
+    /// Supports optional right: int? ?? int? → int? (LCA(int, int?) = int?).
+    /// </summary>
+    public static void SetCoalesce(this GraphBuilder b, int leftId, int rightId, int resultId) {
+        // U — unwrapped element of left Optional
+        var elemNode = b.CreateVarType();
+
+        // Left: opt(U)
+        var leftType = StateOptional.Of(elemNode);
+        b.SetCallArgument(leftType, leftId);
+
+        // Result = LCA(U, right) — both are subtypes of result
+        var resultNode = b.GetOrCreateNode(resultId);
+        elemNode.AddAncestor(resultNode);
+        var rightNode = b.GetOrCreateNode(rightId);
+        rightNode.AddAncestor(resultNode);
+    }
+
     public static void SetStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
         var fields = new Dictionary<string, TicNode>(fieldNames.Length, StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < fieldNames.Length; i++)

@@ -208,6 +208,8 @@ public class FunnyConverter {
                     return DynamicTypeOutputFunnyConverter.AnyConverter;
                 case BaseFunnyType.Custom:
                     return new PrimitiveTypeOutputFunnyConverter(funnyType, funnyType.CustomTypeDefinition.DefaultValue.GetType());
+                case BaseFunnyType.Fun:
+                    return new FunOutputFunnyConverter(funnyType);
                 default:
                     throw Errors.TypeCannotBeUsedAsOutputNfunType(funnyType);
             }

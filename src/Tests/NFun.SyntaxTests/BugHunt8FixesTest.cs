@@ -128,20 +128,22 @@ public class BugHunt8FixesTest {
         "{x=1} == {x=1}".AssertReturns(true);
 
     [Test]
-    public void StructEquality_ExtraFieldsIgnored_Equal() =>
-        "{x=1, y=2} == {x=1}".AssertReturns(true);
+    public void StructEquality_DifferentFieldCount_NotEqual() =>
+        // Per spec: structs must have same field list for equality
+        "{x=1, y=2} == {x=1}".AssertReturns(false);
 
     [Test]
     public void StructEquality_SharedFieldDiffers_NotEqual() =>
         "{x=1, y=2} == {x=1, y=3}".AssertReturns(false);
 
     [Test]
-    public void StructNotEqual_ExtraFieldsIgnored_ReturnsFalse() =>
-        "{x=1} != {x=1, y=2}".AssertReturns(false);
+    public void StructNotEqual_DifferentFieldCount_True() =>
+        "{x=1} != {x=1, y=2}".AssertReturns(true);
 
     [Test]
-    public void StructInArray_StructuralSubtyping() =>
-        "out = {x=1} in [{x=1, y=2}]".AssertReturns("out", true);
+    public void StructInArray_DifferentFieldCount_NotFound() =>
+        // {x=1} not in [{x=1,y=2}] — different field counts
+        "out = {x=1} in [{x=1, y=2}]".AssertReturns("out", false);
 
     #endregion
 }

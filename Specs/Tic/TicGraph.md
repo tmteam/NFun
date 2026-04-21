@@ -50,7 +50,7 @@ FieldDef  ::= Name ':' Node
 Constraints ::= '[' Desc? '..' Anc? Flags ']'
 Desc      ::= Type
 Anc       ::= Primitive
-Flags     ::= ('opt')? ('cmp')? ('pref=' Primitive)?
+Flags     ::= ('opt')? ('cmp')? ('non_opt')? ('pref=' Primitive)?
 
 RefTo     ::= 'Ref(' Node ')'
 

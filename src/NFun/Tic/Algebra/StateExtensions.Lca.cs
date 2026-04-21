@@ -24,11 +24,24 @@ public static partial class StateExtensions {
             };
             var comparable = ac.IsComparable && bc.IsComparable;
             var isOptional = ac.IsOptional || bc.IsOptional;
-            if (lcaDesc == null)
-                return ConstraintsState.Of(isComparable: comparable, isOptional: isOptional);
-            if (!comparable && !isOptional && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
+            // Propagate Preferred hint through LCA (not algebraic, just a resolution hint).
+            // Rule: if both agree, keep; if only one has it, keep; if both differ, keep null.
+            var preferred = (ac.Preferred, bc.Preferred) switch {
+                (null, null)  => (StatePrimitive)null,
+                (null, var p) => p,
+                (var p, null) => p,
+                var (pa, pb)  => pa.Equals(pb) ? pa : null
+            };
+            if (lcaDesc == null) {
+                var result = ConstraintsState.Of(isComparable: comparable, isOptional: isOptional);
+                result.Preferred = preferred;
+                return result;
+            }
+            if (!comparable && !isOptional && preferred == null && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
                 return lcaDesc;
-            return ConstraintsState.Of(lcaDesc, null, comparable, isOptional);
+            var cs = ConstraintsState.Of(lcaDesc, null, comparable, isOptional);
+            cs.Preferred = preferred;
+            return cs;
         }
         if (b is ConstraintsState bc2) {
             var inner = bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();

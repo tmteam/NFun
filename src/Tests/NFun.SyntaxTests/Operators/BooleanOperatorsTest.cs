@@ -25,4 +25,13 @@ public class BooleanOperatorsTest {
     [TestCase("y = false or not false", true)]
     public void ConstantBoolCalc(string expression, bool expected)
         => expression.AssertReturns("y", expected);
+
+    [TestCase("y = not π")]
+    [TestCase("y = not ∞")]
+    [TestCase("y = not 3.14")]
+    [TestCase("y = not 42")]
+    [TestCase("y = π and true")]
+    [TestCase("y = ∞ or false")]
+    public void BooleanOperatorsRejectNonBoolConstants(string expr)
+        => expr.AssertObviousFailsOnParse();
 }

@@ -148,6 +148,9 @@ internal static partial class Errors {
         return new(882, $"Operator '{opSymbol}' requires optional types to be enabled", interval);
     }
 
+    internal static FunnyParseException CoalesceRightOperandIsOptional(Interval interval) =>
+        new(886, "Right operand of '??' must be non-optional. Use a non-optional default value, e.g. 'x ?? y ?? 0'", interval);
+
     internal static FunnyParseException NoneLiteralNotSupported(Interval interval) =>
         new(883, "'none' literal requires optional types to be enabled", interval);
 

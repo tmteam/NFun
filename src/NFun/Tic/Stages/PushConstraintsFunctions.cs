@@ -192,6 +192,22 @@ public class PushConstraintsFunctions : IStateFunction {
                         SolvingFunctions.PushConstraints(innerNode, ancOpt.ElementNode);
                         return true;
                     }
+                    // When descendant has IsOptional flag (contains None branch),
+                    // it represents an Optional value — materialize to opt(inner)
+                    // and do element-level Push. Without this, the IsOptional flag
+                    // leaks through the direct ancestor edge to the Optional's element,
+                    // bypassing the Optional structural layer (e.g., ?? unwrapping).
+                    if (descendant.IsOptional)
+                    {
+                        var innerNode = TicNode.CreateTypeVariableNode(
+                            "e" + descendantNode.Name.ToString().ToLower() + "'",
+                            ConstraintsState.Empty);
+                        innerNode.AddAncestor(ancOpt.ElementNode);
+                        descendantNode.State = new StateOptional(innerNode);
+                        descendantNode.RemoveAncestor(ancestorNode);
+                        SolvingFunctions.PushConstraints(innerNode, ancOpt.ElementNode);
+                        return true;
+                    }
                     // Implicit lift: T ≤ opt(T) for primitive/empty constraints
                     descendantNode.RemoveAncestor(ancestorNode);
                     // If descendant has non-None constraints, propagate to element

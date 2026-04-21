@@ -144,6 +144,7 @@ public class TypeInferenceTest {
                                 1
           y:int = someRec2(0x9,0x2)", BaseFunnyType.Int32)]
     [TestCase("(if(true) [1,2] else [])[0]", BaseFunnyType.Int32)]
+    [TestCase("(if(false) [] else [1,2])[0]", BaseFunnyType.Int32)]
     public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseFunnyType type) =>
         Assert.AreEqual(type, expr.Build().Variables.Single(v => v.IsOutput).Type.BaseType);
 

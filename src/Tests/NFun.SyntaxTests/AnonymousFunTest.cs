@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
@@ -193,6 +194,26 @@ public class AnonymousFunTest {
     public void ParentlessSuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");
+        runtime.Calc().AssertResultHas("y", expected);
+    }
+
+    /// <summary>
+    /// Regression: lambda stored in a variable must be callable,
+    /// AND the function-typed output variable must be readable without FU919.
+    /// </summary>
+    [TestCase("f = rule it * 2;       y = f(2)", 4)]
+    [TestCase("f = rule it + 1;       y = f(3)", 4)]
+    [TestCase("f = rule(x) = x * x;   y = f(5)", 25)]
+    [TestCase("f = rule(a,b) = a + b; y = f(2,3)", 5)]
+    [TestCase("f = rule it * 2;       y = [1,2,3].map(f)", new[] { 2, 4, 6 })]
+    public void LambdaStoredInVariable_AllOutputsReadable(string expr, object expected) {
+        var runtime = expr.Build();
+        runtime.Run();
+        // Read ALL output variables — this triggers GetOutputConverterFor on function-typed 'f'
+        foreach (var v in runtime.Variables.Where(v => v.IsOutput))
+        {
+            var _ = v.Value; // must not throw FU919
+        }
         runtime.Calc().AssertResultHas("y", expected);
     }
 

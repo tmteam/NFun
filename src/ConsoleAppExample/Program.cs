@@ -947,7 +947,7 @@ class Program {
     // ── Formatting ─────────────────────────────────────────────────────────────
     static string FormatValue(object value) =>
         value switch {
-            null => "null",
+            null => "none",
             bool b => b ? "true" : "false",
             string s => $"'{s}'",
             IFunnyArray arr => arr.ToText(),

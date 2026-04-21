@@ -150,7 +150,27 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval,
                 overrideType: node.OutputType);
 
-        return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
+        return NarrowIfNeeded(
+            new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval), node.OutputType);
+    }
+
+    /// <summary>
+    /// If expr.Type is opt(T) but outputType is non-Optional (narrowing proved non-None),
+    /// unwrap via TypeOverrideNode and cast T→outputType if needed.
+    /// </summary>
+    private IExpressionNode NarrowIfNeeded(IExpressionNode expr, FunnyType outputType) {
+        if (expr.Type != outputType
+            && expr.Type.BaseType == BaseFunnyType.Optional
+            && outputType.BaseType != BaseFunnyType.Optional)
+        {
+            var innerType = expr.Type.OptionalTypeSpecification.ElementType;
+            IExpressionNode unwrapped = new Nodes.TypeOverrideNode(expr, innerType);
+            if (innerType != outputType)
+                unwrapped = CastExpressionNode.GetConvertedOrOriginOrThrow(
+                    unwrapped, outputType, _dialect.Converter.TypeBehaviour);
+            return unwrapped;
+        }
+        return expr;
     }
 
     public IExpressionNode Visit(StructInitSyntaxNode node) {
@@ -272,6 +292,26 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return new SafeArrayAccessExpressionNode(source, index, node.OutputType, elementConverter, node.Interval);
         }
 
+        // ?? (null coalesce) — TIC special form: (opt(U), V) → LCA(U, V).
+        // Runtime: if left is None → return right, else return left (unwrapped + converted).
+        if (id == CoreFunNames.NullCoalesce && args.Length == 2)
+        {
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled)
+                throw Errors.OptionalTypesNotSupported(id, node.Interval);
+            var left = ReadNode(args[0]);
+            var right = ReadNode(args[1]);
+            // Left unwrap converter: opt(U) → U → outputType (applied only when non-None)
+            var innerType = left.Type.BaseType == BaseFunnyType.Optional
+                ? left.Type.OptionalTypeSpecification.ElementType
+                : left.Type;
+            Func<object, object> leftConverter = innerType != node.OutputType
+                ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, innerType, node.OutputType)
+                : null;
+            var castRight = CastExpressionNode.GetConvertedOrOriginOrThrow(
+                right, node.OutputType, _dialect.Converter.TypeBehaviour);
+            return new Nodes.CoalesceExpressionNode(left, castRight, leftConverter, node.OutputType, node.Interval);
+        }
+
         var someFunc = node.ResolvedSignature
             ?? _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber)
             ?? _functions.GetOrNull(id, args.Length);
@@ -322,11 +362,12 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             }
 
             ValidateGenericResolution(genericFunction, genericArgs, node);
-            var function = genericFunction.CreateConcrete(genericArgs, _dialect);
 
             if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled
                 && id is CoreFunNames.ForceUnwrap or CoreFunNames.NullCoalesce)
                 throw Errors.OptionalTypesNotSupported(id, node.Interval);
+
+            var function = genericFunction.CreateConcrete(genericArgs, _dialect);
 
             return CreateFunctionCall(node, function);
         }
@@ -476,7 +517,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         if (node1.Source.Name != node.Id)
             throw Errors.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
 
-        return node1;
+        return NarrowIfNeeded(node1, node.OutputType);
     }
 
 
@@ -546,12 +587,17 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             : node.Args;
         var children = callArgs.SelectToArray(ReadNode);
 
-        // ?.method() — safe piped call: if source is None, return None; else call and wrap in Optional
-        if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true } && children.Length > 0)
+        // ?.method() — safe piped call: if source is None, return None; else call inner function.
+        // CachedSourceNode avoids double-evaluation: SafePipedCall writes value, inner call reads it.
+        if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true } && children.Length > 0
+            && children[0].Type.BaseType == BaseFunnyType.Optional)
         {
             var sourceExpr = children[0];
+            var unwrappedType = sourceExpr.Type.OptionalTypeSpecification.ElementType;
+            var cachedSource = new Nodes.CachedSourceNode(unwrappedType, node.Interval);
+            children[0] = cachedSource;
             var innerCall = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
-            return new Nodes.SafePipedCallExpressionNode(sourceExpr, innerCall, node.OutputType, node.Interval);
+            return new Nodes.SafePipedCallExpressionNode(sourceExpr, cachedSource, innerCall, node.OutputType, node.Interval);
         }
 
         var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
@@ -665,15 +711,33 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     public IExpressionNode Visit(TryCatchSyntaxNode node) {
         var tryNode = CastExpressionNode.GetConvertedOrOriginOrThrow(
             ReadNode(node.TryExpr), node.OutputType, _dialect.Converter.TypeBehaviour);
+
+        // Pre-create the error variable before visiting catch body, so Visit(NamedIdSyntaxNode)
+        // finds it and doesn't create a new Input variable. This prevents the catch-scoped
+        // variable from leaking as a script-level input.
+        VariableSource errorVar = null;
+        if (node.ErrorVariableName != null) {
+            var errorType = _typesConverter.Convert(
+                _typeInferenceResults.GetSyntaxNodeTypeOrNull(node.CatchExpr.OrderNumber))
+                ;
+            // Get the type from the TIC alias node
+            var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
+            var aliasType = _typeInferenceResults.GetVariableTypeOrNull(aliasName);
+            if (aliasType != null)
+                errorType = _typesConverter.Convert(aliasType);
+
+            errorVar = VariableSource.CreateWithoutStrictTypeLabel(
+                node.ErrorVariableName, errorType, FunnyVarAccess.NoInfo, _dialect.Converter);
+            _variables.TryAdd(errorVar);
+        }
+
         var catchNode = CastExpressionNode.GetConvertedOrOriginOrThrow(
             ReadNode(node.CatchExpr), node.OutputType, _dialect.Converter.TypeBehaviour);
 
-        VariableSource errorVar = null;
-        if (node.ErrorVariableName != null) {
-            var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
-            errorVar = _variables.GetOrNull(aliasName)
-                       ?? _variables.GetOrNull(node.ErrorVariableName);
-        }
+        // Remove the error variable from the dictionary after building the catch expression,
+        // so it doesn't appear as a script-level variable
+        if (node.ErrorVariableName != null)
+            _variables.TryRemove(node.ErrorVariableName);
 
         return new TryCatchExpressionNode(tryNode, catchNode, errorVar, node.Interval, node.OutputType);
     }

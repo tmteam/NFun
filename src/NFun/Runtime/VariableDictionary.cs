@@ -29,6 +29,11 @@ internal class VariableDictionary : IReadonlyVariableDictionary {
     /// </summary>
     internal bool TryAdd(VariableSource source) => _variables.TryAdd(source.Name, source);
 
+    /// <summary>
+    /// Removes variable by name. Returns true if found and removed.
+    /// </summary>
+    internal bool TryRemove(string name) => _variables.Remove(name);
+
     public VariableSource GetOrNull(string id) =>
         _variables.TryGetValue(id, out var v) ? v : null;
 

@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests;
@@ -411,6 +413,29 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
     [TestCase("y = [0..10][11]")]
     [TestCase("y = [0..1 step 0]")]
     [TestCase("y = ['a', 'b'][2]")]
+    [TestCase("y = [1,2,3,4,5][::0]")]
     public void ObviouslyFailsOnRuntime(string expr) =>
         Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
+
+    [Test]
+    public void IfElse_EmptyArrayFirst_PreservesPreferredType() {
+        // Bug: `if(false) [] else [1,2,3]` resolved to UInt8[] instead of Int32[]
+        // when empty array was the first branch in if-else.
+        var result = "y = if(false) [] else [1,2,3]".Calc();
+        Assert.AreEqual(new[] { 1, 2, 3 }, result.Get("y"));
+    }
+
+    [Test]
+    public void IfElse_EmptyArraySecond_PreservesPreferredType() {
+        var result = "y = if(true) [1,2,3] else []".Calc();
+        Assert.AreEqual(new[] { 1, 2, 3 }, result.Get("y"));
+    }
+
+    [Test]
+    public void IfElse_EmptyArrayFirst_TypeIsInt32Array() {
+        var runtime = "y = if(false) [] else [1,2,3]".Build();
+        var yVar = runtime.Variables.Single(v => v.Name == "y");
+        Assert.AreEqual(BaseFunnyType.ArrayOf, yVar.Type.BaseType);
+        Assert.AreEqual(BaseFunnyType.Int32, yVar.Type.ArrayTypeSpecification.FunnyType.BaseType);
+    }
 }

@@ -108,19 +108,6 @@ public static class VarTypeConverter {
             return o => o is FunnyNone ? o : inner(o);
         }
 
-        // opt(T) → T: optional pass-through for implicit unwrap contexts (e.g., coalesce chains).
-        // TIC verified type compatibility; at runtime the value is either FunnyNone (handled by caller)
-        // or the actual T value. Convert element type if needed, but pass FunnyNone through.
-        if (from.BaseType == BaseFunnyType.Optional && to.BaseType != BaseFunnyType.Optional)
-        {
-            var elemType = from.OptionalTypeSpecification.ElementType;
-            if (elemType == to) return NoConvertion;
-            var elementConverter = GetConverterOrNull(typeBehaviour, elemType, to);
-            if (elementConverter == null) return null;
-            if (elementConverter == NoConvertion) return NoConvertion;
-            return o => o is FunnyNone ? o : elementConverter(o);
-        }
-
         if (from.BaseType == BaseFunnyType.Char)
             return typeBehaviour.GetFromCharToNumberConverterOrNull(to.BaseType);
         if (from.IsNumeric())
@@ -249,10 +236,6 @@ public static class VarTypeConverter {
             // T → Optional(T) - implicit wrapping
             if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
                 return CanBeConverted(from, to.OptionalTypeSpecification.ElementType);
-
-            // opt(T) → T: optional pass-through (TIC verified compatibility)
-            if (from.BaseType == BaseFunnyType.Optional && to.BaseType != BaseFunnyType.Optional)
-                return CanBeConverted(from.OptionalTypeSpecification.ElementType, to);
 
             if (to.BaseType == from.BaseType)
             {

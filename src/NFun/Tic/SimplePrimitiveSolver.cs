@@ -31,6 +31,9 @@ internal sealed class SimplePrimitiveSolver {
     private StatePrimitive[] _desc; // lower bound (null = open)
     private StatePrimitive[] _anc;  // upper bound (null = open)
     private StatePrimitive[] _pref; // preferred resolution
+
+    // Set to true when conflicting constraints are detected (e.g. Real ∩ Bool = ∅)
+    private bool _failed;
     private bool[] _comparable;     // comparable type required
 
     private int _groupCount;
@@ -122,8 +125,13 @@ internal sealed class SimplePrimitiveSolver {
             else {
                 var gcd = _anc[root].GetFirstCommonDescendantOrNull(_anc[other]);
                 if (gcd != null) _anc[root] = gcd;
+                else _failed = true; // incompatible ancestor constraints (e.g. I96 vs Bool)
             }
         }
+        // After merge, check that the interval [desc..anc] is satisfiable
+        if (_desc[root] != null && _anc[root] != null
+            && !_desc[root].CanBePessimisticConvertedTo(_anc[root]))
+            _failed = true;
         _comparable[root] |= _comparable[other];
         if (_pref[root] == null) _pref[root] = _pref[other];
     }
@@ -165,6 +173,11 @@ internal sealed class SimplePrimitiveSolver {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SetConcrete(int gid, StatePrimitive type) {
         var r = Find(gid);
+        // Detect conflicting concrete constraints (e.g. Real vs Bool)
+        if (_desc[r] != null && !_desc[r].CanBePessimisticConvertedTo(type))
+            _failed = true;
+        if (_anc[r] != null && !type.CanBePessimisticConvertedTo(_anc[r]))
+            _failed = true;
         _desc[r] = type; _anc[r] = type;
     }
 
@@ -473,6 +486,7 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private TypeInferenceResults BuildResults() {
+        if (_failed) return null; // conflicting constraints — fall through to full TIC for error reporting
         var resultBuilder = new TypeInferenceResultsBuilder();
         var syntaxNodes = new TicNode[_nodeGroup.Length];
         var namedNodes = new Dictionary<string, TicNode>(

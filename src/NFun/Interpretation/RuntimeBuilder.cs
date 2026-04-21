@@ -184,7 +184,8 @@ internal static class RuntimeBuilder {
                     scopeFunctionDictionary,
                     dialect,
                     customTypes,
-                    namedTypeFieldRegistry);
+                    namedTypeFieldRegistry,
+                    functionSolveOrder);
             }
         }
 
@@ -365,7 +366,8 @@ internal static class RuntimeBuilder {
         ScopeFunctionRegistry functionsRegistry,
         DialectSettings dialect,
         ICustomTypeRegistry customTypes = null,
-        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null,
+        UserFunctionDefinitionSyntaxNode[] allUserFunctions = null) {
 
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD {functionSyntaxNode.Id}(..) ====");
@@ -385,7 +387,8 @@ internal static class RuntimeBuilder {
                 results: resultsBuilder,
                 dialect: dialect,
                 customTypes: customTypes,
-                namedTypeFieldRegistry: namedTypeFieldRegistry))
+                namedTypeFieldRegistry: namedTypeFieldRegistry,
+                allUserFunctions: allUserFunctions))
                 AssertChecks.Panic($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
             // solve the types. We ignore prefered types to get most common ancestor for function argument types instead of preferred type
             types = graph.Solve(ignorePrefered: true);

@@ -14,17 +14,17 @@ public class DestructionFunctions : IStateFunction {
     public bool Apply(
         StatePrimitive ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.FitsInto(descendant)) {
-            // Ancestor is a concrete type (from annotation or solved node).
-            // It takes priority over Preferred — annotation beats default.
-            // Exception: Optional inner elements preserve their Preferred type
-            // to prevent ancestor widening (e.g., opt(I32) staying I32, not becoming Real).
             var resolved = descendant.Preferred != null
                            && descendantNode.IsOptionalElement
                            && descendant.CanBeConvertedTo(descendant.Preferred)
                 ? (ITicNodeState)descendant.Preferred
                 : ancestor;
-            if (descendant.IsOptional && resolved != StatePrimitive.None)
+            if (descendant.IsOptional && resolved != StatePrimitive.None) {
                 descendantNode.State = StateOptional.Of(resolved);
+                // Remove stale edge: state changed to composite (StateOptional),
+                // re-processing would hit Apply(Prim, Composite) → IncompatibleNodes.
+                descendantNode.RemoveAncestor(ancestorNode);
+            }
             else
                 descendantNode.State = resolved;
         }
@@ -46,10 +46,14 @@ public class DestructionFunctions : IStateFunction {
         // MaterializeOptionalFlags resolves the final type after all branches are processed.
         if (descendant == StatePrimitive.None && ancestor.IsOptional)
             return true;
-        if (ancestor.CanBeConvertedTo(descendant))
-            ancestorNode.State = ancestor.IsOptional
-                ? StateOptional.Of(descendant)
-                : (ITicNodeState)descendant;
+        if (ancestor.CanBeConvertedTo(descendant)) {
+            if (ancestor.IsOptional) {
+                ancestorNode.State = StateOptional.Of(descendant);
+                descendantNode.RemoveAncestor(ancestorNode);
+            } else {
+                ancestorNode.State = descendant;
+            }
+        }
         return true;
     }
 

@@ -193,6 +193,17 @@ public class NoneOutputFunnyConverter : IOutputFunnyConverter {
     public object ToClrObject(object funObject) => null;
 }
 
+/// <summary>
+/// Output converter for function-typed variables.
+/// Function values are IConcreteFunction at runtime — pass through as-is.
+/// </summary>
+public class FunOutputFunnyConverter : IOutputFunnyConverter {
+    public FunOutputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
+    public Type ClrType { get; } = typeof(object);
+    public FunnyType FunnyType { get; }
+    public object ToClrObject(object funObject) => funObject;
+}
+
 public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
     public static DynamicStructToDictionaryOutputFunnyConverter Instance { get; } = new();
 

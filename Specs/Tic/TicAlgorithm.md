@@ -46,11 +46,11 @@ FitsInto(∅, T) = true
 Помимо интервала `[D..A]`, ConstraintsState содержит два boolean-флага:
 
 - **IsOptional** — тип допускает None. Устанавливается через None absorption в Pull. Propagation: `opt_result := opt_a ∨ opt_d` (OR — расширяет множество допустимых значений).
-- **IsComparable** — тип должен поддерживать сравнение. Устанавливается из сигнатуры функции (операторы `>`, `<`, `==` и т.д.). Propagation: при Pull `cmp_result := cmp_a ∧ cmp_d` (AND — constraint сужается при join). При Push: `cmp` передаётся от ancestor к descendant если ancestor имеет `cmp`.
+- **IsComparable** — тип должен поддерживать сравнение. Устанавливается из сигнатуры функции (операторы `>`, `<`, `==` и т.д.). Propagation: при Pull `cmp_result := cmp_a ∧ cmp_d` (AND — constraint сужается при join). При Push: передаётся от ancestor к descendant.
 
 Оба флага **не участвуют в LCA/GCD** напрямую. Они propagate по своим правилам при обработке CS←CS и CS→CS.
 
-**Preferred** — hint для Destruction (pref=I32 для целочисленных литералов). **Не участвует** в Pull/Push алгебре. Propagation: копируется от descendant к ancestor в Pull если ancestor не имеет своего.
+**Preferred** — hint для Destruction (pref=I32 для целочисленных литералов). **Не участвует** в алгебраических операциях (LCA, GCD, FitsInto). Propagation в Pull: копируется от descendant к ancestor если ancestor не имеет своего. Preservation: Concretest сохраняет Preferred на CS-результатах (metadata не теряется при создании snapshot-ов для composite elements).
 
 ---
 
@@ -74,6 +74,7 @@ FitsInto(∅, T) = true
 | `{x:a, y:b}` | `a →c Nₓ`, `b →c Nᵧ` | `S →comp Nₓ`, `S →comp Nᵧ` | S: Struct (frozen) |
 | `s.field` | — | `s →comp N` | s: Struct{field:N} (mutable) |
 | `s?.field` | — | `res →comp inner` | res: Opt(inner) |
+| `a ?? b` | `a →c Opt(U)`, `U →c R`, `b →c R` | `Opt(U) →comp U` | U: fresh `[∅..∅]`, R: `[∅..∅]` |
 
 ### Инстанциация вызовов функций
 
@@ -111,6 +112,7 @@ FitsInto(∅, T) = true
 [[e.f]]              = [[e]] becomes Struct{f:N} (mutable);  result = N
 [[e?.f]]             = [[e.f]];  result = Opt(inner)
 [[f(a₁,...,aₙ)]]    = instantiate(sig(f));  ∀i: [[aᵢ]] →c Pᵢ';  result = merge(R', call_node)
+[[a ?? b]]           = U fresh; [[a]] →c Opt(U); U →c R; [[b]] →c R;  R : [∅..∅]   (SetCoalesce)
 ```
 
 Instantiate: для каждой типовой переменной T в сигнатуре — свежий узел T'. Composite-параметры: shape-rigid (IsSignatureParam). Результат: подстановка `σ = {T₁↦T'₁, ...}`, применённая к сигнатуре.
@@ -151,7 +153,7 @@ DFS обходит **оба** вида рёбер (constraint + component). По
 | Fun | `D.ret ≤ A.ret`, `A.argᵢ ≤ D.argᵢ` |
 | Struct | `D.fₖ ≤ A.fₖ` для каждого поля fₖ ∈ A |
 
-Fun: аргументы **контравариантны** (направление инвертируется). Struct: потомок должен иметь **все** поля предка (width subtyping) — недостающие поля добавляются.
+Fun: аргументы **контравариантны** (направление инвертируется). Struct: потомок должен иметь **все** поля предка (width subtyping) — недостающие поля добавляются. Если предок mutable — лишние поля потомка также добавляются к предку (Pull вычисляет most specific bound, больше полей = more specific).
 
 Разные конструкторы несовместимы: `Array(...) ≤ Fun(...)` → ошибка типов.
 

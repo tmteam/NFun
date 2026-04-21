@@ -384,9 +384,9 @@ public class BugHuntResults {
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
     }
 
-    [Test] // FIXED: FunnyStruct.Equals now compares shared fields only (structural subtyping)
+    [Test] // FIXED: FunnyStruct.Equals now requires same field count (spec-correct)
     public void BugHunt8_StructEquality_DifferentFieldCount() {
-        "a = {x=1, y=2}; b = {x=1}; out = a == b".Calc().AssertResultHas("out", true);
+        "a = {x=1, y=2}; b = {x=1}; out = a == b".Calc().AssertResultHas("out", false);
     }
 
     // 8#2: generic func + double ?. on recursive type — related to 8#1
