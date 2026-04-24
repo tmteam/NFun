@@ -3,7 +3,7 @@ using NFun.Tic.SolvingStates;
 namespace NFun.Tic.Stages;
 
 public class PushConstraintsFunctions : IStateFunction {
-    public static IStateFunction Singleton { get; } = new PushConstraintsFunctions();
+    public static PushConstraintsFunctions Singleton { get; } = new();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
         => descendant.CanBePessimisticConvertedTo(ancestor);
@@ -103,7 +103,7 @@ public class PushConstraintsFunctions : IStateFunction {
         // This is uniform for Array, Fun, Struct — not a special case per composite type.
         if (descendant.IsOptional && ancestor is not StateOptional) {
             var innerNode = TicNode.CreateTypeVariableNode(
-                "e" + descendantNode.Name.ToString().ToLower() + "'",
+                "e" + descendantNode.Name + "'",
                 ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable));
             innerNode.IsOptionalElement = true;
             descendantNode.State = new SolvingStates.StateOptional(innerNode);
@@ -184,8 +184,7 @@ public class PushConstraintsFunctions : IStateFunction {
                         // Guard: only wrap unsolved structs — solved structs come from concrete values
                         // and wrapping them would incorrectly make ?. work on non-optional structs.
                         var innerNode = TicNode.CreateTypeVariableNode(
-                            "e" + descendantNode.Name.ToString().ToLower() + "'",
-                            descendant.GetCopy());
+                            "e" + descendantNode.Name + "'", descendant.GetCopy());
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
                         descendantNode.RemoveAncestor(ancestorNode);
@@ -200,8 +199,7 @@ public class PushConstraintsFunctions : IStateFunction {
                     if (descendant.IsOptional)
                     {
                         var innerNode = TicNode.CreateTypeVariableNode(
-                            "e" + descendantNode.Name.ToString().ToLower() + "'",
-                            ConstraintsState.Empty);
+                            "e" + descendantNode.Name + "'", ConstraintsState.Empty);
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
                         descendantNode.RemoveAncestor(ancestorNode);

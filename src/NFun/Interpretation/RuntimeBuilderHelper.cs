@@ -65,19 +65,20 @@ internal static class RuntimeBuilderHelper {
         IAprioriTypesMap aprioriTypes,
         ICustomTypeRegistry customTypes,
         DialectSettings dialect,
+        out bool typesApplied,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null
         ) {
-        // Fast path: primitive-only bodies can be solved with interval arithmetic.
-        // Returns null when constraints are unsatisfiable (e.g. type annotation conflicts),
-        // in which case we fall through to the full TIC solver for proper error reporting.
-        if (namedTypeFieldRegistry == null
-            && SimpleExpressionDetector.IsSimpleBody(syntaxTree, functions)
-            && AllAprioriTypesArePrimitive(aprioriTypes)) {
-            var fastResult = Tic.SimplePrimitiveSolver.Solve(syntaxTree, constants, aprioriTypes, dialect, customTypes);
+        typesApplied = false;
+        // Fast path: primitive-only bodies solved with interval arithmetic.
+        // IsSimpleBody determined during numbering pass — zero-cost gate.
+        if (namedTypeFieldRegistry == null && syntaxTree.IsSimpleBody) {
+            var fastResult = Tic.SimplePrimitiveSolver.SolveOrNull(
+                syntaxTree, functions, constants, aprioriTypes, dialect,
+                out typesApplied, customTypes);
             if (fastResult != null) return fastResult;
         }
 
-        var resultBuilder = new TypeInferenceResultsBuilder();
+        var resultBuilder = new TypeInferenceResultsBuilder(syntaxTree.MaxNodeId);
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);
         try
         {
@@ -103,17 +104,6 @@ internal static class RuntimeBuilderHelper {
         {
             throw Errors.TranslateTicError(e, syntaxTree, graph, functions);
         }
-    }
-
-    private static bool AllAprioriTypesArePrimitive(IAprioriTypesMap aprioriTypes) {
-        foreach (var a in aprioriTypes) {
-            if (!a.Type.IsNumeric() && a.Type.BaseType is not (
-                    Types.BaseFunnyType.Bool or Types.BaseFunnyType.Char
-                    or Types.BaseFunnyType.Ip or Types.BaseFunnyType.Any
-                    or Types.BaseFunnyType.Empty))
-                return false;
-        }
-        return true;
     }
 
     private static void ThrowIfSomeVariablesNotExistsInTheList(

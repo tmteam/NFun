@@ -31,4 +31,6 @@ public class SyntaxTree : ISyntaxNode {
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Nodes;
     public int MaxNodeId { get; set; } = -1;
+    /// <summary>True if all nodes are primitive-compatible. Set during numbering pass.</summary>
+    public bool IsSimpleBody { get; set; }
 }

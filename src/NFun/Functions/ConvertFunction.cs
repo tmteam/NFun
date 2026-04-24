@@ -270,7 +270,7 @@ public class ConvertFunction : GenericFunctionBase {
                 if (string.Equals(str, "1", StringComparison.OrdinalIgnoreCase)) return true;
                 if (string.Equals(str, "false", StringComparison.OrdinalIgnoreCase)) return false;
                 if (string.Equals(str, "0", StringComparison.Ordinal)) return false;
-                return null;
+                throw new FormatException($"Cannot convert '{str}' to bool");
             },
             BaseFunnyType.UInt8 =>  o => byte.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.UInt16 => o => ushort.Parse(((IFunnyArray)o).ToText()),

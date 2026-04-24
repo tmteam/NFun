@@ -628,8 +628,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return CreateFunctionCall(node, f);
 
         if (someFunc is IGenericFunction genericFunction) {
-            var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
             FunnyType[] genericArgs;
+            var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
             if (genericTypes == null) {
                 // Recursive operator call — extremely rare but handle for safety
                 var recSig = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
@@ -664,6 +664,20 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     /// </summary>
     private static void ValidateGenericResolution(
         IGenericFunction function, FunnyType[] genericArgs, IFunCallSyntaxNode node) {
+        // Skip validation when ALL generic args are Any AND any actual call argument type
+        // is also Any — this happens inside generic user function bodies (CreateSomeConcrete)
+        // where types are placeholder-concretized. When call args are all concrete (e.g., char
+        // and char[]), the validation should still fire.
+        bool allGenericAny = true;
+        for (int i = 0; i < genericArgs.Length; i++)
+            if (genericArgs[i].BaseType != BaseFunnyType.Any) { allGenericAny = false; break; }
+        if (allGenericAny) {
+            bool anyArgIsAny = false;
+            foreach (var arg in node.Args)
+                if (arg.OutputType.BaseType == BaseFunnyType.Any) { anyArgIsAny = true; break; }
+            if (anyArgIsAny) return;
+        }
+
         for (int i = 0; i < genericArgs.Length; i++) {
             if (genericArgs[i].BaseType != BaseFunnyType.Any)
                 continue;

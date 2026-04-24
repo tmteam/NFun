@@ -104,8 +104,7 @@ public class DestructionFunctions : IStateFunction {
             if (ancestor.IsOptional) {
                 // Wrap in Optional: ancestor becomes opt(descendant)
                 var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                    new StateRefTo(descendantNode));
+                    "e" + ancestorNode.Name + "'", new StateRefTo(descendantNode));
                 ancestorNode.State = new StateOptional(innerNode);
             } else {
                 ancestorNode.State = new StateRefTo(descendantNode);
@@ -147,8 +146,7 @@ public class DestructionFunctions : IStateFunction {
             if (ancestor.IsOptional)
             {
                 var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                    ancestor.Descendant);
+                    "e" + ancestorNode.Name + "'", ancestor.Descendant);
                 ancestorNode.State = new StateOptional(innerNode);
                 destructTarget = innerNode;
             }
@@ -202,7 +200,7 @@ public class DestructionFunctions : IStateFunction {
             var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
             innerCs.Preferred = descendant.Preferred;
             var innerNode = TicNode.CreateTypeVariableNode(
-                "e" + descendantNode.Name.ToString().ToLower() + "'", innerCs);
+                "e" + descendantNode.Name + "'", innerCs);
             descendantNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
             // Check for cycle: does ancestor element resolve to descendantNode?
@@ -224,7 +222,7 @@ public class DestructionFunctions : IStateFunction {
         {
             descendantNode.State = descendant.IsOptional
                 ? new StateOptional(TicNode.CreateTypeVariableNode(
-                    "e" + descendantNode.Name.ToString().ToLower() + "'",
+                    "e" + descendantNode.Name + "'",
                     new StateRefTo(ancestorNode)))
                 : new StateRefTo(ancestorNode);
             descendantNode.RemoveAncestor(ancestorNode);
@@ -239,7 +237,7 @@ public class DestructionFunctions : IStateFunction {
             {
                 if (descendant.IsOptional) {
                     var innerNode = TicNode.CreateTypeVariableNode(
-                        "e" + descendantNode.Name.ToString().ToLower() + "'", descStruct);
+                        "e" + descendantNode.Name + "'", descStruct);
                     var optState = new StateOptional(innerNode);
                     descendantNode.State = optState;
                     descendantNode.RemoveAncestor(ancestorNode);
@@ -279,7 +277,7 @@ public class DestructionFunctions : IStateFunction {
                 var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
                 innerCs.Preferred = descendant.Preferred;
                 var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + descendantNode.Name.ToString().ToLower() + "'", innerCs);
+                    "e" + descendantNode.Name + "'", innerCs);
                 descendantNode.State = new StateOptional(innerNode);
                 descendantNode.RemoveAncestor(ancestorNode);
                 Apply(ancOpt, (StateOptional)descendantNode.State, ancestorNode, descendantNode);

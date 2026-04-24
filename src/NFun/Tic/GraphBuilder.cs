@@ -471,7 +471,8 @@ public class GraphBuilder {
             // Slow path: separate Toposort then two-phase Pull
             sorted = Toposort();
             PrintTrace("1. Toposorted", sorted);
-            hasOptionalTypes = SolvingFunctions.PullConstraints(sorted);
+            SolvingFunctions.PullConstraintsTwoPhase(sorted);
+            hasOptionalTypes = true;
             PrintTrace("2. PullConstraints (two-phase)", sorted);
         }
 

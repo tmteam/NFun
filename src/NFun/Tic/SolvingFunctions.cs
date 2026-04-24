@@ -243,26 +243,13 @@ public static class SolvingFunctions {
     #endregion
 
 
-    public static bool PullConstraints(TicNode[] toposortedNodes) {
-        // Quick scan: check if any None nodes exist.
-        // Most expressions have no None — can do single pass.
-        bool hasNoneNodes = false;
-        for (int i = 0; i < toposortedNodes.Length; i++) {
-            if (toposortedNodes[i].State == StatePrimitive.None) {
-                hasNoneNodes = true;
-                break;
-            }
-        }
-
-        if (!hasNoneNodes) {
-            // No None: single pass, pull all.
-            foreach (var node in toposortedNodes) {
-                if (node.IsMemberOfAnything) continue;
-                PullConstraintsRecursive(node);
-            }
-            return false;
-        }
-
+    /// <summary>
+    /// Two-phase Pull for graphs containing None nodes.
+    /// Called only when hasNone=true (checked by caller).
+    /// Phase 1: Pull None nodes first (sets IsOptional flags).
+    /// Phase 2: Pull non-None (Concretest sees IsOptional).
+    /// </summary>
+    public static void PullConstraintsTwoPhase(TicNode[] toposortedNodes) {
         // Phase 1: Pull None nodes first — sets IsOptional flags.
         foreach (var node in toposortedNodes) {
             if (node.IsMemberOfAnything) continue;
@@ -276,7 +263,6 @@ public static class SolvingFunctions {
             if (node.State == StatePrimitive.None) continue;
             PullConstraintsRecursive(node);
         }
-        return true;
     }
 
     /// <summary>Pull constraints for a single node (streaming toposort+Pull fusion).</summary>
@@ -437,8 +423,7 @@ public static class SolvingFunctions {
                 TraceLog.WriteLine($"  Materialize: {n.Name}: {cs} → opt(inner)");
                 var innerCs = ConstraintsState.Of(cs.Descendant, cs.Ancestor, cs.IsComparable);
                 innerCs.Preferred = cs.Preferred;
-                var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + n.Name.ToString().ToLower() + "'", innerCs);
+                var innerNode = TicNode.CreateTypeVariableNode("e" + n.Name + "'", innerCs);
                 innerNode.IsOptionalElement = true;
                 n.State = new StateOptional(innerNode);
 
@@ -517,9 +502,7 @@ public static class SolvingFunctions {
         if (descendant.NoConstrains)
         {
             var constrains = ConstraintsState.Empty;
-            var eName = "e" + descNodeName.ToString().ToLower() + "'";
-
-            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
             return new StateArray(node);
         }
         else if (descendant.HasDescendant && descendant.Descendant is StateArray arrayEDesc)
@@ -527,10 +510,8 @@ public static class SolvingFunctions {
             if (!arrayEDesc.IsSolved)
                 return arrayEDesc;
             var constrains = ConstraintsState.Empty;
-            var eName = "e" + descNodeName.ToString().ToLower() + "'";
-
             constrains.AddDescendant(arrayEDesc.Element);
-            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
             return new StateArray(node);
         }
         else
@@ -544,8 +525,7 @@ public static class SolvingFunctions {
         if (descendant.NoConstrains)
         {
             var constrains = ConstraintsState.Empty;
-            var eName = "e" + descNodeName.ToString().ToLower() + "'";
-            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
             return new StateOptional(node);
         }
 
@@ -553,8 +533,7 @@ public static class SolvingFunctions {
         if (descendant.HasDescendant && descendant.Descendant == StatePrimitive.None)
         {
             var constrains = ConstraintsState.Empty;
-            var eName = "e" + descNodeName.ToString().ToLower() + "'";
-            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
             return new StateOptional(node);
         }
 
@@ -563,9 +542,8 @@ public static class SolvingFunctions {
             if (!optDesc.IsSolved)
                 return optDesc;
             var constrains = ConstraintsState.Empty;
-            var eName = "e" + descNodeName.ToString().ToLower() + "'";
             constrains.AddDescendant(optDesc.Element);
-            var node = TicNode.CreateTypeVariableNode(eName, constrains);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
             return new StateOptional(node);
         }
 
@@ -583,8 +561,7 @@ public static class SolvingFunctions {
             innerCs.Preferred = descendant.Preferred
                 ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp
                     ? dp : null);
-            var eName = "e" + descNodeName.ToString().ToLower() + "'";
-            var node = TicNode.CreateTypeVariableNode(eName, innerCs);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", innerCs);
             return new StateOptional(node);
         }
 

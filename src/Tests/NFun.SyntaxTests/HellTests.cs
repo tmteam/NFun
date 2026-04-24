@@ -49,7 +49,7 @@ public class HellTests {
     [Test]
     public void ConcatExperiments() =>
         "'res: '.concat((n >5).toText())".AssertRuntimes(
-            e => e.Calc("n", 1.0).AssertAnonymousOut("res: False"));
+            e => e.Calc("n", 1.0).AssertAnonymousOut("res: false"));
 
     [Test]
     public void ArrayWithUpcast_lambdaConstCalculate() {

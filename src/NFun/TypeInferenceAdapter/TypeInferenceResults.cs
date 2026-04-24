@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.TypeInferenceAdapter; 
+namespace NFun.TypeInferenceAdapter;
 
 public class TypeInferenceResultsBuilder {
-    private readonly List<StateRefTo[]> _genericFunctionTypes = new();
-    private readonly List<IFunctionSignature> _functionalVariable = new();
-    private readonly List<StateFun> _recursiveCalls = new();
+    private StateRefTo[][] _genericFunctionTypes;
+    private IFunctionSignature[] _functionalVariables;
+    private StateFun[] _recursiveCalls;
     private readonly Dictionary<string, StateFun> _userFunctionSignatures = new();
     private Dictionary<int, ISyntaxNode[]> _resolvedCallArgs;
     private Dictionary<int, IFunctionSignature> _resolvedCallSignatures;
@@ -17,8 +18,22 @@ public class TypeInferenceResultsBuilder {
 
     private ITicResults _bodyTypeSolving;
 
-    public void RememberGenericCallArguments(int id, StateRefTo[] types)
-        => _genericFunctionTypes.EnlargeAndSet(id, types);
+    /// <param name="maxNodeId">
+    /// Pre-size hint for node-indexed arrays. When > 0, arrays are allocated once
+    /// at exactly this size. When 0 (user function path), arrays grow on demand.
+    /// </param>
+    public TypeInferenceResultsBuilder(int maxNodeId = 0) {
+        if (maxNodeId > 0) {
+            _genericFunctionTypes = new StateRefTo[maxNodeId][];
+            _functionalVariables = new IFunctionSignature[maxNodeId];
+            _recursiveCalls = new StateFun[maxNodeId];
+        }
+    }
+
+    public void RememberGenericCallArguments(int id, StateRefTo[] types) {
+        EnsureCapacity(ref _genericFunctionTypes, id);
+        _genericFunctionTypes[id] = types;
+    }
 
     public StateFun GetUserFunctionSignature(string id, int argsCount) {
         if (_userFunctionSignatures.Count == 0)
@@ -31,8 +46,10 @@ public class TypeInferenceResultsBuilder {
     public void RememberUserFunctionSignature(string name, StateFun signature)
         => _userFunctionSignatures.Add(name + "'" + signature.ArgsCount, signature);
 
-    public void RememberFunctionalVariable(int id, IFunctionSignature signature)
-        => _functionalVariable.EnlargeAndSet(id, signature);
+    public void RememberFunctionalVariable(int id, IFunctionSignature signature) {
+        EnsureCapacity(ref _functionalVariables, id);
+        _functionalVariables[id] = signature;
+    }
 
     public void RememberResolvedCallArgs(int orderNumber, ISyntaxNode[] args)
         => (_resolvedCallArgs ??= new())[orderNumber] = args;
@@ -45,25 +62,42 @@ public class TypeInferenceResultsBuilder {
     public TypeInferenceResults Build() =>
         new TypeInferenceResults(
             bodyTypeSolving: _bodyTypeSolving,
-            genericFunctionTypes: _genericFunctionTypes.ToArray(),
-            functionalVariables: _functionalVariable,
-            recursiveCalls: _recursiveCalls,
+            genericFunctionTypes: _genericFunctionTypes ?? Array.Empty<StateRefTo[]>(),
+            functionalVariables: _functionalVariables ?? Array.Empty<IFunctionSignature>(),
+            recursiveCalls: _recursiveCalls ?? Array.Empty<StateFun>(),
             resolvedCallArgs: _resolvedCallArgs,
             resolvedCallSignatures: _resolvedCallSignatures,
             narrowedVariables: _narrowedVariables
         );
 
-    public void RememberRecursiveCall(int id, StateFun userFunction)
-        => _recursiveCalls.EnlargeAndSet(id, userFunction);
+    public void RememberRecursiveCall(int id, StateFun userFunction) {
+        EnsureCapacity(ref _recursiveCalls, id);
+        _recursiveCalls[id] = userFunction;
+    }
 
     public void RememberNarrowedVariable(int orderNumber, string originalVariableName)
         => (_narrowedVariables ??= new())[orderNumber] = originalVariableName;
+
+    /// <summary>
+    /// Ensures the array can hold index <paramref name="index"/>.
+    /// When the array is null (no pre-size hint), allocates with a reasonable initial size.
+    /// When the array is too small, doubles its capacity.
+    /// </summary>
+    private static void EnsureCapacity<T>(ref T[] array, int index) {
+        if (array == null) {
+            array = new T[Math.Max(index + 1, 16)];
+            return;
+        }
+        if (index < array.Length) return;
+        var newSize = Math.Max(array.Length * 2, index + 1);
+        Array.Resize(ref array, newSize);
+    }
 }
 
 public class TypeInferenceResults {
     private readonly ITicResults _bodyTypeSolving;
-    private readonly IList<IFunctionSignature> _functionalVariables;
-    private readonly IList<StateFun> _recursiveCalls;
+    private readonly IFunctionSignature[] _functionalVariables;
+    private readonly StateFun[] _recursiveCalls;
     private readonly Dictionary<int, ISyntaxNode[]> _resolvedCallArgs;
     private readonly Dictionary<int, IFunctionSignature> _resolvedCallSignatures;
     private readonly Dictionary<int, string> _narrowedVariables;
@@ -71,8 +105,8 @@ public class TypeInferenceResults {
     public TypeInferenceResults(
         ITicResults bodyTypeSolving,
         StateRefTo[][] genericFunctionTypes,
-        IList<IFunctionSignature> functionalVariables,
-        IList<StateFun> recursiveCalls,
+        IFunctionSignature[] functionalVariables,
+        StateFun[] recursiveCalls,
         Dictionary<int, ISyntaxNode[]> resolvedCallArgs = null,
         Dictionary<int, IFunctionSignature> resolvedCallSignatures = null,
         Dictionary<int, string> narrowedVariables = null) {
@@ -86,7 +120,7 @@ public class TypeInferenceResults {
     }
 
     public IFunctionSignature GetFunctionalVariableOrNull(int id) =>
-        _functionalVariables.Count <= id
+        _functionalVariables.Length <= id
             ? null
             : _functionalVariables[id];
 
@@ -96,7 +130,7 @@ public class TypeInferenceResults {
             : GenericFunctionTypes[id];
 
     public StateFun GetRecursiveCallOrNull(int id) =>
-        _recursiveCalls.Count <= id
+        _recursiveCalls.Length <= id
             ? null
             : _recursiveCalls[id];
 

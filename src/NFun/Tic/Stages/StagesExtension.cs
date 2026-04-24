@@ -4,7 +4,7 @@ using System;
 using SolvingStates;
 
 public static class StagesExtension {
-    public static bool Invoke(this IStateFunction function, TicNode nodeA, TicNode nodeB) {
+    public static bool Invoke<TFunction>(this TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
         if (nodeB.State is StateRefTo bRef)
             return function.Invoke(nodeA, bRef.Node);
         if (nodeA.State is StatePrimitive p)
@@ -67,8 +67,8 @@ public static class StagesExtension {
     /// This is a standard LCA operation — ancestor widens to accommodate Optional descendant.
     /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) indicate a type error.
     /// </summary>
-    private static bool WrapAncestorInOptional(
-        IStateFunction function, TicNode nodeA, TicNode nodeB, StateOptional optB) {
+    private static bool WrapAncestorInOptional<TFunction>(
+        TFunction function, TicNode nodeA, TicNode nodeB, StateOptional optB) where TFunction : IStateFunction {
         TraceLog.WriteLine($"  WrapAncestorInOptional: nodeA={nodeA.Name}({nodeA.Type}):{nodeA.State} nodeB={nodeB.Name}:{nodeB.State}");
         if (nodeA.Type == TicNodeType.SyntaxNode || nodeA.IsSolved || nodeA.IsSignatureParam)
             throw Errors.TicErrors.IncompatibleNodes(nodeA, nodeB); // opt(T) ≤ T is invalid
@@ -83,8 +83,8 @@ public static class StagesExtension {
     /// LCA(Opt(T), T) = Opt(T): wrap descendant in Optional.
     /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) use fallback unwrap.
     /// </summary>
-    private static bool WrapDescendantInOptional(
-        IStateFunction function, TicNode nodeA, TicNode nodeB, StateOptional optA) {
+    private static bool WrapDescendantInOptional<TFunction>(
+        TFunction function, TicNode nodeA, TicNode nodeB, StateOptional optA) where TFunction : IStateFunction {
         TraceLog.WriteLine($"  WrapDescendantInOptional: nodeA={nodeA.Name}:{nodeA.State} nodeB={nodeB.Name}({nodeB.Type}):{nodeB.State}");
         if (nodeB.Type == TicNodeType.SyntaxNode || nodeB.IsSolved)
             return Invoke(function, optA.ElementNode, nodeB); // fallback: unwrap

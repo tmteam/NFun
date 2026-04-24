@@ -113,6 +113,7 @@ internal static class RuntimeBuilder {
         var setNodeNumberVisitor = new SetNodeNumberVisitor(0);
         syntaxTree.ComeOver(setNodeNumberVisitor);
         syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
+        syntaxTree.IsSimpleBody = setNodeNumberVisitor.IsSimpleBody;
 
         return Build(
             syntaxTree,
@@ -291,17 +292,21 @@ internal static class RuntimeBuilder {
         INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
 
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
-            syntaxTree, functionRegistry, constants, aprioriTypes, customTypes, dialect, namedTypeFieldRegistry);
+            syntaxTree, functionRegistry, constants, aprioriTypes, customTypes, dialect,
+            out var typesApplied, namedTypeFieldRegistry);
 
-        var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
-        foreach (var syntaxNode in syntaxTree.Nodes)
-        {
-            //function nodes were solved above
-            if (syntaxNode is UserFunctionDefinitionSyntaxNode)
-                continue;
+        // When SPS already applied types to syntax nodes, skip the ComeOver walk
+        if (!typesApplied) {
+            var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
+            foreach (var syntaxNode in syntaxTree.Nodes)
+            {
+                //function nodes were solved above
+                if (syntaxNode is UserFunctionDefinitionSyntaxNode)
+                    continue;
 
-            //set types to nodes
-            syntaxNode.ComeOver(enterVisitor);
+                //set types to nodes
+                syntaxNode.ComeOver(enterVisitor);
+            }
         }
 
         return bodyTypeSolving;

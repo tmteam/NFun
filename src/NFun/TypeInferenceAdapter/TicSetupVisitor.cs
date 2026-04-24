@@ -962,14 +962,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 (_narrowedFieldPaths ??= new()).Add(id);
                 continue;
             }
-            if (!_ticTypeGraph.HasNamedNode(id)) continue;
-            var varNode = _ticTypeGraph.GetNamedNode(id);
+            // Inside lambdas, variables are aliased (e.g., "it" → "42::it").
+            // Try the raw name first, then fall back to the aliased name.
+            var resolvedId = id;
+            if (!_ticTypeGraph.HasNamedNode(id)) {
+                var aliasedId = _aliasScope.GetVariableAlias(id);
+                if (aliasedId == id || !_ticTypeGraph.HasNamedNode(aliasedId))
+                    continue;
+                resolvedId = aliasedId;
+            }
+            var varNode = _ticTypeGraph.GetNamedNode(resolvedId);
             if (varNode.State is Tic.SolvingStates.StatePrimitive
                 || (varNode.State is Tic.SolvingStates.ICompositeState cs && cs is not Tic.SolvingStates.StateOptional))
                 continue;
-            var alias = scopeId + "~" + id;
+            var alias = scopeId + "~" + resolvedId;
             _aliasScope.AddVariableAlias(id, alias);
-            _ticTypeGraph.SetNarrowedVariable(id, alias);
+            _ticTypeGraph.SetNarrowedVariable(resolvedId, alias);
         }
         var result = expr.Accept(this);
         _aliasScope.ExitScope();

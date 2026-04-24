@@ -135,7 +135,7 @@ class LinqFunctionsTest {
     [TestCase("y = [42].chunk(1) == [[42]]", true)]
     [TestCase("y = [1,2,3,4,5].chunk(2) == [[1,2],[3,4],[5]]", true)]
 
-    [TestCase("y = [true,false,true].map(toText).join(', ')", "True, False, True")]
+    [TestCase("y = [true,false,true].map(toText).join(', ')", "true, false, true")]
     [TestCase("y = [1,2,3,4].map(toText).join(', ')", "1, 2, 3, 4")]
     [TestCase("y = ['1','2','3','4'].join(', ')", "1, 2, 3, 4")]
     [TestCase("y = ['1','2','3','4'].join(',')", "1,2,3,4")]

@@ -164,7 +164,7 @@ public class SliceWithStepGenericFunctionDefinition : GenericFunctionBase {
         var end = (int)args[2];
         if (end < 0)
             throw new FunnyRuntimeException("Argument out of range");
-        if (end != 0 && start > end)
+        if (start > end)
             throw new FunnyRuntimeException("Start cannot be more than end");
         var step = (int)args[3];
         if (step <= 0)
@@ -313,7 +313,7 @@ public class SliceGenericFunctionDefinition : GenericFunctionBase {
         if (end < 0)
             throw new FunnyRuntimeException("Argument out of range");
 
-        if (end != 0 && start > end)
+        if (start > end)
             throw new FunnyRuntimeException("Start cannot be more than end");
 
         var arr = (IFunnyArray)args[0];

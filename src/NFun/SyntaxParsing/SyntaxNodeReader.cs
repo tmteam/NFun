@@ -105,6 +105,22 @@ public static class SyntaxNodeReader {
     /// or returns null if underlying syntax cannot be represented as atomic node
     /// (EOF for example)
     /// /// </summary>
+    /// <summary>
+    /// Checks if the previous minus was a binary operator (not unary).
+    /// When we see `--`, we need to distinguish `5 - -3` (binary then unary, OK)
+    /// from `--3` or `- -3` (double unary, forbidden).
+    /// The first minus is binary if the token before it is a value-producing token.
+    /// </summary>
+    private static bool IsPreviousMinusBinary(TokFlow flow) {
+        // Previous is at position-1 (the first minus). Check position-2.
+        if (flow.CurrentTokenPosition < 2)
+            return false;
+        var beforeMinus = flow.GetTokenAt(flow.CurrentTokenPosition - 2);
+        return beforeMinus.Type is TokType.IntNumber or TokType.RealNumber or TokType.HexOrBinaryNumber
+            or TokType.Id or TokType.ParenthCbr or TokType.ArrCBr or TokType.Text
+            or TokType.True or TokType.False or TokType.CharLiteral;
+    }
+
     private static ISyntaxNode ReadAtomicNodeOrNull(TokFlow flow) {
         flow.SkipNewLines();
 
@@ -112,7 +128,7 @@ public static class SyntaxNodeReader {
         var start = flow.CurrentTokenFinishPosition;
         if (flow.IsCurrent(TokType.Minus))
         {
-            if (flow.IsPrevious(TokType.Minus))
+            if (flow.IsPrevious(TokType.Minus) && !IsPreviousMinusBinary(flow))
                 throw Errors.MinusDuplicates(flow.Previous, flow.Current);
             flow.MoveNext();
 

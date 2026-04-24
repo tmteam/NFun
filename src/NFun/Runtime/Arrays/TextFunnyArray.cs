@@ -30,6 +30,10 @@ public class TextFunnyArray : IFunnyArray, IComparable {
         if (endIndex == int.MaxValue)
             endIndex = null;
 
+        // Clamp endIndex to valid range
+        if (endIndex.HasValue && endIndex.Value >= _text.Length)
+            endIndex = _text.Length - 1;
+
         if (startIndex > _text.Length - 1)
             return Empty;
 

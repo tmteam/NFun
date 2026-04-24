@@ -135,12 +135,12 @@ public class FormatSpecifierTest {
     [TestCase("'{3.14159.round(2):0.00}'", "3.14")]
 
     // Comparison → bool → toText
-    [TestCase("'{1 > 0:>5}'", " True")]
-    [TestCase("'{1 < 0:>5}'", "False")]
+    [TestCase("'{1 > 0:>5}'", " true")]
+    [TestCase("'{1 < 0:>5}'", "false")]
 
     // Boolean
-    [TestCase("'{not false:>6}'", "  True")]
-    [TestCase("'{true and true:>6}'", "  True")]
+    [TestCase("'{not false:>6}'", "  true")]
+    [TestCase("'{true and true:>6}'", "  true")]
     public void ExpressionWithFormat(string expr, string expected) =>
         $"y = {expr}".AssertReturns("y", expected);
 

@@ -153,8 +153,8 @@ public class GenericValidationTest {
 
     [Test]
     public void MaxOfInts_ShouldWork() {
-        // max(T, T) -> T with T=real (generic int literals resolve to real). Same depth in both args.
-        "y = max(1, 2)".AssertReturns("y", 2.0);
+        // max(T, T) -> T with T=int32 (generic int literals resolve to preferred int type).
+        "y = max(1, 2)".AssertReturns("y", 2);
     }
 
     [Test]

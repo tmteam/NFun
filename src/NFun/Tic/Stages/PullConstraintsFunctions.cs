@@ -5,7 +5,7 @@ using NFun.Tic.SolvingStates;
 namespace NFun.Tic.Stages;
 
 public class PullConstraintsFunctions : IStateFunction {
-    public static IStateFunction Singleton { get; } = new PullConstraintsFunctions();
+    public static PullConstraintsFunctions Singleton { get; } = new();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __) =>
         descendant.CanBePessimisticConvertedTo(ancestor);
@@ -61,9 +61,7 @@ public class PullConstraintsFunctions : IStateFunction {
             // the Optional wrapper consumes the IsOptional flag.
             var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
             innerCs.Preferred = ancestor.Preferred;
-            var innerNode = TicNode.CreateTypeVariableNode(
-                "e" + ancestorNode.Name.ToString().ToLower() + "'",
-                innerCs);
+            var innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
             descOpt.ElementNode.AddAncestor(innerNode);
             ancestorNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
@@ -148,8 +146,7 @@ public class PullConstraintsFunctions : IStateFunction {
                         // has struct descendant from generic function binding).
                         // Transform to opt(inner) carrying the struct constraints.
                         var innerNode = TicNode.CreateTypeVariableNode(
-                            "e" + descendantNode.Name.ToString().ToLower() + "'",
-                            descendant.GetCopy());
+                            "e" + descendantNode.Name + "'", descendant.GetCopy());
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
                         descendantNode.RemoveAncestor(ancestorNode);
@@ -185,8 +182,7 @@ public class PullConstraintsFunctions : IStateFunction {
                 && ancestor.ElementNode.State is ConstraintsState ancCon)
             {
                 var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestor.ElementNode.Name.ToString().ToLower() + "'",
-                    ancCon.GetCopy());
+                    "e" + ancestor.ElementNode.Name + "'", ancCon.GetCopy());
                 descOpt.ElementNode.AddAncestor(innerNode);
                 ancestor.ElementNode.State = new StateOptional(innerNode);
                 ancestor.ElementNode.IsOptionalElement = true;

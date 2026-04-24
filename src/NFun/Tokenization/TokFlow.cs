@@ -103,6 +103,8 @@ public class TokFlow {
         return _tokens[CurrentTokenPosition - 1].Type == tokType;
     }
 
+    public Tok GetTokenAt(int position) => _tokens[position];
+
     public override string ToString() {
         var sb = new StringBuilder("Flow [ ");
         if (CurrentTokenPosition > 0)

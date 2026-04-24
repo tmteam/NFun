@@ -172,18 +172,11 @@ public class IEEE754ComplianceTest {
     // partially. We test the actual behavior here.
     [Test]
     public void Max_NaN_And_Value() {
-        // max uses CompareTo > 0 ? b : a — with NaN fix, NaN > 1.0 = false, so returns a (NaN)
-        // This is NOT ideal but documenting actual behavior
+        // NaN propagates through max: max(NaN, x) = NaN (consistent with NaNBehaviorTest)
         var result = "y:real = max(0.0/0.0, 1.0)".Calc().Get("y");
-        // NaN.CompareTo(1.0) — after NaN check, returns false for > 0,
-        // so `left.CompareTo(right) > 0 ? a : b` returns b = 1.0... wait
-        // max: left.CompareTo(right) > 0 ? a : b
-        // The comparison functions are fixed but max/min use IComparable directly
-        // Let's just assert whatever we get and document it
         var d = (double)result;
         Console.WriteLine($"max(NaN, 1.0) = {d} (IsNaN: {double.IsNaN(d)})");
-        // .NET behavior: double.NaN.CompareTo(1.0) = -1, so !(−1 > 0), returns b = 1.0
-        Assert.AreEqual(1.0, d, "max(NaN, 1.0) should return 1.0 (NaN is treated as smallest by IComparable)");
+        Assert.IsTrue(double.IsNaN(d), $"max(NaN, 1.0) should return NaN, got {d}");
     }
 
     [Test]

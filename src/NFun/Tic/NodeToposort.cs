@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.Exceptions;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
@@ -183,7 +182,10 @@ public class NodeToposort {
 
         // (a<= b <= c = a)  =>  (a = b = c) 
 
-        var merged = SolvingFunctions.MergeGroup(_cycle.Reverse());
+        // Reverse cycle in-place (avoid LINQ Reverse() allocation)
+        var cycleArray = _cycle.ToArray();
+        Array.Reverse(cycleArray);
+        var merged = SolvingFunctions.MergeGroup(cycleArray);
 
         // Cycle is merged
         _cycle = null;
