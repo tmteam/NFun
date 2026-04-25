@@ -324,7 +324,7 @@ public class ConvertFunction : GenericFunctionBase {
         }
     }
 
-    //TODO wtf this method doing???
+    /// <summary>Converts an array to a 4-byte array for IP address construction.</summary>
     private static byte[] AsByteArray(object array) {
         var val = (IFunnyArray)array;
         try

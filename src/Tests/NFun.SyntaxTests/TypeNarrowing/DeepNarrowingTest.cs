@@ -108,7 +108,6 @@ public class DeepNarrowingTest {
     // ── Progressive or in filter lambda ──────────────────────────
 
     [Test]
-    [Ignore("TODO: or-progressive narrowing inside filter lambda with not()")]
     public void Filter_OrProgressive_NoneOrNegative() =>
         AssertNarrowed(
             "items:int?[] = [1, none, -2, 3, none, -1]\r y = items.filter(rule not(it == none or it < 0))",

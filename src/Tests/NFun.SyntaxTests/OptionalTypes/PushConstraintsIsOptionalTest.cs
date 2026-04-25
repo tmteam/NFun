@@ -22,28 +22,24 @@ public class PushConstraintsIsOptionalTest {
     // ===== Double ?. chain (the original bug pattern) =====
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_InferredOptionalStruct_BothTrue_ReturnsValue() =>
         "inner = if(true) {b=42} else none\r y = if(true) {a = inner} else none\r z = y?.a?.b ?? -1"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("z", 42);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_InferredOptionalStruct_OuterNone_ReturnsDefault() =>
         "inner = if(true) {b=42} else none\r y = if(false) {a = inner} else none\r z = y?.a?.b ?? -1"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("z", -1);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_InferredOptionalStruct_InnerNone_ReturnsDefault() =>
         "inner = if(false) {b=42} else none\r y = if(true) {a = inner} else none\r z = y?.a?.b ?? -1"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("z", -1);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void TripleChain_InferredOptionalStruct_AllTrue_ReturnsValue() =>
         ("deep = if(true) {c=42} else none\r"
          + " mid = if(true) {b = deep} else none\r"
@@ -55,28 +51,24 @@ public class PushConstraintsIsOptionalTest {
     // ===== Optional struct with various field types =====
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_TextField_ReturnsValue() =>
         "inner = if(true) {name='hello'} else none\r y = if(true) {a = inner} else none\r z = y?.a?.name ?? ''"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("z", "hello");
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_BoolField_ReturnsValue() =>
         "inner = if(true) {flag=true} else none\r y = if(true) {a = inner} else none\r z = y?.a?.flag ?? false"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("z", true);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_RealField_ReturnsValue() =>
         "inner = if(true) {v=3.14} else none\r y = if(true) {a = inner} else none\r z = y?.a?.v ?? 0.0"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
             .AssertResultHas("z", 3.14);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_ArrayField_ReturnsValue() =>
         "inner = if(true) {items=[1,2,3]} else none\r y = if(true) {a = inner} else none\r z = y?.a?.items ?? [0]"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
@@ -97,7 +89,6 @@ public class PushConstraintsIsOptionalTest {
     // ===== Optional struct with multiple fields =====
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_MultipleFields_SumBoth() =>
         ("inner = if(true) {x=1, y=2} else none\r"
          + " outer = if(true) {a = inner} else none\r"
@@ -108,7 +99,6 @@ public class PushConstraintsIsOptionalTest {
     // ===== Safe access + method chain on nested optional =====
 
     [Test]
-    [Ignore("count() on optional array: ?. returns T[]? which is not valid for count(T[])")]
     public void DoubleChain_ArrayFieldCount_ReturnsValue() =>
         ("inner = if(true) {items=[1,2,3]} else none\r"
          + " y = if(true) {a = inner} else none\r"
@@ -119,7 +109,6 @@ public class PushConstraintsIsOptionalTest {
     // ===== Interaction with type narrowing =====
 
     [Test]
-    [Ignore("Type narrowing after != none not supported for inferred optional struct variables")]
     public void DoubleChain_WithManualNoneCheck_ReturnsValue() =>
         ("inner = if(true) {v=42} else none\r"
          + " y = if(true) {a = inner} else none\r"
@@ -155,7 +144,6 @@ public class PushConstraintsIsOptionalTest {
     // ===== Edge cases =====
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_BothNone_ReturnsDefault() =>
         "inner = if(false) {b=42} else none\r y = if(false) {a = inner} else none\r z = y?.a?.b ?? -1"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
@@ -168,7 +156,6 @@ public class PushConstraintsIsOptionalTest {
             .AssertResultHas("z", 99);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_InIfElseResult_ReturnsValue() =>
         ("inner = if(true) {b=42} else none\r"
          + " y = if(true) {a = inner} else none\r"
@@ -177,7 +164,6 @@ public class PushConstraintsIsOptionalTest {
             .AssertResultHas("z", 42);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_CoalesceAtEachLevel_ReturnsValue() =>
         ("inner = if(true) {b=42} else none\r"
          + " y = if(true) {a = inner} else none\r"
@@ -187,7 +173,6 @@ public class PushConstraintsIsOptionalTest {
             .AssertResultHas("z", 42);
 
     [Test]
-    [Ignore("Push IsOptional bug: TransformToStructOrNull strips optional from inferred struct field")]
     public void DoubleChain_ArrayOfOptionalStructs_FilterFirstValid() =>
         ("inner = if(true) {v=10} else none\r"
          + " item = if(true) {a = inner} else none\r"

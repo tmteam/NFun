@@ -65,6 +65,22 @@ public class SimplePrimitiveSolverDifferentialTest {
         spsResult.AssertResultHas(varName, expected);
     }
 
+    // --- Unary operators ---
+    [TestCase("y = -5", "y", -5)]
+    [TestCase("y = not true", "y", false)]
+    // --- Boundary values ---
+    [TestCase("y = 255", "y", 255)]
+    [TestCase("y = 256", "y", 256)]
+    [TestCase("y = 2147483647", "y", 2147483647)]
+    // --- Cross-type widening ---
+    [TestCase("x:int64 = 1\r y:real = x + 0.5", "y", 1.5d)]
+    // --- Comparison chain ---
+    [TestCase("y = 1 < 2 and 2 < 3", "y", true)]
+    public void SpsMatchesTic_Extended(string expr, string varName, object expected) {
+        var spsResult = expr.Calc();
+        spsResult.AssertResultHas(varName, expected);
+    }
+
     // SPS must return null (fall through to TIC) for type-incompatible expressions
     [TestCase("y:int32 = true")]
     [TestCase("y:bool = 1")]

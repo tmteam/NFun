@@ -47,8 +47,6 @@ internal sealed class SimplePrimitiveSolver {
 
     // Set to true when conflicting constraints are detected (e.g. Real ∩ Bool = ∅)
     private bool _failed;
-    // Resolve cache: ordinal per root group, OPEN = not yet resolved. Allocated before resolve phase.
-    private byte[] _resolvedCache;
 
     private int _groupCount;
 
@@ -178,14 +176,8 @@ internal sealed class SimplePrimitiveSolver {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int Find(int x) {
-        while (true) {
-            ref var node = ref _groups[x];
-            var p = node.Parent;
-            if (p == x) return x;
-            var gp = _groups[p].Parent;
-            node.Parent = gp;
-            x = gp;
-        }
+        while (_groups[x].Parent != x) { _groups[x].Parent = _groups[_groups[x].Parent].Parent; x = _groups[x].Parent; }
+        return x;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -618,8 +610,11 @@ internal sealed class SimplePrimitiveSolver {
         // Children already walked by WalkAndCheck
         for (int i = 0; i < node.Operators.Count; i++) {
             bool isEquality = node.Operators[i].Type is TokType.Equal or TokType.NotEqual;
+            var c = isEquality ? GenericConstrains.Any : GenericConstrains.Comparable;
+            // Use first operand's group as the generic group — no extra allocation
             var gGid = GetOrCreateNodeGroup(node.Operands[i].OrderNumber);
-            if (!isEquality) _groups[Find(gGid)].Comparable = true;
+            var r = Find(gGid);
+            if (c.IsComparable) _groups[r].Comparable = true;
             Unite(gGid, GetOrCreateNodeGroup(node.Operands[i + 1].OrderNumber));
         }
         SetConcrete(GetOrCreateNodeGroup(node.OrderNumber), s_ordBool);
@@ -696,28 +691,23 @@ internal sealed class SimplePrimitiveSolver {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StatePrimitive ResolveGroup(int gid) {
         var r = Find(gid);
-        if (_resolvedCache != null && _resolvedCache[r] != OPEN)
-            return s_ordToState[_resolvedCache[r]];
-
-        var result = ResolveRoot(r);
-        if (result != null && _resolvedCache != null)
-            _resolvedCache[r] = (byte)result.Order;
-        return result;
-    }
-
-    private StatePrimitive ResolveRoot(int r) {
         var d = _groups[r].Desc;
         var a = _groups[r].Anc;
         var p = _groups[r].Pref;
 
+        // Check preferred first — it takes priority when it fits in [desc..anc].
+        // This matches TIC's SolveCovariant which prefers Preferred over Ancestor.
         if (d != OPEN && a != OPEN) {
             if (d == a) return s_ordToState[d];
-            if (!FitsOrd(d, a)) return null;
-            if (p != OPEN && FitsOrd(d, p) && FitsOrd(p, a)) return s_ordToState[p];
+            if (!FitsOrd(d, a))
+                return null; // unsatisfiable
+            if (p != OPEN && FitsOrd(d, p) && FitsOrd(p, a))
+                return s_ordToState[p];
             return s_ordToState[a];
         }
         if (a != OPEN) {
-            if (p != OPEN && FitsOrd(p, a)) return s_ordToState[p];
+            if (p != OPEN && FitsOrd(p, a))
+                return s_ordToState[p];
             return s_ordToState[a];
         }
         if (p != OPEN && (d == OPEN || FitsOrd(d, p))) return s_ordToState[p];
@@ -881,9 +871,6 @@ internal sealed class SimplePrimitiveSolver {
 
         solver.Propagate();
         if (solver._failed) { typesApplied = false; return null; }
-        // Allocate resolve cache — memoizes ResolveGroup by root (no Unite after Propagate, roots stable)
-        solver._resolvedCache = new byte[solver._groupCount];
-        Array.Fill(solver._resolvedCache, OPEN);
         var results = solver.BuildResults();
         if (results == null) { typesApplied = false; return null; }
         if (solver.ApplyTypesToSyntaxTree(tree))

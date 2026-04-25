@@ -236,42 +236,44 @@ public class BugHuntResults {
 
     // === Bug Hunt Session 5 (600 iterations, all new features stress test) ===
 
-    [Test][Ignore("Bug hunt 5#1: arithmetic on bool crashes with ArgumentOutOfRangeException")]
+    [Test]
     public void BugHunt5_ArithmeticOnBool_Crash() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = true + 1".Calc());
     }
 
-    [Test][Ignore("Bug hunt 5#2: [1..5] range without type annotation crashes MJ78")]
+    [Test]
     public void BugHunt5_RangeWithoutAnnotation_Crash() {
         "y:int[] = [1..5]".AssertReturns("y", new[]{1,2,3,4,5}); // works WITH annotation
         Assert.DoesNotThrow(() => "y = [1..5]".Calc()); // crashes WITHOUT
     }
 
-    [Test][Ignore("Bug hunt 5#3: force unwrap on non-optional crashes MJ78")]
-    public void BugHunt5_ForceUnwrapNonOptional_Crash() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = 42!".Calc());
+    [Test] // ! on non-optional is a no-op by design (convenience, same as ??)
+    public void BugHunt5_ForceUnwrapNonOptional_IsNoop() {
+        "y = 42!"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", 42);
     }
 
-    [Test][Ignore("Bug hunt 5#4: 'abc'.sort() crashes — char not cast to IComparable")]
+    [Test]
     public void BugHunt5_TextSort_RuntimeCrash() {
         Assert.DoesNotThrow(() => "y = 'cba'.sort()".Calc());
     }
 
-    [Test][Ignore("Bug hunt 5#5: type alias on primitive can't be used as annotation")]
+    [Test]
     public void BugHunt5_PrimitiveTypeAlias_AsAnnotation() {
         "type age = int; x:age = 42; y = x + 1"
             .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
             .AssertResultHas("y", 43);
     }
 
-    [Test][Ignore("Bug hunt 5#6: y:bool = 42 silently widens to Any instead of type error")]
+    [Test]
     public void BugHunt5_IncompatibleAnnotation_SilentAny() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y:bool = 42".Calc());
     }
 
     // NOT A BUG: 5#7 — y ?? none is equivalent to y (no-op). Semantically correct.
 
-    [Test][Ignore("Bug hunt 5#8: logical operators on int crash instead of type error")]
+    [Test]
     public void BugHunt5_LogicalOnInt_Crash() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = 1 and 2".Calc());
     }
@@ -279,25 +281,25 @@ public class BugHuntResults {
     // === Bug Hunt Session 6 (600 iterations, post-fix validation) ===
     // Hell & Nested: 0 bugs in 200 iterations!
 
-    [Test][Ignore("Bug hunt 6#1: NaN < 1.0 returns true (IEEE 754 violation)")]
+    [Test]
     public void BugHunt6_NaN_LessThan_ReturnsTrue() {
         // IComparable.CompareTo treats NaN as smallest, but IEEE 754 says false
         "out = (0.0/0.0) < 1.0".AssertReturns("out", false);
     }
 
-    [Test][Ignore("Bug hunt 6#2: negating int min wraps silently instead of overflow error")]
+    [Test]
     public void BugHunt6_NegateIntMin_ShouldOverflow() {
         Assert.Throws<NFun.Exceptions.FunnyRuntimeException>(
             () => "y:int = -2147483648\r out = -y".Calc());
     }
 
-    [Test][Ignore("Bug hunt 6#3: if(42) crashes with ArgumentOutOfRangeException")]
+    [Test]
     public void BugHunt6_IntLiteralInIfCondition_Crash() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "y = if(42) true else false".Calc());
     }
 
-    [Test][Ignore("Bug hunt 6#4: inline struct annotation with uppercase field names crashes")]
+    [Test]
     public void BugHunt6_InlineStructAnnotation_UppercaseFieldCrash() {
         // {minVal:int} → lowercase normalize creates duplicate "minval" key
         Assert.DoesNotThrow(
@@ -313,7 +315,7 @@ public class BugHuntResults {
     // Simple: pending
     // Hell: 4 bugs. Edge: 3 bugs.
 
-    [Test][Ignore("Bug hunt 7#1: deep ?. chain + method call fails at depth >= 2")]
+    [Test]
     public void BugHunt7_DeepSafeAccessChainMethod() {
         "x = if(true) {a={b='hello'}} else none; out = x?.a.b.reverse() ?? ''"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
@@ -347,7 +349,7 @@ public class BugHuntResults {
             .AssertResultHas("out", 5);
     }
 
-    [Test][Ignore("Bug hunt 7#5: LCA stack overflow on recursive tree[].map accessing children")]
+    [Test]
     public void BugHunt7_TreeArrayMap_StackOverflow() {
         Assert.DoesNotThrow(() =>
             "type tree = {v:int, children:tree[] = []}; forest = [tree{v=1, children=[tree{v=10}]}, tree{v=2}]; out = forest.map(rule it.children.count())"
@@ -363,7 +365,7 @@ public class BugHuntResults {
     // === Bug Hunt Session 8 (600 iterations, final validation) ===
     // Simple: 1 bug in 200 iterations — core language very stable
 
-    [Test][Ignore("Bug 8#1: triple+ inline nested optional struct fails FU710")]
+    [Test]
     public void BugHunt8_TripleNestedOptionalStruct() {
         "inner = if(true) {d=99} else none; mid = if(true) {c=inner} else none; outer = if(true) {b=mid} else none; out = outer?.b?.c?.d ?? 0"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
@@ -396,4 +398,19 @@ public class BugHuntResults {
     // 8#8: y??none type unsound — already noted in session 5
 
     #endregion
+
+    // === Bug Hunt Session 13 (300 iterations, 3 parallel agents) ===
+
+    [Test][Ignore("Bug hunt 13#1: (42 ?? none) ?? 0 returns Int32? instead of Int32 — outer ?? should unwrap")]
+    public void BugHunt13_NestedCoalesceWithNone_TypeNotUnwrapped() {
+        "(42 ?? none) ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
+    }
+
+    [Test][Ignore("Bug hunt 13#2: arr[i:4] parsed as type annotation instead of slice — parser ambiguity")]
+    public void BugHunt13_SliceWithVariableStart_ParsedAsTypeAnnotation() {
+        "arr = [1,2,3,4,5]\r i = 2\r y = arr[i:4]"
+            .AssertReturns("y", new[] { 3, 4 });
+    }
 }

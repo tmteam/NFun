@@ -279,7 +279,7 @@ internal class ConstantCalculator<TOutput> : IConstantCalculator<TOutput> {
         var runtime = _builder.CreateRuntime(expression, _mutableApriori);
         FluentApiTools.ThrowIfHasInputs(runtime);
         FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
-        // If there is no inputs, - it is thread safe. TODO - What about non pure functions?
+        // No inputs → immutable state → thread safe (pure functions only)
         runtime.Run();
         return (TOutput)_outputConverter.ToClrObject(FluentApiTools.GetFunnyOut(runtime).FunnyValue);
     }
@@ -299,7 +299,7 @@ internal class ManyConstantsCalculator<TOutput> : IConstantCalculator<TOutput> w
     public TOutput Calc(string expression) {
         var runtime = _builder.CreateRuntime(expression, _mutableApriori);
         FluentApiTools.ThrowIfHasInputs(runtime);
-        // If there is no inputs, - it is thread safe. TODO - What about non pure functions?
+        // No inputs → immutable state → thread safe (pure functions only)
         runtime.Run();
         return FluentApiTools.CreateOutputModelFromResults<TOutput>(runtime, _outputsMap);
     }
@@ -314,7 +314,7 @@ internal class ConstantCalculator : IConstantCalculator<object> {
         var runtime = _builder.CreateRuntime(expression, EmptyAprioriTypesMap.Instance);
         FluentApiTools.ThrowIfHasInputs(runtime);
         FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
-        // If there is no inputs, - it is thread safe. TODO - What about non pure functions?
+        // No inputs → immutable state → thread safe (pure functions only)
         runtime.Run();
 
         return FluentApiTools.GetFunnyOut(runtime).Value;

@@ -463,7 +463,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     private (IExpressionNode, FunnyType) GetConstantNodeOrNull(object value, ISyntaxNode node) {
-        var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
+        // OutputType already set by ApplyTiResultEnterVisitor or SPS ApplyTypesToSyntaxTree
+        var type = node.OutputType.BaseType != BaseFunnyType.Empty
+            ? node.OutputType
+            : _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
         return (value switch {
             long l => ConstantExpressionNode.CreateConcrete(type, l, _dialect.Converter.TypeBehaviour, node.Interval),
             ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.Converter.TypeBehaviour, node.Interval),
@@ -653,7 +656,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     /// <summary>
-    /// WORKAROUND: Validates that generic type resolutions are not vacuous.
+    /// FU711: Validates that generic type resolutions are not vacuous.
     /// When a generic T resolves to Any and the function uses T at different
     /// structural depths in its INPUT arguments (e.g., bare T in one arg and T[] in another),
     /// the Any resolution came from merging structurally incompatible constraints

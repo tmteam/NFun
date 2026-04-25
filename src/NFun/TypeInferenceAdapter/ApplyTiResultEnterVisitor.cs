@@ -21,7 +21,7 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
     }
 
     public override DfsEnterResult Visit(NamedIdSyntaxNode node) {
-        //TODO it is just workaround. We have to manually setup variable type into VariableSource
+        // VariableType = TIC's named-node type (may differ from OutputType for narrowed variables)
         var type = _solving.GetVariableTypeOrNull(node.Id);
         if (type != null)
             node.VariableType = _tiToLangTypeConverter.Convert(type);

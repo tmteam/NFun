@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
@@ -80,7 +79,7 @@ public class VariableSource : IFunnyVar {
         FunnyVarAccess access,
         FunnyConverter funnyConverter,
         FunnyAttribute[] attributes = null) {
-        _id = Interlocked.Increment(ref _usedCount);
+        _id = ++_usedCount;
 
         _access = access;
         _funnyConverter = funnyConverter;
@@ -96,7 +95,7 @@ public class VariableSource : IFunnyVar {
         FunnyVarAccess access,
         FunnyConverter funnyConverter,
         FunnyAttribute[] attributes = null) {
-        _id = Interlocked.Increment(ref _usedCount);
+        _id = ++_usedCount;
 
         _access = access;
         _funnyConverter = funnyConverter;
