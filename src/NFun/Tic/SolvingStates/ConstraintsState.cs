@@ -1,6 +1,7 @@
 namespace NFun.Tic.SolvingStates;
 
 using System;
+using System.Collections.Generic;
 using Algebra;
 
 public class ConstraintsState : ITicNodeState {
@@ -117,12 +118,40 @@ public class ConstraintsState : ITicNodeState {
         else
         {
             var prev = Descendant;
-            // Concretest ConstraintsState to materialize IsOptional into StateOptional before LCA.
-            _descendant = Descendant.Lca(type is ConstraintsState ? type.Concretest() : type);
-            TraceLog.WriteLine($"    Constrains.AddDescendant: LCA({prev}, {type}) => {_descendant}");
+            var incoming = type is ConstraintsState ? type.Concretest() : type;
+            // Row polymorphism: open structs (from SetFieldAccess) use field UNION,
+            // closed structs (from literals/LCA) use field INTERSECTION (standard LCA).
+            // Open struct = "at least these fields". Combining two open constraints:
+            // "at least {a}" AND "at least {b}" = "at least {a,b}" (field union).
+            if (Descendant is StateStruct descS && incoming is StateStruct incS
+                && (descS.IsOpen || incS.IsOpen))
+            {
+                _descendant = UnionStructFields(descS, incS);
+                TraceLog.WriteLine($"    Constrains.AddDescendant: Union({prev}, {type}) => {_descendant}");
+            }
+            else
+            {
+                _descendant = Descendant.Lca(incoming);
+                TraceLog.WriteLine($"    Constrains.AddDescendant: LCA({prev}, {type}) => {_descendant}");
+            }
         }
+    }
 
-
+    /// <summary>
+    /// Union two struct field sets (row polymorphism).
+    /// Creates a NEW struct with all fields from both. For shared fields, keep the existing node.
+    /// Result is open only if BOTH are open; closed absorbs open.
+    /// IMPORTANT: must NOT mutate inputs — struct states may be shared in the graph.
+    /// </summary>
+    private static StateStruct UnionStructFields(StateStruct existing, StateStruct incoming) {
+        var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+        // All fields from existing
+        foreach (var field in existing.Fields)
+            fields[field.Key] = field.Value;
+        // Add fields from incoming that aren't in existing
+        foreach (var field in incoming.Fields)
+            fields.TryAdd(field.Key, field.Value);
+        return new StateStruct(fields, isFrozen: false, isOpen: existing.IsOpen && incoming.IsOpen);
     }
 
     /// <summary>
@@ -231,6 +260,12 @@ public class ConstraintsState : ITicNodeState {
                 inner = ancestor;
             } else if (Descendant is ICompositeState)
                 inner = Descendant;
+            else if (Ancestor == null && Descendant is StatePrimitive { IsAbstract: true } abstractDesc)
+                // Open interval [abstract..null]: resolve to narrowest concrete ancestor.
+                // Abstract types (I48, I24, I96, U48, U24, U12) are TIC-internal and must be
+                // concretized for output. Constrained intervals [abstract..abstract] are already
+                // rejected by SimplifyOrNull during Pull/Push (e.g., bitwise U64 & I64).
+                inner = abstractDesc.ConcreteAncestor;
             else
                 inner = ancestor;
         }

@@ -170,12 +170,15 @@ public static class LangTiHelper {
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(
                     type => ConvertToTiType(type, genericMap)),
                 returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap)),
+            // Generic function constraints: struct is open ("at least these fields").
+            // Row polymorphism: the function only requires listed fields, not exact match.
             BaseFunnyType.Struct => StateStruct.Of(
                 origin.StructTypeSpecification.Select(
                     s => new KeyValuePair<string, ITicNodeState>(
                         key: s.Key,
                         value: ConvertToTiType(s.Value, genericMap))),
-                origin.StructTypeSpecification.IsFrozen),
+                origin.StructTypeSpecification.IsFrozen,
+                isOpen: true),
             BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, null),
             _ => origin.ConvertToTiType()
         };

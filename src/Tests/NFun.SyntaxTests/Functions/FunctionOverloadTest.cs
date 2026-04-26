@@ -51,10 +51,24 @@ public class FunctionOverloadTest {
           y = min(3, 5)".AssertReturns("y", 300);
 
     [Test]
-    [Ignore("Known regression on oops-bottom-type: user count(int[]) shadows builtin count(T[]) in body, causing infinite recursion")]
     public void Shadow_CountSameArity() =>
         @"count(arr:int[]):int = arr.count() * 2
           y = count([1,2,3])".AssertReturns("y", 6);
+
+    [Test]
+    public void Shadow_SortSameArity() =>
+        @"sort(arr:int[]):int[] = arr.sort().reverse()
+          y = sort([3,1,2])".AssertReturns("y", new[] { 3, 2, 1 });
+
+    [Test]
+    public void Shadow_SumSameArity() =>
+        @"sum(arr:int[]):int = arr.sum() + 100
+          y = sum([1,2,3])".AssertReturns("y", 106);
+
+    [Test]
+    public void PipedRecursiveCall_NoBuiltinShadow_StillWorks() =>
+        // fb has no builtin match — piped recursive call must still work
+        Assert.DoesNotThrow(() => "fb(n) = n.concat('').fb()".Build());
 
     [Test]
     public void Shadow_AbsSameArity() =>

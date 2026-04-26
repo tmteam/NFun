@@ -765,8 +765,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             ids[^1] = rawResultId; // function writes to raw result
         }
 
-        // #10: operators are never user functions — skip user function lookup
-        var userFunction = node.IsOperator
+        // #10: operators are never user functions — skip user function lookup.
+        // For piped calls (arr.count()), prefer the builtin when one exists with matching name/arity.
+        // This prevents accidental self-recursion when a user function wraps a builtin of the same name.
+        // Pure user functions (no builtin match) still support piped recursive calls: fb(n).fb().
+        var isPipedWithBuiltin = signature != null && node is FunCallSyntaxNode { IsPipeForward: true };
+        var userFunction = node.IsOperator || isPipedWithBuiltin
             ? null
             : _resultsBuilder.GetUserFunctionSignature(node.Id, allArgs.Length);
         if (userFunction != null)

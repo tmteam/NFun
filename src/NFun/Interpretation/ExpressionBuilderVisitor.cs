@@ -15,8 +15,6 @@ using NFun.Types;
 
 namespace NFun.Interpretation;
 
-using System;
-
 internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionNode> {
     private readonly IFunctionRegistry _functions;
     private readonly VariableDictionary _variables;
@@ -46,6 +44,12 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var result = node.Accept(
             new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
         if (result.Type == outputType)
+            return result;
+        // When the coalesce expression builder resolved a more precise type than TIC
+        // (stripped Optional because right operand is non-optional), prefer the expression's type.
+        if (result is Nodes.CoalesceExpressionNode
+            && outputType.BaseType == BaseFunnyType.Optional
+            && result.Type == outputType.OptionalTypeSpecification.ElementType)
             return result;
         var converter =
             VarTypeConverter.GetConverterOrThrow(dialect.Converter.TypeBehaviour, result.Type, outputType,
@@ -146,9 +150,17 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         // the field as Optional), use the TIC output type for the result.
         // This handles inline constructor access: a{b=val}.b where b is declared Optional.
         if (node.OutputType.BaseType == BaseFunnyType.Optional
-            && structNode.Type.BaseType == BaseFunnyType.Struct)
+            && structNode.Type.BaseType == BaseFunnyType.Struct) {
+            // The struct may store the field in a narrower type than TIC resolved
+            // (e.g., field is UInt8? but TIC says Int32? due to preferred type propagation).
+            // Add converter to widen the runtime value to match the declared type.
+            var actualFieldType = structNode.Type.StructTypeSpecification[node.FieldName];
+            var converter = actualFieldType != node.OutputType
+                ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, actualFieldType, node.OutputType)
+                : null;
             return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval,
-                overrideType: node.OutputType);
+                overrideType: node.OutputType, converter: converter);
+        }
 
         return NarrowIfNeeded(
             new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval), node.OutputType);
@@ -300,16 +312,28 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 throw Errors.OptionalTypesNotSupported(id, node.Interval);
             var left = ReadNode(args[0]);
             var right = ReadNode(args[1]);
+            // Algebraic rule: (opt(U), V) → LCA(U, V).
+            // When V is non-optional, the result MUST be non-optional.
+            // TIC may over-approximate (IsOptional leak from shared ?[] nodes) — strip here.
+            var outputType = node.OutputType;
+            // Algebraic rule: (opt(U), V) → LCA(U, V).
+            // When V is non-optional (and not None), the result MUST be non-optional.
+            // TIC may over-approximate (IsOptional leak from shared ?[] nodes) — strip here.
+            var rightIsOptionalOrNone = right.Type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None;
+            if (outputType.BaseType == BaseFunnyType.Optional && !rightIsOptionalOrNone) {
+                outputType = outputType.OptionalTypeSpecification.ElementType;
+                node.OutputType = outputType;
+            }
             // Left unwrap converter: opt(U) → U → outputType (applied only when non-None)
             var innerType = left.Type.BaseType == BaseFunnyType.Optional
                 ? left.Type.OptionalTypeSpecification.ElementType
                 : left.Type;
-            Func<object, object> leftConverter = innerType != node.OutputType
-                ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, innerType, node.OutputType)
+            Func<object, object> leftConverter = innerType != outputType
+                ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, innerType, outputType)
                 : null;
             var castRight = CastExpressionNode.GetConvertedOrOriginOrThrow(
-                right, node.OutputType, _dialect.Converter.TypeBehaviour);
-            return new Nodes.CoalesceExpressionNode(left, castRight, leftConverter, node.OutputType, node.Interval);
+                right, outputType, _dialect.Converter.TypeBehaviour);
+            return new Nodes.CoalesceExpressionNode(left, castRight, leftConverter, outputType, node.Interval);
         }
 
         var someFunc = node.ResolvedSignature

@@ -141,7 +141,6 @@ public class StructGenericFunctionTest {
         .AssertResultHas("out", 5);
 
     [Test]
-    [Ignore("Known regression: struct from generic user function fails when stored in intermediate variable")]
     public void GenericUserFunction_StructFieldsPreserved_ViaIntermediateVariable() =>
         ("getMax(items) = items.fold(rule if(it1.v > it2.v) it1 else it2)\r\n" +
         "best = getMax([{v=3,name='a'},{v=1,name='b'},{v=5,name='c'}])\r\n" +

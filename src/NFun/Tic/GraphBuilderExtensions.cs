@@ -129,7 +129,7 @@ public static class GraphBuilderExtensions {
     }
 
     public static void SetFieldAccess(this GraphBuilder b, int structNodeId, int opId, string fieldName) {
-        var node = b.GetOrCreateStructNode(structNodeId, new StateStruct())
+        var node = b.GetOrCreateStructNode(structNodeId, new StateStruct(isOpen: true))
             .GetNonReference();
 
         var state = (StateStruct)node.State;
@@ -173,7 +173,7 @@ public static class GraphBuilderExtensions {
 
         // struct{fieldName: T}
         var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase) { { fieldName, fieldTypeNode } };
-        var structNode = b.CreateVarType(new StateStruct(fields, false));
+        var structNode = b.CreateVarType(new StateStruct(fields, isFrozen: false, isOpen: true));
 
         // Source type: opt(struct{fieldName: T})
         var sourceType = StateOptional.Of(structNode);

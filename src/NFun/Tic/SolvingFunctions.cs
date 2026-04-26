@@ -115,7 +115,7 @@ public static class SolvingFunctions {
         foreach (var (key, value) in strB.Fields)
             result.TryAdd(key, value);
 
-        return new StateStruct(result, isFrozen: false);
+        return new StateStruct(result, isFrozen: false, isOpen: strA.IsOpen || strB.IsOpen);
     }
 
     /// <summary>
@@ -638,7 +638,7 @@ public static class SolvingFunctions {
                 newFields.Add(key, nrField);
             }
 
-            return new StateStruct(newFields, isFrozen: false);
+            return new StateStruct(newFields, isFrozen: false, isOpen: structDesc.IsOpen);
         }
 
         return null;

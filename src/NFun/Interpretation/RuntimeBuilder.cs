@@ -198,7 +198,6 @@ internal static class RuntimeBuilder {
 
         var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionRegistry, aprioriTypes, customTypes, dialect, namedTypeFieldRegistry);
 
-
         #region build body
 
         var variables = new VariableDictionary();
@@ -330,11 +329,15 @@ internal static class RuntimeBuilder {
             typesConverter: TicTypesConverter.Concrete,
             dialect: dialect);
 
+        // Use expression.Type when the builder corrected the output type
+        // (e.g., coalesce strips Optional when right operand is non-optional).
+        var resolvedType = equation.OutputTypeSpecified ? equation.OutputType : expression.Type;
+
         VariableSource outputVariableSource;
         if (equation.OutputTypeSpecified)
             outputVariableSource = VariableSource.CreateWithStrictTypeLabel(
                 name: equation.Id,
-                type: equation.OutputType,
+                type: resolvedType,
                 typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval,
                 access: FunnyVarAccess.Output,
                 typeBehaviour: dialect.Converter,
@@ -343,7 +346,7 @@ internal static class RuntimeBuilder {
         else
             outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(
                 name: equation.Id,
-                type: equation.OutputType,
+                type: resolvedType,
                 access: FunnyVarAccess.Output,
                 dialect.Converter,
                 equation.Attributes

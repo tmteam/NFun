@@ -115,6 +115,12 @@ public abstract class TicTypesConverter {
                     case ConstraintsState constrains when !constrains.HasAncestor:
                     {
                         if (constrains.IsComparable) return FunnyType.Real;
+                        // Abstract desc with no ancestor: resolve to narrowest concrete ancestor.
+                        // e.g., [I48..null] from LCA(int32, uint32) → Int64
+                        if (constrains.HasDescendant && constrains.Descendant is StatePrimitive { IsAbstract: true } abs)
+                            return constrains.IsOptional
+                                ? FunnyType.OptionalOf(ToConcrete(abs.ConcreteAncestor.Name))
+                                : ToConcrete(abs.ConcreteAncestor.Name);
                         // Inside a named struct: Empty constraint = recursion boundary
                         if (_convertingNamedTypes is { Count: > 0 } && constrains.NoConstrains)
                             return FunnyType.NamedStructOf(_convertingNamedTypes.First());

@@ -45,25 +45,6 @@ public static class VarTypeConverter {
 
         PrimitiveConvertMap[(int)BaseFunnyType.Int32, (int)BaseFunnyType.Int64] = true;
 
-        /*
-         * Empty = 0,
-    Char =  1,
-    Bool  = 2,
-    UInt8 = 3,
-    UInt16 = 4,
-    UInt32 = 5,
-    UInt64 = 6,
-    Int16  =7,
-    Int32 = 8,
-    Int64 = 9,
-    Real = 10,
-    Ip = 11,
-    ArrayOf = 12,
-    Fun = 13,
-    Generic = 14,
-    Any  = 15,
-         * 
-         */
     }
 
     private static readonly Func<object, object> ToText = o => new TextFunnyArray(o?.ToString() ?? "");

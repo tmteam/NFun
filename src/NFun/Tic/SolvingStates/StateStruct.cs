@@ -23,7 +23,7 @@ public class StateStruct : ICompositeState {
     }
 
     public static StateStruct Empty(bool isFrozen = true) => Of(isFrozen);
-    public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields, bool isFrozen) {
+    public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields, bool isFrozen, bool isOpen = false) {
         var nodeFields = new Dictionary<string, TicNode>();
         foreach (var (key, value) in fields)
         {
@@ -35,7 +35,7 @@ public class StateStruct : ICompositeState {
             nodeFields.Add(key, node);
         }
 
-        return new StateStruct(nodeFields, isFrozen);
+        return new StateStruct(nodeFields, isFrozen, isOpen);
     }
 
     public static StateStruct Of(string fieldName, ITicNodeState fieldState) => Of(true, (fieldName, fieldState));
@@ -58,22 +58,33 @@ public class StateStruct : ICompositeState {
     }
 
     /// <summary>Migration constructor: wraps existing Dictionary in FieldMap.</summary>
-    public StateStruct(Dictionary<string, TicNode> fields, bool isFrozen) {
+    public StateStruct(Dictionary<string, TicNode> fields, bool isFrozen, bool isOpen = false) {
         _nodes = new FieldMap(fields);
         IsFrozen = isFrozen;
+        IsOpen = isOpen;
     }
 
-    public StateStruct() => _nodes = new FieldMap();
+    public StateStruct(bool isOpen = false) { _nodes = new FieldMap(); IsOpen = isOpen; }
 
-    public StateStruct(string name, TicNode node, bool isFrozen) {
+    public StateStruct(string name, TicNode node, bool isFrozen, bool isOpen = false) {
         _nodes = new FieldMap(name, node.GetNonReference());
         IsFrozen = isFrozen;
+        IsOpen = isOpen;
     }
 
-    internal StateStruct(FieldMap fields, bool isFrozen) {
+    internal StateStruct(FieldMap fields, bool isFrozen, bool isOpen = false) {
         _nodes = fields;
         IsFrozen = isFrozen;
+        IsOpen = isOpen;
     }
+
+    /// <summary>
+    /// Open struct (row polymorphism): has at least these fields, may have more.
+    /// Created by SetFieldAccess/SetSafeFieldAccess. When combined with another struct
+    /// in AddDescendant, uses field UNION instead of LCA (field intersection).
+    /// Closed struct (IsOpen=false): has exactly these fields.
+    /// </summary>
+    public bool IsOpen { get; }
 
     // IsSolvedMark must be a CONSTANT shared across all recursive IsSolved calls
     // so that cycles are detected. Negative value avoids collision with incrementing _nextMark.
@@ -107,7 +118,7 @@ public class StateStruct : ICompositeState {
         var nodeCopy = new FieldMap();
         foreach (var (key, value) in _nodes)
             nodeCopy.Add(key, value.GetNonReference());
-        return new StateStruct(nodeCopy, IsFrozen) { TypeName = TypeName };
+        return new StateStruct(nodeCopy, IsFrozen, IsOpen) { TypeName = TypeName };
     }
 
     public bool HasAnyReferenceMember {

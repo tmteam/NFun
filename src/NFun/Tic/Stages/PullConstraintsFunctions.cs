@@ -152,6 +152,22 @@ public class PullConstraintsFunctions : IStateFunction {
                         descendantNode.RemoveAncestor(ancestorNode);
                         return true;
                     }
+                    // When descendant is already marked Optional (from None in another branch),
+                    // materialize as opt(inner) and connect inner to ancestor's element.
+                    // This prevents IsOptional from leaking through the implicit lift redirect
+                    // (e.g., SetCoalesce's opt(U) ancestor — U must NOT inherit IsOptional).
+                    if (descendant.IsOptional)
+                    {
+                        var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+                        innerCs.Preferred = descendant.Preferred;
+                        var innerNode = TicNode.CreateTypeVariableNode(
+                            "e" + descendantNode.Name + "'", innerCs);
+                        innerNode.IsOptionalElement = true;
+                        innerNode.AddAncestor(ancOpt.ElementNode);
+                        descendantNode.State = new StateOptional(innerNode);
+                        descendantNode.RemoveAncestor(ancestorNode);
+                        return true;
+                    }
                     // Implicit lift: T ≤ opt(T).
                     // Only redirect to element for primitive/empty constraints.
                     if (!descendant.HasDescendant || descendant.Descendant is StatePrimitive)

@@ -288,8 +288,7 @@ public class BuiltInFunctionsTest {
     [TestCase("y= max(1,(j)->j)")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
-    [Ignore("Todo: have to fail")]
-    [TestCase("y = [1,2] in [1,2,3,4]")]
+    [TestCase("y = [1,2] in [1,2,3,4]")] // FU711 now catches array-in-array type mismatch
     public void TodoObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
     [TestCase("y= max([])")]

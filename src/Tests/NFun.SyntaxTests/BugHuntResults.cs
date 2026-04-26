@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
@@ -199,7 +200,7 @@ public class BugHuntResults {
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
     }
 
-    [Test][Ignore("Bug hunt 4#6: Optional field int? lost in array of named structs")]
+    [Test] // FIXED: Optional field preserved in named struct arrays
     public void BugHunt4_OptionalFieldLostInArray() {
         // type t = {x: int?}; [t{x=1}, t{x=2}] → should be {x:Int32?}[] not {x:Int32}[]
         Assert.DoesNotThrow(() =>
@@ -225,7 +226,7 @@ public class BugHuntResults {
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
     }
 
-    [Test][Ignore("Bug hunt 4#9: if-else Optional struct with none Optional field — type degradation")]
+    [Test] // FIXED: Optional struct with none Optional field works correctly
     public void BugHunt4_IfElseOptionalStructNoneField() {
         "type t = {x: int?}; a = if(true) t{x=none} else none; out = a?.x ?? -1"
             .CalcWithDialect(
@@ -401,7 +402,7 @@ public class BugHuntResults {
 
     // === Bug Hunt Session 13 (300 iterations, 3 parallel agents) ===
 
-    [Test][Ignore("Bug hunt 13#1: (42 ?? none) ?? 0 returns Int32? instead of Int32 — outer ?? should unwrap")]
+    [Test] // Value correct; type still Int32? instead of Int32 for primitives (composites unwrap correctly)
     public void BugHunt13_NestedCoalesceWithNone_TypeNotUnwrapped() {
         "(42 ?? none) ?? 0"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
@@ -412,5 +413,75 @@ public class BugHuntResults {
     public void BugHunt13_SliceWithVariableStart_ParsedAsTypeAnnotation() {
         "arr = [1,2,3,4,5]\r i = 2\r y = arr[i:4]"
             .AssertReturns("y", new[] { 3, 4 });
+    }
+
+    // === Bug Hunt Session 15 (600 iterations, TIC-focused) ===
+
+    [Test] // FIXED: ExpressionBuilder strips Optional from ?? result when right is non-optional
+    public void BugHunt15_SafeArrayAccessOnNonOptVar_CoalesceTypeWrong() {
+        // a?[0] ?? 0 should be Int32, but gives Int32? when a is non-optional variable
+        "a = [1,2,3]; z = a?[0] ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("z", 1);
+        // Type should be Int32, not Int32?
+    }
+
+    [Test] // FIXED: Pull materializes opt(inner) when descendant is IsOptional, preventing IsOptional leak
+    public void BugHunt15_ChainedSafeArrayAccess_Crash() {
+        Assert.DoesNotThrow(() =>
+            "a = [1]; b = [2]; y = a?[0] ?? b?[0] ?? 0"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test][Ignore("Bug hunt 15#3: if-else array with none loses preferred type — UInt8?[] instead of Int32?[]")]
+    public void BugHunt15_IfElseArrayWithNone_PreferredTypeLost() {
+        var r = "y = if(true) [1,2,3] else [none]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        // Should be Int32?[], not UInt8?[]
+        Assert.AreEqual(typeof(int?[]), r.Get("y").GetType());
+    }
+
+    [Test] // FIXED: ExpressionBuilder strips Optional from ?? result when right is non-optional
+    public void BugHunt15_NoneVarCoalesce_TypeNotUnwrapped() {
+        "a = none; b = a ?? 42"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("b", 42);
+        // b should be Int32, not Int32?
+    }
+
+    [Test] // FIXED: Pull materializes opt(inner) when descendant is IsOptional
+    public void BugHunt15_CoalesceResultArithmetic_Crash() {
+        Assert.DoesNotThrow(() =>
+            "a = none; b = a ?? 42; c = b + 1"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test] // FIXED: TicTypesConverter resolves abstract desc [I48..null] → Int64
+    public void BugHunt15_SignedUnsignedLCA_ResolvesToInt64() {
+        "a:int32 = 1; b:uint32 = 2; c = if(true) a else b"
+            .Calc().AssertResultHas("c", 1L);
+    }
+
+    [Test] // FIXED: I24 → Int32
+    public void BugHunt15_SignedUnsignedLCA_Int16_UInt16_ResolvesToInt32() {
+        "a:uint16 = 1; b:int16 = 2; c = if(true) a else b"
+            .Calc().AssertResultHas("c", 1);
+    }
+
+    [Test] // FIXED: I96 → Real (only type big enough for both int64 and uint64)
+    public void BugHunt15_SignedUnsignedLCA_Int64_UInt64_ResolvesToReal() {
+        "a:uint64 = 1; b:int64 = 2; c = if(true) a else b"
+            .Calc().AssertResultHas("c", 1.0d);
+    }
+
+    [Test] // FIXED: Row polymorphism — open structs from generic constraints preserve all fields
+    public void BugHunt15_SafeAccessHOF_DropsStructFields() {
+        // Without ?., filter preserves all struct fields. With ?., only accessed field survives.
+        var r = "data:{users:{name:text, score:int}[]}? = {users = [{name='Alice', score=90}, {name='Bob', score=85}]}; y = data?.users.filter(rule it.score > 87)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (object[])r.Get("y");
+        Assert.AreEqual(1, arr.Length);
+        var s = (IReadOnlyDictionary<string, object>)arr[0];
+        Assert.IsTrue(s.ContainsKey("name"), "name field lost in ?. + filter chain");
     }
 }

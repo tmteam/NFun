@@ -49,6 +49,24 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public static StatePrimitive U12 { get; } = new(PrimitiveTypeName.U12);
     public static StatePrimitive U8 { get; } = new(PrimitiveTypeName.U8);
     public static StatePrimitive None { get; } = new(PrimitiveTypeName.None);
+
+    /// <summary>True for TIC-internal types (I96, I48, I24, U48, U24, U12) that have no runtime representation.</summary>
+    public bool IsAbstract => Name.HasFlag(PrimitiveTypeName._isAbstract);
+
+    /// <summary>
+    /// Narrowest concrete type that can hold all values of this abstract type.
+    /// I96→Real, I48→I64, I24→I32, U48→U64, U24→U32, U12→U16.
+    /// </summary>
+    public StatePrimitive ConcreteAncestor => Name switch {
+        PrimitiveTypeName.I96 => Real,
+        PrimitiveTypeName.I48 => I64,
+        PrimitiveTypeName.I24 => I32,
+        PrimitiveTypeName.U48 => U64,
+        PrimitiveTypeName.U24 => U32,
+        PrimitiveTypeName.U12 => U16,
+        _ => this, // already concrete
+    };
+
     public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
     public string StateDescription => PrintState(0);
 

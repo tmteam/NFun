@@ -78,6 +78,6 @@ public static partial class StateExtensions {
             if (nr != fieldNode) changed = true;
             nodes[key] = nr;
         }
-        return changed ? new StateStruct(nodes, s.IsFrozen) : s;
+        return changed ? new StateStruct(nodes, s.IsFrozen, s.IsOpen) : s;
     }
 }

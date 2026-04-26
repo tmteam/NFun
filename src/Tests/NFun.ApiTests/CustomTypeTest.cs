@@ -166,7 +166,7 @@ public class CustomTypeTest {
     }
 
     [Test]
-    [Ignore("Known regression: custom type mixing not properly rejected on oops-bottom-type")]
+    //[Ignore("Known regression: custom type mixing not properly rejected on oops-bottom-type")]
     public void TwoDifferentCustomTypes_CannotMix() {
         var builder = Funny.Hardcore
             .WithCustomType(SomeCustomCustomTypeDef.Instance)

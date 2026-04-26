@@ -204,8 +204,7 @@ public class BugFixesTest {
     // Fix: wrap field access in CastExpressionNode when types differ.
     // ═══════════════════════════════════════════════════════════════
 
-    [Test]
-    [Ignore("Known regression: struct field UInt8? coalesced to Int32 — type mismatch in addition")]
+    [Test] // FIXED: StructFieldAccessExpressionNode converter widens UInt8? → Int32?
     public void Bug17_IfElseStruct_SwappedNoneFields_Addition() {
         var r = "x = if(true) {a=1, b=none} else {a=none, b=2}\r y = x.a ?? 0\r z = x.b ?? 0\r out = y + z"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);

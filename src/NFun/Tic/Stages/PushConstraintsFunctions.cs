@@ -237,8 +237,13 @@ public class PushConstraintsFunctions : IStateFunction {
         foreach (var ancField in ancStruct.Fields)
         {
             var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
-            if (descFieldNode == null)
+            if (descFieldNode == null) {
+                if (descStruct.IsOpen) {
+                    descStruct.AddField(ancField.Key, ancField.Value);
+                    continue;
+                }
                 return false;
+            }
             var descNr = descFieldNode.GetNonReference();
             var ancNr = ancField.Value.GetNonReference();
             if (descNr == ancNr)
@@ -281,19 +286,29 @@ public class PushConstraintsFunctions : IStateFunction {
             {
                 if (descendant.IsFrozen)
                     return false;
-                // AddField adds the exact ancestor field node, so no push needed for new fields.
                 descendant.AddField(ancField.Key, ancField.Value);
                 descendantNode.State = descendant;
             }
             else
             {
-                // None field: skip push. None ≤ opt(T) is valid for any T,
-                // but None ≰ T directly when T is composite.
-                // The None compatibility is handled by the outer Optional layer
-                // (StagesExtension unwraps opt before reaching struct-struct Push).
+                // None field: skip push.
                 if (descField.GetNonReference().State == StatePrimitive.None)
                     continue;
                 SolvingFunctions.PushConstraints(descField, ancField.Value);
+            }
+        }
+        // Width propagation (Push): descendant struct may have extra fields.
+        // Propagate to OPEN ancestors only (row polymorphism: "at least these fields").
+        // Closed ancestors from array LCA or struct literals are NOT widened.
+        if (ancestor.IsOpen)
+        {
+            foreach (var descField in descendant.Fields)
+            {
+                if (ancestor.GetFieldOrNull(descField.Key) == null)
+                {
+                    ancestor.AddField(descField.Key, descField.Value);
+                    ancestorNode.State = ancestor;
+                }
             }
         }
         return true;
