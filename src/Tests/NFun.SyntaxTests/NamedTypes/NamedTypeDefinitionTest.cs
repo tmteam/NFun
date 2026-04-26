@@ -512,4 +512,153 @@ public class NamedTypeDefinitionTest {
     }
 
     #endregion
+
+    // ═══════════════════════════════════════════════════════════════
+    // Named struct array preserves preferred type
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void NamedStructArray_PreservesPreferredType() {
+        var runtime = Funny.Hardcore.WithDialect(
+            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
+            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .Build("type user = {score:int?}\r y = [user{score=10}, user{score=none}, user{score=5}]");
+        var r = runtime.Calc();
+        // score should be Int32? (from named type), not UInt8?
+        var arr = r.Get("y");
+        Assert.IsNotNull(arr);
+    }
+
+    [Test]
+    public void NamedStructArray_Compiles() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore.WithDialect(
+                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
+                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                .Build("type user = {score:int?}\r y = [user{score=10}, user{score=none}, user{score=5}]"));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Circular alias detection
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void CircularAlias_IsDetected() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+            "type a = b; type b = a; out = 1"
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Struct field type inference with defaults
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void StructFieldTypeInference_Works() {
+        "type config = {retries = 3}; c = config{}; out = c.retries + 1"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 4);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Duplicate field in named constructor — compile error
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void DuplicateFieldInNamedConstructor_CompileError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+            "type pt = {x:int, y:int}; out = pt{x=1, y=2, x=3}.x"
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Uppercase field name
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void UppercaseFieldName_Works() {
+        "type pt = {A:int}; out = pt{A=42}.A"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Alias to struct constructor
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void AliasToStructConstructor_Works() {
+        "type pair = {a:int, b:int}; type alias = pair; out = alias{a=1, b=2}.a"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 1);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // IP default in struct
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void IpDefaultInStruct_Works() {
+        "type server = {addr:ip = 0.0.0.0, port:int = 80}; out = server{}.port"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 80);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Primitive type alias as annotation
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void PrimitiveTypeAlias_AsAnnotation() {
+        "type age = int; x:age = 42; y = x + 1"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", 43);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Optional field in named struct arrays
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void OptionalFieldLostInArray() {
+        // type t = {x: int?}; [t{x=1}, t{x=2}] should be {x:Int32?}[] not {x:Int32}[]
+        Assert.DoesNotThrow(() =>
+            "type t = {x: int?}; items = [t{x=1}, t{x=2}]; out = items[0].x ?? -1"
+                .CalcWithDialect(
+                    optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
+                    namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void OptionalArrayFieldMapSum() {
+        "type d = {items: int?[]}; x = d{items=[1,none,3]}; out = x.items.map(rule it ?? 0).sum()"
+            .CalcWithDialect(
+                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
+                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 4);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Coalesce on named struct field
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void CoalesceOnNamedStructField_Works() {
+        "type w = {items:int?[]}; y = w{items=[42, none]}; out = y.items[0] ?? -1"
+            .CalcWithDialect(
+                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
+                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Inline struct annotation with uppercase field names
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void InlineStructAnnotation_UppercaseFieldName() {
+        // {minVal:int} — lowercase normalize creates duplicate "minval" key
+        Assert.DoesNotThrow(
+            () => "y:{minVal:int, maxVal:int} = {minVal=1, maxVal=2}".Calc());
+    }
 }

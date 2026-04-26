@@ -486,4 +486,41 @@ public class TypeInferenceTest {
 
     private static Type GetClrType(FunnyType funnyType) =>
         FunnyConverter.RealIsDouble.GetOutputConverterFor(funnyType).ClrType;
+
+    // ═══════════════════════════════════════════════════════════════
+    // Signed/unsigned LCA resolution
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void SignedUnsignedLCA_ResolvesToInt64() {
+        "a:int32 = 1; b:uint32 = 2; c = if(true) a else b"
+            .Calc().AssertResultHas("c", 1L);
+    }
+
+    [Test]
+    public void SignedUnsignedLCA_Int16_UInt16_ResolvesToInt32() {
+        "a:uint16 = 1; b:int16 = 2; c = if(true) a else b"
+            .Calc().AssertResultHas("c", 1);
+    }
+
+    [Test]
+    public void SignedUnsignedLCA_Int64_UInt64_ResolvesToReal() {
+        "a:uint64 = 1; b:int64 = 2; c = if(true) a else b"
+            .Calc().AssertResultHas("c", 1.0d);
+    }
+
+    // ═══ Abstract type → concrete mapping (no overflow) ═══
+
+    [Test] public void U12_SmallAndLarge_NoOverflow() => "out = if(false) [0] else [300]".Calc();
+    [Test] public void U12_BoundaryValue_255_And_300() => "out = if(false) [255] else [300]".Calc();
+    [Test] public void U12_MaxU12Value_4095() => "out = if(false) [0] else [4095]".Calc();
+    [Test] public void U24_ValueExceedsUInt16() => "out = if(false) [0] else [70000]".Calc();
+    [Test] public void U24_LargeValue() => "out = if(false) [255] else [100000]".Calc();
+    [Test] public void U48_ValueExceedsUInt32() => "out = if(false) [0] else [5000000000]".Calc();
+
+    [Test]
+    public void I48_LargeUint32_NoOverflow() {
+        var result = "x:uint32 = 3000000000; y:int = 1; out = max(x, y)".Calc();
+        Assert.IsNotNull(result.Get("out"));
+    }
 }

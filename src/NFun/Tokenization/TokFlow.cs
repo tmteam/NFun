@@ -35,6 +35,12 @@ public class TokFlow {
     public bool IsStart => CurrentTokenPosition == 0;
     public Tok Previous => IsStart ? PreviousBeforeFlowTok : _tokens[CurrentTokenPosition - 1];
 
+    /// <summary>
+    /// When true, ':' after an identifier is NOT parsed as a type annotation.
+    /// Used inside array bracket context where ':' means slice.
+    /// </summary>
+    public bool SuppressTypeAnnotation { get; set; }
+
     public bool SkipNewLines() {
         bool result = false;
         while (!IsDone && IsCurrent(TokType.NewLine))

@@ -220,7 +220,7 @@ public class BuiltInFunctionsTest {
     public void EquationWithPredefinedFunction(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 
-    [Ignore("TODO: toXXX functions are not implemented")]
+    [Ignore("toInt/toReal/toBits/toBytes/toUnicode/toUtf8 functions are not implemented")]
     [TestCase("y = abs(toInt(x)-toInt(4))", 1, 3)]
     [TestCase("y = abs(x-toInt(4))", 1, 3)]
     [TestCase("x:int; y = abs(toInt(x)-toInt(4))", 1, 3)]
@@ -228,7 +228,7 @@ public class BuiltInFunctionsTest {
         expr.Calc("x", arg).AssertReturns("y", expected);
 
 
-    [Ignore(" TODO: converts funct")]
+    [Ignore("toInt/toReal/toBits/toBytes/toUnicode/toUtf8 functions are not implemented")]
     [TestCase("toInt(1.2)", 1)]
     [TestCase("toInt(-1.2)", -1)]
     [TestCase("toInt('1')", 1)]
@@ -293,4 +293,24 @@ public class BuiltInFunctionsTest {
 
     [TestCase("y= max([])")]
     public void ObviouslyFailsInRuntime(string expr) => expr.AssertObviousFailsOnRuntime();
+
+    // ═══════════════════════════════════════════════════════════════
+    // Bool toText should produce lowercase
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void BoolToText_ShouldBeLowercase() {
+        "out = true.toText()".Calc().AssertResultHas("out", "true");
+        "out = false.toText()".Calc().AssertResultHas("out", "false");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Text in text — should be type error
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void TextInText_ShouldBeTypeError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+            () => "out = 'h' in 'hello'".Calc());
+    }
 }

@@ -5,7 +5,7 @@ Each such value is called a **field**. Each field has an identifier, type, and v
 
 ## Structure initialization `{}` 
 
-Initlalizes structure with specified fields 
+Initializes structure with specified fields.
 
 To create a structure, you need to list the field id (separated by commas or on separate lines) inside curly brackets and initialize them with values in the same way as output variables are initialized
 ```

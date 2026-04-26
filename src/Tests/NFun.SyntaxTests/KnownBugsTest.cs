@@ -18,7 +18,6 @@ public class KnownBugsTest {
     // ═══════════════════════════════════════════════════════════════
 
     [Test]
-    [Ignore("StackOverflowException aborts the process, cannot be caught in NUnit")]
     public void RecursiveQuicksort_SmallArray_ShouldNotStackOverflow() {
         ("quicksort(arr) = if(arr.count() <= 1) arr " +
          "else quicksort(arr[1:].filter(rule it < arr[0]))" +
@@ -96,7 +95,7 @@ public class KnownBugsTest {
     // Bug: Default value struct literal int field inferred as Real
     // ═══════════════════════════════════════════════════════════════
 
-    [Test, Ignore("Bug: Struct default literal int field inferred as Real")]
+    [Test, Ignore("Bug: struct default param literal ({verbose=false, limit=10}) hits 'Complex constant type is not supported' in TicSetupVisitor")]
     public void DefaultStructLiteral_ShouldRespectParamType() =>
         "f(x, opts:{verbose:bool,limit:int}={verbose=false, limit=10}) = if(opts.verbose) x*opts.limit else x \r y = f(5)"
             .AssertReturns("y", 5);

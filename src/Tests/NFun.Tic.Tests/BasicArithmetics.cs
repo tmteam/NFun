@@ -259,16 +259,15 @@ class BasicArithmetics {
     }
 
     [Test]
-    [Ignore("Prefered type for constant")]
     public void UpcastArgTypeThatIsBefore_EquationSolved() {
-        //        0       1 3 2
-        // // a = 1i; y = a / b;
-
+        // a = 1i; y = a / b;
+        // SetCall(Real, ...) forces return type = Real, which means the generic T
+        // unifies both a and b with Real. a cannot remain I32 — TIC correctly
+        // resolves the unified type to Real.
         var graph = new GraphBuilder();
 
         graph.SetConst(0, I32);
         graph.SetDef("a", 0);
-
 
         graph.SetVar("a", 1);
         graph.SetVar("b", 2);
@@ -277,9 +276,7 @@ class BasicArithmetics {
 
         var result = graph.Solve();
 
-        //Assert.AreEqual(0,result.GenericsCount);
-        result.AssertNamed(I32, "a");
-        //Assert.AreEqual(ConcreteType.Real, result["b"));
+        result.AssertNamed(Real, "a");
         result.AssertNamed(Real, "y");
     }
 

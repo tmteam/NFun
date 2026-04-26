@@ -31,6 +31,11 @@ public class PushConstraintsFunctions : IStateFunction {
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode,
         TicNode descendantNode) {
+        // Propagate IsComparable downward: if ancestor requires comparability,
+        // descendant must also be comparable. Rule: D.cmp := D.cmp ∨ A.cmp
+        if (ancestor.IsComparable && !descendant.IsComparable)
+            descendant.IsComparable = true;
+
         if (!ancestor.HasAncestor)
             return true;
 
@@ -251,8 +256,13 @@ public class PushConstraintsFunctions : IStateFunction {
             // None desc field: skip — None ≤ opt(T) handled by outer Optional layer.
             if (descNr.State == StatePrimitive.None)
                 continue;
-            // None anc field: push constraints to propagate None → descendant.
+            // None anc field: push to propagate None → descendant.
             if (ancNr.State == StatePrimitive.None)
+                SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
+            // Both solved primitives: Push (subtyping). Struct covariance: {x:I32} ≤ {x:Real}
+            // is valid but MergeInplace(I32, Real) requires equality → throws.
+            // Composites/CS: MergeInplace needed for node unification (Optional propagation).
+            else if (descNr.IsSolved && ancNr.IsSolved && descNr.State is StatePrimitive && ancNr.State is StatePrimitive)
                 SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
             else
                 SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);

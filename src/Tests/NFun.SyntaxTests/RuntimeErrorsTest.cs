@@ -92,4 +92,10 @@ public class RuntimeErrorsTest {
         var runtime = "y = [1,2,3,4,5][3:1]".Build();
         Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
     }
+
+    [Test]
+    public void NegateIntMin_ShouldOverflow() {
+        Assert.Throws<FunnyRuntimeException>(
+            () => "y:int = -2147483648\r out = -y".Calc());
+    }
 }

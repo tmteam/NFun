@@ -10,6 +10,9 @@ public interface IFunctionRegistry {
     IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount);
     IFunctionSignature GetOrNull(string name, int argCount);
 
+    /// <summary>Returns true if any function with the given name exists at any arity.</summary>
+    bool ContainsName(string name) => false;
+
     /// <summary>
     /// Finds best matching function given positional arg count and named arg names.
     /// Returns null if no match found.
@@ -216,6 +219,8 @@ internal sealed class ImmutableFunctionRegistry : IFunctionRegistry {
     public IFunctionSignature GetOrNull(string name, int argCount) =>
         _registry.TryGetValue(name, out var set) ? set.GetByArity(argCount) : null;
 
+    public bool ContainsName(string name) => _registry.ContainsKey(name);
+
     public IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames) {
         var hasNamed = namedArgNames != null && namedArgNames.Length > 0;
 
@@ -305,6 +310,9 @@ internal sealed class ScopeFunctionRegistry : IFunctionRegistry {
         }
         return _origin.GetOrNull(name, argCount);
     }
+
+    public bool ContainsName(string name) =>
+        _local.ContainsKey(name) || _origin.ContainsName(name);
 
     public IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames) {
         var hasNamed = namedArgNames != null && namedArgNames.Length > 0;

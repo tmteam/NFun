@@ -115,9 +115,10 @@ public class DestructionFunctions : IStateFunction {
 
         TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
 
-        // When the actual descendant contains Optional-wrapped elements that
-        // the stale constraint snapshot doesn't know about (e.g. arr(opt(T))
-        // vs snapshot arr(U8)), adopt the actual descendant directly.
+        // WORKAROUND: stale Pull snapshot. Desc-snapshot created in Phase 1, but Phase 2
+        // wraps elements in Optional. Snapshot diverges from actual descendant.
+        // Root cause: temporal gap in two-phase Pull. Clean fix: single-pass Pull or snapshot refresh.
+        // When actual descendant has Optional-wrapped elements that snapshot doesn't know about:
         if (DescendantHasOptionalLift(ancestor.Descendant, descendant))
         {
             ancestorNode.State = new StateRefTo(descendantNode);
@@ -125,9 +126,9 @@ public class DestructionFunctions : IStateFunction {
             return true;
         }
 
-        // Reverse Optional lift: snapshot has Optional elements that actual descendant
-        // doesn't (e.g., snapshot arr(opt(U8)) from IsOptional LCA, actual arr(U8)).
-        // Use the snapshot (which includes Optional) and destruct element-by-element.
+        // WORKAROUND: reverse stale snapshot. Snapshot has Optional elements that actual doesn't
+        // (e.g., snapshot arr(opt(U8)) from IsOptional LCA, actual arr(U8)).
+        // Same root cause as above. Use snapshot and destruct element-by-element.
         if (ancestor.Descendant is StateArray ancArr && descendant is StateArray descArr
             && ancArr.Element is StateOptional && descArr.Element is not StateOptional)
         {

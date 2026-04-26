@@ -38,7 +38,7 @@ internal static class NarrowingAnalyzer {
         // not a  →  swap
         UnaryOperatorSyntaxNode { Op: UnOp.Not } not     => Swap(Analyze(not.Operand)),
 
-        // Single-pair comparison chains: x == none or x != none
+        // Single-pair comparison chains: x == none, x != none
         ComparisonChainSyntaxNode chain when chain.Operators.Count == 1 => AnalyzeChain(chain),
 
         _ => Result.None
@@ -64,8 +64,9 @@ internal static class NarrowingAnalyzer {
 
     private static Result AnalyzeChain(ComparisonChainSyntaxNode chain) {
         var op = chain.Operators[0].Type;
-        if (op is not (TokType.Equal or TokType.NotEqual)) return Result.None;
-        return AnalyzeEqualNone(chain.Operands[0], chain.Operands[1], isEqual: op == TokType.Equal);
+        if (op is TokType.Equal or TokType.NotEqual)
+            return AnalyzeEqualNone(chain.Operands[0], chain.Operands[1], isEqual: op == TokType.Equal);
+        return Result.None;
     }
 
     private static string GetVariableIfOtherIsNone(ISyntaxNode a, ISyntaxNode b) {

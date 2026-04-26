@@ -157,4 +157,84 @@ public class SafeArrayAccessTest {
         var inner = (int[])result.Get("y");
         Assert.AreEqual(new[] { 1, 2 }, inner);
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Safe array access: bounds and type variations
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void SafeArrayAccess_ValidIndex_ReturnsValue() =>
+        "arr = [10,20,30]\r out:int = arr?[0] ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 10);
+
+    [Test]
+    public void SafeArrayAccess_OutOfBounds_ReturnsNone_CoalescesToZero() =>
+        "arr = [10,20,30]\r out:int = arr?[99] ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 0);
+
+    [Test]
+    public void SafeArrayAccess_NegativeIndex_ReturnsNone() =>
+        "arr = [10,20,30]\r out:int = arr?[-1] ?? -99"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", -99);
+
+    [Test]
+    public void SafeArrayAccess_NoneArray_ReturnsNone() {
+        var result = "arr:int[]? = none\r out = arr?[0]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.IsNull(result.Get("out"));
+    }
+
+    [Test]
+    public void SafeArrayAccess_LastElement_CoalescesToDefault() =>
+        "arr = [10,20,30]\r out:int = arr?[2] ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 30);
+
+    [Test]
+    public void SafeArrayAccess_RealArray_ValidIndex() =>
+        "arr:real[]? = [1.5, 2.5, 3.5]\r out = arr?[1] ?? 0.0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 2.5);
+
+    [Test]
+    public void SafeArrayAccess_TextArray_OutOfBounds() =>
+        "arr:text[]? = ['hello', 'world']\r out = arr?[5] ?? 'empty'"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", "empty");
+
+    [Test]
+    public void SafeArrayAccess_ChainedWithSafeFieldAccess_HasValue() =>
+        "s = if(true) {items = [1,2,3]} else none\r out = s?.items?[1] ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 2);
+
+    [Test]
+    public void SafeArrayAccess_ChainedWithSafeFieldAccess_NoneStruct() =>
+        "s = if(false) {items = [1,2,3]} else none\r out = s?.items?[0] ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", -1);
+
+    [Test]
+    public void SafeArrayAccess_InArithmeticExpression() =>
+        "arr = [10,20,30]\r out:int = (arr?[0] ?? 0) + (arr?[1] ?? 0)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 30);
+
+    [Test]
+    public void SafeArrayAccessOnNonOptVar_CoalesceTypeCorrect() {
+        // a?[0] ?? 0 should be Int32, not Int32?
+        "a = [1,2,3]; z = a?[0] ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("z", 1);
+    }
+
+    [Test]
+    public void ChainedSafeArrayAccess_NoError() {
+        Assert.DoesNotThrow(() =>
+            "a = [1]; b = [2]; y = a?[0] ?? b?[0] ?? 0"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
 }

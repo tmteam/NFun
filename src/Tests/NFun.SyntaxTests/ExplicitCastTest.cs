@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace NFun.SyntaxTests;
 
 public class ExplicitConvertationTest {
-    [Ignore("TODO: toXXX functions are not implemented")]
+    [Ignore("toXXX explicit cast functions (toByte, toUint32, etc.) are not implemented")]
     [TestCase("y = ~0.toByte()", (byte)255)]
     [TestCase("y = ~1.toByte()", (byte)254)]
     [TestCase("y = ~5.toByte()", (byte)250)]

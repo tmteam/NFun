@@ -73,7 +73,7 @@ public class HardcoreApiConcurrentTest {
     [Test]
     public void ConcatExperiments() =>
         "'res: '.concat((n >5).toText())".AssertConcurrentHardcore(
-            e => e.Calc("n", 1.0).AssertAnonymousOut("res: False"));
+            e => e.Calc("n", 1.0).AssertAnonymousOut("res: false"));
 
 
     [Test]

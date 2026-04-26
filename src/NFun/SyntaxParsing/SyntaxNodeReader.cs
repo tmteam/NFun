@@ -817,49 +817,64 @@ public static class SyntaxNodeReader {
     private static ISyntaxNode ReadArraySlice(TokFlow flow, ISyntaxNode arrayNode) {
         var openBraket = flow.Current;
         flow.MoveNext();
-        var index = ReadNodeOrNull(flow);
 
-        if (!flow.MoveIf(TokType.Colon, out var colon))
+        // Inside array brackets, ':' means slice separator, not type annotation.
+        var savedSuppress = flow.SuppressTypeAnnotation;
+        flow.SuppressTypeAnnotation = true;
+        try
         {
-            if (index == null)
+            var index = ReadNodeOrNull(flow);
+
+            if (!flow.MoveIf(TokType.Colon, out var colon))
             {
-                if (flow.MoveIf(TokType.ArrCBr, out var closeBracket))
-                    throw Errors.ArrayIndexExpected(openBraket, closeBracket);
-                else
-                    throw Errors.ArrayIndexOrSliceExpected(openBraket);
+                if (index == null)
+                {
+                    if (flow.MoveIf(TokType.ArrCBr, out var closeBracket))
+                        throw Errors.ArrayIndexExpected(openBraket, closeBracket);
+                    else
+                        throw Errors.ArrayIndexOrSliceExpected(openBraket);
+                }
+
+                if (!flow.MoveIf(TokType.ArrCBr))
+                    throw Errors.ArrayIndexCbrMissed(openBraket, flow.Current);
+
+                return SyntaxNodeFactory.OperatorCall(
+                    CoreFunNames.GetElementName,
+                    new[] { arrayNode, index }, openBraket.Start,
+                    flow.CurrentTokenFinishPosition);
             }
 
+            index ??= SyntaxNodeFactory.Constant(0, FunnyType.Int32, new Interval(openBraket.Start, colon.Finish));
+
+            var end = ReadNodeOrNull(flow) ??
+                      SyntaxNodeFactory.Constant(int.MaxValue, FunnyType.Int32,
+                          new Interval(colon.Finish, flow.CurrentTokenFinishPosition));
+
+            if (!flow.MoveIf(TokType.Colon, out _))
+            {
+                if (!flow.MoveIf(TokType.ArrCBr))
+                    throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, false);
+                return SyntaxNodeFactory.OperatorCall(
+                    CoreFunNames.SliceName, new[] { arrayNode, index, end }, openBraket.Start,
+                    flow.CurrentTokenFinishPosition);
+            }
+
+            var step = ReadNodeOrNull(flow);
             if (!flow.MoveIf(TokType.ArrCBr))
-                throw Errors.ArrayIndexCbrMissed(openBraket, flow.Current);
+                throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, true);
+            if (step == null)
+                return SyntaxNodeFactory.OperatorCall(
+                    CoreFunNames.SliceName, new[] { arrayNode, index, end }, openBraket.Start,
+                    flow.CurrentTokenFinishPosition);
 
             return SyntaxNodeFactory.OperatorCall(
-                CoreFunNames.GetElementName,
-                new[] { arrayNode, index }, openBraket.Start,
+                CoreFunNames.SliceName, new[] { arrayNode, index, end, step }, openBraket.Start,
                 flow.CurrentTokenFinishPosition);
         }
-
-        index ??= SyntaxNodeFactory.Constant(0, FunnyType.Int32, new Interval(openBraket.Start, colon.Finish));
-
-        var end = ReadNodeOrNull(flow) ??
-                  SyntaxNodeFactory.Constant(int.MaxValue, FunnyType.Int32, new Interval(colon.Finish, flow.CurrentTokenFinishPosition));
-
-        if (!flow.MoveIf(TokType.Colon, out _))
+        finally
         {
-            if (!flow.MoveIf(TokType.ArrCBr))
-                throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, false);
-            return SyntaxNodeFactory.OperatorCall(
-                CoreFunNames.SliceName, new[] { arrayNode, index, end }, openBraket.Start, flow.CurrentTokenFinishPosition);
+            flow.SuppressTypeAnnotation = savedSuppress;
         }
-
-        var step = ReadNodeOrNull(flow);
-        if (!flow.MoveIf(TokType.ArrCBr))
-            throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, true);
-        if (step == null)
-            return SyntaxNodeFactory.OperatorCall(
-                CoreFunNames.SliceName, new[] { arrayNode, index, end }, openBraket.Start, flow.CurrentTokenFinishPosition);
-
-        return SyntaxNodeFactory.OperatorCall(
-            CoreFunNames.SliceName, new[] { arrayNode, index, end, step }, openBraket.Start, flow.CurrentTokenFinishPosition);
     }
 
     /// <summary>
@@ -1174,6 +1189,8 @@ public static class SyntaxNodeReader {
     }
 
     private static TypeSyntax TryReadTypeDef(TokFlow flow, bool allowArrow = false) {
+        if (flow.SuppressTypeAnnotation)
+            return TypeSyntax.Empty;
         if (!flow.IsCurrent(TokType.Colon) && !(allowArrow && flow.IsCurrent(TokType.Arrow)))
             return TypeSyntax.Empty;
 

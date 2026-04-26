@@ -44,13 +44,14 @@ Composite ::= Array | Optional | Fun | Struct
 Array     ::= 'Array(' Node ')'
 Optional  ::= 'Opt(' Node ')'
 Fun       ::= '(' Node* '→' Node ')'
-Struct    ::= '{' FieldDef (',' FieldDef)* '}'
+Struct    ::= '{' FieldDef (',' FieldDef)* StructFlags '}'
 FieldDef  ::= Name ':' Node
+StructFlags ::= ('open')? ('frozen')?
 
 Constraints ::= '[' Desc? '..' Anc? Flags ']'
 Desc      ::= Type
 Anc       ::= Primitive
-Flags     ::= ('opt')? ('cmp')? ('non_opt')? ('pref=' Primitive)?
+Flags     ::= ('opt')? ('cmp')? ('pref=' Primitive)?
 
 RefTo     ::= 'Ref(' Node ')'
 
@@ -95,7 +96,7 @@ Composite — состояние, содержащее **ссылки на др�
 | **Array(elem)** | elem — узел элемента | ковариантен |
 | **Optional(elem)** | elem — узел элемента | ковариантен |
 | **Fun(a₁...aₙ, ret)** | aᵢ — узлы аргументов, ret — узел возврата | args: контравариантны, ret: ковариантен |
-| **Struct{f₁:n₁, ...}** | nᵢ — узлы полей | ковариантны |
+| **Struct{f₁:n₁, ...}** | nᵢ — узлы полей | ковариантны | IsOpen: open struct (row polymorphism). IsFrozen: shape-rigid (из сигнатуры функции). См. `TicTypeSystem.md`. |
 
 **Решённость composite**: composite решён тогда и только тогда, когда **все** его компоненты решены.
 

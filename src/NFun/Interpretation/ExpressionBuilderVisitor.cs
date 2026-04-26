@@ -64,7 +64,6 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
         DialectSettings dialect) {
-        _dialect = dialect;
         _functions = functions;
         _variables = variables;
         _typeInferenceResults = typeInferenceResults;
@@ -313,12 +312,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var left = ReadNode(args[0]);
             var right = ReadNode(args[1]);
             // Algebraic rule: (opt(U), V) → LCA(U, V).
-            // When V is non-optional, the result MUST be non-optional.
-            // TIC may over-approximate (IsOptional leak from shared ?[] nodes) — strip here.
-            var outputType = node.OutputType;
-            // Algebraic rule: (opt(U), V) → LCA(U, V).
             // When V is non-optional (and not None), the result MUST be non-optional.
             // TIC may over-approximate (IsOptional leak from shared ?[] nodes) — strip here.
+            var outputType = node.OutputType;
             var rightIsOptionalOrNone = right.Type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None;
             if (outputType.BaseType == BaseFunnyType.Optional && !rightIsOptionalOrNone) {
                 outputType = outputType.OptionalTypeSpecification.ElementType;
@@ -328,12 +324,41 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var innerType = left.Type.BaseType == BaseFunnyType.Optional
                 ? left.Type.OptionalTypeSpecification.ElementType
                 : left.Type;
+            // Reject coalesce of incompatible types: int? ?? 'hello' → error.
+            // Compatible: both numeric, same base type, or either is Any/None.
+            // Incompatible: different primitive families (numeric vs bool vs char vs ip vs text).
+            if (innerType.BaseType is not (BaseFunnyType.Any or BaseFunnyType.None)
+                && right.Type.BaseType is not (BaseFunnyType.Any or BaseFunnyType.None))
+            {
+                bool compatible = innerType.BaseType == right.Type.BaseType
+                    || (innerType.IsNumeric() && right.Type.IsNumeric())
+                    || innerType.IsText && right.Type.IsText
+                    || !innerType.IsPrimitive && !innerType.IsText  // composite types: always allow
+                    || !right.Type.IsPrimitive && !right.Type.IsText;
+                if (!compatible)
+                    throw Errors.CoalesceTypeMismatch(innerType, right.Type, node.Interval);
+            }
             Func<object, object> leftConverter = innerType != outputType
                 ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, innerType, outputType)
                 : null;
             var castRight = CastExpressionNode.GetConvertedOrOriginOrThrow(
                 right, outputType, _dialect.Converter.TypeBehaviour);
             return new Nodes.CoalesceExpressionNode(left, castRight, leftConverter, outputType, node.Interval);
+        }
+
+        // Pipe-forward reinterpreted as struct field access + call: a.f(args) → (a.f)(args)
+        if (node is FunCallSyntaxNode { IsFieldCall: true, IsPipeForward: true } fieldCallNode)
+        {
+            // First arg is the struct source, remaining are the call args
+            var structSource = ReadNode(args[0]);
+            var fieldAccess = new Nodes.StructFieldAccessExpressionNode(id, structSource, node.Interval);
+            if (fieldAccess.Type.FunTypeSpecification == null)
+                throw Errors.FieldIsNotCallable(id, fieldAccess.Type, node.Interval);
+            var hiOrderFunc = ConcreteHiOrderFunctionWithSyntaxNode.Create(fieldAccess);
+            var callArgs = new ISyntaxNode[args.Length - 1];
+            Array.Copy(args, 1, callArgs, 0, callArgs.Length);
+            var children = callArgs.SelectToArray(ReadNode);
+            return hiOrderFunc.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
         }
 
         var someFunc = node.ResolvedSignature

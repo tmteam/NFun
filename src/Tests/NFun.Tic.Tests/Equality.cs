@@ -7,7 +7,7 @@ using static StatePrimitive;
 
 class Equality {
     [Test]
-    [Ignore("Not defined behaviour")]
+    [Ignore("TIC resolves a,b to Any instead of keeping generic. Equality of two unconstrained vars has undefined behaviour in current solver.")]
     public void TwoVariableEquality() {
         //     0  2 1
         // y = a == b

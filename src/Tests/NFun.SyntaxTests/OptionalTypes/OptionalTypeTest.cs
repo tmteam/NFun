@@ -2270,4 +2270,288 @@ public class OptionalTypeTest {
             () => "y:int?[][] = [[1,none],[none,2]]"
                 .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // All-none typed array: y:int?[] = [none] should compile
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("y:int?[] = [none]")]
+    [TestCase("y:int?[] = [none, none]")]
+    [TestCase("y:int?[] = [none, none, none]")]
+    public void AllNoneTypedArray_Compiles(string expr) {
+        Assert.DoesNotThrow(
+            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void AllNoneTypedArray_CorrectCount() {
+        var result = "y:int?[] = [none, none, none]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        // The array should have 3 elements (returned as CLR int?[])
+        var arr = (int?[])result.Get("y");
+        Assert.AreEqual(3, arr.Length);
+        Assert.IsNull(arr[0]);
+        Assert.IsNull(arr[1]);
+        Assert.IsNull(arr[2]);
+    }
+
+    [TestCase("y:int?[] = [1, none]")]
+    [TestCase("y:int?[] = [none, 1]")]
+    [TestCase("y:int?[] = [1, none, 2]")]
+    public void MixedNoneTypedArray_StillWorks(string expr) {
+        Assert.DoesNotThrow(
+            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // map with optional annotation: y:int?[] = [1,2,3].map(...)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void MapWithOptionalAnnotation_Compiles() {
+        Assert.DoesNotThrow(() =>
+            "y:int?[] = [1,2,3].map(rule if(it>1) it else none)"
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void MapWithOptionalAnnotation_CorrectValues() {
+        var r = "y:int?[] = [1,2,3].map(rule if(it>1) it else none)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (int?[])r.Get("y");
+        Assert.AreEqual(3, arr.Length);
+        Assert.IsNull(arr[0]);
+        Assert.AreEqual(2, arr[1]);
+        Assert.AreEqual(3, arr[2]);
+    }
+
+    [Test]
+    public void MapWithOptionalAnnotation_WithoutAnnotation_StillWorks() {
+        // Regression: without annotation should still work
+        var r = "y = [1,2,3].map(rule if(it>1) it else none)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (int?[])r.Get("y");
+        Assert.AreEqual(3, arr.Length);
+        Assert.IsNull(arr[0]);
+        Assert.AreEqual(2, arr[1]);
+        Assert.AreEqual(3, arr[2]);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Optional in non-optional array: compile error
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void OptionalInNonOptionalArray_CompileError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+            "y:int? = none; out:int[] = [y, 1, 2]"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // None comparison: ordering is compile error, equality is OK
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void NoneGreaterThanNone_CompileError() {
+        Assert.Throws<FunnyParseException>(
+            () => "out = none > none"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void NoneLessThanNone_CompileError() {
+        Assert.Throws<FunnyParseException>(
+            () => "out = none < none"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    [Test]
+    public void NoneGreaterOrEqualNone_CompileError() {
+        Assert.Throws<FunnyParseException>(
+            () => "out = none >= none"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Optional flag leak through ?? with struct field access in pipeline
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void StructFieldIfElseNone_CoalesceSum() {
+        var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).sum()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(5, r["out"].Value);
+    }
+
+    [Test]
+    public void StructFieldIfElseNone_CoalesceMax() {
+        var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).max()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(3, r["out"].Value);
+    }
+
+    [Test]
+    public void StructFieldIfElseNone_CoalesceSort() {
+        var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).sort()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        // Should be int[], not int?[]
+    }
+
+    [Test]
+    public void WithoutStruct_CoalesceSum_Works() {
+        // Proves the issue is struct field access, not the pipeline itself
+        var r = "[1,2,3].map(rule if(it > 1) it else none).map(rule it ?? 0).sum()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(5, r["out"].Value);
+    }
+
+    [Test]
+    public void SeparateMaps_CoalesceSum_Works() {
+        // Struct access in separate map works — proves it's the combination
+        var r = "[{a=1},{a=2},{a=3}].map(rule it.a).map(rule if(it > 1) it else none).map(rule it ?? 0).sum()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(5, r["out"].Value);
+    }
+
+    [Test]
+    public void StructFieldIfElseNone_CoalesceCount() {
+        var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).count()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(3, r["out"].Value);
+    }
+
+    [Test]
+    public void StructFieldIfElseNone_DifferentFieldName_CoalesceSum() {
+        var r = "[{v=10},{v=20},{v=5}].map(rule if(it.v > 8) it.v else none).map(rule it ?? 0).sum()"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(30, r["out"].Value);
+    }
+
+    [Test]
+    public void StructFieldIfElseNone_CoalesceFold() {
+        var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).fold(rule it1+it2)"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        r.Run();
+        Assert.AreEqual(5, r["out"].Value);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Array with none: preferred type (Int32 vs UInt8)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void ArrayWithNone_PreferredTypeWorks() {
+        // [1, none, 3] should produce Int32?[] (not UInt8?[]) — preferred type applied
+        var r = "[1, none, 3]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (int?[])r.Get("out");
+        Assert.AreEqual(new int?[] { 1, null, 3 }, arr);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Generic wrap with none
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void GenericWrapNone_NoStackOverflow() {
+        Assert.DoesNotThrow(() =>
+            "wrap(x) = if(true) x else none; out = wrap(42)"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Map optional var then map — cycle-aware Optional materialization
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void MapOptionalVarThenMap_NoStackOverflow() {
+        Assert.DoesNotThrow(() =>
+            "source = [1,2,3].map(rule if(it>1) it else none); out = source.map(rule it ?? 0)"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Incompatible coalesce types — compile error
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void CoalesceIncompatibleTypes_ShouldError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+            "a:int? = 42; out = a ?? 'hello'"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Force unwrap on non-optional is a no-op (by design)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void ForceUnwrapNonOptional_IsNoop() {
+        "y = 42!"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("y", 42);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Nested coalesce with none
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void NestedCoalesceWithNone_TypeNotUnwrapped() {
+        "(42 ?? none) ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Triple nested optional struct
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void TripleNestedOptionalStruct() {
+        "inner = if(true) {d=99} else none; mid = if(true) {c=inner} else none; outer = if(true) {b=mid} else none; out = outer?.b?.c?.d ?? 0"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 99);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // If-else array with none — preferred type preserved
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void IfElseArrayWithNone_PreferredTypeLost() {
+        var r = "y = if(true) [1,2,3] else [none]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        // Should be Int32?[], not UInt8?[]
+        var actualType = r.Get("y").GetType();
+        Assert.AreEqual(typeof(int?[]), actualType,
+            $"Expected int?[] but got {actualType}. Value: {r.Get("y")}");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // None var coalesce — type unwrapped
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void NoneVarCoalesce_TypeNotUnwrapped() {
+        "a = none; b = a ?? 42"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("b", 42);
+        // b should be Int32, not Int32?
+    }
+
+    [Test]
+    public void CoalesceResultArithmetic_NoError() {
+        Assert.DoesNotThrow(() =>
+            "a = none; b = a ?? 42; c = b + 1"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+    }
 }

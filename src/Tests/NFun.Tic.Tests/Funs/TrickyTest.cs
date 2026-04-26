@@ -38,23 +38,21 @@ public class TrickyTest {
         result.AssertNode(StateFun.Of(StateArray.Of(t), StateArray.Of(t)), 3);
     }
 
-    [Ignore("UB")]
     [Test]
     public void FunDefCallTest_returnIsStrict() {
         //                1 0
         //call(f,x):int = f(x)
+        // SetFunDef registers f,x as inputs → their types preserved as generics
         var graph = new GraphBuilder();
+        var fun = graph.SetFunDef("call", 1, I32, "f", "x");
         graph.SetVar("x", 0);
         graph.SetCall("f", 0, 1);
-        graph.SetVarType("return", I32);
-        graph.SetDef("return", 1);
         var result = graph.Solve();
 
         var t = result.AssertAndGetSingleGeneric(null, null);
 
         result.AssertAreGenerics(t, "x");
         result.AssertNamed(StateFun.Of(t, TicNode.CreateTypeVariableNode(I32)), "f");
-        result.AssertNamed(I32, "return");
     }
 
     [Test]

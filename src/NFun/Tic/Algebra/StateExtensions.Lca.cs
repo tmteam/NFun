@@ -48,6 +48,18 @@ public static partial class StateExtensions {
             // Propagate IsOptional: LCA(T, C[.., opt=true]) = C[T.., opt=true]
             if (bc2.IsOptional && !inner.Equals(Any))
                 return ConstraintsState.Of(inner, isOptional: true);
+            // Preserve Preferred through LCA when result is Optional wrapping
+            // a primitive narrower than Preferred. Resolves the Optional's element
+            // to Preferred so snapshots in AddDescendant carry the resolution hint.
+            // Example: LCA(opt(empty), CS[U8..Re,P=I32]) = opt(U8) → opt(I32).
+            if (bc2.Preferred != null
+                && inner is StateOptional optInner
+                && optInner.IsSolved
+                && optInner.Element is StatePrimitive elemP
+                && !elemP.Equals(bc2.Preferred)
+                && elemP.CanBePessimisticConvertedTo(bc2.Preferred)
+                && bc2.CanBeConvertedTo(bc2.Preferred))
+                return StateOptional.Of(bc2.Preferred);
             return inner;
         }
         if (a is ConstraintsState)

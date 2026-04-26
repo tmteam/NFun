@@ -125,6 +125,10 @@ internal static partial class Errors {
         return new(870, msg.ToString(), interval);
     }
 
+    internal static FunnyParseException FieldIsNotCallable(string fieldName, FunnyType fieldType, Interval interval) =>
+        new(871, $"Cannot call '{fieldName}': field has type '{fieldType}', not a function. " +
+                 $"To call a field as a function, it must contain a rule (e.g., {{f = (rule it * 2)}}).", interval);
+
     internal static FunnyParseException CannotUseOutputValueBeforeItIsDeclared(VariableSource variableSource, VariableExpressionNode node) {
         var interval = node?.Interval ??
                        variableSource.TypeSpecificationIntervalOrNull ?? Interval.Empty;
@@ -147,6 +151,9 @@ internal static partial class Errors {
         var opSymbol = operatorName == Functions.CoreFunNames.ForceUnwrap ? "!" : "??";
         return new(882, $"Operator '{opSymbol}' requires optional types to be enabled", interval);
     }
+
+    internal static FunnyParseException CoalesceTypeMismatch(FunnyType leftInner, FunnyType right, Tokenization.Interval interval) =>
+        new(887, $"Incompatible types in '??': cannot coalesce {leftInner} with {right}", interval);
 
     internal static FunnyParseException CoalesceRightOperandIsOptional(Interval interval) =>
         new(886, "Right operand of '??' must be non-optional. Use a non-optional default value, e.g. 'x ?? y ?? 0'", interval);

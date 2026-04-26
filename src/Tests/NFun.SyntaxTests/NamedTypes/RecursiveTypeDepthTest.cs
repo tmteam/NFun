@@ -52,8 +52,8 @@ public class RecursiveTypeDepthTest {
     }
 
     [TestCase(3, 5)]
-    [TestCase(5, 8, Ignore = "Deep nested constructors: inner constructors lack type annotations for defaults")]
-    [TestCase(10, 15, Ignore = "Deep nested constructors: inner constructors lack type annotations for defaults")]
+    [TestCase(5, 8)]
+    [TestCase(10, 15)]
     public void LinkedList_PastEnd_ReturnsDefault(int dataDepth, int accessDepth) {
         var sb = new StringBuilder();
         sb.Append("type node = {v:int, next:node? = none}; ");

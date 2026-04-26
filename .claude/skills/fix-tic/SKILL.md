@@ -31,6 +31,15 @@ TEST_API=dotnet test src/Tests/NFun.ApiTests/NFun.ApiTests.csproj -p:SignAssembl
 - `src/NFun/Tic/SolvingFunctions.cs` — main solving loop
 - `src/NFun/Tic/TicNode.cs` — node definition
 
+**TIC specifications** (agents MUST read before proposing fixes):
+- `Specs/Tic/TicAlgorithm.md` — Build, Toposort, Pull, Push, PropagatePreferred phases
+- `Specs/Tic/TicAlgorithm_Destruction.md` — Destruction, Finalize, resolution strategy
+- `Specs/Tic/Algebra.md` — 6 algebraic operators
+- `Specs/Tic/TicTypeSystem.md` — type system, row polymorphism, subtyping
+- `Specs/Tic/TicGraph.md` — constraint graph structure
+- `Specs/Tic/TicPreferred.md` — Preferred system
+- `Specs/Tic/TicTechnicalDebt.md` — known limitations and proper fix paths
+
 **Test directories** (agents read for style/patterns):
 - `src/Tests/NFun.Tic.Tests/` — TIC-level tests (GraphBuilder + Solve)
 - `src/Tests/NFun.Tic.Tests/UnitTests/` — TIC unit tests (algebra, pure functions)
@@ -43,13 +52,53 @@ Run ALL phases sequentially without pausing for user review.
 
 ---
 
-### Phase 1: UNDERSTAND
+### Phase 0: THEORY
+
+**Before any code work**, understand the bug theoretically.
 
 1. Build the project: `$BUILD_CMD`
-2. Run the specified failing test(s). Parse the error output.
-3. Determine the level: Syntax (full pipeline) or TIC (solver only) or Unit (algebra/pure function).
-4. Formulate a hypothesis: what subsystem is likely broken and why.
-5. Print a short summary: test name, error, hypothesis, level.
+2. Run the failing expression/test. Capture the error.
+3. Run the expression with `-t` flag (trace) to see the TIC graph.
+4. Launch **1 Professor agent** (read-only) with this prompt:
+
+```
+You are a type theory professor analyzing a TIC solver bug.
+
+Bug description: {BUG_DESCRIPTION}
+Error: {ERROR_OUTPUT}
+Trace: {TRACE_OUTPUT}
+
+FIRST: Read ALL TIC specification documents:
+- Specs/Tic/TicAlgorithm.md, TicAlgorithm_Destruction.md, Algebra.md
+- Specs/Tic/TicTypeSystem.md, TicGraph.md, TicPreferred.md, TicTechnicalDebt.md
+
+THEN: Read relevant implementation:
+- src/NFun/Tic/Stages/ (Pull/Push/Destruction)
+- src/NFun/Tic/SolvingStates/ (type states)
+- src/NFun/Tic/GraphBuilder.cs, SolvingFunctions.cs
+
+YOU ARE READ-ONLY. Do NOT modify files or run commands.
+
+Answer these questions:
+1. **Algebraic rule**: What type-theoretic rule governs this case?
+   (e.g., struct covariance, generic instantiation, subtyping transitivity)
+2. **Expected behavior**: What SHOULD happen according to the algebra?
+3. **Root cause hypothesis**: WHERE in the pipeline does it break? (Build/Pull/Push/Destruction/Finalize)
+4. **Is this a known limitation?** Check TicTechnicalDebt.md.
+5. **Clean fix direction**: What algebraic operation is missing or wrong?
+   Express as a rule, NOT as code. (e.g., "struct covariance should apply transitively through lambda params")
+6. **Risk assessment**: What other cases could be affected by this fix?
+```
+
+5. Read the professor's analysis. If the professor identifies this as a **known limitation** in TicTechnicalDebt.md, follow the documented fix path. If the professor says the fix requires **structural changes** beyond a local fix, STOP and report this to the user before proceeding.
+
+---
+
+### Phase 1: UNDERSTAND
+
+1. Based on professor's analysis, formulate a concrete hypothesis.
+2. Determine the level: Syntax (full pipeline) or TIC (solver only) or Unit (algebra/pure function).
+3. Print summary: test, error, professor's diagnosis, hypothesis, level.
 
 ---
 
@@ -58,19 +107,14 @@ Run ALL phases sequentially without pausing for user review.
 Launch **2 parallel agents** (subagent_type: general-purpose, isolation: worktree):
 
 **Agent A — Same Level, Different Context:**
-- Read the failing test and understand what it tests
-- Read other tests in the same file/directory for style
 - Write 3-5 NEW tests that probe the SAME problem in DIFFERENT contexts
-  - Different types, different nesting, different combinations
-  - The goal: find the boundary of the bug — where does it break, where does it still work?
+- The goal: find the boundary — where does it break, where does it still work?
 - Run the tests, report which pass and which fail
 
 **Agent B — One Level Down:**
 - If original is Syntax → write TIC-level tests (using GraphBuilder directly)
 - If original is TIC → write Unit-level tests (testing algebra/pure functions)
-- Read existing tests at the target level for style
-- Write 3-5 tests that isolate the core problem with minimal nodes/complexity
-- Then try to write an even simpler test — the MINIMAL reproduction
+- Write 3-5 tests that isolate the core problem minimally
 - Run the tests, report which pass and which fail
 
 **Common context for both agents** (include in their prompts):
@@ -80,21 +124,11 @@ You MUST rebuild before running ANY tests:
   dotnet build src/NFun/NFun.csproj -p:SignAssembly=false -f net6.0
   dotnet build src/Tests/NFun.Tic.Tests/NFun.Tic.Tests.csproj -p:SignAssembly=false
   dotnet build src/Tests/NFun.SyntaxTests/NFun.SyntaxTests.csproj -p:SignAssembly=false
-  dotnet build src/Tests/Nfun.UnitTests/Nfun.UnitTests.csproj -p:SignAssembly=false
 
-Test TIC: dotnet test src/Tests/NFun.Tic.Tests/NFun.Tic.Tests.csproj -p:SignAssembly=false --no-build --filter "FullyQualifiedName~TestName"
-Test Syntax: dotnet test src/Tests/NFun.SyntaxTests/NFun.SyntaxTests.csproj -p:SignAssembly=false --no-build --filter "FullyQualifiedName~TestName"
-
-Key directories to READ before writing tests:
-- src/NFun/Tic/Stages/ (understand Pull/Push/Destruction)
-- src/NFun/Tic/SolvingStates/ (understand type states)
-- src/NFun/Tic/GraphBuilder.cs (understand how to build test graphs)
-- src/Tests/NFun.Tic.Tests/ (existing test patterns)
-- src/Tests/NFun.SyntaxTests/ (existing test patterns)
+Professor's analysis: {PROFESSOR_ANALYSIS}
 ```
 
-After both agents return, collect all new tests (both passing and failing).
-**Verify agent results**: re-run a sample of reported tests yourself to confirm pass/fail claims.
+After both agents return, verify a sample of results yourself.
 
 ---
 
@@ -102,128 +136,69 @@ After both agents return, collect all new tests (both passing and failing).
 
 For each test written in Phase 2, evaluate:
 
-1. **"Is the expected behavior obviously correct for TIC?"**
-   — If the correct behavior is ambiguous or debatable, DELETE the test.
+1. **"Is the expected behavior obviously correct?"** — If ambiguous, DELETE.
+2. **"Does this duplicate an existing test?"** — If yes, DELETE.
+3. **"Does this add signal beyond the original?"** — If same thing, DELETE.
 
-2. **"Could this expected behavior legitimately change in the future?"**
-   — If yes (e.g., it depends on a design decision not yet made), DELETE the test.
-
-3. **"Does this duplicate an existing simpler test?"**
-   — Check existing tests. If a simpler test already covers the same invariant, DELETE.
-
-4. **"Does this test add signal beyond the original failing test?"**
-   — If it tests exactly the same thing in the same way, DELETE.
-
-Keep only tests that are **invariant** — they MUST always pass in any correct TIC implementation.
-
-Remove deleted tests from the code. Keep the surviving tests (both passing and failing).
-Print summary: how many tests written, how many kept, how many deleted and why.
+Keep only invariant tests. Print summary: written, kept, deleted.
 
 ---
 
 ### Phase 4: INVESTIGATE
 
-Launch **3 parallel agents** (subagent_type: general-purpose). Give each:
-- The original failing test + error
-- All surviving minimal reproduction tests from Phase 3
-- Which tests pass and which fail
+Launch **3 parallel agents** (read-only, subagent_type: general-purpose):
 
-**Common context for all three** (include in their prompts):
-```
-FIRST: Read the TIC specification documents:
-- Specs/Tic/TicAlgorithm.md — Build, Toposort, Pull, Push phases, convergence proof
-- Specs/Tic/TicAlgorithm_Destruction.md — Destruction, Finalize, resolution strategy
-- Specs/Tic/Algebra.md — 6 algebraic operators (LCA, GCD, FitsInto, Unify, Concretest, Abstractest)
-- Specs/Tic/TicTypeSystem.md — type system (primitives, composites, subtyping rules)
-- Specs/Tic/TicGraph.md — constraint graph structure (nodes, edges, states, BNF)
-- Specs/Tic/TicTechnicalDebt.md — known limitations and proper fix paths
+Give each: the bug, professor's analysis, all surviving tests, which pass/fail.
 
-THEN: Read the implementation:
-- src/NFun/Tic/Stages/ — PullConstraintsFunctions.cs, PushConstraintsFunctions.cs, DestructionFunctions.cs, StagesExtension.cs
-- src/NFun/Tic/Algebra/ — all StateExtensions files
-- src/NFun/Tic/SolvingStates/ — ConstraintsState.cs and all State*.cs
-- src/NFun/Tic/GraphBuilder.cs
-- src/NFun/Tic/SolvingFunctions.cs
-- src/NFun/Tic/TicNode.cs
+**Agent 1 — Data Flow**: Trace Pull/Push/Destruction step by step for the failing graph.
+**Agent 2 — Algebra Completeness**: Compare Apply() overloads — is there a missing case?
+**Agent 3 — Graph Structure**: Compare graph construction for working vs failing case.
 
-IMPORTANT: TIC is a precise algorithm. Solutions must be theoretically clean.
-No hacks, no special-case if-statements for specific types.
-The fix must follow from the algebra of the type system.
-Check TicTechnicalDebt.md — if the bug relates to a known limitation, follow the documented fix path.
+All agents must provide:
+- **Practical explanation**: what breaks, file:line
+- **Theoretical explanation**: why, per type algebra
+- **Proposed fix**: what should change, in text (NOT code)
 
-YOU ARE READ-ONLY. THIS IS A HARD CONSTRAINT, NOT A SUGGESTION.
-- You MUST NOT modify any .cs file. Not logic, not Console.WriteLine, nothing.
-- You MUST NOT run dotnet build or dotnet test.
-- You MUST NOT create, delete, or edit any file.
-- Your ONLY tools: Read files. Think. Write your analysis as text output.
-- If you catch yourself about to edit a file or run a command — STOP.
+After all 3 return, **synthesize**: pick the best explanation or combine.
 
-Analyze by READING code, not by running it. Trace execution mentally.
-Focus 100% on understanding WHY the bug happens.
-
-Your output is a TEXT REPORT — not code, not a PR, not a fix.
-```
-
-**Agent 1 — Data Flow Focus** (start with Stages/):
-"Trace MENTALLY how constraints propagate through Pull, Push, and Destruction for the failing test. Read DestructionFunctions.cs, PullConstraintsFunctions.cs, PushConstraintsFunctions.cs. Walk through each Apply() call step by step for the failing graph. Where does the wrong state get set? What should have happened?"
-
-**Agent 2 — Algebra Completeness Focus** (start with Algebra/ and SolvingStates/):
-"The TIC solver has multiple Apply() overloads in DestructionFunctions for different type combinations: (Prim,Prim), (Prim,CS), (CS,Prim), (CS,CS), (CS,Composite), (Composite,Prim), (Composite,CS), (Optional,Optional), (Array,Array), etc. A common root cause is INCOMPLETE ALGEBRA: one overload handles a case correctly but the analogous overload for a different type combination does NOT. Compare how the same semantic operation is handled across different Apply() overloads. Is there an overload that handles the failing case's types but lacks logic that a sibling overload has? Specifically: find the overload that WORKS for a similar case and the overload that FAILS for this case. What does the working one do that the failing one doesn't?"
-
-**Agent 3 — Graph Structure Focus** (start with GraphBuilder.cs and TicNode.cs):
-"Read SetCall, SetIfElse, SetDef, SetSoftArrayInit to understand how the graph is constructed for the failing test. Draw the node graph: which nodes exist, their types, their ancestor edges. Compare with a WORKING case that is structurally similar. What is different?"
-
-Each agent must provide:
-- **Practical explanation**: what exactly breaks in the code, file:line
-- **Theoretical explanation**: why this should or shouldn't work in the type system
-- **Proposed fix description**: what should change and where, described in text (NOT code). Must follow from TIC algebra — no hacks, no special-casing for specific types
-
-After all 3 return, **synthesize**: pick the best explanation, or combine insights from multiple agents.
+**Gate check**: Does the synthesized fix match the professor's direction from Phase 0?
+If not, re-evaluate — the fix might be a workaround, not a clean solution.
 
 ---
 
 ### Phase 5: FIX
 
-**Step 1: Baseline.** Record current test counts (pass/fail) for ALL suites BEFORE making changes:
-```
-dotnet test src/Tests/NFun.Tic.Tests/NFun.Tic.Tests.csproj -p:SignAssembly=false
-dotnet test src/Tests/NFun.SyntaxTests/NFun.SyntaxTests.csproj -p:SignAssembly=false
-dotnet test src/Tests/Nfun.UnitTests/Nfun.UnitTests.csproj -p:SignAssembly=false
-dotnet test src/Tests/NFun.ApiTests/NFun.ApiTests.csproj -p:SignAssembly=false
-```
+**Step 1: Baseline.** Record test counts for ALL suites.
 
 **Step 2: Implement** the chosen fix.
 
-**Step 3: Verify no regressions.** Run ALL existing tests (without the new tests from Phase 2).
-Compare pass/fail counts against baseline. If any previously-passing test now fails — the fix has regressions.
+**Step 3: Verify no regressions.** Run ALL tests. Compare against baseline.
 
-**Step 4: If regressions** — do NOT iterate blindly. Analyze:
-- Which specific test broke?
-- Trace the fix through that test's scenario — WHY does it break?
-- Narrow the fix (add conditions, restrict scope) to avoid that case.
-- If the fix fundamentally conflicts with the broken test's invariant, STOP.
-  Report: "This bug requires a structural change to X. The simple fix breaks Y because Z."
+**Step 4: If regressions — PIVOT, don't loop.**
+- If ≤3 regressions: analyze each, narrow the fix scope.
+- If >3 regressions: the approach is wrong. DO NOT iterate. Instead:
+  1. Revert all changes.
+  2. Re-read professor's analysis and agent reports.
+  3. Choose a DIFFERENT approach (not a narrower version of the same).
+  4. If no alternative exists, STOP and report:
+     "This bug requires structural change to X. Current architecture cannot support fix Y because Z."
+  5. Add to TicTechnicalDebt.md if appropriate.
+- **Max 2 fix attempts.** After 2 failed attempts, STOP with a report.
 
-**Step 5: Run ALL tests** including new tests from Phase 2:
-```
-dotnet test src/Tests/NFun.Tic.Tests/NFun.Tic.Tests.csproj -p:SignAssembly=false
-dotnet test src/Tests/NFun.SyntaxTests/NFun.SyntaxTests.csproj -p:SignAssembly=false
-dotnet test src/Tests/Nfun.UnitTests/Nfun.UnitTests.csproj -p:SignAssembly=false
-dotnet test src/Tests/NFun.ApiTests/NFun.ApiTests.csproj -p:SignAssembly=false
-```
+**Step 5: Run ALL tests** including new tests from Phase 2.
 
 ---
 
 ### Phase 6: CLEANUP
 
-1. **Remove debug traces**: any `Console.WriteLine`, `TraceLog` calls, `Debug.Assert` that were added during investigation.
-2. **Clean new tests**: consistent naming, no redundant assertions, clear arrange/act/assert.
-3. **Clean modified code**: no dead code, no commented-out blocks, no TODO comments that should be resolved.
-4. **Look at surrounding code**: if the fix naturally suggests an obvious generalization or simplification of nearby code, do it. But ONLY if obvious — don't refactor for the sake of refactoring.
-5. Run all tests one final time to confirm everything still passes.
-6. Print final summary:
+1. Remove debug traces (Console.WriteLine, etc.)
+2. Clean new tests: consistent naming, no redundant assertions
+3. Clean modified code: no dead code, no commented-out blocks
+4. Run all tests one final time
+5. Print final summary:
    - What was the problem (1-2 sentences)
    - What was the fix (1-2 sentences)
+   - Professor's theoretical justification (1 sentence)
    - Test results (counts per project, delta from baseline)
    - Files changed (list)
-   - If the bug was NOT fully fixed: what remains, why, and what structural change is needed
+   - If NOT fixed: what remains, why, structural change needed

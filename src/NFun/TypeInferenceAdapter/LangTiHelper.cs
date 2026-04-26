@@ -103,7 +103,7 @@ public static class LangTiHelper {
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
         };
 
-    private static Dictionary<string, int> _resolveDepth;
+    [ThreadStatic] private static Dictionary<string, int> _resolveDepth;
 
     private static ITicNodeState ResolveNamedStruct(string typeName,
         INamedTypeFieldRegistry registry) {

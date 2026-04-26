@@ -422,14 +422,6 @@ public class OptionalChainingTest {
 
 
     [Test]
-    [Ignore("Requires {name:type = value} struct literal field spec syntax")]
-    public void NestedOptionalStruct_ChainAccess() =>
-        Assert.DoesNotThrow(() =>
-            "s = {inner:{n:int?}? = {n = 42}}\r y = s.inner?.n"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
-
-
-    [Test]
     public void OptionalStructOptionalField_ChainCoalesce() =>
         "s:{n:int?}? = {n = 42}\r y = s?.n ?? 0"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
@@ -645,4 +637,51 @@ public class OptionalChainingTest {
           fallback:int? = none
           y = s?.n ?? fallback!"
             .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+
+    // ═══════════════════════════════════════════════════════════════
+    // Double anonymous optional safe access
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void DoubleAnonymousOptionalSafeAccess() {
+        "inner = if(true) {b = 42} else none; x = if(true) {a = inner} else none; out = x?.a?.b ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", 42);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Safe call chain on none — .method() after ?.method() is also safe
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void SafeCallChainOnNone_RuntimeOk() {
+        "arr:int[]? = none; out = arr?.sort().reverse() ?? []"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", new int[0]);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Deep safe access chain with method
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void DeepSafeAccessChainMethod() {
+        "x = if(true) {a={b='hello'}} else none; out = x?.a.b.reverse() ?? ''"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .AssertResultHas("out", "olleh");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Safe access with HOF preserves struct fields
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void SafeAccessHOF_PreservesStructFields() {
+        var r = "data:{users:{name:text, score:int}[]}? = {users = [{name='Alice', score=90}, {name='Bob', score=85}]}; y = data?.users.filter(rule it.score > 87)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var arr = (object[])r.Get("y");
+        Assert.AreEqual(1, arr.Length);
+        var s = (System.Collections.Generic.IReadOnlyDictionary<string, object>)arr[0];
+        Assert.IsTrue(s.ContainsKey("name"), "name field lost in ?. + filter chain");
+    }
 }

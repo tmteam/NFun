@@ -208,4 +208,24 @@ public class IEEE754ComplianceTest {
     [TestCase("if ((0.0/0.0) == 0.0) 1 else 2", 2)]   // NaN == 0 is false
     public void NaN_InConditional_TakesElseBranch(string expr, int expected)
         => expr.AssertAnonymousOut(expected);
+
+    // ═══════════════════════════════════════════════════════════════
+    // NaN equality and comparison
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void NaN_EqualsSelf_ReturnsFalse() {
+        "out = (0.0/0.0) == (0.0/0.0)".AssertReturns("out", false);
+    }
+
+    [Test]
+    public void NaN_LessThan_ReturnsFalse() {
+        // IComparable.CompareTo treats NaN as smallest, but IEEE 754 says false
+        "out = (0.0/0.0) < 1.0".AssertReturns("out", false);
+    }
+
+    [Test]
+    public void MaxNaN_ShouldPropagateNaN() {
+        "out = max(0.0/0.0, 1.0)".Calc().AssertResultHas("out", double.NaN);
+    }
 }

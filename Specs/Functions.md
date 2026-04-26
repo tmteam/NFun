@@ -62,11 +62,11 @@ Most functions may be applied for different types of operands. To simplify the d
 #### Serialization (Result type is `byte[]`)
 | Argument type | Returns                                                                                 |
 |---------------|-----------------------------------------------------------------------------------------|
-| `Character`   | array with 2 element - [lo,hi] bytes of unicode representation                          |
+| `char`        | array with 2 elements - [lo,hi] bytes of unicode representation                         |
 | `byte`        | array with single element (given argument)                                              |
 | `bool`        | array with single element wich is `1` if argument is `true`, `0` if argument is `false` |
 | Integers      | array with N elements from Little-endian encoding                                       |
-| `real`        | array with 4 elements from Little-endian double floating number encoding                |
+| `real`        | array with 8 elements from Little-endian double floating number encoding                |
 | `text`        | Encodes a set of characters from the specified text with Unicode encoding               |
 | `char`        | Encodes single characters with Unicode encoding                                         |
 | `ip`          | Encodes ip address as sequence of bytes                                                 |
@@ -149,6 +149,14 @@ Same as Serialization to `byte[]`, but returns bit array
 | toLower(text):text                | a copy of this string converted to lowercase                                                                            |
 | split(text,separator:text):text[] | splits a text into subtexts that are based on the provided text separator. Empty entries are removed                    |
 | join(any[],separator:text):text   | concatenation of text representations of an value array, using the specified separator between each element.            |
+
+## Error Functions
+
+| Function | Returns |
+|----------|---------|
+| oops():T | Throws `FunnyRuntimeException("oops")`. Return type is generic — can be used in any context. |
+| oops(text):T | Throws `FunnyRuntimeException` with the given message. |
+| oops(text, any):T | Throws `FunnyRuntimeException` with message and data payload. |
 
 ## Formatting Functions
 

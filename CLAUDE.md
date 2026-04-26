@@ -18,7 +18,8 @@ If you can't state the rule — you don't understand the fix. Stop and think.
 - No `if (specificType) then specialBehavior` — every Apply/Merge overload must handle ALL inputs of its declared types
 - No flags that exist to patch one scenario (`IsOptionalElement` is a known debt — track it, don't add more)
 - No post-hoc fixups in expression builder for what TIC should have resolved
-- If a workaround is ever introduced, it MUST have a `// WORKAROUND:` comment explaining the root cause and the proper fix. Current codebase has zero workarounds.
+- If a workaround is ever introduced, it MUST have a `// WORKAROUND:` comment explaining the root cause and the proper fix. Track in `Specs/Tic/TicTechnicalDebt.md`.
+- **Current workarounds**: 1 (DescendantHasOptionalLift — stale Pull snapshots). See TicTechnicalDebt.md #5.
 
 ### 3. Performance Matters
 

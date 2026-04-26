@@ -201,13 +201,6 @@ y = '[{255:hex:>8}]'        # '[      FF]'
 y = '[{42:bin:^12}]'        # '[   101010   ]'
 ```
 
-Width can be a variable or expression in parentheses:
-
-```py
-y = '[{42:>w}]'              # variable width
-y = '[{42:>(w*2)}]'          # expression in parens
-```
-
 Invalid specifier → compile-time error. Numeric mask on non-numeric type → compile-time error. Alignment works on any type.
 
 Format specifiers compile to typed functions (`toNumText`, `toHexText`, `toBinText`, `toSciText`, `padLeftText`, `padRightText`, `padCenterText`) which are also available for direct use — see [Functions](Functions.md).

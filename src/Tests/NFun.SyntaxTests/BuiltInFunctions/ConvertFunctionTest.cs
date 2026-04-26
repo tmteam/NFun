@@ -70,7 +70,7 @@ public class ConvertFunctionsTest {
         expr.Calc("x", inputValue).AssertReturns("y", expectedOutput);
     }
 
-    [Ignore("todo")]
+    [Ignore("convert() for bool[]->int, int->char, int[]->char not implemented")]
     [TestCase("x:bool[] = convert(0b1111011); y:int = convert(x)", 0b1111011)]
     [TestCase("out:int32 = '😃'[0].convert()", 1234)]
     [TestCase("x:int32 = 65533;   out:char = x.convert()", 's')]
@@ -317,4 +317,43 @@ public class ConvertFunctionsTest {
     [TestCase("out:byte = '😃'[0].convert()")]
     public void ObviousFailsWithRuntimeException(string expr) =>
         expr.AssertObviousFailsOnRuntime();
+
+    // ═══════════════════════════════════════════════════════════════
+    // convert text to bool
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void ConvertTextToBool_Invalid_Throws() {
+        var r = "y:bool = convert('invalid')"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.Throws<NFun.Exceptions.FunnyRuntimeException>(() => r.Run());
+    }
+
+    [Test]
+    public void ConvertTextToBool_True_Works() {
+        var r = "y:bool = convert('true')"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(true, r.Get("y"));
+    }
+
+    [Test]
+    public void ConvertTextToBool_False_Works() {
+        var r = "y:bool = convert('false')"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(false, r.Get("y"));
+    }
+
+    [Test]
+    public void ConvertTextToBool_One_Works() {
+        var r = "y:bool = convert('1')"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(true, r.Get("y"));
+    }
+
+    [Test]
+    public void ConvertTextToBool_Zero_Works() {
+        var r = "y:bool = convert('0')"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        Assert.AreEqual(false, r.Get("y"));
+    }
 }

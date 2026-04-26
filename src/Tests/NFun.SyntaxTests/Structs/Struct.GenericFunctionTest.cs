@@ -1,4 +1,6 @@
+using System.Linq;
 using NFun.TestTools;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.Structs;
@@ -14,7 +16,7 @@ public class StructGenericFunctionTest {
         .AssertResultHas("b", true);
 
     [Test]
-    [Ignore("Allow req interfaces. Expected user: {age:Any, child:{Age: Any}[]}")]
+    [Ignore("Generic function with external 'user' input: NullReferenceException in StructFieldAccess — req interface typing not implemented")]
     public void CallToAllowedReqTypeDef() =>
         "f(x) = x.age; y1 = f(user); y2 = f(user.child[0])".Calc();
 
@@ -158,4 +160,110 @@ public class StructGenericFunctionTest {
                   y = fact({nonExistingField=x})")]
     [TestCase(@"fact(n) = if(n.field<=1) 1 else fact({field=n.field-1})*n.nonExistingField")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    // ═══════════════════════════════════════════════════════════════
+    // Struct field map preserves preferred type (Int32 vs Real)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void StructFieldMap_PreservesIntType() {
+        var r = "s = {m = [[1,2],[3,4]]}\r out = s.m.map(rule it.sum())".Calc();
+        var outVal = r.Get("out");
+        Assert.AreEqual(typeof(int[]), outVal.GetType(), $"Expected int[] but got {outVal.GetType()}");
+        Assert.AreEqual(new[] { 3, 7 }, outVal);
+    }
+
+    [Test]
+    public void DirectVariableMap_PreservesIntType() {
+        // Regression test
+        var r = "m = [[1,2],[3,4]]\r out = m.map(rule it.sum())".Calc();
+        Assert.AreEqual(new[] { 3, 7 }, r.Get("out"));
+        r.AssertResultHas("out", new[] { 3, 7 });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // sort/filter preserves all struct fields (row polymorphism)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void Sort_PreservesAllFields() {
+        // sort by it.a should preserve field b
+        var runtime = Funny.Hardcore.Build("[{a=2,b=20},{a=1,b=10}].sort(rule it.a)");
+        runtime.Run();
+        var outType = runtime["out"].Type;
+        // Output must be struct array with BOTH fields a and b
+        Assert.AreEqual(BaseFunnyType.ArrayOf, outType.BaseType, "out should be array");
+        var elemType = outType.ArrayTypeSpecification.FunnyType;
+        Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType, "element should be struct");
+        var fields = elemType.StructTypeSpecification.Select(f => f.Key).OrderBy(f => f).ToArray();
+        CollectionAssert.AreEqual(new[] { "a", "b" }, fields, "struct must have both fields a and b");
+    }
+
+    [Test]
+    public void Filter_PreservesAllFields() {
+        var runtime = Funny.Hardcore.Build("[{a=1,b=10},{a=2,b=20}].filter(rule it.a > 1)");
+        runtime.Run();
+        var elemType = runtime["out"].Type.ArrayTypeSpecification.FunnyType;
+        Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType);
+        var fields = elemType.StructTypeSpecification.Select(f => f.Key).OrderBy(f => f).ToArray();
+        CollectionAssert.AreEqual(new[] { "a", "b" }, fields);
+    }
+
+    [Test]
+    public void SortDescending_PreservesAllFields() {
+        var runtime = Funny.Hardcore.Build("[{a=1,b=10},{a=2,b=20}].sortDescending(rule it.a)");
+        runtime.Run();
+        var elemType = runtime["out"].Type.ArrayTypeSpecification.FunnyType;
+        Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType);
+        var fields = elemType.StructTypeSpecification.Select(f => f.Key).OrderBy(f => f).ToArray();
+        CollectionAssert.AreEqual(new[] { "a", "b" }, fields);
+    }
+
+    [Test]
+    public void Sort_ThreeFields() {
+        var runtime = Funny.Hardcore.Build("[{x=2,y=20,z=200},{x=1,y=10,z=100}].sort(rule it.x)");
+        runtime.Run();
+        var elemType = runtime["out"].Type.ArrayTypeSpecification.FunnyType;
+        Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType);
+        var fields = elemType.StructTypeSpecification.Select(f => f.Key).OrderBy(f => f).ToArray();
+        CollectionAssert.AreEqual(new[] { "x", "y", "z" }, fields);
+    }
+
+    [Test]
+    public void Filter_TwoFieldsAccessed_PreservesThird() {
+        var runtime = Funny.Hardcore.Build("[{a=1,b=2,c=3},{a=4,b=5,c=6}].filter(rule it.a > 0 and it.b > 0)");
+        runtime.Run();
+        var elemType = runtime["out"].Type.ArrayTypeSpecification.FunnyType;
+        Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType);
+        var fields = elemType.StructTypeSpecification.Select(f => f.Key).OrderBy(f => f).ToArray();
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, fields);
+    }
+
+    [Test]
+    public void Sort_ThenAccessField_Preserves() =>
+        // When downstream code accesses fields, TIC preserves them
+        "[{a=2,b=20},{a=1,b=10}].sort(rule it.a).map(rule it.b)"
+            .AssertReturns("out", new[] { 10, 20 });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Generic function preserves struct fields
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void GenericFuncLosesStructFields_Fixed() {
+        "getMax(items) = items.fold(rule if(it1.v > it2.v) it1 else it2); out = getMax([{v=3,name='a'},{v=1,name='b'},{v=5,name='c'}]).name"
+            .AssertReturns("out", "c");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Lambda struct covariance
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void LambdaStructCovariance() {
+        // f(p) = p.x + 0.5 infers p:{x:real}. arr:{x:int}[].
+        // arr.map(rule f(it)) works with struct covariance.
+        "f(p) = p.x + 0.5\r arr:{x:int}[] = [{x=1},{x=2}]\r out = arr.map(rule f(it))"
+            .Calc().AssertResultHas("out", new[] { 1.5, 2.5 });
+    }
 }

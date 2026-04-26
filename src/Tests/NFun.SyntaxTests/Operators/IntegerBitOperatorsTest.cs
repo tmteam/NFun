@@ -220,15 +220,19 @@ public class IntegerBitOperatorsTest {
         => expression.AssertReturns("y", expected);
 
 
-    [Ignore("Overflow behaviour is not implemented for bitshifts")]
-    [TestCase("y:uint32 = 0xFFFF_ffff<<1")]
-    [TestCase("y:uint32 = 0x1<<33")]
-    [TestCase("y:uint64 = 0xFFFF_ffff_FFFF_ffff<<1")]
-    [TestCase("y:uint64 = 0x1<<65")]
-    [TestCase("y:int32 = 0x1<<33")]
-    [TestCase("y:int64 = 0x1<<65")]
-    public void Oops(string expr) =>
-        Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
+    // Bitshift wrapping: standard behavior (matches C#/Java/Rust).
+    // Shift count is masked to bit width: x << n = x << (n % bits).
+    [TestCase("y:uint32 = 0xFFFF_ffff<<1", (uint)0xFFFFFFFE)]
+    [TestCase("y:uint32 = 0x1<<33", (uint)2)]        // 33 % 32 = 1
+    [TestCase("y:int32 = 0x1<<33", 2)]                // 33 % 32 = 1
+    public void BitshiftWraps_32bit(string expr, object expected) =>
+        expr.AssertReturns("y", expected);
+
+    [TestCase("y:uint64 = 0xFFFF_ffff_FFFF_ffff<<1", (ulong)0xFFFFFFFFFFFFFFFE)]
+    [TestCase("y:uint64 = 0x1<<65", (ulong)2)]        // 65 % 64 = 1
+    [TestCase("y:int64 = 0x1<<65", (long)2)]           // 65 % 64 = 1
+    public void BitshiftWraps_64bit(string expr, object expected) =>
+        expr.AssertReturns("y", expected);
 
     [TestCase("y = ^2")]
     [TestCase("y = 2^^")]
@@ -240,4 +244,58 @@ public class IntegerBitOperatorsTest {
     [TestCase("y = ~-")]
     [TestCase("y = ~1.5")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    // ═══ Incompatible types: uint64 & int64 → abstract I96 → error ═══
+
+    [Test]
+    public void BitAnd_UInt64_Int64_Error() =>
+        Assert.Throws<FunnyParseException>(
+            () => "x:uint64 = 5; y:int64 = 3; z = x & y".Build());
+
+    [Test]
+    public void BitOr_UInt64_Int64_Error() =>
+        Assert.Throws<FunnyParseException>(
+            () => "x:uint64 = 5; y:int64 = 3; z = x | y".Build());
+
+    [Test]
+    public void BitXor_UInt64_Int64_Error() =>
+        Assert.Throws<FunnyParseException>(
+            () => "x:uint64 = 5; y:int64 = 3; z = x ^ y".Build());
+
+    // ═══ Same-type bitwise — works ═══
+
+    [Test]
+    public void BitAnd_Int32_Int32() =>
+        Assert.AreEqual(1, "x:int = 5; y:int = 3; z = x & y".Calc().Get("z"));
+
+    [Test]
+    public void BitOr_UInt64_UInt64() =>
+        Assert.AreEqual((ulong)7, "x:uint64 = 5; y:uint64 = 3; z = x | y".Calc().Get("z"));
+
+    [Test]
+    public void BitXor_Int64_Int64() =>
+        Assert.AreEqual((long)6, "x:int64 = 5; y:int64 = 3; z = x ^ y".Calc().Get("z"));
+
+    [Test]
+    public void BitAnd_UInt32_UInt32() =>
+        Assert.AreEqual((uint)1, "x:uint32 = 5; y:uint32 = 3; z = x & y".Calc().Get("z"));
+
+    // ═══ Arithmetic uint64 + int64 — works (→ Real) ═══
+
+    [Test]
+    public void Add_UInt64_Int64_Works() =>
+        Assert.AreEqual(8.0, "x:uint64 = 5; y:int64 = 3; z = x + y".Calc().Get("z"));
+
+    [Test]
+    public void Max_UInt64_Int64_Works() =>
+        Assert.AreEqual(5.0, "x:uint64 = 5; y:int64 = 3; z = max(x,y)".Calc().Get("z"));
+
+    // ═══ Bitwise on bool — type error ═══
+
+    [TestCase("y = ~true")]
+    [TestCase("y = ~false")]
+    [TestCase("y = true & 42")]
+    [TestCase("y = false | 7")]
+    public void BitwiseOnBool_GivesTypeError(string expr) =>
+        expr.AssertObviousFailsOnParse();
 }

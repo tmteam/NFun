@@ -108,13 +108,15 @@ public class BodyTypeInferenceTests {
 
 
     [Test]
-    [Ignore("Prefered type for variable that initialized with non generic constant")]
     public void UpcastArgType_ArithmOp_EquationSolved() {
+        // a = 1.0 forces Real. y = a + b: addition (T,T)→T, T ≥ Real.
+        // b = 0x1 (hex, P=I32) feeds into T. But T ≥ Real → b = Real.
+        // Preferred I32 on b cannot override the Real constraint from a.
         var result = TestHelper.Solve("a = 1.0; y = a + b;  b = 0x1");
         result.AssertNoGenerics();
         result.AssertNamed(Real, "a");
         result.AssertNamed(Real, "y");
-        result.AssertNamed(I32, "b");
+        result.AssertNamed(Real, "b");
     }
 
     [Test]

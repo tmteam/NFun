@@ -477,6 +477,7 @@ public class GraphBuilder {
         }
 
         SolvingFunctions.PushConstraints(sorted);
+        SolvingFunctions.PropagatePreferred(sorted);
         PrintTrace("3. PushConstraints", sorted);
 
         bool allTypesAreSolved = SolvingFunctions.Destruction(sorted, hasOptionalTypes);

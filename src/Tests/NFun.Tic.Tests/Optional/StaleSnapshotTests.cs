@@ -64,6 +64,43 @@ class StaleSnapshotTests {
     }
 
     // ---------------------------------------------------------------
+    // Bug 15#3: if(true) [1,2,3] else [none] with Preferred=I32
+    // The Preferred hint should survive through array element LCA with None.
+    // Without the fix: element resolves to opt(U8) → UInt8?[]
+    // With the fix: element resolves to opt(I32) → Int32?[]
+    // ---------------------------------------------------------------
+    [Test]
+    public void IfElse_ArrayInt_vs_ArrayNone_PreferredPreserved() {
+        var graph = new GraphBuilder();
+        graph.SetConst(0, Bool);
+        // Use SetGenericConst with Preferred=I32 (matching real expression dialect)
+        // Use SetSoftArrayInit (not Strict) to match real parser behavior
+        graph.SetGenericConst(1, desc: U8, anc: Real, preferred: I32);
+        graph.SetGenericConst(6, desc: U8, anc: Real, preferred: I32);
+        graph.SetGenericConst(7, desc: U8, anc: Real, preferred: I32);
+        graph.SetSoftArrayInit(2, 1, 6, 7);  // [1,2,3]
+        graph.SetConst(3, None);
+        graph.SetStrictArrayInit(4, 3);  // [none]
+        graph.SetIfElse(new[] { 0 }, new[] { 2, 4 }, 5);
+        graph.SetDef("y", 5);
+
+        var result = graph.Solve();
+
+        var yNode = result.GetVariableNode("y").GetNonReference();
+        Assert.IsInstanceOf<StateArray>(yNode.State, $"y should be array but was {yNode.State.GetType().Name}: {yNode.State}");
+        var elemNode = ((StateArray)yNode.State).ElementNode.GetNonReference();
+        var elemState = elemNode.State;
+        // With Preferred=I32, LCA(None, CS[U8..Re,P=I32]) produces opt(I32)
+        // instead of opt(U8). The Preferred hint is used to resolve the inner type.
+        Assert.IsInstanceOf<StateOptional>(elemState,
+            $"Element should be Optional but was {elemState.GetType().Name}: {elemState}");
+        var optInner = ((StateOptional)elemState).Element;
+        // Inner should be I32 (resolved from Preferred)
+        Assert.AreEqual(I32, optInner,
+            $"Optional inner should be I32 (from Preferred) but was {optInner}");
+    }
+
+    // ---------------------------------------------------------------
     // Bug 2: if(true) {a=1} else {a=none}
     //
     // LCA of struct fields: field 'a' is int in one branch, none in the other.

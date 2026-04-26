@@ -103,7 +103,7 @@ public class GenericValidationTest {
             () => "y = true in [1,2,3]".Build());
     }
 
-    [Test, Ignore("Optional types experimental - none literal requires dialect flag")]
+    [Test]
     public void NoneInIntArray_ShouldWork() {
         // none in [1,2,3] -- none is opt(T), [1,2,3] is int[].
         // Requires optional types to be enabled.

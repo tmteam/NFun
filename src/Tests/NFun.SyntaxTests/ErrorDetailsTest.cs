@@ -52,7 +52,7 @@ public class ErrorDetailsTest {
     [TestCase("y(x) = ", "z", " +x")]
     [TestCase("", "y(x,x)=", "x+1")]
     [TestCase("", "y(x,x,z)=", "x+1")]
-    [TestCase("m =[1.0,6.0]", ".foold", "(rule(i,x)=i+1)")]
+    [TestCase("m =", "[1.0,6.0]", ".foold(rule(i,x)=i+1)")]
     [TestCase("[1.0,7.0].fold(rule(i,", "i", ")=i+1)")]
     [TestCase("[1.0,8.0].map(rule", "(i,j)=i+j", ")")]
     [TestCase("foo(x) = x +1\r y=", "foo", "*3")]

@@ -34,4 +34,29 @@ public class BooleanOperatorsTest {
     [TestCase("y = ∞ or false")]
     public void BooleanOperatorsRejectNonBoolConstants(string expr)
         => expr.AssertObviousFailsOnParse();
+
+    // ═══════════════════════════════════════════════════════════════
+    // Boolean operators on numeric types — type error
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("y = if(42) 1 else 2")]
+    [TestCase("y = if(0) 'a' else 'b'")]
+    public void BoolOperatorOnNumeric_GivesTypeError(string expr) =>
+        expr.AssertObviousFailsOnParse();
+
+    [Test]
+    public void LogicalOnInt_TypeError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = 1 and 2".Calc());
+    }
+
+    [Test]
+    public void IntLiteralInIfCondition_TypeError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+            () => "y = if(42) true else false".Calc());
+    }
+
+    [Test]
+    public void IncompatibleAnnotation_TypeError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y:bool = 42".Calc());
+    }
 }

@@ -301,6 +301,56 @@ public static class SolvingFunctions {
             throw TicErrors.IncompatibleTypes(ancestor, descendant);
     }
 
+    /// <summary>
+    /// Propagate Preferred resolution hints across all CS nodes in the graph.
+    /// After Pull/Push, Preferred may be lost when constraints flow through composite
+    /// snapshots (e.g., struct field access → array → element). This pass collects
+    /// Preferred from CS nodes with concrete primitive descendants (from actual values,
+    /// not function constraints), then applies to compatible CS nodes without Preferred.
+    /// See TicPreferred.md for formal specification.
+    /// </summary>
+    public static void PropagatePreferred(TicNode[] toposortedNodes) {
+        StatePrimitive commonPreferred = null;
+        var collectMark = NextMark();
+        foreach (var node in toposortedNodes)
+            CollectPreferred(node, ref commonPreferred, collectMark);
+        if (commonPreferred == null)
+            return;
+        var applyMark = NextMark();
+        foreach (var node in toposortedNodes)
+            ApplyPreferred(node, commonPreferred, applyMark);
+    }
+
+    private static void CollectPreferred(TicNode node, ref StatePrimitive preferred, int mark) {
+        var nr = node.GetNonReference();
+        if (nr.VisitMark == mark) return;
+        if (nr.State is ICompositeState composite) {
+            var prev = nr.VisitMark;
+            nr.VisitMark = mark;
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                CollectPreferred(composite.GetMember(mi), ref preferred, mark);
+            nr.VisitMark = prev;
+        }
+        if (nr.State is ConstraintsState cs && cs.Preferred != null)
+            preferred ??= cs.Preferred;
+    }
+
+    private static void ApplyPreferred(TicNode node, StatePrimitive preferred, int mark) {
+        var nr = node.GetNonReference();
+        if (nr.VisitMark == mark) return;
+        if (nr.State is ICompositeState composite) {
+            var prev = nr.VisitMark;
+            nr.VisitMark = mark;
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                ApplyPreferred(composite.GetMember(mi), preferred, mark);
+            nr.VisitMark = prev;
+        }
+        if (nr.State is ConstraintsState cs && cs.Preferred == null
+            && cs.HasDescendant && cs.Descendant is StatePrimitive
+            && cs.CanBeConvertedTo(preferred))
+            cs.Preferred = preferred;
+    }
+
     public static void PushConstraints(TicNode[] toposortedNodes) {
         for (int i = toposortedNodes.Length - 1; i >= 0; i--)
         {
@@ -373,12 +423,13 @@ public static class SolvingFunctions {
     /// <summary>
     /// Shared monotonic counter for VisitMark values across all solving phases.
     /// Each phase increments to get a unique mark — no collisions between phases.
+    /// Thread-safe: concurrent solver instances may call NextMark simultaneously.
     /// </summary>
     private static int _nextMark = 1000;
 
     /// <summary>Get the next unique VisitMark value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int NextMark() => ++_nextMark;
+    public static int NextMark() => System.Threading.Interlocked.Increment(ref _nextMark);
     private static int _materializeMark;
 
     private static void MaterializeOptionalFlags(TicNode[] nodes) {
@@ -821,6 +872,7 @@ public static class SolvingFunctions {
         foreach (var outputNode in outputNodes)
             foreach (var outputType in outputNode.GetAllOutputTypes())
                 outputType.VisitMark = outputTypeMark;
+
 
         //All not solved output types
         foreach (var inputNode in inputNodes)

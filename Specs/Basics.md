@@ -17,12 +17,12 @@ x = i + 1 # 'i' is the input
 Expression is a description of calculating a value of some type. Numbers, text, formulas, and function calls are all particular cases of expressions
 
 ```py
-2*(i-12).toText() # expression with type of text
+(i-12).toText() # expression with type of text
 ```
 
 Initialization of the variable (output) - assigning the value of the expression to the output
 ```py
-x = 2*(3-1).toText() #value '4' type 'text' is assigned to the output 'x'
+x = (2*(3-1)).toText() #value '4' type 'text' is assigned to the output 'x'
 ```
 Type declaration - explicit indication of the type of the variable
 ```py
@@ -202,7 +202,7 @@ An expression is anything from
 - variable
 - template text — `'hello {name}'`
 - function call
-- application of the operator (`[]`, `*`, `+`, `()`, `.`, `?.`, `??`, `!`, `and`, `or`, `>>`, `|`, and so on)
+- application of the operator (`[]`, `?[`, `*`, `+`, `()`, `.`, `?.`, `??`, `!`, `and`, `or`, `>>`, `|`, and so on)
 - default value - `default`
 - anonymous function - `rule`
 - array initializer `[...]`
@@ -476,7 +476,7 @@ Where functionName is the function name, and arg1,arg2, argN are the first secon
 i = reverse("hello") #'olleh'
 j = max(1,max(2,3)) #3
 k = 'hello'.concat(' world').reverse() #'dlrow olleh'
-m = i.unite(k) #'olle' (set union)
+m = i.unite(k) #'olehdrw ' (set union — unique elements from both arrays)
 ```
 
 ### Expressions not described in this document

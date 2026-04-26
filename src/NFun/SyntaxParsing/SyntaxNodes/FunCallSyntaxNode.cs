@@ -77,4 +77,11 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
 
     /// <summary>True when this call was made via ?. (safe piped call on optional).</summary>
     public bool IsSafeAccess { get; set; }
+
+    /// <summary>
+    /// Set by TicSetupVisitor when a pipe-forward call (a.f(args)) has no matching function f,
+    /// and is reinterpreted as struct field access + call: (a.f)(args).
+    /// ExpressionBuilderVisitor uses this to build field access + higher-order call.
+    /// </summary>
+    public bool IsFieldCall { get; set; }
 }

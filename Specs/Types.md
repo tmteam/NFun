@@ -79,7 +79,7 @@ y = apply(rule it*2, 21)   # 42
 
 Postfix `?` and `[]` apply to the return type: `rule(int)->int?` = function returning `int?`
 
-Argument types are covariant, return type is contravariant
+Argument types are **contravariant**, return type is **covariant**
 
 ## Struct type struct
 
@@ -107,8 +107,8 @@ c:any = b # real is converable to any
 - Array A is convertable to array B if the types of their elements are convertable
 - Function rule  A is convertable to function rule B if
   - number of function arguments are equal
-  - each type of argument A is convertible to the appropriate argument of B
-  - the return type of B is convertable to the return type of A
+  - each type of argument **B** is convertible to the appropriate argument of **A** (contravariant)
+  - the return type of **A** is convertable to the return type of **B** (covariant)
 - struct A  is convertible to struct B if A contains all the fields of the structure B (with the same names and types)
 - All numeric types are convertible to the real type
 - Unsigned integer types of low bitness are convertable to any integer types of higher bitness

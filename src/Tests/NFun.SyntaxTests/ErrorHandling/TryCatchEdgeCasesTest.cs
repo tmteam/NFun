@@ -111,7 +111,7 @@ public class TryCatchEdgeCasesTest {
             .AssertReturns("y", "hello world");
 
     [Test]
-    [Ignore("e.data is Any — field access on Any not supported yet")]
+    [Ignore("Field access on Any-typed e.data not supported — TIC cannot infer struct shape from Any")]
     public void TryCatchE_DataIsStruct() =>
         "y = try oops('fail', {code = 42}) catch(e) e.data.code"
             .AssertReturns("y", 42);
@@ -133,4 +133,49 @@ public class TryCatchEdgeCasesTest {
     public void TryCatch_TypeMismatch_BoolAndInt_Fails() =>
         Assert.Throws<FunnyParseException>(() =>
             "y:bool = try oops() catch 42".Calc());
+
+    // ═══════════════════════════════════════════════════════════════
+    // catch(e) variable should not leak as unbound input
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void CatchVariable_DoesNotLeakAsInput() {
+        var runtime = "y = try oops('hello') catch(e) e.message".Build();
+        // The error variable 'e' should NOT appear as a script-level input
+        foreach (var v in runtime.Variables)
+            Assert.AreNotEqual("e", v.Name,
+                "catch(e) variable 'e' should not leak as a script-level variable");
+    }
+
+    [Test]
+    public void CatchVariable_NoInputs() {
+        var runtime = "y = try 42 catch(e) 0".Build();
+        // Script has no inputs — only output 'y'
+        runtime.AssertInputsCount(0, "catch(e) should not create input variables");
+    }
+
+    [Test]
+    public void CatchVariable_StillWorks() =>
+        "y = try oops('hello') catch(e) e.message".AssertReturns("y", "hello");
+
+    [Test]
+    public void CatchVariable_CustomName_DoesNotLeak() {
+        var runtime = "y = try oops('test') catch(err) err.message".Build();
+        foreach (var v in runtime.Variables)
+            Assert.AreNotEqual("err", v.Name,
+                "catch(err) variable 'err' should not leak as a script-level variable");
+    }
+
+    [Test]
+    public void CatchVariable_WithExternalInput() {
+        // Ensure real inputs still work alongside catch variables
+        var runtime = "y = try x + oops('fail') catch(e) x".Build();
+        runtime["x"].Value = 42;
+        runtime.Run();
+        Assert.AreEqual(42, runtime["y"].Value);
+        // Only 'x' and 'y' should be variables, not 'e'
+        foreach (var v in runtime.Variables)
+            Assert.AreNotEqual("e", v.Name,
+                "catch(e) variable 'e' should not leak when real inputs exist");
+    }
 }

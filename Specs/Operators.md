@@ -15,7 +15,6 @@ Most operators may be applied for different types of operands. To simplify the d
 | Integers      | `int64`, `int32`,`int16`,  `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
 | Numbers       | `real`, **[Integers]**                                          | T => real                                           |
 | Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
-| ArithIntegers | `int64`, `int32`,         `uint64`, `uint32`                    | (int32 &#124; uint32) => T => (int64 &#124; uint64) |       
 | Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
 | Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
 
@@ -35,25 +34,25 @@ Following list shows operators precedence:
 operators with the highest precedence appear at the top of the list, those with the lowest appear at the bottom.
 Within an expression, higher precedence operators will be evaluated first.
 
-| Operators                              | Explanation                          |
-|----------------------------------------|--------------------------------------|
-| `()` `[]` `.` `?.` `!` (*unary*)`-`   | *Various*                            |
-| `**` `~`                               | Exponentiation, bitwise NOT          |
-| `*` `/` `//` `%`                       | Multiplication, divisions, remainder |
-| `+` `-`                                | Addition, subtraction                |
-| `<<`  `>>`                             | Bitwise Shifts                       |
-| `&`                                    | Bitwise AND                          |
-| `^`                                    | Bitwise XOR                          |
-| `&#124;`                               | Bitwise OR                           |
-| `>` `<` `>=` `<=`                      | Comparisons                          |
-| `==` `!=` `in`                         | Equality, membership                 |
-| `??`                                   | Null coalesce (short-circuit)        |
-| `not`                                  | Logical NOT                          |
-| `and`                                  | Logical AND (short-circuit)          |
-| `xor`                                  | Logical XOR                          |
-| `or`                                   | Logical OR (short-circuit)           |
-| `rule`                                 | Anonymous function                   |
-| `=`                                    | Variable initialization              |
+| Operators                                | Explanation                          |
+|------------------------------------------|--------------------------------------|
+| `()` `[]` `?[` `.` `?.` `!` (*unary*)`-` | *Various*                            |
+| `**` `~`                                 | Exponentiation, bitwise NOT          |
+| `*` `/` `//` `%`                         | Multiplication, divisions, remainder |
+| `+` `-`                                  | Addition, subtraction                |
+| `<<`  `>>`                               | Bitwise Shifts                       |
+| `&`                                      | Bitwise AND                          |
+| `^`                                      | Bitwise XOR                          |
+| `&#124;`                                 | Bitwise OR                           |
+| `>` `<` `>=` `<=`                        | Comparisons                          |
+| `==` `!=` `in`                           | Equality, membership                 |
+| `??`                                     | Null coalesce (short-circuit)        |
+| `not`                                    | Logical NOT                          |
+| `and`                                    | Logical AND (short-circuit)          |
+| `xor`                                    | Logical XOR                          |
+| `or`                                     | Logical OR (short-circuit)           |
+| `rule`                                   | Anonymous function                   |
+| `=`                                      | Variable initialization              |
 
 
 ## Arithmetic Operators
@@ -62,16 +61,16 @@ The following table shows all the arithmetic operators supported by the NFun lan
 
 Assume variable A holds 6 and variable B holds 4 then:
 
-| Operator    | Types       | Description	                                       | Example        |
-|-------------|-------------|----------------------------------------------------|----------------|
-| +           | Arithmetics | Adds two operands.	                                | `A + B` = 10   |
-| −           | Arithmetics | Subtracts second operand from the first.	          | `B − A` = -2   |
-| *           | Arithmetics | Multiplies both operands.	                         | `A * B` = 24   |
-| %           | Arithmetics | Modulus Operator - remainder of after an division. | `A % B` = 2    |
-| /           | `real`      | Divides real numerator by de-numerator.	           | `A / B` = 1.5  |
-| //          | Integers    | Divides integer numerator by de-numerator.	        | `A // B` = 1   |
+| Operator    | Types       | Description	                                                                                        | Example        |
+|-------------|-------------|------------------------------------------------------------------------------------------------------|----------------|
+| +           | Arithmetics | Adds two operands.	                                                                                | `A + B` = 10   |
+| −           | Arithmetics | Subtracts second operand from the first.	                                                            | `B − A` = -2   |
+| *           | Arithmetics | Multiplies both operands.	                                                                        | `A * B` = 24   |
+| %           | Arithmetics | Modulus Operator - remainder of after an division.                                                   | `A % B` = 2    |
+| /           | `real`      | Divides real numerator by de-numerator.	                                                            | `A / B` = 1.5  |
+| //          | Integers    | Divides integer numerator by de-numerator.	                                                        | `A // B` = 1   |
 | **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 |
-| − *(unary)* | Signed      | Multiply expression by -1.	                        | `−A` = -6      |
+| − *(unary)* | Numbers     | Multiply expression by -1. Works on signed integers and `real`                                       | `−A` = -6      |
 
 ### Integer overflow
 
@@ -176,12 +175,14 @@ and variable B has type of **byte** holds 13 (0b0000_1101), then:
 | ^	           | Integers | Binary XOR Operator copies the bit if it is set in one operand but not both.	    | `A ^ B` = 49 = 0b0011_0001  |
 | ~ *(unary)*	 | Integers | Binary One's Complement Operator is unary and has the effect of 'flipping' bits. | 	`~A` = ~60 = 0b1100_0011   |
 
-Bitshift operators takes **[Integers]** type as left operand and result. Right operand has type of byte
+Bitshift operators takes **[Integers]** type as left operand and result. Right operand has type of byte.
 
 | Operator | Description	                                                                                                              | Example                       |
 |----------|---------------------------------------------------------------------------------------------------------------------------|-------------------------------|
 | <<	      | Binary Left Shift Operator. The left operands value is moved left by the number of bits specified by the right operand.	  | `A << 2` = 240 = 0b1111_0000  |
 | \>\>	    | Binary Right Shift Operator. The left operands value is moved right by the number of bits specified by the right operand. | 	`A >> 2` = 15  = 0b0000_1111 |
+
+**Overflow behavior:** Shift count is masked to the bit width of the operand type: `x << n` = `x << (n % bits)`. For example, `1:int32 << 33` = `1 << 1` = 2. This matches C#/Java/JavaScript behavior. Bitshift operators are **not affected** by the `IntegerOverflow` dialect setting — they always use wrapping (masking) semantics, even when `IntegerOverflow.Checked` is active. This follows the CLR specification where shift operators are never checked.
 
 Assume A = 60 and B = 13 in binary format, they will be as follows:
 ```
@@ -214,6 +215,7 @@ Here we give only a superficial description of them
 | [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          |
 | ??             | Optionals    | Null coalesce operator. Returns left operand if not `none`, otherwise right operand. Right-associative                                                                                                            | x ?? 0                    |
 | ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                |
+| ?[             | Optionals    | Safe array indexing operator. Indexes into an optional array, returning `none` if the array is `none`                                                                                                             | arr?[0]                   |
 | ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        |
 
 ## Implicit Multiplication and Math Sugar

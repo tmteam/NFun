@@ -37,10 +37,9 @@ syntax: [a..b]
 ```
 where `a` and `b` is any of [Numbers] types
 
-if `a` greater than `b` it creates array with range from `a` to `b` **inclusive** 
-Each next element in such an array is greater than the previous one by 1
+if `a` is less than or equal to `b` it creates ascending array with range from `a` to `b` **inclusive** where each next element is greater than the previous one by 1
 
-if `b` is greater than `a` it creates reversed array where each next element is less than previous one by 1 started from `b`
+if `a` is greater than `b` it creates descending array with range from `a` to `b` **inclusive** where each next element is less than the previous one by 1
 
 Examples:
 ```
@@ -62,9 +61,9 @@ where `a`,`b`,`s` is any of [Numbers] types
 
 The operator is similar to 'Range Array Initialization Operator' but it allows you to specify the 'step' - difference between each next element
 
-if `a` is greater than `b` it creates array with range from `a` to `b` **inclusive** where each next element is greater than the previous one by 's'
+if `a` is less than or equal to `b` it creates ascending array with range from `a` to `b` **inclusive** where each next element is greater than the previous one by `s`
 
-otherwise it creates reversed array 
+if `a` is greater than `b` it creates descending array with range from `a` to `b` **inclusive** where each next element is less than the previous one by `s`
 
 Examples:
 ```

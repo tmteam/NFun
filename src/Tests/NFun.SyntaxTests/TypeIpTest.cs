@@ -76,4 +76,13 @@ public class TypeIpTest {
     [TestCase("0.0.0")]
     public void ObviousFails(string expr) =>
         expr.AssertObviousFailsOnParse();
+
+    // ═══════════════════════════════════════════════════════════════
+    // Hex IP literal
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void HexIpLiteral_Works() {
+        "out = 0xFF.0.0xA.0xFA".Calc().AssertResultHas("out", IPAddress.Parse("255.0.10.250"));
+    }
 }

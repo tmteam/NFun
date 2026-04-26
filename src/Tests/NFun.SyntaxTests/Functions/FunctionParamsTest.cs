@@ -166,7 +166,9 @@ public class FunctionParamsTest {
 
     [Test]
     public void Params_Recursive_EmptyBase() =>
-        "mylen(...x) = if(x.count() == 0) 0 else 1 + mylen() \r y = mylen(10, 20, 30)".AssertReturns("y", 1.0);
+        // After PropagatePreferred pass, integer literals' P=I32 propagates globally,
+        // narrowing the Arithmetical return type from Real to Int32.
+        "mylen(...x) = if(x.count() == 0) 0 else 1 + mylen() \r y = mylen(10, 20, 30)".AssertReturns("y", 1);
 
     // ── Params with mixed int/real types ──────────────────────────────────
 

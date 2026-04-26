@@ -245,4 +245,76 @@ public class CompareOperatorsTest {
     [TestCase("x:byte; y = x==42", (byte)43, false)]
     public void SingleVariableEquation(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
+
+    // ═══════════════════════════════════════════════════════════════
+    // Struct equality with structural subtyping
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void StructEquality_SameFields_Equal() =>
+        "{x=1} == {x=1}".AssertReturns(true);
+
+    [Test]
+    public void StructEquality_DifferentFieldCount_NotEqual() =>
+        // Per spec: structs must have same field list for equality
+        "{x=1, y=2} == {x=1}".AssertReturns(false);
+
+    [Test]
+    public void StructEquality_SharedFieldDiffers_NotEqual() =>
+        "{x=1, y=2} == {x=1, y=3}".AssertReturns(false);
+
+    [Test]
+    public void StructNotEqual_DifferentFieldCount_True() =>
+        "{x=1} != {x=1, y=2}".AssertReturns(true);
+
+    [Test]
+    public void StructInArray_DifferentFieldCount_NotFound() =>
+        // {x=1} not in [{x=1,y=2}] — different field counts
+        "out = {x=1} in [{x=1, y=2}]".AssertReturns("out", false);
+
+    [Test]
+    public void StructSubsetEqual_ShouldBeFalse() =>
+        "out = {a = 1} == {a = 1, b = 2}".AssertReturns("out", false);
+
+    [Test]
+    public void StructSupersetEqual_ShouldBeFalse() =>
+        "out = {a = 1, b = 2} == {a = 1}".AssertReturns("out", false);
+
+    [Test]
+    public void StructSubsetNotEqual_ShouldBeTrue() =>
+        "out = {a = 1} != {a = 1, b = 2}".AssertReturns("out", true);
+
+    [Test]
+    public void StructDisjointFields_NotEqual() =>
+        "out = {a = 1, b = 2} == {a = 1, c = 3}".AssertReturns("out", false);
+
+    [Test]
+    public void StructSameFields_Equal() =>
+        "out = {a = 1, b = 2} == {a = 1, b = 2}".AssertReturns("out", true);
+
+    [Test]
+    public void StructSameFieldsDiffValues_NotEqual() =>
+        "out = {a = 1, b = 2} == {a = 1, b = 3}".AssertReturns("out", false);
+
+    [Test]
+    public void StructThreeVsTwoFields() =>
+        "out = {a = 1, b = 2, c = 3} == {a = 1, b = 2}".AssertReturns("out", false);
+
+    [Test]
+    public void StructEqualityDifferentFields_NoCrash() {
+        Assert.DoesNotThrow(() =>
+            "a = {x=1, y=2}; b = {x=1, z=3}; out = a == b".Calc());
+    }
+
+    [Test]
+    public void StructEqualityDifferentFieldCount() {
+        "a = {x=1, y=2}; b = {x=1}; out = a == b".Calc().AssertResultHas("out", false);
+    }
+
+    [Test]
+    public void StructIntersect_Works() {
+        var r = "a=[{x=1},{x=2}]; b=[{x=2},{x=3}]; out=a.intersect(b)".Calc();
+        var arr = (object[])r.Get("out");
+        Assert.AreEqual(1, arr.Length, "intersect should find {x=2} in both arrays");
+    }
 }

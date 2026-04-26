@@ -792,6 +792,29 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         if (signature == null)
         {
+            // Pipe-forward with no matching function at ANY arity: reinterpret a.f(args) as (a.f)(args).
+            // Access struct field 'f' from the first arg, then call the result with remaining args.
+            // Only when the name is not a known function — if it exists at another arity, it's a user typo,
+            // and the "function not found" error is more helpful than a struct field type error.
+            if (node is FunCallSyntaxNode { IsPipeForward: true } pipedNode && allArgs.Length >= 1
+                && !_dictionary.ContainsName(node.Id))
+            {
+                var fieldNodeId = _nextSyntheticId++;
+                // 1. Field access: first arg is the struct, access field by name
+                _ticTypeGraph.SetFieldAccess(allArgs[0].OrderNumber, fieldNodeId, node.Id);
+                // 2. Call the field (lambda) with remaining args
+                var callIds = new int[allArgs.Length]; // (remaining args) + result
+                for (int i = 1; i < allArgs.Length; i++)
+                    callIds[i - 1] = ids[i];
+                callIds[^1] = ids[^1]; // result
+#if DEBUG
+                Trace(node, $"FieldCall {node.Id}: field@{fieldNodeId}, call({string.Join(",", callIds)})");
+#endif
+                _ticTypeGraph.SetCall(fieldNodeId, callIds);
+                pipedNode.IsFieldCall = true;
+                return true;
+            }
+
             //Functional variable
 #if DEBUG
             Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
@@ -933,14 +956,30 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // Accumulate WhenFalse from all conditions for the else branch.
         // if(x==none) ... if(z==none) ... else x+z
         // → else reached only when ALL conditions are false → union of all WhenFalse
+        //
+        // Progressive narrowing for multi-elif:
+        // if(x == none) -1              ← condition[0] visited normally
+        // if(x < 0) 0                   ← condition[1] visited with accumulated WhenFalse from [0]
+        // else x                         ← else visited with all accumulated WhenFalse
+        // When condition[0] is false → x != none → condition[1] and its expression see x narrowed.
         System.Collections.Generic.HashSet<string> elseNarrowed = null;
 
         for (int i = 0; i < node.Ifs.Length; i++) {
             var ifCase = node.Ifs[i];
-            if (!ifCase.Condition.Accept(this)) return false;
+            // Visit condition with accumulated narrowing from previous conditions being false.
+            // For i=0, elseNarrowed is null → condition visited normally.
+            // For i>0, accumulated WhenFalse from conditions[0..i-1] applies.
+            if (elseNarrowed is { Count: > 0 })
+                { if (!VisitWithNarrowing(ifCase.Condition, elseNarrowed, node.OrderNumber)) return false; }
+            else
+                { if (!ifCase.Condition.Accept(this)) return false; }
             var narrowing = Interpretation.NarrowingAnalyzer.Analyze(ifCase.Condition);
-            if (!VisitWithNarrowing(ifCase.Expression, narrowing.WhenTrue, node.OrderNumber))
-                return false;
+            // Expression sees: accumulated WhenFalse (from previous conditions) + current WhenTrue
+            var exprNarrowed = Union(elseNarrowed, narrowing.WhenTrue);
+            if (exprNarrowed is { Count: > 0 })
+                { if (!VisitWithNarrowing(ifCase.Expression, exprNarrowed, node.OrderNumber)) return false; }
+            else
+                { if (!ifCase.Expression.Accept(this)) return false; }
             // Accumulate else narrowing: union of all WhenFalse
             if (narrowing.WhenFalse.Count > 0) {
                 if (elseNarrowed == null) elseNarrowed = new(narrowing.WhenFalse);
@@ -991,6 +1030,17 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 if (Interpretation.NarrowingAnalyzer.IsFieldPath(id))
                     _narrowedFieldPaths.Remove(id);
         }
+        return result;
+    }
+
+    /// <summary>Union of two narrowing sets, either of which may be null.</summary>
+    private static System.Collections.Generic.HashSet<string> Union(
+        System.Collections.Generic.HashSet<string> a,
+        System.Collections.Generic.HashSet<string> b) {
+        if (a == null || a.Count == 0) return b;
+        if (b == null || b.Count == 0) return a;
+        var result = new System.Collections.Generic.HashSet<string>(a);
+        result.UnionWith(b);
         return result;
     }
 

@@ -3,10 +3,11 @@
 ## Фазы
 
 1. **Build** — построение constraint graph из AST
-2. **Toposort** — топологическая сортировка + слияние циклов
+2. **Toposort** — топологическая сортировка + слияние циклов (может быть fused с Pull при отсутствии None)
 3. **Pull** — распространение нижних границ (desc → anc), оператор LCA
 4. **Push** — распространение верхних границ (anc → desc), оператор GCD
-5. Destruction + Finalize — *(за рамками этого документа)*
+5. **PropagatePreferred** — broadcast Preferred hint по всем совместимым CS нодам (см. ниже)
+6. Destruction + Finalize — см. `TicAlgorithm_Destruction.md`
 
 Pull и Push — ядро алгоритма. Все операции в них выражаются через:
 - **6 алгебраических операторов** (LCA, GCD, FitsInto, Unify, Concretest, Abstractest) — см. `Algebra.md`
@@ -46,11 +47,25 @@ FitsInto(∅, T) = true
 Помимо интервала `[D..A]`, ConstraintsState содержит два boolean-флага:
 
 - **IsOptional** — тип допускает None. Устанавливается через None absorption в Pull. Propagation: `opt_result := opt_a ∨ opt_d` (OR — расширяет множество допустимых значений).
-- **IsComparable** — тип должен поддерживать сравнение. Устанавливается из сигнатуры функции (операторы `>`, `<`, `==` и т.д.). Propagation: при Pull `cmp_result := cmp_a ∧ cmp_d` (AND — constraint сужается при join). При Push: передаётся от ancestor к descendant.
+- **IsComparable** — тип должен поддерживать сравнение. Устанавливается из сигнатуры функции (операторы `>`, `<`, `==` и т.д.). Propagation: при **Pull** — не пропагируется (comparable на descendant не требует comparable на ancestor: `max(a,b)` возвращает comparable, но if-else может объединить comparable и non-comparable). При **Push** — передаётся от ancestor к descendant (`D.cmp := D.cmp ∨ A.cmp`): если ancestor comparable, descendant тоже должен быть. При **Merge** (Destruction): `cmp_result := cmp_a ∨ cmp_d` (OR). Валидация: SimplifyOrNull отвергает интервал если IsComparable=true но тип не comparable.
 
 Оба флага **не участвуют в LCA/GCD** напрямую. Они propagate по своим правилам при обработке CS←CS и CS→CS.
 
-**Preferred** — hint для Destruction (pref=I32 для целочисленных литералов). **Не участвует** в алгебраических операциях (LCA, GCD, FitsInto). Propagation в Pull: копируется от descendant к ancestor если ancestor не имеет своего. Preservation: Concretest сохраняет Preferred на CS-результатах (metadata не теряется при создании snapshot-ов для composite elements).
+**Preferred** — hint для resolution (pref=I32 для целочисленных литералов). **Не участвует** в алгебраических операциях (LCA, GCD, FitsInto). Preferred — metadata, не constraint. Влияет только на `SolveCovariant` при финальном выборе типа из интервала. Полная спецификация: `TicPreferred.md`.
+
+**Правила propagation Preferred:**
+
+1. **Pull(CS←CS)**: если `A.pref = ∅ ∧ D.pref ≠ ∅`: `A.pref := D.pref` (upward). Также: если `D.pref = ∅ ∧ A.pref ≠ ∅`: `D.pref := A.pref` (downward, для struct field chains).
+
+2. **IntersectIntervalsOrNull**: при пересечении двух CS берётся первый ненулевой Preferred, проверяется `CanBeConvertedTo`. Если оба имеют разный Preferred — выбирается тот что подходит к результату.
+
+3. **PropagatePreferred pass** (после Push, перед Destruction): отдельный проход по всем узлам графа.
+   - **Collect**: рекурсивно обходит все CS-ноды (включая вложенные в composites). Собирает первый найденный Preferred.
+   - **Apply**: рекурсивно обходит все CS-ноды. Если CS не имеет Preferred, desc — StatePrimitive, и CS может быть сконвертирован в collected Preferred → устанавливает `cs.Preferred = collected`.
+   - Это решает struct field access: `s.m` создаёт CS-посредники без Preferred. PropagatePreferred раздаёт I32 (от литералов) всем совместимым CS-нодам в графе.
+   - Безопасность: Preferred — metadata, не constraint. Установка Preferred на совместимый CS не меняет корректность — только улучшает разрешение.
+
+**Инвариант**: Preferred никогда не СОЗДАЁТ constraint — он только ВЫБИРАЕТ из существующих валидных решений. Поэтому propagation Preferred безопасен: любой результат в интервале `[Desc..Anc]` корректен, Preferred лишь выбирает "лучший".
 
 ---
 
@@ -75,6 +90,8 @@ FitsInto(∅, T) = true
 | `s.field` | — | `s →comp N` | s: Struct{field:N} (mutable) |
 | `s?.field` | — | `res →comp inner` | res: Opt(inner) |
 | `a ?? b` | `a →c Opt(U)`, `U →c R`, `b →c R` | `Opt(U) →comp U` | U: fresh `[∅..∅]`, R: `[∅..∅]` |
+| `a?[i]` | `a →c Opt(Arr(E))`, `i →c I32` | `res →comp inner` | res: Opt(inner), inner связан с E |
+| `x != none` narrowing | `orig →c Opt(T)`, `T` merged с narrowed | — | narrowed: unwrapped тип внутри if-branch |
 
 ### Инстанциация вызовов функций
 
@@ -133,6 +150,8 @@ Instantiate: для каждой типовой переменной T в сиг
 **Инвариант порядка**: `Nᵢ →c Nⱼ` ⟹ `i < j`.
 
 DFS обходит **оба** вида рёбер (constraint + component). Порядок посещения: компоненты → ancestors → сам узел.
+
+**Оптимизация: fused Toposort+Pull.** Если в графе нет ни одного None-узла (`hasNone=false`), Toposort и Pull объединяются в один проход: Pull выполняется inline для каждого узла в момент его emit-а из toposort. Если `hasNone=true` — Toposort и Pull выполняются раздельно (двухфазный Pull требует предварительного полного toposort-порядка). Семантика идентична; это чисто перформансная оптимизация.
 
 **Циклы**: при обнаружении цикла узлы сливаются в один (состояния объединяются через **Unify**). Циклы возникают из взаимных ссылок (`x = f(y); y = g(x)`). После слияния граф — DAG.
 
@@ -194,6 +213,10 @@ A:[F<C₁,...>]  ≤  D:[Opt(F<C'₁,...>)]
 
 Аналогия с HM: shape-rigid ≈ rigid (skolem) type variables. Форма конструктора фиксирована, компоненты внутри — flexible.
 
+**Реализация: WrapAncestorInOptional / WrapDescendantInOptional.** Обе функции в `StagesExtension` — единый dispatch для Optional wrapping, используемый всеми фазами (Pull, Push, Destruction):
+- **WrapAncestorInOptional**: отвергает SyntaxNode (ошибка типов — литерал не может стать Optional) и IsSignatureParam (shape-rigid). Создаёт inner-узел с текущим состоянием ancestor, устанавливает `IsOptionalElement`.
+- **WrapDescendantInOptional**: для SyntaxNode — fallback: unwрапливает Optional ancestor и рекурсивно применяет функцию к element (литерал не оборачивается, а проверяется как element). Для TypeVariable — аналогично WrapAncestor: создаёт inner-узел, устанавливает `IsOptionalElement`.
+
 Все остальные constraint edges A остаются. При их обработке A уже имеет Optional-форму → срабатывает Opt←Opt, Opt←Primitive или Opt←CS по стандартным правилам.
 
 ### Implicit lift (Optional)
@@ -212,7 +235,7 @@ A:[F<C₁,...>]  ≤  D:[Opt(F<C'₁,...>)]
 
 **Цель**: для каждого `D →c A` передать нижнюю границу D в A.
 
-**Порядок**: по toposort (потомки раньше предков). Для каждого узла: сначала рекурсивно Pull компонентов (по component links), затем обработка constraint edges.
+**Порядок**: по toposort (потомки раньше предков). Для каждого узла: сначала обработка constraint edges (ancestor edges), затем рекурсивно Pull компонентов (по component links). Обоснование: Pull может изменить состояние узла (CS → Composite через TransformToXxx), после чего composite members нужно рекурсивно обработать.
 
 ### Определение
 

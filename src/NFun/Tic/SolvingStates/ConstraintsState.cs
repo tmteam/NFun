@@ -26,7 +26,7 @@ public class ConstraintsState : ITicNodeState {
     public bool IsSolved => false;
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
-    public bool IsComparable { get; }
+    public bool IsComparable { get; internal set; }
     public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional;
 
     public static ConstraintsState Empty => new(null, null, false);
@@ -170,6 +170,14 @@ public class ConstraintsState : ITicNodeState {
         result.AddDescendant(other.Descendant);
         if (!result.TryAddAncestor(other.Ancestor))
             return null;
+        // Preserve Preferred through interval intersection.
+        // Both sides may carry Preferred from integer constants (P=I32).
+        // Take first non-null; if both exist and differ, keep the one that fits.
+        result.Preferred = Preferred ?? other.Preferred;
+        if (Preferred != null && other.Preferred != null && !Preferred.Equals(other.Preferred))
+            result.Preferred = result.CanBeConvertedTo(Preferred) ? Preferred : other.Preferred;
+        if (result.Preferred != null && !result.CanBeConvertedTo(result.Preferred))
+            result.Preferred = null;
         return result;
     }
 

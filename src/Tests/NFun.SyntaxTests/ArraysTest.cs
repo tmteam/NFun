@@ -5,7 +5,6 @@ using NFun.TestTools;
 using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
-
 namespace NFun.SyntaxTests;
 
 [TestFixture]
@@ -437,5 +436,95 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
         var yVar = runtime.Variables.Single(v => v.Name == "y");
         Assert.AreEqual(BaseFunnyType.ArrayOf, yVar.Type.BaseType);
         Assert.AreEqual(BaseFunnyType.Int32, yVar.Type.ArrayTypeSpecification.FunnyType.BaseType);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Slice with reversed indices should throw consistent error
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("[1,2,3][1:0]")]
+    [TestCase("[1,2,3][2:0]")]
+    [TestCase("[1,2,3][2:1]")]
+    [TestCase("[1,2,3][3:0]")]
+    [TestCase("[1,2,3,4,5][4:1]")]
+    public void SliceReversedIndices_ThrowsConsistentError(string expr) {
+        var runtime = $"y = {expr}".Build();
+        var ex = Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
+        Assert.That(ex.Message, Does.Contain("Start cannot be more than end"));
+    }
+
+    [TestCase("[1,2,3][1:0:1]")]
+    [TestCase("[1,2,3][2:0:1]")]
+    [TestCase("[1,2,3][2:1:1]")]
+    public void SliceWithStepReversedIndices_ThrowsConsistentError(string expr) {
+        var runtime = $"y = {expr}".Build();
+        var ex = Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
+        Assert.That(ex.Message, Does.Contain("Start cannot be more than end"));
+    }
+
+    [TestCase("[1,2,3][0:0]", new[] { 1 })]
+    [TestCase("[1,2,3][0:2]", new[] { 1, 2, 3 })]
+    [TestCase("[1,2,3][1:2]", new[] { 2, 3 })]
+    public void SliceValidIndices_StillWorks(string expr, int[] expected) {
+        $"y = {expr}".AssertReturns("y", expected);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Text take/skip clamping beyond length
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("'hello'.take(6)", "hello")]
+    [TestCase("'hello'.take(100)", "hello")]
+    [TestCase("'hello'.take(5)", "hello")]
+    [TestCase("'hello'.take(3)", "hel")]
+    [TestCase("'hello'.take(0)", "")]
+    [TestCase("'hello'.take(1)", "h")]
+    public void TextTake_ClampsBeyondLength(string expr, string expected) {
+        expr.AssertReturns(expected);
+    }
+
+    [TestCase("'hello'.skip(0)", "hello")]
+    [TestCase("'hello'.skip(3)", "lo")]
+    [TestCase("'hello'.skip(5)", "")]
+    [TestCase("'hello'.skip(100)", "")]
+    public void TextSkip_StillWorks(string expr, string expected) {
+        expr.AssertReturns(expected);
+    }
+
+    [TestCase("[1,2,3].take(100)", new[] { 1, 2, 3 })]
+    [TestCase("[1,2,3].take(3)", new[] { 1, 2, 3 })]
+    [TestCase("[1,2,3].take(1)", new[] { 1 })]
+    public void ArrayTake_StillClamps(string expr, int[] expected) {
+        expr.AssertReturns(expected);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Slice with variable start
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void SliceWithVariableStart_ParsedCorrectly() {
+        // Slice is inclusive on both ends: arr[2:4] = [3,4,5] (indices 2,3,4)
+        "arr = [1,2,3,4,5]\r i = 2\r y = arr[i:4]"
+            .AssertResultHas("y", new[] { 3, 4, 5 });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Range without annotation
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void RangeWithoutAnnotation_Works() {
+        "y:int[] = [1..5]".AssertReturns("y", new[]{1,2,3,4,5}); // works WITH annotation
+        Assert.DoesNotThrow(() => "y = [1..5]".Calc()); // works WITHOUT
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Text sort
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void TextSort_DoesNotCrash() {
+        Assert.DoesNotThrow(() => "y = 'cba'.sort()".Calc());
     }
 }

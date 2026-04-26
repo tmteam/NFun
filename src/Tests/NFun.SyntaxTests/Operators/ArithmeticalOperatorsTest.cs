@@ -1,4 +1,5 @@
 using System;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -327,4 +328,50 @@ public class ArithmeticalOperatorsTest {
     [TestCase("a: int a=4")]
     [TestCase("a:int = 2/4")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    // ═══════════════════════════════════════════════════════════════
+    // Binary minus before unary minus: `5 - -3` = 8
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("5 - -3", 8)]
+    [TestCase("10 - -10", 20)]
+    [TestCase("0 - -1", 1)]
+    public void BinaryMinusBeforeUnaryMinus_Works(string expr, object expected) {
+        expr.AssertReturns(expected);
+    }
+
+    [TestCase("5 + -3", 2)]
+    [TestCase("5 * -3", -15)]
+    [TestCase("10 / -2", -5.0)]
+    public void OtherOperatorsBeforeUnaryMinus_StillWork(string expr, object expected) {
+        expr.AssertReturns(expected);
+    }
+
+    [Test]
+    public void DoubleNegation_StillForbidden() {
+        Assert.Throws<FunnyParseException>(() => "--3".Build());
+    }
+
+    [Test]
+    public void DoubleNegationWithSpace_StillForbidden() {
+        Assert.Throws<FunnyParseException>(() => "- -3".Build());
+    }
+
+    [TestCase("y = x - -1", 2, 3)]
+    [TestCase("y = x - -x", 5.0, 10.0)]
+    public void BinaryMinusUnaryMinus_WithVariables(string expr, object x, object expected) {
+        if (x is int xi)
+            expr.Calc("x", xi).AssertResultHas("y", expected);
+        else
+            expr.Calc("x", (double)x).AssertResultHas("y", expected);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Arithmetic on bool should be a type error
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void ArithmeticOnBool_TypeError() {
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = true + 1".Calc());
+    }
 }

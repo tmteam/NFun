@@ -25,9 +25,13 @@ public class PullConstraintsFunctions : IStateFunction {
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
         ancestorCopy.AddDescendant(descendant.Descendant);
-        // Propagate Preferred from descendant (e.g., integer constants with Preferred=I32).
+        // Propagate Preferred bidirectionally:
+        // Upward (desc→anc): integer constants push I32 to array element types.
+        // Downward (anc→desc): struct field chains push I32 to generic function results.
         if (ancestorCopy.Preferred == null && descendant.Preferred != null)
             ancestorCopy.Preferred = descendant.Preferred;
+        if (descendant.Preferred == null && ancestor.Preferred != null)
+            descendant.Preferred = ancestor.Preferred;
         // Propagate IsOptional flag (OR semantics): if descendant is optional,
         // the ancestor must be optional too. Uses AddDescendant(None) which sets the flag.
         if (descendant.IsOptional)
@@ -197,8 +201,17 @@ public class PullConstraintsFunctions : IStateFunction {
             if (descendant.ElementNode.State is StateOptional descOpt
                 && ancestor.ElementNode.State is ConstraintsState ancCon)
             {
+                // Create inner CS for the Optional element. When the ancestor's descendant
+                // is itself Optional (e.g., opt(I32) from a named type snapshot), unwrap it:
+                // the outer Optional wrapper consumes the Optional layer.
+                var innerCopy = ancCon.GetCopy();
+                if (innerCopy.HasDescendant && innerCopy.Descendant is StateOptional innerOptDesc) {
+                    var pref = innerCopy.Preferred;
+                    innerCopy = ConstraintsState.Of(innerOptDesc.Element, innerCopy.Ancestor, innerCopy.IsComparable);
+                    innerCopy.Preferred = pref;
+                }
                 var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestor.ElementNode.Name + "'", ancCon.GetCopy());
+                    "e" + ancestor.ElementNode.Name + "'", innerCopy);
                 descOpt.ElementNode.AddAncestor(innerNode);
                 ancestor.ElementNode.State = new StateOptional(innerNode);
                 ancestor.ElementNode.IsOptionalElement = true;

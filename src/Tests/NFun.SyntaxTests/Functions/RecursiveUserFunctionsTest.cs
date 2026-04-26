@@ -89,7 +89,7 @@ public class RecursiveUserFunctionsTest {
     public void ConstantEquationOfReal_RecFunctions(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 
-    [Ignore("Todo. Save generic function input type info, to have preferred type as result")]
+    [Ignore("Recursive generic function input type not propagated as preferred — x inferred as Real instead of Int32")]
     [Test]
     public void UserFunctionPreferedTypeIsUsedInBody() =>
         "g(x) = g(x-1); out = g(x)".Build().AssertContains("x", FunnyType.Int32);
@@ -197,4 +197,28 @@ public class RecursiveUserFunctionsTest {
     public void RecursiveConcat_SecondParam() =>
         "range(a,b) = if(a>=b) [] else [b].concat(range(a+1,b))\r y = range(0,3)"
             .AssertResultHas("y", new[] { 3, 3, 3 });
+
+    // ═══════════════════════════════════════════════════════════════
+    // Recursive function with lambda — circular ancestor guard
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void RecursiveFunctionWithLambda_CircularAncestor() {
+        "applyN(x, f, n:int) = if(n > 0) applyN(f(x), f, n-1) else x; out = applyN(1, rule it*2, 3)"
+            .AssertReturns("out", 8);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Recursive function shadows built-in
+    // ═══════════════════════════════════════════════════════════════
+
+    [Test]
+    public void RecursiveFuncShadowsBuiltin() {
+        // 'last' shadows built-in last(T[]):T. Recursive call must resolve to the user function.
+        "last(x:int):int = if(x > 0) last(x-1) else 0; out = last(5)".Calc()
+            .AssertResultHas("out", 0);
+        // 'count' shadows built-in count(T[]):int.
+        "count(x:int):int = if(x > 0) 1 + count(x-1) else 0; out = count(5)".Calc()
+            .AssertResultHas("out", 5);
+    }
 }
