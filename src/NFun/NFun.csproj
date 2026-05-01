@@ -19,12 +19,12 @@
     <TargetFrameworks>net5.0;net6.0;net8.0;net10.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>NFunKey.snk</AssemblyOriginatorKeyFile>
     <PackageReadmeFile>nuget-readme.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <InternalsVisibleTo Include="NFun.UnitTests"/>
     <InternalsVisibleTo Include="NFun.Tic.Tests"/>
     <InternalsVisibleTo Include="NFun.SyntaxTests"/>

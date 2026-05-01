@@ -2,7 +2,7 @@
 
 To install NFun, run the following command in the Package Manager Console:
 
-```js
+```
 PM> Install-Package NFun 
 ```
 
@@ -103,6 +103,7 @@ Low-level hardcore API is also supported
 - Syntax and semantic customization
 - Built-in functions
 - Comments
+- Optional types, type narrowing, named types, etc...
 
 ## How to
 
@@ -130,30 +131,3 @@ Boring specification is better than no specification
 [Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
 
 [Boring specification: Math sugar](https://github.com/tmteam/NFun/blob/master/Specs/Math-Sugar.md)
-
-```                                                                                                           
-     ';,                                                                                ;;      
-   'lO0l                                                                               'dKkc    
-  c0Xk;                                                                                  cOXk:  
-'dXKc                 ';;;,'                                        ',;;;'                'dXKl 
-dNKc                     ',;;;;,'                              ',;;;;,'                     oXXl
-XNo                          '',;;;,'                      ',;;;,''                         'kW0
-WK:                               ,:::,                  ,:::,                               lNX
-W0;                            ',;;;;,                    ,;;;;,'                            cXN
-W0;                        ',;;;,'                            ',;;;,'                        lXN
-NXl                    ,;;;;,'                                    ',;;;;,                    dWK
-OWO,                  ','        ',;;;,                  ,;;;,'        ','                  :KNd
-:0Nk,                        ',;;;,'                        ',;;;,'                        :0Nx,
- ,xX0c                  ',;;;,,'                                ',,;;;,'                 'oKKo' 
-   cOKO:               ,;,'                                          ',;,               l0Kx;   
-     :dc                                                                               'lo;     
-                                                                                                
-                                                                                                
-                                                                                                
-                                     ,;;,              ';;,                                     
-                                    ;:;;:,            ,:;;:;                                    
-                                  ';:,  ,:;          ;:,  ,:;'                                   
-                                 ';:'    ,:;'      ';:,    '::'                                  
-                                 ',       ','      ','      ','                                  
-
-```
