@@ -78,15 +78,21 @@ public class VMRuntime {
         syntaxTree.IsSimpleBody = setNodeNumberVisitor.IsSimpleBody;
 
         // TIC type inference (reuse existing helper)
-        bool typesApplied;
         var typeInferenceResults = RuntimeBuilderHelper.SolveBodyOrThrow(
             syntaxTree, functionRegistry, constants,
             aprioriTypesMap ?? EmptyAprioriTypesMap.Instance,
-            customTypes, dialect, out typesApplied,
+            customTypes, dialect, out var typesApplied,
             namedTypeFieldRegistry: null);
 
-        // Bytecode compilation
+        // Apply TIC types to syntax nodes (needed for BytecodeCompiler to read OutputType)
         var typesConverter = TicTypesConverter.Concrete;
+        if (!typesApplied) {
+            var enterVisitor = new ApplyTiResultEnterVisitor(typeInferenceResults, typesConverter);
+            foreach (var syntaxNode in syntaxTree.Nodes) {
+                if (syntaxNode is SyntaxParsing.SyntaxNodes.UserFunctionDefinitionSyntaxNode) continue;
+                syntaxNode.ComeOver(enterVisitor);
+            }
+        }
         var program = BytecodeCompiler.Compile(
             syntaxTree, functionRegistry, typeInferenceResults, typesConverter, dialect);
 

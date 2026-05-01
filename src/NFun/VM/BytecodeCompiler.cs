@@ -74,7 +74,9 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         foreach (var node in tree.Nodes) {
             if (node is EquationSyntaxNode eq) {
                 equations.Add(eq);
-                AllocateSlot(eq.Id, isOutput: true, eq.OutputType);
+                var eqType = eq.OutputType.BaseType != BaseFunnyType.Empty
+                    ? eq.OutputType : GetOutputType(eq.Expression);
+                AllocateSlot(eq.Id, isOutput: true, eqType);
             }
             else if (node is UserFunctionDefinitionSyntaxNode funcDef) {
                 userFuncDefs.Add(funcDef);
@@ -89,7 +91,9 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         // Compile each equation: emit expression code, then STORE_LOCAL to output slot
         foreach (var eq in equations) {
             CompileExpression(eq.Expression);
-            EmitConvertIfNeeded(eq.Expression.OutputType, eq.OutputType);
+            var targetType = eq.OutputType.BaseType != BaseFunnyType.Empty
+                ? eq.OutputType : GetOutputType(eq.Expression);
+            EmitConvertIfNeeded(GetOutputType(eq.Expression), targetType);
             var slot = _localSlots[eq.Id];
             _e.EmitWithArg(Op.StoreLocal, (byte)slot);
         }
@@ -493,7 +497,13 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
                 _e.EmitWithArg(Op.LoadConstI, (byte)_e.AddConstant(FunValue.FromChar(c)));
                 break;
             case string s:
-                _e.EmitWithArg(Op.LoadConstRef, (byte)_e.AddConstant(FunValue.FromRef(s)));
+                // Real constants are stored as strings by the parser
+                if (type.BaseType == BaseFunnyType.Real && double.TryParse(s,
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+                    _e.EmitWithArg(Op.LoadConstR, (byte)_e.AddConstant(FunValue.FromReal(parsed)));
+                else
+                    _e.EmitWithArg(Op.LoadConstRef, (byte)_e.AddConstant(FunValue.FromRef(s)));
                 break;
             case FunnyNone:
                 _e.Emit(Op.LoadNone);

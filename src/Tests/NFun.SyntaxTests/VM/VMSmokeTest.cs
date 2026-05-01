@@ -26,7 +26,9 @@ public class VMSmokeTest {
     public void RealArithmetic(string expr, string varName, double expected) {
         var vm = Funny.Hardcore.BuildVM(expr);
         vm.Run();
-        Assert.AreEqual(expected, (double)vm.GetOutput(varName), 0.0001);
+        var result = vm.GetOutput(varName);
+        Assert.IsNotNull(result, $"GetOutput returned null for {varName}");
+        Assert.AreEqual(expected, (double)result, 0.0001, $"Type={result.GetType().Name}");
     }
 
     [TestCase("y = true", "y", true)]
@@ -45,9 +47,15 @@ public class VMSmokeTest {
     [TestCase("y = 5 == 5", "y", true)]
     [TestCase("y = 5 != 3", "y", true)]
     public void Comparisons(string expr, string varName, bool expected) {
+        // Tree-walker result for reference
+        var tw = Funny.Hardcore.Build(expr);
+        tw.Run();
+        var twResult = tw["y"].Value;
+
         var vm = Funny.Hardcore.BuildVM(expr);
         vm.Run();
-        Assert.AreEqual(expected, vm.GetOutput(varName));
+        var vmResult = vm.GetOutput(varName);
+        Assert.AreEqual(expected, vmResult, $"VM returned {vmResult?.GetType()?.Name}:{vmResult}, tree-walker returned {twResult?.GetType()?.Name}:{twResult}");
     }
 
     [Test]
@@ -66,7 +74,9 @@ public class VMSmokeTest {
 
     [Test]
     public void InputVariable() {
-        var vm = Funny.Hardcore.BuildVM("y = x + 1");
+        var vm = Funny.Hardcore
+            .WithApriori("x", FunnyType.Int32)
+            .BuildVM("y = x + 1");
         vm.SetInput("x", 41);
         vm.Run();
         Assert.AreEqual(42, vm.GetOutput("y"));
