@@ -296,6 +296,11 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             return 0;
         }
 
+        // Native arithmetic/comparison operators — bypass CALL_EXTERN for performance
+        // Check both IsOperator (parser flag) and known operator names (SPS may not set IsOperator)
+        if (args.Length == 2 && TryEmitNativeOperator(id, args, node))
+            return 0;
+
         // Resolve function
         var someFunc = node.ResolvedSignature
             ?? _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber)
@@ -882,6 +887,58 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
     private static bool IsIntegerType(FunnyType type) =>
         type.BaseType >= BaseFunnyType.UInt8 && type.BaseType <= BaseFunnyType.Int64;
+
+    /// <summary>
+    /// Try to emit native VM opcodes for arithmetic/comparison operators.
+    /// Returns true if handled natively (no CALL_EXTERN needed).
+    /// This is the key performance optimization: avoids boxing/unboxing for every arithmetic op.
+    /// </summary>
+    private bool TryEmitNativeOperator(string opName, ISyntaxNode[] args, FunCallSyntaxNode node) {
+        var outputType = GetOutputType(node);
+        var leftType = GetOutputType(args[0]);
+        var rightType = GetOutputType(args[1]);
+        bool isReal = IsRealType(outputType) || IsRealType(leftType) || IsRealType(rightType);
+        bool isInt = !isReal && (IsIntegerType(outputType) || IsIntegerType(leftType) || IsIntegerType(rightType));
+
+        if (!isReal && !isInt) return false; // not numeric — can't use native opcodes
+
+        Op? op = opName switch {
+            CoreFunNames.Add        => isReal ? Op.AddReal : Op.AddInt,
+            CoreFunNames.Substract  => isReal ? Op.SubReal : Op.SubInt,
+            CoreFunNames.Multiply   => isReal ? Op.MulReal : Op.MulInt,
+            CoreFunNames.DivideReal => Op.DivReal,
+            CoreFunNames.DivideInt  => Op.DivInt,
+            CoreFunNames.Remainder  => isReal ? Op.ModReal : Op.ModInt,
+            CoreFunNames.Pow        => isReal ? Op.PowReal : Op.PowInt,
+            CoreFunNames.More       => isReal ? Op.GtReal : Op.GtInt,
+            CoreFunNames.Less       => isReal ? Op.LtReal : Op.LtInt,
+            CoreFunNames.MoreOrEqual => isReal ? Op.GteReal : Op.GteInt,
+            CoreFunNames.LessOrEqual => isReal ? Op.LteReal : Op.LteInt,
+            CoreFunNames.Equal      => isReal ? Op.EqReal : Op.EqInt,
+            CoreFunNames.NotEqual   => isReal ? Op.NeqReal : Op.NeqInt,
+            CoreFunNames.BitAnd     => isInt ? Op.BitAnd : null,
+            CoreFunNames.BitOr      => isInt ? Op.BitOr : null,
+            CoreFunNames.BitXor     => isInt ? Op.BitXor : null,
+            CoreFunNames.BitShiftLeft  => isInt ? Op.Shl : null,
+            CoreFunNames.BitShiftRight => isInt ? Op.Shr : null,
+            CoreFunNames.And        => Op.And,
+            CoreFunNames.Or         => Op.Or,
+            _ => null,
+        };
+
+        if (op == null) return false;
+
+        var domain = isReal ? FunnyType.Real : FunnyType.Int64;
+
+        CompileExpression(args[0]);
+        EmitConvertIfNeeded(leftType, domain);
+
+        CompileExpression(args[1]);
+        EmitConvertIfNeeded(rightType, domain);
+
+        _e.Emit(op.Value);
+        return true;
+    }
 }
 
 /// <summary>
