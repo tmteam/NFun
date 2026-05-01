@@ -123,6 +123,21 @@ public class HardcoreBuilder {
             _customTypes);
     }
 
+    /// <summary>
+    /// Build using the bytecode VM instead of the tree-walking interpreter.
+    /// Experimental: not all features supported yet.
+    /// </summary>
+    public VM.VMRuntime BuildVM(string script) {
+        var converter = Converter;
+        return VM.VMRuntime.Build(
+            script,
+            BaseFunctions.GetFunctions(converter.TypeBehaviour).CloneWith(_customFunctions),
+            _dialect,
+            _constants.Length > 0 ? new ConstantList(converter, _constants) : null,
+            _mutableApriori,
+            _customTypes);
+    }
+
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
             script,
