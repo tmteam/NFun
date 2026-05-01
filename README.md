@@ -130,4 +130,8 @@ Boring specification is better than no specification
 
 [Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
 
+[Boring specification: Optional types](https://github.com/tmteam/NFun/blob/master/Specs/Optionals.md)
+
+[Boring specification: Named types](https://github.com/tmteam/NFun/blob/master/Specs/NamedTypes.md)
+
 [Boring specification: Math sugar](https://github.com/tmteam/NFun/blob/master/Specs/Math-Sugar.md)
