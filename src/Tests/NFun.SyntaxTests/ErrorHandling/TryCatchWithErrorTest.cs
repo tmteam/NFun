@@ -29,7 +29,7 @@ public class TryCatchWithErrorTest {
     [Test]
     public void TryCatchE_AccessData_None_WhenNotProvided() {
         var r = "y = try oops('fail') catch(e) e.data".BuildWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         // data = none when not provided
         Assert.AreEqual(null, r["y"].Value);

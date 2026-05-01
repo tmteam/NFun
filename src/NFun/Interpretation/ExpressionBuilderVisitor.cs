@@ -114,7 +114,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         if (node.IsSafeAccess)
         {
-            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled)
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.Enabled)
                 throw Errors.SafeAccessNotSupported(node.Interval);
             if (structNode.Type.BaseType == BaseFunnyType.None)
                 // none?.field = none — safe access on None always returns None
@@ -307,7 +307,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         // Runtime: if left is None → return right, else return left (unwrapped + converted).
         if (id == CoreFunNames.NullCoalesce && args.Length == 2)
         {
-            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled)
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.Enabled)
                 throw Errors.OptionalTypesNotSupported(id, node.Interval);
             var left = ReadNode(args[0]);
             var right = ReadNode(args[1]);
@@ -412,7 +412,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
             ValidateGenericResolution(genericFunction, genericArgs, node);
 
-            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.Enabled
                 && id is CoreFunNames.ForceUnwrap or CoreFunNames.NullCoalesce)
                 throw Errors.OptionalTypesNotSupported(id, node.Interval);
 
@@ -496,7 +496,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(ConstantSyntaxNode node) {
-        if (_dialect.OptionalTypesSupport != OptionalTypesSupport.ExperimentalEnabled
+        if (_dialect.OptionalTypesSupport != OptionalTypesSupport.Enabled
             && node.Value is FunnyNone)
             throw Errors.NoneLiteralNotSupported(node.Interval);
         var (enode, type) = GetConstantNodeOrNull(node.Value, node);

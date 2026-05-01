@@ -10,11 +10,11 @@ public class OptionalTypeTest {
 
     [Test]
     public void NoneLiteral_Standalone() =>
-        Assert.DoesNotThrow(() => "y = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void NoneLiteral_BothBranchesNone() =>
-        Assert.DoesNotThrow(() => "y = if(true) none else none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y = if(true) none else none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [TestCase("y:byte? = none")]
     [TestCase("y:int16? = none")]
@@ -30,77 +30,77 @@ public class OptionalTypeTest {
     [TestCase("y:bool? = none")]
     [TestCase("y:any? = none")]
     public void OptionalAnnotation_AssignNone_Builds(string expr) =>
-        Assert.DoesNotThrow(() => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void OptionalInt_AssignNone_ReturnsNull() {
-        var result = "y:int? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalReal_AssignNone_ReturnsNull() {
-        var result = "y:real? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:real? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalText_AssignNone_ReturnsNull() {
-        var result = "y:text? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:text? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalBool_AssignNone_ReturnsNull() {
-        var result = "y:bool? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:bool? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalChar_AssignNone_ReturnsNull() {
-        var result = "y:char? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:char? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalByte_AssignNone_ReturnsNull() {
-        var result = "y:byte? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:byte? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalInt16_AssignNone_ReturnsNull() {
-        var result = "y:int16? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int16? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalInt64_AssignNone_ReturnsNull() {
-        var result = "y:int64? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int64? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalUint16_AssignNone_ReturnsNull() {
-        var result = "y:uint16? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:uint16? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalUint32_AssignNone_ReturnsNull() {
-        var result = "y:uint32? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:uint32? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalUint64_AssignNone_ReturnsNull() {
-        var result = "y:uint64? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:uint64? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalAny_AssignNone_ReturnsNull() {
-        var result = "y:any? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:any? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -120,14 +120,14 @@ public class OptionalTypeTest {
     [TestCase("y:bool? = true", true)]
     [TestCase("y:bool? = false", false)]
     public void OptionalAnnotation_AssignValue(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y:char? = /'a'", 'a')]
     [TestCase("y:char? = /'z'", 'z')]
     [TestCase("y:char? = /'0'", '0')]
     public void OptionalChar_AssignValue(string expr, char expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y:any? = 42", 42)]
@@ -135,7 +135,7 @@ public class OptionalTypeTest {
     [TestCase("y:any? = true", true)]
     [TestCase("y:any? = 1.5", 1.5)]
     public void OptionalAny_AssignValue(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y:int32? = 0xFF", (Int32)255)]
@@ -143,37 +143,37 @@ public class OptionalTypeTest {
     [TestCase("y:real? = 42", 42.0)]
     [TestCase("y:int64? = 42", (Int64)42)]
     public void OptionalAnnotation_ImplicitUpcast(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void ArrayOfOptionalInts_WithValues() =>
-        "y:int?[] = [1, 2, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", new int?[] { 1, 2, 3 });
+        "y:int?[] = [1, 2, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new int?[] { 1, 2, 3 });
 
 
     [Test]
     public void ArrayOfOptionalInts_WithNone() =>
-        Assert.DoesNotThrow(() => "y:int?[] = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int?[] = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalReals_WithNone() =>
-        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalTexts_WithNone() =>
-        Assert.DoesNotThrow(() => "y:text?[] = ['hello', none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:text?[] = ['hello', none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalBools_WithNone() =>
-        Assert.DoesNotThrow(() => "y:bool?[] = [true, none, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:bool?[] = [true, none, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalInts_NoneIsNull() {
-        var result = "y:int?[] = [1, none, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int?[] = [1, none, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (int?[])result.Get("y");
         Assert.AreEqual(1, arr[0]);
         Assert.IsNull(arr[1], "none should be null, not 0");
@@ -183,7 +183,7 @@ public class OptionalTypeTest {
 
     [Test]
     public void ArrayOfOptionalBools_NoneIsNull() {
-        var result = "y:bool?[] = [true, none, false]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:bool?[] = [true, none, false]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (bool?[])result.Get("y");
         Assert.AreEqual(true, arr[0]);
         Assert.IsNull(arr[1], "none should be null, not false");
@@ -193,55 +193,55 @@ public class OptionalTypeTest {
 
     [Test]
     public void OptionalArrayOfInts_WithValue() =>
-        "y:int[]? = [1, 2, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", new[] { 1, 2, 3 });
+        "y:int[]? = [1, 2, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new[] { 1, 2, 3 });
 
 
     [Test]
     public void OptionalArrayOfInts_WithNone() {
-        var result = "y:int[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalArrayOfReals_WithNone() {
-        var result = "y:real[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:real[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalArrayOfTexts_WithNone() {
-        var result = "y:text[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:text[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalArrayOfOptionalInts_WithValue() =>
-        Assert.DoesNotThrow(() => "y:int?[]? = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int?[]? = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void OptionalArrayOfOptionalInts_WithNone() {
-        var result = "y:int?[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int?[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void MultipleOptionalVars_BothNone() =>
-        Assert.DoesNotThrow(() => "a:int? = none\r b:int? = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "a:int? = none\r b:int? = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void MultipleOptionalVars_MixedNoneValue() =>
-        Assert.DoesNotThrow(() => "a:int? = 42\r b:int? = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "a:int? = 42\r b:int? = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void MultipleOptionalVars_BothValues() =>
-        "a:int? = 1\r b:int? = 2\r y = a! + b!".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 3);
+        "a:int? = 1\r b:int? = 2\r y = a! + b!".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 3);
 
 
     [TestCase("a:int? = 42\r b:int? = a", 42)]
@@ -249,44 +249,44 @@ public class OptionalTypeTest {
     [TestCase("a:text? = 'hi'\r b:text? = a", "hi")]
     [TestCase("a:bool? = true\r b:bool? = a", true)]
     public void OptionalAssignedFromOptional(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("b", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("b", expected);
 
 
     [Test]
     public void OptionalAssignedFromOptional_None() {
-        var result = "a:int? = none\r b:int? = a".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "a:int? = none\r b:int? = a".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("b"));
     }
 
 
     [Test]
     public void MultipleOutputs_OptionalAndNonOptional() =>
-        "y:int? = 42\r z:int = 10".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns(("y", (object)42), ("z", (object)10));
+        "y:int? = 42\r z:int = 10".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns(("y", (object)42), ("z", (object)10));
 
 
     [Test]
     public void ArrayOfOptionalChars_WithNone() =>
-        Assert.DoesNotThrow(() => "y:char?[] = [/'a', none, /'c']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:char?[] = [/'a', none, /'c']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalChars_WithValues() =>
-        Assert.DoesNotThrow(() => "y:char?[] = [/'x', /'y']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:char?[] = [/'x', /'y']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalBools_WithValues() =>
-        Assert.DoesNotThrow(() => "y:bool?[] = [true, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:bool?[] = [true, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void OptionalArrayOfReals_WithValue() =>
-        "y:real[]? = [1.0, 2.0, 3.0]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", new[] { 1.0, 2.0, 3.0 });
+        "y:real[]? = [1.0, 2.0, 3.0]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new[] { 1.0, 2.0, 3.0 });
 
 
     [Test]
     public void ArrayOfOptionalTexts_WithValues() =>
-        Assert.DoesNotThrow(() => "y:text?[] = ['hello', 'world']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:text?[] = ['hello', 'world']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [TestCase("y:int? = 0xFF", (Int32)255)]
@@ -294,7 +294,7 @@ public class OptionalTypeTest {
     [TestCase("y:byte? = 0xFF", (byte)255)]
     [TestCase("y:int64? = 0xFFFF", (Int64)0xFFFF)]
     public void OptionalAnnotation_HexBinaryLiterals(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y:int = none")]
@@ -310,7 +310,7 @@ public class OptionalTypeTest {
     [TestCase("y:char = none")]
     [TestCase("y:bool = none")]
     public void NonOptionalType_AssignNone_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [TestCase("y = none ?? 0", 0)]
@@ -324,12 +324,12 @@ public class OptionalTypeTest {
     [TestCase("y = none ?? 1.5", 1.5)]
     [TestCase("y = none ?? 0.0", 0.0)]
     public void CoalesceOperator_NoneWithDefault(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y = none ?? /'a'", 'a')]
     public void CoalesceOperator_NoneWithDefaultChar(string expr, char expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y:byte = none ?? 0", (byte)0)]
@@ -344,7 +344,7 @@ public class OptionalTypeTest {
     [TestCase("y:text = none ?? 'default'", "default")]
     [TestCase("y:bool = none ?? false", false)]
     public void CoalesceOperator_TypedResult(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase((byte)5, "x:byte?\r y = x ?? 0", (byte)5)]
@@ -358,7 +358,7 @@ public class OptionalTypeTest {
     [TestCase("hi", "x:text?\r y = x ?? 'default'", "hi")]
     [TestCase(true, "x:bool?\r y = x ?? false", true)]
     public void CoalesceOperator_VariableHasValue(object input, string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
 
 
     [TestCase("x:int? = 42\r y = x ?? 0", 42)]
@@ -372,7 +372,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 42\r y = x ?? 99", 42)]
     [TestCase("x:int? = none\r y = x ?? 99", 99)]
     public void CoalesceOperator_InlineOptionalVariable(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("y = none ?? none ?? 42", 42)]
@@ -383,18 +383,18 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 3\r b:int? = 5\r y = a ?? b ?? 0", 3)]
     [TestCase("a:int? = none\r b:int? = none\r c:int? = 7\r y = a ?? b ?? c ?? 0", 7)]
     public void CoalesceOperator_Chain(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     // ?? with two optionals: (opt(U), V) → LCA(U, V). int? ?? int? → LCA(int, int?) = int?
     [TestCase("a:int? = none\r b:int? = 5\r y = a ?? b", 5)]
     [TestCase("a:int? = 3\r b:int? = 5\r y = a ?? b", 3)]
     public void CoalesceOperator_TwoOptionals(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     [Test]
     public void CoalesceOperator_TwoOptionals_BothNone() {
         var r = "a:int? = none\r b:int? = none\r y = a ?? b"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(r.Get("y"));
     }
 
@@ -403,38 +403,38 @@ public class OptionalTypeTest {
     [TestCase("a:int? = none\r b:int? = 5\r c:int = 0\r y = a ?? b ?? c", 5)]
     [TestCase("a:int? = 3\r b:int? = 5\r c:int = 0\r y = a ?? b ?? c", 3)]
     public void CoalesceOperator_ChainOptOptNonOpt(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     // ?? with widening and optional right: (opt(U), V) → LCA(U, V)
     [TestCase("a:real? = none\r b:int? = 5\r y = a ?? b", 5.0d)]
     [TestCase("a:int? = none\r b:real? = 5.5\r y = a ?? b", 5.5d)]
     public void CoalesceOperator_Widening_OptionalRightOperand(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     // ?. chain with ??
     [Test]
     public void SafeAccess_ChainWithCoalesce_TrueCase() =>
         "x = if(true) {a = {b = 10}} else none\r y = if(false) {a = {b = 20}} else none\r out = x?.a.b ?? y?.a.b ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 10);
 
     [Test]
     public void SafeAccess_ChainWithCoalesce_FalseCase() =>
         "x = if(false) {a = {b = 10}} else none\r y = if(true) {a = {b = 20}} else none\r out = x?.a.b ?? y?.a.b ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 20);
 
     [Test]
     public void SafeAccess_ChainWithCoalesce_BothNone() =>
         "x = if(false) {a = {b = 10}} else none\r y = if(false) {a = {b = 20}} else none\r out = x?.a.b ?? y?.a.b ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 0);
 
     // map with ?? on optional array elements
     [Test]
     public void CoalesceOperator_MapWithCoalesce() =>
         "scores:int?[] = [95, none, 82]\r y = scores.map(rule it ?? 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 95, 0, 82 });
 
     [TestCase("x:int? = none\r y = x ?? (1 + 2)", 3)]
@@ -442,22 +442,22 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 5\r y = x ?? (1 + 2)", 5)]
     [TestCase("x:real? = none\r y = x ?? (1.0 + 2.5)", 3.5)]
     public void CoalesceOperator_WithExpressionDefault(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [Test]
     public void CoalesceOperator_OptionalArrayWithDefault() =>
-        "x:int[]? = none\r y = x ?? [1,2,3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", new[] { 1, 2, 3 });
+        "x:int[]? = none\r y = x ?? [1,2,3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", new[] { 1, 2, 3 });
 
 
     [Test]
     public void CoalesceOperator_OptionalArrayHasValue() =>
-        "x:int[]? = [4,5]\r y = x ?? [1,2,3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", new[] { 4, 5 });
+        "x:int[]? = [4,5]\r y = x ?? [1,2,3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", new[] { 4, 5 });
 
 
     [Test]
     public void CoalesceOperator_ResultIsNotOptional() {
-        var runtime = "x:int? = none\r y = x ?? 0".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var runtime = "x:int? = none\r y = x ?? 0".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         runtime.Calc().AssertResultHas("y", 0);
     }
 
@@ -466,7 +466,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 3\r y = x ?? 1.5", 3.0)]
     [TestCase("x:byte? = none\r y = x ?? 256", 256)]
     public void CoalesceOperator_LcaWidening(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase((byte)10, "x:byte?\r y = x ?? 0", (byte)10)]
@@ -478,17 +478,17 @@ public class OptionalTypeTest {
     [TestCase((UInt64)10, "x:uint64?\r y = x ?? 0", (UInt64)10)]
     [TestCase(3.14, "x:real?\r y = x ?? 0.0", 3.14)]
     public void CoalesceOperator_EachNumericType_HasValue(object input, string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
 
 
     [Test]
     public void CoalesceOperator_ArrayElement_HasValue() =>
-        "arr:int?[] = [10, none, 30]\r y = arr[0] ?? -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 10);
+        "arr:int?[] = [10, none, 30]\r y = arr[0] ?? -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 10);
 
 
     [Test]
     public void CoalesceOperator_ArrayElement_None() =>
-        "arr:int?[] = [10, none, 30]\r y = arr[1] ?? -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", -1);
+        "arr:int?[] = [10, none, 30]\r y = arr[1] ?? -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", -1);
 
 
     [TestCase("f():int? = none\r y = f() ?? 42", 42)]
@@ -498,7 +498,7 @@ public class OptionalTypeTest {
     [TestCase("f():bool? = none\r y = f() ?? true", true)]
     [TestCase("f():real? = none\r y = f() ?? 3.14", 3.14)]
     public void CoalesceOperator_FunctionResult(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:byte? = none\r y = x ?? 1000", 1000)]
@@ -506,14 +506,14 @@ public class OptionalTypeTest {
     [TestCase("x:byte? = 10\r y = x ?? 1.5", 10.0)]
     [TestCase("x:int16? = 5\r y = x ?? 100000", 5)]
     public void CoalesceOperator_LcaMoreCases(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:text? = none\r y = x ?? ''", "")]
     [TestCase("x:text? = 'abc'\r y = x ?? ''", "abc")]
     [TestCase("x:text? = none\r y = x ?? 'a'", "a")]
     public void CoalesceOperator_TextPreserved(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:bool? = none\r y = x ?? true", true)]
@@ -521,7 +521,7 @@ public class OptionalTypeTest {
     [TestCase("x:bool? = true\r y = x ?? false", true)]
     [TestCase("x:bool? = false\r y = x ?? true", false)]
     public void CoalesceOperator_BoolVariants(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:int? = 5\r y = (x ?? 0) + 10", 15)]
@@ -530,17 +530,17 @@ public class OptionalTypeTest {
     [TestCase("x:int? = none\r y = (x ?? 2) * (x ?? 3)", 6)]
     [TestCase("x:real? = 2.0\r y = (x ?? 0.0) / 2.0", 1.0)]
     public void CoalesceOperator_ResultInExpression(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [Test]
     public void CoalesceOperator_OptionalTextArray() =>
-        Assert.DoesNotThrow(() => "x:text[]? = none\r y = x ?? ['default']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:text[]? = none\r y = x ?? ['default']".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void CoalesceOperator_OptionalRealArray() =>
-        "x:real[]? = none\r y = x ?? [1.0, 2.0]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", new[] { 1.0, 2.0 });
+        "x:real[]? = none\r y = x ?? [1.0, 2.0]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", new[] { 1.0, 2.0 });
 
 
     [TestCase("y = 42 ?? 0")]
@@ -562,7 +562,7 @@ public class OptionalTypeTest {
     [TestCase("a:int? = none\r b:int? = 3\r y = (a ?? b)!", 3)]
     [TestCase("a:int? = 5\r b:int? = none\r y = (a ?? b)!", 5)]
     public void CoalesceOperator_TwoOptionals_HasValue(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [Test]
@@ -570,13 +570,13 @@ public class OptionalTypeTest {
         // int? ?? int? -> int?, both none -> result is none (optional)
         Assert.DoesNotThrow(() =>
             "a:int? = none\r b:int? = none\r y = a ?? b"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void CoalesceOperator_TwoOptionals_BothNone_UnwrapFails() =>
         "a:int? = none\r b:int? = none\r y = (a ?? b)!"
-            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [Test]
@@ -584,7 +584,7 @@ public class OptionalTypeTest {
         // int? ?? int? should produce int? (not int)
         Assert.DoesNotThrow(() =>
             "a:int? = none\r b:int? = none\r y = a ?? b"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
 
@@ -593,13 +593,13 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 5\r b:real? = 1.5\r y = (a ?? b)!", 5.0)]
     [TestCase("a:int? = none\r b:real? = 1.5\r y = (a ?? b)!", 1.5)]
     public void CoalesceOperator_TwoOptionals_LcaWidening(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("a:byte? = 10\r b:int? = 300\r y = (a ?? b)!", 10)]
     [TestCase("a:byte? = none\r b:int? = 300\r y = (a ?? b)!", 300)]
     public void CoalesceOperator_TwoOptionals_ByteIntWidening(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Nested parenthesized coalesce ---
@@ -608,7 +608,7 @@ public class OptionalTypeTest {
     [TestCase("a:int? = none\r b:int? = 3\r c:int = 0\r y = (a ?? b) ?? c", 3)]
     [TestCase("a:int? = none\r b:int? = none\r c:int = 0\r y = (a ?? b) ?? c", 0)]
     public void CoalesceOperator_NestedParenthesized(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Coalesce in if-else ---
@@ -616,7 +616,7 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 5\r b:int? = 3\r c:int? = 7\r d:int? = 9\r y = if(true) (a ?? b)! else (c ?? d)!", 5)]
     [TestCase("a:int? = none\r b:int? = 3\r c:int? = 7\r d:int? = 9\r y = if(false) (a ?? b)! else (c ?? d)!", 7)]
     public void CoalesceOperator_InIfElse(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Coalesce result used as function arg ---
@@ -624,7 +624,7 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 5\r b:int? = 3\r c:int? = 7\r d:int? = 9\r y = max((a ?? b)!, (c ?? d)!)", 7)]
     [TestCase("a:int? = none\r b:int? = 3\r c:int? = none\r d:int? = 9\r y = max((a ?? b)!, (c ?? d)!)", 9)]
     public void CoalesceOperator_ResultAsFunctionArg(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Coalesce with none literal on right ---
@@ -633,13 +633,13 @@ public class OptionalTypeTest {
     public void CoalesceOperator_WithNoneLiteral_ReturnsNull() {
         // int? ?? none -> LCA(int, none) = int?
         var result = "a:int? = none\r y = a ?? none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [TestCase("a:int? = 5\r y = (a ?? none)!", 5)]
     public void CoalesceOperator_WithNoneLiteral_HasValue(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Triple optional chain (all three optional) ---
@@ -648,20 +648,20 @@ public class OptionalTypeTest {
     [TestCase("a:int? = none\r b:int? = 3\r c:int? = 1\r y = (a ?? b ?? c)!", 3)]
     [TestCase("a:int? = none\r b:int? = none\r c:int? = 1\r y = (a ?? b ?? c)!", 1)]
     public void CoalesceOperator_TripleOptionalChain(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     [Test]
     public void CoalesceOperator_TripleOptionalChain_AllNone_Builds() {
         // int? ?? int? ?? int? -> int?, all none -> result is none (optional)
         Assert.DoesNotThrow(() =>
             "a:int? = none\r b:int? = none\r c:int? = none\r y = a ?? b ?? c"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void CoalesceOperator_TripleOptionalChain_AllNone_UnwrapFails() =>
         "a:int? = none\r b:int? = none\r c:int? = none\r y = (a ?? b ?? c)!"
-            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Unwrap after optional coalesce ---
@@ -669,11 +669,11 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 5\r b:int? = 3\r y = (a ?? b)!", 5)]
     [TestCase("a:int? = none\r b:int? = 7\r y = (a ?? b)!", 7)]
     public void CoalesceOperator_UnwrapAfterOptionalCoalesce(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     [Test]
     public void CoalesceOperator_UnwrapAfterOptionalCoalesce_BothNone_RuntimeError() =>
-        "a:int? = none\r b:int? = none\r y = (a ?? b)!".AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        "a:int? = none\r b:int? = none\r y = (a ?? b)!".AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Two optionals with text/bool types ---
@@ -683,7 +683,7 @@ public class OptionalTypeTest {
     [TestCase("a:bool? = true\r b:bool? = false\r y = (a ?? b)!", true)]
     [TestCase("a:bool? = none\r b:bool? = false\r y = (a ?? b)!", false)]
     public void CoalesceOperator_TwoOptionals_TextBool(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("y:int? = 42\r z = y!", 42)]
@@ -696,12 +696,12 @@ public class OptionalTypeTest {
     [TestCase("y:bool? = true\r z = y!", true)]
     [TestCase("y:bool? = false\r z = y!", false)]
     public void ForceUnwrap_HasValue(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("y:char? = /'a'\r z = y!", 'a')]
     public void ForceUnwrap_Char_HasValue(string expr, char expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("y:byte? = 1\r z = y!", (byte)1)]
@@ -712,7 +712,7 @@ public class OptionalTypeTest {
     [TestCase("y:uint32? = 1\r z = y!", (UInt32)1)]
     [TestCase("y:uint64? = 1\r z = y!", (UInt64)1)]
     public void ForceUnwrap_EachNumericType(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("y:int? = none\r z = y!")]
@@ -728,7 +728,7 @@ public class OptionalTypeTest {
     [TestCase("y:uint32? = none\r z = y!")]
     [TestCase("y:uint64? = none\r z = y!")]
     public void ForceUnwrap_None_RuntimeError(string expr) =>
-        expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [TestCase("x:int? = 5\r y = x! + 1", 6)]
@@ -738,22 +738,22 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 7\r y = x! % 3", 1)]
     [TestCase("x:int? = 2\r y = x! ** 3", 8)]
     public void ForceUnwrap_InArithmeticExpr(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [Test]
     public void ForceUnwrap_ResultIsNonOptional() =>
-        Assert.DoesNotThrow(() => "x:int? = 42\r y:int = x!".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int? = 42\r y:int = x!".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ForceUnwrap_OptionalArray_IndexAccess() =>
-        "x:int[]? = [10,20,30]\r y = x![0]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 10);
+        "x:int[]? = [10,20,30]\r y = x![0]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 10);
 
 
     [Test]
     public void ForceUnwrap_OptionalArray_None_RuntimeError() =>
-        "x:int[]? = none\r y = x![0]".AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        "x:int[]? = none\r y = x![0]".AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [TestCase("a:int? = 3\r b:int? = 4\r y = a! + b!", 7)]
@@ -761,7 +761,7 @@ public class OptionalTypeTest {
     [TestCase("a:real? = 2.0\r b:real? = 3.0\r y = a! + b!", 5.0)]
     [TestCase("a:real? = 2.0\r b:real? = 3.0\r y = a! * b!", 6.0)]
     public void ForceUnwrap_TwoUnwrapsInExpr(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("f():int? = 42\r y = f()!", 42)]
@@ -769,28 +769,28 @@ public class OptionalTypeTest {
     [TestCase("f():text? = 'hi'\r y = f()!", "hi")]
     [TestCase("f():bool? = true\r y = f()!", true)]
     public void ForceUnwrap_FunctionResult(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("f():int? = none\r y = f()!")]
     [TestCase("f():text? = none\r y = f()!")]
     public void ForceUnwrap_FunctionResult_None_RuntimeError(string expr) =>
-        expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [Test]
     public void ForceUnwrap_OptionalArray_Count() =>
-        "x:int[]? = [1,2,3]\r y = x!.count()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 3);
+        "x:int[]? = [1,2,3]\r y = x!.count()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 3);
 
 
     [Test]
     public void ForceUnwrap_OptionalArray_Map() =>
-        "x:int[]? = [1,2,3]\r y = x!.map(rule it * 2)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", new[] { 2, 4, 6 });
+        "x:int[]? = [1,2,3]\r y = x!.map(rule it * 2)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", new[] { 2, 4, 6 });
 
 
     [Test]
     public void ForceUnwrap_OptionalText_Count() =>
-        "x:text? = 'abc'\r y = x!.count()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 3);
+        "x:text? = 'abc'\r y = x!.count()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 3);
 
 
     [TestCase("x:int? = 5\r y = x! > 3", true)]
@@ -800,7 +800,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 5\r y = x! >= 5", true)]
     [TestCase("x:int? = 5\r y = x! <= 5", true)]
     public void ForceUnwrap_InComparison(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("y = 42!")]
@@ -824,44 +824,44 @@ public class OptionalTypeTest {
     [TestCase("y = if(true) 'hello' else none", "hello")]
     [TestCase("y = if(true) true else none", true)]
     public void IfElse_ValueElseNone_TrueBranch(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y = if(true) /'a' else none", 'a')]
     public void IfElse_CharElseNone_TrueBranch(string expr, char expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
     [Test]
     public void IfElse_IntElseNone_FalseBranch() {
-        var result = "y = if(false) 42 else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) 42 else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void IfElse_RealElseNone_FalseBranch() {
-        var result = "y = if(false) 1.5 else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) 1.5 else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void IfElse_TextElseNone_FalseBranch() {
-        var result = "y = if(false) 'hi' else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) 'hi' else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void IfElse_BoolElseNone_FalseBranch() {
-        var result = "y = if(false) true else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) true else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void IfElse_CharElseNone_FalseBranch() {
-        var result = "y = if(false) /'a' else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) /'a' else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -871,18 +871,18 @@ public class OptionalTypeTest {
     [TestCase("y = if(false) none else true", true)]
     [TestCase("y = if(false) none else false", false)]
     public void IfElse_NoneElseValue_FalseBranch(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void IfElse_NoneElseValue_TrueBranch() {
-        var result = "y = if(true) none else 42".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(true) none else 42".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
     [Test]
     public void IfElse_BothNone() {
-        var result = "y = if(true) none else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(true) none else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -891,10 +891,10 @@ public class OptionalTypeTest {
     [TestCase("x:bool\r y = if(x) 0xFF else none", false, null)]
     public void IfElse_ByteElseNone(string expr, object input, object expected) {
         if (expected == null) {
-            var result = expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled, values: new[]{("x", (object)input)});
+            var result = expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, values: new[]{("x", (object)input)});
             Assert.IsNull(result.Get("y"));
         } else {
-            expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
+            expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
         }
     }
 
@@ -911,63 +911,63 @@ public class OptionalTypeTest {
     [TestCase("y:text? = if(true) 'hi' else none", "hi")]
     [TestCase("y:bool? = if(true) true else none", true)]
     public void IfElse_TypedOptional_TrueBranch(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("x:int? = 42\r y = if(true) x else 1.0", 42.0)]
     [TestCase("x:int? = 42\r z:int? = 10\r y = if(true) x else z", 42)]
     [TestCase("x:int? = 42\r z:real? = 1.5\r y = if(true) x else z", 42.0)]
     public void IfElse_LcaWithOptionals(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [Test]
     public void IfElse_IntOptionalElseReal_IsRealOptional() =>
-        Assert.DoesNotThrow(() => "x:int? = 42\r y:real? = if(true) x else 1.0".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int? = 42\r y:real? = if(true) x else 1.0".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void IfElse_IntOptionalElseIntOptional_IsIntOptional() =>
-        Assert.DoesNotThrow(() => "x:int? = 42\r z:int? = 10\r y:int? = if(true) x else z".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int? = 42\r z:int? = 10\r y:int? = if(true) x else z".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void IfElse_IntOptionalElseRealOptional_IsRealOptional() =>
         Assert.DoesNotThrow(() =>
-            "x:int? = 42\r z:real? = 1.5\r y:real? = if(true) x else z".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "x:int? = 42\r z:real? = 1.5\r y:real? = if(true) x else z".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void IfElse_IntElseRealOptional_IsRealOptional() =>
         Assert.DoesNotThrow(() =>
-            "z:real? = 1.5\r y:real? = if(true) 42 else z".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "z:real? = 1.5\r y:real? = if(true) 42 else z".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void IfElse_ArrayElseNone_TrueBranch() =>
-        "y = if(true) [1,2] else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", new[] { 1, 2 });
+        "y = if(true) [1,2] else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new[] { 1, 2 });
 
 
     [Test]
     public void IfElse_ArrayElseNone_FalseBranch() {
-        var result = "y = if(false) [1,2] else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) [1,2] else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void IfElse_NoneElseArray() =>
-        "y = if(false) none else [1,2]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", new[] { 1, 2 });
+        "y = if(false) none else [1,2]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new[] { 1, 2 });
 
 
     [Test]
     public void IfElse_StructElseNone_TrueBranch() =>
-        Assert.DoesNotThrow(() => "y = if(true) {a = 1} else none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y = if(true) {a = 1} else none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void IfElse_StructElseNone_FalseBranch() {
-        var result = "y = if(false) {a = 1} else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) {a = 1} else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -976,19 +976,19 @@ public class OptionalTypeTest {
     [TestCase("y = if(true) 42 else if(true) 0 else none", 42)]
     [TestCase("y = if(false) 42 else if(true) 0 else none", 0)]
     public void IfElse_Nested_WithNone(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void IfElse_Nested_AllNone() {
-        var result = "y = if(false) 42 else if(false) 0 else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(false) 42 else if(false) 0 else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void IfElse_Nested_InnerBothNone() {
-        var result = "y = if(true) if(false) 42 else none else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y = if(true) if(false) 42 else none else none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1004,7 +1004,7 @@ public class OptionalTypeTest {
     [TestCase(false, "x:bool\r y:text? = if(x) none else 'hi'", "hi")]
     [TestCase(false, "x:bool\r y:bool? = if(x) none else true", true)]
     public void IfElse_EachType_NoneElseValue_ViaCalc(object input, string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, values: new[]{("x", (object)input)}).AssertResultHas("y", expected);
 
 
     [TestCase("a:int? = 1\r b:int? = 2\r y = if(true) a else b", 1)]
@@ -1013,10 +1013,10 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 1\r b:int? = none\r y = if(false) a else b", null)]
     public void IfElse_BothOptionalVariables(string expr, object expected) {
         if (expected == null) {
-            var result = expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            var result = expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
             Assert.IsNull(result.Get("y"));
         } else {
-            expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+            expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
         }
     }
 
@@ -1026,7 +1026,7 @@ public class OptionalTypeTest {
     [TestCase("flag:bool? = true\r y = if(flag ?? false) 1 else 0", 1)]
     [TestCase("flag:bool? = none\r y = if(flag ?? false) 1 else 0", 0)]
     public void IfElse_OptionalBoolCondition(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("y:int? = if(true) 42 else 0", 42)]
@@ -1034,17 +1034,17 @@ public class OptionalTypeTest {
     [TestCase("y:real? = if(true) 1.5 else 2.5", 1.5)]
     [TestCase("y:text? = if(true) 'a' else 'b'", "a")]
     public void IfElse_NonOptionalBranches_AssignedToOptional(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void IfElse_ArrayOfOptionals_InTrueBranch() =>
-        Assert.DoesNotThrow(() => "y = if(true) [1, none, 3] else [4, 5, 6]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y = if(true) [1, none, 3] else [4, 5, 6]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void IfElse_NoneArray_InFalseBranch() =>
-        Assert.DoesNotThrow(() => "y = if(true) [1, 2] else none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y = if(true) [1, 2] else none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [TestCase("y:int? = 42\r z = y == none", false)]
@@ -1068,7 +1068,7 @@ public class OptionalTypeTest {
     [TestCase("y:uint64? = 1\r z = y == none", false)]
     [TestCase("y:uint64? = none\r z = y == none", true)]
     public void EqualsNone(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("y:int? = 42\r z = y != none", true)]
@@ -1080,13 +1080,13 @@ public class OptionalTypeTest {
     [TestCase("y:bool? = true\r z = y != none", true)]
     [TestCase("y:bool? = none\r z = y != none", false)]
     public void NotEqualsNone(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("y = none == none", true)]
     [TestCase("y = none != none", false)]
     public void NoneComparedToNone(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("x:int? = 42\r y = if(x != none) x! else 0", 42)]
@@ -1094,13 +1094,13 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 42\r y = if(x == none) 0 else x!", 42)]
     [TestCase("x:int? = none\r y = if(x == none) 0 else x!", 0)]
     public void EqualsNone_InCondition(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:text? = 'hi'\r y = if(x != none) x! else 'default'", "hi")]
     [TestCase("x:text? = none\r y = if(x != none) x! else 'default'", "default")]
     public void EqualsNone_TextInCondition(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("y = 42 == none", false)]
@@ -1111,7 +1111,7 @@ public class OptionalTypeTest {
     [TestCase("y = 1.5 == none", false)]
     [TestCase("y = 1.5 != none", true)]
     public void NonOptional_ComparedToNone(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("x:int? = 42\r y:int? = none\r z = (x == none) or (y == none)", true)]
@@ -1119,7 +1119,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = none\r y:int? = none\r z = (x == none) and (y == none)", true)]
     [TestCase("x:int? = 42\r y:int? = none\r z = (x == none) and (y == none)", false)]
     public void EqualsNone_InBooleanExpr(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("x:real? = 1.5\r z = x != none", true)]
@@ -1129,7 +1129,7 @@ public class OptionalTypeTest {
     [TestCase("x:int64? = 1\r z = x != none", true)]
     [TestCase("x:int64? = none\r z = x != none", false)]
     public void NotEqualsNone_MoreTypes(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("f(x:int?):int = x ?? 0\r y = f(42)", 42)]
@@ -1137,37 +1137,37 @@ public class OptionalTypeTest {
     [TestCase("f(x:int?):int = x ?? 99\r y = f(10)", 10)]
     [TestCase("f(x:int?):int = x ?? 99\r y = f(none)", 99)]
     public void UserFunc_OptionalArg_CoalesceBody(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("f(x:text?):text = x ?? 'empty'\r y = f('hello')", "hello")]
     [TestCase("f(x:text?):text = x ?? 'empty'\r y = f(none)", "empty")]
     public void UserFunc_OptionalTextArg(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("f(x:bool?):bool = x ?? false\r y = f(true)", true)]
     [TestCase("f(x:bool?):bool = x ?? false\r y = f(none)", false)]
     public void UserFunc_OptionalBoolArg(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("f(x:real?):real = x ?? 0.0\r y = f(1.5)", 1.5)]
     [TestCase("f(x:real?):real = x ?? 0.0\r y = f(none)", 0.0)]
     public void UserFunc_OptionalRealArg(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = f(5)", 5)]
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = f(5) ?? 0", 5)]
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = f(-1) ?? 0", 0)]
     public void UserFunc_ReturnsOptional(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void UserFunc_ReturnsOptional_NoneResult() {
-        var result = "f(x:int):int? = if(x > 0) x else none\r y = f(-1)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "f(x:int):int? = if(x > 0) x else none\r y = f(-1)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1178,7 +1178,7 @@ public class OptionalTypeTest {
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = f(-1) ?? f(3) ?? 0", 3)]
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = f(-1) ?? f(-2) ?? 0", 0)]
     public void UserFunc_ReturnsOptional_ChainedCoalesce(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Generic function with optional ---
@@ -1186,14 +1186,14 @@ public class OptionalTypeTest {
     [TestCase("f(x) = x ?? 0\r y = f(none)", 0.0)]
     [TestCase("f(x) = x ?? 'default'\r y = f(none)", "default")]
     public void GenericFunc_WithCoalesce(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional in anonymous functions (rule) ---
 
     [Test]
     public void AnonymousFunc_CoalesceInBody() =>
-        Assert.DoesNotThrow(() => "y = [1,2,3].map(rule it ?? 0)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y = [1,2,3].map(rule it ?? 0)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Optional in pipe ---
@@ -1201,7 +1201,7 @@ public class OptionalTypeTest {
     [TestCase("f(x:int?):int = x ?? 0\r x:int? = 42\r y = x.f()", 42)]
     [TestCase("f(x:int?):int = x ?? 0\r x:int? = none\r y = x.f()", 0)]
     public void OptionalInPipe(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Multiple optional parameters ---
@@ -1211,7 +1211,7 @@ public class OptionalTypeTest {
     [TestCase("f(a:int?, b:int?):int = (a ?? 0) + (b ?? 0)\r y = f(none, 2)", 2)]
     [TestCase("f(a:int?, b:int?):int = (a ?? 0) + (b ?? 0)\r y = f(none, none)", 0)]
     public void UserFunc_MultipleOptionalArgs(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Function returning optional in if-else ---
@@ -1219,7 +1219,7 @@ public class OptionalTypeTest {
     [TestCase("f(x:int):int? = if(x > 0) x else none\r g(x:int):int = f(x) ?? -1\r y = g(5)", 5)]
     [TestCase("f(x:int):int? = if(x > 0) x else none\r g(x:int):int = f(x) ?? -1\r y = g(-1)", -1)]
     public void UserFunc_OptionalComposition(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Recursive function returning optional ---
@@ -1227,7 +1227,7 @@ public class OptionalTypeTest {
     [Test]
     public void UserFunc_Recursive_ReturnsOptional() =>
         Assert.DoesNotThrow(() =>
-            "f(x:int):int? = if(x == 0) none else f(x - 1)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "f(x:int):int? = if(x == 0) none else f(x - 1)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- map/filter/fold with optional ---
@@ -1235,18 +1235,18 @@ public class OptionalTypeTest {
     [Test]
     public void MapProducingOptional() =>
         Assert.DoesNotThrow(() =>
-            "y = [1, -2, 3].map(rule if(it > 0) it else none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "y = [1, -2, 3].map(rule if(it > 0) it else none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void FilterByOptional_Coalesce() =>
-        "y = [1, -2, 3].filter(rule it > 0)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", new[] { 1, 3 });
+        "y = [1, -2, 3].filter(rule it > 0)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new[] { 1, 3 });
 
 
     [Test]
     public void MapThenCoalesce() =>
         Assert.DoesNotThrow(() =>
-            "y = [1, -2, 3].map(rule if(it > 0) it else none).map(rule it ?? 0)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "y = [1, -2, 3].map(rule if(it > 0) it else none).map(rule it ?? 0)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Optional in pipe: different types ---
@@ -1258,7 +1258,7 @@ public class OptionalTypeTest {
     [TestCase("f(x:bool?):bool = x ?? false\r p:bool? = true\r y = p.f()", true)]
     [TestCase("f(x:bool?):bool = x ?? false\r p:bool? = none\r y = p.f()", false)]
     public void OptionalInPipe_MoreTypes(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Function with optional → pipe → arithmetic ---
@@ -1266,7 +1266,7 @@ public class OptionalTypeTest {
     [TestCase("f(x:int?):int = x ?? 0\r p:int? = 5\r y = p.f() + 10", 15)]
     [TestCase("f(x:int?):int = x ?? 0\r p:int? = none\r y = p.f() + 10", 10)]
     public void OptionalInPipe_ThenArithmetic(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Higher-order: function taking optional function ---
@@ -1274,7 +1274,7 @@ public class OptionalTypeTest {
     [Test]
     public void FuncReturningOptional_UsedInMap() =>
         Assert.DoesNotThrow(() =>
-            "f(x:int):int? = if(x > 0) x else none\r y = [1,-2,3].map(f)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "f(x:int):int? = if(x > 0) x else none\r y = [1,-2,3].map(f)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Function optional result → struct field ---
@@ -1282,7 +1282,7 @@ public class OptionalTypeTest {
     [Test]
     public void FuncOptionalResult_AssignedToStructField() =>
         Assert.DoesNotThrow(() =>
-            "f(x:int):int? = if(x > 0) x else none\r y = {n = f(5)}".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "f(x:int):int? = if(x > 0) x else none\r y = {n = f(5)}".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Function with all types of optional args ---
@@ -1294,7 +1294,7 @@ public class OptionalTypeTest {
     [TestCase("f(a:uint32?):uint32 = a ?? 0\r y = f(none)", (UInt32)0)]
     [TestCase("f(a:uint64?):uint64 = a ?? 0\r y = f(none)", (UInt64)0)]
     public void UserFunc_EachTypeOptionalArg(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Nested function calls with optional ---
@@ -1302,7 +1302,7 @@ public class OptionalTypeTest {
     [TestCase("f(x:int?):int = x ?? 0\r g(x:int):int? = if(x > 0) x else none\r y = f(g(5))", 5)]
     [TestCase("f(x:int?):int = x ?? 0\r g(x:int):int? = if(x > 0) x else none\r y = f(g(-1))", 0)]
     public void NestedFuncCalls_WithOptional(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Anonymous function returning optional ---
@@ -1310,7 +1310,7 @@ public class OptionalTypeTest {
     [Test]
     public void AnonymousFunc_ReturningOptional() =>
         Assert.DoesNotThrow(() =>
-            "[1, -2, 3].map(rule if(it > 0) it else none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "[1, -2, 3].map(rule if(it > 0) it else none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Function accepting optional array ---
@@ -1318,12 +1318,12 @@ public class OptionalTypeTest {
     [Test]
     public void UserFunc_OptionalArrayArg() =>
         Assert.DoesNotThrow(() =>
-            "f(x:int[]?):int = (x ?? [0])[0]\r y = f(none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "f(x:int[]?):int = (x ?? [0])[0]\r y = f(none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void UserFunc_OptionalArrayArg_HasValue() =>
-        "f(x:int[]?):int = (x ?? [0])[0]\r y = f([42, 1])".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", 42);
+        "f(x:int[]?):int = (x ?? [0])[0]\r y = f([42, 1])".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", 42);
 
 
     [TestCase("x:int?\r y = x + 1")]
@@ -1354,7 +1354,7 @@ public class OptionalTypeTest {
     [TestCase("x:uint32?\r y = x + 1")]
     [TestCase("x:uint64?\r y = x + 1")]
     public void ArithmeticOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Comparison operators (except == !=) reject T? ---
@@ -1378,7 +1378,7 @@ public class OptionalTypeTest {
     [TestCase("x:uint32?\r y = x > 1")]
     [TestCase("x:uint64?\r y = x > 1")]
     public void ComparisonOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Bitwise operators reject T? ---
@@ -1396,7 +1396,7 @@ public class OptionalTypeTest {
     [TestCase("x:byte?\r y = x & 1")]
     [TestCase("x:uint32?\r y = x & 1")]
     public void BitwiseOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Boolean operators reject T? ---
@@ -1409,7 +1409,7 @@ public class OptionalTypeTest {
     [TestCase("x:bool?\r y = true or x")]
     [TestCase("x:bool?\r y = true xor x")]
     public void BooleanOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Assigning T? to T ---
@@ -1427,7 +1427,7 @@ public class OptionalTypeTest {
     [TestCase("x:uint32?\r y:uint32 = x")]
     [TestCase("x:uint64?\r y:uint64 = x")]
     public void AssignOptionalToNonOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Built-in functions reject T? ---
@@ -1441,7 +1441,7 @@ public class OptionalTypeTest {
     [TestCase("x:int?\r y = [1,2,3].map(rule it + x)")]
     [TestCase("x:int?\r y = [1,2,3].filter(rule it > x)")]
     public void BuiltInFuncOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- String operations reject T? ---
@@ -1453,7 +1453,7 @@ public class OptionalTypeTest {
     [TestCase("x:text?\r y = x.concat('!')")]
     [TestCase("x:text?\r y = x.split(' ')")]
     public void StringOpsOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Array operations reject T? ---
@@ -1468,7 +1468,7 @@ public class OptionalTypeTest {
     [TestCase("x:real[]?\r y = x.sum()")]
     [TestCase("x:int[]?\r y = x.concat([1])")]
     public void ArrayOpsOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Arithmetic with two optionals ---
@@ -1479,7 +1479,7 @@ public class OptionalTypeTest {
     [TestCase("a:real?\r b:real?\r y = a + b")]
     [TestCase("a:real?\r b:real?\r y = a * b")]
     public void ArithmeticTwoOptionals_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Comparison with two optionals (except == !=) ---
@@ -1490,7 +1490,7 @@ public class OptionalTypeTest {
     [TestCase("a:int?\r b:int?\r y = a <= b")]
     [TestCase("a:real?\r b:real?\r y = a > b")]
     public void ComparisonTwoOptionals_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Unary operations on optional ---
@@ -1503,7 +1503,7 @@ public class OptionalTypeTest {
     [TestCase("x:byte?\r y = ~x")]
     [TestCase("x:bool?\r y = not x")]
     public void UnaryOnOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Assigning T? to incompatible types ---
@@ -1512,7 +1512,7 @@ public class OptionalTypeTest {
     [TestCase("x:byte?\r y:int = x")]
     [TestCase("x:int?\r y:int64 = x")]
     public void AssignOptionalToWiderNonOptional_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Optional in range ---
@@ -1521,42 +1521,42 @@ public class OptionalTypeTest {
     [TestCase("x:int?\r y = [x..10]")]
     [TestCase("x:int?\r y = [1..10 step x]")]
     public void OptionalInRange_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [Test]
     public void ArrayLiteral_IntAndNone() =>
-        Assert.DoesNotThrow(() => "[1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "[1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayLiteral_RealAndNone() =>
-        Assert.DoesNotThrow(() => "[1.0, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "[1.0, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayLiteral_TextAndNone() =>
-        Assert.DoesNotThrow(() => "['hello', none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "['hello', none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayLiteral_BoolAndNone() =>
-        Assert.DoesNotThrow(() => "[true, none, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "[true, none, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayLiteral_AllNone() =>
-        Assert.DoesNotThrow(() => "[none, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "[none, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayLiteral_IntAndNone_TypedResult() =>
-        Assert.DoesNotThrow(() => "y:int?[] = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int?[] = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayLiteral_RealAndNone_TypedResult() =>
-        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Optional array: element access ---
@@ -1565,24 +1565,24 @@ public class OptionalTypeTest {
     [TestCase("x:int[]? = [10, 20, 30]\r y = x![1]", 20)]
     [TestCase("x:int[]? = [10, 20, 30]\r y = x![2]", 30)]
     public void OptionalArray_ForceUnwrap_IndexAccess(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Array of optionals: element access ---
 
     [Test]
     public void ArrayOfOptionals_ElementAccess_HasValue() =>
-        Assert.DoesNotThrow(() => "x:int?[] = [1, none, 3]\r y = x[0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int?[] = [1, none, 3]\r y = x[0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionals_ElementAccess_IsOptional() =>
-        Assert.DoesNotThrow(() => "x:int?[] = [1, none, 3]\r y:int? = x[0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int?[] = [1, none, 3]\r y:int? = x[0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionals_ElementAccess_NoneElement() {
-        var result = "x:int?[] = [1, none, 3]\r y = x[1]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "x:int?[] = [1, none, 3]\r y = x[1]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1591,24 +1591,24 @@ public class OptionalTypeTest {
 
     [Test]
     public void OptionalArray_Count() =>
-        Assert.DoesNotThrow(() => "x:int[]? = [1,2,3]\r y = x!.count()".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int[]? = [1,2,3]\r y = x!.count()".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void OptionalArray_Map() =>
-        Assert.DoesNotThrow(() => "x:int[]? = [1,2,3]\r y = x!.map(rule it * 2)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "x:int[]? = [1,2,3]\r y = x!.map(rule it * 2)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- T?[]? combinations ---
 
     [Test]
     public void OptionalArrayOfOptionals_Builds() =>
-        Assert.DoesNotThrow(() => "y:int?[]? = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int?[]? = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void OptionalArrayOfOptionals_None() {
-        var result = "y:int?[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int?[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1617,57 +1617,57 @@ public class OptionalTypeTest {
 
     [Test]
     public void ArrayOfOptionalReals_Builds() =>
-        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalInt64_Builds() =>
-        Assert.DoesNotThrow(() => "y:int64?[] = [1, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int64?[] = [1, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalBytes_Builds() =>
-        Assert.DoesNotThrow(() => "y:byte?[] = [1, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:byte?[] = [1, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void ArrayOfOptionalUint32_Builds() =>
-        Assert.DoesNotThrow(() => "y:uint32?[] = [1, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:uint32?[] = [1, none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     // --- Optional array — each type ---
 
     [Test]
     public void OptionalRealArray_None() {
-        var result = "y:real[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:real[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalInt64Array_None() {
-        var result = "y:int64[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int64[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalByteArray_None() {
-        var result = "y:byte[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:byte[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalBoolArray_None() {
-        var result = "y:bool[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:bool[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void OptionalCharArray_None() {
-        var result = "y:char[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:char[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1676,34 +1676,34 @@ public class OptionalTypeTest {
 
     [Test]
     public void OptionalIntArray_UnwrapThenSum() =>
-        "x:int[]? = [1, 2, 3]\r y = x!.sum()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 6);
+        "x:int[]? = [1, 2, 3]\r y = x!.sum()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 6);
 
 
     [Test]
     public void OptionalIntArray_UnwrapThenFilter() =>
-        "x:int[]? = [1, 2, 3]\r y = x!.filter(rule it > 1)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", new[] { 2, 3 });
+        "x:int[]? = [1, 2, 3]\r y = x!.filter(rule it > 1)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", new[] { 2, 3 });
 
 
     [Test]
     public void OptionalIntArray_UnwrapThenReverse() =>
-        "x:int[]? = [1, 2, 3]\r y = x!.reverse()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", new[] { 3, 2, 1 });
+        "x:int[]? = [1, 2, 3]\r y = x!.reverse()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", new[] { 3, 2, 1 });
 
 
     // --- Nested arrays with optional ---
 
     [Test]
     public void NestedOptionalArrays() =>
-        Assert.DoesNotThrow(() => "y:int[]?[] = [[1,2], none, [3]]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int[]?[] = [[1,2], none, [3]]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void OptionalNestedArray() =>
-        Assert.DoesNotThrow(() => "y:int[][]? = [[1], [2, 3]]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+        Assert.DoesNotThrow(() => "y:int[][]? = [[1], [2, 3]]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void OptionalNestedArray_None() {
-        var result = "y:int[][]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int[][]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1720,12 +1720,12 @@ public class OptionalTypeTest {
     [TestCase("y:text? = 'a'", "a")]
     [TestCase("y:bool? = true", true)]
     public void TypeMatrix_Annotation_Value(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [TestCase("y:char? = /'a'", 'a')]
     public void TypeMatrix_CharAnnotation_Value(string expr, char expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- none ?? T_default returns default for every type ---
@@ -1742,7 +1742,7 @@ public class OptionalTypeTest {
     [TestCase("y:text = none ?? ''", "")]
     [TestCase("y:bool = none ?? false", false)]
     public void TypeMatrix_CoalesceDefault(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- T_value! unwrap works for every type ---
@@ -1759,12 +1759,12 @@ public class OptionalTypeTest {
     [TestCase("x:text? = 'a'\r y = x!", "a")]
     [TestCase("x:bool? = true\r y = x!", true)]
     public void TypeMatrix_ForceUnwrap(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:char? = /'a'\r y = x!", 'a')]
     public void TypeMatrix_CharForceUnwrap(string expr, char expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- x == none for every type ---
@@ -1792,13 +1792,13 @@ public class OptionalTypeTest {
     [TestCase("x:char? = /'a'\r y = x == none", false)]
     [TestCase("x:char? = none\r y = x == none", true)]
     public void TypeMatrix_EqualsNone(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     [TestCase("y:real? = 42", 42.0)]
     [TestCase("y:int64? = 42", (Int64)42)]
     [TestCase("y:real? = 0xFF", 255.0)]
     public void Optional_ImplicitCast(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional + comparison chains → not supported ---
@@ -1806,14 +1806,14 @@ public class OptionalTypeTest {
     [TestCase("x:int?\r y = 1 < x < 10")]
     [TestCase("x:int?\r y = 0 <= x <= 100")]
     public void Optional_ComparisonChain_FailsOnParse(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     // --- Optional + pipe forward ---
 
     [TestCase("f(x:int?):int = x ?? 0\r y = none.f()", 0)]
     public void Optional_PipeForward_NoneValue(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional + string interpolation ---
@@ -1823,7 +1823,7 @@ public class OptionalTypeTest {
     [TestCase("x:text? = 'hi'\r y = 'val: {x}'", "val: hi")]
     [TestCase("x:text? = none\r y = 'val: {x}'", "val: none")]
     public void Optional_InStringInterpolation(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Optional + toText ---
@@ -1831,35 +1831,35 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 42\r y = toText(x!)", "42")]
     [TestCase("x:real? = 1.5\r y = toText(x!)", "1.5")]
     public void Optional_ToText_AfterUnwrap(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- toText on optional works (opt(T) <: any, toText accepts any) ---
 
     [TestCase("x:int?\r y = toText(x)", "none")]
     public void Optional_ToText_DirectlyOnOptional(string expr, string expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional + default ---
 
     [Test]
     public void Optional_Default_ReturnsNone() {
-        var result = "y:int? = default".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:int? = default".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void Optional_RealDefault_ReturnsNone() {
-        var result = "y:real? = default".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:real? = default".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
 
     [Test]
     public void Optional_TextDefault_ReturnsNone() {
-        var result = "y:text? = default".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var result = "y:text? = default".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -1870,89 +1870,89 @@ public class OptionalTypeTest {
     [TestCase("a:int? = none\r b:int? = none\r y = (a ?? 1) + (b ?? 2)", 3)]
     [TestCase("a:int? = 3\r b:int? = 4\r y = (a ?? 0) * (b ?? 0)", 12)]
     public void Stress_ComplexOptionalExpressions(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [Test]
     public void Stress_NestedCoalesce_WithFunctions() =>
         "f(x:int):int? = if(x > 0) x else none\r y = f(-1) ?? f(-2) ?? f(3) ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", 3);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", 3);
 
 
     [Test]
     public void Stress_OptionalInArrayMap() =>
         Assert.DoesNotThrow(() =>
-            "f(x:int):int? = if(x > 0) x else none\r y = [1,-2,3].map(f)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "f(x:int):int? = if(x > 0) x else none\r y = [1,-2,3].map(f)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void Stress_IfElseChainWithOptional() =>
-        "x:int? = 5\r y = if(x != none) x! * 2 else -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 10);
+        "x:int? = 5\r y = if(x != none) x! * 2 else -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 10);
 
 
     [Test]
     public void Stress_IfElseChainWithOptional_None() =>
-        "x:int? = none\r y = if(x != none) x! * 2 else -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", -1);
+        "x:int? = none\r y = if(x != none) x! * 2 else -1".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", -1);
 
 
     [Test]
     public void Stress_CoalesceInIfCondition() =>
         "x:int? = none\r y = if((x ?? 0) > 0) 'positive' else 'non-positive'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", "non-positive");
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", "non-positive");
 
 
     [Test]
     public void Stress_CoalesceInIfCondition_HasValue() =>
         "x:int? = 5\r y = if((x ?? 0) > 0) 'positive' else 'non-positive'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", "positive");
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", "positive");
 
 
     [Test]
     public void Stress_OptionalArrayFilter() =>
         Assert.DoesNotThrow(() =>
-            "y = [1,2,3].map(rule if(it > 1) it else none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "y = [1,2,3].map(rule if(it > 1) it else none)".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
     public void Stress_MultipleOutputsWithOptional() =>
         Assert.DoesNotThrow(() =>
-            "a:int? = 42\r b:int? = none\r y = a ?? 0\r z = b ?? -1".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "a:int? = 42\r b:int? = none\r y = a ?? 0\r z = b ?? -1".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [TestCase("x:int? = 42\r y = x ?? 0\r z = y + 1", 43)]
     public void Stress_OptionalThenArithmetic(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     // --- Optional + array indexing after coalesce ---
 
     [Test]
     public void Integration_CoalesceThenIndex() =>
-        "x:int[]? = [10, 20]\r y = (x ?? [0, 0])[1]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 20);
+        "x:int[]? = [10, 20]\r y = (x ?? [0, 0])[1]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 20);
 
 
     [Test]
     public void Integration_CoalesceThenIndex_None() =>
-        "x:int[]? = none\r y = (x ?? [0, 0])[1]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 0);
+        "x:int[]? = none\r y = (x ?? [0, 0])[1]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 0);
 
 
     // --- Optional + count after unwrap ---
 
     [Test]
     public void Integration_UnwrapThenCount() =>
-        "x:text? = 'hello'\r y = x!.count()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 5);
+        "x:text? = 'hello'\r y = x!.count()".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 5);
 
 
     // --- Optional in multi-equation ---
 
     [Test]
     public void Integration_MultiEquation_OptionalAndRegular() =>
-        "a:int? = 42\r b = 10\r y = (a ?? 0) + b".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 52);
+        "a:int? = 42\r b = 10\r y = (a ?? 0) + b".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 52);
 
 
     [Test]
     public void Integration_MultiEquation_TwoOptionals() =>
-        "a:int? = 5\r b:int? = 3\r y = (a ?? 0) + (b ?? 0)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 8);
+        "a:int? = 5\r b:int? = 3\r y = (a ?? 0) + (b ?? 0)".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 8);
 
 
     // --- Optional with negative values ---
@@ -1961,7 +1961,7 @@ public class OptionalTypeTest {
     [TestCase("y:int? = -1", -1)]
     [TestCase("y:real? = -1.5", -1.5)]
     public void Optional_NegativeValues(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional + zero values ---
@@ -1970,7 +1970,7 @@ public class OptionalTypeTest {
     [TestCase("y:real? = 0.0", 0.0)]
     [TestCase("y:byte? = 0", (byte)0)]
     public void Optional_ZeroValues(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional + large values ---
@@ -1978,7 +1978,7 @@ public class OptionalTypeTest {
     [TestCase("y:int64? = 9223372036854775807", Int64.MaxValue)]
     [TestCase("y:uint64? = 18446744073709551615", UInt64.MaxValue)]
     public void Optional_LargeValues(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     // --- Optional + toText on unwrapped ---
@@ -1986,7 +1986,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 42\r y = '{x!}'", "42")]
     [TestCase("x:bool? = true\r y = '{x!}'", "true")]
     public void Optional_InterpolationWithUnwrap(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
 
@@ -1994,20 +1994,20 @@ public class OptionalTypeTest {
     // Only panics when a is none AND b is none (b! evaluated, fails).
     [TestCase("a:int? = none\r b:int? = none\r y = (a ?? b!)")]
     public void Combo_CoalesceAndUnwrap_UnwrapNone_RuntimeError(string expr) =>
-        expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
     [TestCase("a:int? = 5\r b:int? = none\r y = (a ?? b!)", 5)]  // short-circuit: b! not evaluated
     [TestCase("a:int? = none\r b:int? = 7\r y = a ?? b!", 7)]
     [TestCase("x:int? = 42\r y = (x ?? 0)!", 42)]
     public void Combo_CoalesceAndUnwrap(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // (a ?? b)! — coalesce returns int? (both optional), then ! unwraps to int
     [Test]
     public void Combo_CoalesceResultUnwrap_None_RuntimeError() =>
         "a:int? = none\r b:int? = none\r y = (a ?? b)!"
-            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [TestCase("a:int? = none\r y = (a ?? 1) + (a ?? 2)", 3)]
@@ -2020,7 +2020,7 @@ public class OptionalTypeTest {
     [TestCase("a:real? = 2.0\r b:real? = 3.0\r y = (a ?? 0.0) + (b ?? 0.0)", 5.0)]
     [TestCase("a:real? = none\r b:real? = 1.5\r y = (a ?? 0.0) + (b ?? 0.0)", 1.5)]
     public void Combo_ParenthesizedCoalesceInArithmetic(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:int? = 5\r y = x! + x!", 10)]
@@ -2031,7 +2031,7 @@ public class OptionalTypeTest {
     [TestCase("x:real? = 2.5\r y = x! + 1.5", 4.0)]
     [TestCase("x:real? = 4.0\r y = x! * x!", 16.0)]
     public void Combo_UnwrapThenArithmetic(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("a:int? = none\r b:int? = none\r c:int? = 42\r y = a ?? (b ?? (c ?? 0))", 42)]
@@ -2039,14 +2039,14 @@ public class OptionalTypeTest {
     [TestCase("a:int? = 1\r b:int? = 7\r c:int? = 42\r y = a ?? (b ?? (c ?? 0))", 1)]
     [TestCase("a:int? = none\r b:int? = none\r c:int? = none\r y = a ?? (b ?? (c ?? 0))", 0)]
     public void Combo_NestedParenthesizedCoalesce(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
     // (a ?? b) ?? 0 — inner (a ?? b) returns int?, outer ?? unwraps to int
     [TestCase("a:int? = none\r b:int? = none\r y = (a ?? b) ?? 0", 0)]
     [TestCase("a:int? = none\r b:int? = 5\r y = (a ?? b) ?? 0", 5)]
     [TestCase("a:int? = 3\r b:int? = 5\r y = (a ?? b) ?? 0", 3)]
     public void Combo_NestedParenthesizedCoalesce_OptionalRight(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     // --- Complex boolean expressions with optionals ---
@@ -2058,7 +2058,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = none\r y:int? = 10\r z = (x == none) or (y == none)", true)]
     [TestCase("x:int? = 42\r y:int? = 10\r z = (x == none) or (y == none)", false)]
     public void Combo_BooleanWithNoneChecks(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("z", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("z", expected);
 
 
     [TestCase("x:int? = 42\r y = if(x != none) x! + 10 else -1", 52)]
@@ -2068,7 +2068,7 @@ public class OptionalTypeTest {
     [TestCase("x:real? = 2.5\r y = if(x != none) x! * 2.0 else 0.0", 5.0)]
     [TestCase("x:real? = none\r y = if(x != none) x! * 2.0 else 0.0", 0.0)]
     public void Combo_ConditionalUnwrapWithArithmetic(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("a:int? = 1\r b:int? = 2\r c:int? = 3\r y = a! + b! + c!", 6)]
@@ -2076,25 +2076,25 @@ public class OptionalTypeTest {
     [TestCase("a:int? = none\r b:int? = none\r y = (a ?? 1) + (b ?? 2)", 3)]
     [TestCase("a:int? = 3\r b:int? = none\r y = (a ?? 0) * 2 + (b ?? 1)", 7)]
     public void Combo_MultipleOptionalsInExpr(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = (f(5) ?? 0) + (f(-1) ?? 10)", 15)]
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = (f(3) ?? 0) * (f(4) ?? 1)", 12)]
     [TestCase("f(x:int):int? = if(x > 0) x else none\r y = f(5)! + f(3)!", 8)]
     public void Combo_FunctionResultCoalesceArithmetic(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void Combo_FunctionResultUnwrap_RuntimeError() =>
         "f(x:int):int? = if(x > 0) x else none\r y = f(-1)!"
-            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .AssertObviousFailsOnRuntime(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
     [Test]
     public void Combo_UnwrapArrayThenIndex() =>
-        "x:int[]? = [10,20,30]\r y = x![1] + 5".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", 25);
+        "x:int[]? = [10,20,30]\r y = x![1] + 5".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", 25);
 
 
     [TestCase("x:int? = 42\r y = (if(true) x else none) ?? 0", 42)]
@@ -2104,7 +2104,7 @@ public class OptionalTypeTest {
     [TestCase("y = (if(false) 42 else none) ?? 0", 0)]
     [TestCase("y = (if(true) none else 42) ?? 99", 99)]
     public void Combo_IfElseWrappedInCoalesce(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
 
@@ -2113,13 +2113,13 @@ public class OptionalTypeTest {
     [TestCase("f(x:int):int? = if(x>0) x else none\r g(x:int?):int = x ?? -1\r y = g(f(5))", 5)]
     [TestCase("f(x:int):int? = if(x>0) x else none\r g(x:int?):int = x ?? -1\r y = g(f(-1))", -1)]
     public void Combo_ChainedFunctionCalls(string expr, object expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertReturns("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);
 
 
     [Test]
     public void Combo_PipeUnwrapArithmetic() =>
         Assert.DoesNotThrow(() =>
-            "f(x:int?):int = x ?? 0\r x:int? = 42\r y = x.f() + 1".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            "f(x:int?):int = x ?? 0\r x:int? = 42\r y = x.f() + 1".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [TestCase("x:int? = 5\r y = (x ?? 0) > 3", true)]
@@ -2130,7 +2130,7 @@ public class OptionalTypeTest {
     [TestCase("x:int? = 5\r y = (x ?? 0) >= 5", true)]
     [TestCase("x:int? = 5\r y = (x ?? 0) < 10", true)]
     public void Combo_CoalesceThenComparison(string expr, bool expected) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).AssertResultHas("y", expected);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertResultHas("y", expected);
 
 
     [TestCase("x:int?\r y = (x) + 1")]
@@ -2141,39 +2141,39 @@ public class OptionalTypeTest {
     [TestCase("x:bool?\r y = x and x")]
     [TestCase("x:int?\r y = x & x")]
     public void Combo_Negative_OptionalInArithmetic(string expr) =>
-        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
     [Test]
     public void OptionalStructArray_Index_ShouldWork() {
         var result = "x = [{a=1}, none]\r y = x[0]"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNotNull(result.Get("y"));
     }
 
     [Test]
     public void OptionalStructArray_Map_ShouldWork() {
         "x = [{a=1}, none, {a=3}]\r y = x.map(rule it?.a ?? 0)"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
     }
 
     [Test]
     public void FoldOnOptionalArray_WithArithmetic_GivesTypeError() {
         Assert.Throws<FunnyParseException>(
             () => "y = [1,none,3].fold(rule it1 + (it2 ?? 0))"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void FoldOnOptionalArray_WithCoalesce_Works() {
         "y = [1,none,3].map(rule it ?? 0).fold(rule it1 + it2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 4);
     }
 
     [Test]
     public void OptionalIntArray_NoneDisplaysAsNull() {
         var result = "x:int?[] = [1, none, 3]\r y = x"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (int?[])result.Get("y");
         Assert.AreEqual(1, arr[0]);
         Assert.IsNull(arr[1]);
@@ -2183,7 +2183,7 @@ public class OptionalTypeTest {
     [Test]
     public void OptionalBoolArray_NoneDisplaysAsNull() {
         var result = "x:bool?[] = [true, none, false]\r y = x"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (bool?[])result.Get("y");
         Assert.AreEqual(true, arr[0]);
         Assert.IsNull(arr[1]);
@@ -2193,7 +2193,7 @@ public class OptionalTypeTest {
     [Test]
     public void InferredOptionalArray_WithCoalesce_XShouldBeOptional() {
         var result = "x = [1, none, 3]\r y = x.map(rule it ?? 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var yArr = (int[])result.Get("y");
         Assert.AreEqual(new[] { 1, 0, 3 }, yArr);
         Assert.DoesNotThrow(
@@ -2204,7 +2204,7 @@ public class OptionalTypeTest {
     [Test]
     public void InferredOptionalArray_ElementCoalesce_XShouldBeOptional() {
         var result = "x = [1, none, 3]\r y = x[0] ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(1, result.Get("y"));
         Assert.DoesNotThrow(
             () => result.Get("x"),
@@ -2214,20 +2214,20 @@ public class OptionalTypeTest {
     [Test]
     public void AnnotatedOptionalArray_MapWithCoalesce_Works() =>
         "x:int?[] = [1, none, 3]\r y = x.map(rule it ?? 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 1, 0, 3 });
 
     [Test]
     public void InlineOptionalArray_MapWithCoalesce_Works() =>
         "y = [1, none, 3].map(rule it ?? 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 1, 0, 3 });
 
     [Test]
     public void TypedOptionalArray_TwoNoneLiterals_ShouldCompile() {
         Assert.DoesNotThrow(
             () => "x:int?[] = [1, none, none]"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled),
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled),
             "FU775 parse error on typed array with 2 none literals");
     }
 
@@ -2235,7 +2235,7 @@ public class OptionalTypeTest {
     public void TypedOptionalArray_ThreeNoneLiterals_ShouldCompile() {
         Assert.DoesNotThrow(
             () => "x:int?[] = [none, 1, none, 2, none]"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled),
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled),
             "FU775 parse error on typed array with 3 none literals");
     }
 
@@ -2244,13 +2244,13 @@ public class OptionalTypeTest {
     [TestCase("x:int?[] = [none, none]", Description = "only nones works")]
     public void TypedOptionalArray_SingleOrAllNone_Works(string expr) {
         Assert.DoesNotThrow(
-            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void UntypedArray_MultipleNones_Works() {
         var result = "y = [1, none, none]"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNotNull(result.Get("y"));
     }
 
@@ -2260,7 +2260,7 @@ public class OptionalTypeTest {
     public void NestedArrayWithNone_Inline() {
         Assert.DoesNotThrow(
             () => "y = [[1,none],[none,2]]"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
                 .Calc());
     }
 
@@ -2268,7 +2268,7 @@ public class OptionalTypeTest {
     public void NestedArrayWithNone_Typed() {
         Assert.DoesNotThrow(
             () => "y:int?[][] = [[1,none],[none,2]]"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2280,13 +2280,13 @@ public class OptionalTypeTest {
     [TestCase("y:int?[] = [none, none, none]")]
     public void AllNoneTypedArray_Compiles(string expr) {
         Assert.DoesNotThrow(
-            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void AllNoneTypedArray_CorrectCount() {
         var result = "y:int?[] = [none, none, none]"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         // The array should have 3 elements (returned as CLR int?[])
         var arr = (int?[])result.Get("y");
         Assert.AreEqual(3, arr.Length);
@@ -2300,7 +2300,7 @@ public class OptionalTypeTest {
     [TestCase("y:int?[] = [1, none, 2]")]
     public void MixedNoneTypedArray_StillWorks(string expr) {
         Assert.DoesNotThrow(
-            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+            () => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2311,13 +2311,13 @@ public class OptionalTypeTest {
     public void MapWithOptionalAnnotation_Compiles() {
         Assert.DoesNotThrow(() =>
             "y:int?[] = [1,2,3].map(rule if(it>1) it else none)"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void MapWithOptionalAnnotation_CorrectValues() {
         var r = "y:int?[] = [1,2,3].map(rule if(it>1) it else none)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (int?[])r.Get("y");
         Assert.AreEqual(3, arr.Length);
         Assert.IsNull(arr[0]);
@@ -2329,7 +2329,7 @@ public class OptionalTypeTest {
     public void MapWithOptionalAnnotation_WithoutAnnotation_StillWorks() {
         // Regression: without annotation should still work
         var r = "y = [1,2,3].map(rule if(it>1) it else none)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (int?[])r.Get("y");
         Assert.AreEqual(3, arr.Length);
         Assert.IsNull(arr[0]);
@@ -2345,7 +2345,7 @@ public class OptionalTypeTest {
     public void OptionalInNonOptionalArray_CompileError() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
             "y:int? = none; out:int[] = [y, 1, 2]"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2356,21 +2356,21 @@ public class OptionalTypeTest {
     public void NoneGreaterThanNone_CompileError() {
         Assert.Throws<FunnyParseException>(
             () => "out = none > none"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void NoneLessThanNone_CompileError() {
         Assert.Throws<FunnyParseException>(
             () => "out = none < none"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     [Test]
     public void NoneGreaterOrEqualNone_CompileError() {
         Assert.Throws<FunnyParseException>(
             () => "out = none >= none"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2380,7 +2380,7 @@ public class OptionalTypeTest {
     [Test]
     public void StructFieldIfElseNone_CoalesceSum() {
         var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).sum()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(5, r["out"].Value);
     }
@@ -2388,7 +2388,7 @@ public class OptionalTypeTest {
     [Test]
     public void StructFieldIfElseNone_CoalesceMax() {
         var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).max()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(3, r["out"].Value);
     }
@@ -2396,7 +2396,7 @@ public class OptionalTypeTest {
     [Test]
     public void StructFieldIfElseNone_CoalesceSort() {
         var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).sort()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         // Should be int[], not int?[]
     }
@@ -2405,7 +2405,7 @@ public class OptionalTypeTest {
     public void WithoutStruct_CoalesceSum_Works() {
         // Proves the issue is struct field access, not the pipeline itself
         var r = "[1,2,3].map(rule if(it > 1) it else none).map(rule it ?? 0).sum()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(5, r["out"].Value);
     }
@@ -2414,7 +2414,7 @@ public class OptionalTypeTest {
     public void SeparateMaps_CoalesceSum_Works() {
         // Struct access in separate map works — proves it's the combination
         var r = "[{a=1},{a=2},{a=3}].map(rule it.a).map(rule if(it > 1) it else none).map(rule it ?? 0).sum()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(5, r["out"].Value);
     }
@@ -2422,7 +2422,7 @@ public class OptionalTypeTest {
     [Test]
     public void StructFieldIfElseNone_CoalesceCount() {
         var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).count()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(3, r["out"].Value);
     }
@@ -2430,7 +2430,7 @@ public class OptionalTypeTest {
     [Test]
     public void StructFieldIfElseNone_DifferentFieldName_CoalesceSum() {
         var r = "[{v=10},{v=20},{v=5}].map(rule if(it.v > 8) it.v else none).map(rule it ?? 0).sum()"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(30, r["out"].Value);
     }
@@ -2438,7 +2438,7 @@ public class OptionalTypeTest {
     [Test]
     public void StructFieldIfElseNone_CoalesceFold() {
         var r = "[{a=1},{a=2},{a=3}].map(rule if(it.a > 1) it.a else none).map(rule it ?? 0).fold(rule it1+it2)"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(5, r["out"].Value);
     }
@@ -2451,7 +2451,7 @@ public class OptionalTypeTest {
     public void ArrayWithNone_PreferredTypeWorks() {
         // [1, none, 3] should produce Int32?[] (not UInt8?[]) — preferred type applied
         var r = "[1, none, 3]"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         var arr = (int?[])r.Get("out");
         Assert.AreEqual(new int?[] { 1, null, 3 }, arr);
     }
@@ -2464,7 +2464,7 @@ public class OptionalTypeTest {
     public void GenericWrapNone_NoStackOverflow() {
         Assert.DoesNotThrow(() =>
             "wrap(x) = if(true) x else none; out = wrap(42)"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2475,7 +2475,7 @@ public class OptionalTypeTest {
     public void MapOptionalVarThenMap_NoStackOverflow() {
         Assert.DoesNotThrow(() =>
             "source = [1,2,3].map(rule if(it>1) it else none); out = source.map(rule it ?? 0)"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2486,7 +2486,7 @@ public class OptionalTypeTest {
     public void CoalesceIncompatibleTypes_ShouldError() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
             "a:int? = 42; out = a ?? 'hello'"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -2496,7 +2496,7 @@ public class OptionalTypeTest {
     [Test]
     public void ForceUnwrapNonOptional_IsNoop() {
         "y = 42!"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 42);
     }
 
@@ -2507,7 +2507,7 @@ public class OptionalTypeTest {
     [Test]
     public void NestedCoalesceWithNone_TypeNotUnwrapped() {
         "(42 ?? none) ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 42);
     }
 
@@ -2518,7 +2518,7 @@ public class OptionalTypeTest {
     [Test]
     public void TripleNestedOptionalStruct() {
         "inner = if(true) {d=99} else none; mid = if(true) {c=inner} else none; outer = if(true) {b=mid} else none; out = outer?.b?.c?.d ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 99);
     }
 
@@ -2529,7 +2529,7 @@ public class OptionalTypeTest {
     [Test]
     public void IfElseArrayWithNone_PreferredTypeLost() {
         var r = "y = if(true) [1,2,3] else [none]"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         // Should be Int32?[], not UInt8?[]
         var actualType = r.Get("y").GetType();
         Assert.AreEqual(typeof(int?[]), actualType,
@@ -2543,7 +2543,7 @@ public class OptionalTypeTest {
     [Test]
     public void NoneVarCoalesce_TypeNotUnwrapped() {
         "a = none; b = a ?? 42"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("b", 42);
         // b should be Int32, not Int32?
     }
@@ -2552,6 +2552,6 @@ public class OptionalTypeTest {
     public void CoalesceResultArithmetic_NoError() {
         Assert.DoesNotThrow(() =>
             "a = none; b = a ?? 42; c = b + 1"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 }

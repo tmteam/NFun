@@ -51,8 +51,9 @@ public class HardcoreBuilder {
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
-        NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled)
-        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions, optionalTypesSupport, allowNewlineInStrings, namedTypesSupport));
+        NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
+        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled)
+        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions, optionalTypesSupport, allowNewlineInStrings, namedTypesSupport, tryCatchSupport));
 
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
         new(_constants, _mutableApriori, dialect, _customFunctions, _customTypes);

@@ -108,7 +108,7 @@ public class GenericValidationTest {
         // none in [1,2,3] -- none is opt(T), [1,2,3] is int[].
         // Requires optional types to be enabled.
         "y = none in [1,2,3]"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Calc();
     }
 

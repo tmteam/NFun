@@ -44,13 +44,13 @@ public class ArrowSyntaxAndFunctionTypesTest {
     [Test]
     public void Arrow_ReturnOptional() =>
         "f(x:int)->int? = if(x>0) x else none\r out = f(0) ?? -1"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", -1);
 
     [Test]
     public void Arrow_ReturnOptional_HasValue() =>
         "f(x:int)->int? = if(x>0) x else none\r out = f(5) ?? -1"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 5);
 
     // ═══════════════════════════════════════════════════════════
@@ -68,8 +68,8 @@ public class ArrowSyntaxAndFunctionTypesTest {
          "lastVal(n:node)->int = if(n.next == none) n.v else lastVal(n.next!)\r" +
          "out = lastVal(node{v=1, next=node{v=42}})")
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     [Test]
@@ -78,8 +78,8 @@ public class ArrowSyntaxAndFunctionTypesTest {
          "lastVal(n:node)->int = if(n.next == none) n.v else lastVal(n.next!)\r" +
          "out = lastVal(node{v=1, next=node{v=2, next=node{v=42}}})")
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     // ═══════════════════════════════════════════════════════════
@@ -150,25 +150,25 @@ public class ArrowSyntaxAndFunctionTypesTest {
     [Test]
     public void TypeAlias_Simple() =>
         "type transform = rule(int)->int\r apply(f:transform, x:int)->int = f(x)\r out = apply(rule it*3, 14)"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     [Test]
     public void TypeAlias_TwoArgs() =>
         "type binop = rule(int,int)->int\r calc(f:binop, a:int, b:int)->int = f(a,b)\r out = calc(rule it1*it2, 6, 7)"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     [Test]
     public void TypeAlias_Predicate() =>
         "type pred = rule(int)->bool\r check(p:pred, x:int)->bool = p(x)\r out = check(rule it > 2, 42)"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", true);
 
     [Test]
     public void TypeAlias_Chain() =>
         "type intOp = rule(int)->int\r type myOp = intOp\r apply(f:myOp, x:int)->int = f(x)\r out = apply(rule it+1, 41)"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     // ═══════════════════════════════════════════════════════════
@@ -180,7 +180,7 @@ public class ArrowSyntaxAndFunctionTypesTest {
         ("type point = {x:int, y:int}\r" +
          "transform(p:point, f:rule(int)->int)->point = point{x=f(p.x), y=f(p.y)}\r" +
          "out = transform(point{x=1,y=2}, rule it*10).x")
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 10);
 
     [Test]
@@ -189,8 +189,8 @@ public class ArrowSyntaxAndFunctionTypesTest {
          "applyToVal(n:node, f:rule(int)->int)->int = f(n.v)\r" +
          "out = applyToVal(node{v=21}, rule it*2)")
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     [Test]
@@ -202,14 +202,14 @@ public class ArrowSyntaxAndFunctionTypesTest {
     public void Combined_ArrowWithOptional() =>
         ("safeApply(f:rule(int)->int, x:int?)->int? = if(x != none) f(x!) else none\r" +
          "out = safeApply(rule it*2, 21) ?? -1")
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", 42);
 
     [Test]
     public void Combined_ArrowWithOptional_None() =>
         ("safeApply(f:rule(int)->int, x:int?)->int? = if(x != none) f(x!) else none\r" +
          "out = safeApply(rule it*2, none) ?? -1")
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("out", -1);
 
     // ═══════════════════════════════════════════════════════════

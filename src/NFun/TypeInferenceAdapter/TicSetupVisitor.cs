@@ -945,7 +945,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     public bool Visit(IfThenElseSyntaxNode node) {
-        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled)
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.Enabled)
             return VisitIfThenElseWithNarrowing(node);
         VisitChildren(node);
         SetupIfElseConstraints(node);
@@ -1292,7 +1292,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     #region privates
 
     private void ThrowIfOptionalTypeDisabled(FunnyType funnyType, string varId, Interval interval) {
-        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled)
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.Enabled)
             return;
         if (ContainsOptional(funnyType))
             throw Errors.OptionalTypeNotSupported(varId, interval);
@@ -1364,7 +1364,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // the right side `x > 0` should see x as narrowed (non-optional).
         // Progressive narrowing in OR: after visiting left side of `x == none or x < 0`,
         // if left is false (x != none), right side should see x as narrowed.
-        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.ExperimentalEnabled) {
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.Enabled) {
             var leftNarrowing = Interpretation.NarrowingAnalyzer.Analyze(node.Left);
             var narrowSet = node.Op == BinOp.And ? leftNarrowing.WhenTrue
                           : node.Op == BinOp.Or  ? leftNarrowing.WhenFalse

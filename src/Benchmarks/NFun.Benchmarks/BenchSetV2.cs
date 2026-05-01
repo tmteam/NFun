@@ -16,7 +16,7 @@ static class BenchSetV2
 
     public static NfunBenchSet V2() => new("v2", new[]
         { SimpleV2(), MediumV2(), ComplexV2() },
-        OptionalTypes: NFun.OptionalTypesSupport.ExperimentalEnabled);
+        OptionalTypes: NFun.OptionalTypesSupport.Enabled);
 
     static BenchSubSet SimpleV2() => new("Simple", 64, new BenchScript[]
     {

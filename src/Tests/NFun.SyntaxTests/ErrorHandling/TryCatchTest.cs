@@ -67,7 +67,7 @@ public class TryCatchTest {
     [Test]
     public void TryCatch_WithCoalesce_OopsCaught() {
         var r = "x:int? = none\r y = try (x ?? oops()) catch 0".BuildWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(0, r["y"].Value);
     }

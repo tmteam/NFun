@@ -22,13 +22,13 @@ public class RecursiveTypeTest {
 
     static CalculationResult Calc(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled);
 
     static FunnyRuntime Build(string expr) =>
         Funny.Hardcore.WithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled).Build(expr);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled).Build(expr);
 
     // ═══════════════════════════════════════════════════════════════
     // NON-OPTIONAL DIRECT RECURSION — must error (infinite size)
@@ -345,8 +345,8 @@ public class RecursiveTypeTest {
     public void TreeArrayRecursive_StackOverflow() {
         "type tree = {v:int, children:tree[] = []}; forest = [tree{v=1, children=[tree{v=10}]}, tree{v=2}]; out = forest[0].children[0].v"
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 10);
     }
 
@@ -354,8 +354,8 @@ public class RecursiveTypeTest {
     public void ArrayRecursiveOptionalAccess() {
         "type node = {v:int, next:node? = none}; arr = [node{v=1, next=node{v=10}}, node{v=2, next=node{v=20}}]; out = arr[0].next?.v ?? -1"
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 10);
     }
 
@@ -363,8 +363,8 @@ public class RecursiveTypeTest {
     public void RecursiveFunctionDepth4() {
         "type node = {v:int, next:node? = none}; maxVal(n:node):int = if(n.next == none) n.v else max(n.v, maxVal(n.next!)); n = node{v=3, next=node{v=7, next=node{v=2, next=node{v=9}}}}; out = maxVal(n)"
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 9);
     }
 
@@ -372,8 +372,8 @@ public class RecursiveTypeTest {
     public void RecursiveFunctionDepth15() {
         "type node = {v:int, next:node? = none}; lastVal(n:node):int = if(n.next == none) n.v else lastVal(n.next!); n = node{v=1, next=node{v=2, next=node{v=3, next=node{v=4, next=node{v=5, next=node{v=6, next=node{v=7, next=node{v=8, next=node{v=9, next=node{v=10, next=node{v=11, next=node{v=12, next=node{v=13, next=node{v=14, next=node{v=15}}}}}}}}}}}}}}}; out = lastVal(n)"
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 15);
     }
 
@@ -382,14 +382,14 @@ public class RecursiveTypeTest {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
             "type node = {v:int, next:node? = node{v=0}}; n = node{v=1}; out = n.v"
                 .CalcWithDialect(
-                    optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                    namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+                    optionalTypesSupport: OptionalTypesSupport.Enabled,
+                    namedTypesSupport: NamedTypesSupport.Enabled));
     }
 
     [Test]
     public void TreeArrayMap_NoStackOverflow() {
         Assert.DoesNotThrow(() =>
             "type tree = {v:int, children:tree[] = []}; forest = [tree{v=1, children=[tree{v=10}]}, tree{v=2}]; out = forest.map(rule it.children.count())"
-                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
     }
 }

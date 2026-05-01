@@ -12,12 +12,12 @@ namespace NFun.SyntaxTests.NamedTypes;
 public class InlineConstructorSafeAccessTest {
     static CalculationResult CalcBoth(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled);
 
     static CalculationResult CalcOptional(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
 
     // 1. Anonymous struct (no named types) — does inline safe access work at all?
     [Test]

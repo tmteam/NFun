@@ -19,13 +19,13 @@ public class RecursiveTypeCombinationsTest {
 
     static CalculationResult Calc(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled);
 
     static FunnyRuntime Build(string expr) =>
         Funny.Hardcore.WithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled).Build(expr);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled).Build(expr);
 
     // ═══════════════════════════════════════════════════════════════
     // OPTIONAL ARRAY OF SELF (t[]?)

@@ -11,7 +11,7 @@ using NUnit.Framework;
 public class SafeMethodChainTest {
 
     private static CalculationResult Calc(string expr) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
     // ═══════════════════════════════════════════════════════════
     // Single ?.method() — basic

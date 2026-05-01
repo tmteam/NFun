@@ -20,8 +20,8 @@ public class DeepRecursiveTypeTest {
 
     static CalculationResult Calc(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled);
 
     // ═══════════════════════════════════════════════════════════════
     // LINKED LIST — deep access chains

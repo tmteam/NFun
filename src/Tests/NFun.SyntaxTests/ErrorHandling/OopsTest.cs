@@ -45,12 +45,12 @@ public class OopsTest {
     public void Oops_AsCoalesceFallback_Throws() =>
         Assert.Throws<FunnyRuntimeException>(() =>
             "x:int? = none\r y = x ?? oops('missing')".BuildWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled).Run());
+                optionalTypesSupport: OptionalTypesSupport.Enabled).Run());
 
     [Test]
     public void Oops_AsCoalesceFallback_NotThrownWhenHasValue() {
         var r = "x:int? = 42\r y = x ?? oops('missing')".BuildWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(42, r["y"].Value);
     }

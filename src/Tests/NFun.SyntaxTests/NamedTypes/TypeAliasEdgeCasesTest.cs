@@ -12,14 +12,14 @@ public class TypeAliasEdgeCasesTest {
 
     static object Calc(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled)
         .Get("out");
 
     static void CalcNoThrow(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled);
 
     // ═══════════════════════════════════════════════════════════
     // ALIAS IN ARITHMETIC / COMPARISON

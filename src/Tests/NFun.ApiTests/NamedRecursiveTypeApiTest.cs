@@ -15,8 +15,8 @@ public class NamedRecursiveTypeApiTest {
     static FunnyRuntime Build(string expr) =>
         Funny.Hardcore
             .WithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .Build(expr);
 
     // ─── Variable types ───
@@ -74,7 +74,7 @@ public class NamedRecursiveTypeApiTest {
     [Test]
     public void TypeRegistry_Empty_WhenNoTypes() {
         var rt = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("out = 42");
         Assert.AreEqual(0, rt.TypeRegistry.Count);
     }

@@ -54,10 +54,10 @@ public static class TestHelper {
         Funny.Hardcore.Build(expr).Calc(values);
 
     public static CalculationResult CalcWithNamedTypes(this string expr, params (string id, object val)[] values) =>
-        Funny.Hardcore.WithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled).Build(expr).Calc(values);
+        Funny.Hardcore.WithDialect(namedTypesSupport: NamedTypesSupport.Enabled).Build(expr).Calc(values);
 
     public static FunnyRuntime BuildWithNamedTypes(this string expr) =>
-        Funny.Hardcore.WithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled).Build(expr);
+        Funny.Hardcore.WithDialect(namedTypesSupport: NamedTypesSupport.Enabled).Build(expr);
 
     public static object CalcAnonymousOut(this string expr, params (string id, object val)[] values) =>
         Calc(expr, values).Get(Parser.AnonymousEquationId);

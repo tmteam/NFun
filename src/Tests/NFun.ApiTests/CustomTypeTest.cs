@@ -274,7 +274,7 @@ public class CustomTypeTest {
     [Test]
     public void CustomType_Optional_WithValue() {
         var runtime = Builder
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .WithApriori("a", MyType)
             .Build("y = if(true) a else none");
 
@@ -286,7 +286,7 @@ public class CustomTypeTest {
     [Test]
     public void CustomType_NullCoalesce() {
         var runtime = Builder
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .WithApriori("a", FunnyType.OptionalOf(MyType))
             .WithApriori("b", MyType)
             .Build("y = a ?? b");

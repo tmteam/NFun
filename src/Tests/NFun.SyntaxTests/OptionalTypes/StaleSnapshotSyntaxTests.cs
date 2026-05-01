@@ -22,7 +22,7 @@ public class StaleSnapshotSyntaxTests {
         // Expected: builds successfully, y = opt(int)[]
         Assert.DoesNotThrow(
             () => "y = if(true) [1] else [none]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test(Description ="Stale snapshot: LCA of {a=int} vs {a=none} in if-else")]
@@ -31,7 +31,7 @@ public class StaleSnapshotSyntaxTests {
         // Expected: builds successfully, y = {a: opt(int)}
         Assert.DoesNotThrow(
             () => "y = if(true) {a=1} else {a=none}"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test(Description ="Stale snapshot: LCA of {a=int} vs {a=none} in array literal")]
@@ -40,7 +40,7 @@ public class StaleSnapshotSyntaxTests {
         // Expected: builds successfully, y = {a: opt(int)}[]
         Assert.DoesNotThrow(
             () => "y = [{a=1},{a=none}]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test(Description ="Stale snapshot: LCA of [[int]] vs [[none]] in if-else")]
@@ -49,7 +49,7 @@ public class StaleSnapshotSyntaxTests {
         // Expected: builds successfully, y = opt(int)[][]
         Assert.DoesNotThrow(
             () => "y = if(true) [[1]] else [[none]]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test(Description ="Stale snapshot: map lambda producing [int] vs [none] branches")]
@@ -58,7 +58,7 @@ public class StaleSnapshotSyntaxTests {
         // Expected: builds successfully, y = opt(int)[][]
         Assert.DoesNotThrow(
             () => "y = [1,2,3].map(rule if(it>1) [it] else [none])"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test(Description ="Stale snapshot: [[int,int,int],[none]] partial array with none")]
@@ -67,6 +67,6 @@ public class StaleSnapshotSyntaxTests {
         // Expected: builds successfully, y = opt(int)[][]
         Assert.DoesNotThrow(
             () => "y = [[1,2,3],[none]]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 }

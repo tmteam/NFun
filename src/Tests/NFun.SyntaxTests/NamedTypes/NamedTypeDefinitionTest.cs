@@ -144,8 +144,8 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void Annotation_ComposesWithOptional() =>
         "type point = {x:int, y:int}\r out:point? = if(true) point{x=1,y=2} else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                             namedTypesSupport: NamedTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled,
+                             namedTypesSupport: NamedTypesSupport.Enabled);
 
     #endregion
 
@@ -520,8 +520,8 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void NamedStructArray_PreservesPreferredType() {
         var runtime = Funny.Hardcore.WithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled)
             .Build("type user = {score:int?}\r y = [user{score=10}, user{score=none}, user{score=5}]");
         var r = runtime.Calc();
         // score should be Int32? (from named type), not UInt8?
@@ -533,8 +533,8 @@ public class NamedTypeDefinitionTest {
     public void NamedStructArray_Compiles() {
         Assert.DoesNotThrow(() =>
             Funny.Hardcore.WithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
                 .Build("type user = {score:int?}\r y = [user{score=10}, user{score=none}, user{score=5}]"));
     }
 
@@ -546,7 +546,7 @@ public class NamedTypeDefinitionTest {
     public void CircularAlias_IsDetected() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
             "type a = b; type b = a; out = 1"
-                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -556,7 +556,7 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void StructFieldTypeInference_Works() {
         "type config = {retries = 3}; c = config{}; out = c.retries + 1"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 4);
     }
 
@@ -568,7 +568,7 @@ public class NamedTypeDefinitionTest {
     public void DuplicateFieldInNamedConstructor_CompileError() {
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
             "type pt = {x:int, y:int}; out = pt{x=1, y=2, x=3}.x"
-                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -578,7 +578,7 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void UppercaseFieldName_Works() {
         "type pt = {A:int}; out = pt{A=42}.A"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
     }
 
@@ -589,7 +589,7 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void AliasToStructConstructor_Works() {
         "type pair = {a:int, b:int}; type alias = pair; out = alias{a=1, b=2}.a"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 1);
     }
 
@@ -600,7 +600,7 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void IpDefaultInStruct_Works() {
         "type server = {addr:ip = 0.0.0.0, port:int = 80}; out = server{}.port"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 80);
     }
 
@@ -611,7 +611,7 @@ public class NamedTypeDefinitionTest {
     [Test]
     public void PrimitiveTypeAlias_AsAnnotation() {
         "type age = int; x:age = 42; y = x + 1"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("y", 43);
     }
 
@@ -625,16 +625,16 @@ public class NamedTypeDefinitionTest {
         Assert.DoesNotThrow(() =>
             "type t = {x: int?}; items = [t{x=1}, t{x=2}]; out = items[0].x ?? -1"
                 .CalcWithDialect(
-                    optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                    namedTypesSupport: NamedTypesSupport.ExperimentalEnabled));
+                    optionalTypesSupport: OptionalTypesSupport.Enabled,
+                    namedTypesSupport: NamedTypesSupport.Enabled));
     }
 
     [Test]
     public void OptionalArrayFieldMapSum() {
         "type d = {items: int?[]}; x = d{items=[1,none,3]}; out = x.items.map(rule it ?? 0).sum()"
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 4);
     }
 
@@ -646,8 +646,8 @@ public class NamedTypeDefinitionTest {
     public void CoalesceOnNamedStructField_Works() {
         "type w = {items:int?[]}; y = w{items=[42, none]}; out = y.items[0] ?? -1"
             .CalcWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 42);
     }
 

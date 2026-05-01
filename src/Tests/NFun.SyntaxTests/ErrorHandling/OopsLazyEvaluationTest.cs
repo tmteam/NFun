@@ -19,7 +19,7 @@ public class OopsLazyEvaluationTest {
     [Test]
     public void Coalesce_OopsOnRight_NotEvaluatedWhenLeft() {
         var r = "x:int? = 42\r y = x ?? oops('should not fire')".BuildWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(42, r["y"].Value);
     }
@@ -53,7 +53,7 @@ public class OopsLazyEvaluationTest {
     [Test]
     public void TryCatch_Coalesce_Oops_Chain() {
         var r = "x:int? = none\r y = try (x ?? oops('unwrap')) catch 0".BuildWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(0, r["y"].Value);
     }
@@ -61,7 +61,7 @@ public class OopsLazyEvaluationTest {
     [Test]
     public void TryCatch_Coalesce_ValuePresent_NoOops() {
         var r = "x:int? = 42\r y = try (x ?? oops('unwrap')) catch 0".BuildWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(42, r["y"].Value);
     }

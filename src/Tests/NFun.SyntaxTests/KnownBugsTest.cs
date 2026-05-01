@@ -37,7 +37,7 @@ public class KnownBugsTest {
         // Root cause: output generic resolution [opt(U8)..Re] → Real, losing Optional
         Assert.DoesNotThrow(
             () => "y = [[1,2,3],[none]]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
 
@@ -59,35 +59,35 @@ public class KnownBugsTest {
     public void IfElse_ArrayWithNone_VsArrayWithInt() {
         Assert.DoesNotThrow(() =>
             "y = if(true) [1] else [none]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test]
     public void IfElse_StructFieldNone() {
         Assert.DoesNotThrow(() =>
             "y = if(true) {a=1} else {a=none}"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test]
     public void Array_StructsWithNoneField() {
         Assert.DoesNotThrow(() =>
             "y = [{a=1},{a=none}]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test]
     public void IfElse_NestedArrayWithNone() {
         Assert.DoesNotThrow(() =>
             "y = if(true) [[1]] else [[none]]"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
     [Test]
     public void Map_IfElse_ArrayWithNone() {
         Assert.DoesNotThrow(() =>
             "y = [1,2,3].map(rule if(it>1) [it] else [none])"
-                .BuildWithDialect(optionalTypesSupport: ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: Enabled));
     }
 
 

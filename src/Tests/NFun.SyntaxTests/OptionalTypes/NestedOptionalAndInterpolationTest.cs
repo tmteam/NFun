@@ -33,7 +33,7 @@ public class NestedOptionalAndInterpolationTest {
         // as an operator, leading to a parse error.
         Assert.Throws<FunnyParseException>(
             () => "x:int?? = 42".BuildWithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 
     // --- Test 2: Nested optional flattens via if-else wrapping ---
@@ -43,7 +43,7 @@ public class NestedOptionalAndInterpolationTest {
         // x is int?, so `if(true) x else none` should be int? (not int??).
         // NFun flattens: LCA(opt(int), None) = opt(int), not opt(opt(int)).
         var result = "x:int? = 42\r y = if(true) x else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(42, result.Get("y"));
     }
 
@@ -53,7 +53,7 @@ public class NestedOptionalAndInterpolationTest {
     public void NestedOptional_IfElse_OptionalOrNone_Flattens_None() {
         // if(false) x else none => none (the outer layer, but type is int? not int??)
         var result = "x:int? = 42\r y = if(false) x else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -63,7 +63,7 @@ public class NestedOptionalAndInterpolationTest {
     public void NestedOptional_DoubleCoalesceChain() {
         // a ?? b ?? 0: first coalesce unwraps a, if none then b, if none then 0
         "a:int? = none\r b:int? = none\r y = a ?? b ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 0);
     }
 
@@ -73,7 +73,7 @@ public class NestedOptionalAndInterpolationTest {
     public void NestedOptional_UnwrapThenCoalesce() {
         // x is int?. x! unwraps to int. No coalesce needed, but we can still use it.
         "x:int? = 42\r y = x! + 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 42);
     }
 
@@ -83,7 +83,7 @@ public class NestedOptionalAndInterpolationTest {
     public void NestedOptional_FunctionReturningOptional_IfElseWithNone_Flattens() {
         // f returns int?. `if(true) f(5) else none` should still be int? (flattened).
         "f(x:int):int? = if(x > 0) x else none\r y = if(true) f(5) else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 5);
     }
 
@@ -92,7 +92,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void NestedOptional_FunctionReturningOptional_IfElseWithNone_NoneResult() {
         var result = "f(x:int):int? = if(x > 0) x else none\r y = if(false) f(5) else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -102,7 +102,7 @@ public class NestedOptionalAndInterpolationTest {
     public void NestedOptional_CoalesceOnIfElseWrappingOptional() {
         // x is int?. `if(false) x else none` is int? (flattened). Coalesce produces int.
         "x:int? = none\r y = (if(true) x else none) ?? 99"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 99);
     }
 
@@ -112,7 +112,7 @@ public class NestedOptionalAndInterpolationTest {
     public void NestedOptional_ArrayOfOptionalInts_ElementCoalesce() {
         // arr is int?[]. arr[1] is int? (none). Coalesce gives int.
         "arr:int?[] = [10, none, 30]\r y = arr[1] ?? -1"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", -1);
     }
 
@@ -123,7 +123,7 @@ public class NestedOptionalAndInterpolationTest {
         // a is int?, b:int? = a should stay int? (not int??).
         // Then coalesce on b.
         "a:int? = 42\r b:int? = a\r y = b ?? 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 42);
     }
 
@@ -137,7 +137,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_OptionalInt_HasValue() {
         "x:int? = 42\r y = '{x}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "42");
     }
 
@@ -146,7 +146,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_OptionalInt_None() {
         "x:int? = none\r y = '{x}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "none");
     }
 
@@ -155,7 +155,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_OptionalInSentence_HasValue() {
         "x:int? = 42\r y = 'value is {x}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "value is 42");
     }
 
@@ -164,7 +164,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_CoalesceInsideInterpolation() {
         "x:int? = none\r y = '{x ?? 0}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "0");
     }
 
@@ -173,7 +173,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_ForceUnwrapInsideInterpolation() {
         "x:int? = 42\r y = '{x!}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "42");
     }
 
@@ -182,7 +182,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void ToText_OptionalInt_HasValue() {
         "x:int? = 42\r y = toText(x)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "42");
     }
 
@@ -191,7 +191,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void ToText_OptionalInt_None() {
         "x:int?\r y = toText(x)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertReturns("y", "none");
     }
 
@@ -200,7 +200,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void ToText_AfterCoalesce() {
         "x:int? = none\r y = toText(x ?? 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "0");
     }
 
@@ -209,7 +209,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_MultipleOptionals() {
         "a:int? = 1\r b:int? = none\r y = '{a} and {b}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "1 and none");
     }
 
@@ -218,7 +218,7 @@ public class NestedOptionalAndInterpolationTest {
     [Test]
     public void Interpolation_OptionalReal_HasValue() {
         "x:real? = 1.5\r y = 'val={x}'"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", "val=1.5");
     }
 }

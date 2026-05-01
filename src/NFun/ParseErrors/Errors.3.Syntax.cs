@@ -291,7 +291,7 @@ internal static partial class Errors {
         522, $"Default value for field '{fieldName}' in type '{typeName}' must be a constant expression.", interval);
 
     internal static FunnyParseException NamedTypesNotSupported(Interval interval) => new(
-        523, "Named types are an experimental feature. Enable with NamedTypesSupport.ExperimentalEnabled", interval);
+        523, "Named types are an experimental feature. Enable with NamedTypesSupport.Enabled", interval);
 
     internal static FunnyParseException NamedTypeRecursiveCycle(string typeName) => new(
         524, $"Type '{typeName}' has a non-optional recursive cycle. Use optional (T?) fields to break recursion", Interval.Empty);

@@ -17,19 +17,19 @@ public class NestedInlineOptionalStructTest {
     public void InlineNested_2Levels_Builds() =>
         Assert.DoesNotThrow(() =>
             "a = if(true) {b = if(true) {d = 99} else none} else none"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void InlineNested_3Levels_Builds() =>
         Assert.DoesNotThrow(() =>
             "a = if(true) {b = if(true) {c = if(true) {d = 99} else none} else none} else none"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void InlineNested_4Levels_Builds() =>
         Assert.DoesNotThrow(() =>
             "a = if(true) {b = if(true) {c = if(true) {d = if(true) {e = 42} else none} else none} else none} else none"
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     // === The core bug: inline optional field + ?. access ===
 
@@ -38,35 +38,35 @@ public class NestedInlineOptionalStructTest {
         Assert.DoesNotThrow(() =>
             ("x = if(true) {inner = if(true) {d = 99} else none} else none\r" +
              "y = x?.inner")
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void InlineOptionalField_SafeAccess_3Levels_Builds() =>
         Assert.DoesNotThrow(() =>
             ("x = if(true) {b = if(true) {c = if(true) {d = 99} else none} else none} else none\r" +
              "y = x?.b")
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void InlineOptionalField_SafeAccess_4Levels_Builds() =>
         Assert.DoesNotThrow(() =>
             ("x = if(true) {b = if(true) {c = if(true) {d = if(true) {e = 42} else none} else none} else none} else none\r" +
              "y = x?.b")
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     // === Runtime: none propagation at various nesting levels ===
 
     [Test]
     public void InlineNested_3Levels_OuterNone_ReturnsNull() {
         var result = "a = if(false) {b = if(true) {c = if(true) {d = 99} else none} else none} else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("a"));
     }
 
     [Test]
     public void InlineNested_4Levels_OuterNone_ReturnsNull() {
         var result = "a = if(false) {b = if(true) {c = if(true) {d = if(true) {e = 42} else none} else none} else none} else none"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("a"));
     }
 
@@ -75,7 +75,7 @@ public class NestedInlineOptionalStructTest {
         var result =
             ("x = if(false) {b = if(true) {c = if(true) {d = 99} else none} else none} else none\r" +
              "y = x?.b")
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -87,5 +87,5 @@ public class NestedInlineOptionalStructTest {
             ("inner = if(true) {d=99} else none\r" +
              "mid = if(true) {c=inner} else none\r" +
              "outer = if(true) {b=mid} else none")
-                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 }

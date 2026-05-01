@@ -325,35 +325,35 @@ public class ConvertFunctionsTest {
     [Test]
     public void ConvertTextToBool_Invalid_Throws() {
         var r = "y:bool = convert('invalid')"
-            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.Throws<NFun.Exceptions.FunnyRuntimeException>(() => r.Run());
     }
 
     [Test]
     public void ConvertTextToBool_True_Works() {
         var r = "y:bool = convert('true')"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(true, r.Get("y"));
     }
 
     [Test]
     public void ConvertTextToBool_False_Works() {
         var r = "y:bool = convert('false')"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(false, r.Get("y"));
     }
 
     [Test]
     public void ConvertTextToBool_One_Works() {
         var r = "y:bool = convert('1')"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(true, r.Get("y"));
     }
 
     [Test]
     public void ConvertTextToBool_Zero_Works() {
         var r = "y:bool = convert('0')"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(false, r.Get("y"));
     }
 }

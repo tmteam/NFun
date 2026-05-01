@@ -8,14 +8,14 @@ namespace NFun.SyntaxTests;
 public class LazyEvaluationTest {
 
     private static void AssertOptionalReturns(string expr, string varName, object expected) {
-        var r = expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var r = expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(expected, r[varName].Value);
     }
 
     private static void AssertOptionalThrows(string expr) =>
         Assert.Throws<FunnyRuntimeException>(() => {
-            var r = expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            var r = expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
             r.Run();
         });
 

@@ -11,7 +11,7 @@ public class OptionalTypesApiTest {
 
     [Test]
     public void OptionalVariable_TypeIsOptional() =>
-        "x:int? = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        "x:int? = none".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 var x = r["x"];
                 Assert.AreEqual(FunnyType.OptionalOf(FunnyType.Int32), x.Type);
@@ -20,7 +20,7 @@ public class OptionalTypesApiTest {
 
     [Test]
     public void OptionalVariable_WithValue_TypeIsOptional() =>
-        "x:int? = 42".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        "x:int? = 42".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 var x = r["x"];
                 Assert.AreEqual(FunnyType.OptionalOf(FunnyType.Int32), x.Type);
@@ -31,7 +31,7 @@ public class OptionalTypesApiTest {
     [TestCase("x:bool? = none")]
     [TestCase("x:int64? = none")]
     public void OptionalNoneVariable_ValueIsNull(string expr) =>
-        expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 r.Run();
                 Assert.IsNull(r["x"].Value);
@@ -39,7 +39,7 @@ public class OptionalTypesApiTest {
 
     [Test]
     public void OptionalInt_WithValue_ValueIsInt() =>
-        "x:int? = 42".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        "x:int? = 42".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 r.Run();
                 Assert.AreEqual(42, r["x"].Value);
@@ -47,7 +47,7 @@ public class OptionalTypesApiTest {
 
     [Test]
     public void OptionalReal_WithValue_ValueIsDouble() =>
-        "x:real? = 3.14".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        "x:real? = 3.14".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 r.Run();
                 var val = r["x"].Value;
@@ -57,7 +57,7 @@ public class OptionalTypesApiTest {
 
     [Test]
     public void OptionalBool_WithValue_ValueIsBool() =>
-        "x:bool? = true".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        "x:bool? = true".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 r.Run();
                 Assert.AreEqual(true, r["x"].Value);
@@ -65,7 +65,7 @@ public class OptionalTypesApiTest {
 
     [Test]
     public void OptionalText_WithValue_ValueIsString() =>
-        "x:text? = 'hello'".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        "x:text? = 'hello'".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertRuntimes(r => {
                 r.Run();
                 Assert.AreEqual("hello", r["x"].Value);
@@ -74,7 +74,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalInput_SetValue_RunReturnsValue() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:int?\r y = x ?? 0");
         runtime["x"].Value = 42;
         runtime.Run();
@@ -84,7 +84,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalInput_SetNull_RunReturnsDefault() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:int?\r y = x ?? 0");
         runtime["x"].Value = null;
         runtime.Run();
@@ -94,7 +94,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalInput_DefaultIsNone_CoalesceReturnsDefault() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:int?\r y = x ?? 99");
         // Don't set x — default for int? is none
         runtime.Run();
@@ -104,7 +104,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalRealInput_SetValue_Works() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:real?\r y = x ?? 0.0");
         runtime["x"].Value = 3.14;
         runtime.Run();
@@ -114,7 +114,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalRealInput_SetNull_ReturnsDefault() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:real?\r y = x ?? 0.0");
         runtime["x"].Value = null;
         runtime.Run();
@@ -124,7 +124,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalBoolInput_SetValue_Works() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:bool?\r y = x ?? false");
         runtime["x"].Value = true;
         runtime.Run();
@@ -134,7 +134,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalTextInput_SetValue_Works() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:text?\r y = x ?? 'default'");
         runtime["x"].Value = "hello";
         runtime.Run();
@@ -144,7 +144,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalTextInput_SetNull_ReturnsDefault() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:text?\r y = x ?? 'default'");
         runtime["x"].Value = null;
         runtime.Run();
@@ -154,7 +154,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalOutput_NoneValue_ReturnsNull() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("y:int? = none");
         runtime.Run();
         Assert.IsNull(runtime["y"].Value);
@@ -163,7 +163,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalOutput_HasValue_ReturnsValue() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("y:int? = 42");
         runtime.Run();
         Assert.AreEqual(42, runtime["y"].Value);
@@ -172,7 +172,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalOutput_FromInput_PassThrough() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:int?\r y:int? = x");
         runtime["x"].Value = 7;
         runtime.Run();
@@ -182,7 +182,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalOutput_FromInput_NonePassThrough() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:int?\r y:int? = x");
         runtime["x"].Value = null;
         runtime.Run();
@@ -192,7 +192,7 @@ public class OptionalTypesApiTest {
     [Test]
     public void OptionalInput_MultipleRuns_ValueChanges() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("x:int?\r y = x ?? 0");
 
         runtime["x"].Value = 10;
@@ -222,21 +222,21 @@ public class OptionalTypesApiTest {
 
     [TestCase("x:int?\r y = x!")]
     [TestCase("x:int?\r y = x ?? 0")]
-    public void OptionalOperators_WithExperimentalEnabled_Succeeds(string expr) =>
+    public void OptionalOperators_WithEnabled_Succeeds(string expr) =>
         Assert.DoesNotThrow(() => Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build(expr));
 
     [Test]
-    public void NoneLiteral_WithExperimentalEnabled_CanBuild() =>
+    public void NoneLiteral_WithEnabled_CanBuild() =>
         Assert.DoesNotThrow(() => Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("y = none"));
 
     [Test]
     public void NoneLiteral_AssignedToOptional_ValueIsNull() {
         var runtime = Funny.Hardcore
-            .WithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .Build("y:int? = none");
         runtime.Run();
         Assert.IsNull(runtime["y"].Value);

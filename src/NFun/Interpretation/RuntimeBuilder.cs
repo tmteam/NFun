@@ -31,7 +31,7 @@ internal static class RuntimeBuilder {
         // Named types: elaborate only when enabled, skip entirely otherwise
         INamedTypeFieldRegistry namedTypeFieldRegistry = null;
         Runtime.TypeRegistry typeRegistry = null;
-        if (dialect.NamedTypesSupport == NamedTypesSupport.ExperimentalEnabled)
+        if (dialect.NamedTypesSupport == NamedTypesSupport.Enabled)
         {
             syntaxTree = NamedTypeElaborator.Elaborate(syntaxTree, out var namedTypes);
             if (namedTypes.Count > 0)

@@ -12,14 +12,14 @@ using NUnit.Framework;
 public class TypeNarrowingTest {
 
     private static object Calc(string expr, params (string id, object val)[] values) =>
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled, values: values)
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, values: values)
             .Get("y");
 
     private static void Builds(string expr) =>
-        expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
     private static void AssertNarrowed(string expr, string varName, object expected) {
-        var r = expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+        var r = expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(expected, r[varName].Value);
     }
@@ -291,31 +291,31 @@ public class TypeNarrowingTest {
     public void Negative_NoCheck_OptionalInArithmetic_MustFail() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 42\r y = x + 1"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_NarrowingDoesNotLeakOutsideIf() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z = if(x != none) x else 0\r y = x + 1"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_Or_DoesNotNarrowIndividual_MustFail() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z:int? = 10\r y:int = if(x != none or z != none) z else 0"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_OrTrue_DoesNotNarrow_MustFail() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = none\r y = if(x != none or true) x + 1 else 0"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_OrTrue_Reversed_DoesNotNarrow_MustFail() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = none\r y = if(true or x != none) x + 1 else 0"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     // ==================================================================
     // Regression: existing features unbroken by narrowing
@@ -372,7 +372,7 @@ public class TypeNarrowingTest {
     [Test]
     public void MultipleOutputs_EachNarrowsIndependently() {
         var result = "a:int? = 42\r y = if(a != none) a + 1 else 0\r z = if(a != none) a * 2 else 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(43, result.Get("y"));
         Assert.AreEqual(84, result.Get("z"));
     }
@@ -630,28 +630,28 @@ public class TypeNarrowingTest {
     [Test]
     public void NarrowInRule_Multiply() {
         var r = "y:int?[] = [1,none,3]\r z = y.map(rule if(it!=none) it*2 else 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 2, 0, 6 }, r.Get("z"));
     }
 
     [Test]
     public void NarrowInRule_Add() {
         var r = "y:int?[] = [1,none,3]\r z = y.map(rule if(it!=none) it+10 else 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 11, 0, 13 }, r.Get("z"));
     }
 
     [Test]
     public void NarrowInRule_ComplexExpr() {
         var r = "y:int?[] = [2,none,4]\r z = y.map(rule if(it!=none) it*it+1 else -1)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 5, -1, 17 }, r.Get("z"));
     }
 
     [Test]
     public void NarrowInRule_IdentityStillWorks() {
         var r = "y:int?[] = [1,none,3]\r z = y.map(rule if(it!=none) it else 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 1, 0, 3 }, r.Get("z"));
     }
 
@@ -1116,21 +1116,21 @@ public class TypeNarrowingTest {
     [Test]
     public void BoolEquation_NarrowInAnd() {
         var r = "y:int? = 15\r x = y != none and y > 12"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(true, r.Get("x"));
     }
 
     [Test]
     public void BoolEquation_NarrowInAnd_None() {
         var r = "y:int? = none\r x = y != none and y > 12"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(false, r.Get("x"));
     }
 
     [Test]
     public void BoolEquation_NarrowInAnd_FailsCheck() {
         var r = "y:int? = 5\r x = y != none and y > 12"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(false, r.Get("x"));
     }
 
@@ -1142,7 +1142,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_IntArray_MapAddsOne() {
         var r = "arr:int?[] = [1, none, 3]\r cleaned = arr.filterNotNull()\r y = cleaned.map(rule it + 1)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 2, 4 }, r.Get("y"));
     }
 
@@ -1150,7 +1150,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_IntArray_FoldSum() {
         var r = "arr:int?[] = [1, none, 3, none, 5]\r y = arr.filterNotNull().fold(rule it1 + it2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(9, r.Get("y"));
     }
 
@@ -1158,7 +1158,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_IntArray_Count() {
         var r = "arr:int?[] = [1, none, 3, none, 5]\r y = arr.filterNotNull().count()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(3, r.Get("y"));
     }
 
@@ -1166,7 +1166,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_IntArray_First() {
         var r = "arr:int?[] = [none, none, 42, 1]\r y = arr.filterNotNull().first()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(42, r.Get("y"));
     }
 
@@ -1174,7 +1174,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_RealArray_MapMultiplies() {
         var r = "arr:real?[] = [1.5, none, 2.5]\r y = arr.filterNotNull().map(rule it * 2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 3.0, 5.0 }, r.Get("y"));
     }
 
@@ -1182,7 +1182,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_TextArray_MapConcat() {
         var r = "arr:text?[] = ['hello', none, 'world']\r y = arr.filterNotNull().map(rule it.concat('!'))"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { "hello!", "world!" }, r.Get("y"));
     }
 
@@ -1190,7 +1190,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_BoolArray_AllTrue() {
         var r = "arr:bool?[] = [true, none, true]\r y = arr.filterNotNull().all(rule it)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(true, r.Get("y"));
     }
 
@@ -1198,7 +1198,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_CompoundPredicate_PositiveOnly() {
         var r = "arr:int?[] = [none, -1, 3, none, 0, 5]\r y = arr.filterNotNull().filter(rule it > 0).map(rule it * 10)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 30, 50 }, r.Get("y"));
     }
 
@@ -1206,7 +1206,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_PreservesOrder() {
         var r = "arr:int?[] = [none, 3, none, 1, none, 2]\r y = arr.filterNotNull()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 3, 1, 2 }, r.Get("y"));
     }
 
@@ -1214,7 +1214,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_AllNone_EmptyResult() {
         var r = "arr:int?[] = [none, none, none]\r y = arr.filterNotNull().count()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(0, r.Get("y"));
     }
 
@@ -1222,7 +1222,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_NoNones_SameElements() {
         var r = "arr:int?[] = [1, 2, 3]\r y = arr.filterNotNull().map(rule it + 10)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 11, 12, 13 }, r.Get("y"));
     }
 
@@ -1230,7 +1230,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_ChainedPipeline_FilterMapFold() {
         var r = "arr:int?[] = [none, 1, none, 2, none, 3]\r y = arr.filterNotNull().map(rule it * it).fold(rule it1 + it2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(14, r.Get("y")); // 1*1 + 2*2 + 3*3 = 1 + 4 + 9 = 14
     }
 
@@ -1238,7 +1238,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_AssignToTypedVariable() {
         var r = "arr:int?[] = [1, none, 3]\r cleaned:int[] = arr.filterNotNull()\r y = cleaned[0]"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(1, r.Get("y"));
     }
 
@@ -1246,7 +1246,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_ThenSort() {
         var r = "arr:int?[] = [none, 3, none, 1, none, 2]\r y = arr.filterNotNull().sort()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 1, 2, 3 }, r.Get("y"));
     }
 
@@ -1254,7 +1254,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNone_ThenReverse() {
         var r = "arr:int?[] = [none, 1, none, 2, none, 3]\r y = arr.filterNotNull().reverse()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[] { 3, 2, 1 }, r.Get("y"));
     }
 
@@ -1265,7 +1265,7 @@ public class TypeNarrowingTest {
     [Test]
     public void FilterNarrowing_ThenMap_Arithmetic() {
         "arr:int?[] = [1,none,3]\r y:int[] = arr.filterNotNull().map(rule it * 2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 2, 6 });
     }
 
@@ -1274,14 +1274,14 @@ public class TypeNarrowingTest {
         var expr =
             "arr = [if(true) {name='Alice'} else none, if(false) {name='Bob'} else none, if(true) {name='Carol'} else none]\r" +
             "y = arr.filterNotNull().map(rule it.name)";
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { "Alice", "Carol" });
     }
 
     [Test]
     public void FilterNarrowing_MethodCallOnElement() {
         "arr:text?[] = ['hello', none, 'hi']\r y:int[] = arr.filterNotNull().map(rule it.count())"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 5, 2 });
     }
 
@@ -1290,35 +1290,35 @@ public class TypeNarrowingTest {
         var expr =
             "arr:int?[]? = [1,none,3]\r" +
             "y:int[] = if(arr != none) arr.filterNotNull() else []";
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 1, 3 });
     }
 
     [Test]
     public void FilterNarrowing_ThenFold() {
         "arr:int?[] = [1,none,2,none,3]\r y:int = arr.filterNotNull().fold(rule it1 + it2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 6);
     }
 
     [Test]
     public void FilterNarrowing_ThenFilterByValue() {
         "arr:int?[] = [none, -1, none, 2, 0, 3]\r y:int[] = arr.filterNotNull().filter(rule it > 0)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 2, 3 });
     }
 
     [Test]
     public void FilterNarrowing_AssignedToExplicitNonOptionalArrayType() {
         "arr:int?[] = [1,none,3]\r cleaned:int[] = arr.filterNotNull()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("cleaned", new[] { 1, 3 });
     }
 
     [Test]
     public void FilterNarrowing_ThenCount() {
         "arr:int?[] = [1,none,2,none,3]\r y:int = arr.filterNotNull().count()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 3);
     }
 
@@ -1328,7 +1328,7 @@ public class TypeNarrowingTest {
             "x:int? = 10\r" +
             "arr:int?[] = [1, none, 2]\r" +
             "y:int[] = if(x != none) arr.filterNotNull().map(rule it + x) else []";
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 11, 12 });
     }
 
@@ -1340,42 +1340,42 @@ public class TypeNarrowingTest {
             "c = if(true) {name='Carol', age=35} else none\r" +
             "items = [a, b, c]\r" +
             "y:int[] = items.filterNotNull().map(rule it.age)";
-        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+        expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 30, 35 });
     }
 
     [Test]
     public void FilterChain_NarrowThenValueFilters() {
         "arr:int?[] = [none, -5, none, 50, 200, 0, 10]\r y:int[] = arr.filterNotNull().filter(rule it > 0).filter(rule it < 100)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 50, 10 });
     }
 
     [Test]
     public void FilterNarrowing_ThenToText() {
         "arr:int?[] = [1, none, 42]\r y:text[] = arr.filterNotNull().map(rule it.toText())"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { "1", "42" });
     }
 
     [Test]
     public void FilterNarrowing_LiteralArray_FoldSum() {
         "y:int = [1,none,2,none,3,none,4,none,5].filterNotNull().fold(rule it1 + it2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 15);
     }
 
     [Test]
     public void FilterNarrowing_AllNone_EmptyResult() {
         "arr:int?[] = [none, none, none]\r y:int = arr.filterNotNull().count()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", 0);
     }
 
     [Test]
     public void NonOptionalArray_FilterUnchanged() {
         "y:int[] = [1,2,3,4,5].filter(rule it > 2)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled)
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
             .AssertResultHas("y", new[] { 3, 4, 5 });
     }
 
@@ -1396,7 +1396,7 @@ public class TypeNarrowingTest {
     public void ScopeIsolation_NarrowDoesNotLeakToBareMath() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z = if(x != none) x else 0\r y = x + 1"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     // ==================================================================
     // 2. Same var narrowed independently in multiple equations
@@ -1405,7 +1405,7 @@ public class TypeNarrowingTest {
     [Test]
     public void IndependentNarrowing_TwoEquations_DifferentOps() {
         var result = "x:int? = 7\r y = if(x != none) x + 1 else 0\r z = if(x != none) x * 3 else 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(8, result.Get("y"));
         Assert.AreEqual(21, result.Get("z"));
     }
@@ -1413,7 +1413,7 @@ public class TypeNarrowingTest {
     [Test]
     public void IndependentNarrowing_TwoEquations_NoneInput() {
         var result = "x:int? = none\r y = if(x != none) x + 1 else -1\r z = if(x != none) x * 3 else -2"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(-1, result.Get("y"));
         Assert.AreEqual(-2, result.Get("z"));
     }
@@ -1509,7 +1509,7 @@ public class TypeNarrowingTest {
     [Test]
     public void MultiOutput_NarrowAndCoalesce_NonNone() {
         var result = "x:int? = 42\r y = if(x != none) x + 1 else 0\r z = x ?? -1"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(43, result.Get("y"));
         Assert.AreEqual(42, result.Get("z"));
     }
@@ -1517,7 +1517,7 @@ public class TypeNarrowingTest {
     [Test]
     public void MultiOutput_NarrowAndCoalesce_None() {
         var result = "x:int? = none\r y = if(x != none) x + 1 else 0\r z = x ?? -1"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(0, result.Get("y"));
         Assert.AreEqual(-1, result.Get("z"));
     }
@@ -1525,7 +1525,7 @@ public class TypeNarrowingTest {
     [Test]
     public void MultiOutput_ThreeEquations_MixedMechanisms() {
         var result = "x:int? = 10\r a = if(x != none) x * 2 else 0\r b = x ?? -1\r y = if(x != none) x + 5 else 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(20, result.Get("a"));
         Assert.AreEqual(10, result.Get("b"));
         Assert.AreEqual(15, result.Get("y"));
@@ -1563,13 +1563,13 @@ public class TypeNarrowingTest {
     public void EdgeCase_Negative_Or_UnsharedVar_NotNarrowed() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z:int? = 10\r y:int = if(x != none or z != none) z + 1 else 0"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void EdgeCase_Negative_EqualNone_ThenBranchNotNarrowed() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 42\r y = if(x == none) x + 1 else 0"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     // ── Adversarial tests ───────────────────────────────────────
 
@@ -1692,7 +1692,7 @@ public class TypeNarrowingTest {
     public void Attack6_AsymmetricOr_ElseCannotUseX_MustFail() =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(
             () => "x:int? = 10\r z:int? = 5\r y:int = if(x != none or z == none) 0 else x + 1"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled));
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Attack6_NarrowedVarInMapLambda() {
@@ -1796,7 +1796,7 @@ public class TypeNarrowingTest {
     [Test]
     public void Attack10_TwoEquations_SameVar() {
         var result = "x:int? = 42\r y = if(x != none) x + 1 else 0\r z = if(x != none) x * 2 else 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(43, result.Get("y"));
         Assert.AreEqual(84, result.Get("z"));
     }
@@ -1804,7 +1804,7 @@ public class TypeNarrowingTest {
     [Test]
     public void Attack10_TwoEquations_NoneInput() {
         var result = "x:int? = none\r y = if(x != none) x + 1 else 0\r z = if(x != none) x * 2 else 0"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(0, result.Get("y"));
         Assert.AreEqual(0, result.Get("z"));
     }
@@ -1815,7 +1815,7 @@ public class TypeNarrowingTest {
                       "a = if(x != none) x + 1 else 0\r " +
                       "b = if(x != none) x * 2 else 0\r " +
                       "y = if(x != none) x ** 2 else 0")
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(11, result.Get("a"));
         Assert.AreEqual(20, result.Get("b"));
         Assert.AreEqual(100, result.Get("y"));
@@ -1871,21 +1871,21 @@ public class TypeNarrowingTest {
     [Test]
     public void QuickCompact_Basic() {
         var r = "arr:int?[] = [1, none, 3, none, 5]\r y = arr.filterNotNull()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[]{1, 3, 5}, r.Get("y"));
     }
 
     [Test]
     public void QuickCompact_ThenMap() {
         var r = "arr:int?[] = [1, none, 3]\r y = arr.filterNotNull().map(rule it + 1)"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new[]{2, 4}, r.Get("y"));
     }
 
     [Test]
     public void QuickCompact_AllNone() {
         var r = "arr:int?[] = [none, none]\r y = arr.filterNotNull()"
-            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new int[0], r.Get("y"));
     }
 

@@ -14,15 +14,15 @@ public class NamedTypeVariantsTest {
 
     static object Calc(string expr) =>
         expr.CalcWithDialect(
-            optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-            namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+            optionalTypesSupport: OptionalTypesSupport.Enabled,
+            namedTypesSupport: NamedTypesSupport.Enabled)
         .Get("out");
 
     static FunnyRuntime Build(string expr) =>
         Funny.Hardcore
             .WithDialect(
-                optionalTypesSupport: OptionalTypesSupport.ExperimentalEnabled,
-                namedTypesSupport: NamedTypesSupport.ExperimentalEnabled)
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
             .Build(expr);
 
     // ═══════════════════════════════════════════════════════════
