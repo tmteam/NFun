@@ -419,11 +419,24 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(AnonymFunctionSyntaxNode node) {
-        throw new NotSupportedException($"VM: AnonymFunctionSyntaxNode not yet supported");
+        // Lambda: build via tree-walker and push as constant reference.
+        // The lambda is called via CALL_EXTERN (map/filter passes it to .NET function).
+        var lambdaFunc = Interpretation.ExpressionBuilderVisitor.BuildExpression(
+            node, _functions, node.OutputType, new Runtime.VariableDictionary(),
+            _typeInferenceResults, _typesConverter, _dialect);
+        var idx = _e.AddConstant(FunValue.FromRef(lambdaFunc));
+        _e.EmitWithArg(Op.LoadConstRef, (byte)idx);
+        return 0;
     }
 
     public byte Visit(SuperAnonymFunctionSyntaxNode node) {
-        throw new NotSupportedException($"VM: SuperAnonymFunctionSyntaxNode not yet supported");
+        // Super-anonymous (rule it*2): same approach — build via tree-walker
+        var lambdaFunc = Interpretation.ExpressionBuilderVisitor.BuildExpression(
+            node, _functions, node.OutputType, new Runtime.VariableDictionary(),
+            _typeInferenceResults, _typesConverter, _dialect);
+        var idx = _e.AddConstant(FunValue.FromRef(lambdaFunc));
+        _e.EmitWithArg(Op.LoadConstRef, (byte)idx);
+        return 0;
     }
 
     public byte Visit(TryCatchSyntaxNode node) {

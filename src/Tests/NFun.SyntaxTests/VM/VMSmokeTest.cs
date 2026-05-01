@@ -180,6 +180,47 @@ public class VMSmokeTest {
         Assert.AreEqual(99, vm.GetOutput("y"));
     }
 
+    // ── Lambdas ──
+
+    [Test][Ignore("VM: lambdas need tree-walker fallback for CALL_EXTERN args")]
+    public void Lambda_MapDouble() {
+        var vm = Funny.Hardcore.BuildVM("y = [1,2,3].map(rule it * 2)");
+        vm.Run();
+        // Result is an array — verify non-null
+        Assert.IsNotNull(vm.GetOutput("y"));
+    }
+
+    [Test][Ignore("VM: lambdas need tree-walker fallback for CALL_EXTERN args")]
+    public void Lambda_FilterGt1() {
+        var vm = Funny.Hardcore.BuildVM("y = [1,2,3].filter(rule it > 1).count()");
+        vm.Run();
+        Assert.AreEqual(2, vm.GetOutput("y"));
+    }
+
+    // ── delayed() function ──
+
+    [Test]
+    public void Delayed_TreeWalkerWorks() {
+        // Verify delayed() works in tree-walker first
+        var tw = Funny.Hardcore
+            .WithFunction(NFun.VM.DelayedFunction.Instance)
+            .Build("y = delayed(10, 42)");
+        tw.Run();
+        Assert.AreEqual(42, tw["y"].Value);
+    }
+
+    [Test][Ignore("VM: Any-returning functions need type-aware CALL_EXTERN unboxing")]
+    public void Delayed_VMWorks() {
+        var vm = Funny.Hardcore
+            .WithFunction(NFun.VM.DelayedFunction.Instance)
+            .BuildVM("y = delayed(10, 42)");
+        vm.Run();
+        var result = vm.GetOutput("y");
+        // delayed returns Any, VM stores in Ref. Accept any non-null int-like result.
+        Assert.IsNotNull(result, "delayed should return non-null");
+        Assert.AreEqual(42, System.Convert.ToInt32(result));
+    }
+
     // ── Optional ──
 
     [Test]

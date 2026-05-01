@@ -42,7 +42,13 @@ public class VMRuntime {
     public object GetOutput(string name) {
         if (!_variableSlots.TryGetValue(name, out var slot))
             throw new KeyNotFoundException($"Variable '{name}' not found");
-        return _locals[slot].Box(_variableTypes[name]);
+        var val = _locals[slot];
+        var type = _variableTypes[name];
+        // When value is stored in Ref (from Any-returning functions) but type is numeric,
+        // re-unbox through the Ref to get the correct representation.
+        if (val.Ref != null && val.Ref is not FunnyNone && type.BaseType >= BaseFunnyType.UInt8 && type.BaseType <= BaseFunnyType.Real)
+            return val.Ref; // Already boxed correctly
+        return val.Box(type);
     }
 
     public IEnumerable<string> VariableNames => _variableSlots.Keys;
