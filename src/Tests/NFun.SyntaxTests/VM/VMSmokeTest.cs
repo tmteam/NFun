@@ -141,7 +141,7 @@ public class VMSmokeTest {
         Assert.IsNotNull(vm.GetOutput("y"));
     }
 
-    [Test][Ignore("VM: piped function calls (.count()) not yet supported")]
+    [Test]
     public void ArrayLiteral_PipedCount() {
         var vm = Funny.Hardcore.BuildVM("y = [1,2,3].count()");
         vm.Run();

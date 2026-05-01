@@ -296,7 +296,7 @@ public static class VirtualMachine {
                     var arr = new object[count];
                     for (int i = count - 1; i >= 0; i--)
                         arr[i] = stack[--sp].Ref ?? (object)stack[sp].I64;
-                    stack[sp++].Ref = arr;
+                    stack[sp++].Ref = new Runtime.Arrays.ImmutableFunnyArray(arr, FunnyType.Any);
                     break;
                 }
                 case Op.GetElement: {
