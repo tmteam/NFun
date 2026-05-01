@@ -24,6 +24,7 @@ public static class VirtualMachine {
             if (--opsRemaining <= 0)
                 throw new FunnyRuntimeException("Operation budget exceeded");
 
+            try {
             switch ((Op)code[ip++]) {
 
                 // ── Load / Store ──
@@ -362,7 +363,32 @@ public static class VirtualMachine {
                 default:
                     throw new FunnyRuntimeException($"Unknown opcode {code[ip - 1]:X2} at IP={ip - 1}");
             }
+            } // end try
+            catch (FunnyRuntimeException ex) {
+                // Look up exception handler for current IP
+                var handler = FindHandler(ip - 1, program.ExceptionHandlers);
+                if (handler != null) {
+                    if (handler.Value.ErrorVarSlot >= 0) {
+                        // Create error struct {message: text, data: any}
+                        var errorStruct = FunnyStruct.Create(
+                            ("message", ex.Message ?? ""),
+                            ("data", (object)(ex is Exceptions.FunnyRuntimeException fre ? fre.OopsData : null)));
+                        locals[handler.Value.ErrorVarSlot] = FunValue.FromRef(errorStruct);
+                    }
+                    ip = handler.Value.CatchStartIP;
+                    continue; // resume VM loop at catch block
+                }
+                throw; // no handler — propagate
+            }
         }
+    }
+
+    private static ExceptionHandler? FindHandler(int ip, ExceptionHandler[] handlers) {
+        for (int i = 0; i < handlers.Length; i++) {
+            if (ip >= handlers[i].TryStartIP && ip < handlers[i].TryEndIP)
+                return handlers[i];
+        }
+        return null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

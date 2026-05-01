@@ -37,6 +37,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
     // User-defined functions
     private readonly List<UserFunc> _userFunctions = new();
+    private readonly List<ExceptionHandler> _exceptionHandlers = new();
 
     // Struct layouts
     private readonly List<StructLayout> _structLayouts = new();
@@ -107,7 +108,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             ExternFunctions = _externFunctions.ToArray(),
             UserFunctions = _userFunctions.ToArray(),
             Variables = _variableSlots.ToArray(),
-            ExceptionHandlers = Array.Empty<ExceptionHandler>(),
+            ExceptionHandlers = _exceptionHandlers.ToArray(),
             LocalsCount = _nextLocalSlot,
         };
     }
@@ -426,7 +427,38 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(TryCatchSyntaxNode node) {
-        throw new NotSupportedException($"VM: TryCatchSyntaxNode not yet supported");
+        // try expr catch fallback → if try succeeds, use result; if throws, use catch
+        // Compile as: TRY_START, expr, JUMP over catch, CATCH_START, fallback
+        // Using handler table approach from the spec.
+
+        // For now: compile try body, then catch body. VM handles via handler table.
+        // Simplified: emit try body inline, register handler, emit catch body.
+        int tryStartIP = _e.Position;
+
+        CompileExpression(node.TryExpr);
+        int jumpOverCatch = _e.EmitJump(Op.Jump);
+
+        int catchStartIP = _e.Position;
+
+        // If catch has error variable (try expr catch(e) fallback)
+        int errorSlot = -1;
+        if (node.ErrorVariableName != null) {
+            errorSlot = GetOrAllocateSlot(node.ErrorVariableName, false, GetOutputType(node.CatchExpr));
+        }
+
+        CompileExpression(node.CatchExpr);
+
+        _e.PatchJump(jumpOverCatch);
+
+        // Register exception handler
+        _exceptionHandlers.Add(new ExceptionHandler {
+            TryStartIP = tryStartIP,
+            TryEndIP = catchStartIP,
+            CatchStartIP = catchStartIP,
+            ErrorVarSlot = errorSlot,
+        });
+
+        return 0;
     }
 
     public byte Visit(TypeDeclarationSyntaxNode node) {

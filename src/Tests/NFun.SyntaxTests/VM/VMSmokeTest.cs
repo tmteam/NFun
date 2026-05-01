@@ -163,4 +163,40 @@ public class VMSmokeTest {
         vm.Run();
         Assert.AreEqual(19, vm.GetOutput("y"));
     }
+
+    // ── Try-catch ──
+
+    [Test]
+    public void TryCatch_NoError() {
+        var vm = Funny.Hardcore.BuildVM("y = try 42 catch 0");
+        vm.Run();
+        Assert.AreEqual(42, vm.GetOutput("y"));
+    }
+
+    [Test]
+    public void TryCatch_WithError() {
+        var vm = Funny.Hardcore.BuildVM("y = try oops() catch 99");
+        vm.Run();
+        Assert.AreEqual(99, vm.GetOutput("y"));
+    }
+
+    // ── Optional ──
+
+    [Test]
+    public void Optional_Coalesce() {
+        var vm = Funny.Hardcore
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .BuildVM("a:int? = none\r y = a ?? 42");
+        vm.Run();
+        Assert.AreEqual(42, vm.GetOutput("y"));
+    }
+
+    [Test]
+    public void Optional_CoalesceHasValue() {
+        var vm = Funny.Hardcore
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .BuildVM("a:int? = 10\r y = a ?? 42");
+        vm.Run();
+        Assert.AreEqual(10, vm.GetOutput("y"));
+    }
 }
