@@ -309,12 +309,23 @@ public static class VirtualMachine {
 
                 // ── Struct ──
 
+                case Op.NewStruct: {
+                    var layoutId = code[ip++];
+                    var fieldCount = code[ip++];
+                    var layout = program.StructLayouts[layoutId];
+                    var fields = new (string, object)[fieldCount];
+                    for (int i = fieldCount - 1; i >= 0; i--)
+                        fields[i] = (layout.FieldNames[i], stack[--sp].Box(layout.FieldTypes[i]));
+                    stack[sp++].Ref = FunnyStruct.Create(fields);
+                    break;
+                }
                 case Op.GetField: {
                     var fieldIdx = code[ip++];
                     var layoutId = code[ip++];
+                    var layout = program.StructLayouts[layoutId];
                     var s = (FunnyStruct)stack[--sp].Ref;
-                    var fieldName = program.StructLayouts[layoutId].FieldNames[fieldIdx];
-                    stack[sp++].Ref = s.GetValue(fieldName);
+                    var fieldVal = s.GetValue(layout.FieldNames[fieldIdx]);
+                    stack[sp++] = FunValue.Unbox(fieldVal, layout.FieldTypes[fieldIdx]);
                     break;
                 }
 
