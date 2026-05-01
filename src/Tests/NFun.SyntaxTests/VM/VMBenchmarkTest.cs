@@ -14,7 +14,7 @@ public class VMBenchmarkTest {
     [Test]
     public void SimpleArithmetic_VMvsTreeWalker() {
         const string expr = "y = 2 * x + 1";
-        const int iterations = 100_000;
+        const int iterations = 1_000_000;
 
         // Tree-walker
         var tw = Funny.Hardcore.WithApriori("x", FunnyType.Int32).Build(expr);

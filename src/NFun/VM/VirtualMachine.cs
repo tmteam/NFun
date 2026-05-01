@@ -7,19 +7,20 @@ using NFun.Types;
 namespace NFun.VM;
 
 /// <summary>
-/// Stack-based bytecode virtual machine. Replaces tree-walking interpreter.
-/// All primitives stay unboxed in FunValue. Boxing only at .NET boundary (CALL_EXTERN).
+/// Stack-based bytecode VM. Split stack: long[] for values, object[] for references.
+/// No LayoutKind.Explicit — JIT can enregister stack operations.
 /// </summary>
 public static class VirtualMachine {
 
-    // Thread-local stack pool — avoid allocation per Execute call
-    [ThreadStatic] private static FunValue[] t_stack;
+    [ThreadStatic] private static long[] t_vstack;
+    [ThreadStatic] private static object[] t_rstack;
     [ThreadStatic] private static CallFrame[] t_callStack;
 
     public static void Execute(CompiledProgram program, FunValue[] locals, int maxOps = 10_000_000) {
         var code = program.Code;
         var constants = program.Constants;
-        var stack = t_stack ??= new FunValue[256];
+        var vs = t_vstack ??= new long[256];     // value stack (int/real/bool)
+        var rs = t_rstack ??= new object[256];    // reference stack
         var callStack = t_callStack ??= new CallFrame[64];
         int ip = 0, sp = 0, callDepth = 0;
 
@@ -30,197 +31,130 @@ public static class VirtualMachine {
                 // ── Load / Store ──
 
                 case Op.LoadConstI:
-                    stack[sp++].I64 = constants[code[ip++]].I64;
+                    vs[sp++] = constants[code[ip++]].I64;
                     break;
                 case Op.LoadConstR:
-                    stack[sp++].Real = constants[code[ip++]].Real;
+                    vs[sp] = constants[code[ip++]].I64; // bit-copy: Real stored as I64 bits
+                    sp++;
                     break;
                 case Op.LoadConstRef:
-                    stack[sp++].Ref = constants[code[ip++]].Ref;
+                    rs[sp++] = constants[code[ip++]].Ref;
                     break;
-                case Op.LoadLocal:
-                    stack[sp++] = locals[code[ip++]];
+                case Op.LoadLocal: {
+                    var slot = code[ip++];
+                    vs[sp] = locals[slot].I64;
+                    rs[sp] = locals[slot].Ref;
+                    sp++;
                     break;
-                case Op.StoreLocal:
-                    locals[code[ip++]] = stack[--sp];
+                }
+                case Op.StoreLocal: {
+                    sp--;
+                    var slot = code[ip++];
+                    locals[slot].I64 = vs[sp];
+                    locals[slot].Ref = rs[sp];
+                    rs[sp] = null; // help GC
                     break;
+                }
                 case Op.LoadNone:
-                    stack[sp++] = FunValue.None;
+                    rs[sp] = FunnyNone.Instance;
+                    sp++;
                     break;
 
                 // ── Integer arithmetic ──
 
                 case Op.AddInt:
                     sp--;
-                    stack[sp - 1].I64 += stack[sp].I64;
+                    vs[sp - 1] += vs[sp];
                     break;
                 case Op.SubInt:
                     sp--;
-                    stack[sp - 1].I64 -= stack[sp].I64;
+                    vs[sp - 1] -= vs[sp];
                     break;
                 case Op.MulInt:
                     sp--;
-                    stack[sp - 1].I64 *= stack[sp].I64;
+                    vs[sp - 1] *= vs[sp];
                     break;
                 case Op.DivInt:
                     sp--;
-                    if (stack[sp].I64 == 0) throw new FunnyRuntimeException("Division by zero");
-                    stack[sp - 1].I64 /= stack[sp].I64;
+                    if (vs[sp] == 0) throw new FunnyRuntimeException("Division by zero");
+                    vs[sp - 1] /= vs[sp];
                     break;
                 case Op.ModInt:
                     sp--;
-                    stack[sp - 1].I64 %= stack[sp].I64;
+                    vs[sp - 1] %= vs[sp];
                     break;
                 case Op.NegInt:
-                    stack[sp - 1].I64 = -stack[sp - 1].I64;
+                    vs[sp - 1] = -vs[sp - 1];
                     break;
 
-                // ── Real arithmetic ──
+                // ── Real arithmetic (via Unsafe bit reinterpretation) ──
 
                 case Op.AddReal:
                     sp--;
-                    stack[sp - 1].Real += stack[sp].Real;
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) + GetReal(vs, sp));
                     break;
                 case Op.SubReal:
                     sp--;
-                    stack[sp - 1].Real -= stack[sp].Real;
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) - GetReal(vs, sp));
                     break;
                 case Op.MulReal:
                     sp--;
-                    stack[sp - 1].Real *= stack[sp].Real;
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) * GetReal(vs, sp));
                     break;
                 case Op.DivReal:
                     sp--;
-                    stack[sp - 1].Real /= stack[sp].Real;
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) / GetReal(vs, sp));
                     break;
                 case Op.ModReal:
                     sp--;
-                    stack[sp - 1].Real %= stack[sp].Real;
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) % GetReal(vs, sp));
                     break;
                 case Op.NegReal:
-                    stack[sp - 1].Real = -stack[sp - 1].Real;
+                    SetReal(vs, sp - 1, -GetReal(vs, sp - 1));
                     break;
                 case Op.PowReal:
                     sp--;
-                    stack[sp - 1].Real = Math.Pow(stack[sp - 1].Real, stack[sp].Real);
+                    SetReal(vs, sp - 1, Math.Pow(GetReal(vs, sp - 1), GetReal(vs, sp)));
                     break;
 
                 // ── Truncation ──
-
-                case Op.TruncU8:
-                    stack[sp - 1].I64 = (byte)stack[sp - 1].I64;
-                    break;
-                case Op.TruncU16:
-                    stack[sp - 1].I64 = (ushort)stack[sp - 1].I64;
-                    break;
-                case Op.TruncU32:
-                    stack[sp - 1].I64 = (uint)stack[sp - 1].I64;
-                    break;
-                case Op.TruncI16:
-                    stack[sp - 1].I64 = (short)stack[sp - 1].I64;
-                    break;
-                case Op.TruncI32:
-                    stack[sp - 1].I64 = (int)stack[sp - 1].I64;
-                    break;
+                case Op.TruncU8:  vs[sp - 1] = (byte)vs[sp - 1]; break;
+                case Op.TruncU16: vs[sp - 1] = (ushort)vs[sp - 1]; break;
+                case Op.TruncU32: vs[sp - 1] = (uint)vs[sp - 1]; break;
+                case Op.TruncI16: vs[sp - 1] = (short)vs[sp - 1]; break;
+                case Op.TruncI32: vs[sp - 1] = (int)vs[sp - 1]; break;
 
                 // ── Type conversion ──
-
-                case Op.IntToReal:
-                    stack[sp - 1].Real = stack[sp - 1].I64;
-                    break;
-                case Op.RealToInt:
-                    stack[sp - 1].I64 = (long)stack[sp - 1].Real;
-                    break;
+                case Op.IntToReal: SetReal(vs, sp - 1, (double)vs[sp - 1]); break;
+                case Op.RealToInt: vs[sp - 1] = (long)GetReal(vs, sp - 1); break;
 
                 // ── Integer comparison ──
-
-                case Op.EqInt:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].I64 == stack[sp].I64 ? 1 : 0;
-                    break;
-                case Op.NeqInt:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].I64 != stack[sp].I64 ? 1 : 0;
-                    break;
-                case Op.LtInt:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].I64 < stack[sp].I64 ? 1 : 0;
-                    break;
-                case Op.LteInt:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].I64 <= stack[sp].I64 ? 1 : 0;
-                    break;
-                case Op.GtInt:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].I64 > stack[sp].I64 ? 1 : 0;
-                    break;
-                case Op.GteInt:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].I64 >= stack[sp].I64 ? 1 : 0;
-                    break;
+                case Op.EqInt:  sp--; vs[sp - 1] = vs[sp - 1] == vs[sp] ? 1 : 0; break;
+                case Op.NeqInt: sp--; vs[sp - 1] = vs[sp - 1] != vs[sp] ? 1 : 0; break;
+                case Op.LtInt:  sp--; vs[sp - 1] = vs[sp - 1] < vs[sp] ? 1 : 0; break;
+                case Op.LteInt: sp--; vs[sp - 1] = vs[sp - 1] <= vs[sp] ? 1 : 0; break;
+                case Op.GtInt:  sp--; vs[sp - 1] = vs[sp - 1] > vs[sp] ? 1 : 0; break;
+                case Op.GteInt: sp--; vs[sp - 1] = vs[sp - 1] >= vs[sp] ? 1 : 0; break;
 
                 // ── Real comparison ──
-
-                case Op.EqReal:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].Real == stack[sp].Real ? 1 : 0;
-                    break;
-                case Op.LtReal:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].Real < stack[sp].Real ? 1 : 0;
-                    break;
-                case Op.LteReal:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].Real <= stack[sp].Real ? 1 : 0;
-                    break;
-                case Op.GtReal:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].Real > stack[sp].Real ? 1 : 0;
-                    break;
-                case Op.GteReal:
-                    sp--;
-                    stack[sp - 1].I64 = stack[sp - 1].Real >= stack[sp].Real ? 1 : 0;
-                    break;
+                case Op.EqReal:  sp--; vs[sp - 1] = GetReal(vs, sp - 1) == GetReal(vs, sp) ? 1 : 0; break;
+                case Op.LtReal:  sp--; vs[sp - 1] = GetReal(vs, sp - 1) < GetReal(vs, sp) ? 1 : 0; break;
+                case Op.LteReal: sp--; vs[sp - 1] = GetReal(vs, sp - 1) <= GetReal(vs, sp) ? 1 : 0; break;
+                case Op.GtReal:  sp--; vs[sp - 1] = GetReal(vs, sp - 1) > GetReal(vs, sp) ? 1 : 0; break;
+                case Op.GteReal: sp--; vs[sp - 1] = GetReal(vs, sp - 1) >= GetReal(vs, sp) ? 1 : 0; break;
 
                 // ── Logic ──
-
-                case Op.And:
-                    sp--;
-                    stack[sp - 1].I64 = (stack[sp - 1].I64 != 0 && stack[sp].I64 != 0) ? 1 : 0;
-                    break;
-                case Op.Or:
-                    sp--;
-                    stack[sp - 1].I64 = (stack[sp - 1].I64 != 0 || stack[sp].I64 != 0) ? 1 : 0;
-                    break;
-                case Op.Not:
-                    stack[sp - 1].I64 = stack[sp - 1].I64 == 0 ? 1 : 0;
-                    break;
+                case Op.And: sp--; vs[sp - 1] = (vs[sp - 1] != 0 && vs[sp] != 0) ? 1 : 0; break;
+                case Op.Or:  sp--; vs[sp - 1] = (vs[sp - 1] != 0 || vs[sp] != 0) ? 1 : 0; break;
+                case Op.Not: vs[sp - 1] = vs[sp - 1] == 0 ? 1 : 0; break;
 
                 // ── Bitwise ──
-
-                case Op.BitAnd:
-                    sp--;
-                    stack[sp - 1].I64 &= stack[sp].I64;
-                    break;
-                case Op.BitOr:
-                    sp--;
-                    stack[sp - 1].I64 |= stack[sp].I64;
-                    break;
-                case Op.BitXor:
-                    sp--;
-                    stack[sp - 1].I64 ^= stack[sp].I64;
-                    break;
-                case Op.BitNot:
-                    stack[sp - 1].I64 = ~stack[sp - 1].I64;
-                    break;
-                case Op.Shl:
-                    sp--;
-                    stack[sp - 1].I64 <<= (int)stack[sp].I64;
-                    break;
-                case Op.Shr:
-                    sp--;
-                    stack[sp - 1].I64 >>= (int)stack[sp].I64;
-                    break;
+                case Op.BitAnd: sp--; vs[sp - 1] &= vs[sp]; break;
+                case Op.BitOr:  sp--; vs[sp - 1] |= vs[sp]; break;
+                case Op.BitXor: sp--; vs[sp - 1] ^= vs[sp]; break;
+                case Op.BitNot: vs[sp - 1] = ~vs[sp - 1]; break;
+                case Op.Shl:    sp--; vs[sp - 1] <<= (int)vs[sp]; break;
+                case Op.Shr:    sp--; vs[sp - 1] >>= (int)vs[sp]; break;
 
                 // ── Control flow ──
 
@@ -230,13 +164,13 @@ public static class VirtualMachine {
                 case Op.JumpIfFalse: {
                     var addr = ReadU16(code, ip);
                     ip += 2;
-                    if (stack[--sp].I64 == 0) ip = addr;
+                    if (vs[--sp] == 0) ip = addr;
                     break;
                 }
                 case Op.JumpIfTrue: {
                     var addr = ReadU16(code, ip);
                     ip += 2;
-                    if (stack[--sp].I64 != 0) ip = addr;
+                    if (vs[--sp] != 0) ip = addr;
                     break;
                 }
 
@@ -251,8 +185,11 @@ public static class VirtualMachine {
                         CallerLocals = locals, FunctionId = funcId
                     };
                     var newLocals = new FunValue[func.LocalsCount];
-                    for (int i = argc - 1; i >= 0; i--)
-                        newLocals[i] = stack[--sp];
+                    for (int i = argc - 1; i >= 0; i--) {
+                        sp--;
+                        newLocals[i].I64 = vs[sp];
+                        newLocals[i].Ref = rs[sp];
+                    }
                     locals = newLocals;
                     ip = func.EntryIP;
                     break;
@@ -260,19 +197,25 @@ public static class VirtualMachine {
                 case Op.TailCall: {
                     var funcId = code[ip++];
                     var argc = code[ip++];
-                    var func = program.UserFunctions[funcId];
-                    for (int i = argc - 1; i >= 0; i--)
-                        locals[i] = stack[--sp];
-                    ip = func.EntryIP;
+                    for (int i = argc - 1; i >= 0; i--) {
+                        sp--;
+                        locals[i].I64 = vs[sp];
+                        locals[i].Ref = rs[sp];
+                    }
+                    ip = program.UserFunctions[funcId].EntryIP;
                     break;
                 }
                 case Op.Return: {
-                    var result = stack[--sp];
+                    sp--;
+                    var retV = vs[sp];
+                    var retR = rs[sp];
                     var frame = callStack[--callDepth];
                     ip = frame.ReturnIP;
                     sp = frame.ReturnSP;
                     locals = frame.CallerLocals;
-                    stack[sp++] = result;
+                    vs[sp] = retV;
+                    rs[sp] = retR;
+                    sp++;
                     break;
                 }
                 case Op.CallExtern: {
@@ -280,10 +223,17 @@ public static class VirtualMachine {
                     var argc = code[ip++];
                     var ext = program.ExternFunctions[funcId];
                     var args = new object[argc];
-                    for (int i = argc - 1; i >= 0; i--)
-                        args[i] = stack[--sp].Box(ext.ArgTypes[i]);
+                    for (int i = argc - 1; i >= 0; i--) {
+                        sp--;
+                        // Box from split stack
+                        var fv = new FunValue { I64 = vs[sp], Ref = rs[sp] };
+                        args[i] = fv.Box(ext.ArgTypes[i]);
+                    }
                     var result = ext.Function.Calc(args);
-                    stack[sp++] = FunValue.Unbox(result, ext.ReturnType);
+                    var unboxed = FunValue.Unbox(result, ext.ReturnType);
+                    vs[sp] = unboxed.I64;
+                    rs[sp] = unboxed.Ref;
+                    sp++;
                     break;
                 }
 
@@ -292,16 +242,18 @@ public static class VirtualMachine {
                 case Op.NewArray: {
                     var count = code[ip++];
                     var arr = new object[count];
-                    for (int i = count - 1; i >= 0; i--)
-                        arr[i] = stack[--sp].Ref ?? (object)stack[sp].I64;
-                    stack[sp++].Ref = new Runtime.Arrays.ImmutableFunnyArray(arr, FunnyType.Any);
+                    for (int i = count - 1; i >= 0; i--) {
+                        sp--;
+                        arr[i] = rs[sp] ?? (object)vs[sp];
+                    }
+                    rs[sp++] = new Runtime.Arrays.ImmutableFunnyArray(arr, FunnyType.Any);
                     break;
                 }
                 case Op.GetElement: {
                     sp -= 2;
-                    var arr = (Runtime.Arrays.IFunnyArray)stack[sp].Ref;
-                    var idx = (int)stack[sp + 1].I64;
-                    stack[sp++].Ref = arr.GetElementOrNull(idx);
+                    var arr = (Runtime.Arrays.IFunnyArray)rs[sp];
+                    var idx = (int)vs[sp + 1];
+                    rs[sp++] = arr.GetElementOrNull(idx);
                     break;
                 }
 
@@ -312,40 +264,49 @@ public static class VirtualMachine {
                     var fieldCount = code[ip++];
                     var layout = program.StructLayouts[layoutId];
                     var fields = new (string, object)[fieldCount];
-                    for (int i = fieldCount - 1; i >= 0; i--)
-                        fields[i] = (layout.FieldNames[i], stack[--sp].Box(layout.FieldTypes[i]));
-                    stack[sp++].Ref = FunnyStruct.Create(fields);
+                    for (int i = fieldCount - 1; i >= 0; i--) {
+                        sp--;
+                        var fv = new FunValue { I64 = vs[sp], Ref = rs[sp] };
+                        fields[i] = (layout.FieldNames[i], fv.Box(layout.FieldTypes[i]));
+                    }
+                    rs[sp++] = FunnyStruct.Create(fields);
                     break;
                 }
                 case Op.GetField: {
                     var fieldIdx = code[ip++];
                     var layoutId = code[ip++];
                     var layout = program.StructLayouts[layoutId];
-                    var s = (FunnyStruct)stack[--sp].Ref;
+                    sp--;
+                    var s = (FunnyStruct)rs[sp];
                     var fieldVal = s.GetValue(layout.FieldNames[fieldIdx]);
-                    stack[sp++] = FunValue.Unbox(fieldVal, layout.FieldTypes[fieldIdx]);
+                    var unboxed = FunValue.Unbox(fieldVal, layout.FieldTypes[fieldIdx]);
+                    vs[sp] = unboxed.I64;
+                    rs[sp] = unboxed.Ref;
+                    sp++;
                     break;
                 }
 
                 // ── Optional ──
 
                 case Op.IsNone:
-                    stack[sp - 1].I64 = stack[sp - 1].Ref is FunnyNone ? 1 : 0;
+                    vs[sp - 1] = rs[sp - 1] is FunnyNone ? 1 : 0;
                     break;
                 case Op.Coalesce:
                     sp--;
-                    if (stack[sp - 1].Ref is FunnyNone)
-                        stack[sp - 1] = stack[sp];
+                    if (rs[sp - 1] is FunnyNone) {
+                        vs[sp - 1] = vs[sp];
+                        rs[sp - 1] = rs[sp];
+                    }
                     break;
                 case Op.Unwrap:
-                    if (stack[sp - 1].Ref is FunnyNone)
+                    if (rs[sp - 1] is FunnyNone)
                         throw new FunnyRuntimeException("Force unwrap of none value");
                     break;
 
                 // ── Stack ──
-
                 case Op.Dup:
-                    stack[sp] = stack[sp - 1];
+                    vs[sp] = vs[sp - 1];
+                    rs[sp] = rs[sp - 1];
                     sp++;
                     break;
                 case Op.Pop:
@@ -353,15 +314,14 @@ public static class VirtualMachine {
                     break;
 
                 // ── Halt ──
-
                 case Op.Halt:
                     return;
 
                 default:
-                    throw new FunnyRuntimeException($"Unknown opcode {code[ip - 1]:X2} at IP={ip - 1}");
+                    throw new FunnyRuntimeException($"Unknown opcode {code[ip - 1]} at IP={ip - 1}");
             }
         }
-        } // end try — ONE try for entire execution
+        }
         catch (FunnyRuntimeException ex) {
             var handler = FindHandler(ip - 1, program.ExceptionHandlers);
             if (handler != null) {
@@ -371,37 +331,23 @@ public static class VirtualMachine {
                         ("data", (object)(ex is FunnyRuntimeException fre ? fre.OopsData : null)));
                     locals[handler.Value.ErrorVarSlot] = FunValue.FromRef(errorStruct);
                 }
-                // Resume at catch block — recursive call from catch IP
+                // For exception handler resume, we'd need to re-enter Execute.
+                // Simplified: set IP and recurse.
                 ip = handler.Value.CatchStartIP;
-                ExecuteFrom(program, locals, stack, callStack, ip, sp, callDepth, maxOps);
+                Execute(program, locals, maxOps); // recursive resume
                 return;
             }
             throw;
         }
     }
 
-    /// <summary>Resume execution from a specific IP (for exception handler resume).</summary>
-    private static void ExecuteFrom(CompiledProgram program, FunValue[] locals,
-        FunValue[] stack, CallFrame[] callStack, int ip, int sp, int callDepth, int maxOps) {
-        // Simple: re-enter Execute with modified IP by setting locals and re-running
-        // For proper implementation, this should be a continuation. For now, recursive call.
-        var code = program.Code;
-        var constants = program.Constants;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double GetReal(long[] vs, int idx) =>
+        Unsafe.As<long, double>(ref vs[idx]);
 
-        while (true) {
-            switch ((Op)code[ip++]) {
-                case Op.StoreLocal:
-                    locals[code[ip++]] = stack[--sp];
-                    break;
-                case Op.Halt:
-                    return;
-                default:
-                    // For resume, we only need to handle the catch body opcodes.
-                    // Full dispatch is in the main Execute. This is a simplified handler.
-                    throw new FunnyRuntimeException($"Exception handler resume hit unexpected opcode at IP={ip - 1}");
-            }
-        }
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SetReal(long[] vs, int idx, double val) =>
+        vs[idx] = Unsafe.As<double, long>(ref val);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int ReadU16(byte[] code, int offset) =>
