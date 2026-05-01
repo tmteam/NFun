@@ -18,4 +18,7 @@ internal static partial class Errors {
     
     internal static FunnyParseException RecursiveUserFunctionIsDenied(Interval interval) => new(
         234, "The use of recursive functions is prohibited in the dialect settings", interval);
+
+    internal static FunnyParseException TryCatchIsDenied(Interval interval) => new(
+        240, "Try-catch expressions are disabled in the dialect settings", interval);
 }
