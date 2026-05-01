@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>1.0.3</PackageVersion>
-    <Version>1.0.3</Version>
+    <PackageVersion>1.1.0</PackageVersion>
+    <Version>1.1.0</Version>
     <LangVersion>10</LangVersion>
     <Title>NFun</Title>
     <Authors>tmteam</Authors>
@@ -12,11 +12,11 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>Icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
-    <PackageTags>Not a functional intepritable language</PackageTags>
-    <PackageReleaseNotes>Strong named assembly. net8 support.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.3</AssemblyVersion>
-    <FileVersion>1.0.3</FileVersion>
-    <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
+    <PackageTags>expression-evaluator scripting type-inference optional-types named-types</PackageTags>
+    <PackageReleaseNotes>v1.1.0: Optional types (T?, none, ??, ?., ?[, !), named types, type narrowing, row polymorphism, format specifiers, try-catch, char literals, 150+ new built-in tests.</PackageReleaseNotes>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <FileVersion>1.1.0</FileVersion>
+    <TargetFrameworks>net5.0;net6.0;net8.0;net10.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <SignAssembly>false</SignAssembly>
