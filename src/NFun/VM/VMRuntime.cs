@@ -17,12 +17,16 @@ namespace NFun.VM;
 public class VMRuntime {
     private readonly CompiledProgram _program;
     private readonly FunValue[] _locals;
+    private readonly FunValue[] _stack;
+    private readonly CallFrame[] _callStack;
     private readonly Dictionary<string, int> _variableSlots;
     private readonly Dictionary<string, FunnyType> _variableTypes;
 
     private VMRuntime(CompiledProgram program) {
         _program = program;
         _locals = new FunValue[program.LocalsCount];
+        _stack = new FunValue[256];
+        _callStack = new CallFrame[64];
         _variableSlots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         _variableTypes = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
         foreach (var v in program.Variables) {
@@ -31,7 +35,7 @@ public class VMRuntime {
         }
     }
 
-    public void Run() => VirtualMachine.Execute(_program, _locals);
+    public void Run() => VirtualMachine.Execute(_program, _locals, _stack, _callStack);
 
     public void SetInput(string name, object value) {
         if (!_variableSlots.TryGetValue(name, out var slot))
