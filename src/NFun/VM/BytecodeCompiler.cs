@@ -101,6 +101,9 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
         _e.Emit(Op.Halt);
 
+        // Peephole optimization: fuse common opcode patterns into superinstructions
+        PeepholeOptimize(_e);
+
         return new CompiledProgram {
             Code = _e.ToArray(),
             Constants = _e.ConstantsToArray(),
@@ -929,6 +932,96 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     private static string MakeStructLayoutKey(string[] names) => string.Join(",", names);
+
+    /// <summary>
+    /// Peephole optimizer: scan bytecode for common patterns and replace with fused superinstructions.
+    /// Operates on the raw byte list in-place.
+    /// </summary>
+    private static void PeepholeOptimize(BytecodeEmitter e) {
+        var code = e.Code;
+
+        // Skip peephole if code contains jumps or complex ops — RemoveRange breaks addresses.
+        for (int j = 0; j < code.Count; j++) {
+            var op = (Op)code[j];
+            if (op == Op.Jump || op == Op.JumpIfFalse || op == Op.JumpIfTrue
+                || op == Op.Call || op == Op.TailCall
+                || op == Op.NewStruct || op == Op.GetField || op == Op.CallExtern
+                || op == Op.NewArray || op == Op.GetElement)
+                return; // bail out — too complex for simple peephole
+        }
+
+        int i = 0;
+        while (i < code.Count - 4) {
+            var op1 = (Op)code[i];
+            // Pattern: LoadConstI #a, LoadLocal #b, MulInt → MulLocalConstI #b, #a
+            if (op1 == Op.LoadConstI && i + 4 < code.Count
+                && (Op)code[i + 2] == Op.LoadLocal && (Op)code[i + 4] == Op.MulInt) {
+                var constIdx = code[i + 1];
+                var localSlot = code[i + 3];
+                code[i] = (byte)Op.MulLocalConstI;
+                code[i + 1] = localSlot;
+                code[i + 2] = constIdx;
+                code.RemoveRange(i + 3, 2); // remove LoadLocal arg + MulInt
+                continue;
+            }
+            // Pattern: LoadConstI #a, LoadLocal #b, AddInt → AddLocalConstI #b, #a
+            if (op1 == Op.LoadConstI && i + 4 < code.Count
+                && (Op)code[i + 2] == Op.LoadLocal && (Op)code[i + 4] == Op.AddInt) {
+                var constIdx = code[i + 1];
+                var localSlot = code[i + 3];
+                code[i] = (byte)Op.AddLocalConstI;
+                code[i + 1] = localSlot;
+                code[i + 2] = constIdx;
+                code.RemoveRange(i + 3, 2);
+                continue;
+            }
+            // Pattern: LoadLocal #a, LoadConstI #b, MulInt → MulLocalConstI #a, #b
+            if (op1 == Op.LoadLocal && i + 4 < code.Count
+                && (Op)code[i + 2] == Op.LoadConstI && (Op)code[i + 4] == Op.MulInt) {
+                var localSlot = code[i + 1];
+                var constIdx = code[i + 3];
+                code[i] = (byte)Op.MulLocalConstI;
+                code[i + 1] = localSlot;
+                code[i + 2] = constIdx;
+                code.RemoveRange(i + 3, 2);
+                continue;
+            }
+            // Pattern: LoadLocal #a, LoadConstI #b, AddInt → AddLocalConstI #a, #b
+            if (op1 == Op.LoadLocal && i + 4 < code.Count
+                && (Op)code[i + 2] == Op.LoadConstI && (Op)code[i + 4] == Op.AddInt) {
+                var localSlot = code[i + 1];
+                var constIdx = code[i + 3];
+                code[i] = (byte)Op.AddLocalConstI;
+                code[i + 1] = localSlot;
+                code[i + 2] = constIdx;
+                code.RemoveRange(i + 3, 2);
+                continue;
+            }
+            // Pattern: LoadConstI #a, AddInt → AddTopConstI #a
+            if (op1 == Op.LoadConstI && i + 2 < code.Count && (Op)code[i + 2] == Op.AddInt) {
+                var constIdx = code[i + 1];
+                code[i] = (byte)Op.AddTopConstI;
+                code[i + 1] = constIdx;
+                code.RemoveAt(i + 2); // remove AddInt
+                continue;
+            }
+            // Pattern: LoadConstI #a, MulInt → MulTopConstI #a
+            if (op1 == Op.LoadConstI && i + 2 < code.Count && (Op)code[i + 2] == Op.MulInt) {
+                var constIdx = code[i + 1];
+                code[i] = (byte)Op.MulTopConstI;
+                code[i + 1] = constIdx;
+                code.RemoveAt(i + 2);
+                continue;
+            }
+            // Pattern: StoreLocal #a, Halt → StoreHalt #a
+            if (op1 == Op.StoreLocal && i + 2 < code.Count && (Op)code[i + 2] == Op.Halt) {
+                code[i] = (byte)Op.StoreHalt;
+                code.RemoveAt(i + 2); // remove Halt
+                continue;
+            }
+            i++;
+        }
+    }
 
     private static bool IsRealType(FunnyType type) => type.BaseType == BaseFunnyType.Real;
 

@@ -313,6 +313,66 @@ public static class VirtualMachine {
                     sp--;
                     break;
 
+                // ── Superinstructions ──
+
+                case Op.AddLocalConstI: {
+                    var slot = code[ip++];
+                    var cidx = code[ip++];
+                    vs[sp++] = locals[slot].I64 + constants[cidx].I64;
+                    break;
+                }
+                case Op.SubLocalConstI: {
+                    var slot = code[ip++];
+                    var cidx = code[ip++];
+                    vs[sp++] = locals[slot].I64 - constants[cidx].I64;
+                    break;
+                }
+                case Op.MulLocalConstI: {
+                    var slot = code[ip++];
+                    var cidx = code[ip++];
+                    vs[sp++] = locals[slot].I64 * constants[cidx].I64;
+                    break;
+                }
+                case Op.AddConstConstI: {
+                    vs[sp++] = constants[code[ip++]].I64 + constants[code[ip++]].I64;
+                    break;
+                }
+                case Op.MulConstConstI: {
+                    vs[sp++] = constants[code[ip++]].I64 * constants[code[ip++]].I64;
+                    break;
+                }
+                case Op.AddTopConstI:
+                    vs[sp - 1] += constants[code[ip++]].I64;
+                    break;
+                case Op.MulTopConstI:
+                    vs[sp - 1] *= constants[code[ip++]].I64;
+                    break;
+                case Op.StoreHalt:
+                    sp--;
+                    locals[code[ip++]].I64 = vs[sp];
+                    locals[code[ip - 1]].Ref = rs[sp];
+                    return;
+                case Op.AddLocalConstR: {
+                    var slot = code[ip++];
+                    var cidx = code[ip++];
+                    SetReal(vs, sp, GetReal(locals[slot].I64) + GetRealConst(constants, cidx));
+                    sp++;
+                    break;
+                }
+                case Op.MulLocalConstR: {
+                    var slot = code[ip++];
+                    var cidx = code[ip++];
+                    SetReal(vs, sp, GetReal(locals[slot].I64) * GetRealConst(constants, cidx));
+                    sp++;
+                    break;
+                }
+                case Op.AddTopConstR:
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) + GetRealConst(constants, code[ip++]));
+                    break;
+                case Op.MulTopConstR:
+                    SetReal(vs, sp - 1, GetReal(vs, sp - 1) * GetRealConst(constants, code[ip++]));
+                    break;
+
                 // ── Halt ──
                 case Op.Halt:
                     return;
@@ -339,6 +399,18 @@ public static class VirtualMachine {
             }
             throw;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double GetReal(long bits) {
+        var l = bits;
+        return Unsafe.As<long, double>(ref l);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double GetRealConst(FunValue[] constants, int idx) {
+        var l = constants[idx].I64;
+        return Unsafe.As<long, double>(ref l);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

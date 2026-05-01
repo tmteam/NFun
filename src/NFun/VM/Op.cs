@@ -109,4 +109,34 @@ public enum Op : byte {
 
     // ── VM control ──
     Halt          = 69,
+
+    // ── Superinstructions (fused opcodes for hot patterns) ──
+    // Each saves 1-2 loop iterations by combining common sequences.
+
+    /// <summary>push locals[arg1] + constants[arg2] (int)</summary>
+    AddLocalConstI = 70,
+    /// <summary>push locals[arg1] - constants[arg2] (int)</summary>
+    SubLocalConstI = 71,
+    /// <summary>push locals[arg1] * constants[arg2] (int)</summary>
+    MulLocalConstI = 72,
+    /// <summary>push constants[arg1] + constants[arg2] (int)</summary>
+    AddConstConstI = 73,
+    /// <summary>push constants[arg1] * constants[arg2] (int)</summary>
+    MulConstConstI = 74,
+    /// <summary>stack[top] += constants[arg] (int)</summary>
+    AddTopConstI   = 75,
+    /// <summary>stack[top] *= constants[arg] (int)</summary>
+    MulTopConstI   = 76,
+    /// <summary>pop and store + halt (fused end-of-expression)</summary>
+    StoreHalt      = 77,
+
+    /// <summary>push locals[arg1] + constants[arg2] (real)</summary>
+    AddLocalConstR = 78,
+    /// <summary>push locals[arg1] * constants[arg2] (real)</summary>
+    MulLocalConstR = 79,
+    /// <summary>stack[top] += constants[arg] (real)</summary>
+    AddTopConstR   = 80,
+    /// <summary>stack[top] *= constants[arg] (real)</summary>
+    MulTopConstR   = 81,
 }
+
