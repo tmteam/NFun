@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -36,6 +37,12 @@ public class QuickBenchmarkTests
     [TestCase(360, TestName = "V2 360s")]
     public void RunV2Experiment(int seconds) => RunNFunBench(BenchSetV2.V2(), seconds);
 
+    [TestCase(7, TestName = "VM 7s")]
+    [TestCase(15, TestName = "VM 15s")]
+    [TestCase(30, TestName = "VM 30s")]
+    [TestCase(60, TestName = "VM 60s")]
+    public void RunVMBenchmark(int seconds) => RunVMBench(BenchSetVM.VMSet(), seconds);
+
     [Test]
     public void VerifyAllScripts()
     {
@@ -44,6 +51,77 @@ public class QuickBenchmarkTests
         Verify(BenchSetV2.V2(), errors);
         if (errors.Length > 0)
             throw new Exception(errors.ToString());
+    }
+
+    /// <summary>
+    /// VM benchmark: registers BOTH tree-walker and VM operations for the same expressions.
+    /// Each expression measured as: TW-Build, TW-Run, VM-Build, VM-Run.
+    /// </summary>
+    private static void RunVMBench(NfunBenchSet nfunBenchSet, int seconds) {
+        var builder = QuickBenchBuilder.Create(nfunBenchSet.Name + "-vm-compare");
+        foreach (var nfunSubset in nfunBenchSet.Subsets) {
+            RegisterNFunOps(builder, nfunBenchSet.OptionalTypes, nfunSubset);
+            RegisterVMOps(builder, nfunSubset);
+        }
+
+        var report = builder.Run(seconds);
+        TestContext.WriteLine(QuickBenchReportRenderer.RenderText(report));
+
+        var jsonPath = Path.Combine(TestContext.CurrentContext.WorkDirectory,
+            $"bench_{nfunBenchSet.Name}_vm_{seconds}s_{DateTime.Now:yyyyMMdd_HHmmss}.json");
+        report.SaveJson(jsonPath);
+        TestContext.WriteLine($"JSON saved: {jsonPath}");
+    }
+
+    private static void RegisterVMOps(QuickBenchBuilder builder, BenchSubSet subset) {
+        var name = subset.Name;
+        var funBuilder = Funny.Hardcore;
+
+        // VM Build — only scripts that VM can compile
+        var vmBuildableScripts = new List<string>();
+        foreach (var s in subset.Scripts) {
+            try {
+                funBuilder.BuildVM(s.Script); // verify it compiles
+                vmBuildableScripts.Add(s.Script);
+            } catch { /* skip unsupported */ }
+        }
+        foreach (var script in vmBuildableScripts)
+            builder.Add(name, "VM-Build", () => funBuilder.BuildVM(script));
+
+        // VM Run
+        var vmRuntimes = new List<NFun.VM.VMRuntime>();
+        foreach (var s in subset.Scripts) {
+            try {
+                var vmrt = funBuilder.BuildVM(s.Script);
+                vmRuntimes.Add(vmrt);
+            } catch {
+                // Skip expressions VM can't handle yet
+            }
+        }
+        foreach (var rt in vmRuntimes)
+            builder.Add(name, "VM-Run", () => rt.Run());
+
+        // VM Update (set input + run + read output)
+        var vmUpdatePairs = new List<(BenchScript script, NFun.VM.VMRuntime rt)>();
+        for (int i = 0; i < subset.Scripts.Length; i++) {
+            var s = subset.Scripts[i];
+            if (s.Inputs.Count > 0) {
+                try {
+                    // Register input types via WithApriori for VM
+                    var vmBuilder = Funny.Hardcore;
+                    foreach (var (varName, val) in s.Inputs)
+                        vmBuilder = vmBuilder.WithApriori(varName, FunnyType.Int32);
+                    var vmrt = vmBuilder.BuildVM(s.Script);
+                    vmUpdatePairs.Add((s, vmrt));
+                } catch { }
+            }
+        }
+        foreach (var (script, rt) in vmUpdatePairs)
+            builder.Add(name, "VM-Update", () => {
+                foreach (var (varName, val) in script.Inputs) rt.SetInput(varName, val);
+                rt.Run();
+                foreach (var outName in script.Outputs) _ = rt.GetOutput(outName);
+            });
     }
 
     private static void RunNFunBench(NfunBenchSet nfunBenchSet, int seconds)
