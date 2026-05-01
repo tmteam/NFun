@@ -71,8 +71,11 @@ public class VMRuntime {
         var flow = Tokenizer.ToFlow(script, dialect.AllowNewlineInStrings == AllowNewlineInStrings.Deny);
         var syntaxTree = Parser.Parse(flow);
 
-        // Set node numbers
-        syntaxTree.ComeOver(new SetNodeNumberVisitor(0));
+        // Set node numbers (required for TIC graph allocation)
+        var setNodeNumberVisitor = new SetNodeNumberVisitor(0);
+        syntaxTree.ComeOver(setNodeNumberVisitor);
+        syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
+        syntaxTree.IsSimpleBody = setNodeNumberVisitor.IsSimpleBody;
 
         // TIC type inference (reuse existing helper)
         bool typesApplied;
