@@ -281,7 +281,7 @@ internal static class RuntimeBuilder {
         return new FunnyRuntime(equations, variables, userFunctions, dialect.Converter, typeRegistry);
     }
 
-    private static TypeInferenceResults SolveBodyTypes(
+    internal static TypeInferenceResults SolveBodyTypes(
         SyntaxTree syntaxTree,
         IConstantList constants,
         IFunctionRegistry functionRegistry,
@@ -368,7 +368,7 @@ internal static class RuntimeBuilder {
     }
 
 
-    private static IUserFunction BuildFunctionAndPutItToDictionary(
+    internal static IUserFunction BuildFunctionAndPutItToDictionary(
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
         IConstantList constants,
         ScopeFunctionRegistry functionsRegistry,

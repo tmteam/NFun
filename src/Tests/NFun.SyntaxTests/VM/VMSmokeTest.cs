@@ -108,14 +108,14 @@ public class VMSmokeTest {
 
     // ── User functions ──
 
-    [Test][Ignore("VM: user function compilation not wired into TIC pipeline yet")]
+    [Test]
     public void UserFunction_Simple() {
         var vm = Funny.Hardcore.BuildVM("f(x) = x * 2\r y = f(21)");
         vm.Run();
         Assert.AreEqual(42, vm.GetOutput("y"));
     }
 
-    [Test][Ignore("VM: user function compilation not wired into TIC pipeline yet")]
+    [Test]
     public void UserFunction_TwoArgs() {
         var vm = Funny.Hardcore.BuildVM("add(a,b) = a + b\r y = add(10, 32)");
         vm.Run();
