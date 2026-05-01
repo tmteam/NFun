@@ -575,7 +575,8 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             _e.EmitWithArg(Op.LoadConstR, (byte)_e.AddConstant(FunValue.FromReal(longVal)));
         } else {
             _e.EmitWithArg(Op.LoadConstI, (byte)_e.AddConstant(FunValue.FromI64(longVal)));
-            EmitTruncation(type);
+            // No truncation for constants: value is already within type range.
+            // Truncation only needed for computed results that may exceed target type range.
         }
     }
 
@@ -777,8 +778,9 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
                 break;
         }
 
-        // After the operation, truncate the result if the output type is narrower than I64
-        if (!isReal && IsIntegerType(outputType))
+        // Truncate only if output type is narrower than I64 (U8, U16, U32, I16, I32).
+        // For I64 and comparisons (Bool), no truncation needed.
+        if (!isReal && NeedsTruncation(outputType))
             EmitTruncation(outputType);
     }
 
@@ -932,6 +934,14 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
     private static bool IsIntegerType(FunnyType type) =>
         type.BaseType >= BaseFunnyType.UInt8 && type.BaseType <= BaseFunnyType.Int64;
+
+    /// <summary>True if type needs truncation (narrower than I64). I32, I64, U64, Bool don't.</summary>
+    private static bool NeedsTruncation(FunnyType type) => type.BaseType switch {
+        BaseFunnyType.UInt8  => true,
+        BaseFunnyType.UInt16 => true,
+        BaseFunnyType.Int16  => true,
+        _ => false, // I32, I64, U32, U64, Bool — fit in I64 natively
+    };
 
     /// <summary>
     /// Try to emit native VM opcodes for arithmetic/comparison operators.
