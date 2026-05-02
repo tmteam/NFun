@@ -94,7 +94,8 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
         // Allocate slots for input variables referenced in equations
         // (needed when tree-walker fallback captures inputs that bytecode doesn't visit)
-        AllocateInputVariables(tree);
+        if (_preBuiltExpressions.Count > 0)
+            AllocateInputVariables(tree);
 
         // Compile user function definitions (emit code bodies, register in UserFunctions table)
         foreach (var funcDef in userFuncDefs) {
@@ -128,12 +129,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         return new CompiledProgram {
             Code = _e.ToArray(),
             Constants = _e.ConstantsToArray(),
-            StructLayouts = _structLayouts.ToArray(),
-            ExternFunctions = _externFunctions.ToArray(),
-            UserFunctions = _userFunctions.ToArray(),
+            StructLayouts = _structLayouts.Count > 0 ? _structLayouts.ToArray() : Array.Empty<StructLayout>(),
+            ExternFunctions = _externFunctions.Count > 0 ? _externFunctions.ToArray() : Array.Empty<ExternFunc>(),
+            UserFunctions = _userFunctions.Count > 0 ? _userFunctions.ToArray() : Array.Empty<UserFunc>(),
             Variables = _variableSlots.ToArray(),
-            ExceptionHandlers = _exceptionHandlers.ToArray(),
-            TypeTable = _typeTable.ToArray(),
+            ExceptionHandlers = _exceptionHandlers.Count > 0 ? _exceptionHandlers.ToArray() : Array.Empty<ExceptionHandler>(),
+            TypeTable = _typeTable.Count > 0 ? _typeTable.ToArray() : Array.Empty<FunnyType>(),
             LocalsCount = _nextLocalSlot,
         };
     }

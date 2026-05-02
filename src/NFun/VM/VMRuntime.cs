@@ -93,8 +93,9 @@ public class VMRuntime {
         // 4. Build user functions (reuse RuntimeBuilder infrastructure)
         var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
         IFunctionRegistry bodyRegistry = functionRegistry;
-        var perFunctionTypeResults = new Dictionary<string, TypeInferenceResults>();
+        Dictionary<string, TypeInferenceResults> perFunctionTypeResults = null;
         if (functionSolveOrder.Length > 0) {
+            perFunctionTypeResults = new Dictionary<string, TypeInferenceResults>();
             var scope = new ScopeFunctionRegistry(functionRegistry, functionSolveOrder.Length);
             bodyRegistry = scope;
             for (int i = 0; i < functionSolveOrder.Length; i++) {
@@ -115,32 +116,46 @@ public class VMRuntime {
             aprioriTypesMap ?? EmptyAprioriTypesMap.Instance,
             customTypes, dialect, namedTypeFieldRegistry);
 
-        // 6. Pre-build tree-walker nodes for lambda-containing expressions
+        // 6. Pre-build tree-walker nodes for lambda/hi-order-containing expressions
         var preBuilt = new Dictionary<int, Interpretation.Nodes.IExpressionNode>();
-        var variables = new Runtime.VariableDictionary();
+        Runtime.VariableDictionary variables = null;
 
-        // First pass: build non-lambda equations to populate variables (for captured vars)
-        foreach (var treeNode in syntaxTree.Nodes) {
-            if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
-                && !NeedsTreeWalkerFallback(eq.Expression)) {
-                try {
-                    Interpretation.ExpressionBuilderVisitor.BuildExpression(
-                        eq.Expression, bodyRegistry, eq.OutputType, variables,
-                        typeInferenceResults, TicTypesConverter.Concrete, dialect);
-                } catch { /* skip */ }
-            }
-        }
-
-        // Second pass: build lambda-containing equations (can now reference captured vars)
+        // Check if any equation needs tree-walker fallback (lambdas, ResultFunCall, etc.)
+        bool hasTreeWalkerEquations = false;
         foreach (var treeNode in syntaxTree.Nodes) {
             if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
                 && NeedsTreeWalkerFallback(eq.Expression)) {
-                try {
-                    var expr = Interpretation.ExpressionBuilderVisitor.BuildExpression(
-                        eq.Expression, bodyRegistry, eq.OutputType, variables,
-                        typeInferenceResults, TicTypesConverter.Concrete, dialect);
-                    preBuilt[eq.Expression.OrderNumber] = expr;
-                } catch { /* skip if tree-walker can't build it */ }
+                hasTreeWalkerEquations = true;
+                break;
+            }
+        }
+
+        if (hasTreeWalkerEquations) {
+            variables = new Runtime.VariableDictionary();
+
+            // First pass: build non-lambda equations to populate variables (for captured vars)
+            foreach (var treeNode in syntaxTree.Nodes) {
+                if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
+                    && !NeedsTreeWalkerFallback(eq.Expression)) {
+                    try {
+                        Interpretation.ExpressionBuilderVisitor.BuildExpression(
+                            eq.Expression, bodyRegistry, eq.OutputType, variables,
+                            typeInferenceResults, TicTypesConverter.Concrete, dialect);
+                    } catch { /* skip */ }
+                }
+            }
+
+            // Second pass: build lambda-containing equations (can now reference captured vars)
+            foreach (var treeNode in syntaxTree.Nodes) {
+                if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
+                    && NeedsTreeWalkerFallback(eq.Expression)) {
+                    try {
+                        var expr = Interpretation.ExpressionBuilderVisitor.BuildExpression(
+                            eq.Expression, bodyRegistry, eq.OutputType, variables,
+                            typeInferenceResults, TicTypesConverter.Concrete, dialect);
+                        preBuilt[eq.Expression.OrderNumber] = expr;
+                    } catch { /* skip if tree-walker can't build it */ }
+                }
             }
         }
 
@@ -151,7 +166,7 @@ public class VMRuntime {
         var runtime = new VMRuntime(program);
 
         // Wire captured variables: tree-walker variables → VM locals bridge
-        if (variables.GetAll().Any()) {
+        if (variables != null && variables.GetAll().Any()) {
             var bridges = new List<(Runtime.VariableSource, int, FunnyType)>();
             foreach (var varSource in variables.GetAll()) {
                 if (runtime._variableSlots.TryGetValue(varSource.Name, out var slot))
