@@ -232,6 +232,24 @@ public class VMSmokeTest {
         Assert.AreEqual(42, vm.GetOutput("y"));
     }
 
+    [Test][Ignore("VM: optional int value stored in Ref, GetOutput reads I64")]
+    public void Optional_ForceUnwrap() {
+        var vm = Funny.Hardcore
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .BuildVM("a:int? = 42\r y = a!");
+        vm.Run();
+        Assert.AreEqual(42, vm.GetOutput("y"));
+    }
+
+    [Test][Ignore("VM: optional value type mapping needs work")]
+    public void Optional_IsNone_True() {
+        var vm = Funny.Hardcore
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .BuildVM("a:int? = none\r y = a == none");
+        vm.Run();
+        Assert.AreEqual(true, vm.GetOutput("y"));
+    }
+
     [Test]
     public void Optional_CoalesceHasValue() {
         var vm = Funny.Hardcore
