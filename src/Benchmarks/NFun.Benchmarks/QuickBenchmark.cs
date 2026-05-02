@@ -66,12 +66,62 @@ public class QuickBenchmarkTests
 
         var report = builder.Run(seconds);
         TestContext.WriteLine(QuickBenchReportRenderer.RenderText(report));
+        TestContext.WriteLine(RenderVMComparison(report, nfunBenchSet));
 
         var jsonPath = Path.Combine(TestContext.CurrentContext.WorkDirectory,
             $"bench_{nfunBenchSet.Name}_vm_{seconds}s_{DateTime.Now:yyyyMMdd_HHmmss}.json");
         report.SaveJson(jsonPath);
         TestContext.WriteLine($"JSON saved: {jsonPath}");
     }
+
+    /// <summary>Renders TW vs VM comparison table.</summary>
+    private static string RenderVMComparison(BenchmarkReport report, NfunBenchSet benchSet) {
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine("═══ Tree-Walker vs VM Comparison ═══");
+        sb.AppendLine();
+        sb.AppendLine("           |   TW-Build |   VM-Build |  Build Δ  |   TW-Run  |   VM-Run  |   Run Δ  |  TW-Update | VM-Update |  Upd Δ ");
+        sb.AppendLine("-----------+------------+------------+-----------+-----------+-----------+----------+------------+-----------+---------");
+
+        double totalWeight = benchSet.Subsets.Sum(s => s.Importance);
+        double wTwB = 0, wVmB = 0, wTwR = 0, wVmR = 0, wTwU = 0, wVmU = 0;
+
+        foreach (var ns in benchSet.Subsets) {
+            double twBuild  = FindSlot(report, ns.Name, "Build")?.MeanUs ?? 0;
+            double vmBuild  = FindSlot(report, ns.Name, "VM-Build")?.MeanUs ?? 0;
+            double twRun    = FindSlot(report, ns.Name, "Run")?.MeanUs ?? 0;
+            double vmRun    = FindSlot(report, ns.Name, "VM-Run")?.MeanUs ?? 0;
+            double twUpdate = FindSlot(report, ns.Name, "Update")?.MeanUs ?? 0;
+            double vmUpdate = FindSlot(report, ns.Name, "VM-Update")?.MeanUs ?? 0;
+
+            string buildDelta = vmBuild > 0 && twBuild > 0 ? FormatDelta(vmBuild / twBuild) : "  n/a";
+            string runDelta   = vmRun > 0 && twRun > 0 ? FormatDelta(vmRun / twRun) : "  n/a";
+            string updDelta   = vmUpdate > 0 && twUpdate > 0 ? FormatDelta(vmUpdate / twUpdate) : "  n/a";
+
+            sb.AppendLine($"{ns.Name,-10} | {Fmt(twBuild),7} μs | {Fmt(vmBuild),7} μs | {buildDelta,9} | {Fmt(twRun),6} μs | {Fmt(vmRun),6} μs | {runDelta,8} | {Fmt(twUpdate),7} μs | {Fmt(vmUpdate),6} μs | {updDelta,7}");
+
+            wTwB += ns.Importance * twBuild; wVmB += ns.Importance * vmBuild;
+            wTwR += ns.Importance * twRun;   wVmR += ns.Importance * vmRun;
+            wTwU += ns.Importance * twUpdate; wVmU += ns.Importance * vmUpdate;
+        }
+        wTwB /= totalWeight; wVmB /= totalWeight;
+        wTwR /= totalWeight; wVmR /= totalWeight;
+        wTwU /= totalWeight; wVmU /= totalWeight;
+
+        string wBuildD = wVmB > 0 && wTwB > 0 ? FormatDelta(wVmB / wTwB) : "  n/a";
+        string wRunD   = wVmR > 0 && wTwR > 0 ? FormatDelta(wVmR / wTwR) : "  n/a";
+        string wUpdD   = wVmU > 0 && wTwU > 0 ? FormatDelta(wVmU / wTwU) : "  n/a";
+
+        sb.AppendLine("-----------+------------+------------+-----------+-----------+-----------+----------+------------+-----------+---------");
+        sb.AppendLine($"{"Weighted",-10} | {Fmt(wTwB),7} μs | {Fmt(wVmB),7} μs | {wBuildD,9} | {Fmt(wTwR),6} μs | {Fmt(wVmR),6} μs | {wRunD,8} | {Fmt(wTwU),7} μs | {Fmt(wVmU),6} μs | {wUpdD,7}");
+        sb.AppendLine();
+        sb.AppendLine("Δ = VM/TW ratio. <1.00x = VM faster, >1.00x = VM slower.");
+        sb.AppendLine();
+        return sb.ToString();
+    }
+
+    private static string FormatDelta(double ratio) =>
+        ratio < 1.0 ? $"{ratio:F2}x ▲" : ratio > 1.0 ? $"{ratio:F2}x ▼" : " 1.00x";
 
     private static void RegisterVMOps(QuickBenchBuilder builder, BenchSubSet subset) {
         var name = subset.Name;
@@ -88,11 +138,12 @@ public class QuickBenchmarkTests
         foreach (var script in vmBuildableScripts)
             builder.Add(name, "VM-Build", () => funBuilder.BuildVM(script));
 
-        // VM Run
+        // VM Run — only scripts that build AND run successfully
         var vmRuntimes = new List<NFun.VM.VMRuntime>();
         foreach (var s in subset.Scripts) {
             try {
                 var vmrt = funBuilder.BuildVM(s.Script);
+                vmrt.Run(); // verify it runs without error
                 vmRuntimes.Add(vmrt);
             } catch {
                 // Skip expressions VM can't handle yet
@@ -107,11 +158,12 @@ public class QuickBenchmarkTests
             var s = subset.Scripts[i];
             if (s.Inputs.Count > 0) {
                 try {
-                    // Register input types via WithApriori for VM
                     var vmBuilder = Funny.Hardcore;
                     foreach (var (varName, val) in s.Inputs)
                         vmBuilder = vmBuilder.WithApriori(varName, FunnyType.Int32);
                     var vmrt = vmBuilder.BuildVM(s.Script);
+                    foreach (var (varName, val) in s.Inputs) vmrt.SetInput(varName, val);
+                    vmrt.Run(); // verify it runs
                     vmUpdatePairs.Add((s, vmrt));
                 } catch { }
             }
