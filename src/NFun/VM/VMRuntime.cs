@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
@@ -69,6 +70,11 @@ public class VMRuntime {
         IAprioriTypesMap aprioriTypesMap = null,
         ICustomTypeRegistry customTypes = null) {
 
+        // Ensure constants is never null (same as RuntimeBuilder — TicSetupVisitor needs it)
+        constants ??= dialect.Converter.TypeBehaviour is Types.RealIsDoubleTypeBehaviour
+            ? BuiltInConstantList.Double
+            : BuiltInConstantList.Decimal;
+
         // 1. Tokenize + Parse
         var flow = Tokenizer.ToFlow(script, dialect.AllowNewlineInStrings == AllowNewlineInStrings.Deny);
         var syntaxTree = Parser.Parse(flow);
@@ -87,6 +93,7 @@ public class VMRuntime {
         // 4. Build user functions (reuse RuntimeBuilder infrastructure)
         var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
         IFunctionRegistry bodyRegistry = functionRegistry;
+        var perFunctionTypeResults = new Dictionary<string, TypeInferenceResults>();
         if (functionSolveOrder.Length > 0) {
             var scope = new ScopeFunctionRegistry(functionRegistry, functionSolveOrder.Length);
             bodyRegistry = scope;
@@ -94,6 +101,11 @@ public class VMRuntime {
                 RuntimeBuilder.BuildFunctionAndPutItToDictionary(
                     functionSolveOrder[i], constants, scope, dialect,
                     customTypes, namedTypeFieldRegistry, functionSolveOrder);
+                // Also solve types for the VM's BytecodeCompiler
+                var funcResults = SolveUserFunctionTypes(
+                    functionSolveOrder[i], scope, constants, dialect, customTypes, namedTypeFieldRegistry, functionSolveOrder);
+                if (funcResults != null)
+                    perFunctionTypeResults[$"{functionSolveOrder[i].Id}/{functionSolveOrder[i].Args.Count}"] = funcResults;
             }
         }
 
@@ -106,6 +118,20 @@ public class VMRuntime {
         // 6. Pre-build tree-walker nodes for lambda-containing expressions
         var preBuilt = new Dictionary<int, Interpretation.Nodes.IExpressionNode>();
         var variables = new Runtime.VariableDictionary();
+
+        // First pass: build non-lambda equations to populate variables (for captured vars)
+        foreach (var treeNode in syntaxTree.Nodes) {
+            if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
+                && !ContainsLambda(eq.Expression)) {
+                try {
+                    Interpretation.ExpressionBuilderVisitor.BuildExpression(
+                        eq.Expression, bodyRegistry, eq.OutputType, variables,
+                        typeInferenceResults, TicTypesConverter.Concrete, dialect);
+                } catch { /* skip */ }
+            }
+        }
+
+        // Second pass: build lambda-containing equations (can now reference captured vars)
         foreach (var treeNode in syntaxTree.Nodes) {
             if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
                 && ContainsLambda(eq.Expression)) {
@@ -118,11 +144,58 @@ public class VMRuntime {
             }
         }
 
-        // 7. BytecodeCompiler (with pre-built lambda expressions)
+        // 7. BytecodeCompiler (with pre-built lambda expressions and per-function type results)
         var program = BytecodeCompiler.Compile(
-            syntaxTree, bodyRegistry, typeInferenceResults, TicTypesConverter.Concrete, dialect, preBuilt);
+            syntaxTree, bodyRegistry, typeInferenceResults, TicTypesConverter.Concrete, dialect, preBuilt, perFunctionTypeResults);
 
-        return new VMRuntime(program);
+        var runtime = new VMRuntime(program);
+
+        // Wire captured variables: tree-walker variables → VM locals bridge
+        if (variables.GetAll().Any()) {
+            var bridges = new List<(Runtime.VariableSource, int, FunnyType)>();
+            foreach (var varSource in variables.GetAll()) {
+                if (runtime._variableSlots.TryGetValue(varSource.Name, out var slot))
+                    bridges.Add((varSource, slot, runtime._variableTypes[varSource.Name]));
+            }
+            if (bridges.Count > 0) {
+                var bridgeArray = bridges.ToArray();
+                // Set locals ref and bridges on all tree-walker wrappers
+                foreach (var ext in program.ExternFunctions) {
+                    if (ext.Function is BytecodeCompiler.TreeWalkerWrapper tw) {
+                        tw.Locals = runtime._locals;
+                        tw.CapturedVarBridges = bridgeArray;
+                    }
+                }
+            }
+        }
+
+        return runtime;
+    }
+
+    private static TypeInferenceResults SolveUserFunctionTypes(
+        SyntaxParsing.SyntaxNodes.UserFunctionDefinitionSyntaxNode funcNode,
+        IFunctionRegistry functions,
+        IConstantList constants,
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes,
+        INamedTypeFieldRegistry namedTypeFieldRegistry,
+        SyntaxParsing.SyntaxNodes.UserFunctionDefinitionSyntaxNode[] allUserFunctions) {
+        try {
+            var graph = new Tic.GraphBuilder();
+            var resultsBuilder = new TypeInferenceAdapter.TypeInferenceResultsBuilder();
+            if (!TypeInferenceAdapter.TicSetupVisitor.SetupTicForUserFunction(
+                funcNode, graph, functions, constants, resultsBuilder, dialect,
+                customTypes, namedTypeFieldRegistry, allUserFunctions))
+                return null;
+            var types = graph.Solve(ignorePrefered: true);
+            resultsBuilder.SetResults(types);
+            var result = resultsBuilder.Build();
+            // Apply types to syntax nodes
+            funcNode.ComeOver(new TypeInferenceAdapter.ApplyTiResultEnterVisitor(result, TicTypesConverter.Concrete));
+            return result;
+        } catch {
+            return null;
+        }
     }
 
     private static bool ContainsLambda(ISyntaxNode node) {

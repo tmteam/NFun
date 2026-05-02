@@ -47,17 +47,32 @@ public struct FunValue {
         };
     }
 
-    public static FunValue Unbox(object obj, FunnyType type) => type.BaseType switch {
-        BaseFunnyType.UInt8  => new FunValue { I64 = System.Convert.ToByte(obj) },
-        BaseFunnyType.UInt16 => new FunValue { I64 = System.Convert.ToUInt16(obj) },
-        BaseFunnyType.UInt32 => new FunValue { I64 = System.Convert.ToUInt32(obj) },
-        BaseFunnyType.UInt64 => new FunValue { I64 = unchecked((long)System.Convert.ToUInt64(obj)) },
-        BaseFunnyType.Int16  => new FunValue { I64 = System.Convert.ToInt16(obj) },
-        BaseFunnyType.Int32  => new FunValue { I64 = System.Convert.ToInt32(obj) },
-        BaseFunnyType.Int64  => new FunValue { I64 = System.Convert.ToInt64(obj) },
-        BaseFunnyType.Real   => new FunValue { Real = System.Convert.ToDouble(obj) },
-        BaseFunnyType.Bool   => new FunValue { I64 = System.Convert.ToBoolean(obj) ? 1 : 0 },
-        BaseFunnyType.Char   => new FunValue { I64 = System.Convert.ToChar(obj) },
-        _                    => new FunValue { Ref = obj },
-    };
+    public static FunValue Unbox(object obj, FunnyType type) {
+        if (type.BaseType == BaseFunnyType.Any || type.BaseType == BaseFunnyType.None) {
+            // For Any/None types: store in Ref, but also try to populate I64
+            // for when the output variable has a resolved numeric type.
+            var fv = new FunValue { Ref = obj };
+            if (obj is int i) fv.I64 = i;
+            else if (obj is long l) fv.I64 = l;
+            else if (obj is double d) fv.Real = d;
+            else if (obj is bool b) fv.I64 = b ? 1 : 0;
+            else if (obj is byte bt) fv.I64 = bt;
+            else if (obj is short s) fv.I64 = s;
+            else if (obj is char c) fv.I64 = c;
+            return fv;
+        }
+        return type.BaseType switch {
+            BaseFunnyType.UInt8  => new FunValue { I64 = System.Convert.ToByte(obj) },
+            BaseFunnyType.UInt16 => new FunValue { I64 = System.Convert.ToUInt16(obj) },
+            BaseFunnyType.UInt32 => new FunValue { I64 = System.Convert.ToUInt32(obj) },
+            BaseFunnyType.UInt64 => new FunValue { I64 = unchecked((long)System.Convert.ToUInt64(obj)) },
+            BaseFunnyType.Int16  => new FunValue { I64 = System.Convert.ToInt16(obj) },
+            BaseFunnyType.Int32  => new FunValue { I64 = System.Convert.ToInt32(obj) },
+            BaseFunnyType.Int64  => new FunValue { I64 = System.Convert.ToInt64(obj) },
+            BaseFunnyType.Real   => new FunValue { Real = System.Convert.ToDouble(obj) },
+            BaseFunnyType.Bool   => new FunValue { I64 = System.Convert.ToBoolean(obj) ? 1 : 0 },
+            BaseFunnyType.Char   => new FunValue { I64 = System.Convert.ToChar(obj) },
+            _                    => new FunValue { Ref = obj },
+        };
+    }
 }

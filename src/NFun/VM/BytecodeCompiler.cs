@@ -20,7 +20,7 @@ namespace NFun.VM;
 internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     private readonly BytecodeEmitter _e = new();
     private readonly IFunctionRegistry _functions;
-    private readonly TypeInferenceResults _typeInferenceResults;
+    private TypeInferenceResults _typeInferenceResults;
     private readonly TicTypesConverter _typesConverter;
     private readonly DialectSettings _dialect;
 
@@ -39,9 +39,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     private readonly List<UserFunc> _userFunctions = new();
     private readonly List<ExceptionHandler> _exceptionHandlers = new();
     private Dictionary<int, Interpretation.Nodes.IExpressionNode> _preBuiltExpressions = new();
+    private Dictionary<string, TypeInferenceResults> _perFunctionTypeResults = new();
 
     // Struct layouts
     private readonly List<StructLayout> _structLayouts = new();
+    private readonly List<FunnyType> _typeTable = new();
+    private readonly Dictionary<FunnyType, int> _typeTableIndex = new();
     private readonly Dictionary<string, int> _structLayoutIds = new();
 
     private BytecodeCompiler(
@@ -64,9 +67,11 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
         DialectSettings dialect,
-        Dictionary<int, Interpretation.Nodes.IExpressionNode> preBuiltExpressions = null) {
+        Dictionary<int, Interpretation.Nodes.IExpressionNode> preBuiltExpressions = null,
+        Dictionary<string, TypeInferenceResults> perFunctionTypeResults = null) {
         var compiler = new BytecodeCompiler(functions, typeInferenceResults, typesConverter, dialect);
         compiler._preBuiltExpressions = preBuiltExpressions ?? new();
+        compiler._perFunctionTypeResults = perFunctionTypeResults ?? new();
         return compiler.CompileTree(tree);
     }
 
@@ -124,6 +129,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             UserFunctions = _userFunctions.ToArray(),
             Variables = _variableSlots.ToArray(),
             ExceptionHandlers = _exceptionHandlers.ToArray(),
+            TypeTable = _typeTable.ToArray(),
             LocalsCount = _nextLocalSlot,
         };
     }
@@ -141,6 +147,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         _localSlots.Clear();
         _nextLocalSlot = 0;
 
+        // Swap type inference results for user function scope
+        var savedTypeResults = _typeInferenceResults;
+        var funcKey = $"{funcDef.Id}/{funcDef.Args.Count}";
+        if (_perFunctionTypeResults.TryGetValue(funcKey, out var funcResults))
+            _typeInferenceResults = funcResults;
+
         // Allocate argument slots
         var argTypes = new FunnyType[funcDef.Args.Count];
         for (int i = 0; i < funcDef.Args.Count; i++) {
@@ -156,7 +168,8 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
         var funcLocals = _nextLocalSlot;
 
-        // Restore scope
+        // Restore scope and type inference results
+        _typeInferenceResults = savedTypeResults;
         _localSlots.Clear();
         foreach (var kv in savedSlots) _localSlots[kv.Key] = kv.Value;
         _nextLocalSlot = savedNextSlot;
@@ -367,6 +380,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         }
 
         _e.EmitWithArg(Op.NewArray, (byte)node.Expressions.Count);
+        _e.Code.Add((byte)GetOrAddTypeTableEntry(elementType));
         return 0;
     }
 
@@ -383,22 +397,32 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         CompileExpression(node.Source);
 
         if (node.IsSafeAccess) {
-            // Safe field access on optional — emit GetFieldSafe
+            // Safe field access on optional — emit GetFieldSafe with field index + layout
             var fieldIdx = ResolveFieldIndex(node.Source, node.FieldName);
+            var sourceType = GetOutputType(node.Source);
+            while (sourceType.BaseType == BaseFunnyType.Optional)
+                sourceType = sourceType.OptionalTypeSpecification.ElementType;
+            var layoutId = GetOrCreateStructLayoutFromType(sourceType);
             _e.EmitWithArg(Op.GetFieldSafe, (byte)fieldIdx);
+            _e.Code.Add((byte)layoutId);
             return 0;
         }
 
-        var sourceType = GetOutputType(node.Source);
-        if (sourceType.BaseType == BaseFunnyType.Optional) {
+        var sourceType2 = GetOutputType(node.Source);
+        if (sourceType2.BaseType == BaseFunnyType.Optional) {
             var fieldIdx = ResolveFieldIndex(node.Source, node.FieldName);
+            var unwrapped = sourceType2;
+            while (unwrapped.BaseType == BaseFunnyType.Optional)
+                unwrapped = unwrapped.OptionalTypeSpecification.ElementType;
+            var layoutId = GetOrCreateStructLayoutFromType(unwrapped);
             _e.EmitWithArg(Op.GetFieldSafe, (byte)fieldIdx);
+            _e.Code.Add((byte)layoutId);
             return 0;
         }
 
         {
             var fieldIdx = ResolveFieldIndex(node.Source, node.FieldName);
-            var layoutId = GetOrCreateStructLayoutFromType(sourceType);
+            var layoutId = GetOrCreateStructLayoutFromType(sourceType2);
             _e.EmitWithArg(Op.GetField, (byte)fieldIdx);
             _e.Code.Add((byte)layoutId);
         }
@@ -617,6 +641,16 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             return;
         }
 
+        // Primitive → Any: box the value into Ref so CALL_EXTERN can read it
+        if (to.BaseType == BaseFunnyType.Any) {
+            if (IsIntegerType(from))      { _e.Emit(Op.BoxInt); return; }
+            if (IsRealType(from))         { _e.Emit(Op.BoxReal); return; }
+            if (from.BaseType == BaseFunnyType.Bool) { _e.Emit(Op.BoxBool); return; }
+            if (from.BaseType == BaseFunnyType.Char) { _e.Emit(Op.BoxInt); return; }
+            // Composite types already stored in Ref — no boxing needed
+            return;
+        }
+
         // For composite types (arrays, structs, optionals) — no bytecode conversion needed;
         // the VM handles these as reference types.
     }
@@ -776,16 +810,28 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
                 else _e.Emit(Op.NeqRef);
                 break;
             case BinOp.Less:
-                _e.Emit(isReal ? Op.LtReal : Op.LtInt);
+                if (isReal) _e.Emit(Op.LtReal);
+                else if (IsIntegerType(opType) || opType.BaseType == BaseFunnyType.Char || opType.BaseType == BaseFunnyType.Bool)
+                    _e.Emit(Op.LtInt);
+                else EmitComparisonCallExtern(CoreFunNames.Less, opType);
                 break;
             case BinOp.LessOrEqual:
-                _e.Emit(isReal ? Op.LteReal : Op.LteInt);
+                if (isReal) _e.Emit(Op.LteReal);
+                else if (IsIntegerType(opType) || opType.BaseType == BaseFunnyType.Char || opType.BaseType == BaseFunnyType.Bool)
+                    _e.Emit(Op.LteInt);
+                else EmitComparisonCallExtern(CoreFunNames.LessOrEqual, opType);
                 break;
             case BinOp.More:
-                _e.Emit(isReal ? Op.GtReal : Op.GtInt);
+                if (isReal) _e.Emit(Op.GtReal);
+                else if (IsIntegerType(opType) || opType.BaseType == BaseFunnyType.Char || opType.BaseType == BaseFunnyType.Bool)
+                    _e.Emit(Op.GtInt);
+                else EmitComparisonCallExtern(CoreFunNames.More, opType);
                 break;
             case BinOp.MoreOrEqual:
-                _e.Emit(isReal ? Op.GteReal : Op.GteInt);
+                if (isReal) _e.Emit(Op.GteReal);
+                else if (IsIntegerType(opType) || opType.BaseType == BaseFunnyType.Char || opType.BaseType == BaseFunnyType.Bool)
+                    _e.Emit(Op.GteInt);
+                else EmitComparisonCallExtern(CoreFunNames.MoreOrEqual, opType);
                 break;
         }
 
@@ -795,8 +841,47 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             EmitTruncation(outputType);
     }
 
+    private void EmitComparisonCallExtern(string opName, FunnyType operandType) {
+        var func = _functions.GetOrNull(opName, 2);
+        if (func is IGenericFunction gf) {
+            var concrete = gf.CreateConcrete(new[] { operandType }, _dialect);
+            var funcId = GetOrRegisterExternFunc(concrete);
+            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+            _e.Code.Add(2);
+        } else if (func is IConcreteFunction cf) {
+            var funcId = GetOrRegisterExternFunc(cf);
+            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+            _e.Code.Add(2);
+        }
+    }
+
     private void EmitComparisonOp(TokType tokType, FunnyType operandType) {
         bool isReal = IsRealType(operandType);
+        bool isInt = IsIntegerType(operandType) || operandType.BaseType == BaseFunnyType.Char || operandType.BaseType == BaseFunnyType.Bool;
+        if (!isReal && !isInt) {
+            // Non-numeric comparison (e.g., text arrays) — use CALL_EXTERN
+            string opName = tokType switch {
+                TokType.Less => CoreFunNames.Less,
+                TokType.LessOrEqual => CoreFunNames.LessOrEqual,
+                TokType.More => CoreFunNames.More,
+                TokType.MoreOrEqual => CoreFunNames.MoreOrEqual,
+                _ => throw new NotSupportedException($"VM: comparison chain operator {tokType} not supported"),
+            };
+            var func = _functions.GetOrNull(opName, 2);
+            if (func is IGenericFunction gf) {
+                var concrete = gf.CreateConcrete(new[] { operandType }, _dialect);
+                var funcId = GetOrRegisterExternFunc(concrete);
+                _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+                _e.Code.Add(2);
+            } else if (func is IConcreteFunction cf) {
+                var funcId = GetOrRegisterExternFunc(cf);
+                _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+                _e.Code.Add(2);
+            } else {
+                throw new NotSupportedException($"VM: comparison for type {operandType} not supported");
+            }
+            return;
+        }
         switch (tokType) {
             case TokType.Less:
                 _e.Emit(isReal ? Op.LtReal : Op.LtInt);
@@ -939,6 +1024,14 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         return 0;
     }
 
+    private int GetOrAddTypeTableEntry(FunnyType type) {
+        if (_typeTableIndex.TryGetValue(type, out var idx)) return idx;
+        idx = _typeTable.Count;
+        _typeTable.Add(type);
+        _typeTableIndex[type] = idx;
+        return idx;
+    }
+
     private static string MakeStructLayoutKey(string[] names) => string.Join(",", names);
 
     /// <summary>
@@ -1066,13 +1159,22 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     /// <summary>Wraps a tree-walker IExpressionNode as IConcreteFunction for CALL_EXTERN.</summary>
-    private class TreeWalkerWrapper : Interpretation.Functions.FunctionWithManyArguments {
+    internal class TreeWalkerWrapper : Interpretation.Functions.FunctionWithManyArguments {
         private readonly Interpretation.Nodes.IExpressionNode _node;
+        internal (Runtime.VariableSource Var, int Slot, FunnyType Type)[] CapturedVarBridges;
+        internal FunValue[] Locals;
         public TreeWalkerWrapper(Interpretation.Nodes.IExpressionNode node)
             : base("__tw_wrapper__", node.Type, System.Array.Empty<FunnyType>()) {
             _node = node;
         }
-        public override object Calc(object[] args) => _node.Calc();
+        public override object Calc(object[] args) {
+            // Sync captured variables from VM locals before evaluating
+            if (Locals != null && CapturedVarBridges != null) {
+                foreach (var (varSource, slot, type) in CapturedVarBridges)
+                    varSource.Value = Locals[slot].Box(type);
+            }
+            return _node.Calc();
+        }
         public override Interpretation.Functions.IConcreteFunction Clone(
             Interpretation.Nodes.ICloneContext context) => this;
     }

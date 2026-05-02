@@ -14,6 +14,7 @@ public class CompiledProgram {
     public UserFunc[] UserFunctions { get; init; }
     public VariableSlot[] Variables { get; init; }
     public ExceptionHandler[] ExceptionHandlers { get; init; }
+    public FunnyType[] TypeTable { get; init; }
     public int LocalsCount { get; init; }
 }
 

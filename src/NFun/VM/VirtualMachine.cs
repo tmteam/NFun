@@ -46,6 +46,7 @@ public static class VirtualMachine {
                     stack[sp - 1].I64 /= stack[sp].I64;
                     break;
                 case Op.ModInt: sp--; stack[sp - 1].I64 %= stack[sp].I64; break;
+                case Op.PowInt: sp--; stack[sp - 1].I64 = IntPow(stack[sp - 1].I64, stack[sp].I64); break;
                 case Op.NegInt: stack[sp - 1].I64 = -stack[sp - 1].I64; break;
 
                 // ── Real arithmetic ──
@@ -68,6 +69,11 @@ public static class VirtualMachine {
                 case Op.IntToReal: stack[sp - 1].Real = stack[sp - 1].I64; break;
                 case Op.RealToInt: stack[sp - 1].I64 = (long)stack[sp - 1].Real; break;
 
+                // ── Boxing (primitive → Ref for Any type) ──
+                case Op.BoxInt:  stack[sp - 1].Ref = (object)stack[sp - 1].I64; break;
+                case Op.BoxReal: stack[sp - 1].Ref = (object)stack[sp - 1].Real; break;
+                case Op.BoxBool: stack[sp - 1].Ref = (object)(stack[sp - 1].I64 != 0); break;
+
                 // ── Integer comparison ──
                 case Op.EqInt:  sp--; stack[sp - 1].I64 = stack[sp - 1].I64 == stack[sp].I64 ? 1 : 0; break;
                 case Op.NeqInt: sp--; stack[sp - 1].I64 = stack[sp - 1].I64 != stack[sp].I64 ? 1 : 0; break;
@@ -75,9 +81,11 @@ public static class VirtualMachine {
                 case Op.LteInt: sp--; stack[sp - 1].I64 = stack[sp - 1].I64 <= stack[sp].I64 ? 1 : 0; break;
                 case Op.GtInt:  sp--; stack[sp - 1].I64 = stack[sp - 1].I64 > stack[sp].I64 ? 1 : 0; break;
                 case Op.GteInt: sp--; stack[sp - 1].I64 = stack[sp - 1].I64 >= stack[sp].I64 ? 1 : 0; break;
+                case Op.LtUint: sp--; stack[sp - 1].I64 = (ulong)stack[sp - 1].I64 < (ulong)stack[sp].I64 ? 1 : 0; break;
 
                 // ── Real comparison ──
                 case Op.EqReal:  sp--; stack[sp - 1].I64 = stack[sp - 1].Real == stack[sp].Real ? 1 : 0; break;
+                case Op.NeqReal: sp--; stack[sp - 1].I64 = stack[sp - 1].Real != stack[sp].Real ? 1 : 0; break;
                 case Op.LtReal:  sp--; stack[sp - 1].I64 = stack[sp - 1].Real < stack[sp].Real ? 1 : 0; break;
                 case Op.LteReal: sp--; stack[sp - 1].I64 = stack[sp - 1].Real <= stack[sp].Real ? 1 : 0; break;
                 case Op.GtReal:  sp--; stack[sp - 1].I64 = stack[sp - 1].Real > stack[sp].Real ? 1 : 0; break;
@@ -146,9 +154,15 @@ public static class VirtualMachine {
 
                 // ── Array ──
                 case Op.NewArray: {
-                    var count = code[ip++]; var arr = new object[count];
-                    for (int i = count - 1; i >= 0; i--) { sp--; arr[i] = stack[sp].Ref ?? (object)stack[sp].I64; }
-                    stack[sp++].Ref = new Runtime.Arrays.ImmutableFunnyArray(arr, FunnyType.Any);
+                    var count = code[ip++];
+                    var typeIdx = code[ip++];
+                    var elemType = program.TypeTable[typeIdx];
+                    var arr = new object[count];
+                    for (int i = count - 1; i >= 0; i--) {
+                        sp--;
+                        arr[i] = BoxElement(ref stack[sp], elemType.BaseType);
+                    }
+                    stack[sp++].Ref = new Runtime.Arrays.ImmutableFunnyArray(arr, elemType);
                     break;
                 }
                 case Op.GetElement: {
@@ -171,6 +185,33 @@ public static class VirtualMachine {
                     var layout = program.StructLayouts[layoutId];
                     stack[sp - 1] = FunValue.Unbox(((FunnyStruct)stack[--sp].Ref).GetValue(layout.FieldNames[fieldIdx]), layout.FieldTypes[fieldIdx]);
                     sp++;
+                    break;
+                }
+                case Op.GetFieldSafe: {
+                    var fieldIdx = code[ip++]; var layoutId = code[ip++];
+                    var layout = program.StructLayouts[layoutId];
+                    var src = stack[--sp];
+                    if (src.Ref is FunnyNone || src.Ref == null)
+                        stack[sp++] = FunValue.None;
+                    else {
+                        stack[sp] = FunValue.Unbox(((FunnyStruct)src.Ref).GetValue(layout.FieldNames[fieldIdx]), layout.FieldTypes[fieldIdx]);
+                        sp++;
+                    }
+                    break;
+                }
+                case Op.GetElementSafe: {
+                    sp -= 2;
+                    var arr = stack[sp].Ref;
+                    var idx = (int)stack[sp + 1].I64;
+                    if (arr is FunnyNone || arr == null) {
+                        stack[sp++] = FunValue.None;
+                    } else {
+                        var funArr = (Runtime.Arrays.IFunnyArray)arr;
+                        if (idx < 0 || idx >= funArr.Count)
+                            stack[sp++] = FunValue.None;
+                        else
+                            stack[sp++].Ref = funArr.GetElementOrNull(idx);
+                    }
                     break;
                 }
 
@@ -273,5 +314,48 @@ public static class VirtualMachine {
         for (int i = 0; i < handlers.Length; i++)
             if (ip >= handlers[i].TryStartIP && ip < handlers[i].TryEndIP) return handlers[i];
         return null;
+    }
+
+    private static FunnyType BaseTypeToFunnyType(BaseFunnyType bt) => bt switch {
+        BaseFunnyType.UInt8  => FunnyType.UInt8,
+        BaseFunnyType.UInt16 => FunnyType.UInt16,
+        BaseFunnyType.UInt32 => FunnyType.UInt32,
+        BaseFunnyType.UInt64 => FunnyType.UInt64,
+        BaseFunnyType.Int16  => FunnyType.Int16,
+        BaseFunnyType.Int32  => FunnyType.Int32,
+        BaseFunnyType.Int64  => FunnyType.Int64,
+        BaseFunnyType.Real   => FunnyType.Real,
+        BaseFunnyType.Bool   => FunnyType.Bool,
+        BaseFunnyType.Char   => FunnyType.Char,
+        _                    => FunnyType.Any,
+    };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static object BoxElement(ref FunValue v, BaseFunnyType elemType) {
+        return elemType switch {
+            BaseFunnyType.UInt8  => (byte)v.I64,
+            BaseFunnyType.UInt16 => (ushort)v.I64,
+            BaseFunnyType.UInt32 => (uint)v.I64,
+            BaseFunnyType.UInt64 => (ulong)v.I64,
+            BaseFunnyType.Int16  => (short)v.I64,
+            BaseFunnyType.Int32  => (int)v.I64,
+            BaseFunnyType.Int64  => v.I64,
+            BaseFunnyType.Real   => v.Real,
+            BaseFunnyType.Bool   => v.I64 != 0,
+            BaseFunnyType.Char   => (char)v.I64,
+            _                    => v.Ref ?? (object)v.I64,
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static long IntPow(long b, long e) {
+        if (e < 0) return 0;
+        long result = 1;
+        while (e > 0) {
+            if ((e & 1) == 1) result *= b;
+            b *= b;
+            e >>= 1;
+        }
+        return result;
     }
 }

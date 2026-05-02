@@ -110,33 +110,38 @@ public enum Op : byte {
     // ── VM control ──
     Halt          = 69,
 
+    // ── Boxing (primitive → Ref for Any type) ──
+    BoxInt        = 70,
+    BoxReal       = 71,
+    BoxBool       = 72,
+
     // ── Superinstructions (fused opcodes for hot patterns) ──
     // Each saves 1-2 loop iterations by combining common sequences.
 
     /// <summary>push locals[arg1] + constants[arg2] (int)</summary>
-    AddLocalConstI = 70,
+    AddLocalConstI = 73,
     /// <summary>push locals[arg1] - constants[arg2] (int)</summary>
-    SubLocalConstI = 71,
+    SubLocalConstI = 74,
     /// <summary>push locals[arg1] * constants[arg2] (int)</summary>
-    MulLocalConstI = 72,
+    MulLocalConstI = 75,
     /// <summary>push constants[arg1] + constants[arg2] (int)</summary>
-    AddConstConstI = 73,
+    AddConstConstI = 76,
     /// <summary>push constants[arg1] * constants[arg2] (int)</summary>
-    MulConstConstI = 74,
+    MulConstConstI = 77,
     /// <summary>stack[top] += constants[arg] (int)</summary>
-    AddTopConstI   = 75,
+    AddTopConstI   = 78,
     /// <summary>stack[top] *= constants[arg] (int)</summary>
-    MulTopConstI   = 76,
+    MulTopConstI   = 79,
     /// <summary>pop and store + halt (fused end-of-expression)</summary>
-    StoreHalt      = 77,
+    StoreHalt      = 80,
 
     /// <summary>push locals[arg1] + constants[arg2] (real)</summary>
-    AddLocalConstR = 78,
+    AddLocalConstR = 81,
     /// <summary>push locals[arg1] * constants[arg2] (real)</summary>
-    MulLocalConstR = 79,
+    MulLocalConstR = 82,
     /// <summary>stack[top] += constants[arg] (real)</summary>
-    AddTopConstR   = 80,
+    AddTopConstR   = 83,
     /// <summary>stack[top] *= constants[arg] (real)</summary>
-    MulTopConstR   = 81,
+    MulTopConstR   = 84,
 }
 
