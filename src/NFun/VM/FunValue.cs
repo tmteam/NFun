@@ -25,19 +25,27 @@ public struct FunValue {
 
     public bool IsNone => Ref is FunnyNone;
 
-    public object Box(FunnyType type) => type.BaseType switch {
-        BaseFunnyType.UInt8  => (byte)I64,
-        BaseFunnyType.UInt16 => (ushort)I64,
-        BaseFunnyType.UInt32 => (uint)I64,
-        BaseFunnyType.UInt64 => (ulong)I64,
-        BaseFunnyType.Int16  => (short)I64,
-        BaseFunnyType.Int32  => (int)I64,
-        BaseFunnyType.Int64  => I64,
-        BaseFunnyType.Real   => Real,
-        BaseFunnyType.Bool   => I64 != 0,
-        BaseFunnyType.Char   => (char)I64,
-        _                    => Ref,
-    };
+    public object Box(FunnyType type) {
+        // For Optional types: if Ref is FunnyNone, return none. Otherwise box the inner type.
+        if (type.BaseType == BaseFunnyType.Optional) {
+            if (Ref is FunnyNone) return FunnyNone.Instance;
+            // Box as the element type
+            return Box(type.OptionalTypeSpecification.ElementType);
+        }
+        return type.BaseType switch {
+            BaseFunnyType.UInt8  => (byte)I64,
+            BaseFunnyType.UInt16 => (ushort)I64,
+            BaseFunnyType.UInt32 => (uint)I64,
+            BaseFunnyType.UInt64 => (ulong)I64,
+            BaseFunnyType.Int16  => (short)I64,
+            BaseFunnyType.Int32  => (int)I64,
+            BaseFunnyType.Int64  => I64,
+            BaseFunnyType.Real   => Real,
+            BaseFunnyType.Bool   => I64 != 0,
+            BaseFunnyType.Char   => (char)I64,
+            _                    => Ref,
+        };
+    }
 
     public static FunValue Unbox(object obj, FunnyType type) => type.BaseType switch {
         BaseFunnyType.UInt8  => new FunValue { I64 = System.Convert.ToByte(obj) },

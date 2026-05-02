@@ -83,6 +83,10 @@ public static class VirtualMachine {
                 case Op.GtReal:  sp--; stack[sp - 1].I64 = stack[sp - 1].Real > stack[sp].Real ? 1 : 0; break;
                 case Op.GteReal: sp--; stack[sp - 1].I64 = stack[sp - 1].Real >= stack[sp].Real ? 1 : 0; break;
 
+                // ── Reference comparison ──
+                case Op.EqRef:  sp--; stack[sp - 1].I64 = Equals(stack[sp - 1].Ref, stack[sp].Ref) ? 1 : 0; break;
+                case Op.NeqRef: sp--; stack[sp - 1].I64 = !Equals(stack[sp - 1].Ref, stack[sp].Ref) ? 1 : 0; break;
+
                 // ── Logic ──
                 case Op.And: sp--; stack[sp - 1].I64 = (stack[sp - 1].I64 != 0 && stack[sp].I64 != 0) ? 1 : 0; break;
                 case Op.Or:  sp--; stack[sp - 1].I64 = (stack[sp - 1].I64 != 0 || stack[sp].I64 != 0) ? 1 : 0; break;

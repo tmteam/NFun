@@ -182,7 +182,7 @@ public class VMSmokeTest {
 
     // ── Lambdas ──
 
-    [Test][Ignore("VM: lambda scoping requires tree-walker integration")]
+    [Test][Ignore("VM: lambda pre-build triggers TicSetupVisitor re-entry")]
     public void Lambda_MapDouble() {
         var vm = Funny.Hardcore.BuildVM("y = [1,2,3].map(rule it * 2)");
         vm.Run();
@@ -190,7 +190,7 @@ public class VMSmokeTest {
         Assert.IsNotNull(vm.GetOutput("y"));
     }
 
-    [Test][Ignore("VM: lambda scoping requires tree-walker integration")]
+    [Test][Ignore("VM: lambda pre-build triggers TicSetupVisitor re-entry")]
     public void Lambda_FilterGt1() {
         var vm = Funny.Hardcore.BuildVM("y = [1,2,3].filter(rule it > 1).count()");
         vm.Run();
@@ -209,15 +209,17 @@ public class VMSmokeTest {
         Assert.AreEqual(42, tw["y"].Value);
     }
 
-    [Test][Ignore("VM: Any-returning functions need type-aware CALL_EXTERN unboxing")]
+    [Test][Ignore("VM: Any-returning custom functions need type-aware CALL_EXTERN result handling")]
     public void Delayed_VMWorks() {
         var vm = Funny.Hardcore
             .WithFunction(NFun.VM.DelayedFunction.Instance)
             .BuildVM("y = delayed(10, 42)");
         vm.Run();
+        // delayed() returns Any type. y resolves to Int32 via Preferred.
+        // VM stores CALL_EXTERN result in FunValue.Ref (boxed).
+        // GetOutput handles this via Ref fallback.
         var result = vm.GetOutput("y");
-        // delayed returns Any, VM stores in Ref. Accept any non-null int-like result.
-        Assert.IsNotNull(result, "delayed should return non-null");
+        Assert.IsNotNull(result, $"delayed should return non-null. Variables: {string.Join(", ", vm.VariableNames)}");
         Assert.AreEqual(42, System.Convert.ToInt32(result));
     }
 
@@ -232,7 +234,7 @@ public class VMSmokeTest {
         Assert.AreEqual(42, vm.GetOutput("y"));
     }
 
-    [Test][Ignore("VM: optional int value stored in Ref, GetOutput reads I64")]
+    [Test]
     public void Optional_ForceUnwrap() {
         var vm = Funny.Hardcore
             .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
@@ -241,7 +243,7 @@ public class VMSmokeTest {
         Assert.AreEqual(42, vm.GetOutput("y"));
     }
 
-    [Test][Ignore("VM: optional value type mapping needs work")]
+    [Test]
     public void Optional_IsNone_True() {
         var vm = Funny.Hardcore
             .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)

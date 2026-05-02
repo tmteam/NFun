@@ -38,6 +38,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     // User-defined functions
     private readonly List<UserFunc> _userFunctions = new();
     private readonly List<ExceptionHandler> _exceptionHandlers = new();
+    private Dictionary<int, Interpretation.Nodes.IExpressionNode> _preBuiltExpressions = new();
 
     // Struct layouts
     private readonly List<StructLayout> _structLayouts = new();
@@ -62,8 +63,10 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         IFunctionRegistry functions,
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        Dictionary<int, Interpretation.Nodes.IExpressionNode> preBuiltExpressions = null) {
         var compiler = new BytecodeCompiler(functions, typeInferenceResults, typesConverter, dialect);
+        compiler._preBuiltExpressions = preBuiltExpressions ?? new();
         return compiler.CompileTree(tree);
     }
 
@@ -91,10 +94,19 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
         // Compile each equation: emit expression code, then STORE_LOCAL to output slot
         foreach (var eq in equations) {
-            CompileExpression(eq.Expression);
-            var targetType = eq.OutputType.BaseType != BaseFunnyType.Empty
-                ? eq.OutputType : GetOutputType(eq.Expression);
-            EmitConvertIfNeeded(GetOutputType(eq.Expression), targetType);
+            // If equation has pre-built tree-walker expression (contains lambda),
+            // emit CALL_EXTERN to the pre-built node instead of bytecode compilation.
+            if (_preBuiltExpressions.TryGetValue(eq.Expression.OrderNumber, out var preBuilt)) {
+                var wrapper = new TreeWalkerWrapper(preBuilt);
+                var funcId = GetOrRegisterExternFunc(wrapper);
+                _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+                _e.Code.Add(0); // 0 args
+            } else {
+                CompileExpression(eq.Expression);
+                var targetType = eq.OutputType.BaseType != BaseFunnyType.Empty
+                    ? eq.OutputType : GetOutputType(eq.Expression);
+                EmitConvertIfNeeded(GetOutputType(eq.Expression), targetType);
+            }
             var slot = _localSlots[eq.Id];
             _e.EmitWithArg(Op.StoreLocal, (byte)slot);
         }
@@ -1038,9 +1050,19 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     /// Non-lambda args that reference locals need to be passed via the wrapper.
     /// </summary>
     private byte CompileViaTreeWalker(SyntaxParsing.SyntaxNodes.FunCallSyntaxNode node) {
-        // Lambda calls require tree-walker integration for variable scoping.
-        // For now, throw — lambdas remain unsupported in VM.
-        throw new NotSupportedException($"VM: function call with lambda args not yet supported: {node.Id}");
+        // Check if this expression was pre-built by VMRuntime
+        if (_preBuiltExpressions.TryGetValue(node.OrderNumber, out var preBuilt)) {
+            // Wrap as CALL_EXTERN with 0 args — all state captured in closure
+            var wrapper = new TreeWalkerWrapper(preBuilt);
+            var funcId = GetOrRegisterExternFunc(wrapper);
+            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+            _e.Code.Add(0);
+            return 0;
+        }
+
+        // If not pre-built, the entire containing equation was pre-built.
+        // Check parent equation's expression node.
+        throw new NotSupportedException($"VM: lambda call not pre-built: {node.Id}. Ensure VMRuntime.Build pre-builds lambda expressions.");
     }
 
     /// <summary>Wraps a tree-walker IExpressionNode as IConcreteFunction for CALL_EXTERN.</summary>
