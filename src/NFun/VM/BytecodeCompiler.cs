@@ -336,6 +336,10 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         if (args.Length == 2 && TryEmitNativeOperator(id, args, node))
             return 0;
 
+        // Native built-in functions — bypass CALL_EXTERN for zero-boxing hot functions
+        if (TryEmitNativeFunction(id, args))
+            return 0;
+
         // Resolve function
         var someFunc = node.ResolvedSignature
             ?? _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber)
@@ -862,6 +866,43 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         // For I64 and comparisons (Bool), no truncation needed.
         if (!isReal && NeedsTruncation(outputType))
             EmitTruncation(outputType);
+    }
+
+    private bool TryEmitNativeFunction(string funcName, ISyntaxNode[] args) {
+        if (funcName == "max" && args.Length == 2) {
+            var t = GetOutputType(args[0]);
+            if (IsIntegerType(t)) {
+                CompileExpression(args[0]); CompileExpression(args[1]);
+                _e.Emit(Op.MaxInt); return true;
+            }
+            if (IsRealType(t)) {
+                CompileExpression(args[0]); CompileExpression(args[1]);
+                _e.Emit(Op.MaxReal); return true;
+            }
+        }
+        if (funcName == "min" && args.Length == 2) {
+            var t = GetOutputType(args[0]);
+            if (IsIntegerType(t)) {
+                CompileExpression(args[0]); CompileExpression(args[1]);
+                _e.Emit(Op.MinInt); return true;
+            }
+            if (IsRealType(t)) {
+                CompileExpression(args[0]); CompileExpression(args[1]);
+                _e.Emit(Op.MinReal); return true;
+            }
+        }
+        if (funcName == "abs" && args.Length == 1) {
+            var t = GetOutputType(args[0]);
+            if (IsIntegerType(t)) {
+                CompileExpression(args[0]);
+                _e.Emit(Op.AbsInt); return true;
+            }
+            if (IsRealType(t)) {
+                CompileExpression(args[0]);
+                _e.Emit(Op.AbsReal); return true;
+            }
+        }
+        return false;
     }
 
     private void EmitComparisonCallExtern(string opName, FunnyType operandType) {

@@ -74,6 +74,14 @@ public static class VirtualMachine {
                 case Op.BoxReal: stack[sp - 1].Ref = (object)stack[sp - 1].Real; break;
                 case Op.BoxBool: stack[sp - 1].Ref = (object)(stack[sp - 1].I64 != 0); break;
 
+                // ── Native built-in functions (zero boxing) ──
+                case Op.MaxInt:  sp--; stack[sp - 1].I64 = Math.Max(stack[sp - 1].I64, stack[sp].I64); break;
+                case Op.MinInt:  sp--; stack[sp - 1].I64 = Math.Min(stack[sp - 1].I64, stack[sp].I64); break;
+                case Op.MaxReal: sp--; stack[sp - 1].Real = Math.Max(stack[sp - 1].Real, stack[sp].Real); break;
+                case Op.MinReal: sp--; stack[sp - 1].Real = Math.Min(stack[sp - 1].Real, stack[sp].Real); break;
+                case Op.AbsInt:  stack[sp - 1].I64 = Math.Abs(stack[sp - 1].I64); break;
+                case Op.AbsReal: stack[sp - 1].Real = Math.Abs(stack[sp - 1].Real); break;
+
                 // ── Integer comparison ──
                 case Op.EqInt:  sp--; stack[sp - 1].I64 = stack[sp - 1].I64 == stack[sp].I64 ? 1 : 0; break;
                 case Op.NeqInt: sp--; stack[sp - 1].I64 = stack[sp - 1].I64 != stack[sp].I64 ? 1 : 0; break;
@@ -146,9 +154,18 @@ public static class VirtualMachine {
                 case Op.CallExtern: {
                     var funcId = code[ip++]; var argc = code[ip++];
                     var ext = program.ExternFunctions[funcId];
-                    var args = new object[argc];
-                    for (int i = argc - 1; i >= 0; i--) args[i] = stack[--sp].Box(ext.ArgTypes[i]);
-                    stack[sp++] = FunValue.Unbox(ext.Function.Calc(args), ext.ReturnType);
+                    object cResult;
+                    if (argc == 2 && ext.Function is Interpretation.Functions.FunctionWithTwoArgs cf2) {
+                        sp -= 2;
+                        cResult = cf2.Calc(stack[sp].Box(ext.ArgTypes[0]), stack[sp + 1].Box(ext.ArgTypes[1]));
+                    } else if (argc == 1 && ext.Function is Interpretation.Functions.FunctionWithSingleArg cf1) {
+                        cResult = cf1.Calc(stack[--sp].Box(ext.ArgTypes[0]));
+                    } else {
+                        var cArgs = new object[argc];
+                        for (int i = argc - 1; i >= 0; i--) cArgs[i] = stack[--sp].Box(ext.ArgTypes[i]);
+                        cResult = ext.Function.Calc(cArgs);
+                    }
+                    stack[sp++] = FunValue.Unbox(cResult, ext.ReturnType);
                     break;
                 }
 
@@ -273,9 +290,9 @@ public static class VirtualMachine {
                         case Op.CallExtern: {
                             var funcId = code[ip++]; var argc = code[ip++];
                             var ext = program.ExternFunctions[funcId];
-                            var args = new object[argc];
-                            for (int i = argc - 1; i >= 0; i--) args[i] = stack[--sp].Box(ext.ArgTypes[i]);
-                            stack[sp++] = FunValue.Unbox(ext.Function.Calc(args), ext.ReturnType);
+                            var cArgs2 = new object[argc];
+                            for (int i = argc - 1; i >= 0; i--) cArgs2[i] = stack[--sp].Box(ext.ArgTypes[i]);
+                            stack[sp++] = FunValue.Unbox(ext.Function.Calc(cArgs2), ext.ReturnType);
                             break;
                         }
                         case Op.StoreHalt: locals[code[ip]] = stack[--sp]; return;

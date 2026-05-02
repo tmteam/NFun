@@ -16,6 +16,7 @@ public class CompiledProgram {
     public ExceptionHandler[] ExceptionHandlers { get; init; }
     public FunnyType[] TypeTable { get; init; }
     public int LocalsCount { get; init; }
+
 }
 
 /// <summary>Struct type layout: field names and types, resolved at compile time.</summary>
