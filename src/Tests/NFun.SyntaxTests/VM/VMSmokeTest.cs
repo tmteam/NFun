@@ -182,7 +182,7 @@ public class VMSmokeTest {
 
     // ── Lambdas ──
 
-    [Test][Ignore("VM: lambdas need tree-walker fallback for CALL_EXTERN args")]
+    [Test][Ignore("VM: lambda scoping requires tree-walker integration")]
     public void Lambda_MapDouble() {
         var vm = Funny.Hardcore.BuildVM("y = [1,2,3].map(rule it * 2)");
         vm.Run();
@@ -190,7 +190,7 @@ public class VMSmokeTest {
         Assert.IsNotNull(vm.GetOutput("y"));
     }
 
-    [Test][Ignore("VM: lambdas need tree-walker fallback for CALL_EXTERN args")]
+    [Test][Ignore("VM: lambda scoping requires tree-walker integration")]
     public void Lambda_FilterGt1() {
         var vm = Funny.Hardcore.BuildVM("y = [1,2,3].filter(rule it > 1).count()");
         vm.Run();

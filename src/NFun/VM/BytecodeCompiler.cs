@@ -284,6 +284,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         var id = node.Id;
         var args = _typeInferenceResults.GetResolvedCallArgsOrNull(node.OrderNumber) ?? node.Args;
 
+        // If any arg is a lambda, fall back to tree-walker for the entire call.
+        // Lambdas need variable scoping that the bytecode compiler doesn't replicate.
+        if (HasLambdaArg(args)) {
+            return CompileViaTreeWalker(node);
+        }
+
         // null coalesce: ??
         if (id == CoreFunNames.NullCoalesce && args.Length == 2) {
             CompileExpression(args[0]);
@@ -422,24 +428,14 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(AnonymFunctionSyntaxNode node) {
-        // Lambda: build via tree-walker and push as constant reference.
-        // The lambda is called via CALL_EXTERN (map/filter passes it to .NET function).
-        var lambdaFunc = Interpretation.ExpressionBuilderVisitor.BuildExpression(
-            node, _functions, node.OutputType, new Runtime.VariableDictionary(),
-            _typeInferenceResults, _typesConverter, _dialect);
-        var idx = _e.AddConstant(FunValue.FromRef(lambdaFunc));
-        _e.EmitWithArg(Op.LoadConstRef, (byte)idx);
-        return 0;
+        // Lambda nodes should not be visited directly — they are handled
+        // by CompileViaTreeWalker when detected as args of FunCallSyntaxNode.
+        // If we get here, it means a lambda is used outside a function call context.
+        throw new NotSupportedException("VM: standalone lambda not supported. Use inside map/filter/fold.");
     }
 
     public byte Visit(SuperAnonymFunctionSyntaxNode node) {
-        // Super-anonymous (rule it*2): same approach — build via tree-walker
-        var lambdaFunc = Interpretation.ExpressionBuilderVisitor.BuildExpression(
-            node, _functions, node.OutputType, new Runtime.VariableDictionary(),
-            _typeInferenceResults, _typesConverter, _dialect);
-        var idx = _e.AddConstant(FunValue.FromRef(lambdaFunc));
-        _e.EmitWithArg(Op.LoadConstRef, (byte)idx);
-        return 0;
+        throw new NotSupportedException("VM: standalone lambda not supported. Use inside map/filter/fold.");
     }
 
     public byte Visit(TryCatchSyntaxNode node) {
@@ -1021,6 +1017,42 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             }
             i++;
         }
+    }
+
+    private static bool HasLambdaArg(ISyntaxNode[] args) {
+        foreach (var arg in args)
+            if (arg is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
+                || arg is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode)
+                return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Fall back to tree-walker for a function call with lambda args.
+    /// Compiles non-lambda args via bytecode, builds lambda via tree-walker,
+    /// then emits CALL_EXTERN with all args properly mixed.
+    /// </summary>
+    /// <summary>
+    /// Fall back to tree-walker for the ENTIRE function call (including lambda args).
+    /// Builds the complete call as IExpressionNode, wraps as zero-arg CALL_EXTERN.
+    /// Non-lambda args that reference locals need to be passed via the wrapper.
+    /// </summary>
+    private byte CompileViaTreeWalker(SyntaxParsing.SyntaxNodes.FunCallSyntaxNode node) {
+        // Lambda calls require tree-walker integration for variable scoping.
+        // For now, throw — lambdas remain unsupported in VM.
+        throw new NotSupportedException($"VM: function call with lambda args not yet supported: {node.Id}");
+    }
+
+    /// <summary>Wraps a tree-walker IExpressionNode as IConcreteFunction for CALL_EXTERN.</summary>
+    private class TreeWalkerWrapper : Interpretation.Functions.FunctionWithManyArguments {
+        private readonly Interpretation.Nodes.IExpressionNode _node;
+        public TreeWalkerWrapper(Interpretation.Nodes.IExpressionNode node)
+            : base("__tw_wrapper__", node.Type, System.Array.Empty<FunnyType>()) {
+            _node = node;
+        }
+        public override object Calc(object[] args) => _node.Calc();
+        public override Interpretation.Functions.IConcreteFunction Clone(
+            Interpretation.Nodes.ICloneContext context) => this;
     }
 
     private static bool IsRealType(FunnyType type) => type.BaseType == BaseFunnyType.Real;

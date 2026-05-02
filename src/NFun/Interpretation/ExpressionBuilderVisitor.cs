@@ -22,7 +22,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     private readonly TicTypesConverter _typesConverter;
     private readonly DialectSettings _dialect;
 
-    private static IExpressionNode BuildExpression(
+    internal static IExpressionNode BuildExpression(
         ISyntaxNode node,
         IFunctionRegistry functions,
         VariableDictionary variables,
@@ -32,6 +32,22 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         node.Accept(
             new ExpressionBuilderVisitor(
                 functions, variables, typeInferenceResults, typesConverter, dialect));
+
+    /// <summary>
+    /// Build a lambda (anonymous function) node for the VM.
+    /// Creates proper variable scope for lambda parameters (it, it1, it2).
+    /// Returns the IExpressionNode which is also IConcreteFunction for map/filter/fold.
+    /// </summary>
+    internal static object BuildLambdaForVM(
+        ISyntaxNode lambdaNode,
+        IFunctionRegistry functions,
+        TypeInferenceResults typeInferenceResults,
+        TicTypesConverter typesConverter,
+        DialectSettings dialect) {
+        var variables = new VariableDictionary();
+        var visitor = new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect);
+        return lambdaNode.Accept(visitor);
+    }
 
     internal static IExpressionNode BuildExpression(
         ISyntaxNode node,
