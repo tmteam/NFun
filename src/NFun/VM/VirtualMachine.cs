@@ -199,38 +199,75 @@ public static class VirtualMachine {
         }
     }
 
-    /// <summary>Slow path with exception handler support.</summary>
+    /// <summary>Slow path with exception handler support. Wraps entire execution in try/catch.</summary>
     private static void ExecuteWithHandlers(CompiledProgram program, FunValue[] locals,
         FunValue[] stack, CallFrame[] callStack, int maxOps) {
-        try {
-            Execute(new CompiledProgram {
-                Code = program.Code, Constants = program.Constants,
-                StructLayouts = program.StructLayouts, ExternFunctions = program.ExternFunctions,
-                UserFunctions = program.UserFunctions, Variables = program.Variables,
-                ExceptionHandlers = Array.Empty<ExceptionHandler>(), // prevent recursion
-                LocalsCount = program.LocalsCount
-            }, locals, stack, callStack, maxOps);
-        }
-        catch (FunnyRuntimeException ex) {
-            // Find handler by scanning the byte offset (approximate — proper implementation needs IP tracking)
-            for (int i = 0; i < program.ExceptionHandlers.Length; i++) {
-                var h = program.ExceptionHandlers[i];
-                if (h.ErrorVarSlot >= 0) {
-                    locals[h.ErrorVarSlot] = FunValue.FromRef(
-                        FunnyStruct.Create(("message", ex.Message ?? ""), ("data", ex.OopsData)));
+        var code = program.Code;
+        var constants = program.Constants;
+        int ip = 0, sp = 0, callDepth = 0;
+
+        while (true) {
+            try {
+                // Run from current IP until Halt or exception
+                while (true) {
+                    switch ((Op)code[ip++]) {
+                        // Minimal dispatch for catch body — handles basic ops
+                        case Op.LoadConstI: stack[sp++].I64 = constants[code[ip++]].I64; break;
+                        case Op.LoadConstR: stack[sp++].I64 = constants[code[ip++]].I64; break;
+                        case Op.LoadConstRef: stack[sp++].Ref = constants[code[ip++]].Ref; break;
+                        case Op.LoadLocal: stack[sp++] = locals[code[ip++]]; break;
+                        case Op.StoreLocal: locals[code[ip++]] = stack[--sp]; break;
+                        case Op.AddInt: sp--; stack[sp - 1].I64 += stack[sp].I64; break;
+                        case Op.SubInt: sp--; stack[sp - 1].I64 -= stack[sp].I64; break;
+                        case Op.MulInt: sp--; stack[sp - 1].I64 *= stack[sp].I64; break;
+                        case Op.Jump: ip = code[ip] | (code[ip + 1] << 8); break;
+                        case Op.JumpIfFalse: {
+                            var addr = code[ip] | (code[ip + 1] << 8); ip += 2;
+                            if (stack[--sp].I64 == 0) ip = addr; break;
+                        }
+                        case Op.CallExtern: {
+                            var funcId = code[ip++]; var argc = code[ip++];
+                            var ext = program.ExternFunctions[funcId];
+                            var args = new object[argc];
+                            for (int i = argc - 1; i >= 0; i--) args[i] = stack[--sp].Box(ext.ArgTypes[i]);
+                            stack[sp++] = FunValue.Unbox(ext.Function.Calc(args), ext.ReturnType);
+                            break;
+                        }
+                        case Op.StoreHalt: locals[code[ip]] = stack[--sp]; return;
+                        case Op.Halt: return;
+                        default:
+                            // For unhandled opcodes, delegate to the fast path (no handlers)
+                            ip--;
+                            Execute(new CompiledProgram {
+                                Code = code, Constants = constants,
+                                StructLayouts = program.StructLayouts,
+                                ExternFunctions = program.ExternFunctions,
+                                UserFunctions = program.UserFunctions,
+                                Variables = program.Variables,
+                                ExceptionHandlers = Array.Empty<ExceptionHandler>(),
+                                LocalsCount = program.LocalsCount
+                            }, locals, stack, callStack, maxOps);
+                            return;
+                    }
                 }
-                // Jump to catch and re-execute from there
-                var catchProgram = new CompiledProgram {
-                    Code = program.Code, Constants = program.Constants,
-                    StructLayouts = program.StructLayouts, ExternFunctions = program.ExternFunctions,
-                    UserFunctions = program.UserFunctions, Variables = program.Variables,
-                    ExceptionHandlers = Array.Empty<ExceptionHandler>(),
-                    LocalsCount = program.LocalsCount
-                };
-                // This is a simplified handler — proper implementation needs IP-based dispatch
-                return;
             }
-            throw;
+            catch (FunnyRuntimeException ex) {
+                var handler = FindHandler(ip - 1, program.ExceptionHandlers);
+                if (handler != null) {
+                    if (handler.Value.ErrorVarSlot >= 0)
+                        locals[handler.Value.ErrorVarSlot] = FunValue.FromRef(
+                            FunnyStruct.Create(("message", ex.Message ?? ""), ("data", ex.OopsData)));
+                    ip = handler.Value.CatchStartIP;
+                    continue; // resume loop at catch IP
+                }
+                throw;
+            }
         }
+    }
+
+    private static ExceptionHandler? FindHandler(int ip, ExceptionHandler[] handlers) {
+        for (int i = 0; i < handlers.Length; i++)
+            if (ip >= handlers[i].TryStartIP && ip < handlers[i].TryEndIP) return handlers[i];
+        return null;
     }
 }
