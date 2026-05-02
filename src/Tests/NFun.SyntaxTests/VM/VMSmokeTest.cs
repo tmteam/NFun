@@ -1614,4 +1614,18 @@ public class VMSmokeTest {
         vm.Run();
         Assert.AreEqual(49, vm.GetOutput("y"));
     }
+
+    // ═══════════════════════════════════════════════════════════
+    //  51. Higher-order calls (ResultFunCallSyntaxNode)
+    // ═══════════════════════════════════════════════════════════
+
+    [Test]
+    public void HiOrder_LambdaCall() {
+        AssertVmMatchesTreeWalker("y = (rule it * 2)(21)", "y");
+    }
+
+    [Test]
+    public void HiOrder_LambdaCallWithAdd() {
+        AssertVmMatchesTreeWalker("y = (rule it + 10)(32)", "y");
+    }
 }

@@ -459,19 +459,38 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(ResultFunCallSyntaxNode node) {
-        // Higher-order call: result(args) — compile as CALL_EXTERN via the resolved function
-        throw new NotSupportedException($"VM: ResultFunCallSyntaxNode not yet supported");
+        // Higher-order call: result(args) — fall back to pre-built tree-walker expression
+        if (_preBuiltExpressions.TryGetValue(node.OrderNumber, out var preBuilt)) {
+            var wrapper = new TreeWalkerWrapper(preBuilt);
+            var funcId = GetOrRegisterExternFunc(wrapper);
+            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+            _e.Code.Add(0);
+            return 0;
+        }
+        throw new NotSupportedException($"VM: ResultFunCallSyntaxNode not pre-built for node {node.OrderNumber}");
     }
 
     public byte Visit(AnonymFunctionSyntaxNode node) {
-        // Lambda nodes should not be visited directly — they are handled
-        // by CompileViaTreeWalker when detected as args of FunCallSyntaxNode.
-        // If we get here, it means a lambda is used outside a function call context.
-        throw new NotSupportedException("VM: standalone lambda not supported. Use inside map/filter/fold.");
+        // Standalone lambda: check pre-built expressions (equation-level tree-walker fallback)
+        if (_preBuiltExpressions.TryGetValue(node.OrderNumber, out var preBuilt)) {
+            var wrapper = new TreeWalkerWrapper(preBuilt);
+            var funcId = GetOrRegisterExternFunc(wrapper);
+            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+            _e.Code.Add(0);
+            return 0;
+        }
+        throw new NotSupportedException("VM: standalone lambda not pre-built. Ensure VMRuntime detects it.");
     }
 
     public byte Visit(SuperAnonymFunctionSyntaxNode node) {
-        throw new NotSupportedException("VM: standalone lambda not supported. Use inside map/filter/fold.");
+        if (_preBuiltExpressions.TryGetValue(node.OrderNumber, out var preBuilt)) {
+            var wrapper = new TreeWalkerWrapper(preBuilt);
+            var funcId = GetOrRegisterExternFunc(wrapper);
+            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
+            _e.Code.Add(0);
+            return 0;
+        }
+        throw new NotSupportedException("VM: standalone lambda not pre-built. Ensure VMRuntime detects it.");
     }
 
     public byte Visit(TryCatchSyntaxNode node) {
@@ -510,11 +529,15 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(TypeDeclarationSyntaxNode node) {
-        throw new NotSupportedException($"VM: TypeDeclarationSyntaxNode not yet supported");
+        // Type declarations are removed by NamedTypeElaborator before compilation.
+        // If we reach here, it's a bug in elaboration.
+        throw new InvalidOperationException("VM: TypeDeclarationSyntaxNode should be removed by elaborator");
     }
 
     public byte Visit(NamedTypeConstructorSyntaxNode node) {
-        throw new NotSupportedException($"VM: NamedTypeConstructorSyntaxNode not yet supported");
+        // Named type constructors are desugared to StructInitSyntaxNode by elaborator.
+        // If we reach here, it's a bug in elaboration.
+        throw new InvalidOperationException("VM: NamedTypeConstructorSyntaxNode should be removed by elaborator");
     }
 
     // ── Not expressions — should never be visited ──

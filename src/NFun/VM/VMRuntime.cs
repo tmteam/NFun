@@ -122,7 +122,7 @@ public class VMRuntime {
         // First pass: build non-lambda equations to populate variables (for captured vars)
         foreach (var treeNode in syntaxTree.Nodes) {
             if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
-                && !ContainsLambda(eq.Expression)) {
+                && !NeedsTreeWalkerFallback(eq.Expression)) {
                 try {
                     Interpretation.ExpressionBuilderVisitor.BuildExpression(
                         eq.Expression, bodyRegistry, eq.OutputType, variables,
@@ -134,7 +134,7 @@ public class VMRuntime {
         // Second pass: build lambda-containing equations (can now reference captured vars)
         foreach (var treeNode in syntaxTree.Nodes) {
             if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
-                && ContainsLambda(eq.Expression)) {
+                && NeedsTreeWalkerFallback(eq.Expression)) {
                 try {
                     var expr = Interpretation.ExpressionBuilderVisitor.BuildExpression(
                         eq.Expression, bodyRegistry, eq.OutputType, variables,
@@ -198,12 +198,13 @@ public class VMRuntime {
         }
     }
 
-    private static bool ContainsLambda(ISyntaxNode node) {
+    private static bool NeedsTreeWalkerFallback(ISyntaxNode node) {
         if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
-            || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode)
+            || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode
+            || node is SyntaxParsing.SyntaxNodes.ResultFunCallSyntaxNode)
             return true;
         foreach (var child in node.Children)
-            if (ContainsLambda(child)) return true;
+            if (NeedsTreeWalkerFallback(child)) return true;
         return false;
     }
 }
