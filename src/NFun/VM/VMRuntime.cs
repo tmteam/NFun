@@ -198,7 +198,7 @@ public class VMRuntime {
         }
     }
 
-    private static bool NeedsTreeWalkerFallback(ISyntaxNode node) {
+    internal static bool NeedsTreeWalkerFallback(ISyntaxNode node) {
         if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
             || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode
             || node is SyntaxParsing.SyntaxNodes.ResultFunCallSyntaxNode)

@@ -92,6 +92,10 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             }
         }
 
+        // Allocate slots for input variables referenced in equations
+        // (needed when tree-walker fallback captures inputs that bytecode doesn't visit)
+        AllocateInputVariables(tree);
+
         // Compile user function definitions (emit code bodies, register in UserFunctions table)
         foreach (var funcDef in userFuncDefs) {
             CompileUserFunction(funcDef);
@@ -135,6 +139,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     private void CompileUserFunction(UserFunctionDefinitionSyntaxNode funcDef) {
+        // If body contains lambdas, skip VM compilation — tree-walker version
+        // is already registered in the function registry by RuntimeBuilder.
+        // The VM will call it via CALL_EXTERN.
+        if (VMRuntime.NeedsTreeWalkerFallback(funcDef.Body))
+            return;
+
         // Placeholder — jump over function body
         int jumpOver = _e.EmitJump(Op.Jump);
 
@@ -1099,6 +1109,27 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         return 0;
     }
 
+    /// <summary>
+    /// Scan syntax tree for input variables (NamedId nodes with Variable type that aren't outputs)
+    /// and allocate VM slots for them. Needed when tree-walker fallback captures inputs.
+    /// </summary>
+    private void AllocateInputVariables(SyntaxTree tree) {
+        foreach (var node in tree.Nodes) {
+            if (node is UserFunctionDefinitionSyntaxNode) continue;
+            ScanForInputVariables(node);
+        }
+    }
+
+    private void ScanForInputVariables(ISyntaxNode node) {
+        if (node is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named
+            && named.IdType == SyntaxParsing.SyntaxNodes.NamedIdNodeType.Variable
+            && named.OutputType.BaseType != BaseFunnyType.Empty) {
+            GetOrAllocateSlot(named.Id, isOutput: false, named.OutputType);
+        }
+        foreach (var child in node.Children)
+            ScanForInputVariables(child);
+    }
+
     private int GetOrAddTypeTableEntry(FunnyType type) {
         if (_typeTableIndex.TryGetValue(type, out var idx)) return idx;
         idx = _typeTable.Count;
@@ -1117,13 +1148,14 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         var code = e.Code;
 
         // Skip peephole if code contains jumps or complex ops — RemoveRange breaks addresses.
-        for (int j = 0; j < code.Count; j++) {
+        for (int j = 0; j < code.Count;) {
             var op = (Op)code[j];
             if (op == Op.Jump || op == Op.JumpIfFalse || op == Op.JumpIfTrue
                 || op == Op.Call || op == Op.TailCall
-                || op == Op.NewStruct || op == Op.GetField || op == Op.CallExtern
-                || op == Op.NewArray || op == Op.GetElement)
+                || op == Op.NewStruct || op == Op.GetField || op == Op.GetFieldSafe
+                || op == Op.CallExtern || op == Op.NewArray || op == Op.GetElement)
                 return; // bail out — too complex for simple peephole
+            j += InstructionWidth(op);
         }
 
         int i = 0;
@@ -1195,9 +1227,25 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
                 code.RemoveAt(i + 2); // remove Halt
                 continue;
             }
-            i++;
+            i += InstructionWidth((Op)code[i]);
         }
     }
+
+    private static int InstructionWidth(Op op) => op switch {
+        // 2-byte: opcode + 1 arg
+        Op.LoadConstI or Op.LoadConstR or Op.LoadConstRef
+            or Op.LoadLocal or Op.StoreLocal or Op.StoreHalt
+            or Op.AddTopConstI or Op.MulTopConstI or Op.AddTopConstR or Op.MulTopConstR => 2,
+        // 3-byte: opcode + 2 args
+        Op.Jump or Op.JumpIfFalse or Op.JumpIfTrue
+            or Op.Call or Op.TailCall or Op.CallExtern
+            or Op.NewStruct or Op.GetField or Op.GetFieldSafe or Op.NewArray
+            or Op.AddLocalConstI or Op.SubLocalConstI or Op.MulLocalConstI
+            or Op.AddConstConstI or Op.MulConstConstI
+            or Op.AddLocalConstR or Op.MulLocalConstR => 3,
+        // 1-byte: all others
+        _ => 1,
+    };
 
     private static bool HasLambdaArg(ISyntaxNode[] args) {
         foreach (var arg in args)
@@ -1246,7 +1294,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             // Sync captured variables from VM locals before evaluating
             if (Locals != null && CapturedVarBridges != null) {
                 foreach (var (varSource, slot, type) in CapturedVarBridges)
-                    varSource.Value = Locals[slot].Box(type);
+                    varSource.SetFunnyValueUnsafe(Locals[slot].Box(type));
             }
             return _node.Calc();
         }
