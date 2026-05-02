@@ -81,6 +81,8 @@ public static class VirtualMachine {
                 case Op.MinReal: sp--; stack[sp - 1].Real = Math.Min(stack[sp - 1].Real, stack[sp].Real); break;
                 case Op.AbsInt:  stack[sp - 1].I64 = Math.Abs(stack[sp - 1].I64); break;
                 case Op.AbsReal: stack[sp - 1].Real = Math.Abs(stack[sp - 1].Real); break;
+                case Op.ToTextInt:  stack[sp - 1] = new FunValue { Ref = new Runtime.Arrays.TextFunnyArray(stack[sp - 1].I64.ToString()) }; break;
+                case Op.ToTextReal: stack[sp - 1] = new FunValue { Ref = new Runtime.Arrays.TextFunnyArray(stack[sp - 1].Real.ToString(System.Globalization.CultureInfo.InvariantCulture)) }; break;
 
                 // ── Integer comparison ──
                 case Op.EqInt:  sp--; stack[sp - 1].I64 = stack[sp - 1].I64 == stack[sp].I64 ? 1 : 0; break;

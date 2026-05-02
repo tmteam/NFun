@@ -902,6 +902,17 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
                 _e.Emit(Op.AbsReal); return true;
             }
         }
+        if (funcName == CoreFunNames.ToText && args.Length == 1) {
+            var t = GetOutputType(args[0]);
+            if (IsIntegerType(t)) {
+                CompileExpression(args[0]);
+                _e.Emit(Op.ToTextInt); return true;
+            }
+            if (IsRealType(t)) {
+                CompileExpression(args[0]);
+                _e.Emit(Op.ToTextReal); return true;
+            }
+        }
         return false;
     }
 
