@@ -6,7 +6,37 @@ using static BenchSets;
 /// All V1 expressions now supported by VM (lambdas, structs, arrays, recursion).
 /// </summary>
 static class BenchSetVM {
-    public static NfunBenchSet VMSet() => new("vm", new[] { SimpleVM(), MediumVM(), ComplexVM() });
+    public static NfunBenchSet VMSet() => new("vm", new[] { PureArithVM(), CallExternVM(), SimpleVM(), MediumVM(), ComplexVM() });
+
+    /// <summary>Pure arithmetic — NO CALL_EXTERN, only native opcodes. Isolates dispatch cost.</summary>
+    static BenchSubSet PureArithVM() => new("PureArith", 32, new BenchScript[]
+    {
+        Pure("y = 2 * x + 1"),
+        Pure("y = (a - b) / 2.0"),
+        Pure("y = a // 3 + a % 3"),
+        Pure("y = x > 0 and x < 100"),
+        Pure("y = a == b or c != d"),
+        Pure("y = not flag"),
+        Pure("y = a xor b"),
+        Pure("y = if(x > 0) x else -x"),
+        IntX("x:int\r y = x + 1"),
+        IntX("x:int\r y = x * 2 - 3"),
+        IntX("x:int\r y = x > 0 and x < 100"),
+        IntX("x:int\r y = if(x > 0) x else -x"),
+        IntX("x:int\r y = x % 7 + x / 3"),
+        IntX("x:int\r y:real = x * 3.14 + 1.0"),
+    });
+
+    /// <summary>Expressions using CALL_EXTERN (boxing boundary). Isolates boxing cost.</summary>
+    static BenchSubSet CallExternVM() => new("CallExtern", 16, new BenchScript[]
+    {
+        Pure("y = max(a, b)"),
+        Pure("y = 42.toText()"),
+        Pure("y = 'hello world'"),
+        Pure("y = a ** 2.0"),
+        IntX("x:int\r y = max(x, 0)"),
+        IntX("x:int\r y = x.toText()"),
+    });
 
     /// <summary>Same as V1 Simple — all primitive ops.</summary>
     static BenchSubSet SimpleVM() => new("Simple", 64, new BenchScript[]
