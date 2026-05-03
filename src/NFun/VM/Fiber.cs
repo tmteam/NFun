@@ -94,7 +94,7 @@ public class Scheduler {
 
                 try {
                     VirtualMachine.Execute(fiber.Program, fiber.Locals,
-                        new FunValue[256], new CallFrame[64], maxOpsPerSlice);
+                        new FunValue[Math.Max(fiber.Program.MaxStackDepth, 8)], new CallFrame[32]);
                     fiber.Status = FiberStatus.Done;
                 }
                 catch (Exception ex) when (ex.Message == "Operation budget exceeded") {

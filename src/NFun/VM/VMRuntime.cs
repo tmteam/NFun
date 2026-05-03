@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
@@ -160,7 +159,7 @@ public class VMRuntime {
         var runtime = new VMRuntime(program);
 
         // Wire captured variables: tree-walker variables → VM locals bridge
-        if (variables != null && variables.GetAll().Any()) {
+        if (variables != null && variables.Count > 0) {
             var bridges = new List<(Runtime.VariableSource, int, FunnyType)>();
             foreach (var varSource in variables.GetAll()) {
                 if (runtime._variables.TryGetValue(varSource.Name, out var vi))

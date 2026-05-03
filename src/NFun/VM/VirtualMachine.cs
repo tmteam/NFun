@@ -14,17 +14,15 @@ public static class VirtualMachine {
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static void Execute(CompiledProgram program, FunValue[] locals,
-        FunValue[] stack, CallFrame[] callStack, int maxOps = 10_000_000) {
+        FunValue[] stack, CallFrame[] callStack) {
+        if (program.ExceptionHandlers.Length > 0) {
+            ExecuteWithHandlers(program, locals, stack, callStack);
+            return;
+        }
+
         var code = program.Code;
         var constants = program.Constants;
         int ip = 0, sp = 0, callDepth = 0;
-
-        // No try/catch in the hot path for programs without exception handlers.
-        // Exception handlers only needed when program has try-catch expressions.
-        if (program.ExceptionHandlers.Length > 0) {
-            ExecuteWithHandlers(program, locals, stack, callStack, maxOps);
-            return;
-        }
 
         while (true) {
             switch ((Op)code[ip++]) {
@@ -265,7 +263,7 @@ public static class VirtualMachine {
 
     /// <summary>Slow path with exception handler support. Wraps entire execution in try/catch.</summary>
     private static void ExecuteWithHandlers(CompiledProgram program, FunValue[] locals,
-        FunValue[] stack, CallFrame[] callStack, int maxOps) {
+        FunValue[] stack, CallFrame[] callStack) {
         var code = program.Code;
         var constants = program.Constants;
         int ip = 0, sp = 0, callDepth = 0;
@@ -309,8 +307,10 @@ public static class VirtualMachine {
                                 UserFunctions = program.UserFunctions,
                                 Variables = program.Variables,
                                 ExceptionHandlers = Array.Empty<ExceptionHandler>(),
-                                LocalsCount = program.LocalsCount
-                            }, locals, stack, callStack, maxOps);
+                                TypeTable = program.TypeTable,
+                                LocalsCount = program.LocalsCount,
+                                MaxStackDepth = program.MaxStackDepth
+                            }, locals, stack, callStack);
                             return;
                     }
                 }
