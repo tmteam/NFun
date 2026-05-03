@@ -375,7 +375,19 @@ internal static class RuntimeBuilder {
         DialectSettings dialect,
         ICustomTypeRegistry customTypes = null,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null,
-        UserFunctionDefinitionSyntaxNode[] allUserFunctions = null) {
+        UserFunctionDefinitionSyntaxNode[] allUserFunctions = null)
+        => BuildFunctionAndPutItToDictionary(functionSyntaxNode, constants, functionsRegistry, dialect,
+            customTypes, namedTypeFieldRegistry, allUserFunctions, out _);
+
+    internal static IUserFunction BuildFunctionAndPutItToDictionary(
+        UserFunctionDefinitionSyntaxNode functionSyntaxNode,
+        IConstantList constants,
+        ScopeFunctionRegistry functionsRegistry,
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes,
+        INamedTypeFieldRegistry namedTypeFieldRegistry,
+        UserFunctionDefinitionSyntaxNode[] allUserFunctions,
+        out TypeInferenceResults typeInferenceResults) {
 
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD {functionSyntaxNode.Id}(..) ====");
@@ -408,6 +420,7 @@ internal static class RuntimeBuilder {
 
         resultsBuilder.SetResults(types);
         var typeInferenceResuls = resultsBuilder.Build();
+        typeInferenceResults = typeInferenceResuls;
 
         if (!types.HasGenerics)
         {

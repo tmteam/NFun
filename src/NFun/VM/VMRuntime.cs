@@ -88,18 +88,20 @@ public class VMRuntime {
         IFunctionRegistry bodyRegistry = functionRegistry;
         Dictionary<string, TypeInferenceResults> perFunctionTypeResults = null;
         if (functionSolveOrder.Length > 0) {
-            perFunctionTypeResults = new Dictionary<string, TypeInferenceResults>();
             var scope = new ScopeFunctionRegistry(functionRegistry, functionSolveOrder.Length);
             bodyRegistry = scope;
             for (int i = 0; i < functionSolveOrder.Length; i++) {
+                var funcDef = functionSolveOrder[i];
+                // Build tree-walker function AND get type inference results in one pass
                 RuntimeBuilder.BuildFunctionAndPutItToDictionary(
-                    functionSolveOrder[i], constants, scope, dialect,
-                    customTypes, namedTypeFieldRegistry, functionSolveOrder);
-                // Also solve types for the VM's BytecodeCompiler
-                var funcResults = SolveUserFunctionTypes(
-                    functionSolveOrder[i], scope, constants, dialect, customTypes, namedTypeFieldRegistry, functionSolveOrder);
-                if (funcResults != null)
-                    perFunctionTypeResults[$"{functionSolveOrder[i].Id}/{functionSolveOrder[i].Args.Count}"] = funcResults;
+                    funcDef, constants, scope, dialect,
+                    customTypes, namedTypeFieldRegistry, functionSolveOrder,
+                    out var funcTypeResults);
+                // Only keep results for functions the BytecodeCompiler will actually compile
+                if (!NeedsTreeWalkerFallback(funcDef.Body) && funcTypeResults != null) {
+                    perFunctionTypeResults ??= new Dictionary<string, TypeInferenceResults>();
+                    perFunctionTypeResults[$"{funcDef.Id}/{funcDef.Args.Count}"] = funcTypeResults;
+                }
             }
         }
 
@@ -180,31 +182,6 @@ public class VMRuntime {
         return runtime;
     }
 
-    private static TypeInferenceResults SolveUserFunctionTypes(
-        SyntaxParsing.SyntaxNodes.UserFunctionDefinitionSyntaxNode funcNode,
-        IFunctionRegistry functions,
-        IConstantList constants,
-        DialectSettings dialect,
-        ICustomTypeRegistry customTypes,
-        INamedTypeFieldRegistry namedTypeFieldRegistry,
-        SyntaxParsing.SyntaxNodes.UserFunctionDefinitionSyntaxNode[] allUserFunctions) {
-        try {
-            var graph = new Tic.GraphBuilder();
-            var resultsBuilder = new TypeInferenceAdapter.TypeInferenceResultsBuilder();
-            if (!TypeInferenceAdapter.TicSetupVisitor.SetupTicForUserFunction(
-                funcNode, graph, functions, constants, resultsBuilder, dialect,
-                customTypes, namedTypeFieldRegistry, allUserFunctions))
-                return null;
-            var types = graph.Solve(ignorePrefered: true);
-            resultsBuilder.SetResults(types);
-            var result = resultsBuilder.Build();
-            // Apply types to syntax nodes
-            funcNode.ComeOver(new TypeInferenceAdapter.ApplyTiResultEnterVisitor(result, TicTypesConverter.Concrete));
-            return result;
-        } catch {
-            return null;
-        }
-    }
 
     internal static bool NeedsTreeWalkerFallback(ISyntaxNode node) {
         if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
