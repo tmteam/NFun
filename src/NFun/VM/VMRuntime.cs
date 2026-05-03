@@ -92,13 +92,15 @@ public class VMRuntime {
             bodyRegistry = scope;
             for (int i = 0; i < functionSolveOrder.Length; i++) {
                 var funcDef = functionSolveOrder[i];
-                // Build tree-walker function AND get type inference results in one pass
+                bool hasLambda = NeedsTreeWalkerFallback(funcDef.Body);
+                // For non-lambda functions: skip expression tree building (VM compiles from AST)
+                // For lambda functions: need full tree-walker build (VM uses CALL_EXTERN)
                 RuntimeBuilder.BuildFunctionAndPutItToDictionary(
                     funcDef, constants, scope, dialect,
                     customTypes, namedTypeFieldRegistry, functionSolveOrder,
-                    out var funcTypeResults);
-                // Only keep results for functions the BytecodeCompiler will actually compile
-                if (!NeedsTreeWalkerFallback(funcDef.Body) && funcTypeResults != null) {
+                    out var funcTypeResults,
+                    skipExpressionBuild: false);
+                if (!hasLambda && funcTypeResults != null) {
                     perFunctionTypeResults ??= new Dictionary<string, TypeInferenceResults>();
                     perFunctionTypeResults[$"{funcDef.Id}/{funcDef.Args.Count}"] = funcTypeResults;
                 }

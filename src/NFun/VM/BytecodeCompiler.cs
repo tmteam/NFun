@@ -370,12 +370,11 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             return 0;
         }
 
-        // User function call
-        var userFuncCount = _userFunctions?.Count ?? 0;
-        for (int i = 0; i < userFuncCount; i++) {
+        // User function call (prototype without expression tree — compiled to bytecode)
+        var ufc = _userFunctions?.Count ?? 0;
+        for (int i = 0; i < ufc; i++) {
             if (string.Equals(_userFunctions[i].Name, id, StringComparison.OrdinalIgnoreCase)
                 && _userFunctions[i].ArgTypes.Length == args.Length) {
-                // Compile arguments
                 for (int j = 0; j < args.Length; j++)
                     CompileExpression(args[j]);
                 _e.EmitWithArg(Op.Call, (byte)i);

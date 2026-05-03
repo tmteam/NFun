@@ -379,6 +379,10 @@ internal static class RuntimeBuilder {
         => BuildFunctionAndPutItToDictionary(functionSyntaxNode, constants, functionsRegistry, dialect,
             customTypes, namedTypeFieldRegistry, allUserFunctions, out _);
 
+    /// <summary>
+    /// Lightweight variant for VM: solves types and registers prototype, but skips
+    /// ExpressionBuilderVisitor (expression tree building) when skipExpressionBuild=true.
+    /// </summary>
     internal static IUserFunction BuildFunctionAndPutItToDictionary(
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
         IConstantList constants,
@@ -387,7 +391,8 @@ internal static class RuntimeBuilder {
         ICustomTypeRegistry customTypes,
         INamedTypeFieldRegistry namedTypeFieldRegistry,
         UserFunctionDefinitionSyntaxNode[] allUserFunctions,
-        out TypeInferenceResults typeInferenceResults) {
+        out TypeInferenceResults typeInferenceResults,
+        bool skipExpressionBuild = false) {
 
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD {functionSyntaxNode.Id}(..) ====");
@@ -470,6 +475,12 @@ internal static class RuntimeBuilder {
             var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, protoArgTypes);
             //add prototype to dictionary for future use
             functionsRegistry.Add(prototype);
+
+            if (skipExpressionBuild) {
+                // VM path: prototype registered for type resolution, skip expression tree building
+                return null;
+            }
+
             var function =
                 functionSyntaxNode.BuildConcrete(
                     argTypes: argTypes,
