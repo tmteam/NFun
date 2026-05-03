@@ -1024,6 +1024,9 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             Function = function,
             ReturnType = function.ReturnType,
             ArgTypes = function.ArgTypes,
+            ArityKind = function is Interpretation.Functions.FunctionWithSingleArg ? (byte)1
+                      : function is Interpretation.Functions.FunctionWithTwoArgs ? (byte)2
+                      : (byte)0,
         });
 
         // Store with a unique key (might overwrite if same name+arity but different types)

@@ -132,9 +132,17 @@ public static class VirtualMachine {
                 // ── Function calls ──
                 case Op.Call: {
                     var funcId = code[ip++]; var argc = code[ip++];
-                    var func = program.UserFunctions[funcId];
+                    ref var func = ref program.UserFunctions[funcId];
                     callStack[callDepth++] = new CallFrame { ReturnIP = ip, ReturnSP = sp - argc, CallerLocals = locals, FunctionId = funcId };
-                    var newLocals = new FunValue[func.LocalsCount];
+                    FunValue[] newLocals;
+                    if (!func.CachedLocalsInUse) {
+                        // First (non-recursive) call: reuse cached locals
+                        newLocals = func.CachedLocals ??= new FunValue[func.LocalsCount];
+                        func.CachedLocalsInUse = true;
+                    } else {
+                        // Recursive call: must allocate fresh
+                        newLocals = new FunValue[func.LocalsCount];
+                    }
                     for (int i = argc - 1; i >= 0; i--) newLocals[i] = stack[--sp];
                     locals = newLocals; ip = func.EntryIP;
                     break;
@@ -147,19 +155,24 @@ public static class VirtualMachine {
                 }
                 case Op.Return: {
                     var result = stack[--sp]; var frame = callStack[--callDepth];
+                    // Release cached locals if this was the non-recursive call
+                    if (locals == program.UserFunctions[frame.FunctionId].CachedLocals)
+                        program.UserFunctions[frame.FunctionId].CachedLocalsInUse = false;
                     ip = frame.ReturnIP; sp = frame.ReturnSP; locals = frame.CallerLocals;
                     stack[sp++] = result;
                     break;
                 }
                 case Op.CallExtern: {
                     var funcId = code[ip++]; var argc = code[ip++];
-                    var ext = program.ExternFunctions[funcId];
+                    ref var ext = ref program.ExternFunctions[funcId];
                     object cResult;
-                    if (argc == 2 && ext.Function is Interpretation.Functions.FunctionWithTwoArgs cf2) {
+                    if (ext.ArityKind == 2) {
                         sp -= 2;
-                        cResult = cf2.Calc(stack[sp].Box(ext.ArgTypes[0]), stack[sp + 1].Box(ext.ArgTypes[1]));
-                    } else if (argc == 1 && ext.Function is Interpretation.Functions.FunctionWithSingleArg cf1) {
-                        cResult = cf1.Calc(stack[--sp].Box(ext.ArgTypes[0]));
+                        cResult = ((Interpretation.Functions.FunctionWithTwoArgs)ext.Function)
+                            .Calc(stack[sp].Box(ext.ArgTypes[0]), stack[sp + 1].Box(ext.ArgTypes[1]));
+                    } else if (ext.ArityKind == 1) {
+                        cResult = ((Interpretation.Functions.FunctionWithSingleArg)ext.Function)
+                            .Calc(stack[--sp].Box(ext.ArgTypes[0]));
                     } else {
                         var cArgs = new object[argc];
                         for (int i = argc - 1; i >= 0; i--) cArgs[i] = stack[--sp].Box(ext.ArgTypes[i]);

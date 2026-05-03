@@ -31,6 +31,8 @@ public struct ExternFunc {
     public IConcreteFunction Function;
     public FunnyType ReturnType;
     public FunnyType[] ArgTypes;
+    /// <summary>Cached arity dispatch: 1=FunctionWithSingleArg, 2=FunctionWithTwoArgs, 0=generic</summary>
+    public byte ArityKind;
 }
 
 /// <summary>User-defined function metadata.</summary>
@@ -40,6 +42,10 @@ public struct UserFunc {
     public string Name;
     public FunnyType ReturnType;
     public FunnyType[] ArgTypes;
+    /// <summary>Pre-allocated locals for non-recursive calls. Avoids allocation per call.</summary>
+    public FunValue[] CachedLocals;
+    /// <summary>True while CachedLocals is in use (detects recursion).</summary>
+    public bool CachedLocalsInUse;
 }
 
 /// <summary>Input/output variable slot.</summary>
