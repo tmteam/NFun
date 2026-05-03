@@ -16,6 +16,7 @@ public class CompiledProgram {
     public ExceptionHandler[] ExceptionHandlers { get; init; }
     public FunnyType[] TypeTable { get; init; }
     public int LocalsCount { get; init; }
+    public int MaxStackDepth { get; init; }
 
 }
 

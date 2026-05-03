@@ -26,10 +26,12 @@ public class VMRuntime {
     private VMRuntime(CompiledProgram program) {
         _program = program;
         _locals = new FunValue[program.LocalsCount];
-        _stack = new FunValue[256];
-        _callStack = new CallFrame[64];
-        _variableSlots = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        _variableTypes = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
+        // Stack sized to actual need: max stack depth computed by compiler, minimum 8
+        _stack = new FunValue[Math.Max(program.MaxStackDepth, 8)];
+        // Call stack only needed when user functions exist
+        _callStack = program.UserFunctions.Length > 0 ? new CallFrame[32] : Array.Empty<CallFrame>();
+        _variableSlots = new Dictionary<string, int>(program.Variables.Length, StringComparer.OrdinalIgnoreCase);
+        _variableTypes = new Dictionary<string, FunnyType>(program.Variables.Length, StringComparer.OrdinalIgnoreCase);
         foreach (var v in program.Variables) {
             _variableSlots[v.Name] = v.Slot;
             _variableTypes[v.Name] = v.Type;

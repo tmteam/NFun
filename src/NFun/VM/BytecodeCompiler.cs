@@ -126,8 +126,9 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         // Peephole optimization: fuse common opcode patterns into superinstructions
         PeepholeOptimize(_e);
 
+        var bytecode = _e.ToArray();
         return new CompiledProgram {
-            Code = _e.ToArray(),
+            Code = bytecode,
             Constants = _e.ConstantsToArray(),
             StructLayouts = _structLayouts.Count > 0 ? _structLayouts.ToArray() : Array.Empty<StructLayout>(),
             ExternFunctions = _externFunctions.Count > 0 ? _externFunctions.ToArray() : Array.Empty<ExternFunc>(),
@@ -136,6 +137,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             ExceptionHandlers = _exceptionHandlers.Count > 0 ? _exceptionHandlers.ToArray() : Array.Empty<ExceptionHandler>(),
             TypeTable = _typeTable.Count > 0 ? _typeTable.ToArray() : Array.Empty<FunnyType>(),
             LocalsCount = _nextLocalSlot,
+            MaxStackDepth = ComputeMaxStackDepth(bytecode),
         };
     }
 
@@ -1232,6 +1234,70 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         }
     }
 
+    /// <summary>Simulate stack depth to compute maximum. Conservative estimate.</summary>
+    private static int ComputeMaxStackDepth(byte[] code) {
+        int sp = 0, max = 0;
+        int ip = 0;
+        while (ip < code.Length) {
+            var op = (Op)code[ip];
+            int width = InstructionWidth(op);
+            switch (op) {
+                // push: sp++
+                case Op.LoadConstI: case Op.LoadConstR: case Op.LoadConstRef:
+                case Op.LoadLocal: case Op.LoadNone: case Op.Dup:
+                case Op.AddLocalConstI: case Op.SubLocalConstI: case Op.MulLocalConstI:
+                case Op.AddConstConstI: case Op.MulConstConstI:
+                case Op.AddLocalConstR: case Op.MulLocalConstR:
+                    sp++; break;
+                // pop: sp--
+                case Op.StoreLocal: case Op.Pop: case Op.StoreHalt:
+                    sp--; break;
+                // binary (pop 2, push 1 = net -1):
+                case Op.AddInt: case Op.SubInt: case Op.MulInt: case Op.DivInt:
+                case Op.ModInt: case Op.PowInt:
+                case Op.AddReal: case Op.SubReal: case Op.MulReal: case Op.DivReal:
+                case Op.ModReal: case Op.PowReal:
+                case Op.EqInt: case Op.NeqInt: case Op.LtInt: case Op.LteInt:
+                case Op.GtInt: case Op.GteInt: case Op.LtUint:
+                case Op.EqReal: case Op.NeqReal: case Op.LtReal: case Op.LteReal:
+                case Op.GtReal: case Op.GteReal:
+                case Op.EqRef: case Op.NeqRef:
+                case Op.And: case Op.Or:
+                case Op.BitAnd: case Op.BitOr: case Op.BitXor: case Op.Shl: case Op.Shr:
+                case Op.MaxInt: case Op.MinInt: case Op.MaxReal: case Op.MinReal:
+                case Op.Coalesce: case Op.GetElement: case Op.GetElementSafe:
+                    sp--; break;
+                // CallExtern: pop argc, push 1 (net = 1 - argc)
+                case Op.CallExtern:
+                    sp -= code[ip + 2]; sp++; break; // argc at ip+2
+                case Op.Call: case Op.TailCall:
+                    sp -= code[ip + 2]; sp++; break;
+                // NewArray: pop count, push 1
+                case Op.NewArray:
+                    sp -= code[ip + 1]; sp++; break; // count at ip+1
+                // NewStruct: pop fieldCount, push 1
+                case Op.NewStruct:
+                    sp -= code[ip + 2]; sp++; break; // fieldCount at ip+2
+                // Unary (no sp change): Not, NegInt, NegReal, BitNot, AbsInt, AbsReal, etc.
+                // GetField/GetFieldSafe: pop 1, push 1 = no change
+                // Jumps: no stack change (JumpIfFalse/True pop 1)
+                case Op.JumpIfFalse: case Op.JumpIfTrue:
+                    sp--; break;
+                // AddTopConstI/R, MulTopConstI/R: no sp change (modify top in-place)
+                // BoxInt/BoxReal/BoxBool: no sp change
+                // IsNone, Unwrap, ToTextInt, ToTextReal: no sp change
+                // Return: pop 1 (handled by call frame, conservative)
+                case Op.Return:
+                    sp--; break;
+                case Op.Halt:
+                    ip = code.Length; continue;
+            }
+            if (sp > max) max = sp;
+            ip += width;
+        }
+        return max;
+    }
+
     private static int InstructionWidth(Op op) => op switch {
         // 2-byte: opcode + 1 arg
         Op.LoadConstI or Op.LoadConstR or Op.LoadConstRef
@@ -1374,8 +1440,8 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 /// Provides helpers for emitting opcodes, operands, and patching jumps.
 /// </summary>
 internal sealed class BytecodeEmitter {
-    internal readonly List<byte> Code = new();
-    private readonly List<FunValue> _constants = new();
+    internal readonly List<byte> Code = new(32);     // typical simple expr = 7-20 bytes
+    private readonly List<FunValue> _constants = new(4); // typical 1-4 constants
 
     /// <summary>Current write position in the code buffer.</summary>
     public int Position => Code.Count;
