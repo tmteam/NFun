@@ -31,21 +31,29 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     // Output variables (equations): name → slot
     private readonly List<VariableSlot> _variableSlots = new();
 
-    // Extern functions registry (built-in .NET functions called via CALL_EXTERN)
-    private readonly List<ExternFunc> _externFunctions = new();
-    private readonly Dictionary<string, Dictionary<int, int>> _externFuncIds = new();
+    // Extern functions registry — lazy-init (empty for pure arithmetic)
+    private List<ExternFunc> _externFunctions;
+    private Dictionary<string, Dictionary<int, int>> _externFuncIds;
 
-    // User-defined functions
-    private readonly List<UserFunc> _userFunctions = new();
+    // User-defined functions — lazy-init
+    private List<UserFunc> _userFunctions;
     private readonly List<ExceptionHandler> _exceptionHandlers = new();
-    private Dictionary<int, Interpretation.Nodes.IExpressionNode> _preBuiltExpressions = new();
-    private Dictionary<string, TypeInferenceResults> _perFunctionTypeResults = new();
+    private Dictionary<int, Interpretation.Nodes.IExpressionNode> _preBuiltExpressions;
+    private Dictionary<string, TypeInferenceResults> _perFunctionTypeResults;
 
-    // Struct layouts
-    private readonly List<StructLayout> _structLayouts = new();
-    private readonly List<FunnyType> _typeTable = new();
-    private readonly Dictionary<FunnyType, int> _typeTableIndex = new();
-    private readonly Dictionary<string, int> _structLayoutIds = new();
+    // Struct layouts — lazy-init
+    private List<StructLayout> _structLayouts;
+    private List<FunnyType> _typeTable;
+    private Dictionary<FunnyType, int> _typeTableIndex;
+    private Dictionary<string, int> _structLayoutIds;
+
+    private List<ExternFunc> ExternFunctions => _externFunctions ??= new();
+    private Dictionary<string, Dictionary<int, int>> ExternFuncIds => _externFuncIds ??= new();
+    private List<UserFunc> UserFunctions => _userFunctions ??= new();
+    private List<StructLayout> StructLayouts => _structLayouts ??= new();
+    private List<FunnyType> TypeTable => _typeTable ??= new();
+    private Dictionary<FunnyType, int> TypeTableIndex => _typeTableIndex ??= new();
+    private Dictionary<string, int> StructLayoutIds => _structLayoutIds ??= new();
 
     private BytecodeCompiler(
         IFunctionRegistry functions,
@@ -70,40 +78,33 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         Dictionary<int, Interpretation.Nodes.IExpressionNode> preBuiltExpressions = null,
         Dictionary<string, TypeInferenceResults> perFunctionTypeResults = null) {
         var compiler = new BytecodeCompiler(functions, typeInferenceResults, typesConverter, dialect);
-        compiler._preBuiltExpressions = preBuiltExpressions ?? new();
-        compiler._perFunctionTypeResults = perFunctionTypeResults ?? new();
+        compiler._preBuiltExpressions = preBuiltExpressions ?? new(0);
+        compiler._perFunctionTypeResults = perFunctionTypeResults;
         return compiler.CompileTree(tree);
     }
 
     private CompiledProgram CompileTree(SyntaxTree tree) {
-        // First pass: allocate slots for all equation outputs and collect user function defs
-        var equations = new List<EquationSyntaxNode>();
-        var userFuncDefs = new List<UserFunctionDefinitionSyntaxNode>();
-
+        // First pass: allocate output slots
         foreach (var node in tree.Nodes) {
             if (node is EquationSyntaxNode eq) {
-                equations.Add(eq);
                 var eqType = eq.OutputType.BaseType != BaseFunnyType.Empty
                     ? eq.OutputType : GetOutputType(eq.Expression);
                 AllocateSlot(eq.Id, isOutput: true, eqType);
             }
-            else if (node is UserFunctionDefinitionSyntaxNode funcDef) {
-                userFuncDefs.Add(funcDef);
-            }
         }
 
         // Allocate slots for input variables referenced in equations
-        // (needed when tree-walker fallback captures inputs that bytecode doesn't visit)
         if (_preBuiltExpressions.Count > 0)
             AllocateInputVariables(tree);
 
-        // Compile user function definitions (emit code bodies, register in UserFunctions table)
-        foreach (var funcDef in userFuncDefs) {
-            CompileUserFunction(funcDef);
-        }
+        // Compile user function definitions
+        foreach (var node in tree.Nodes)
+            if (node is UserFunctionDefinitionSyntaxNode funcDef)
+                CompileUserFunction(funcDef);
 
-        // Compile each equation: emit expression code, then STORE_LOCAL to output slot
-        foreach (var eq in equations) {
+        // Compile each equation
+        foreach (var node in tree.Nodes) {
+            if (node is not EquationSyntaxNode eq) continue;
             // If equation has pre-built tree-walker expression (contains lambda),
             // emit CALL_EXTERN to the pre-built node instead of bytecode compilation.
             if (_preBuiltExpressions.TryGetValue(eq.Expression.OrderNumber, out var preBuilt)) {
@@ -130,12 +131,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         return new CompiledProgram {
             Code = bytecode,
             Constants = _e.ConstantsToArray(),
-            StructLayouts = _structLayouts.Count > 0 ? _structLayouts.ToArray() : Array.Empty<StructLayout>(),
-            ExternFunctions = _externFunctions.Count > 0 ? _externFunctions.ToArray() : Array.Empty<ExternFunc>(),
-            UserFunctions = _userFunctions.Count > 0 ? _userFunctions.ToArray() : Array.Empty<UserFunc>(),
+            StructLayouts = _structLayouts is { Count: > 0 } ? _structLayouts.ToArray() : Array.Empty<StructLayout>(),
+            ExternFunctions = _externFunctions is { Count: > 0 } ? _externFunctions.ToArray() : Array.Empty<ExternFunc>(),
+            UserFunctions = _userFunctions is { Count: > 0 } ? _userFunctions.ToArray() : Array.Empty<UserFunc>(),
             Variables = _variableSlots.ToArray(),
             ExceptionHandlers = _exceptionHandlers.Count > 0 ? _exceptionHandlers.ToArray() : Array.Empty<ExceptionHandler>(),
-            TypeTable = _typeTable.Count > 0 ? _typeTable.ToArray() : Array.Empty<FunnyType>(),
+            TypeTable = _typeTable is { Count: > 0 } ? _typeTable.ToArray() : Array.Empty<FunnyType>(),
             LocalsCount = _nextLocalSlot,
             MaxStackDepth = ComputeMaxStackDepth(bytecode),
         };
@@ -152,7 +153,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         int jumpOver = _e.EmitJump(Op.Jump);
 
         int entryIP = _e.Position;
-        var funcId = _userFunctions.Count;
+        var funcId = UserFunctions.Count;
 
         // Save current slot state — function has its own scope
         var savedSlots = new Dictionary<string, int>(_localSlots, StringComparer.OrdinalIgnoreCase);
@@ -191,7 +192,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
 
         var returnType = funcDef.OutputType;
 
-        _userFunctions.Add(new UserFunc {
+        UserFunctions.Add(new UserFunc {
             EntryIP = entryIP,
             LocalsCount = funcLocals,
             Name = funcDef.Id,
@@ -370,7 +371,8 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         }
 
         // User function call
-        for (int i = 0; i < _userFunctions.Count; i++) {
+        var userFuncCount = _userFunctions?.Count ?? 0;
+        for (int i = 0; i < userFuncCount; i++) {
             if (string.Equals(_userFunctions[i].Name, id, StringComparison.OrdinalIgnoreCase)
                 && _userFunctions[i].ArgTypes.Length == args.Length) {
                 // Compile arguments
@@ -1004,21 +1006,21 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         var name = function.Name;
         var arity = function.ArgTypes.Length;
 
-        if (!_externFuncIds.TryGetValue(name, out var byArity)) {
+        if (!ExternFuncIds.TryGetValue(name, out var byArity)) {
             byArity = new Dictionary<int, int>();
-            _externFuncIds[name] = byArity;
+            ExternFuncIds[name] = byArity;
         }
 
         // Check if an extern with same name, arity, and matching types already exists
         if (byArity.TryGetValue(arity, out var existingId)) {
-            var existing = _externFunctions[existingId];
+            var existing = ExternFunctions[existingId];
             if (existing.ReturnType.Equals(function.ReturnType) && ArgsMatch(existing.ArgTypes, function.ArgTypes))
                 return existingId;
         }
 
         // Register new extern function — use unique id keyed by name+arity+types
-        var id = _externFunctions.Count;
-        _externFunctions.Add(new ExternFunc {
+        var id = ExternFunctions.Count;
+        ExternFunctions.Add(new ExternFunc {
             Function = function,
             ReturnType = function.ReturnType,
             ArgTypes = function.ArgTypes,
@@ -1062,12 +1064,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         }
 
         var key = MakeStructLayoutKey(names);
-        if (_structLayoutIds.TryGetValue(key, out var id))
+        if (StructLayoutIds.TryGetValue(key, out var id))
             return id;
 
-        id = _structLayouts.Count;
-        _structLayouts.Add(new StructLayout { FieldNames = names, FieldTypes = types });
-        _structLayoutIds[key] = id;
+        id = StructLayouts.Count;
+        StructLayouts.Add(new StructLayout { FieldNames = names, FieldTypes = types });
+        StructLayoutIds[key] = id;
         return id;
     }
 
@@ -1084,12 +1086,12 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         }
 
         var key = MakeStructLayoutKey(names.ToArray());
-        if (_structLayoutIds.TryGetValue(key, out var id))
+        if (StructLayoutIds.TryGetValue(key, out var id))
             return id;
 
-        id = _structLayouts.Count;
-        _structLayouts.Add(new StructLayout { FieldNames = names.ToArray(), FieldTypes = types.ToArray() });
-        _structLayoutIds[key] = id;
+        id = StructLayouts.Count;
+        StructLayouts.Add(new StructLayout { FieldNames = names.ToArray(), FieldTypes = types.ToArray() });
+        StructLayoutIds[key] = id;
         return id;
     }
 
@@ -1134,10 +1136,10 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     private int GetOrAddTypeTableEntry(FunnyType type) {
-        if (_typeTableIndex.TryGetValue(type, out var idx)) return idx;
-        idx = _typeTable.Count;
-        _typeTable.Add(type);
-        _typeTableIndex[type] = idx;
+        if (TypeTableIndex.TryGetValue(type, out var idx)) return idx;
+        idx = TypeTable.Count;
+        TypeTable.Add(type);
+        TypeTableIndex[type] = idx;
         return idx;
     }
 

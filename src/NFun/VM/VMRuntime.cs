@@ -20,49 +20,41 @@ public class VMRuntime {
     private readonly FunValue[] _locals;
     private readonly FunValue[] _stack;
     private readonly CallFrame[] _callStack;
-    private readonly Dictionary<string, int> _variableSlots;
-    private readonly Dictionary<string, FunnyType> _variableTypes;
+    // Single lookup: name → (slot, type). Eliminates double-dictionary overhead in SetInput/GetOutput.
+    private readonly Dictionary<string, (int Slot, FunnyType Type)> _variables;
 
     private VMRuntime(CompiledProgram program) {
         _program = program;
         _locals = new FunValue[program.LocalsCount];
-        // Stack sized to actual need: max stack depth computed by compiler, minimum 8
         _stack = new FunValue[Math.Max(program.MaxStackDepth, 8)];
-        // Call stack only needed when user functions exist
         _callStack = program.UserFunctions.Length > 0 ? new CallFrame[32] : Array.Empty<CallFrame>();
-        _variableSlots = new Dictionary<string, int>(program.Variables.Length, StringComparer.OrdinalIgnoreCase);
-        _variableTypes = new Dictionary<string, FunnyType>(program.Variables.Length, StringComparer.OrdinalIgnoreCase);
-        foreach (var v in program.Variables) {
-            _variableSlots[v.Name] = v.Slot;
-            _variableTypes[v.Name] = v.Type;
-        }
+        _variables = new Dictionary<string, (int, FunnyType)>(program.Variables.Length, StringComparer.OrdinalIgnoreCase);
+        foreach (var v in program.Variables)
+            _variables[v.Name] = (v.Slot, v.Type);
     }
 
     public void Run() => VirtualMachine.Execute(_program, _locals, _stack, _callStack);
 
     public void SetInput(string name, object value) {
-        if (!_variableSlots.TryGetValue(name, out var slot))
+        if (!_variables.TryGetValue(name, out var v))
             throw new KeyNotFoundException($"Variable '{name}' not found");
-        _locals[slot] = FunValue.Unbox(value, _variableTypes[name]);
+        _locals[v.Slot] = FunValue.Unbox(value, v.Type);
     }
 
     public object GetOutput(string name) {
-        if (!_variableSlots.TryGetValue(name, out var slot))
+        if (!_variables.TryGetValue(name, out var v))
             throw new KeyNotFoundException($"Variable '{name}' not found");
-        var val = _locals[slot];
-        var type = _variableTypes[name];
-        // Optional/Any values from CALL_EXTERN are stored in Ref (boxed).
-        // If Ref has a value and type is primitive, return Ref directly (already boxed correctly).
+        var val = _locals[v.Slot];
         if (val.Ref != null && val.Ref is not FunnyNone) {
-            if (type.BaseType >= BaseFunnyType.UInt8 && type.BaseType <= BaseFunnyType.Real)
+            if (v.Type.BaseType >= BaseFunnyType.UInt8 && v.Type.BaseType <= BaseFunnyType.Real)
                 return val.Ref;
-            if (type.BaseType == BaseFunnyType.Bool && val.Ref is bool)
+            if (v.Type.BaseType == BaseFunnyType.Bool && val.Ref is bool)
                 return val.Ref;
         }
-        return val.Box(type);
+        return val.Box(v.Type);
     }
 
-    public IEnumerable<string> VariableNames => _variableSlots.Keys;
+    public IEnumerable<string> VariableNames => _variables.Keys;
 
     internal static VMRuntime Build(
         string script,
@@ -171,8 +163,8 @@ public class VMRuntime {
         if (variables != null && variables.GetAll().Any()) {
             var bridges = new List<(Runtime.VariableSource, int, FunnyType)>();
             foreach (var varSource in variables.GetAll()) {
-                if (runtime._variableSlots.TryGetValue(varSource.Name, out var slot))
-                    bridges.Add((varSource, slot, runtime._variableTypes[varSource.Name]));
+                if (runtime._variables.TryGetValue(varSource.Name, out var vi))
+                    bridges.Add((varSource, vi.Slot, vi.Type));
             }
             if (bridges.Count > 0) {
                 var bridgeArray = bridges.ToArray();
