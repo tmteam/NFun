@@ -137,6 +137,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             UserFunctions = _userFunctions is { Count: > 0 } ? _userFunctions.ToArray() : Array.Empty<UserFunc>(),
             Variables = _variableSlots.ToArray(),
             ExceptionHandlers = _exceptionHandlers.Count > 0 ? _exceptionHandlers.ToArray() : Array.Empty<ExceptionHandler>(),
+            HasExceptionHandlers = _exceptionHandlers.Count > 0,
             TypeTable = _typeTable is { Count: > 0 } ? _typeTable.ToArray() : Array.Empty<FunnyType>(),
             LocalsCount = _nextLocalSlot,
             MaxStackDepth = ComputeMaxStackDepth(bytecode),

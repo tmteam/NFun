@@ -17,6 +17,7 @@ public class CompiledProgram {
     public FunnyType[] TypeTable { get; init; }
     public int LocalsCount { get; init; }
     public int MaxStackDepth { get; init; }
+    public bool HasExceptionHandlers { get; init; }
 
 }
 

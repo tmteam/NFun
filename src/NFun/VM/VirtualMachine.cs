@@ -15,7 +15,7 @@ public static class VirtualMachine {
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     public static void Execute(CompiledProgram program, FunValue[] locals,
         FunValue[] stack, CallFrame[] callStack) {
-        if (program.ExceptionHandlers.Length > 0) {
+        if (program.HasExceptionHandlers) {
             ExecuteWithHandlers(program, locals, stack, callStack);
             return;
         }
