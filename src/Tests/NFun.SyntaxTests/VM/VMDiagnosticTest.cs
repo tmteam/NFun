@@ -262,6 +262,19 @@ public class VMDiagnosticTest {
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var program = (CompiledProgram)field.GetValue(vm);
 
+        // Check if using register VM (code starts with register opcodes)
+        var regField = typeof(VMRuntime).GetField("_regCode",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (regField?.GetValue(vm) is byte[] regCode) {
+            var sb2 = new StringBuilder();
+            sb2.AppendLine($"Expression: {expr} (REGISTER VM)");
+            sb2.AppendLine($"Code length: {regCode.Length} bytes");
+            for (int i = 0; i < regCode.Length; i += 4)
+                sb2.AppendLine($"  [{i:D4}] op={regCode[i]:X2} dst={regCode[i+1]} src1={regCode[i+2]} src2={regCode[i+3]}");
+            TestContext.WriteLine(sb2.ToString());
+            return;
+        }
+
         var sb = new StringBuilder();
         sb.AppendLine($"Expression: {expr}");
         sb.AppendLine($"Code length: {program.Code.Length} bytes");

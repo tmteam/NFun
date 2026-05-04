@@ -186,40 +186,44 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(IfThenElseSyntaxNode node) {
-        var outType = GetOutputType(node);
         var dst = (byte)AllocTemp();
+        var jumpToEnds = new List<int>();
 
-        // if(cond) thenExpr else elseExpr
-        // Compile condition
-        var condReg = CompileExpr(node.Ifs[0].Condition);
+        // if(cond1) expr1 if(cond2) expr2 ... else exprN
+        for (int i = 0; i < node.Ifs.Length; i++) {
+            var condReg = CompileExpr(node.Ifs[i].Condition);
 
-        // JmpIfNot cond, → else
-        int jmpToElse = _code.Count;
-        Emit(RegisterOp.JmpIfNot, condReg, 0, 0); // placeholder address
+            // JmpIfNot → next branch
+            int jmpToNext = _code.Count;
+            Emit(RegisterOp.JmpIfNot, condReg, 0, 0);
 
-        // Then branch
-        var thenReg = CompileExpr(node.Ifs[0].Expression);
-        if (thenReg != dst) Emit(RegisterOp.Mov, dst, thenReg, 0);
+            // Then branch
+            var thenReg = CompileExpr(node.Ifs[i].Expression);
+            if (thenReg != dst) Emit(RegisterOp.Mov, dst, thenReg, 0);
 
-        // Jmp → end
-        int jmpToEnd = _code.Count;
-        Emit(RegisterOp.Jmp, 0, 0, 0); // placeholder
+            // Jmp → end
+            jumpToEnds.Add(_code.Count);
+            Emit(RegisterOp.Jmp, 0, 0, 0);
 
-        // Patch JmpIfNot → here (else start)
-        int elseStart = _code.Count;
-        _code[jmpToElse + 2] = (byte)(elseStart >> 8);
-        _code[jmpToElse + 3] = (byte)(elseStart & 0xFF);
+            // Patch JmpIfNot → here
+            PatchJump(jmpToNext, _code.Count);
+        }
 
         // Else branch
         var elseReg = CompileExpr(node.ElseExpr);
         if (elseReg != dst) Emit(RegisterOp.Mov, dst, elseReg, 0);
 
-        // Patch Jmp → here (end)
+        // Patch all Jmp → end
         int end = _code.Count;
-        _code[jmpToEnd + 2] = (byte)(end >> 8);
-        _code[jmpToEnd + 3] = (byte)(end & 0xFF);
+        foreach (var addr in jumpToEnds)
+            PatchJump(addr, end);
 
         return dst;
+    }
+
+    private void PatchJump(int instrAddr, int target) {
+        _code[instrAddr + 2] = (byte)(target >> 8);
+        _code[instrAddr + 3] = (byte)(target & 0xFF);
     }
 
     public byte Visit(FunCallSyntaxNode node) {
