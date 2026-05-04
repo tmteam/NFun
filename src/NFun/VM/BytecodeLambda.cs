@@ -41,6 +41,16 @@ internal sealed class BytecodeLambda1 : FunctionWithSingleArg {
         VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
         return _stack[0].Box(_retType);
     }
+
+    /// <summary>Zero-boxing fast path: FunValue in → FunValue out. For future VM-native HOF.</summary>
+    internal FunValue CalcDirect(FunValue a) {
+        _locals[0] = a;
+        if (_captured != null)
+            for (int i = 0; i < _captured.Length; i++)
+                _locals[_captureOffset + i] = _captured[i];
+        VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
+        return _stack[0];
+    }
 }
 
 /// <summary>Arity-2 variant for fold(seed, rule(acc, elem) = ...).</summary>
@@ -78,5 +88,16 @@ internal sealed class BytecodeLambda2 : FunctionWithTwoArgs {
                 _locals[_captureOffset + i] = _captured[i];
         VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
         return _stack[0].Box(_retType);
+    }
+
+    /// <summary>Zero-boxing fast path.</summary>
+    internal FunValue CalcDirect(FunValue a, FunValue b) {
+        _locals[0] = a;
+        _locals[1] = b;
+        if (_captured != null)
+            for (int i = 0; i < _captured.Length; i++)
+                _locals[_captureOffset + i] = _captured[i];
+        VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
+        return _stack[0];
     }
 }

@@ -67,11 +67,22 @@ public class MapFunction : GenericFunctionBase {
         public override object Calc(object a, object b) {
             var arr = (IFunnyArray)a;
             var type = ReturnType.ArrayTypeSpecification.FunnyType;
+
+            // VM fast path: call lambda without boxing result
+            if (b is VM.BytecodeLambda1 bl) {
+                var results = new object[arr.Count];
+                for (int i = 0; i < arr.Count; i++) {
+                    var elem = arr.GetElementOrNull(i);
+                    var fv = VM.FunValue.Unbox(elem, bl.ArgTypes[0]);
+                    results[i] = bl.CalcDirect(fv).Box(bl.ReturnType);
+                }
+                return new ImmutableFunnyArray(results, type);
+            }
+
             if (b is FunctionWithSingleArg mapFunc)
                 return FunnyArrayTools.CreateEnumerable(arr.Select(e => mapFunc.Calc(e)), type);
 
             var map = (IConcreteFunction)b;
-
             return FunnyArrayTools.CreateEnumerable(arr.Select(e => map.Calc(new[] { e })), type);
         }
     }
@@ -444,11 +455,21 @@ public class FoldGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         var arr = (IFunnyArray)a;
         if (arr.Count == 0)
             throw new FunnyRuntimeException("Input array is empty");
+
+        // VM fast path: fold with BytecodeLambda2
+        if (b is VM.BytecodeLambda2 bl) {
+            var acc = VM.FunValue.Unbox(arr.GetElementOrNull(0), bl.ArgTypes[0]);
+            for (int i = 1; i < arr.Count; i++) {
+                var elem = VM.FunValue.Unbox(arr.GetElementOrNull(i), bl.ArgTypes[1]);
+                acc = bl.CalcDirect(acc, elem);
+            }
+            return acc.Box(bl.ReturnType);
+        }
+
         if (b is FunctionWithTwoArgs fold2)
             return arr.Aggregate((l, r) => fold2.Calc(l, r));
 
         var fold = (IConcreteFunction)b;
-
         return arr.Aggregate((l, r) => fold.Calc(new[] { l, r }));
     }
 }
@@ -627,10 +648,22 @@ public class FilterGenericFunctionDefinition : GenericFunctionWithTwoArguments {
 
     protected override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;
+
+        // VM fast path: call lambda without boxing
+        if (b is VM.BytecodeLambda1 bl) {
+            var results = new List<object>();
+            for (int i = 0; i < arr.Count; i++) {
+                var elem = arr.GetElementOrNull(i);
+                var fv = VM.FunValue.Unbox(elem, bl.ArgTypes[0]);
+                if (bl.CalcDirect(fv).I64 != 0)
+                    results.Add(elem);
+            }
+            return new ImmutableFunnyArray(results.ToArray(), arr.ElementType);
+        }
+
         if (b is FunctionWithSingleArg predicate)
             return FunnyArrayTools.CreateEnumerable(arr.Where(e => (bool)predicate.Calc(e)), arr.ElementType);
         var filter = (IConcreteFunction)b;
-
         return FunnyArrayTools.CreateEnumerable(arr.Where(e => (bool)filter.Calc(new[] { e })), arr.ElementType);
     }
 }
