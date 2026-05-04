@@ -6,67 +6,77 @@ namespace NFun.VM;
 /// <summary>
 /// IConcreteFunction wrapper that re-enters the VM to execute a lambda's bytecode.
 /// Created by MakeClosure opcode. Passed to map/filter/fold as the callback.
+/// Locals and stack are cached — zero allocation per Calc() call.
 /// </summary>
 internal sealed class BytecodeLambda1 : FunctionWithSingleArg {
     private readonly CompiledProgram _program;
-    private readonly int _funcId;
+    private readonly int _entryIP;
+    private readonly FunnyType _argType;
+    private readonly FunnyType _retType;
     private readonly FunValue[] _captured;
-    private readonly int _argCount;
+    private readonly int _captureOffset; // slot offset where captured vars start
+    private readonly FunValue[] _locals;
+    private readonly FunValue[] _stack;
 
     public BytecodeLambda1(CompiledProgram program, int funcId, FunValue[] captured) {
         _program = program;
-        _funcId = funcId;
         ref var uf = ref program.UserFunctions[funcId];
-        _argCount = uf.ArgTypes.Length;
+        _entryIP = uf.EntryIP;
+        _argType = uf.ArgTypes[0];
+        _retType = uf.ReturnType;
         _captured = captured;
+        _captureOffset = uf.ArgTypes.Length;
+        _locals = new FunValue[uf.LocalsCount];
+        _stack = new FunValue[8];
         Name = uf.Name;
-        ArgTypes = new[] { uf.ArgTypes[0] };
-        ReturnType = uf.ReturnType;
+        ArgTypes = new[] { _argType };
+        ReturnType = _retType;
     }
 
     public override object Calc(object a) {
-        ref var uf = ref _program.UserFunctions[_funcId];
-        var locals = new FunValue[uf.LocalsCount];
-        locals[0] = FunValue.Unbox(a, uf.ArgTypes[0]);
+        _locals[0] = FunValue.Unbox(a, _argType);
         if (_captured != null)
             for (int i = 0; i < _captured.Length; i++)
-                locals[_argCount + i] = _captured[i];
-
-        var stack = new FunValue[8];
-        VirtualMachine.ExecuteSubroutine(_program, locals, stack, uf.EntryIP);
-        return stack[0].Box(uf.ReturnType);
+                _locals[_captureOffset + i] = _captured[i];
+        VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
+        return _stack[0].Box(_retType);
     }
 }
 
 /// <summary>Arity-2 variant for fold(seed, rule(acc, elem) = ...).</summary>
 internal sealed class BytecodeLambda2 : FunctionWithTwoArgs {
     private readonly CompiledProgram _program;
-    private readonly int _funcId;
+    private readonly int _entryIP;
+    private readonly FunnyType _argType0, _argType1;
+    private readonly FunnyType _retType;
     private readonly FunValue[] _captured;
-    private readonly int _argCount;
+    private readonly int _captureOffset;
+    private readonly FunValue[] _locals;
+    private readonly FunValue[] _stack;
 
     public BytecodeLambda2(CompiledProgram program, int funcId, FunValue[] captured) {
         _program = program;
-        _funcId = funcId;
         ref var uf = ref program.UserFunctions[funcId];
-        _argCount = uf.ArgTypes.Length;
+        _entryIP = uf.EntryIP;
+        _argType0 = uf.ArgTypes[0];
+        _argType1 = uf.ArgTypes[1];
+        _retType = uf.ReturnType;
         _captured = captured;
+        _captureOffset = uf.ArgTypes.Length;
+        _locals = new FunValue[uf.LocalsCount];
+        _stack = new FunValue[8];
         Name = uf.Name;
         ArgTypes = uf.ArgTypes;
-        ReturnType = uf.ReturnType;
+        ReturnType = _retType;
     }
 
     public override object Calc(object a, object b) {
-        ref var uf = ref _program.UserFunctions[_funcId];
-        var locals = new FunValue[uf.LocalsCount];
-        locals[0] = FunValue.Unbox(a, uf.ArgTypes[0]);
-        locals[1] = FunValue.Unbox(b, uf.ArgTypes[1]);
+        _locals[0] = FunValue.Unbox(a, _argType0);
+        _locals[1] = FunValue.Unbox(b, _argType1);
         if (_captured != null)
             for (int i = 0; i < _captured.Length; i++)
-                locals[_argCount + i] = _captured[i];
-
-        var stack = new FunValue[8];
-        VirtualMachine.ExecuteSubroutine(_program, locals, stack, uf.EntryIP);
-        return stack[0].Box(uf.ReturnType);
+                _locals[_captureOffset + i] = _captured[i];
+        VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
+        return _stack[0].Box(_retType);
     }
 }
