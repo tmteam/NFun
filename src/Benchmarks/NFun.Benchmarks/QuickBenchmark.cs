@@ -98,7 +98,10 @@ public class QuickBenchmarkTests
             string runDelta   = vmRun > 0 && twRun > 0 ? FormatDelta(vmRun / twRun) : "  n/a";
             string updDelta   = vmUpdate > 0 && twUpdate > 0 ? FormatDelta(vmUpdate / twUpdate) : "  n/a";
 
-            sb.AppendLine($"{ns.Name,-10} | {Fmt(twBuild),7} μs | {Fmt(vmBuild),7} μs | {buildDelta,9} | {Fmt(twRun),6} μs | {Fmt(vmRun),6} μs | {runDelta,8} | {Fmt(twUpdate),7} μs | {Fmt(vmUpdate),6} μs | {updDelta,7}");
+            double vmDirect = FindSlot(report, ns.Name, "VM-Direct")?.MeanUs ?? 0;
+            string directDelta = vmDirect > 0 && twUpdate > 0 ? FormatDelta(vmDirect / twUpdate) : "  n/a";
+
+            sb.AppendLine($"{ns.Name,-10} | {Fmt(twBuild),7} μs | {Fmt(vmBuild),7} μs | {buildDelta,9} | {Fmt(twRun),6} μs | {Fmt(vmRun),6} μs | {runDelta,8} | {Fmt(twUpdate),7} μs | {Fmt(vmUpdate),6} μs | {updDelta,7} | {Fmt(vmDirect),6} μs | {directDelta,7}");
 
             wTwB += ns.Importance * twBuild; wVmB += ns.Importance * vmBuild;
             wTwR += ns.Importance * twRun;   wVmR += ns.Importance * vmRun;
@@ -168,11 +171,27 @@ public class QuickBenchmarkTests
                 } catch { }
             }
         }
+        // VM-Update: uses SetInput/GetOutput wrapper (Dictionary lookup + boxing)
         foreach (var (script, rt) in vmUpdatePairs)
             builder.Add(name, "VM-Update", () => {
                 foreach (var (varName, val) in script.Inputs) rt.SetInput(varName, val);
                 rt.Run();
                 foreach (var outName in script.Outputs) _ = rt.GetOutput(outName);
+            });
+
+        // VM-Direct: zero-overhead slot access (no Dictionary, no boxing)
+        var vmDirectPairs = new List<(int[] inputSlots, int[] outputSlots, NFun.VM.VMRuntime rt)>();
+        foreach (var (script, rt) in vmUpdatePairs) {
+            var inSlots = script.Inputs.Keys.Select(k => rt.GetSlot(k)).Where(s => s >= 0).ToArray();
+            var outSlots = script.Outputs.Select(o => rt.GetSlot(o)).Where(s => s >= 0).ToArray();
+            if (inSlots.Length > 0 && outSlots.Length > 0)
+                vmDirectPairs.Add((inSlots, outSlots, rt));
+        }
+        foreach (var (inSlots, outSlots, rt) in vmDirectPairs)
+            builder.Add(name, "VM-Direct", () => {
+                rt.Locals[inSlots[0]].I64 = 1; // set input directly
+                rt.Run();
+                _ = rt.Locals[outSlots[0]].I64; // read output directly
             });
     }
 

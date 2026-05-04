@@ -42,6 +42,13 @@ public class VMRuntime {
             VirtualMachine.Execute(_program, _locals, _stack, _callStack);
     }
 
+    /// <summary>Direct access to register/local slots. Zero overhead for hot loops.</summary>
+    public FunValue[] Locals => _locals;
+
+    /// <summary>Get slot index for a variable name. Cache this for hot loops.</summary>
+    public int GetSlot(string name) =>
+        _variables.TryGetValue(name, out var v) ? v.Slot : -1;
+
     public void SetInput(string name, object value) {
         if (!_variables.TryGetValue(name, out var v))
             throw new KeyNotFoundException($"Variable '{name}' not found");
