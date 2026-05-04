@@ -219,12 +219,20 @@ public static class VirtualMachine {
                     var count = code[ip++];
                     var typeIdx = code[ip++];
                     var elemType = program.TypeTable[typeIdx];
-                    var arr = new object[count];
-                    for (int i = count - 1; i >= 0; i--) {
-                        sp--;
-                        arr[i] = BoxElement(ref stack[sp], elemType.BaseType);
+                    // Use FunValueArray for primitive element types (zero boxing for VM operations)
+                    if (IsPrimitiveType(elemType.BaseType)) {
+                        var fvArr = new FunValue[count];
+                        for (int i = count - 1; i >= 0; i--)
+                            fvArr[i] = stack[--sp];
+                        stack[sp++].Ref = new FunValueArray(fvArr, elemType);
+                    } else {
+                        var arr = new object[count];
+                        for (int i = count - 1; i >= 0; i--) {
+                            sp--;
+                            arr[i] = BoxElement(ref stack[sp], elemType.BaseType);
+                        }
+                        stack[sp++].Ref = new Runtime.Arrays.ImmutableFunnyArray(arr, elemType);
                     }
-                    stack[sp++].Ref = new Runtime.Arrays.ImmutableFunnyArray(arr, elemType);
                     break;
                 }
                 case Op.GetElement: {
@@ -379,6 +387,9 @@ public static class VirtualMachine {
             if (ip >= handlers[i].TryStartIP && ip < handlers[i].TryEndIP) return handlers[i];
         return null;
     }
+
+    private static bool IsPrimitiveType(BaseFunnyType bt) =>
+        bt >= BaseFunnyType.Char && bt <= BaseFunnyType.Real;
 
     private static FunnyType BaseTypeToFunnyType(BaseFunnyType bt) => bt switch {
         BaseFunnyType.UInt8  => FunnyType.UInt8,

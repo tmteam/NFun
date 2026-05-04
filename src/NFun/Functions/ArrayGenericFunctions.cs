@@ -68,14 +68,18 @@ public class MapFunction : GenericFunctionBase {
             var arr = (IFunnyArray)a;
             var type = ReturnType.ArrayTypeSpecification.FunnyType;
 
-            // VM fast path: call lambda without boxing result
-            if (b is VM.BytecodeLambda1 bl) {
+            // VM fast path: FunValueArray + BytecodeLambda = ZERO boxing
+            if (b is VM.BytecodeLambda1 bl && arr is VM.FunValueArray fvArr) {
+                var results = new VM.FunValue[fvArr.Count];
+                for (int i = 0; i < fvArr.Count; i++)
+                    results[i] = bl.CalcDirect(fvArr.GetDirect(i));
+                return new VM.FunValueArray(results, type);
+            }
+            // VM partial path: BytecodeLambda but object[] array
+            if (b is VM.BytecodeLambda1 bl2) {
                 var results = new object[arr.Count];
-                for (int i = 0; i < arr.Count; i++) {
-                    var elem = arr.GetElementOrNull(i);
-                    var fv = VM.FunValue.Unbox(elem, bl.ArgTypes[0]);
-                    results[i] = bl.CalcDirect(fv).Box(bl.ReturnType);
-                }
+                for (int i = 0; i < arr.Count; i++)
+                    results[i] = bl2.CalcDirect(VM.FunValue.Unbox(arr.GetElementOrNull(i), bl2.ArgTypes[0])).Box(bl2.ReturnType);
                 return new ImmutableFunnyArray(results, type);
             }
 
