@@ -1635,12 +1635,14 @@ public static class SolvingFunctions {
                 newFields.Add(key, nrField);
             }
 
-            return new StateStruct(newFields, isFrozen: structDesc.IsFrozen, isOpen: structDesc.IsOpen) {
-                IsOptionalSourced = structDesc.IsOptionalSourced,
-                // TransformToStructOrNull copies a struct descendant out of a ConstraintsState;
-                // the named identity must follow.
-                TypeName = structDesc.TypeName,
-            };
+            return structDesc is StateMutableStruct
+                ? new StateMutableStruct(newFields, isFrozen: false, isOpen: structDesc.IsOpen)
+                : new StateStruct(newFields, isFrozen: structDesc.IsFrozen, isOpen: structDesc.IsOpen) {
+                    IsOptionalSourced = structDesc.IsOptionalSourced,
+                    // TransformToStructOrNull copies a struct descendant out of a ConstraintsState;
+                    // the named identity must follow.
+                    TypeName = structDesc.TypeName,
+                };
         }
 
         return null;

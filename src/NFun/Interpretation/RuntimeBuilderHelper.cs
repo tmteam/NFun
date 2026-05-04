@@ -27,6 +27,7 @@ internal static class RuntimeBuilderHelper {
         DialectSettings dialect,
         int[] sharedRecursionDepth = null) {
         var vars = new VariableDictionary(functionSyntax.Args.Count);
+        var argumentSources = new VariableSource[functionSyntax.Args.Count];
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
             var variableSource = CreateVariableSourceForArgument(
@@ -36,6 +37,7 @@ internal static class RuntimeBuilderHelper {
 
             if (!vars.TryAdd(variableSource))
                 throw Errors.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
+            argumentSources[i] = variableSource;
         }
 
         var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
@@ -54,7 +56,7 @@ internal static class RuntimeBuilderHelper {
         var function = ConcreteUserFunction.Create(
             isRecursive: functionSyntax.IsRecursive,
             name: functionSyntax.Id,
-            variables: vars.GetAllAsArray(),
+            variables: argumentSources,
             expression: bodyExpression,
             sharedRecursionDepth: sharedRecursionDepth);
         return function;
@@ -112,12 +114,13 @@ internal static class RuntimeBuilderHelper {
         IExpressionNode bodyExpression,
         IEnumerable<string> list) {
 
-        var hasUnknownVariables = variables.GetAll().Any(u=>!list.Contains(u.Name));
+        // Skip block-local variables (Output) — they are created during block expression building
+        var hasUnknownVariables = variables.GetAll().Any(u=> !u.IsOutput && !list.Contains(u.Name));
         if (hasUnknownVariables)
         {
             var unknownVariableUsages = variables
                 .GetAll()
-                .Where(u => !list.Contains(u.Name))
+                .Where(u => !u.IsOutput && !list.Contains(u.Name))
                 .Select(bodyExpression.FindFirstUsageOrNull)
                 .Where(s=>s!=null)
                 .ToList();

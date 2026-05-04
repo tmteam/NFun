@@ -56,7 +56,8 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
-        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled) {
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
+        bool useMutableStructs = false) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -67,6 +68,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         NamedTypesSupport = namedTypesSupport;
         TryCatchSupport = tryCatchSupport;
         ExtensionFunctionsSeparation = extensionFunctionsSeparation;
+        UseMutableStructs = useMutableStructs;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
@@ -78,6 +80,8 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
     public NamedTypesSupport NamedTypesSupport { get; }
     public TryCatchSupport TryCatchSupport { get; }
     public ExtensionFunctionsSeparation ExtensionFunctionsSeparation { get; }
+    /// <summary>When true, struct literals produce StateMutableStruct (invariant field types). Used in lang mode.</summary>
+    public bool UseMutableStructs { get; }
 }
 
 /// <summary>

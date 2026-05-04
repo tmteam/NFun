@@ -97,7 +97,7 @@ internal static class BaseFunctions {
             new ThrowErrorFunction(),
             new OopsFunction0(),
             new OopsFunction1(),
-            new OopsFunction2()
+            new OopsFunction2(),
         };
 
         ConcreteFunctions = new IConcreteFunction[] {
@@ -125,6 +125,11 @@ internal static class BaseFunctions {
             new ConcatArrayOfTextsFunction(),
             new Concat2TextsFunction(),
             new Concat3TextsFunction(),
+
+            PrintFunction.Instance,
+            PrintWithEndFunction.Instance,
+            ReadLineFunction.Instance,
+            ReadCharFunction.Instance,
         };
 
         ConcreteDoubleFunctions = new IConcreteFunction[] {

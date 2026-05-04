@@ -76,26 +76,47 @@ class Program {
         if (argList.Remove("-t") || argList.Remove("--trace"))
             TraceLog.IsEnabled = true;
 
-        if (argList.Count >= 2 && argList[0] is "-e" or "--eval")
+        // Default: lang mode. -e / -l are aliases; -s / -ls run scripts from file.
+        if (argList.Count >= 2 && argList[0] is "-e" or "--eval" or "-l" or "--lang")
         {
-            var expression = string.Join(" ", argList.Skip(1));
+            var script = ExpandEscapes(string.Join("\n", argList.Skip(1)));
+            return ExecuteLang(script);
+        }
+
+        if (argList.Count >= 2 && argList[0] is "-s" or "--script" or "-ls" or "--lang-script")
+        {
+            var script = File.ReadAllText(argList[1]);
+            return ExecuteLang(script);
+        }
+
+        // Legacy expression-mode escape hatch (for one-output expressions that need it)
+        if (argList.Count >= 2 && argList[0] is "--expr")
+        {
+            var expression = ExpandEscapes(string.Join(" ", argList.Skip(1)));
             return ExecuteNonInteractive(expression);
         }
 
-        if (argList.Count >= 2 && argList[0] is "-s" or "--script")
+        // File execution: nfun file.fun
+        if (argList.Count >= 1 && argList[0].EndsWith(".fun", StringComparison.OrdinalIgnoreCase) && File.Exists(argList[0]))
         {
-            var script = File.ReadAllText(argList[1]);
-            return ExecuteNonInteractive(script);
+            var script = File.ReadAllText(argList[0]);
+            return ExecuteLang(script);
         }
 
         if (argList.Count == 1 && argList[0] is "-h" or "--help")
         {
             Console.WriteLine("Usage: nfun [options]");
-            Console.WriteLine("  (no args)          Interactive REPL");
-            Console.WriteLine("  -e, --eval <expr>  Evaluate expression and print results");
-            Console.WriteLine("  -s, --script <file> Run script from file");
-            Console.WriteLine("  -t, --trace        Show TIC solver trace");
-            Console.WriteLine("  -h, --help         Show this help");
+            Console.WriteLine("  (no args)                Interactive REPL");
+            Console.WriteLine("  -e, --eval <code>        Run lang-mode code (alias of -l)");
+            Console.WriteLine("  -l, --lang <code>        Run lang-mode code (functions, blocks, control flow)");
+            Console.WriteLine("  -s, --script <file>      Run lang-mode script from file (alias of -ls)");
+            Console.WriteLine("  -ls, --lang-script <f>   Run lang-mode script from file");
+            Console.WriteLine("  <file.fun>               Run .fun file in lang mode");
+            Console.WriteLine("  --expr <expr>            Legacy expression mode (single-expression evaluator)");
+            Console.WriteLine("  -t, --trace              Show TIC solver trace");
+            Console.WriteLine("  -h, --help               Show this help");
+            Console.WriteLine();
+            Console.WriteLine("Escape sequences (in -e / -l): \\n (LF), \\r (CR), \\t (tab), \\\\ (backslash)");
             return 0;
         }
 
@@ -583,7 +604,7 @@ class Program {
     }
 
     static ConsoleColor TokenColor(TokType type) => type switch {
-        TokType.If or TokType.Else or TokType.Then => ConsoleColor.Magenta,
+        TokType.If or TokType.Else or TokType.Elif or TokType.Then => ConsoleColor.Magenta,
         TokType.And or TokType.Or or TokType.Xor or TokType.Not => ConsoleColor.Magenta,
         TokType.In or TokType.Rule or TokType.Default => ConsoleColor.Magenta,
         TokType.Reserved => ConsoleColor.DarkMagenta,
@@ -772,6 +793,28 @@ class Program {
         return false;
     }
 
+    // Expand C-style escape sequences (\n, \r, \t, \\) in CLI-passed scripts.
+    // Shell passes literal `\n` as two characters; lang mode needs real LF.
+    static string ExpandEscapes(string s) {
+        if (string.IsNullOrEmpty(s) || s.IndexOf('\\') < 0) return s;
+        var sb = new StringBuilder(s.Length);
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '\\' && i + 1 < s.Length)
+            {
+                switch (s[i + 1])
+                {
+                    case 'n': sb.Append('\n'); i++; continue;
+                    case 'r': sb.Append('\n'); i++; continue; // \r → \n for lang mode parity
+                    case 't': sb.Append('\t'); i++; continue;
+                    case '\\': sb.Append('\\'); i++; continue;
+                }
+            }
+            sb.Append(s[i]);
+        }
+        return sb.ToString();
+    }
+
     // ── Execution ──────────────────────────────────────────────────────────────
     static int ExecuteNonInteractive(string expression) {
         try
@@ -799,6 +842,46 @@ class Program {
             Console.Error.WriteLine($"Parse error [FU{e.ErrorCode}]: {e.Message}");
             if (e.Start >= 0 && e.End > 0 && e.End <= expression.Length)
                 Console.Error.WriteLine($"  at [{e.Start}..{e.End}]: '{e.Interval.SubString(expression)}'");
+            return 1;
+        }
+        catch (FunnyRuntimeException e)
+        {
+            Console.Error.WriteLine($"Runtime error: {e.Message}");
+            return 1;
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine($"{e.GetType().Name}: {e.Message}");
+            return 1;
+        }
+    }
+
+    static int ExecuteLang(string script) {
+        try
+        {
+            var runtime = Funny.Hardcore.BuildLang(script);
+
+            // Set input variables if needed (lang mode typically doesn't have unbound inputs)
+            var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
+            if (inputs.Count > 0)
+            {
+                Console.Error.WriteLine("Warning: script has unbound inputs: " +
+                    string.Join(", ", inputs.Select(i => $"{i.Name}:{i.Type}")));
+            }
+
+            runtime.Run();
+
+            var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
+            foreach (var output in outputs)
+                Console.WriteLine($"{output.Name}:{output.Type} = {FormatValue(output.Value)}");
+
+            return 0;
+        }
+        catch (FunnyParseException e)
+        {
+            Console.Error.WriteLine($"Parse error [FU{e.ErrorCode}]: {e.Message}");
+            if (e.Start >= 0 && e.End > 0 && e.End <= script.Length)
+                Console.Error.WriteLine($"  at [{e.Start}..{e.End}]: '{e.Interval.SubString(script)}'");
             return 1;
         }
         catch (FunnyRuntimeException e)

@@ -75,4 +75,16 @@ class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(TypeDeclarationSyntaxNode node) => $"type-decl '{node.TypeName}'";
     public string Visit(NamedTypeConstructorSyntaxNode node) => $"type-ctor '{node.TypeName}'";
     public string Visit(TryCatchSyntaxNode node) => "try-catch";
+    public string Visit(BlockSyntaxNode node) => "block";
+    public string Visit(ReturnSyntaxNode node) => "return";
+    public string Visit(ForSyntaxNode node) => $"for '{node.IteratorName}'";
+    public string Visit(WhileSyntaxNode node) => "while";
+    public string Visit(WhenSyntaxNode node) => "when";
+    public string Visit(WhenArmSyntaxNode node) => "when-arm";
+    public string Visit(BreakSyntaxNode node) => "break";
+    public string Visit(ContinueSyntaxNode node) => "continue";
+    public string Visit(PrintSyntaxNode node) => "print";
+    public string Visit(TryBlockSyntaxNode node) => "try-block";
+    public string Visit(IfBlockSyntaxNode node) => "if-block";
+    public string Visit(FieldAssignmentSyntaxNode node) => $"field-assign '{node.VariableName}.{node.FieldName}'";
 }

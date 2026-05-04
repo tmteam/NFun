@@ -58,7 +58,10 @@ internal class ConcreteUserFunction : FunctionWithManyArguments, IUserFunction {
 
     public override object Calc(object[] args) {
         SetVariables(args);
-        return Expression.Calc();
+        var result = Expression.Calc();
+        if (result is Nodes.ReturnSignal signal)
+            return signal.Value;
+        return result;
     }
     
     public override string ToString()

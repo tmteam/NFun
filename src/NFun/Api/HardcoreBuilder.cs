@@ -125,6 +125,17 @@ public class HardcoreBuilder {
             _customTypes);
     }
 
+    public FunnyRuntime BuildLang(string script) {
+        var converter = Converter;
+        return RuntimeBuilder.BuildLang(
+            script,
+            BaseFunctions.GetFunctions(converter.TypeBehaviour).CloneWith(_customFunctions),
+            _dialect,
+            _constants.Length > 0 ? new ConstantList(converter, _constants) : null,
+            _mutableApriori,
+            _customTypes);
+    }
+
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
             script,

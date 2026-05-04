@@ -105,4 +105,16 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(TypeDeclarationSyntaxNode node) => $"type {node.TypeName}";
     public string Visit(NamedTypeConstructorSyntaxNode node) => $"{node.TypeName}{{...}}";
     public string Visit(TryCatchSyntaxNode node) => "try ... catch ...";
+    public string Visit(BlockSyntaxNode node) => "{ ... }";
+    public string Visit(ReturnSyntaxNode node) => "return ...";
+    public string Visit(ForSyntaxNode node) => $"for {node.IteratorName} in ...";
+    public string Visit(WhileSyntaxNode node) => "while ...";
+    public string Visit(WhenSyntaxNode node) => "when ...";
+    public string Visit(WhenArmSyntaxNode node) => "when arm ...";
+    public string Visit(BreakSyntaxNode node) => "break";
+    public string Visit(ContinueSyntaxNode node) => "continue";
+    public string Visit(PrintSyntaxNode node) => "print ...";
+    public string Visit(TryBlockSyntaxNode node) => "try: ... catch: ...";
+    public string Visit(IfBlockSyntaxNode node) => "if ...: ...";
+    public string Visit(FieldAssignmentSyntaxNode node) => $"{node.VariableName}.{node.FieldName} = ...";
 }

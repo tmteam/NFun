@@ -26,6 +26,7 @@ public class UserFunctionDefinitionSyntaxNode : ISyntaxNode {
     public string Id => Head.Id;
     public IList<TypedVarDefSyntaxNode> Args { get; }
     public ISyntaxNode Body { get; }
+    public FunnyAttribute[] Attributes { get; set; } = System.Array.Empty<FunnyAttribute>();
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children

@@ -30,6 +30,9 @@ public class FunnyRuntime {
 
     public FunnyConverter Converter { get; }
 
+    /// <summary>IO context for print/readLine/readChar. Per-runtime, mockable.</summary>
+    public FunnyIO IO { get; set; } = new();
+
     /// <summary>
     /// Registry of named type definitions from this script.
     /// Empty if no named types were defined.
@@ -50,8 +53,14 @@ public class FunnyRuntime {
     /// Calculate output variables based on the current values of the input variables
     /// </summary>
     public void Run() {
-        foreach (var equation in _equations)
-            equation.Run();
+        var prev = FunnyIO.Current;
+        FunnyIO.Current = IO;
+        try {
+            foreach (var equation in _equations)
+                equation.Run();
+        } finally {
+            FunnyIO.Current = prev;
+        }
     }
 
     /// <summary>
