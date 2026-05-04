@@ -388,7 +388,7 @@ public static class VirtualMachine {
         return null;
     }
 
-    private static bool IsPrimitiveType(BaseFunnyType bt) =>
+    internal static bool IsPrimitiveType(BaseFunnyType bt) =>
         bt >= BaseFunnyType.Char && bt <= BaseFunnyType.Real;
 
     private static FunnyType BaseTypeToFunnyType(BaseFunnyType bt) => bt switch {

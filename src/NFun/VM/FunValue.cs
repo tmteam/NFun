@@ -43,6 +43,8 @@ public struct FunValue {
             BaseFunnyType.Real   => Real,
             BaseFunnyType.Bool   => I64 != 0,
             BaseFunnyType.Char   => (char)I64,
+            // For Any/None: prefer Ref if set, else box I64 as long (primitive in register)
+            BaseFunnyType.Any or BaseFunnyType.None => Ref ?? (object)I64,
             _                    => Ref,
         };
     }

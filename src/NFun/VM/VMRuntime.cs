@@ -36,7 +36,8 @@ public class VMRuntime {
 
     public void Run() {
         if (_regCode != null)
-            RegisterVM.Execute(_regCode, _locals, _regConstants);
+            RegisterVM.Execute(_regCode, _locals, _regConstants, _program,
+                _program.ExternFunctions, _program.UserFunctions, 0);
         else
             VirtualMachine.Execute(_program, _locals, _stack, _callStack);
     }
@@ -166,34 +167,36 @@ public class VMRuntime {
             }
         }
 
-        // 7. Try register VM first (simple arithmetic), fallback to stack VM
+        // 7. Try register VM first — supports all features except lambdas/try-catch/user-funcs.
+        //    Falls back to stack VM on NotSupportedException.
         try {
-            if (functionSolveOrder.Length == 0 && !hasTreeWalkerEquations
-                && HasOnlyPrimitiveEquations(syntaxTree)) {
-                var (regCode, regConsts, regLocals, regSlots) =
-                    RegisterCompiler.Compile(syntaxTree, typeInferenceResults, TicTypesConverter.Concrete);
+            if (functionSolveOrder.Length == 0 && !hasTreeWalkerEquations) {
+                var (regCode, regConsts, regLocals, regSlots, regExternFuncs, regStructLayouts, regTypeTable) =
+                    RegisterCompiler.Compile(syntaxTree, typeInferenceResults, TicTypesConverter.Concrete,
+                        bodyRegistry, dialect);
 
                 // Build a minimal CompiledProgram for variable metadata
                 var regVars = new List<VariableSlot>();
                 foreach (var (name, slot) in regSlots) {
-                    var type = typeInferenceResults.GetSyntaxNodeTypeOrNull(0) != null
-                        ? FunnyType.Any : FunnyType.Any;
+                    var type = FunnyType.Any;
                     // Determine type from syntax tree equations
                     foreach (var n in syntaxTree.Nodes) {
                         if (n is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq && string.Equals(eq.Id, name, StringComparison.OrdinalIgnoreCase)) {
                             type = eq.OutputType.BaseType != BaseFunnyType.Empty ? eq.OutputType : eq.Expression.OutputType;
+                            // If still unresolved, try TIC results for the expression node
+                            if (type.BaseType == BaseFunnyType.Empty || type.BaseType == BaseFunnyType.Any) {
+                                var ticState = typeInferenceResults.GetSyntaxNodeTypeOrNull(eq.Expression.OrderNumber);
+                                if (ticState != null)
+                                    type = TicTypesConverter.Concrete.Convert(ticState);
+                            }
                             break;
                         }
                     }
                     // If not an equation output, it's an input — get type from syntax tree
-                    if (type.BaseType == BaseFunnyType.Any) {
+                    if (type.BaseType == BaseFunnyType.Any || type.BaseType == BaseFunnyType.Empty) {
                         foreach (var n in syntaxTree.Nodes)
                             if (n is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq2)
-                                foreach (var child in eq2.Expression.Children)
-                                    if (child is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named
-                                        && string.Equals(named.Id, name, StringComparison.OrdinalIgnoreCase)
-                                        && named.OutputType.BaseType != BaseFunnyType.Empty)
-                                        type = named.OutputType;
+                                ScanForVariableType(eq2.Expression, name, ref type);
                     }
                     bool isOutput = false;
                     foreach (var n in syntaxTree.Nodes)
@@ -206,11 +209,11 @@ public class VMRuntime {
                     Code = regCode,
                     Constants = regConsts,
                     Variables = regVars.ToArray(),
-                    StructLayouts = Array.Empty<StructLayout>(),
-                    ExternFunctions = Array.Empty<ExternFunc>(),
+                    StructLayouts = regStructLayouts,
+                    ExternFunctions = regExternFuncs,
                     UserFunctions = Array.Empty<UserFunc>(),
                     ExceptionHandlers = Array.Empty<ExceptionHandler>(),
-                    TypeTable = Array.Empty<FunnyType>(),
+                    TypeTable = regTypeTable,
                     LocalsCount = regLocals,
                     MaxStackDepth = 0,
                     HasExceptionHandlers = false,
@@ -220,7 +223,9 @@ public class VMRuntime {
                 regRuntime._regConstants = regConsts;
                 return regRuntime;
             }
-        } catch { /* Register compiler doesn't support this expression — use stack VM */ }
+        } catch (NotSupportedException) {
+            // Register compiler doesn't support this expression — use stack VM
+        }
 
         // 7b. Stack VM fallback
         var program = BytecodeCompiler.Compile(
@@ -275,32 +280,16 @@ public class VMRuntime {
             ScanAndRegisterVars(child, variables, dialect);
     }
 
-    /// <summary>Check if all equations use only primitive types (int/real/bool) — register VM candidate.</summary>
-    private static bool HasOnlyPrimitiveEquations(SyntaxTree tree) {
-        foreach (var node in tree.Nodes) {
-            if (node is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq) {
-                if (!IsPrimitiveExpr(eq.Expression)) return false;
-            }
+    /// <summary>Recursively scan a syntax node tree for a named variable and capture its type.</summary>
+    private static void ScanForVariableType(ISyntaxNode node, string name, ref FunnyType type) {
+        if (node is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named
+            && string.Equals(named.Id, name, StringComparison.OrdinalIgnoreCase)
+            && named.OutputType.BaseType != BaseFunnyType.Empty) {
+            type = named.OutputType;
+            return;
         }
-        return true;
-    }
-
-    private static bool IsPrimitiveExpr(ISyntaxNode node) {
-        var bt = node.OutputType.BaseType;
-        if (bt != BaseFunnyType.Empty && bt != BaseFunnyType.Bool
-            && !(bt >= BaseFunnyType.UInt8 && bt <= BaseFunnyType.Real))
-            return false;
-        // Reject arrays, structs, text, optional, etc.
-        if (node is SyntaxParsing.SyntaxNodes.ArraySyntaxNode
-            || node is SyntaxParsing.SyntaxNodes.StructInitSyntaxNode
-            || node is SyntaxParsing.SyntaxNodes.StructFieldAccessSyntaxNode
-            || node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
-            || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode
-            || node is SyntaxParsing.SyntaxNodes.TryCatchSyntaxNode)
-            return false;
         foreach (var child in node.Children)
-            if (!IsPrimitiveExpr(child)) return false;
-        return true;
+            ScanForVariableType(child, name, ref type);
     }
 
     internal static bool NeedsTreeWalkerFallback(ISyntaxNode node) {
