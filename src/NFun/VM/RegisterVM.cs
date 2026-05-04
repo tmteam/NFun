@@ -26,21 +26,53 @@ public static class RegisterVM {
 
         int ip = startIP;
 
+        // HOT LOOP: only ~15 most common opcodes. JIT sees a tiny method → aggressive optimization.
         while (true) {
-            var op = (RegisterOp)code[ip];
             var dst = code[ip + 1];
             var s1 = code[ip + 2];
             var s2 = code[ip + 3];
-            ip += 4;
+            switch ((RegisterOp)code[ip]) {
+                case RegisterOp.AddRI_I:  ip+=4; locals[dst].I64 = locals[s1].I64 + constants[s2].I64; continue;
+                case RegisterOp.MulRI_I:  ip+=4; locals[dst].I64 = locals[s1].I64 * constants[s2].I64; continue;
+                case RegisterOp.SubRI_I:  ip+=4; locals[dst].I64 = locals[s1].I64 - constants[s2].I64; continue;
+                case RegisterOp.AddRR_I:  ip+=4; locals[dst].I64 = locals[s1].I64 + locals[s2].I64; continue;
+                case RegisterOp.MulRR_I:  ip+=4; locals[dst].I64 = locals[s1].I64 * locals[s2].I64; continue;
+                case RegisterOp.SubRR_I:  ip+=4; locals[dst].I64 = locals[s1].I64 - locals[s2].I64; continue;
+                case RegisterOp.AddRI_D:  ip+=4; locals[dst].Real = locals[s1].Real + constants[s2].Real; continue;
+                case RegisterOp.MulRI_D:  ip+=4; locals[dst].Real = locals[s1].Real * constants[s2].Real; continue;
+                case RegisterOp.Mov:      ip+=4; locals[dst] = locals[s1]; continue;
+                case RegisterOp.LoadC_I:  ip+=4; locals[dst].I64 = constants[s1].I64; continue;
+                case RegisterOp.LoadC_D:  ip+=4; locals[dst].I64 = constants[s1].I64; continue;
+                case RegisterOp.GtRI_I:   ip+=4; locals[dst].I64 = locals[s1].I64 > constants[s2].I64 ? 1 : 0; continue;
+                case RegisterOp.LtRI_I:   ip+=4; locals[dst].I64 = locals[s1].I64 < constants[s2].I64 ? 1 : 0; continue;
+                case RegisterOp.NegR_I:   ip+=4; locals[dst].I64 = -locals[s1].I64; continue;
+                case RegisterOp.NotR:     ip+=4; locals[dst].I64 = locals[s1].I64 == 0 ? 1 : 0; continue;
+                case RegisterOp.I2D:      ip+=4; locals[dst].Real = locals[s1].I64; continue;
+                case RegisterOp.MaxRR_I:  ip+=4; locals[dst].I64 = Math.Max(locals[s1].I64, locals[s2].I64); continue;
+                case RegisterOp.JmpIfNot: if (locals[dst].I64 == 0) ip = (s1 << 8) | s2; else ip += 4; continue;
+                case RegisterOp.Jmp:      ip = (s1 << 8) | s2; continue;
+                case RegisterOp.Halt:     return;
+                default:
+                    ip += 4;
+                    DispatchCold((RegisterOp)code[ip - 4], dst, s1, s2, code, locals, constants, program, externFuncs, userFuncs, ref ip);
+                    continue;
+            }
+        }
+    }
 
-            switch (op) {
-                // ── Integer arithmetic ──
-                case RegisterOp.AddRR_I:  locals[dst].I64 = locals[s1].I64 + locals[s2].I64; break;
-                case RegisterOp.AddRI_I:  locals[dst].I64 = locals[s1].I64 + constants[s2].I64; break;
-                case RegisterOp.SubRR_I:  locals[dst].I64 = locals[s1].I64 - locals[s2].I64; break;
-                case RegisterOp.SubRI_I:  locals[dst].I64 = locals[s1].I64 - constants[s2].I64; break;
-                case RegisterOp.MulRR_I:  locals[dst].I64 = locals[s1].I64 * locals[s2].I64; break;
-                case RegisterOp.MulRI_I:  locals[dst].I64 = locals[s1].I64 * constants[s2].I64; break;
+    /// <summary>Cold path: rare opcodes. Separate method to keep hot loop small for JIT.</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void DispatchCold(RegisterOp op, byte dst, byte s1, byte s2,
+        byte[] code, FunValue[] locals, FunValue[] constants,
+        CompiledProgram program, ExternFunc[] externFuncs, UserFunc[] userFuncs, ref int ip) {
+        switch (op) {
+            // ── All opcodes (cold duplicates hot ones for correctness) ──
+            case RegisterOp.AddRR_I:  locals[dst].I64 = locals[s1].I64 + locals[s2].I64; break;
+            case RegisterOp.AddRI_I:  locals[dst].I64 = locals[s1].I64 + constants[s2].I64; break;
+            case RegisterOp.SubRR_I:  locals[dst].I64 = locals[s1].I64 - locals[s2].I64; break;
+            case RegisterOp.SubRI_I:  locals[dst].I64 = locals[s1].I64 - constants[s2].I64; break;
+            case RegisterOp.MulRR_I:  locals[dst].I64 = locals[s1].I64 * locals[s2].I64; break;
+            case RegisterOp.MulRI_I:  locals[dst].I64 = locals[s1].I64 * constants[s2].I64; break;
                 case RegisterOp.DivRR_I:
                     if (locals[s2].I64 == 0) throw new FunnyRuntimeException("Division by zero");
                     locals[dst].I64 = locals[s1].I64 / locals[s2].I64; break;
@@ -267,8 +299,7 @@ public static class RegisterVM {
                     break;
                 }
 
-                default: throw new FunnyRuntimeException($"Unknown register opcode 0x{(byte)op:X2} at IP={ip - 4}");
-            }
+                default: throw new FunnyRuntimeException($"Unknown register opcode 0x{(byte)op:X2} at IP={ip}");
         }
     }
 
