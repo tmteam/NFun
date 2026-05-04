@@ -130,19 +130,22 @@ public class VMRuntime {
         if (hasTreeWalkerEquations) {
             variables = new Runtime.VariableDictionary();
 
-            // First pass: build non-lambda equations to populate variables (for captured vars)
+            // Lightweight variable registration: create VariableSource entries for all
+            // equation outputs + referenced inputs WITHOUT building expression trees.
+            // This replaces the expensive ExpressionBuilderVisitor pass for non-lambda equations.
             foreach (var treeNode in syntaxTree.Nodes) {
-                if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
-                    && !NeedsTreeWalkerFallback(eq.Expression)) {
-                    try {
-                        Interpretation.ExpressionBuilderVisitor.BuildExpression(
-                            eq.Expression, bodyRegistry, eq.OutputType, variables,
-                            typeInferenceResults, TicTypesConverter.Concrete, dialect);
-                    } catch { /* skip */ }
+                if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq) {
+                    var eqType = eq.OutputType.BaseType != BaseFunnyType.Empty
+                        ? eq.OutputType : eq.Expression.OutputType;
+                    if (eqType.BaseType != BaseFunnyType.Empty)
+                        variables.TryAdd(Runtime.VariableSource.CreateWithoutStrictTypeLabel(
+                            eq.Id, eqType, Runtime.FunnyVarAccess.Output, dialect.Converter));
                 }
             }
+            // Also register input variables referenced in the tree
+            RegisterInputVariables(syntaxTree, variables, dialect);
 
-            // Second pass: build lambda-containing equations (can now reference captured vars)
+            // Build lambda-containing equations (can now reference captured vars)
             foreach (var treeNode in syntaxTree.Nodes) {
                 if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
                     && NeedsTreeWalkerFallback(eq.Expression)) {
@@ -184,6 +187,30 @@ public class VMRuntime {
         return runtime;
     }
 
+
+    /// <summary>Scan syntax tree for input variables and register them in the dictionary.</summary>
+    private static void RegisterInputVariables(SyntaxTree tree, Runtime.VariableDictionary variables, DialectSettings dialect) {
+        foreach (var node in tree.Nodes) {
+            if (node is SyntaxParsing.SyntaxNodes.UserFunctionDefinitionSyntaxNode) continue;
+            ScanAndRegisterVars(node, variables, dialect);
+        }
+    }
+
+    private static void ScanAndRegisterVars(ISyntaxNode node, Runtime.VariableDictionary variables, DialectSettings dialect) {
+        // Skip lambda bodies — their arguments are local, not outer scope
+        if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
+            || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode)
+            return;
+        if (node is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named
+            && named.IdType == SyntaxParsing.SyntaxNodes.NamedIdNodeType.Variable
+            && named.OutputType.BaseType != BaseFunnyType.Empty
+            && variables.GetOrNull(named.Id) == null) {
+            variables.TryAdd(Runtime.VariableSource.CreateWithoutStrictTypeLabel(
+                named.Id, named.OutputType, Runtime.FunnyVarAccess.Input, dialect.Converter));
+        }
+        foreach (var child in node.Children)
+            ScanAndRegisterVars(child, variables, dialect);
+    }
 
     internal static bool NeedsTreeWalkerFallback(ISyntaxNode node) {
         if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
