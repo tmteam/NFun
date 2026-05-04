@@ -164,7 +164,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         // Swap type inference results for user function scope
         var savedTypeResults = _typeInferenceResults;
         var funcKey = $"{funcDef.Id}/{funcDef.Args.Count}";
-        if (_perFunctionTypeResults.TryGetValue(funcKey, out var funcResults))
+        if (_perFunctionTypeResults != null && _perFunctionTypeResults.TryGetValue(funcKey, out var funcResults))
             _typeInferenceResults = funcResults;
 
         // Allocate argument slots
@@ -176,11 +176,28 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             _localSlots[arg.Id] = _nextLocalSlot++;
         }
 
+        var returnType = funcDef.OutputType;
+
+        // Register the user function BEFORE compiling its body so that
+        // recursive calls (fact(n-1) inside fact) resolve to Op.Call
+        // instead of falling through to CALL_EXTERN on the prototype.
+        // LocalsCount is patched after compilation.
+        UserFunctions.Add(new UserFunc {
+            EntryIP = entryIP,
+            LocalsCount = 0, // patched below
+            Name = funcDef.Id,
+            ReturnType = returnType,
+            ArgTypes = argTypes,
+        });
+
         // Compile body
         CompileExpression(funcDef.Body);
         _e.Emit(Op.Return);
 
-        var funcLocals = _nextLocalSlot;
+        // Patch LocalsCount now that we know how many locals the body used
+        var uf = UserFunctions[funcId];
+        uf.LocalsCount = _nextLocalSlot;
+        UserFunctions[funcId] = uf;
 
         // Restore scope and type inference results
         _typeInferenceResults = savedTypeResults;
@@ -189,16 +206,6 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         _nextLocalSlot = savedNextSlot;
 
         _e.PatchJump(jumpOver);
-
-        var returnType = funcDef.OutputType;
-
-        UserFunctions.Add(new UserFunc {
-            EntryIP = entryIP,
-            LocalsCount = funcLocals,
-            Name = funcDef.Id,
-            ReturnType = returnType,
-            ArgTypes = argTypes,
-        });
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -354,7 +361,23 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         if (TryEmitNativeFunction(id, args))
             return 0;
 
-        // Resolve function
+        // User function call — check FIRST so VM-compiled user functions always
+        // use Op.Call, even when node.ResolvedSignature points to a prototype.
+        // This is critical for skipExpressionBuild: the prototype has no expression
+        // tree, so CALL_EXTERN to it would fail at runtime.
+        var ufc = _userFunctions?.Count ?? 0;
+        for (int i = 0; i < ufc; i++) {
+            if (string.Equals(_userFunctions[i].Name, id, StringComparison.OrdinalIgnoreCase)
+                && _userFunctions[i].ArgTypes.Length == args.Length) {
+                for (int j = 0; j < args.Length; j++)
+                    CompileExpression(args[j]);
+                _e.EmitWithArg(Op.Call, (byte)i);
+                _e.Code.Add((byte)args.Length);
+                return 0;
+            }
+        }
+
+        // Resolve function (extern or generic)
         var someFunc = node.ResolvedSignature
             ?? _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber)
             ?? _functions.GetOrNull(id, args.Length);
@@ -368,19 +391,6 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             var concreteFunc = ResolveGenericFunction(genericFunction, node);
             CompileCallExtern(concreteFunc, args, node);
             return 0;
-        }
-
-        // User function call (prototype without expression tree — compiled to bytecode)
-        var ufc = _userFunctions?.Count ?? 0;
-        for (int i = 0; i < ufc; i++) {
-            if (string.Equals(_userFunctions[i].Name, id, StringComparison.OrdinalIgnoreCase)
-                && _userFunctions[i].ArgTypes.Length == args.Length) {
-                for (int j = 0; j < args.Length; j++)
-                    CompileExpression(args[j]);
-                _e.EmitWithArg(Op.Call, (byte)i);
-                _e.Code.Add((byte)args.Length);
-                return 0;
-            }
         }
 
         throw new NotSupportedException($"VM: function {id}/{args.Length} not found");

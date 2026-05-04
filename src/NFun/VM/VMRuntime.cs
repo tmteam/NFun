@@ -99,7 +99,7 @@ public class VMRuntime {
                     funcDef, constants, scope, dialect,
                     customTypes, namedTypeFieldRegistry, functionSolveOrder,
                     out var funcTypeResults,
-                    skipExpressionBuild: false);
+                    skipExpressionBuild: !hasLambda);
                 if (!hasLambda && funcTypeResults != null) {
                     perFunctionTypeResults ??= new Dictionary<string, TypeInferenceResults>();
                     perFunctionTypeResults[$"{funcDef.Id}/{funcDef.Args.Count}"] = funcTypeResults;
