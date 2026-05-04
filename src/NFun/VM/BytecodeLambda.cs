@@ -17,6 +17,7 @@ internal sealed class BytecodeLambda1 : FunctionWithSingleArg {
     private readonly int _captureOffset; // slot offset where captured vars start
     private readonly FunValue[] _locals;
     private readonly FunValue[] _stack;
+    private readonly bool _isRegister;
 
     public BytecodeLambda1(CompiledProgram program, int funcId, FunValue[] captured) {
         _program = program;
@@ -27,7 +28,8 @@ internal sealed class BytecodeLambda1 : FunctionWithSingleArg {
         _captured = captured;
         _captureOffset = uf.ArgTypes.Length;
         _locals = new FunValue[uf.LocalsCount];
-        _stack = new FunValue[8];
+        _stack = program.IsRegisterBytecode ? System.Array.Empty<FunValue>() : new FunValue[8];
+        _isRegister = program.IsRegisterBytecode;
         Name = uf.Name;
         ArgTypes = new[] { _argType };
         ReturnType = _retType;
@@ -38,6 +40,11 @@ internal sealed class BytecodeLambda1 : FunctionWithSingleArg {
         if (_captured != null)
             for (int i = 0; i < _captured.Length; i++)
                 _locals[_captureOffset + i] = _captured[i];
+        if (_isRegister) {
+            RegisterVM.Execute(_program.Code, _locals, _program.Constants, _program,
+                _program.ExternFunctions, _program.UserFunctions, _entryIP);
+            return _locals[0].Box(_retType);
+        }
         VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
         return _stack[0].Box(_retType);
     }
@@ -48,6 +55,11 @@ internal sealed class BytecodeLambda1 : FunctionWithSingleArg {
         if (_captured != null)
             for (int i = 0; i < _captured.Length; i++)
                 _locals[_captureOffset + i] = _captured[i];
+        if (_isRegister) {
+            RegisterVM.Execute(_program.Code, _locals, _program.Constants, _program,
+                _program.ExternFunctions, _program.UserFunctions, _entryIP);
+            return _locals[0];
+        }
         VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
         return _stack[0];
     }
@@ -63,6 +75,7 @@ internal sealed class BytecodeLambda2 : FunctionWithTwoArgs {
     private readonly int _captureOffset;
     private readonly FunValue[] _locals;
     private readonly FunValue[] _stack;
+    private readonly bool _isRegister;
 
     public BytecodeLambda2(CompiledProgram program, int funcId, FunValue[] captured) {
         _program = program;
@@ -74,7 +87,8 @@ internal sealed class BytecodeLambda2 : FunctionWithTwoArgs {
         _captured = captured;
         _captureOffset = uf.ArgTypes.Length;
         _locals = new FunValue[uf.LocalsCount];
-        _stack = new FunValue[8];
+        _stack = program.IsRegisterBytecode ? System.Array.Empty<FunValue>() : new FunValue[8];
+        _isRegister = program.IsRegisterBytecode;
         Name = uf.Name;
         ArgTypes = uf.ArgTypes;
         ReturnType = _retType;
@@ -86,6 +100,11 @@ internal sealed class BytecodeLambda2 : FunctionWithTwoArgs {
         if (_captured != null)
             for (int i = 0; i < _captured.Length; i++)
                 _locals[_captureOffset + i] = _captured[i];
+        if (_isRegister) {
+            RegisterVM.Execute(_program.Code, _locals, _program.Constants, _program,
+                _program.ExternFunctions, _program.UserFunctions, _entryIP);
+            return _locals[0].Box(_retType);
+        }
         VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
         return _stack[0].Box(_retType);
     }
@@ -97,6 +116,11 @@ internal sealed class BytecodeLambda2 : FunctionWithTwoArgs {
         if (_captured != null)
             for (int i = 0; i < _captured.Length; i++)
                 _locals[_captureOffset + i] = _captured[i];
+        if (_isRegister) {
+            RegisterVM.Execute(_program.Code, _locals, _program.Constants, _program,
+                _program.ExternFunctions, _program.UserFunctions, _entryIP);
+            return _locals[0];
+        }
         VirtualMachine.ExecuteSubroutine(_program, _locals, _stack, _entryIP);
         return _stack[0];
     }

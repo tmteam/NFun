@@ -132,11 +132,11 @@ public class VMRuntime {
         var preBuilt = new Dictionary<int, Interpretation.Nodes.IExpressionNode>();
         Runtime.VariableDictionary variables = null;
 
-        // Check if any equation needs tree-walker fallback (lambdas, ResultFunCall, etc.)
+        // Check if any equation needs tree-walker fallback (ResultFunCall, try-catch — NOT lambdas)
         bool hasTreeWalkerEquations = false;
         foreach (var treeNode in syntaxTree.Nodes) {
             if (treeNode is SyntaxParsing.SyntaxNodes.EquationSyntaxNode eq
-                && NeedsTreeWalkerFallback(eq.Expression)) {
+                && NeedsTreeWalkerFallbackStrict(eq.Expression)) {
                 hasTreeWalkerEquations = true;
                 break;
             }
@@ -174,13 +174,13 @@ public class VMRuntime {
             }
         }
 
-        // 7. Try register VM first — supports all features except lambdas/try-catch/user-funcs.
+        // 7. Try register VM first — supports all features except try-catch/hi-order calls.
         //    Falls back to stack VM on NotSupportedException.
         try {
-            if (functionSolveOrder.Length == 0 && !hasTreeWalkerEquations) {
-                var (regCode, regConsts, regLocals, regSlots, regExternFuncs, regStructLayouts, regTypeTable) =
+            if (!hasTreeWalkerEquations) {
+                var (regCode, regConsts, regLocals, regSlots, regExternFuncs, regStructLayouts, regTypeTable, regUserFuncs) =
                     RegisterCompiler.Compile(syntaxTree, typeInferenceResults, TicTypesConverter.Concrete,
-                        bodyRegistry, dialect);
+                        bodyRegistry, dialect, perFunctionTypeResults);
 
                 // Build a minimal CompiledProgram for variable metadata
                 var regVars = new List<VariableSlot>();
@@ -218,12 +218,13 @@ public class VMRuntime {
                     Variables = regVars.ToArray(),
                     StructLayouts = regStructLayouts,
                     ExternFunctions = regExternFuncs,
-                    UserFunctions = Array.Empty<UserFunc>(),
+                    UserFunctions = regUserFuncs,
                     ExceptionHandlers = Array.Empty<ExceptionHandler>(),
                     TypeTable = regTypeTable,
                     LocalsCount = regLocals,
                     MaxStackDepth = 0,
                     HasExceptionHandlers = false,
+                    IsRegisterBytecode = true,
                 };
                 var regRuntime = new VMRuntime(minimalProgram);
                 regRuntime._regCode = regCode;
@@ -306,6 +307,21 @@ public class VMRuntime {
             return true;
         foreach (var child in node.Children)
             if (NeedsTreeWalkerFallback(child)) return true;
+        return false;
+    }
+
+    /// <summary>Strict version: only ResultFunCall and TryCatch need tree-walker.
+    /// Lambdas are handled natively by register compiler.</summary>
+    internal static bool NeedsTreeWalkerFallbackStrict(ISyntaxNode node) {
+        if (node is SyntaxParsing.SyntaxNodes.ResultFunCallSyntaxNode
+            || node is SyntaxParsing.SyntaxNodes.TryCatchSyntaxNode)
+            return true;
+        // Don't recurse into lambda bodies — register compiler handles them
+        if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
+            || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode)
+            return false;
+        foreach (var child in node.Children)
+            if (NeedsTreeWalkerFallbackStrict(child)) return true;
         return false;
     }
 }

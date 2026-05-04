@@ -18,6 +18,8 @@ public class CompiledProgram {
     public int LocalsCount { get; init; }
     public int MaxStackDepth { get; init; }
     public bool HasExceptionHandlers { get; init; }
+    /// <summary>True when code was compiled by RegisterCompiler (lambda re-entry uses RegisterVM).</summary>
+    public bool IsRegisterBytecode { get; init; }
 
 }
 

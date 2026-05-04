@@ -19,7 +19,7 @@ namespace NFun.VM;
 /// Registers = locals[] slots. Temps allocated beyond user variables.
 /// </summary>
 internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
-    private readonly TypeInferenceResults _typeResults;
+    private TypeInferenceResults _typeResults;
     private readonly TicTypesConverter _typesConverter;
     private readonly IFunctionRegistry _functions;
     private readonly DialectSettings _dialect;
@@ -46,6 +46,12 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
     private List<FunnyType> TypeTable => _typeTable ??= new();
     private Dictionary<FunnyType, int> TypeTableIndex => _typeTableIndex ??= new();
 
+
+    // User functions
+    private List<UserFunc> _userFunctions;
+    private List<UserFunc> UserFunctions => _userFunctions ??= new();
+    private Dictionary<string, TypeInferenceResults> _perFunctionTypeResults;
+
     private RegisterCompiler(
         TypeInferenceResults typeResults, TicTypesConverter typesConverter,
         IFunctionRegistry functions, DialectSettings dialect) {
@@ -56,10 +62,12 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public static (byte[] Code, FunValue[] Constants, int LocalsCount, Dictionary<string, int> Slots,
-        ExternFunc[] ExternFuncs, StructLayout[] StructLayouts, FunnyType[] TypeTable)
+        ExternFunc[] ExternFuncs, StructLayout[] StructLayouts, FunnyType[] TypeTable, UserFunc[] UserFuncs)
         Compile(SyntaxTree tree, TypeInferenceResults typeResults, TicTypesConverter typesConverter,
-            IFunctionRegistry functions = null, DialectSettings dialect = null) {
+            IFunctionRegistry functions = null, DialectSettings dialect = null,
+            Dictionary<string, TypeInferenceResults> perFunctionTypeResults = null) {
         var c = new RegisterCompiler(typeResults, typesConverter, functions, dialect);
+        c._perFunctionTypeResults = perFunctionTypeResults;
 
         // Allocate slots for equation outputs first
         foreach (var node in tree.Nodes) {
@@ -69,6 +77,17 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
                 c.AllocSlot(eq.Id, type);
             }
         }
+
+        // Pre-allocate slots for input variables referenced in equations/lambdas
+        foreach (var node in tree.Nodes) {
+            if (node is EquationSyntaxNode eq)
+                c.ScanAndAllocInputVars(eq.Expression);
+        }
+
+        // Compile user function definitions (before equations, so calls resolve)
+        foreach (var node in tree.Nodes)
+            if (node is UserFunctionDefinitionSyntaxNode funcDef)
+                c.CompileUserFunction(funcDef);
 
         // Compile each equation
         foreach (var node in tree.Nodes) {
@@ -88,7 +107,8 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
             c._slots,
             c._externFunctions is { Count: > 0 } ? c._externFunctions.ToArray() : Array.Empty<ExternFunc>(),
             c._structLayouts is { Count: > 0 } ? c._structLayouts.ToArray() : Array.Empty<StructLayout>(),
-            c._typeTable is { Count: > 0 } ? c._typeTable.ToArray() : Array.Empty<FunnyType>()
+            c._typeTable is { Count: > 0 } ? c._typeTable.ToArray() : Array.Empty<FunnyType>(),
+            c._userFunctions is { Count: > 0 } ? c._userFunctions.ToArray() : Array.Empty<UserFunc>()
         );
     }
 
@@ -317,11 +337,6 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
         var id = node.Id;
         var args = _typeResults.GetResolvedCallArgsOrNull(node.OrderNumber) ?? node.Args;
 
-        // Reject lambda args — fallback to stack VM
-        foreach (var arg in args)
-            if (arg is AnonymFunctionSyntaxNode || arg is SuperAnonymFunctionSyntaxNode)
-                throw new NotSupportedException("RegisterVM: lambda args");
-
         // Null coalesce: ??
         if (id == CoreFunNames.NullCoalesce && args.Length == 2) {
             var left = CompileExpr(args[0]);
@@ -377,6 +392,26 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
         // Native operators (arithmetic, comparison) via function-call syntax
         if (args.Length == 2 && TryEmitNativeOperator(id, args, node, out var opResult))
             return opResult;
+
+        // User function call — check FIRST so VM-compiled user functions always
+        // use CallUser, even when node.ResolvedSignature points to a prototype.
+        var ufc = _userFunctions?.Count ?? 0;
+        for (int i = 0; i < ufc; i++) {
+            if (string.Equals(_userFunctions[i].Name, id, StringComparison.OrdinalIgnoreCase)
+                && _userFunctions[i].ArgTypes.Length == args.Length) {
+                // Allocate consecutive temp registers for args
+                int baseR = _nextSlot;
+                for (int j = 0; j < args.Length; j++) AllocTemp();
+                for (int j = 0; j < args.Length; j++) {
+                    var argReg = CompileExpr(args[j]);
+                    if (argReg != baseR + j)
+                        Emit(RegisterOp.Mov, (byte)(baseR + j), argReg, 0);
+                }
+                var dst = (byte)AllocTemp();
+                Emit(RegisterOp.CallUser, dst, (byte)i, (byte)baseR);
+                return dst;
+            }
+        }
 
         // Generic extern function call
         if (_functions == null)
@@ -846,6 +881,19 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
         return idx;
     }
 
+    /// <summary>Pre-scan expression tree and allocate slots for input variables.
+    /// Needed so lambdas can capture them via ScanCapturedVars.</summary>
+    private void ScanAndAllocInputVars(ISyntaxNode node) {
+        if (node is NamedIdSyntaxNode named
+            && named.IdType == NamedIdNodeType.Variable
+            && named.OutputType.BaseType != BaseFunnyType.Empty) {
+            AllocSlot(named.Id, named.OutputType);
+        }
+        // Recurse into children including lambda bodies
+        foreach (var child in node.Children)
+            ScanAndAllocInputVars(child);
+    }
+
     private static bool IsNoneLiteral(ISyntaxNode node) {
         if (node is ConstantSyntaxNode c && c.Value is FunnyNone) return true;
         if (node is NamedIdSyntaxNode n && n.IdType == NamedIdNodeType.Constant
@@ -871,15 +919,236 @@ internal sealed class RegisterCompiler : ISyntaxNodeVisitor<byte> {
         }
     }
 
+    // ═══════════════════════════════════════════════
+    //  User functions
+    // ═══════════════════════════════════════════════
+
+    private void CompileUserFunction(UserFunctionDefinitionSyntaxNode funcDef) {
+        // Jump over function body in main bytecode
+        int jumpOverAddr = _code.Count;
+        Emit(RegisterOp.Jmp, 0, 0, 0); // placeholder, patched below
+
+        int entryIP = _code.Count;
+        int funcId = UserFunctions.Count;
+
+        // Save current scope — function has its own register space
+        var savedSlots = new Dictionary<string, int>(_slots, StringComparer.OrdinalIgnoreCase);
+        var savedNextSlot = _nextSlot;
+        _slots.Clear();
+        _nextSlot = 0;
+
+        // Swap type inference results for user function scope
+        var savedTypeResults = _typeResults;
+        var funcKey = $"{funcDef.Id}/{funcDef.Args.Count}";
+        if (_perFunctionTypeResults != null && _perFunctionTypeResults.TryGetValue(funcKey, out var funcResults))
+            _typeResults = funcResults;
+
+        // Allocate argument slots (r0..rN-1)
+        var argTypes = new FunnyType[funcDef.Args.Count];
+        for (int i = 0; i < funcDef.Args.Count; i++) {
+            var arg = funcDef.Args[i];
+            argTypes[i] = arg.OutputType;
+            _slots[arg.Id] = _nextSlot++;
+        }
+
+        var returnType = funcDef.OutputType;
+
+        // Register UserFunc BEFORE body compilation (supports recursive calls)
+        UserFunctions.Add(new UserFunc {
+            EntryIP = entryIP,
+            LocalsCount = 0, // patched below
+            Name = funcDef.Id,
+            ReturnType = returnType,
+            ArgTypes = argTypes,
+        });
+
+        // Compile body
+        var resultReg = CompileExpr(funcDef.Body);
+        // Copy result to r0 and halt (exits the recursive Execute call)
+        if (resultReg != 0)
+            Emit(RegisterOp.Mov, 0, resultReg, 0);
+        Emit(RegisterOp.Halt, 0, 0, 0);
+
+        // Patch LocalsCount
+        var uf = UserFunctions[funcId];
+        uf.LocalsCount = _nextSlot;
+        UserFunctions[funcId] = uf;
+
+        // Restore scope and type results
+        _typeResults = savedTypeResults;
+        _slots.Clear();
+        foreach (var kv in savedSlots) _slots[kv.Key] = kv.Value;
+        _nextSlot = savedNextSlot;
+
+        // Patch jump-over to land here (after function body)
+        PatchJump(jumpOverAddr, _code.Count);
+    }
+
+    // ═══════════════════════════════════════════════
+    //  Lambdas
+    // ═══════════════════════════════════════════════
+
+    public byte Visit(AnonymFunctionSyntaxNode node) {
+        var argNames = node.ArgumentsDefinition
+            .Select(a => a is TypedVarDefSyntaxNode tv ? tv.Id
+                       : a is NamedIdSyntaxNode ni ? ni.Id
+                       : "it")
+            .ToArray();
+        return CompileLambda(node.Body, argNames, node);
+    }
+
+    public byte Visit(SuperAnonymFunctionSyntaxNode node) {
+        var argNames = ResolveAnonymArgNames(node);
+        return CompileLambda(node.Body, argNames, node);
+    }
+
+    private string[] ResolveAnonymArgNames(SuperAnonymFunctionSyntaxNode node) {
+        var parentType = node.OutputType;
+        if (parentType.BaseType == BaseFunnyType.Fun) {
+            int argc = parentType.FunTypeSpecification.Inputs.Length;
+            if (argc == 1) return new[] { "it" };
+            var names = new string[argc];
+            for (int i = 0; i < argc; i++) names[i] = $"it{i + 1}";
+            return names;
+        }
+        // Fallback: scan body for 'it' references
+        bool hasIt = false;
+        int maxItN = 0;
+        node.Body.ComeOver(n => {
+            if (n is NamedIdSyntaxNode named) {
+                if (named.Id == "it") hasIt = true;
+                else if (named.Id.StartsWith("it") && int.TryParse(named.Id.AsSpan(2), out int num))
+                    maxItN = Math.Max(maxItN, num);
+            }
+            return DfsEnterResult.Continue;
+        });
+        if (hasIt) return new[] { "it" };
+        if (maxItN > 0) {
+            var names = new string[maxItN];
+            for (int i = 0; i < maxItN; i++) names[i] = $"it{i + 1}";
+            return names;
+        }
+        return new[] { "it" };
+    }
+
+    /// <summary>Compile lambda body as anonymous UserFunc, emit MakeClosure.</summary>
+    private byte CompileLambda(ISyntaxNode body, string[] argNames, ISyntaxNode lambdaNode) {
+        // Save current scope
+        var savedSlots = new Dictionary<string, int>(_slots, StringComparer.OrdinalIgnoreCase);
+        var savedNextSlot = _nextSlot;
+        _slots.Clear();
+        _nextSlot = 0;
+
+        // Jump over lambda body
+        int jumpOverAddr = _code.Count;
+        Emit(RegisterOp.Jmp, 0, 0, 0);
+
+        int entryIP = _code.Count;
+        int funcId = UserFunctions.Count;
+
+        // Allocate arg slots
+        var argTypes = new FunnyType[argNames.Length];
+        for (int i = 0; i < argNames.Length; i++) {
+            _slots[argNames[i]] = _nextSlot++;
+            argTypes[i] = ResolveArgType(body, argNames[i], lambdaNode, i);
+        }
+
+        // Find captured variables: outer scope vars referenced in body
+        var capturedVars = new List<(string Name, int OuterSlot)>();
+        ScanCapturedVars(body, argNames, savedSlots, capturedVars);
+        // Allocate slots for captured vars in lambda scope
+        foreach (var (name, _) in capturedVars)
+            _slots[name] = _nextSlot++;
+
+        var returnType = lambdaNode.OutputType.BaseType == BaseFunnyType.Fun
+            ? lambdaNode.OutputType.FunTypeSpecification.Output
+            : body.OutputType;
+
+        // Register UserFunc BEFORE body compilation
+        UserFunctions.Add(new UserFunc {
+            EntryIP = entryIP,
+            LocalsCount = 0, // patched below
+            Name = $"__lambda_{funcId}__",
+            ReturnType = returnType,
+            ArgTypes = argTypes,
+        });
+
+        // Compile body
+        var resultReg = CompileExpr(body);
+        // Copy result to r0 and halt (exits the recursive Execute call)
+        if (resultReg != 0)
+            Emit(RegisterOp.Mov, 0, resultReg, 0);
+        Emit(RegisterOp.Halt, 0, 0, 0);
+
+        // Patch LocalsCount
+        var uf = UserFunctions[funcId];
+        uf.LocalsCount = _nextSlot;
+        UserFunctions[funcId] = uf;
+
+        // Restore scope
+        _slots.Clear();
+        foreach (var kv in savedSlots) _slots[kv.Key] = kv.Value;
+        _nextSlot = savedNextSlot;
+
+        // Patch jump-over
+        PatchJump(jumpOverAddr, _code.Count);
+
+        // Emit MakeClosure: dst=reg, funcId, captureCount
+        var dst = (byte)AllocTemp();
+        Emit(RegisterOp.MakeClosure, dst, (byte)funcId, (byte)capturedVars.Count);
+        // Followed by captured register indices, padded to 4-byte boundary
+        for (int i = 0; i < capturedVars.Count; i++)
+            _code.Add((byte)capturedVars[i].OuterSlot);
+        int pad = ((capturedVars.Count + 3) / 4) * 4 - capturedVars.Count;
+        for (int i = 0; i < pad; i++)
+            _code.Add(0);
+
+        return dst;
+    }
+
+    private FunnyType ResolveArgType(ISyntaxNode body, string argName, ISyntaxNode lambdaNode, int argIndex) {
+        if (lambdaNode.OutputType.BaseType == BaseFunnyType.Fun) {
+            var funSpec = lambdaNode.OutputType.FunTypeSpecification;
+            if (argIndex >= 0 && argIndex < funSpec.Inputs.Length)
+                return funSpec.Inputs[argIndex];
+        }
+        return ScanForVarType(body, argName) ?? FunnyType.Any;
+    }
+
+    private static FunnyType? ScanForVarType(ISyntaxNode node, string name) {
+        if (node is NamedIdSyntaxNode named && named.Id == name
+            && named.OutputType.BaseType != BaseFunnyType.Empty)
+            return named.OutputType;
+        foreach (var child in node.Children) {
+            var result = ScanForVarType(child, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private static void ScanCapturedVars(ISyntaxNode node, string[] argNames,
+        Dictionary<string, int> outerSlots, List<(string, int)> captured) {
+        if (node is NamedIdSyntaxNode named
+            && named.IdType == NamedIdNodeType.Variable
+            && !Array.Exists(argNames, a => a == named.Id)
+            && outerSlots.TryGetValue(named.Id, out var slot)
+            && !captured.Exists(c => c.Item1 == named.Id)) {
+            captured.Add((named.Id, slot));
+        }
+        // Don't recurse into nested lambdas
+        if (node is AnonymFunctionSyntaxNode || node is SuperAnonymFunctionSyntaxNode)
+            return;
+        foreach (var child in node.Children)
+            ScanCapturedVars(child, argNames, outerSlots, captured);
+    }
+
     // ── Unsupported visitors (fallback to stack VM) ──
-    public byte Visit(SuperAnonymFunctionSyntaxNode n) => throw new NotSupportedException("RegisterVM: lambda");
-    public byte Visit(AnonymFunctionSyntaxNode n) => throw new NotSupportedException("RegisterVM: lambda");
     public byte Visit(ResultFunCallSyntaxNode n) => throw new NotSupportedException("RegisterVM: hi-order");
     public byte Visit(TryCatchSyntaxNode n) => throw new NotSupportedException("RegisterVM: try-catch");
     public byte Visit(TypedVarDefSyntaxNode n) => throw new NotSupportedException("RegisterVM: typed var");
     public byte Visit(ListOfExpressionsSyntaxNode n) => throw new NotSupportedException("RegisterVM: list");
     public byte Visit(EquationSyntaxNode n) => throw new NotSupportedException("RegisterVM: equation");
-    public byte Visit(UserFunctionDefinitionSyntaxNode n) => throw new NotSupportedException("RegisterVM: user func");
+    public byte Visit(UserFunctionDefinitionSyntaxNode n) => throw new NotSupportedException("RegisterVM: user func def visited as expression");
     public byte Visit(TypeDeclarationSyntaxNode n) => throw new NotSupportedException();
     public byte Visit(NamedTypeConstructorSyntaxNode n) => throw new NotSupportedException();
     public byte Visit(IfCaseSyntaxNode n) => throw new NotSupportedException();
