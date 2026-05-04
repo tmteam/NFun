@@ -124,34 +124,24 @@ public enum Op : byte {
     AbsReal       = 78,
     ToTextInt     = 79,
     ToTextReal    = 80,
+    /// <summary>Create a closure (lambda as IConcreteFunction). Args: funcId, capturedCount, capturedSlot...</summary>
+    MakeClosure   = 81,
 
     // ── Superinstructions (fused opcodes for hot patterns) ──
     // Each saves 1-2 loop iterations by combining common sequences.
 
     /// <summary>push locals[arg1] + constants[arg2] (int)</summary>
-    AddLocalConstI = 81,
-    /// <summary>push locals[arg1] - constants[arg2] (int)</summary>
-    SubLocalConstI = 82,
-    /// <summary>push locals[arg1] * constants[arg2] (int)</summary>
-    MulLocalConstI = 83,
-    /// <summary>push constants[arg1] + constants[arg2] (int)</summary>
-    AddConstConstI = 84,
-    /// <summary>push constants[arg1] * constants[arg2] (int)</summary>
-    MulConstConstI = 85,
-    /// <summary>stack[top] += constants[arg] (int)</summary>
-    AddTopConstI   = 86,
-    /// <summary>stack[top] *= constants[arg] (int)</summary>
-    MulTopConstI   = 87,
-    /// <summary>pop and store + halt (fused end-of-expression)</summary>
-    StoreHalt      = 88,
-
-    /// <summary>push locals[arg1] + constants[arg2] (real)</summary>
-    AddLocalConstR = 89,
-    /// <summary>push locals[arg1] * constants[arg2] (real)</summary>
-    MulLocalConstR = 90,
-    /// <summary>stack[top] += constants[arg] (real)</summary>
-    AddTopConstR   = 91,
-    /// <summary>stack[top] *= constants[arg] (real)</summary>
-    MulTopConstR   = 92,
+    AddLocalConstI = 82,
+    SubLocalConstI = 83,
+    MulLocalConstI = 84,
+    AddConstConstI = 85,
+    MulConstConstI = 86,
+    AddTopConstI   = 87,
+    MulTopConstI   = 88,
+    StoreHalt      = 89,
+    AddLocalConstR = 90,
+    MulLocalConstR = 91,
+    AddTopConstR   = 92,
+    MulTopConstR   = 93,
 }
 

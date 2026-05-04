@@ -19,10 +19,22 @@ public static class VirtualMachine {
             ExecuteWithHandlers(program, locals, stack, callStack);
             return;
         }
+        ExecuteCore(program, locals, stack, callStack, 0);
+    }
 
+    /// <summary>Execute lambda bytecode starting at startIP. Returns when Return at callDepth=0.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static void ExecuteSubroutine(CompiledProgram program, FunValue[] locals,
+        FunValue[] stack, int startIP) {
+        ExecuteCore(program, locals, stack, Array.Empty<CallFrame>(), startIP);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    private static void ExecuteCore(CompiledProgram program, FunValue[] locals,
+        FunValue[] stack, CallFrame[] callStack, int startIP) {
         var code = program.Code;
         var constants = program.Constants;
-        int ip = 0, sp = 0, callDepth = 0;
+        int ip = startIP, sp = 0, callDepth = 0;
 
         while (true) {
             switch ((Op)code[ip++]) {
@@ -81,6 +93,22 @@ public static class VirtualMachine {
                 case Op.AbsReal: stack[sp - 1].Real = Math.Abs(stack[sp - 1].Real); break;
                 case Op.ToTextInt:  stack[sp - 1] = new FunValue { Ref = new Runtime.Arrays.TextFunnyArray(stack[sp - 1].I64.ToString()) }; break;
                 case Op.ToTextReal: stack[sp - 1] = new FunValue { Ref = new Runtime.Arrays.TextFunnyArray(stack[sp - 1].Real.ToString(System.Globalization.CultureInfo.InvariantCulture)) }; break;
+
+                case Op.MakeClosure: {
+                    var funcId = code[ip++];
+                    var capturedCount = code[ip++];
+                    FunValue[] captured = null;
+                    if (capturedCount > 0) {
+                        captured = new FunValue[capturedCount];
+                        for (int i = 0; i < capturedCount; i++)
+                            captured[i] = locals[code[ip++]];
+                    }
+                    ref var uf = ref program.UserFunctions[funcId];
+                    stack[sp++].Ref = uf.ArgTypes.Length == 1
+                        ? (object)new BytecodeLambda1(program, funcId, captured)
+                        : new BytecodeLambda2(program, funcId, captured);
+                    break;
+                }
 
                 // ── Integer comparison ──
                 case Op.EqInt:  sp--; stack[sp - 1].I64 = stack[sp - 1].I64 == stack[sp].I64 ? 1 : 0; break;
@@ -154,8 +182,12 @@ public static class VirtualMachine {
                     break;
                 }
                 case Op.Return: {
+                    if (callDepth == 0) {
+                        // Subroutine return: result on stack[0], done
+                        stack[0] = stack[sp - 1];
+                        return;
+                    }
                     var result = stack[--sp]; var frame = callStack[--callDepth];
-                    // Release cached locals if this was the non-recursive call
                     if (locals == program.UserFunctions[frame.FunctionId].CachedLocals)
                         program.UserFunctions[frame.FunctionId].CachedLocalsInUse = false;
                     ip = frame.ReturnIP; sp = frame.ReturnSP; locals = frame.CallerLocals;

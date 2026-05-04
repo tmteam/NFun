@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Functions;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
@@ -330,11 +331,7 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
         var id = node.Id;
         var args = _typeInferenceResults.GetResolvedCallArgsOrNull(node.OrderNumber) ?? node.Args;
 
-        // If any arg is a lambda, fall back to tree-walker for the entire call.
-        // Lambdas need variable scoping that the bytecode compiler doesn't replicate.
-        if (HasLambdaArg(args)) {
-            return CompileViaTreeWalker(node);
-        }
+        // Lambdas: compile as UserFunc + MakeClosure (no tree-walker fallback needed)
 
         // null coalesce: ??
         if (id == CoreFunNames.NullCoalesce && args.Length == 2) {
@@ -499,26 +496,154 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
     }
 
     public byte Visit(AnonymFunctionSyntaxNode node) {
-        // Standalone lambda: check pre-built expressions (equation-level tree-walker fallback)
-        if (_preBuiltExpressions.TryGetValue(node.OrderNumber, out var preBuilt)) {
-            var wrapper = new TreeWalkerWrapper(preBuilt);
-            var funcId = GetOrRegisterExternFunc(wrapper);
-            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
-            _e.Code.Add(0);
-            return 0;
-        }
-        throw new NotSupportedException("VM: standalone lambda not pre-built. Ensure VMRuntime detects it.");
+        var argNames = node.ArgumentsDefinition
+            .Select(a => a is SyntaxParsing.SyntaxNodes.TypedVarDefSyntaxNode tv ? tv.Id
+                       : a is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode ni ? ni.Id
+                       : "it")
+            .ToArray();
+        return CompileLambda(node.Body, argNames, node);
     }
 
     public byte Visit(SuperAnonymFunctionSyntaxNode node) {
-        if (_preBuiltExpressions.TryGetValue(node.OrderNumber, out var preBuilt)) {
-            var wrapper = new TreeWalkerWrapper(preBuilt);
-            var funcId = GetOrRegisterExternFunc(wrapper);
-            _e.EmitWithArg(Op.CallExtern, (byte)funcId);
-            _e.Code.Add(0);
-            return 0;
+        // SuperAnonymFunction uses 'it' (or it1, it2, it3) as implicit args
+        var argNames = ResolveAnonymArgNames(node);
+        return CompileLambda(node.Body, argNames, node);
+    }
+
+    private string[] ResolveAnonymArgNames(SuperAnonymFunctionSyntaxNode node) {
+        // Determine arg names from parent function type or body scan
+        var parentType = node.OutputType;
+        if (parentType.BaseType == BaseFunnyType.Fun) {
+            int argc = parentType.FunTypeSpecification.Inputs.Length;
+            if (argc == 1) return new[] { "it" };
+            var names = new string[argc];
+            for (int i = 0; i < argc; i++) names[i] = $"it{i + 1}";
+            return names;
         }
-        throw new NotSupportedException("VM: standalone lambda not pre-built. Ensure VMRuntime detects it.");
+        // Fallback: scan body for 'it' references
+        bool hasIt = false;
+        int maxItN = 0;
+        node.Body.ComeOver(n => {
+            if (n is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named) {
+                if (named.Id == "it") hasIt = true;
+                else if (named.Id.StartsWith("it") && int.TryParse(named.Id.AsSpan(2), out int num))
+                    maxItN = Math.Max(maxItN, num);
+            }
+            return SyntaxParsing.Visitors.DfsEnterResult.Continue;
+        });
+        if (hasIt) return new[] { "it" };
+        if (maxItN > 0) {
+            var names = new string[maxItN];
+            for (int i = 0; i < maxItN; i++) names[i] = $"it{i + 1}";
+            return names;
+        }
+        return new[] { "it" }; // default
+    }
+
+    /// <summary>Compile lambda body as anonymous UserFunc, emit MakeClosure.</summary>
+    private byte CompileLambda(ISyntaxNode body, string[] argNames, ISyntaxNode lambdaNode) {
+        // Save current scope
+        var savedSlots = new Dictionary<string, int>(_localSlots, StringComparer.OrdinalIgnoreCase);
+        var savedNextSlot = _nextLocalSlot;
+        _localSlots.Clear();
+        _nextLocalSlot = 0;
+
+        // Jump over lambda body in main bytecode
+        int jumpOver = _e.EmitJump(Op.Jump);
+        int entryIP = _e.Position;
+        int funcId = UserFunctions.Count;
+
+        // Allocate arg slots
+        var argTypes = new FunnyType[argNames.Length];
+        for (int i = 0; i < argNames.Length; i++) {
+            _localSlots[argNames[i]] = _nextLocalSlot++;
+            // Resolve arg type from the typed syntax tree
+            argTypes[i] = ResolveArgType(body, argNames[i], lambdaNode);
+        }
+
+        // Find captured variables: outer scope variables referenced in body
+        var capturedVars = new List<(string Name, int OuterSlot)>();
+        ScanCapturedVars(body, argNames, savedSlots, capturedVars);
+        // Allocate slots for captured vars in lambda scope
+        foreach (var (name, _) in capturedVars)
+            _localSlots[name] = _nextLocalSlot++;
+
+        var returnType = lambdaNode.OutputType.BaseType == BaseFunnyType.Fun
+            ? lambdaNode.OutputType.FunTypeSpecification.Output
+            : body.OutputType;
+
+        // Register UserFunc BEFORE body compilation (for potential recursion, unlikely but safe)
+        UserFunctions.Add(new UserFunc {
+            EntryIP = entryIP,
+            LocalsCount = 0, // patched below
+            Name = $"__lambda_{funcId}__",
+            ReturnType = returnType,
+            ArgTypes = argTypes,
+        });
+
+        // Compile body
+        CompileExpression(body);
+        _e.Emit(Op.Return);
+
+        // Patch LocalsCount
+        var uf = UserFunctions[funcId];
+        uf.LocalsCount = _nextLocalSlot;
+        UserFunctions[funcId] = uf;
+
+        // Restore scope
+        _localSlots.Clear();
+        foreach (var kv in savedSlots) _localSlots[kv.Key] = kv.Value;
+        _nextLocalSlot = savedNextSlot;
+        _e.PatchJump(jumpOver);
+
+        // Emit MakeClosure: pushes BytecodeLambda onto stack
+        _e.EmitWithArg(Op.MakeClosure, (byte)funcId);
+        _e.Code.Add((byte)capturedVars.Count);
+        foreach (var (_, outerSlot) in capturedVars)
+            _e.Code.Add((byte)outerSlot);
+
+        return 0;
+    }
+
+    private FunnyType ResolveArgType(ISyntaxNode body, string argName, ISyntaxNode lambdaNode) {
+        // Try to get from the lambda's resolved Fun type
+        if (lambdaNode.OutputType.BaseType == BaseFunnyType.Fun) {
+            var funSpec = lambdaNode.OutputType.FunTypeSpecification;
+            // For 'it' (index 0), it1/it2 (index from name)
+            int idx = argName == "it" ? 0 : int.Parse(argName.Substring(2)) - 1;
+            if (idx >= 0 && idx < funSpec.Inputs.Length)
+                return funSpec.Inputs[idx];
+        }
+        // Fallback: scan body for the variable and use its type
+        return ScanForVarType(body, argName) ?? FunnyType.Any;
+    }
+
+    private static FunnyType? ScanForVarType(ISyntaxNode node, string name) {
+        if (node is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named && named.Id == name
+            && named.OutputType.BaseType != BaseFunnyType.Empty)
+            return named.OutputType;
+        foreach (var child in node.Children) {
+            var result = ScanForVarType(child, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private static void ScanCapturedVars(ISyntaxNode node, string[] argNames,
+        Dictionary<string, int> outerSlots, List<(string, int)> captured) {
+        if (node is SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode named
+            && named.IdType == SyntaxParsing.SyntaxNodes.NamedIdNodeType.Variable
+            && !Array.Exists(argNames, a => a == named.Id)
+            && outerSlots.TryGetValue(named.Id, out var slot)
+            && !captured.Exists(c => c.Item1 == named.Id)) {
+            captured.Add((named.Id, slot));
+        }
+        // Don't recurse into nested lambdas
+        if (node is SyntaxParsing.SyntaxNodes.AnonymFunctionSyntaxNode
+            || node is SyntaxParsing.SyntaxNodes.SuperAnonymFunctionSyntaxNode)
+            return;
+        foreach (var child in node.Children)
+            ScanCapturedVars(child, argNames, outerSlots, captured);
     }
 
     public byte Visit(TryCatchSyntaxNode node) {
@@ -1170,7 +1295,8 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
             if (op == Op.Jump || op == Op.JumpIfFalse || op == Op.JumpIfTrue
                 || op == Op.Call || op == Op.TailCall
                 || op == Op.NewStruct || op == Op.GetField || op == Op.GetFieldSafe
-                || op == Op.CallExtern || op == Op.NewArray || op == Op.GetElement)
+                || op == Op.CallExtern || op == Op.NewArray || op == Op.GetElement
+                || op == Op.MakeClosure)
                 return; // bail out — too complex for simple peephole
             j += InstructionWidth(op);
         }
