@@ -23,16 +23,17 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     private readonly TicTypesConverter _typesConverter;
     private readonly DialectSettings _dialect;
 
+
     private static IExpressionNode BuildExpression(
         ISyntaxNode node,
         IFunctionRegistry functions,
         VariableDictionary variables,
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
-        DialectSettings dialect) =>
-        node.Accept(
-            new ExpressionBuilderVisitor(
-                functions, variables, typeInferenceResults, typesConverter, dialect));
+        DialectSettings dialect) {
+        var visitor = new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect);
+        return node.Accept(visitor);
+    }
 
     internal static IExpressionNode BuildExpression(
         ISyntaxNode node,
@@ -42,8 +43,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
         DialectSettings dialect) {
-        var result = node.Accept(
-            new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
+        var visitor = new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect);
+        var result = node.Accept(visitor);
         if (result.Type == outputType)
             return result;
         var converter =
@@ -915,5 +916,203 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             _variables.TryRemove(node.ErrorVariableName);
 
         return new TryCatchExpressionNode(tryNode, catchNode, errorVar, node.Interval, node.OutputType);
+    }
+
+    public IExpressionNode Visit(BlockSyntaxNode node) {
+        var statements = node.Statements;
+        var exprNodes = new IExpressionNode[statements.Count];
+        var assignments = new Nodes.VariableAssignment[statements.Count];
+
+        for (int i = 0; i < statements.Count; i++) {
+            var stmt = statements[i];
+            if (stmt is EquationSyntaxNode eq) {
+                // Build the expression for the equation body
+                var bodyExpr = ReadNode(eq.Expression);
+
+                // Reuse existing variable source if variable already exists (reassignment).
+                // This ensures that loop bodies write to the same source that the outer scope reads,
+                // enabling patterns like: total = 0; for item in arr: total = total + item
+                var existing = _variables.GetOrNull(eq.Id);
+                Runtime.VariableSource source;
+                if (existing != null)
+                {
+                    source = existing;
+                }
+                else
+                {
+                    var varType = eq.OutputType != FunnyType.Empty ? eq.OutputType : bodyExpr.Type;
+                    source = Runtime.VariableSource.CreateWithoutStrictTypeLabel(
+                        eq.Id, varType, Runtime.FunnyVarAccess.Output, _dialect.Converter);
+                    _variables.AddOrReplace(source);
+                }
+
+                // Cast expression if types differ (e.g., int literal to real variable)
+                var castExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                    bodyExpr, source.Type, _dialect.Converter.TypeBehaviour);
+
+                exprNodes[i] = castExpr;
+                assignments[i] = new Nodes.VariableAssignment(source);
+            }
+            else {
+                exprNodes[i] = ReadNode(stmt);
+            }
+        }
+
+        return new Nodes.BlockExpressionNode(exprNodes, assignments, node.OutputType, node.Interval);
+    }
+
+    public IExpressionNode Visit(ReturnSyntaxNode node) {
+        IExpressionNode expr = null;
+        if (node.Expression != null)
+            expr = ReadNode(node.Expression);
+        return new Nodes.ReturnExpressionNode(expr, node.OutputType, node.Interval);
+    }
+
+    public IExpressionNode Visit(ForSyntaxNode node) {
+        var collectionExpr = ReadNode(node.Collection);
+
+        // Determine iterator element type from the collection type
+        var collectionType = collectionExpr.Type;
+        FunnyType elementType;
+        if (collectionType.BaseType == BaseFunnyType.ArrayOf)
+            elementType = collectionType.ArrayTypeSpecification.FunnyType;
+        else
+            elementType = FunnyType.Any;
+
+        // Create iterator variable
+        var iteratorVar = Runtime.VariableSource.CreateWithoutStrictTypeLabel(
+            node.IteratorName, elementType, Runtime.FunnyVarAccess.Output, _dialect.Converter);
+        _variables.AddOrReplace(iteratorVar);
+
+        // Build body expression
+        var bodyExpr = ReadNode(node.Body);
+
+        return new Nodes.ForExpressionNode(collectionExpr, bodyExpr, iteratorVar, node.OutputType, node.Interval);
+    }
+
+    public IExpressionNode Visit(WhileSyntaxNode node) {
+        var conditionExpr = ReadNode(node.Condition);
+        var bodyExpr = ReadNode(node.Body);
+        return new Nodes.WhileExpressionNode(conditionExpr, bodyExpr, node.OutputType, node.Interval);
+    }
+
+    public IExpressionNode Visit(WhenSyntaxNode node) {
+        IExpressionNode subjectExpr = null;
+        if (node.Subject != null)
+            subjectExpr = ReadNode(node.Subject);
+
+        var arms = new (IExpressionNode condition, IExpressionNode body)[node.Arms.Length];
+        for (int i = 0; i < node.Arms.Length; i++) {
+            var armCondition = ReadNode(node.Arms[i].Condition);
+            var armBody = ReadNode(node.Arms[i].Body);
+            // Cast arm body to output type if needed (for expression form with else)
+            if (node.ElseBody != null)
+                armBody = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                    armBody, node.OutputType, _dialect.Converter.TypeBehaviour);
+            arms[i] = (armCondition, armBody);
+        }
+
+        IExpressionNode elseExpr = null;
+        if (node.ElseBody != null) {
+            elseExpr = ReadNode(node.ElseBody);
+            elseExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                elseExpr, node.OutputType, _dialect.Converter.TypeBehaviour);
+        }
+
+        return new Nodes.WhenExpressionNode(subjectExpr, arms, elseExpr, node.OutputType, node.Interval);
+    }
+
+    public IExpressionNode Visit(WhenArmSyntaxNode node)
+        => ThrowNotAnExpression(node);
+
+    public IExpressionNode Visit(BreakSyntaxNode node)
+        => new Nodes.BreakExpressionNode(node.OutputType, node.Interval);
+
+    public IExpressionNode Visit(ContinueSyntaxNode node)
+        => new Nodes.ContinueExpressionNode(node.OutputType, node.Interval);
+
+    public IExpressionNode Visit(PrintSyntaxNode node) {
+        // Print evaluates its expression. The actual print() call is wired at the parser level
+        // as a FunCallSyntaxNode. This handler exists for the statement-form `print expr`.
+        var expr = ReadNode(node.Expression);
+        return expr;
+    }
+
+    public IExpressionNode Visit(TryBlockSyntaxNode node) {
+        var tryExpr = ReadNode(node.TryBody);
+
+        // Pre-create the error variable before visiting catch body, so Visit(NamedIdSyntaxNode)
+        // finds it as a script-scoped local rather than emitting an unbound input. The variable
+        // is removed from _variables once the catch body is built — it must not leak to the
+        // script-level variable list.
+        VariableSource errorVar = null;
+        if (node.CatchBody != null && node.ErrorVariableName != null) {
+            var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
+            var aliasType = _typeInferenceResults.GetVariableTypeOrNull(aliasName);
+            var errorType = aliasType != null
+                ? _typesConverter.Convert(aliasType)
+                : FunnyType.Any;
+            errorVar = VariableSource.CreateWithoutStrictTypeLabel(
+                node.ErrorVariableName, errorType, FunnyVarAccess.NoInfo, _dialect.Converter);
+            _variables.TryAdd(errorVar);
+        }
+
+        IExpressionNode catchExpr = null;
+        if (node.CatchBody != null) {
+            catchExpr = ReadNode(node.CatchBody);
+            // Cast catch body to output type if needed
+            catchExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                catchExpr, node.OutputType, _dialect.Converter.TypeBehaviour);
+        }
+
+        if (errorVar != null)
+            _variables.TryRemove(node.ErrorVariableName);
+
+        IExpressionNode anywayExpr = null;
+        if (node.AnywayBody != null)
+            anywayExpr = ReadNode(node.AnywayBody);
+
+        IExpressionNode result;
+        if (catchExpr != null) {
+            // Cast try body to output type for expression form
+            var tryBody = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                tryExpr, node.OutputType, _dialect.Converter.TypeBehaviour);
+            result = new Nodes.TryCatchExpressionNode(
+                tryBody, catchExpr, errorVar, node.Interval, node.OutputType);
+        } else {
+            // Try with only anyway (no catch)
+            result = tryExpr;
+        }
+
+        if (anywayExpr != null)
+            result = new Nodes.TryAnywayExpressionNode(result, anywayExpr, node.OutputType, node.Interval);
+
+        return result;
+    }
+
+    public IExpressionNode Visit(IfBlockSyntaxNode node) {
+        // Build like IfElse: parallel arrays of conditions and bodies
+        var conditions = new IExpressionNode[node.Ifs.Length];
+        var bodies = new IExpressionNode[node.Ifs.Length];
+        for (int i = 0; i < node.Ifs.Length; i++) {
+            conditions[i] = ReadNode(node.Ifs[i].Condition);
+            bodies[i] = ReadNode(node.Ifs[i].Expression);
+        }
+
+        IExpressionNode elseExpr;
+        if (node.ElseBody != null)
+            elseExpr = ReadNode(node.ElseBody);
+        else
+            elseExpr = new Nodes.ConstantExpressionNode(
+                Types.FunnyNone.Instance, FunnyType.None, node.Interval);
+
+        return new Nodes.IfElseExpressionNode(bodies, conditions, elseExpr, node.Interval, node.OutputType);
+    }
+
+    public IExpressionNode Visit(FieldAssignmentSyntaxNode node) {
+        var sourceExpr = ReadNode(node.Source);
+        var valueExpr = ReadNode(node.Value);
+        return new Nodes.FieldAssignExpressionNode(
+            node.FieldName, sourceExpr, valueExpr, node.Interval, sourceExpr.Type);
     }
 }

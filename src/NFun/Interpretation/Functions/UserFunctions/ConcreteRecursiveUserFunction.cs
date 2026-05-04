@@ -34,7 +34,10 @@ internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
                 throw new ArgumentException();
             SetVariables(args);
 
-            return Expression.Calc();
+            var result = Expression.Calc();
+            if (result is Nodes.ReturnSignal signal)
+                return signal.Value;
+            return result;
         }
         finally
         {

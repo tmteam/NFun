@@ -35,6 +35,12 @@ public class Tokenizer {
     public static TokFlow ToFlow(string input, bool denyNewlineInStrings = false)
         => new(ToTokenArray(input, denyNewlineInStrings));
 
+    public static TokFlow ToFlowWithIndents(string input, bool denyNewlineInStrings = false) {
+        var rawTokens = ToTokenArray(input, denyNewlineInStrings);
+        var processed = IndentTokenizer.Process(rawTokens, input);
+        return new TokFlow(processed);
+    }
+
     private static Tok[] ToTokenArray(string input, bool denyNewlineInStrings) {
         var reader = new Tokenizer(denyNewlineInStrings);
         var tokens = new List<Tok>();
@@ -73,6 +79,7 @@ public class Tokenizer {
         { "if", TokType.If },
         { "then", TokType.Then },
         { "else", TokType.Else },
+        { "elif", TokType.Elif },
         { "true", TokType.True },
         { "false", TokType.False },
 
@@ -97,7 +104,7 @@ public class Tokenizer {
 
 
         //Reserved keywords:
-        { "fun", TokType.Reserved },
+        { "fun", TokType.Fun },
         { "the", TokType.Reserved },
         { "_", TokType.Reserved },
 
@@ -107,8 +114,11 @@ public class Tokenizer {
         { "base", TokType.Reserved },
         { "bigInt", TokType.Reserved },
 
+        { "anyway", TokType.Anyway },
+        { "break", TokType.Break },
         { "case", TokType.Reserved },
         { "catch", TokType.Catch },
+        { "continue", TokType.Continue },
 
         { "date", TokType.Reserved },
         { "decimal", TokType.Reserved },
@@ -118,7 +128,7 @@ public class Tokenizer {
 
         // "from" unreserved — used as argument name in range/slice
         { "finally", TokType.Reserved },
-        { "for", TokType.Reserved },
+        { "for", TokType.For },
         { "fail", TokType.Reserved },
         { "int8", TokType.Reserved },
         { "import", TokType.Reserved },
@@ -140,7 +150,7 @@ public class Tokenizer {
         // "oops" is a built-in function (not reserved) — registered in BaseFunctions
         { "pass", TokType.Reserved },
         { "rem", TokType.Reserved },
-        { "return", TokType.Reserved },
+        { "return", TokType.Return },
         { "struct", TokType.Reserved },
         { "switch", TokType.Reserved },
         { "type", TokType.TypeKeyword },
@@ -155,8 +165,8 @@ public class Tokenizer {
         { "void", TokType.Reserved },
 
         { "where", TokType.Reserved },
-        { "while", TokType.Reserved },
-        { "when", TokType.Reserved },
+        { "while", TokType.While },
+        { "when", TokType.When },
         { "until", TokType.Reserved },
         { "unless", TokType.Reserved }
     };
@@ -199,10 +209,7 @@ public class Tokenizer {
         {
             if (tok == TokType.Reserved)
             {
-                if (word == "fun")
-                    throw Errors.TokenIsReserved(new Interval(position, finish), word, "rule");
-                else
-                    throw Errors.TokenIsReserved(new Interval(position, finish), word);
+                throw Errors.TokenIsReserved(new Interval(position, finish), word);
             }
             return Tok.New(tok, word, position, finish);
         }
@@ -482,10 +489,15 @@ public class Tokenizer {
             case '&': return Tok.New(TokType.BitAnd, position, position + 1);
             case '^': return Tok.New(TokType.BitXor, position, position + 1);
             case '|': return Tok.New(TokType.BitOr, position, position + 1);
+            case '/' when next == '/' && position + 2 < str.Length && str[position + 2] == '=':
+                return Tok.New(TokType.IntDivDef, position, position + 3);
             case '/' when next == '/': return Tok.New(TokType.DivInt, position, position + 2);
             case '/' when next == '\'': return ReadCharLiteral(str, position);
+            case '/' when next == '=': return Tok.New(TokType.DivDef, position, position + 2);
             case '/': return Tok.New(TokType.Div, position, position + 1);
+            case '+' when next == '=': return Tok.New(TokType.PlusDef, position, position + 2);
             case '+': return Tok.New(TokType.Plus, position, position + 1);
+            case '%' when next == '=': return Tok.New(TokType.ModDef, position, position + 2);
             case '%': return Tok.New(TokType.Rema, position, position + 1);
             case '(':
                 if (_isInInterpolation) _interpolationLayers.Peek().ParenDepth++;
@@ -508,8 +520,10 @@ public class Tokenizer {
                 return Tok.New(TokType.Colon, position, position + 1);
             case '~': return Tok.New(TokType.BitInverse, position, position + 1);
             case '-' when next == '>': return Tok.New(TokType.Arrow, position, position + 2);
+            case '-' when next == '=': return Tok.New(TokType.MinusDef, position, position + 2);
             case '-': return Tok.New(TokType.Minus, position, position + 1);
             case '*' when next == '*': return Tok.New(TokType.Pow, position, position + 2);
+            case '*' when next == '=': return Tok.New(TokType.MulDef, position, position + 2);
             case '*': return Tok.New(TokType.Mult, position, position + 1);
             case '>' when next == '=': return Tok.New(TokType.MoreOrEqual, position, position + 2);
             case '>' when next == '>': return Tok.New(TokType.BitShiftRight, position, position + 2);

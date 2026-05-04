@@ -192,7 +192,7 @@ public static class SyntaxNodeReader {
             return SyntaxNodeFactory.UnarOperatorCall(CoreFunNames.Not, node, start, node.Interval.Finish);
         }
 
-        if (flow.MoveIf(TokType.Rule))
+        if (flow.MoveIf(TokType.Rule) || flow.MoveIf(TokType.Fun))
             return ReadFunAnonymousFunction(flow);
 
         if (flow.MoveIf(TokType.FiObr))
@@ -311,6 +311,28 @@ public static class SyntaxNodeReader {
 
         if (flow.MoveIf(TokType.Default, out var defaultToken))
             return SyntaxNodeFactory.DefaultValue(defaultToken.Interval);
+
+        // return/break/continue as expression (bottom type) — lang mode, e.g. `x ?? return`, `x ?? continue`
+        if (flow.IsCurrent(TokType.Return)) {
+            var retStart = flow.Current.Start;
+            flow.MoveNext();
+            ISyntaxNode retExpr = null;
+            if (!flow.IsCurrent(TokType.NewLine) && !flow.IsCurrent(TokType.Dedent) && !flow.IsDoneOrEof())
+                retExpr = ReadNodeOrNull(flow);
+            return SyntaxNodeFactory.Return(retExpr, new Interval(retStart, flow.CurrentTokenFinishPosition));
+        }
+
+        if (flow.IsCurrent(TokType.Break)) {
+            var interval = flow.Current.Interval;
+            flow.MoveNext();
+            return SyntaxNodeFactory.Break(interval);
+        }
+
+        if (flow.IsCurrent(TokType.Continue)) {
+            var interval = flow.Current.Interval;
+            flow.MoveNext();
+            return SyntaxNodeFactory.Continue(interval);
+        }
 
         if (flow.IsCurrent(TokType.NotAToken))
             throw Errors.NotAToken(flow.Current);
@@ -558,6 +580,31 @@ public static class SyntaxNodeReader {
         if (bodyOrTypeNotation == null)
             throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
 
+        // Block lambda: fun(args): \n body
+        // Detected when we see Colon followed by NewLine (not a type annotation)
+        if (flow.IsCurrent(TokType.Colon) && flow.Peek?.Type == TokType.NewLine
+            && bodyOrTypeNotation.ParenthesesCount == 1)
+        {
+            flow.MoveNext(); // consume ':'
+            flow.MoveNext(); // consume NewLine
+            flow.SkipNewLines(); // skip extra blank lines
+
+            ISyntaxNode blockBody;
+            if (flow.IsCurrent(TokType.Indent))
+            {
+                // Indent tokens available (top-level or lang mode)
+                blockBody = LangParser.ParseBlock(flow);
+            }
+            else
+            {
+                // Inside brackets: no Indent/Dedent tokens, parse statements until
+                // we see a closing bracket or EOF
+                blockBody = ReadBlockLambdaBody(flow);
+            }
+            var definition = bodyOrTypeNotation;
+            return SyntaxNodeFactory.AnonymFunction(definition, TypeSyntax.Empty, blockBody);
+        }
+
         var returnType = TryReadTypeDef(flow, allowArrow: true);
         if (flow.Current.Is(TokType.Def))
         {
@@ -581,6 +628,51 @@ public static class SyntaxNodeReader {
             throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, pos));
 
         return SyntaxNodeFactory.SuperAnonymFunction(bodyOrTypeNotation);
+    }
+
+    /// <summary>
+    /// Reads block lambda body when inside brackets (no Indent/Dedent tokens).
+    /// Parses statements separated by NewLine until a closing bracket is encountered.
+    /// The result is a BlockSyntaxNode where the last expression is the return value.
+    /// </summary>
+    private static BlockSyntaxNode ReadBlockLambdaBody(TokFlow flow) {
+        var start = flow.CurrentTokenStartPosition;
+        var statements = new List<ISyntaxNode>();
+
+        while (!flow.IsDoneOrEof()) {
+            // Stop at closing brackets — block lambda body is done
+            if (flow.IsCurrent(TokType.ParenthCbr) || flow.IsCurrent(TokType.ArrCBr) || flow.IsCurrent(TokType.FiCbr))
+                break;
+
+            // Skip newlines between statements
+            if (flow.IsCurrent(TokType.NewLine)) {
+                flow.MoveNext();
+                continue;
+            }
+
+            // Read expression
+            var node = ReadNodeOrNull(flow);
+            if (node == null)
+                break;
+
+            // Check if it's an assignment: id = expr
+            if (flow.IsCurrent(TokType.Def)) {
+                if (node is NamedIdSyntaxNode named) {
+                    flow.MoveNext(); // consume '='
+                    flow.SkipNewLines();
+                    var body = ReadNodeOrNull(flow);
+                    if (body == null)
+                        throw Errors.AnonymousFunBodyIsMissing(flow.Current.Interval);
+                    statements.Add(SyntaxNodeFactory.Equation(named.Id, body, named.Interval.Start, System.Array.Empty<FunnyAttribute>()));
+                    continue;
+                }
+            }
+
+            statements.Add(node);
+        }
+
+        var finish = flow.CurrentTokenFinishPosition;
+        return SyntaxNodeFactory.Block(statements, new Interval(start, finish));
     }
 
     private static ISyntaxNode ReadStruct(TokFlow flow) {

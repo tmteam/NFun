@@ -73,6 +73,13 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         }
         var retType = signatureConverter.Convert(ticSignature.ReturnType);
 
+        // Check if the signature actually has Generic(i) types.
+        // TIC may report HasGenerics but the converter resolves everything to concrete.
+        // In that case, return null — caller should build as concrete function.
+        var maxGenericId = argTypes.Append(retType).Max(t => t.SearchMaxGenericTypeId());
+        if (!maxGenericId.HasValue)
+            return null;
+
         var langConstrains = new GenericConstrains[extendedGenerics.Count];
         for (int i = 0; i < ticGenerics.Count; i++)
         {

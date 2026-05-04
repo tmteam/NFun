@@ -326,7 +326,8 @@ public class GraphBuilder {
     public void SetDef(string name, int rightNodeId) {
         var exprNode = GetOrCreateNode(rightNodeId);
         var defNode = GetNamedNode(name);
-        _outputNodes.Add(defNode);
+        if (!_outputNodes.Contains(defNode))
+            _outputNodes.Add(defNode);
 
         if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
             constrains.Preferred = primitive;

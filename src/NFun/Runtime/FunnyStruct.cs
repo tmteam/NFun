@@ -31,6 +31,9 @@ public class FunnyStruct : IReadOnlyDictionary<string, object> {
 
     public object GetValue(string field) => _values[field];
 
+    /// <summary>In-place field mutation. Used by lang-mode field assignment.</summary>
+    internal void SetValue(string field, object value) => _values[field] = value;
+
     public override string ToString() =>
         "{ " + string.Join(", ", _values.Select(v => $"{v.Key}={v.Value}")) + " }";
 

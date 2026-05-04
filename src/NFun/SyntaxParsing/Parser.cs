@@ -14,6 +14,9 @@ public class Parser {
     public static SyntaxTree Parse(TokFlow flow)
         => new Parser(flow).ParseTree(flow);
 
+    public static SyntaxTree ParseLang(TokFlow flow)
+        => LangParser.Parse(flow);
+
     private readonly List<ISyntaxNode> _nodes = new();
     private readonly List<string> _equationNames = new();
 
@@ -260,7 +263,14 @@ public class Parser {
     /// Parse: type name = {field defs}
     /// Fields can be: name:type, name:type = default_expr, name = default_expr
     /// </summary>
-    private void ReadTypeDeclaration(TokFlow flow) {
+    private void ReadTypeDeclaration(TokFlow flow)
+        => _nodes.Add(ParseTypeDeclaration(flow));
+
+    /// <summary>
+    /// Parses a type declaration: type name = {...} or type name = alias.
+    /// Shared between expression-mode Parser and LangParser.
+    /// </summary>
+    internal static TypeDeclarationSyntaxNode ParseTypeDeclaration(TokFlow flow) {
         var start = flow.Current.Start;
         flow.MoveNext(); // skip 'type'
 
@@ -274,13 +284,11 @@ public class Parser {
         // type name = type   → type alias (int, int[], text?, other_name, etc.)
         if (!flow.IsCurrent(TokType.FiObr))
         {
-            // Type alias: read type syntax
             var aliasType = flow.ReadTypeSyntax();
             if (aliasType is TypeSyntax.EmptyType)
                 throw Errors.TypeBodyExpected(nameToken.Value, flow.Current);
-            var aliasInterval = new Interval(start, flow.CurrentTokenFinishPosition);
-            _nodes.Add(new TypeDeclarationSyntaxNode(nameToken.Value, aliasType, aliasInterval));
-            return;
+            return new TypeDeclarationSyntaxNode(nameToken.Value, aliasType,
+                new Interval(start, flow.CurrentTokenFinishPosition));
         }
 
         flow.MoveNext(); // skip '{'
@@ -303,7 +311,6 @@ public class Parser {
 
             var fieldStart = fieldId.Start;
 
-            // Try read type annotation
             var typeSyntax = TypeSyntax.Empty;
             if (flow.IsCurrent(TokType.Colon))
             {
@@ -313,7 +320,6 @@ public class Parser {
                     throw Errors.TypeExpectedButWas(flow.Current);
             }
 
-            // Try read default value
             ISyntaxNode defaultValue = null;
             if (flow.MoveIf(TokType.Def))
             {
@@ -323,13 +329,6 @@ public class Parser {
                     throw Errors.StructFieldBodyIsMissed(fieldId);
             }
 
-            // All four formats are valid:
-            // {a}            — generic, required (no type, no default)
-            // {a:int}        — typed, required
-            // {a = 42}       — generic default (type inferred)
-            // {a:int = 42}   — typed with default
-
-            // Check for duplicate field names
             if (fields.Any(f => string.Equals(f.Name, fieldId.Value, StringComparison.OrdinalIgnoreCase)))
                 throw Errors.NamedTypeDuplicateField(nameToken.Value, fieldId.Value, fieldId.Interval);
 
@@ -346,7 +345,7 @@ public class Parser {
                 throw Errors.StructIsUndone(flow.CurrentTokenFinishPosition);
         }
 
-        var interval = new Interval(start, flow.CurrentTokenFinishPosition);
-        _nodes.Add(new TypeDeclarationSyntaxNode(nameToken.Value, fields, interval));
+        return new TypeDeclarationSyntaxNode(nameToken.Value, fields,
+            new Interval(start, flow.CurrentTokenFinishPosition));
     }
 }

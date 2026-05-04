@@ -17,6 +17,128 @@ using NFun.Types;
 namespace NFun.Interpretation;
 
 internal static class RuntimeBuilder {
+    internal static FunnyRuntime BuildLang(
+        string script,
+        IFunctionRegistry functionRegistry,
+        DialectSettings dialect,
+        IConstantList constants = null,
+        IAprioriTypesMap aprioriTypesMap = null,
+        ICustomTypeRegistry customTypes = null) {
+
+        // Lang mode enables optional types, named types, and mutable structs by default
+        if (dialect.OptionalTypesSupport == OptionalTypesSupport.Disabled
+            || dialect.NamedTypesSupport == NamedTypesSupport.Disabled
+            || !dialect.UseMutableStructs)
+            dialect = new DialectSettings(
+                dialect.IfExpressionSetup,
+                dialect.IntegerPreferredType,
+                dialect.Converter,
+                dialect.AllowIntegerOverflow,
+                dialect.AllowUserFunctions,
+                OptionalTypesSupport.Enabled,
+                dialect.AllowNewlineInStrings,
+                NamedTypesSupport.Enabled,
+                dialect.TryCatchSupport,
+                dialect.ExtensionFunctionsSeparation,
+                useMutableStructs: true);
+
+        var flow = Tokenizer.ToFlowWithIndents(script);
+        var syntaxTree = Parser.ParseLang(flow);
+
+        // Named types: elaborate type declarations (same as expression mode Build)
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null;
+        Runtime.TypeRegistry typeRegistry = null;
+        customTypes ??= EmptyCustomTypeRegistry.Instance;
+        if (dialect.NamedTypesSupport == NamedTypesSupport.Enabled)
+        {
+            syntaxTree = NamedTypeElaborator.Elaborate(syntaxTree, out var namedTypes);
+            if (namedTypes.Count > 0)
+            {
+                foreach (var nt in namedTypes)
+                    if (!nt.Value.IsAlias)
+                        customTypes = customTypes.CloneWith(nt.Key, FunnyType.NamedStructOf(nt.Key));
+
+                var aliases = new List<KeyValuePair<string, NamedTypeDefinition>>();
+                foreach (var nt in namedTypes)
+                    if (nt.Value.IsAlias)
+                        aliases.Add(nt);
+
+                for (int pass = 0; pass < aliases.Count + 1; pass++)
+                {
+                    bool anyUnresolved = false;
+                    foreach (var alias in aliases)
+                    {
+                        if (customTypes.TryResolve(alias.Key, out _))
+                            continue;
+                        try {
+                            var resolved = TypeSyntaxResolver.Resolve(alias.Value.AliasTypeSyntax, customTypes);
+                            customTypes = customTypes.CloneWith(alias.Key, resolved);
+                        } catch {
+                            anyUnresolved = true;
+                        }
+                    }
+                    if (!anyUnresolved) break;
+                }
+
+                var hasStructTypes = false;
+                var registry = new NamedTypeFieldRegistry();
+                foreach (var nt in namedTypes)
+                {
+                    if (nt.Value.IsAlias) continue;
+                    hasStructTypes = true;
+                    var fields = new (string name, FunnyType type)[nt.Value.Fields.Count];
+                    for (int i = 0; i < nt.Value.Fields.Count; i++)
+                    {
+                        var f = nt.Value.Fields[i];
+                        fields[i] = (f.Name, f.TypeSyntax is TypeSyntax.EmptyType
+                            ? InferTypeFromConstantOrAny(f.DefaultValue)
+                            : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes));
+                    }
+                    registry.Register(nt.Key, fields);
+                }
+                if (hasStructTypes)
+                    namedTypeFieldRegistry = registry;
+
+                var typeInfos = new Dictionary<string, Runtime.NamedTypeInfo>(StringComparer.OrdinalIgnoreCase);
+                foreach (var nt in namedTypes) {
+                    if (nt.Value.IsAlias) {
+                        customTypes.TryResolve(nt.Key, out var resolved);
+                        typeInfos[nt.Key] = new Runtime.NamedTypeInfo(nt.Key, resolved);
+                    } else {
+                        var fieldInfos = new Runtime.NamedTypeFieldInfo[nt.Value.Fields.Count];
+                        for (int i = 0; i < nt.Value.Fields.Count; i++) {
+                            var f = nt.Value.Fields[i];
+                            var ft = f.TypeSyntax is TypeSyntax.EmptyType
+                                ? InferTypeFromConstantOrAny(f.DefaultValue)
+                                : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes);
+                            fieldInfos[i] = new Runtime.NamedTypeFieldInfo(f.Name, ft, f.HasDefault);
+                        }
+                        customTypes.TryResolve(nt.Key, out var structType);
+                        typeInfos[nt.Key] = new Runtime.NamedTypeInfo(nt.Key, structType, fieldInfos);
+                    }
+                }
+                typeRegistry = new Runtime.TypeRegistry(typeInfos);
+            }
+        }
+
+        // Set node numbers
+        var setNodeNumberVisitor = new SetNodeNumberVisitor(0);
+        syntaxTree.ComeOver(setNodeNumberVisitor);
+        syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
+        syntaxTree.IsSimpleBody = setNodeNumberVisitor.IsSimpleBody;
+
+        return Build(
+            syntaxTree,
+            functionRegistry,
+            EnsureBuiltInConstants(constants, dialect.Converter),
+            aprioriTypesMap ?? EmptyAprioriTypesMap.Instance,
+            customTypes,
+            dialect,
+            namedTypeFieldRegistry,
+            typeRegistry,
+            allowReassignment: true);
+    }
+
     internal static FunnyRuntime Build(
         string script,
         IFunctionRegistry functionRegistry,
@@ -188,7 +310,8 @@ internal static class RuntimeBuilder {
         ICustomTypeRegistry customTypes,
         DialectSettings dialect,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null,
-        TypeRegistry typeRegistry = null) {
+        TypeRegistry typeRegistry = null,
+        bool allowReassignment = false) {
         #region build user functions
 
         //get topology sort of the functions call
@@ -279,19 +402,28 @@ internal static class RuntimeBuilder {
         {
             if (treeNode is EquationSyntaxNode node)
             {
-                var equation =
-                    BuildEquationAndPutItToVariables(node, functionRegistry, variables, bodyTypeSolving, dialect);
-                equations.Add(equation);
-
-                if (!variables.TryAdd(equation.OutputVariableSource))
+                Equation equation;
+                if (allowReassignment)
                 {
-                    var alreadyExist = variables.GetOrNull(equation.OutputVariableSource.Name);
-                    var usage = equations.FindFirstUsageOrNull(alreadyExist);
-                    //some equation referenced the source before
-                    if (equation.OutputVariableSource.IsOutput)
-                        throw Errors.OutputNameWithDifferentCase(equation.Id, usage?.Interval ?? equation.Expression.Interval);
-                    else
-                        throw Errors.CannotUseOutputValueBeforeItIsDeclared(alreadyExist, usage);
+                    equation = BuildEquationForLang(node, functionRegistry, variables, bodyTypeSolving, dialect);
+                    equations.Add(equation);
+                    variables.TryAdd(equation.OutputVariableSource); // no-op if already exists
+                }
+                else
+                {
+                    equation = BuildEquationAndPutItToVariables(node, functionRegistry, variables, bodyTypeSolving, dialect);
+                    equations.Add(equation);
+
+                    if (!variables.TryAdd(equation.OutputVariableSource))
+                    {
+                        var alreadyExist = variables.GetOrNull(equation.OutputVariableSource.Name);
+                        var usage = equations.FindFirstUsageOrNull(alreadyExist);
+                        //some equation referenced the source before
+                        if (equation.OutputVariableSource.IsOutput)
+                            throw Errors.OutputNameWithDifferentCase(equation.Id, usage?.Interval ?? equation.Expression.Interval);
+                        else
+                            throw Errors.CannotUseOutputValueBeforeItIsDeclared(alreadyExist, usage);
+                    }
                 }
 
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
@@ -450,6 +582,75 @@ internal static class RuntimeBuilder {
         return new Equation(equation.Id, expression, outputVariableSource);
     }
 
+    /// <summary>
+    /// Builds an equation for lang mode, supporting variable reassignment.
+    /// For the first definition, creates a VariableSource with TIC-inferred variable type.
+    /// For reassignment, reuses the existing VariableSource.
+    /// Inserts casts when expression type differs from variable type.
+    /// </summary>
+    private static Equation BuildEquationForLang(
+        EquationSyntaxNode equation,
+        IFunctionRegistry functionsRegistry,
+        VariableDictionary mutableVariables,
+        TypeInferenceResults typeInferenceResults,
+        DialectSettings dialect) {
+        if(TraceLog.IsEnabled)
+            TraceLog.WriteLine($"\r\n==== BUILD EQUATION (lang) '{equation.Id}' ====");
+
+        var expression = ExpressionBuilderVisitor.BuildExpression(
+            node: equation.Expression,
+            functions: functionsRegistry,
+            outputType: equation.OutputType,
+            variables: mutableVariables,
+            typeInferenceResults: typeInferenceResults,
+            typesConverter: TicTypesConverter.Concrete,
+            dialect: dialect);
+
+        // Check if this is a reassignment
+        var existing = mutableVariables.GetOrNull(equation.Id);
+        if (existing != null)
+        {
+            // Reassignment: reuse existing VariableSource, cast if needed
+            var castExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                expression, existing.Type, dialect.Converter.TypeBehaviour);
+            return new Equation(equation.Id, castExpr, existing);
+        }
+
+        // First definition: resolve variable type from TIC (accounts for all assignments)
+        var ticVarType = typeInferenceResults.GetVariableTypeOrNull(equation.Id);
+        FunnyType varType;
+        if (ticVarType != null)
+        {
+            varType = TicTypesConverter.Concrete.Convert(ticVarType);
+        }
+        else
+        {
+            varType = equation.OutputTypeSpecified ? equation.OutputType : expression.Type;
+        }
+
+        VariableSource outputVariableSource;
+        if (equation.OutputTypeSpecified)
+            outputVariableSource = VariableSource.CreateWithStrictTypeLabel(
+                name: equation.Id,
+                type: varType,
+                typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval,
+                access: FunnyVarAccess.Output,
+                typeBehaviour: dialect.Converter,
+                attributes: equation.Attributes);
+        else
+            outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(
+                name: equation.Id,
+                type: varType,
+                access: FunnyVarAccess.Output,
+                dialect.Converter,
+                equation.Attributes);
+
+        // Cast expression to variable type if they differ (e.g., int literal assigned to real variable)
+        var castedExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+            expression, varType, dialect.Converter.TypeBehaviour);
+
+        return new Equation(equation.Id, castedExpr, outputVariableSource);
+    }
 
     private static IUserFunction BuildFunctionAndPutItToDictionary(
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
@@ -590,11 +791,35 @@ internal static class RuntimeBuilder {
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsRegistry,
                 dialect, namedTypeFieldRegistry);
-            var genRegistryKey = TicSetupVisitor.GetRegistryKey(function.Name, function.IsExtension, dialect.ExtensionFunctionsSeparation);
-            functionsRegistry.Add(genRegistryKey, function);
-            if (TraceLog.IsEnabled)
-                TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
-            return function;
+            if (function != null)
+            {
+                var genRegistryKey = TicSetupVisitor.GetRegistryKey(function.Name, function.IsExtension, dialect.ExtensionFunctionsSeparation);
+                functionsRegistry.Add(genRegistryKey, function);
+                if (TraceLog.IsEnabled)
+                    TraceLog.WriteLine($"\r\n=====> Generic {functionSyntaxNode.Id} {function}");
+                return function;
+            }
+            // TIC reported generics but signature resolved to all-concrete.
+            // Build as concrete function instead.
+            functionSyntaxNode.ComeOver(
+                enterVisitor: new ApplyTiResultEnterVisitor(
+                    solving: typeInferenceResuls,
+                    tiToLangTypeConverter: TicTypesConverter.Concrete));
+
+            var concFunType = TicTypesConverter.Concrete.Convert(
+                typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
+            var concReturnType = concFunType.FunTypeSpecification.Output;
+            var concArgTypes = concFunType.FunTypeSpecification.Inputs;
+
+            var concPrototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, concReturnType, concArgTypes, functionSyntaxNode.IsExtension);
+            var concRegistryKey = TicSetupVisitor.GetRegistryKey(concPrototype.Name, concPrototype.IsExtension, dialect.ExtensionFunctionsSeparation);
+            functionsRegistry.Add(concRegistryKey, concPrototype);
+            var concFunction = functionSyntaxNode.BuildConcrete(
+                argTypes: concArgTypes, returnType: concReturnType,
+                functionsRegistry: functionsRegistry, results: typeInferenceResuls,
+                converter: TicTypesConverter.Concrete, dialect: dialect);
+            concPrototype.SetActual(concFunction);
+            return concFunction;
         }
     }
 
