@@ -977,12 +977,14 @@ internal sealed class BytecodeCompiler : ISyntaxNodeVisitor<byte> {
                 break;
             case BinOp.Equal:
                 if (isReal) _e.Emit(Op.EqReal);
-                else if (IsIntegerType(opType)) _e.Emit(Op.EqInt);
+                else if (IsIntegerType(opType) || opType.BaseType == BaseFunnyType.Bool || opType.BaseType == BaseFunnyType.Char)
+                    _e.Emit(Op.EqInt);
                 else _e.Emit(Op.EqRef);
                 break;
             case BinOp.NotEqual:
                 if (isReal) { _e.Emit(Op.EqReal); _e.Emit(Op.Not); }
-                else if (IsIntegerType(opType)) _e.Emit(Op.NeqInt);
+                else if (IsIntegerType(opType) || opType.BaseType == BaseFunnyType.Bool || opType.BaseType == BaseFunnyType.Char)
+                    _e.Emit(Op.NeqInt);
                 else _e.Emit(Op.NeqRef);
                 break;
             case BinOp.Less:
