@@ -267,15 +267,22 @@ public static class RegisterVM {
                     break;
                 }
                 case RegisterOp.CallUser: {
-                    // Simple: save IP, jump to function entry, restore on Return
-                    // For now, use re-entrant execution (like BytecodeLambda)
                     ref var func = ref userFuncs[s1];
                     var baseR = s2;
-                    var newLocals = new FunValue[func.LocalsCount];
+                    // Reuse cached locals for non-recursive calls (zero alloc)
+                    FunValue[] callLocals;
+                    if (!func.CachedLocalsInUse) {
+                        callLocals = func.CachedLocals ??= new FunValue[func.LocalsCount];
+                        func.CachedLocalsInUse = true;
+                    } else {
+                        callLocals = new FunValue[func.LocalsCount];
+                    }
                     for (int i = 0; i < func.ArgTypes.Length; i++)
-                        newLocals[i] = locals[baseR + i];
-                    Execute(code, newLocals, constants, program, externFuncs, userFuncs, func.EntryIP);
-                    locals[dst] = newLocals[0]; // convention: return value in r0
+                        callLocals[i] = locals[baseR + i];
+                    Execute(code, callLocals, constants, program, externFuncs, userFuncs, func.EntryIP);
+                    if (!func.CachedLocalsInUse) { } // already released by Halt
+                    else if (callLocals == func.CachedLocals) func.CachedLocalsInUse = false;
+                    locals[dst] = callLocals[0];
                     break;
                 }
                 case RegisterOp.Return:
