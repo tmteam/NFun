@@ -204,9 +204,12 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             }
             else
             {
-                var anc = cs.Ancestor ?? StatePrimitive.Any;
-                var concrete = TicTypesConverter.ToConcrete(anc.Name);
-                varType[i] = concrete;
+                // Use preferred type when available (e.g., Int32 for integer literals).
+                // Otherwise fall back to ancestor (widest type in the interval).
+                var resolved = cs.Preferred != null && cs.CanBeConvertedTo(cs.Preferred)
+                    ? cs.Preferred
+                    : cs.Ancestor ?? StatePrimitive.Any;
+                varType[i] = TicTypesConverter.ToConcrete(resolved.Name);
             }
         }
 

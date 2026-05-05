@@ -861,6 +861,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             genericTypes = InitializeGenericTypes(t.Constrains);
             // save refernces to generic types, for use at 'apply tic results' step
             _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
+
+            // Propagate preferred for generics that only appear in return type.
+            // These are safe: no call-site arg can conflict with the preferred type.
+            // Generics shared with arg types must stay wide for polymorphism.
+            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes);
         }
         else genericTypes = Array.Empty<StateRefTo>();
 
@@ -1314,6 +1319,52 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return genericTypes;
     }
 
+    /// <summary>
+    /// For each generic that has Preferred and appears ONLY in return type (not in any arg type),
+    /// set Preferred on the call-site constraint node. This allows f() = 2+3 to resolve to Int32
+    /// without breaking polymorphic functions like fib(n) where generics are shared with args.
+    /// </summary>
+    private static void PropagateReturnOnlyPreferred(
+        GenericConstrains[] constrains, FunnyType[] argTypes, FunnyType returnType, StateRefTo[] genericTypes) {
+        for (int i = 0; i < constrains.Length; i++) {
+            if (constrains[i].Preferred == null)
+                continue;
+            // Check if this generic index appears in any arg type
+            bool appearsInArgs = false;
+            for (int a = 0; a < argTypes.Length; a++) {
+                if (TypeContainsGeneric(argTypes[a], i)) {
+                    appearsInArgs = true;
+                    break;
+                }
+            }
+            if (!appearsInArgs) {
+                // Safe to propagate preferred — this generic is return-only
+                var node = genericTypes[i].Node.GetNonReference();
+                if (node.State is ConstraintsState cs && cs.Preferred == null)
+                    cs.Preferred = constrains[i].Preferred;
+            }
+        }
+    }
+
+    private static bool TypeContainsGeneric(FunnyType type, int genericIndex) {
+        if (type.BaseType == BaseFunnyType.Generic)
+            return type.GenericId == genericIndex;
+        if (type.BaseType == BaseFunnyType.ArrayOf)
+            return TypeContainsGeneric(type.ArrayTypeSpecification.FunnyType, genericIndex);
+        if (type.BaseType == BaseFunnyType.Optional)
+            return TypeContainsGeneric(type.OptionalTypeSpecification.ElementType, genericIndex);
+        if (type.BaseType == BaseFunnyType.Fun) {
+            var spec = type.FunTypeSpecification;
+            if (TypeContainsGeneric(spec.Output, genericIndex)) return true;
+            foreach (var input in spec.Inputs)
+                if (TypeContainsGeneric(input, genericIndex)) return true;
+        }
+        if (type.BaseType == BaseFunnyType.Struct)
+            foreach (var field in type.StructTypeSpecification)
+                if (TypeContainsGeneric(field.Value, genericIndex)) return true;
+        return false;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StateRefTo InitializeGenericType(GenericConstrains constrains, StateRefTo[] genericTypes = null) {
         if (constrains.HasStructDescendant && genericTypes != null)
@@ -1321,13 +1372,15 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // Convert the FunnyType struct to a TIC StateStruct, resolving
             // generic field references (Generic(i)) to already-initialized type variables.
             var ticStruct = (ITypeState)constrains.StructDescendant.ConvertToTiType(genericTypes);
-            return _ticTypeGraph.InitializeVarNode(ticStruct, constrains.Ancestor, constrains.IsComparable, constrains.Preferred);
+            return _ticTypeGraph.InitializeVarNode(ticStruct, constrains.Ancestor, constrains.IsComparable);
         }
+        // Do NOT propagate preferred into call-site TIC graph.
+        // Preferred is used only in CreateSomeConcrete (fallback for uncalled functions).
+        // At call sites, preferred arrives naturally via TryConvertConstToRef from literal args.
         return _ticTypeGraph.InitializeVarNode(
             constrains.Descendant,
             constrains.Ancestor,
-            constrains.IsComparable,
-            constrains.Preferred);
+            constrains.IsComparable);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

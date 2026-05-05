@@ -117,7 +117,7 @@ public class FunctionNamedArgumentsTest {
 
     [Test]
     public void Regression_NoArgsCallUnchanged() =>
-        "f() = 42 \r y = f()".AssertReturns("y", 42.0);
+        "f() = 42 \r y = f()".AssertReturns("y", 42);
 
     [Test]
     public void Regression_SinglePositionalArg() =>

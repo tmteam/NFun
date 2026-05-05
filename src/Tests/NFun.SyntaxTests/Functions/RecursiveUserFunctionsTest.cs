@@ -40,7 +40,7 @@ public class RecursiveUserFunctionsTest {
     [TestCase(7, 13)]
     [TestCase(8, 21)]
     [TestCase(9, 34)]
-    public void ClassicRecFibonachi(double x, double y) =>
+    public void ClassicRecFibonachi(int x, int y) =>
         @"fibrec(n, iter, p1,p2) =
                       if (n >iter) fibrec(n, iter+1, p1+p2, p1)
                       else p1+p2
@@ -59,7 +59,7 @@ public class RecursiveUserFunctionsTest {
     [TestCase(7, 13)]
     [TestCase(8, 21)]
     [TestCase(9, 34)]
-    public void PrimitiveRecFibonachi(double x, double y) =>
+    public void PrimitiveRecFibonachi(int x, int y) =>
         @" fib(n) = if (n<3) 1 else fib(n-1)+fib(n-2)
                    y = fib(x)"
             .Calc("x", x)
@@ -147,7 +147,7 @@ public class RecursiveUserFunctionsTest {
     [TestCase(5, 5)]
     [TestCase(6, 8)]
     [TestCase(7, 13)]
-    public void ClassicRecFibonachi_specifyNType(int x, double y) =>
+    public void ClassicRecFibonachi_specifyNType(int x, int y) =>
         @"fibrec(n:int, iter, p1,p2) =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
                           else p1+p2
@@ -191,7 +191,7 @@ public class RecursiveUserFunctionsTest {
     [Test]
     public void RecursiveConcat_Constant() =>
         "range(a,b) = if(a>=b) [] else [99].concat(range(a+1,b))\r y = range(0,3)"
-            .AssertResultHas("y", new[] { 99.0, 99.0, 99.0 });
+            .AssertResultHas("y", new[] { 99, 99, 99 });
 
     [Test]
     public void RecursiveConcat_SecondParam() =>

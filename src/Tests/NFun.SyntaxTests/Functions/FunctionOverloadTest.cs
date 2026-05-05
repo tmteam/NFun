@@ -297,7 +297,7 @@ public class FunctionOverloadTest {
 
     [Test]
     public void RecursiveShadow_Count() =>
-        "count(n) = if(n <= 0) 0 else 1 + count(n-1)\r y = count(5)".AssertReturns("y", 5.0);
+        "count(n) = if(n <= 0) 0 else 1 + count(n-1)\r y = count(5)".AssertReturns("y", 5);
 
     [Test]
     public void RecursiveShadow_Fold() =>
