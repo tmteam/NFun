@@ -1321,12 +1321,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // Convert the FunnyType struct to a TIC StateStruct, resolving
             // generic field references (Generic(i)) to already-initialized type variables.
             var ticStruct = (ITypeState)constrains.StructDescendant.ConvertToTiType(genericTypes);
-            return _ticTypeGraph.InitializeVarNode(ticStruct, constrains.Ancestor, constrains.IsComparable);
+            return _ticTypeGraph.InitializeVarNode(ticStruct, constrains.Ancestor, constrains.IsComparable, constrains.Preferred);
         }
         return _ticTypeGraph.InitializeVarNode(
             constrains.Descendant,
             constrains.Ancestor,
-            constrains.IsComparable);
+            constrains.IsComparable,
+            constrains.Preferred);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

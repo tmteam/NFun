@@ -10,6 +10,13 @@ public readonly struct GenericConstrains {
     public readonly StatePrimitive Descendant;
     public readonly bool IsComparable;
     /// <summary>
+    /// Preferred type for this generic (e.g. Int32 for integer literals).
+    /// Propagated from TIC ConstraintsState so that generic functions
+    /// whose type variables are not constrained by call-site arguments
+    /// still resolve to the preferred type rather than the widest (ancestor).
+    /// </summary>
+    public readonly StatePrimitive Preferred;
+    /// <summary>
     /// Struct descendant constraint as a FunnyType (lang-level type).
     /// When set, the generic type must be a struct with at least these fields.
     /// The struct fields may reference other generics via FunnyType.Generic(i).
@@ -53,17 +60,20 @@ public readonly struct GenericConstrains {
         = new(Real, null, false);
 
     public static GenericConstrains FromTicConstrains(ConstraintsState constraintsState)
-        => new(constraintsState.Ancestor, constraintsState.Descendant as StatePrimitive, constraintsState.IsComparable);
+        => new(constraintsState.Ancestor, constraintsState.Descendant as StatePrimitive,
+            constraintsState.IsComparable, preferred: constraintsState.Preferred);
 
     internal static GenericConstrains WithStructDescendant(FunnyType structType)
         => new(null, null, false, structType);
 
     private GenericConstrains(
         StatePrimitive ancestor = null, StatePrimitive descendant = null,
-        bool isComparable = false, FunnyType structDescendant = default) {
+        bool isComparable = false, FunnyType structDescendant = default,
+        StatePrimitive preferred = null) {
         Ancestor = ancestor;
         Descendant = descendant;
         IsComparable = isComparable;
         StructDescendant = structDescendant;
+        Preferred = preferred;
     }
 }

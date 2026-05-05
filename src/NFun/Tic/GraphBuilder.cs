@@ -23,8 +23,13 @@ public class GraphBuilder {
     public GraphBuilder() { _syntaxNodes = new TicNode[16]; _syntaxNodesLength = 16; }
     public GraphBuilder(int maxSyntaxNodeId) { _syntaxNodes = new TicNode[maxSyntaxNodeId]; _syntaxNodesLength = maxSyntaxNodeId; }
 
-    public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
-        => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
+    public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false, StatePrimitive preferred = null)
+    {
+        var cs = ConstraintsState.Of(desc, anc, isComparable);
+        if (preferred != null)
+            cs.Preferred = preferred;
+        return new(CreateVarType(cs));
+    }
 
     #region node management
 
