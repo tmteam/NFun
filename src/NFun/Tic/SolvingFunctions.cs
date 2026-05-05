@@ -53,9 +53,14 @@ public static class SolvingFunctions {
             case StateStruct strA2 when stateB is ConstraintsState constrainsB2:
             {
                 if (constrainsB2.HasDescendant && constrainsB2.Descendant is StateStruct descStruct)
-                    return MergeStructs(strA2, descStruct);
+                {
+                    var merged = MergeStructs(strA2, descStruct);
+                    // Preserve IsOptional: opt(T) merged with U = opt(merge(T,U))
+                    return merged != null && constrainsB2.IsOptional
+                        ? StateOptional.Of(merged) : merged;
+                }
                 if (!constrainsB2.HasDescendant && !constrainsB2.IsComparable)
-                    return strA2; // unconstrained → becomes the struct
+                    return constrainsB2.IsOptional ? StateOptional.Of(strA2) : strA2;
                 return null;
             }
             case ConstraintsState constrainsA when stateB is ConstraintsState constrainsB:
