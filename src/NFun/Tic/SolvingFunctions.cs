@@ -865,16 +865,14 @@ public static class SolvingFunctions {
         IReadOnlyList<TicNode> outputNodes,
         IEnumerable<TicNode> inputNodes,
         bool ignorePreferred) {
-        //We have to solve all generic types that are not output
 
         const int outputTypeMark = -77;
-        // Firstly - get all outputs and mark them with output mark
+        // Step 1: Mark output types (return type leaves)
         foreach (var outputNode in outputNodes)
             foreach (var outputType in outputNode.GetAllOutputTypes())
                 outputType.VisitMark = outputTypeMark;
 
-
-        //All not solved output types
+        // Step 2: Mark and resolve input (signature) types
         foreach (var inputNode in inputNodes)
         {
             if (inputNode.State is StateFun stateFun)
@@ -886,24 +884,42 @@ public static class SolvingFunctions {
                     if (leafNode.VisitMark == outputTypeMark)
                         continue;
                     leafNode.VisitMark = outputTypeMark;
-
-                    //if contravariant not in output type list then
-                    //solve it and add to output types
                     leafNode.State = ((ConstraintsState)leafNode.State).SolveContravariant();
                 }
             }
+            else
+            {
+                // Non-StateFun input (e.g., user function arg).
+                // Mark as signature to preserve as generic — but only if it has
+                // actual constraints (desc/anc) or is a composite type (array, struct).
+                // Unconstrained [..] args should resolve normally (they become Any).
+                var nr = inputNode.GetNonReference();
+                if (nr.State is ICompositeState
+                    || (nr.State is ConstraintsState ics && (ics.HasDescendant || ics.HasAncestor)))
+                    MarkSignatureLeaves(inputNode, outputTypeMark);
+            }
         }
 
-        //Input covariant types that NOT referenced and are not members of any output types
+        // Step 3: Resolve remaining body-internal generics with preferred.
+        // All signature nodes (output + input) were marked above and are skipped.
+        // Body-internal nodes (e.g., assertType's T) use preferred for natural resolution.
         foreach (var node in toposortedNodes)
         {
             if (node.VisitMark == outputTypeMark)
                 continue;
             if (node.State is not ConstraintsState c)
                 continue;
-            // we have to ignore prefered type as we need last common ancestor
-            node.State = c.SolveCovariant(ignorePreferred);
+            node.State = c.SolveCovariant();
         }
+    }
+
+    private static void MarkSignatureLeaves(TicNode node, int mark) {
+        var nr = node.GetNonReference();
+        if (nr.VisitMark == mark) return;
+        nr.VisitMark = mark;
+        if (nr.State is ICompositeState composite)
+            for (int mi = 0; mi < composite.MemberCount; mi++)
+                MarkSignatureLeaves(composite.GetMember(mi), mark);
     }
 
     #endregion

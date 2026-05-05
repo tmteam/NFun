@@ -158,7 +158,8 @@ public class StructGenericFunctionTest {
     [TestCase(
         @"f(n) = n.field;
                   y = fact({nonExistingField=x})")]
-    [TestCase(@"fact(n) = if(n.field<=1) 1 else fact({field=n.field-1})*n.nonExistingField")]
+    // Note: "fact(n) = ...n.nonExistingField" without a call site is no longer a compile error —
+    // with polymorphic function args, the struct type stays open until instantiation.
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 
     // ═══════════════════════════════════════════════════════════════

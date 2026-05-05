@@ -204,12 +204,12 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             }
             else
             {
-                // Use preferred type when available (e.g., Int32 for integer literals).
-                // Otherwise fall back to ancestor (widest type in the interval).
-                var resolved = cs.Preferred != null && cs.CanBeConvertedTo(cs.Preferred)
-                    ? cs.Preferred
-                    : cs.Ancestor ?? StatePrimitive.Any;
-                varType[i] = TicTypesConverter.ToConcrete(resolved.Name);
+                // Use ancestor (widest type) for the initial concrete build.
+                // Preferred is NOT used here because CreateSomeConcrete runs before
+                // call sites are processed — using preferred would narrow the function
+                // signature and reject valid call-site types (e.g., Real[] for Int32[]).
+                var anc = cs.Ancestor ?? StatePrimitive.Any;
+                varType[i] = TicTypesConverter.ToConcrete(anc.Name);
             }
         }
 
