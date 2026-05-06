@@ -50,11 +50,12 @@ public static partial class StateExtensions {
                 return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
                     a== Any ? b.Abstractest() : null;
             if (b== Any) return a.Abstractest();
-            if (a.GetType() != b.GetType()) return null;
+            // MutStruct <: Struct — allow GCD across struct family
+            if (a.GetType() != b.GetType() && !(a is StateStruct && b is StateStruct)) return null;
             return a switch {
                 StateArray arrA => arrA.Gcd((StateArray)b),
                 StateFun funA => funA.Gcd((StateFun)b),
-                StateStruct structA => structA.Gcd((StateStruct)b),
+                StateStruct structA when b is StateStruct structB => structA.Gcd(structB),
                 _ => throw new NotSupportedException($"GCD is not supported for types {a} and {b}")
             };
         }
@@ -89,6 +90,9 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState Gcd(this StateStruct a, StateStruct b) {
+        bool bothMutable = a is StateMutableStruct && b is StateMutableStruct;
+        bool eitherMutable = a is StateMutableStruct || b is StateMutableStruct;
+
         var nodes = new Dictionary<string, TicNode>();
         // GCD of structs = union of all fields. For shared fields, compute GCD of field types.
         foreach (var (name, aFieldNode) in a.Fields)
@@ -98,10 +102,19 @@ public static partial class StateExtensions {
                 nodes.Add(name, aFieldNode);
             else
             {
-                var fieldGcd = aFieldNode.State.Gcd(bField.State);
-                if (fieldGcd == null)
+                ITicNodeState fieldResult;
+                if (eitherMutable)
+                {
+                    // MutStruct fields are invariant: GCD requires Unify (exact match).
+                    fieldResult = aFieldNode.State.UnifyOrNull(bField.State);
+                }
+                else
+                {
+                    fieldResult = aFieldNode.State.Gcd(bField.State);
+                }
+                if (fieldResult == null)
                     return null;
-                nodes.Add(name, TicNode.CreateInvisibleNode(fieldGcd));
+                nodes.Add(name, TicNode.CreateInvisibleNode(fieldResult));
             }
         }
         // Add fields only in b
@@ -111,6 +124,11 @@ public static partial class StateExtensions {
                 nodes.Add(name, bFieldNode);
         }
 
+        // GCD(MutStruct, MutStruct) = MutStruct (both mutable, intersection preserves mutability).
+        // GCD(Struct, MutStruct) = MutStruct (MutStruct is more specific/concrete).
+        // GCD(MutStruct, Struct) = MutStruct (symmetric).
+        if (eitherMutable)
+            return new StateMutableStruct(nodes, isFrozen: true);
         return new StateStruct(nodes, isFrozen: true);
     }
 

@@ -131,8 +131,14 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState LcaStructFields(StateStruct a, StateStruct b) {
-        // Struct LCA = intersection of field names, with covariant field type LCA.
+        bool bothMutable = a is StateMutableStruct && b is StateMutableStruct;
+        bool eitherMutable = a is StateMutableStruct || b is StateMutableStruct;
+
+        // MutStruct x MutStruct: try invariant Unify per field; if any fails, downgrade to immutable Struct.
+        // MutStruct x Struct (or vice versa): always upcast to immutable Struct with covariant LCA.
+        // Struct x Struct: covariant LCA per field (existing behavior).
         var nodes = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+        bool unifyFailed = false;
         foreach (var aField in a.Fields)
         {
             var bField = b.GetFieldOrNull(aField.Key);
@@ -142,7 +148,18 @@ public static partial class StateExtensions {
             var bState = bField.GetNonReference().State;
 
             ITicNodeState fieldType;
-            if (aState is ConstraintsState && bState is ConstraintsState)
+            if (bothMutable && !unifyFailed)
+            {
+                // Invariant: try Unify first
+                fieldType = aState.UnifyOrNull(bState);
+                if (fieldType == null)
+                {
+                    // Unify failed — downgrade entire result to immutable Struct, use LCA
+                    unifyFailed = true;
+                    fieldType = aState.Lca(bState);
+                }
+            }
+            else if (aState is ConstraintsState && bState is ConstraintsState)
                 fieldType = aState.UnifyOrNull(bState);
             else
                 fieldType = aState.Lca(bState);
@@ -151,6 +168,10 @@ public static partial class StateExtensions {
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));
         }
 
+        // Both MutStruct and all fields unified → result is MutStruct.
+        // Otherwise → immutable Struct (mixed mutability or Unify failure).
+        if (bothMutable && !unifyFailed)
+            return new StateMutableStruct(nodes, true);
         return new StateStruct(nodes, true);
     }
 

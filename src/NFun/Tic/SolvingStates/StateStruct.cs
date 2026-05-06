@@ -114,7 +114,7 @@ public class StateStruct : ICompositeState {
     /// </summary>
     public string TypeName { get; set; }
 
-    public ICompositeState GetNonReferenced() {
+    public virtual ICompositeState GetNonReferenced() {
         var nodeCopy = new FieldMap();
         foreach (var (key, value) in _nodes)
             nodeCopy.Add(key, value.GetNonReference());
@@ -164,7 +164,7 @@ public class StateStruct : ICompositeState {
         // via UnifyOrNull (unlike the old inline logic which skipped ConstraintsState fields)
         this.Lca(otherType) as ITypeState;
 
-    public string PrintState(int depth) {
+    public virtual string PrintState(int depth) {
         if (depth > 100)
             return "{...REQ...}";
         if (_nodes.Count == 0)

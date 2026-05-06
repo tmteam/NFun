@@ -113,6 +113,10 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState UnifyOrNull(this StateStruct a, StateStruct b) {
+        // MutStruct and Struct are different type constructors — cannot unify
+        if (a is StateMutableStruct != b is StateMutableStruct)
+            return null;
+
         if (a.FieldsCount != b.FieldsCount)
             return null;
         var fields = new Dictionary<string, TicNode>();
@@ -127,6 +131,8 @@ public static partial class StateExtensions {
             fields.Add(aField.Key, TicNode.CreateInvisibleNode(uniField));
         }
 
+        if (a is StateMutableStruct)
+            return new StateMutableStruct(fields, true);
         return new StateStruct(fields, true);
     }
 }

@@ -109,12 +109,13 @@ public static partial class StateExtensions {
             return false;
         if (from is ConstraintsState constrainsState)
             return !constrainsState.HasDescendant;
-        if (from.GetType() != to.GetType())
+        // MutStruct <: Struct — allow cross-type comparison within struct family
+        if (from.GetType() != to.GetType() && !(from is StateStruct && to is StateStruct))
             return false;
         return from switch {
             StateArray arrayFrom => arrayFrom.Element.CanBeConvertedOptimisticTo(((StateArray)to).Element),
             StateFun funFrom => funFrom.CanBeConvertedOptimisticTo((StateFun)to),
-            StateStruct structFrom => structFrom.CanBeConvertedOptimisticTo((StateStruct)to),
+            StateStruct structFrom when to is StateStruct toStruct => structFrom.CanBeConvertedOptimisticTo(toStruct),
             _ => throw new NotSupportedException($"{from} is not supported for CanBeConvertedOptimistic")
         };
     }

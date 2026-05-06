@@ -48,6 +48,13 @@ public static class SolvingFunctions {
             case StateOptional optA when stateB is StateOptional optB:
                 MergeInplace(optA.ElementNode, optB.ElementNode);
                 return optA;
+            // MutStruct and Struct are different type constructors — cannot merge
+            case StateMutableStruct when stateB is StateStruct and not StateMutableStruct:
+                return null;
+            case StateStruct and not StateMutableStruct when stateB is StateMutableStruct:
+                return null;
+            case StateMutableStruct mutA when stateB is StateMutableStruct mutB:
+                return MergeMutableStructs(mutA, mutB);
             case StateStruct strA when stateB is StateStruct strB:
                 return MergeStructs(strA, strB);
             case StateStruct strA2 when stateB is ConstraintsState constrainsB2:
@@ -121,6 +128,27 @@ public static class SolvingFunctions {
             result.TryAdd(key, value);
 
         return new StateStruct(result, isFrozen: false, isOpen: strA.IsOpen || strB.IsOpen);
+    }
+
+    /// <summary>
+    /// Merge two MutableStructs. Fields are invariant — MergeInplace (which requires equality).
+    /// </summary>
+    private static StateMutableStruct MergeMutableStructs(StateMutableStruct strA, StateMutableStruct strB) {
+        var result = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in strA.Fields)
+        {
+            var bNode = strB.GetFieldOrNull(key);
+            if (bNode != null)
+                MergeInplace(value, bNode); // invariant: must be same type
+            else if (strA.IsFrozen || strB.IsFrozen)
+                return null;
+            result.Add(key, value);
+        }
+
+        foreach (var (key, value) in strB.Fields)
+            result.TryAdd(key, value);
+
+        return new StateMutableStruct(result, isFrozen: false, isOpen: strA.IsOpen || strB.IsOpen);
     }
 
     /// <summary>

@@ -234,6 +234,30 @@ public static class GraphBuilderExtensions {
         rightNode.AddAncestor(resultNode);
     }
 
+    public static void SetMutableStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
+        var fields = new Dictionary<string, TicNode>(fieldNames.Length, StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < fieldNames.Length; i++)
+        {
+            if (fields.ContainsKey(fieldNames[i]))
+                throw TicErrors.CannotSetState(
+                    b.GetOrCreateNode(id),
+                    new StateMutableStruct(fields, false));
+            fields.Add(fieldNames[i], b.GetOrCreateNode(fieldExpressionIds[i]));
+        }
+
+        var mutStruct = new StateMutableStruct(fields, false);
+        var alreadyExists = b.GetOrCreateNode(id);
+        if (alreadyExists.State is ConstraintsState)
+        {
+            alreadyExists.State = mutStruct;
+        }
+        else
+        {
+            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(mutStruct, alreadyExists.State) ??
+                                  throw TicErrors.CannotSetState(alreadyExists, mutStruct);
+        }
+    }
+
     public static void SetStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
         var fields = new Dictionary<string, TicNode>(fieldNames.Length, StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < fieldNames.Length; i++)

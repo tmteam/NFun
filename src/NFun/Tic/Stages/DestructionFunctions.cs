@@ -313,6 +313,13 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // MutStruct x MutStruct: invariant fields — use MergeInplace (enforces equality).
+        bool invariant = ancestor is StateMutableStruct && descendant is StateMutableStruct;
+
+        // Struct cannot fit into MutStruct (immutable cannot be upgraded to mutable)
+        if (ancestor is StateMutableStruct && descendant is not StateMutableStruct)
+            throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
+
         // Destruct field-by-field: for each ancestor field, find matching descendant field.
         var sameFieldCount = 0;
         foreach (var (key, ancFieldNode) in ancestor.Fields)
@@ -321,7 +328,13 @@ public class DestructionFunctions : IStateFunction {
             if (descFieldNode == null)
                 continue; // descendant may have fewer fields (struct width subtyping)
 
-            if (SolvingFunctions.Destruction(descFieldNode, ancFieldNode))
+            if (invariant)
+            {
+                // Invariant: unify fields (must be same type)
+                SolvingFunctions.MergeInplace(descFieldNode, ancFieldNode);
+                sameFieldCount++;
+            }
+            else if (SolvingFunctions.Destruction(descFieldNode, ancFieldNode))
                 sameFieldCount++;
         }
 

@@ -68,14 +68,29 @@ public static partial class StateExtensions {
     }
 
     private static bool FitsInto(this StateStruct from, StateStruct to) {
+        // Struct cannot fit into MutStruct (can't upgrade immutable to mutable)
+        if (to is StateMutableStruct && from is not StateMutableStruct)
+            return false;
+
         // 'from' has to have every field from 'to'
-        // every 'from' field has to fit into 'to' field
         foreach (var toField in to.Fields)
         {
             var fromField = from.GetFieldOrNull(toField.Key);
             if (fromField == null) return false;
-            if (!fromField.State.FitsInto(toField.Value.State))
-                return false;
+
+            // MutStruct x MutStruct: fields are invariant (must Unify, not just FitsInto)
+            if (from is StateMutableStruct && to is StateMutableStruct)
+            {
+                var unified = fromField.State.UnifyOrNull(toField.Value.State);
+                if (unified == null) return false;
+            }
+            else
+            {
+                // MutStruct → Struct (read-only view): covariant, use FitsInto
+                // Struct → Struct: covariant, use FitsInto
+                if (!fromField.State.FitsInto(toField.Value.State))
+                    return false;
+            }
         }
         return true;
     }
@@ -129,12 +144,13 @@ public static partial class StateExtensions {
     /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
     /// </summary>
     private static bool CanBeFitConverted(ICompositeState desc, ICompositeState to) {
-        if (desc.GetType() == to.GetType())
+        // MutStruct <: Struct, so treat both as struct family for dispatch
+        if (desc.GetType() == to.GetType() || (desc is StateStruct && to is StateStruct))
         {
             return desc switch {
                 StateArray descA => CanBeFitConverted(descA.Element, ((StateArray)to).Element),
                 StateFun descF => CanBeFitConverted(descF, (StateFun)to),
-                StateStruct descS => CanBeFitConverted(descS, (StateStruct)to),
+                StateStruct descS when to is StateStruct toS => CanBeFitConverted(descS, toS),
                 StateOptional descO => CanBeFitConverted(descO.Element, ((StateOptional)to).Element),
                 _ => false
             };
@@ -149,14 +165,25 @@ public static partial class StateExtensions {
     /// <summary>
     /// desc ≤ to (width subtyping): desc must have all fields of to, each pessimistically convertible.
     /// Extra desc fields are OK (more fields = subtype).
+    /// Struct cannot fit into MutStruct. MutStruct x MutStruct: invariant fields.
     /// </summary>
     private static bool CanBeFitConverted(StateStruct desc, StateStruct to) {
+        // Struct cannot fit into MutStruct
+        if (to is StateMutableStruct && desc is not StateMutableStruct)
+            return false;
+
         foreach (var (toName, toField) in to.Fields)
         {
             var descField = desc.GetFieldOrNull(toName);
             if (descField == null)
                 return false;
-            if (!descField.State.CanBeConvertedPessimisticTo(toField.State))
+            // MutStruct x MutStruct: invariant fields
+            if (desc is StateMutableStruct && to is StateMutableStruct)
+            {
+                if (descField.State.UnifyOrNull(toField.State) == null)
+                    return false;
+            }
+            else if (!descField.State.CanBeConvertedPessimisticTo(toField.State))
                 return false;
         }
 
