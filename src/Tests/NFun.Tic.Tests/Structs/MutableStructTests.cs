@@ -379,4 +379,402 @@ public class MutableStructTests {
     }
 
     #endregion
+
+    #region Pull/Push through constraint graph
+
+    [Test]
+    public void Pull_MutStruct_FieldAccessThroughFunction() {
+        // f(s) = s.a  where s is MutStruct
+        // Models: user function taking a struct arg and reading a field
+        //
+        //   s (input) → [0] → fieldAccess(.a) → [1] → f (return)
+        //
+        var graph = new GraphBuilder();
+        var funType = graph.SetFunDef("f", 1, null, "s");
+
+        graph.SetVar("s", 0);
+        graph.SetFieldAccess(0, 1, "a");
+
+        // Call site: f(mut{a = 42i})
+        graph.SetConst(10, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 10 }, 11);
+
+        // call f(11) → result at 12
+        graph.SetCall("f", 11, 12);
+        graph.SetDef("y", 12);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "y");
+    }
+
+    [Test]
+    public void Pull_MutStruct_IfElseBranches() {
+        // z = if(cond) mut{a=1i, b=true} else mut{a=2i, b=false}
+        // Pull merges two MutStruct branches
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetConst(1, Bool);
+        graph.SetMutableStructInit(new[] { "a", "b" }, new[] { 0, 1 }, 2);
+
+        graph.SetConst(3, I32);
+        graph.SetConst(4, Bool);
+        graph.SetMutableStructInit(new[] { "a", "b" }, new[] { 3, 4 }, 5);
+
+        graph.SetIfElse(new[] { 6 }, new[] { 2, 5 }, 7);
+        graph.SetDef("z", 7);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var zState = result.GetVariableNode("z").GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(zState);
+        var ms = (StateMutableStruct)zState;
+        Assert.AreEqual(I32, ms.GetFieldOrNull("a").GetNonReference().State);
+        Assert.AreEqual(Bool, ms.GetFieldOrNull("b").GetNonReference().State);
+    }
+
+    [Test]
+    public void Push_StructAncestor_MutStructDescendant() {
+        // y:{a:int} = mut{a = 42i}
+        // Struct ancestor accepts MutStruct descendant (MutStruct <: Struct)
+        var graph = new GraphBuilder();
+        graph.SetVarType("y", StateStruct.Of(("a", I32)));
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetDef("y", 1);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateStruct.Of(("a", I32)), "y");
+    }
+
+    #endregion
+
+    #region MutStruct inside Optional
+
+    [Test]
+    public void MutStruct_InsideOptional() {
+        // x:opt(MutStruct{a:int}) = mut{a=42i}
+        // Optional wrapping of a mutable struct
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetVarType("x", StateOptional.Of(StateMutableStruct.Of(("a", I32))));
+        graph.SetDef("x", 1);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateOptional.Of(StateMutableStruct.Of(("a", I32))), "x");
+    }
+
+    [Test]
+    public void LCA_MutStruct_None_ProducesOptional() {
+        // z = if(cond) mut{a=42i} else none
+        // LCA(MutStruct{a:int}, None) = opt(MutStruct{a:int})
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+
+        graph.SetConst(2, None);
+
+        graph.SetIfElse(new[] { 3 }, new[] { 1, 2 }, 4);
+        graph.SetDef("z", 4);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var zState = result.GetVariableNode("z").GetNonReference().State;
+        Assert.IsInstanceOf<StateOptional>(zState);
+        var opt = (StateOptional)zState;
+        var inner = opt.ElementNode.GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(inner);
+    }
+
+    #endregion
+
+    #region MutStruct inside Array
+
+    [Test]
+    public void MutStruct_InsideArray() {
+        // y:arr(MutStruct{a:int}) — array of mutable structs via type annotation
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+
+        // [mut{a=42i}] — single-element array
+        graph.SetSoftArrayInit(2, 1);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateArray>(yState);
+        var arr = (StateArray)yState;
+        var elem = arr.ElementNode.GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(elem);
+    }
+
+    [Test]
+    public void ArrayOfMutStructs() {
+        // [mut{a=1i}, mut{a=2i}] — array literal of mutable structs
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+
+        graph.SetConst(2, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 2 }, 3);
+
+        graph.SetSoftArrayInit(4, 1, 3);
+        graph.SetDef("y", 4);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateArray>(yState);
+        var arr = (StateArray)yState;
+        var elem = arr.ElementNode.GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(elem);
+        var ms = (StateMutableStruct)elem;
+        Assert.AreEqual(I32, ms.GetFieldOrNull("a").GetNonReference().State);
+    }
+
+    #endregion
+
+    #region MutStruct with generic fields
+
+    [Test]
+    public void MutStruct_GenericField() {
+        // y = mut{a = x} where x is unconstrained
+        var graph = new GraphBuilder();
+        graph.SetVar("x", 0);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetDef("y", 1);
+
+        var result = graph.Solve();
+        var generic = result.AssertAndGetSingleGeneric(null, null);
+        result.AssertAreGenerics(generic, "x");
+    }
+
+    [Test]
+    public void MutStruct_FieldConstrainedByCall() {
+        // x = mut{a = 42i}
+        // y:real = x.a + 1.0   (constrains field 'a' upward via arithmetic)
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetDef("x", 1);
+
+        graph.SetVar("x", 2);
+        graph.SetFieldAccess(2, 3, "a");
+
+        graph.SetConst(4, Real);
+        graph.SetArith(3, 4, 5);
+        graph.SetVarType("y", Real);
+        graph.SetDef("y", 5);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(Real, "y");
+    }
+
+    #endregion
+
+    #region MutStruct in functions
+
+    [Test]
+    public void Function_TakesMutStruct_ReadsField() {
+        // getA(s) = s.a
+        // y = getA(mut{a = 42i})
+        var graph = new GraphBuilder();
+        graph.SetFunDef("getA", 1, null, "s");
+        graph.SetVar("s", 0);
+        graph.SetFieldAccess(0, 1, "a");
+
+        graph.SetConst(10, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 10 }, 11);
+        graph.SetCall("getA", 11, 12);
+        graph.SetDef("y", 12);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "y");
+    }
+
+    [Test]
+    public void Function_ReturnsMutStruct() {
+        // mkStruct(v) = mut{a = v}
+        // y = mkStruct(42i)
+        var graph = new GraphBuilder();
+        graph.SetFunDef("mkStruct", 1, null, "v");
+        graph.SetVar("v", 0);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+
+        graph.SetConst(10, I32);
+        graph.SetCall("mkStruct", 10, 11);
+        graph.SetDef("y", 11);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(yState);
+        var ms = (StateMutableStruct)yState;
+        Assert.AreEqual(I32, ms.GetFieldOrNull("a").GetNonReference().State);
+    }
+
+    [Test]
+    public void GenericFunction_PreservesMutStruct() {
+        // identity(x) = x
+        // y = identity(mut{a = 42i})
+        var graph = new GraphBuilder();
+        graph.SetFunDef("identity", 0, null, "x");
+        graph.SetVar("x", 0);
+
+        graph.SetConst(10, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 10 }, 11);
+        graph.SetCall("identity", 11, 12);
+        graph.SetDef("y", 12);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(yState);
+    }
+
+    #endregion
+
+    #region Destruction and constraint propagation
+
+    [Test]
+    public void Destruction_StructAncestor_MutStructDescendant_Compatible() {
+        // y:{a:real} = mut{a = 42i}
+        // Struct{a:real} ancestor + MutStruct{a:int} descendant → OK
+        // MutStruct <: Struct, and I32 <: Real (covariant in immutable view)
+        var graph = new GraphBuilder();
+        graph.SetVarType("y", StateStruct.Of(("a", Real)));
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetDef("y", 1);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(StateStruct.Of(("a", Real)), "y");
+    }
+
+    [Test]
+    public void Destruction_MutStructAncestor_FieldTypeWidens() {
+        // y:mut{a:real} = mut{a = 42i}
+        // Ancestor MutStruct{a:real} pushes Real constraint into field;
+        // I32 widens to Real since field node is fresh
+        var graph = new GraphBuilder();
+        graph.SetVarType("y", StateMutableStruct.Of(("a", Real)));
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetDef("y", 1);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+    }
+
+    [Test]
+    public void Destruction_MutStruct_InvariantFields_AlgebraError() {
+        // Algebra level: LCA(MutStruct{a:I32}, MutStruct{a:I32}) = MutStruct (OK)
+        // But Unify(MutStruct{a:I32}, MutStruct{a:Real}) = null (invariant failure)
+        var a = StateMutableStruct.Of(("a", I32));
+        var b = StateMutableStruct.Of(("a", Real));
+        var result = Algebra.StateExtensions.UnifyOrNull(a, b);
+        Assert.IsNull(result, "Invariant fields: I32 != Real, unify must fail");
+    }
+
+    #endregion
+
+    #region Edge cases
+
+    [Test]
+    public void MutStruct_Empty() {
+        // y = mut{} — empty mutable struct (no fields)
+        var graph = new GraphBuilder();
+        graph.SetMutableStructInit(new string[] { }, new int[] { }, 0);
+        graph.SetDef("y", 0);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(yState);
+        var ms = (StateMutableStruct)yState;
+        Assert.AreEqual(0, ms.FieldsCount);
+    }
+
+    [Test]
+    public void MutStruct_ManyFields() {
+        // y = mut{a=1i, b=2.0, c=true, d='x', e=1i}
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetConst(1, Real);
+        graph.SetConst(2, Bool);
+        graph.SetConst(3, Char);
+        graph.SetConst(4, I64);
+        graph.SetMutableStructInit(
+            new[] { "a", "b", "c", "d", "e" },
+            new[] { 0, 1, 2, 3, 4 }, 5);
+        graph.SetDef("y", 5);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(yState);
+        var ms = (StateMutableStruct)yState;
+        Assert.AreEqual(5, ms.FieldsCount);
+        Assert.AreEqual(I32, ms.GetFieldOrNull("a").GetNonReference().State);
+        Assert.AreEqual(Real, ms.GetFieldOrNull("b").GetNonReference().State);
+        Assert.AreEqual(Bool, ms.GetFieldOrNull("c").GetNonReference().State);
+        Assert.AreEqual(Char, ms.GetFieldOrNull("d").GetNonReference().State);
+        Assert.AreEqual(I64, ms.GetFieldOrNull("e").GetNonReference().State);
+    }
+
+    [Test]
+    public void MutStruct_FieldNameCaseInsensitive() {
+        // MutStruct fields use OrdinalIgnoreCase — "A" and "a" are the same field
+        // y = mut{a = 42i}
+        // z = y.A   (uppercase access)
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "a" }, new[] { 0 }, 1);
+        graph.SetDef("x", 1);
+
+        graph.SetVar("x", 2);
+        graph.SetFieldAccess(2, 3, "A");
+        graph.SetDef("z", 3);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "z");
+    }
+
+    [Test]
+    public void MutStruct_Nested() {
+        // y = mut{inner = mut{x = 42i}}
+        // z = y.inner.x
+        var graph = new GraphBuilder();
+        graph.SetConst(0, I32);
+        graph.SetMutableStructInit(new[] { "x" }, new[] { 0 }, 1);
+        graph.SetMutableStructInit(new[] { "inner" }, new[] { 1 }, 2);
+        graph.SetDef("y", 2);
+
+        graph.SetVar("y", 3);
+        graph.SetFieldAccess(3, 4, "inner");
+        graph.SetFieldAccess(4, 5, "x");
+        graph.SetDef("z", 5);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "z");
+
+        // Verify outer is MutStruct
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsInstanceOf<StateMutableStruct>(yState);
+        // Verify inner is MutStruct
+        var innerNode = ((StateMutableStruct)yState).GetFieldOrNull("inner").GetNonReference();
+        Assert.IsInstanceOf<StateMutableStruct>(innerNode.State);
+    }
+
+    #endregion
 }
