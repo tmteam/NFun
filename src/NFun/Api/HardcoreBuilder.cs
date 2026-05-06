@@ -43,6 +43,7 @@ public class HardcoreBuilder {
     /// <param name="integerOverflow">overflow behaviour for integer arithmetics</param>
     /// <param name="allowUserFunctions">User functions restrictions</param>
     /// <param name="optionalTypesSupport">Optional types (T?, none, ??, ?.) support</param>
+    /// <param name="extensionFunctionsSeparation">Extension function namespace separation</param>
     public HardcoreBuilder WithDialect(
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
@@ -52,8 +53,9 @@ public class HardcoreBuilder {
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
-        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled)
-        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions, optionalTypesSupport, allowNewlineInStrings, namedTypesSupport, tryCatchSupport));
+        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled)
+        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions, optionalTypesSupport, allowNewlineInStrings, namedTypesSupport, tryCatchSupport, extensionFunctionsSeparation));
 
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
         new(_constants, _mutableApriori, dialect, _customFunctions, _customTypes);

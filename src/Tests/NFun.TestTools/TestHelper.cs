@@ -39,6 +39,7 @@ public static class TestHelper {
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
         params (string id, object clrValue)[] values) =>
         Funny.Hardcore.WithDialect(
             ifExpressionSyntax,
@@ -48,7 +49,8 @@ public static class TestHelper {
             allowUserFunctions,
             optionalTypesSupport,
             allowNewlineInStrings,
-            namedTypesSupport).Build(expr).Calc(values);
+            namedTypesSupport,
+            extensionFunctionsSeparation: extensionFunctionsSeparation).Build(expr).Calc(values);
 
     public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
         Funny.Hardcore.Build(expr).Calc(values);

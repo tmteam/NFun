@@ -19,6 +19,15 @@ public static class LangTiHelper {
     public static string GetFunAlias(this UserFunctionDefinitionSyntaxNode syntaxNode)
         => GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
 
+    /// <summary>
+    /// Returns function alias that distinguishes extension from regular functions.
+    /// Extension functions use "." prefix: ".f(1)" vs "f(1)".
+    /// </summary>
+    public static string GetFunAliasWithExtension(this UserFunctionDefinitionSyntaxNode syntaxNode)
+        => syntaxNode.IsExtension
+            ? "." + GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count)
+            : GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
+
     public static ITicNodeState GetTicFunType(this IFunctionSignature functionBase) =>
         StateFun.Of(
             functionBase.ArgTypes.SelectToArray(a => a.ConvertToTiType()),

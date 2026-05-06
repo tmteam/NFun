@@ -128,7 +128,9 @@ internal static class RuntimeBuilderHelper {
     /// <summary>
     /// Gets order of calculating the functions, based on its co using.
     /// </summary>
-    public static UserFunctionDefinitionSyntaxNode[] FindFunctionSolvingOrderOrThrow(this SyntaxTree syntaxTree) {
+    public static UserFunctionDefinitionSyntaxNode[] FindFunctionSolvingOrderOrThrow(
+        this SyntaxTree syntaxTree,
+        ExtensionFunctionsSeparation extensionSeparation = ExtensionFunctionsSeparation.Disabled) {
         var userFunctions = syntaxTree.Children.OfType<UserFunctionDefinitionSyntaxNode>().ToArray();
         if (userFunctions.Length == 0)
             return userFunctions;
@@ -137,7 +139,11 @@ internal static class RuntimeBuilderHelper {
         int i = 0;
         foreach (var userFunction in userFunctions)
         {
-            var alias = userFunction.GetFunAlias();
+            // When extension separation is enabled, extension and regular functions with the same
+            // name+arity use different aliases, allowing them to coexist.
+            var alias = extensionSeparation == ExtensionFunctionsSeparation.Enabled
+                ? userFunction.GetFunAliasWithExtension()
+                : userFunction.GetFunAlias();
             if(!userFunctionsNames.TryAdd(alias, i))
                 throw Errors.UserFunctionWithSameNameAlreadyDeclared(userFunction);
             i++;
@@ -147,7 +153,12 @@ internal static class RuntimeBuilderHelper {
         int j = 0;
         foreach (var userFunction in userFunctions)
         {
-            var visitor = new FindFunctionDependenciesVisitor(userFunction.GetFunAlias(), userFunctionsNames);
+            var alias = extensionSeparation == ExtensionFunctionsSeparation.Enabled
+                ? userFunction.GetFunAliasWithExtension()
+                : userFunction.GetFunAlias();
+            var visitor = new FindFunctionDependenciesVisitor(
+                alias, userFunctionsNames,
+                extensionSeparation: extensionSeparation == ExtensionFunctionsSeparation.Enabled);
             if (!userFunction.ComeOver(visitor))
                 throw new InvalidOperationException("User fun come over");
 

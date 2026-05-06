@@ -97,6 +97,18 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
     internal bool _hasUserFunctions;
     private System.Collections.Generic.HashSet<string> _narrowedFieldPaths;
+    /// <summary>
+    /// Registry key prefix for extension functions when ExtensionFunctionsSeparation is enabled.
+    /// Extension function "f" is stored as ".f" to avoid collision with regular function "f".
+    /// </summary>
+    internal const string ExtensionKeyPrefix = ".";
+
+    /// <summary>Returns the registry key for a function, adding extension prefix when needed.</summary>
+    internal static string GetRegistryKey(string name, bool isExtension, ExtensionFunctionsSeparation separation)
+        => separation == ExtensionFunctionsSeparation.Enabled && isExtension
+            ? ExtensionKeyPrefix + name
+            : name;
+
     internal const int SyntheticIdStart = 100000;
     private int _nextSyntheticId = SyntheticIdStart; // synthetic node IDs start high to avoid collision
 
@@ -409,7 +421,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             returnId: node.Body.OrderNumber,
             returnType: returnType,
             varNames: argNames);
-        _resultsBuilder.RememberUserFunctionSignature(node.Id, fun);
+        var ufRegistryName = GetRegistryKey(node.Id, node.IsExtension, _dialect.ExtensionFunctionsSeparation);
+        _resultsBuilder.RememberUserFunctionSignature(ufRegistryName, fun);
 
         var result = VisitChildren(node);
 
@@ -665,7 +678,33 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             allArgs = node.Args;
         }
 
-        var signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
+        IFunctionSignature signature;
+        if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
+            && node.IsPipeForward)
+        {
+            // Piped call with separation: look up extension function first, then fall back to built-in.
+            // Extension user functions are stored with "." prefix to avoid name collision.
+            signature = _dictionary.GetOrNull(ExtensionKeyPrefix + node.Id, allArgs.Length)
+                     ?? _dictionary.GetOrNull(node.Id, allArgs.Length);
+            // If we found a regular user function via the second lookup, reject it
+            if (signature != null && signature.IsUserDefined && !signature.IsExtension)
+                signature = null;
+        }
+        else if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
+                 && !node.IsPipeForward && !node.IsOperator)
+        {
+            // Direct call with separation: only find non-extension functions (normal lookup, no prefix)
+            signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
+            // Extension functions won't be found here (they're stored with "." prefix).
+            // But double-check in case it somehow exists:
+            if (signature != null && signature.IsExtension)
+                signature = null;
+        }
+        else
+        {
+            // No separation or operator: normal lookup
+            signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
+        }
 
         // Fallback: built-in with default args, called with fewer positional args
         if (signature == null && !node.IsOperator)
@@ -770,9 +809,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // This prevents accidental self-recursion when a user function wraps a builtin of the same name.
         // Pure user functions (no builtin match) still support piped recursive calls: fb(n).fb().
         var isPipedWithBuiltin = signature != null && node is FunCallSyntaxNode { IsPipeForward: true };
-        var userFunction = node.IsOperator || isPipedWithBuiltin
-            ? null
-            : _resultsBuilder.GetUserFunctionSignature(node.Id, allArgs.Length);
+        StateFun userFunction;
+        if (node.IsOperator || isPipedWithBuiltin)
+        {
+            userFunction = null;
+        }
+        else if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled)
+        {
+            // With separation: piped calls look for extension user functions, direct calls for regular ones.
+            var ufKey = node.IsPipeForward ? ExtensionKeyPrefix + node.Id : node.Id;
+            userFunction = _resultsBuilder.GetUserFunctionSignature(ufKey, allArgs.Length);
+        }
+        else
+        {
+            userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, allArgs.Length);
+        }
+
         if (userFunction != null)
         {
             //Call user-function if it is being built at the same time as the current expression is being built

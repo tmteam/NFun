@@ -19,6 +19,8 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
 
     private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
     public int BuiltCount { get; private set; }
+    public bool IsExtension => _syntaxNode.IsExtension;
+    public bool IsUserDefined => true;
 
     internal static GenericUserFunction Create(
         TypeInferenceResults typeInferenceResults,

@@ -6,9 +6,12 @@ using NFun.Types;
 namespace NFun.Interpretation.Functions; 
 
 internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
-    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(
+    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes, bool isExtension = false) : base(
         name,
-        returnType, argTypes) { }
+        returnType, argTypes) { IsExtension = isExtension; }
+
+    public bool IsExtension { get; }
+    public bool IsUserDefined => true;
 
     private ConcreteUserFunction _function;
 
@@ -29,7 +32,7 @@ internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
         var userFunction = context.GetUserFunctionClone(this);
         if (userFunction != null)
             return userFunction;
-        var clone = new ConcreteUserFunctionPrototype(Name, ReturnType, ArgTypes);
+        var clone = new ConcreteUserFunctionPrototype(Name, ReturnType, ArgTypes, IsExtension);
         context.AddUserFunctionClone(this, clone);
         var originClone = _function.Clone(context);
         clone.SetActual((ConcreteUserFunction)originClone);

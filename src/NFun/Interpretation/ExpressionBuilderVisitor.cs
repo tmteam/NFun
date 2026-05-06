@@ -71,6 +71,20 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         _dialect = dialect;
     }
 
+    /// <summary>
+    /// Look up a function in the registry, respecting extension separation.
+    /// For piped calls when separation is enabled, looks up with extension prefix first.
+    /// </summary>
+    private IFunctionSignature GetFunctionOrNull(string name, int argCount, bool isPiped) {
+        if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled && isPiped)
+        {
+            // Try extension function first, then fall back to built-in
+            var ext = _functions.GetOrNull(TypeInferenceAdapter.TicSetupVisitor.ExtensionKeyPrefix + name, argCount);
+            if (ext != null) return ext;
+        }
+        return _functions.GetOrNull(name, argCount);
+    }
+
     public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode node) {
         var outputTypeFunDefinition = node.OutputType.FunTypeSpecification;
         if (outputTypeFunDefinition == null)
@@ -363,7 +377,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         var someFunc = node.ResolvedSignature
             ?? _typeInferenceResults.GetResolvedCallSignatureOrNull(node.OrderNumber)
-            ?? _functions.GetOrNull(id, args.Length);
+            ?? GetFunctionOrNull(id, args.Length, node.IsPipeForward);
 
         if (someFunc is null)
         {
@@ -395,7 +409,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
                 // If a user function shadows a builtin at the same arity, the scope dictionary
                 // contains the user's GenericUserFunction which should be used instead of the builtin.
-                var scopeFunc = _functions.GetOrNull(id, args.Length);
+                var scopeFunc = GetFunctionOrNull(id, args.Length, node.IsPipeForward);
                 if (scopeFunc is IGenericFunction userGeneric && scopeFunc != genericFunction)
                     genericFunction = userGeneric;
 

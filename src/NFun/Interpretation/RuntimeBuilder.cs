@@ -156,7 +156,7 @@ internal static class RuntimeBuilder {
         //functions that not references other functions have to be compiled firstly
         //Then those functions will be compiled
         //that refer to already compiled functions
-        var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
+        var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow(dialect.ExtensionFunctionsSeparation);
         IUserFunction[] userFunctions;
         IFunctionRegistry functionRegistry;
         if (functionSolveOrder.Length == 0)
@@ -454,9 +454,10 @@ internal static class RuntimeBuilder {
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Generic {functionSyntaxNode.Id} {funType}");
             //make function prototype
-            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, protoArgTypes);
+            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, protoArgTypes, functionSyntaxNode.IsExtension);
             //add prototype to dictionary for future use
-            functionsRegistry.Add(prototype);
+            var registryKey = TicSetupVisitor.GetRegistryKey(prototype.Name, prototype.IsExtension, dialect.ExtensionFunctionsSeparation);
+            functionsRegistry.Add(registryKey, prototype);
             var function =
                 functionSyntaxNode.BuildConcrete(
                     argTypes: argTypes,
@@ -478,7 +479,8 @@ internal static class RuntimeBuilder {
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsRegistry,
                 dialect);
-            functionsRegistry.Add(function);
+            var genRegistryKey = TicSetupVisitor.GetRegistryKey(function.Name, function.IsExtension, dialect.ExtensionFunctionsSeparation);
+            functionsRegistry.Add(genRegistryKey, function);
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
             return function;

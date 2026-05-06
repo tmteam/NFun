@@ -338,14 +338,19 @@ internal sealed class ScopeFunctionRegistry : IFunctionRegistry {
         return _origin.FindOrNull(name, positionalArgCount, namedArgNames);
     }
 
-    public void Add(IFunctionSignature function) {
-        if (!_local.TryGetValue(function.Name, out var set))
+    public void Add(IFunctionSignature function) => Add(function.Name, function);
+
+    /// <summary>
+    /// Add a function under a specific registry key (may differ from function.Name for extension functions).
+    /// </summary>
+    public void Add(string registryKey, IFunctionSignature function) {
+        if (!_local.TryGetValue(registryKey, out var set))
             set = new OverloadSet();
 #if DEBUG
         if (set.GetByArity(function.ArgTypes.Length) != null)
-            AssertChecks.Panic($"Function overload {function.Name}/{function.ArgTypes.Length} already exists in function map");
+            AssertChecks.Panic($"Function overload {registryKey}/{function.ArgTypes.Length} already exists in function map");
 #endif
         set.TryAdd(function);
-        _local[function.Name] = set;
+        _local[registryKey] = set;
     }
 }

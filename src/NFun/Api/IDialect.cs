@@ -21,7 +21,8 @@ internal static class Dialects {
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
-        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled
+        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled
         )
         => new(
             ifExpressionSetup,
@@ -34,7 +35,8 @@ internal static class Dialects {
             optionalTypesSupport,
             allowNewlineInStrings,
             namedTypesSupport,
-            tryCatchSupport);
+            tryCatchSupport,
+            extensionFunctionsSeparation);
 }
 
 
@@ -53,7 +55,8 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         OptionalTypesSupport optionalTypesSupport = OptionalTypesSupport.Disabled,
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
-        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled) {
+        TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -63,6 +66,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         AllowNewlineInStrings = allowNewlineInStrings;
         NamedTypesSupport = namedTypesSupport;
         TryCatchSupport = tryCatchSupport;
+        ExtensionFunctionsSeparation = extensionFunctionsSeparation;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
@@ -73,6 +77,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
     public AllowNewlineInStrings AllowNewlineInStrings { get; }
     public NamedTypesSupport NamedTypesSupport { get; }
     public TryCatchSupport TryCatchSupport { get; }
+    public ExtensionFunctionsSeparation ExtensionFunctionsSeparation { get; }
 }
 
 /// <summary>
@@ -164,4 +169,17 @@ public enum TryCatchSupport {
     Enabled,
     /// <summary>Try-catch expressions disabled — parse error if used</summary>
     Disabled
+}
+
+/// <summary>
+/// Extension function namespace separation.
+/// When enabled, user functions defined with piped syntax (x.f() = expr) are extension functions
+/// and can only be called via piped syntax (5.f()), while regular functions (f(x) = expr) can
+/// only be called directly (f(5)). Built-in functions are unaffected — they always work via pipe.
+/// </summary>
+public enum ExtensionFunctionsSeparation {
+    /// <summary>Piped calls and regular calls share the same namespace (default, current behavior)</summary>
+    Disabled = 0,
+    /// <summary>Extension functions (x.f() = expr) have a separate namespace from regular functions</summary>
+    Enabled = 1
 }
