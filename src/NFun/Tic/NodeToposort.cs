@@ -30,6 +30,10 @@ public class NodeToposort {
     /// immediately after post-processing, in toposort order.
     /// </summary>
     public void OptimizeTopology(Action<TicNode> onNodeReady = null) {
+        // Cycle handling relies on Stages.Invoke's visited-pair guard; no pre-pass marking is
+        // needed here. The in-Visit cycle initiator detection below still sets
+        // IsContractiveCycleHead for the paths that consume it.
+
         _path = new Stack<TicNode>(_allNodes.Count);
 
         foreach (var nonReferenceNode in _allNodes)
@@ -50,7 +54,15 @@ public class NodeToposort {
             if (node.State is StateRefTo refTo)
             {
                 foreach (var refAncestor in node.Ancestors)
+                {
+                    // Skip self-edges that would arise when transferring
+                    // ancestors of a RefTo'd node where one ancestor IS the
+                    // refTo target. Happens when SetCall(F-bounded fun)
+                    // produces a return node with State=RefTo(fun.RetNode)
+                    // AND fun.RetNode is in the ancestor chain (cycle).
+                    if (refAncestor == refTo.Node) continue;
                     refTo.Node.AddAncestor(refAncestor);
+                }
                 node.ClearAncestors();
             }
             else
@@ -141,7 +153,20 @@ public class NodeToposort {
             {
                 for (int mi = 0; mi < composite.MemberCount; mi++)
                     if (!Visit(composite.GetMember(mi)))
-                        ThrowRecursiveTypeDefinition(node);
+                    {
+                        // A composite-member edge is contractive by construction (Cardelli-Mitchell
+                        // '89 §3). Mark cycle initiator and continue toposort.
+                        if (_cycleInitiator != null)
+                        {
+                            _cycleInitiator.IsContractiveCycleHead = true;
+                            _cycle = null;
+                            _cycleInitiator = null;
+                        }
+                        else
+                        {
+                            ThrowRecursiveTypeDefinition(node);
+                        }
+                    }
             }
 
             // ReSharper disable once ForCanBeConvertedToForeach

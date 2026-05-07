@@ -25,6 +25,126 @@ public abstract class TicTypesConverter {
     /// <summary>Named struct types currently being converted (for self-referential cycle detection).</summary>
     private HashSet<string> _convertingNamedTypes;
 
+    /// <summary>
+    /// Convert a lifted F-bound's <c>StateStruct</c> into a <see cref="FunnyType.StructOf"/>
+    /// where back-edges (RefTo's that resolve to <paramref name="ownerCs"/>) become
+    /// <see cref="FunnyType.Generic"/>(<paramref name="genericIdx"/>) — encoding
+    /// the F-bound self-reference at the FunnyType layer.
+    ///
+    /// The result is the runtime-facing structural shape that
+    /// <c>GenericConstrains.WithStructBound</c> carries.
+    ///
+    /// Algorithm:
+    /// <list type="number">
+    ///   <item>Walk <paramref name="bound"/>.Fields recursively.</item>
+    ///   <item>For each field's value-node state, peel <c>StateRefTo</c> chains; if any link points to <paramref name="ownerCs"/>'s holder, emit <see cref="FunnyType.Generic"/>(<paramref name="genericIdx"/>).</item>
+    ///   <item>Otherwise, recurse via existing <c>StateOptional</c>/<c>StateArray</c>/<c>StateStruct</c>/primitive paths.</item>
+    /// </list>
+    /// Per-walk visit marks prevent infinite descent on shared struct subgraphs.
+    /// </summary>
+    public static FunnyType BuildStructBoundFunnyType(StateStruct bound, ConstraintsState ownerCs, int genericIdx) {
+        var visited = new HashSet<NFun.Tic.TicNode>();
+        return BuildStructLayer(bound, bound, ownerCs, genericIdx, visited);
+    }
+
+    private static FunnyType BuildStructLayer(StateStruct s, StateStruct bound, ConstraintsState ownerCs, int genericIdx, HashSet<NFun.Tic.TicNode> visited) {
+        var fieldsSpec = new StructTypeSpecification(s.FieldsCount, isFrozen: s.IsFrozen);
+        foreach (var (name, valueNode) in s.Fields)
+            fieldsSpec.Add(name, BuildFieldType(valueNode, bound, ownerCs, genericIdx, visited));
+        return FunnyType.StructOf(fieldsSpec);
+    }
+
+    private static FunnyType BuildFieldType(NFun.Tic.TicNode node, StateStruct bound, ConstraintsState ownerCs, int genericIdx, HashSet<NFun.Tic.TicNode> visited) {
+        // Peel RefTo chains; if any link reaches the F-bound owner, this is a self-edge.
+        var current = node;
+        while (current.State is StateRefTo r) {
+            if (ReferenceEquals(r.Node.State, ownerCs)) return FunnyType.Generic(genericIdx);
+            // Post-lift inner nodes carry State = bound (the lifted struct itself), not the outer ownerCs.
+            if (ReferenceEquals(r.Node.State, bound)) return FunnyType.Generic(genericIdx);
+            // A different CS{StructBound} sharing the same bound shape is also a recursion variable
+            // for this F-bound — multiple LiftMuTypes calls within one body can produce parallel CS
+            // instances that all represent the same μ-recursion (Cardelli-Mitchell '89 §4.2 coinductive equality).
+            if (r.Node.State is ConstraintsState csR && csR.StructBound != null
+                && ReferenceEquals(csR.StructBound, bound))
+                return FunnyType.Generic(genericIdx);
+            current = r.Node;
+        }
+        var nr = current.GetNonReference();
+        if (ReferenceEquals(nr.State, ownerCs))
+            return FunnyType.Generic(genericIdx);
+        if (ReferenceEquals(nr.State, bound))
+            return FunnyType.Generic(genericIdx);
+        if (nr.State is ConstraintsState csNr && csNr.StructBound != null
+            && ReferenceEquals(csNr.StructBound, bound))
+            return FunnyType.Generic(genericIdx);
+        if (!visited.Add(nr)) return FunnyType.Any; // cycle without self-edge — bail
+        try {
+            switch (nr.State) {
+                case StateOptional opt:
+                    return FunnyType.OptionalOf(BuildFieldType(opt.ElementNode, bound, ownerCs, genericIdx, visited));
+                case StateArray arr:
+                    return FunnyType.ArrayOf(BuildFieldType(arr.ElementNode, bound, ownerCs, genericIdx, visited));
+                case StateStruct str when str.TypeName != null:
+                    return FunnyType.NamedStructOf(str.TypeName);
+                case StateStruct str:
+                    return BuildStructLayer(str, bound, ownerCs, genericIdx, visited);
+                case StatePrimitive prim:
+                    return ToConcrete(prim.Name);
+                case ConstraintsState cs:
+                    // For F-bound field types: prefer ANCESTOR (widest acceptable
+                    // type the field can hold) over Descendant. The bound is an
+                    // UPPER bound on the candidate's field — we want the loosest
+                    // possible so concrete narrower types still satisfy.
+                    // Example: body `n.v + 1` constrains n.v's CS with Ancestor
+                    // = Real; the bound emits Real so candidate.v of any numeric
+                    // type satisfies it.
+                    if (cs.Ancestor is StatePrimitive ancP)
+                        return ToConcrete(ancP.Name);
+                    if (cs.HasDescendant && cs.Descendant is StatePrimitive descP)
+                        return ToConcrete(descP.Name);
+                    return FunnyType.Any;
+                default:
+                    return FunnyType.Any;
+            }
+        } finally {
+            visited.Remove(nr);
+        }
+    }
+
+    /// <summary>
+    /// Walk a TIC state finding any cycle-rescued struct (TypeName set) — return
+    /// NamedStructOf preserving Optional/Array wrapping. Returns null if no
+    /// named-struct content is found.
+    /// Used by VisitOperator and GenericUserFunction.Create when the converter's
+    /// structural conversion would hide the named identity inside a struct
+    /// expansion: callers prefer the named form so the runtime call-site match
+    /// uses identity rather than full structural compare.
+    /// </summary>
+    public static FunnyType? BuildNamedTypeFromTicState(ITicNodeState state) {
+        switch (state) {
+            case StateRefTo r:
+                return BuildNamedTypeFromTicState(r.Node.State);
+            case StateOptional opt: {
+                var inner = BuildNamedTypeFromTicState(opt.ElementNode.State);
+                return inner.HasValue ? FunnyType.OptionalOf(inner.Value) : null;
+            }
+            case StateArray arr: {
+                var inner = BuildNamedTypeFromTicState(arr.ElementNode.State);
+                return inner.HasValue ? FunnyType.ArrayOf(inner.Value) : null;
+            }
+            case StateStruct str when str.TypeName != null:
+                return FunnyType.NamedStructOf(str.TypeName);
+            case ConstraintsState cs when cs.HasDescendant: {
+                var inner = BuildNamedTypeFromTicState(cs.Descendant);
+                if (inner.HasValue)
+                    return cs.IsOptional ? FunnyType.OptionalOf(inner.Value) : inner;
+                return null;
+            }
+            default:
+                return null;
+        }
+    }
+
     private FunnyType ConvertToFunnyStruct(StateStruct str) {
         if (_convertMark == 0) _convertMark = Tic.SolvingFunctions.NextMark();
 
@@ -34,6 +154,11 @@ public abstract class TicTypesConverter {
         // so we also track by TypeName.
         if (str.TypeName != null) {
             _convertingNamedTypes ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // A named struct nested inside ANOTHER named-struct conversion (depth ≥ 1) returns
+            // NamedStructOf, preserving identity. Otherwise depth-1 structs get expanded as plain
+            // Struct, losing the named identity required for runtime Fit on F-bounded functions.
+            if (_convertingNamedTypes.Count > 0 && !_convertingNamedTypes.Contains(str.TypeName))
+                return FunnyType.NamedStructOf(str.TypeName);
             if (!_convertingNamedTypes.Add(str.TypeName))
                 return FunnyType.NamedStructOf(str.TypeName);
         }

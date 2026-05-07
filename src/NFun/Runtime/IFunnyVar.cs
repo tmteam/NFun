@@ -163,6 +163,10 @@ public class VariableSource : IFunnyVar {
     private object GetDefaultValueOrNullFor(FunnyType type) {
         if (type.BaseType == BaseFunnyType.Custom)
             return type.CustomTypeDefinition?.DefaultValue;
+        // NamedStruct and Struct have no default value (no primitive default).
+        if (type.BaseType == BaseFunnyType.NamedStruct
+            || type.BaseType == BaseFunnyType.Struct)
+            return null;
 
         var defaultValue = _funnyConverter.TypeBehaviour.GetDefaultPrimitiveValueOrNull(type.BaseType);
         if (defaultValue != null)

@@ -50,6 +50,8 @@ internal static class NamedTypeElaborator {
         {
             if (node is TypeDeclarationSyntaxNode typeDecl)
             {
+                if (IsPrimitiveTypeName(typeDecl.TypeName))
+                    throw Errors.NamedTypeAlreadyDefined(typeDecl.TypeName, typeDecl.Interval);
                 if (typeRegistry.ContainsKey(typeDecl.TypeName))
                     throw Errors.NamedTypeAlreadyDefined(typeDecl.TypeName, typeDecl.Interval);
                 if (typeDecl.IsAlias)
@@ -260,6 +262,14 @@ internal static class NamedTypeElaborator {
                 var newOperand = ElaborateNode(un.Operand, types);
                 if (ReferenceEquals(newOperand, un.Operand)) return node;
                 return new UnaryOperatorSyntaxNode(un.Op, newOperand, un.Interval);
+            }
+
+            case TryCatchSyntaxNode tc: {
+                var newTry = ElaborateNode(tc.TryExpr, types);
+                var newCatch = ElaborateNode(tc.CatchExpr, types);
+                if (ReferenceEquals(newTry, tc.TryExpr) && ReferenceEquals(newCatch, tc.CatchExpr))
+                    return node;
+                return new TryCatchSyntaxNode(newTry, newCatch, tc.ErrorVariableName, tc.Interval);
             }
 
             case UserFunctionDefinitionSyntaxNode func: {
@@ -482,13 +492,42 @@ internal static class NamedTypeElaborator {
     }
 
     /// <summary>
-    /// Extract the named type reference from an alias target TypeSyntax.
-    /// Returns null if the alias points to a non-named type (primitive, array, etc).
+    /// Extract a named type reference from a non-struct alias body.
+    /// Walks through Optional and Array wrappers — those don't break recursion at the
+    /// alias level (only struct-field recursion may break through Optional/Array per spec
+    /// §"Recursive types" line 86; alias-level recursion requires a Function-arrow break).
+    /// Stops at FunOf (function arrow is the legal contractive break) and StructOf
+    /// (struct aliases follow the field-level recursion rules, not the alias-cycle rule).
     /// </summary>
+    /// <summary>
+    /// Reject named type declarations whose name (case-insensitively) collides with a primitive
+    /// type identifier. Per spec §"Rules" line 120: type names are case-insensitive, so `Text`
+    /// shadows `text`. Without this guard, the type is accepted at declaration but produces
+    /// misleading errors at constructor call sites.
+    /// </summary>
+    private static bool IsPrimitiveTypeName(string name) => name.ToLowerInvariant() switch {
+        "int16" or "int" or "int32" or "int64"
+            or "byte" or "uint8" or "uint16" or "uint" or "uint32" or "uint64"
+            or "real" or "bool" or "char" or "text" or "any" or "ip" => true,
+        _ => false
+    };
+
     private static string GetAliasTargetName(TypeSyntax syntax) {
-        if (syntax is TypeSyntax.Named named)
-            return named.Name;
-        // Could be primitive, array, optional — these don't form alias cycles
-        return null;
+        while (true) {
+            switch (syntax) {
+                case TypeSyntax.Named named:
+                    return named.Name;
+                case TypeSyntax.OptionalOf opt:
+                    syntax = opt.Element;
+                    continue;
+                case TypeSyntax.ArrayOf arr:
+                    syntax = arr.Element;
+                    continue;
+                // FunOf — function arrow is the legal contractive break for non-struct aliases
+                // StructOf — struct aliases follow field-level recursion rules (Optional/Array breaks)
+                default:
+                    return null;
+            }
+        }
     }
 }

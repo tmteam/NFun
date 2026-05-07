@@ -298,7 +298,7 @@ public class Parser {
                 throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.CurrentTokenStartPosition - 1,
                     flow.CurrentTokenFinishPosition));
 
-            if (!flow.MoveIf(TokType.Id, out var fieldId))
+            if (!flow.MoveIfFieldName(out var fieldId))
                 throw Errors.StructFieldIdIsMissed(flow.Current);
 
             var fieldStart = fieldId.Start;

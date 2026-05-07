@@ -36,6 +36,17 @@ public class PushConstraintsFunctions : IStateFunction {
         if (ancestor.IsComparable && !descendant.IsComparable)
             descendant.IsComparable = true;
 
+        // F-bound StructBound merges via Gcd (meet of upper bounds). Symmetric to Pull's
+        // Apply(CS,CS). Runs independently of HasAncestor — StructBound is a third dimension,
+        // peer to IsComparable (which is also propagated above without HasAncestor gating).
+        if (ancestor.StructBound != null) {
+            descendant.StructBound = descendant.StructBound == null
+                ? SolvingFunctions.RewireStructBoundOwnership(ancestor.StructBound, ancestorNode, descendantNode)
+                : SolvingFunctions.GcdBound(descendant.StructBound, ancestor.StructBound,
+                                            descendantNode, ancestorNode);
+            if (descendant.StructBound == null) return false; // conflict
+        }
+
         if (!ancestor.HasAncestor)
             return true;
 
@@ -51,6 +62,42 @@ public class PushConstraintsFunctions : IStateFunction {
     public bool Apply(ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.HasAncestor && ancestor.Ancestor != StatePrimitive.Any)
             return false;
+
+        // F-bound on ancestor projects fields down onto descendant struct (covariant width
+        // subtype). When ancestor has S and descendant is a StateStruct, treat S like an
+        // additional ancestor-side struct descendant — propagate any S-required field that's
+        // missing from desc (open-row extension), and push field-state constraints into shared
+        // fields. F-bound vs non-struct composite is a structural conflict — reject.
+        if (ancestor.StructBound != null)
+        {
+            if (descendant is StateOptional)
+            {
+                // Optional handled below by the existing struct-descendant path
+                // when applicable; for now defer.
+            }
+            else if (descendant is StateStruct descStructForBound)
+            {
+                foreach (var bf in ancestor.StructBound.Fields)
+                {
+                    var df = descStructForBound.GetFieldOrNull(bf.Key);
+                    if (df == null)
+                    {
+                        if (descStructForBound.IsFrozen) return false;
+                        descStructForBound.AddField(bf.Key, bf.Value);
+                        continue;
+                    }
+                    var bfState = bf.Value.GetNonReference().State;
+                    var dfState = df.GetNonReference().State;
+                    if (bfState is ITypeState && dfState is ITypeState)
+                        SolvingFunctions.PushConstraints(df, bf.Value);
+                }
+                return true;
+            }
+            else if (descendant is StateArray || descendant is StateFun)
+            {
+                return false;
+            }
+        }
 
         // If ancestor constrains has a struct descendant, propagate field constraints down.
         // Struct fields are covariant (immutable struct).
@@ -239,6 +286,8 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     private static bool TryMergeStructFields(StateStruct ancStruct, StateStruct descStruct) {
+        if (ancStruct.IsOptionalSourced || descStruct.IsOptionalSourced)
+            ancStruct.IsOptionalSourced = descStruct.IsOptionalSourced = true;
         foreach (var ancField in ancStruct.Fields)
         {
             var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
@@ -289,6 +338,9 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Opt-sourcedness propagates across the merge.
+        if (ancestor.IsOptionalSourced || descendant.IsOptionalSourced)
+            ancestor.IsOptionalSourced = descendant.IsOptionalSourced = true;
         foreach (var ancField in ancestor.Fields)
         {
             var descField = descendant.GetFieldOrNull(ancField.Key);

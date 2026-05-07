@@ -68,9 +68,23 @@ public class TicNode {
 
     #region Ancestors
 
+    /// <summary>
+    /// Deduplicate ancestor edges. With true graph cycles in named recursive types, the same
+    /// root node's field can receive O(N) duplicate AddAncestor calls from N literal-struct
+    /// call sites (all sharing the cycle root); without deduplication, _ancestors grows as
+    /// O(N), each Pull iterates all entries → O(N²) Pull cost on AccessChain(N).
+    /// PERF: ~8% on Simple|Build for non-recursive code — pays for safety on cyclic graphs.
+    /// Targeted dedup at specific call sites was attempted (commit history) but proved too
+    /// risky given the number of sites that can introduce duplicates during recursive
+    /// resolution (Pull/Push/SetCall/MergeRefs paths). Reverted to global dedup for
+    /// correctness; further perf wins should come from reducing M2-B unconditional overhead
+    /// (IsContractiveCycleHead allocations, FreezeFunctionSignatureStructs, etc.).
+    /// </summary>
     public void AddAncestor(TicNode node) {
         if(node == this)
             AssertChecks.Panic("Circular ancestor 0");
+        for (int i = 0; i < _ancestors.Count; i++)
+            if (_ancestors[i] == node) return;
         _ancestors.Add(node);
     }
 
@@ -79,8 +93,7 @@ public class TicNode {
         if(nodes.Any(n => n == this))
             AssertChecks.Panic("Circular ancestor 1");
 #endif
-
-        _ancestors.AddRange(nodes);
+        foreach (var n in nodes) AddAncestor(n);
     }
 
     public void RemoveAncestor(TicNode node) =>
@@ -110,6 +123,18 @@ public class TicNode {
     /// Prevents Optional wrapping: Opt(T) ≤ T is invalid for signature-given types.
     /// </summary>
     internal bool IsSignatureParam { get; set; }
+
+    /// <summary>
+    /// Witness flag certifying that this node is the head of a contractive μ-cycle
+    /// (Cardelli–Mitchell '89 §3 contractivity: every back-edge crosses a type constructor).
+    /// Set by the SCC driver after a cyclic SCC has been verified contractive. Downstream cycle
+    /// checks (ThrowIfRecursiveTypeDefinition, runtime Fit, coinductive Equals) treat this node
+    /// as a contractive boundary — equivalent to <c>cs.StructBound != null</c> for
+    /// short-circuiting purposes. Per Pottier–Rémy '92, μ-types are properties of the constraint
+    /// graph, not first-class AST objects.
+    /// </summary>
+    public bool IsContractiveCycleHead { get; set; }
+
     public bool IsSolved => _state.IsSolved;
     public bool IsMutable => _state.IsMutable;
 
@@ -142,6 +167,21 @@ public class TicNode {
             {
                 TraceLog.WriteLine($"  Skip self-referencing node {Name}");
                 return; // Skip self-referencing (occurs with recursive struct types)
+            }
+            // If assigning an opt-sourced struct state would close a non-contractive cycle (one
+            // of the struct's fields reaches this very node via composite traversal without an
+            // Optional/Array break), restore the Optional break by wrapping the new state in
+            // StateOptional. Yields the principal iso-recursive type μX. opt(struct{…X…})
+            // instead of an invalid struct→struct loop. The IsOptionalSourced gate (set by
+            // SetSafeFieldAccess and preserved through merges) distinguishes inferred recursion
+            // through `?.` from a declared `type t = {self:t}` which must error.
+            if (value is StateStruct ns
+                && SolvingFunctions.StructHasFieldReaching(ns, this)
+                && SolvingFunctions.StructSubgraphIsOptSourced(ns))
+            {
+                var inner = TicNode.CreateTypeVariableNode("e" + Name + "'", ns);
+                inner.IsOptionalElement = true;
+                value = new StateOptional(inner);
             }
             _state = value;
         }

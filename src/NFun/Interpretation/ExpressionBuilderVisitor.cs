@@ -126,6 +126,12 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     public IExpressionNode Visit(StructFieldAccessSyntaxNode node) {
         var structNode = ReadNode(node.Source);
 
+        // NamedStruct types don't expose StructTypeSpecification at this layer;
+        // field-existence check is deferred to runtime via registry.
+        bool isNamedStruct = structNode.Type.BaseType == BaseFunnyType.NamedStruct
+            || (structNode.Type.BaseType == BaseFunnyType.Optional
+                && structNode.Type.OptionalTypeSpecification.ElementType.BaseType == BaseFunnyType.NamedStruct);
+
         if (node.IsSafeAccess)
         {
             if (_dialect.OptionalTypesSupport != OptionalTypesSupport.Enabled)
@@ -133,11 +139,26 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             if (structNode.Type.BaseType == BaseFunnyType.None)
                 // none?.field = none — safe access on None always returns None
                 return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
-            if (structNode.Type.BaseType != BaseFunnyType.Optional)
+            // Permissive: ?. on a non-optional struct/named-struct receiver is just
+            // regular field access — the safety check is a no-op (receiver can't be
+            // none) but the syntax is still useful when chaining onto an inline
+            // constructor or when the field itself is Optional. Reject ?. on
+            // non-struct receivers (Int, Real, Array, …) — semantically nonsense.
+            bool receiverIsStructLike =
+                structNode.Type.BaseType == BaseFunnyType.Optional
+                || structNode.Type.BaseType == BaseFunnyType.Struct
+                || structNode.Type.BaseType == BaseFunnyType.NamedStruct;
+            if (!receiverIsStructLike)
                 throw Errors.SafeAccessOnNonOptional(node.Interval);
-            var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
-            if (innerType.BaseType == BaseFunnyType.Struct
-                && !innerType.StructTypeSpecification.ContainsKey(node.FieldName))
+            if (structNode.Type.BaseType == BaseFunnyType.Optional)
+            {
+                var innerType = structNode.Type.OptionalTypeSpecification.ElementType;
+                if (innerType.BaseType == BaseFunnyType.Struct
+                    && !innerType.StructTypeSpecification.ContainsKey(node.FieldName))
+                    throw Errors.FieldNotExists(node.FieldName, node.Interval);
+            }
+            else if (structNode.Type.BaseType == BaseFunnyType.Struct
+                     && !structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
                 throw Errors.FieldNotExists(node.FieldName, node.Interval);
             return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
         }
@@ -150,6 +171,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 throw Errors.FieldNotExists(node.FieldName, node.Interval);
             return new SafeFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
         }
+
+        // NamedStruct path — field check via registry happens at runtime.
+        if (isNamedStruct)
+            return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval, node.OutputType);
 
         // Funtic allows default values for not specified types
         // so call:
@@ -708,8 +733,11 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                     _typesConverter.Convert(recSig).FunTypeSpecification);
             } else {
                 genericArgs = new FunnyType[genericTypes.Length];
-                for (int i = 0; i < genericTypes.Length; i++)
+                for (int i = 0; i < genericTypes.Length; i++) {
                     genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
+                    var named = TicTypesConverter.BuildNamedTypeFromTicState(genericTypes[i]);
+                    if (named.HasValue) genericArgs[i] = named.Value;
+                }
             }
             ValidateGenericResolution(genericFunction, genericArgs, node);
             return CreateFunctionCall(node, genericFunction.CreateConcrete(genericArgs, _dialect));

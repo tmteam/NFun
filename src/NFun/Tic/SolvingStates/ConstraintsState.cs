@@ -13,6 +13,16 @@ public class ConstraintsState : ITicNodeState {
         private set => _descendant = value;
     }
 
+    /// <summary>
+    /// Clears the Descendant slot. Used by CS-internal slot promotion when the descendant struct
+    /// is rebound as the F-bound (StructBound). The descendant obligation is subsumed by the
+    /// F-bound (`T &lt;: S`); leaving Descendant set would over-constrain `T = S` exactly,
+    /// defeating F-bounded polymorphism.
+    /// </summary>
+    internal void ClearDescendant() {
+        _descendant = null;
+    }
+
     public bool HasAncestor => Ancestor != null;
     public bool HasDescendant => _descendant != null;
 
@@ -23,11 +33,32 @@ public class ConstraintsState : ITicNodeState {
     /// </summary>
     public bool IsOptional { get; private set; }
 
+    /// <summary>
+    /// F-bounded recursive upper bound: `T &lt;: τ(T)` — T is a fixed-point of the body τ.
+    /// Currently τ is always StateStruct (StructShape kind). Pierce TAPL §20.2 iso-recursive types.
+    ///
+    /// May contain StateRefTo back to the owning ConstraintsState (F-bound). Contractivity
+    /// (Cardelli-Mitchell '89 §3) and covariance positions for the self-ref MUST hold.
+    ///
+    /// Third independent dimension on CS, peer to IsComparable/IsOptional. Owned by exactly one
+    /// ConstraintsState — never aliased.
+    /// </summary>
+    public RecBound RecursiveBound { get; set; }
+
+    /// <summary>
+    /// Returns the F-bound's body if it is a StateStruct, null otherwise. Setting wraps the
+    /// struct in <see cref="RecBound.OfStruct"/>.
+    /// </summary>
+    public StateStruct StructBound {
+        get => RecursiveBound?.Body as StateStruct;
+        set => RecursiveBound = value == null ? null : RecBound.OfStruct(value);
+    }
+
     public bool IsSolved => false;
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
     public bool IsComparable { get; internal set; }
-    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional;
+    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional && RecursiveBound == null;
 
     public static ConstraintsState Empty => new(null, null, false);
 
@@ -42,10 +73,23 @@ public class ConstraintsState : ITicNodeState {
     }
 
     public ConstraintsState GetCopy() =>
-        new(_descendant, Ancestor, IsComparable) { Preferred = Preferred, IsOptional = IsOptional };
+        new(_descendant, Ancestor, IsComparable) {
+            Preferred = Preferred,
+            IsOptional = IsOptional,
+            // RecursiveBound copied by reference: defensive deep-copy is only needed when the
+            // copy participates in a merge that could mutate either side. Read-after-lift is
+            // correct with reference-copy.
+            RecursiveBound = RecursiveBound,
+        };
 
     public bool CanBeConvertedTo(ITypeState type) {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
+            return false;
+
+        // F-bound check: T ≤ CS{S} requires T:Struct, Fields(T) ⊇ Fields(S), and pointwise
+        // covariant ≤ on shared fields. F-bound self-references are guarded by FitStructBound
+        // (cycle-aware).
+        if (StructBound != null && !FitStructBound(type, StructBound))
             return false;
 
         switch (type)
@@ -72,6 +116,106 @@ public class ConstraintsState : ITicNodeState {
             }
             default:
                 return false;
+        }
+    }
+
+    /// <summary>
+    /// Structural F-bound check: candidate type <c>T</c> satisfies bound <c>S</c>
+    /// (a <c>StateStruct</c>) iff:
+    ///   1. <c>T</c> is a <c>StateStruct</c> (or wraps one through a single
+    ///      <c>StateRefTo</c>),
+    ///   2. <c>Fields(T) ⊇ Fields(S)</c> by name (width subtyping),
+    ///   3. for each shared field, <c>T.fᵢ ≤ S.fᵢ</c> covariantly.
+    ///
+    /// Cycle guard: F-bound self-references (<c>S.fᵢ</c> may be a <c>RefTo</c>
+    /// back to the owning CS, whose <c>StructBound</c> is <c>S</c> itself —
+    /// when we recurse on <c>T.fᵢ</c> against that CS we'd hit <c>FitStructBound</c>
+    /// again with the same pair). We track in-progress (T, S) pairs and return
+    /// <c>true</c> on hit (Amadio–Cardelli equirecursive subtyping coinductive
+    /// rule — assume the recursive subgoal holds).
+    /// </summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private static bool FitStructBound(ITypeState candidate, StateStruct bound) {
+        var guard = _fitStructBoundInProgress ??= new();
+        return FitStructBoundInner(candidate, bound, guard);
+    }
+
+    [ThreadStatic] private static System.Collections.Generic.List<(ITypeState, StateStruct)> _fitStructBoundInProgress;
+
+    private static bool FitStructBoundInner(ITypeState candidate, StateStruct bound, System.Collections.Generic.List<(ITypeState, StateStruct)> guard) {
+        // Coinductive cycle break for F-bound self-refs.
+        for (int i = 0; i < guard.Count; i++)
+            if (ReferenceEquals(guard[i].Item1, candidate) && ReferenceEquals(guard[i].Item2, bound))
+                return true;
+
+        // Candidate must be a struct (possibly wrapped in StateRefTo).
+        StateStruct candStruct = candidate switch {
+            StateStruct s => s,
+            _ => null,
+        };
+        if (candStruct == null) return false;
+
+        // Width subtyping: Fields(candidate) ⊇ Fields(bound).
+        if (candStruct.FieldsCount < bound.FieldsCount) return false;
+        foreach (var boundField in bound.Fields)
+        {
+            if (candStruct.GetFieldOrNull(boundField.Key) == null)
+                return false;
+        }
+
+        guard.Add((candidate, bound));
+        try
+        {
+            // Covariant check on shared fields: T.fᵢ ≤ S.fᵢ for every f ∈ S.
+            foreach (var boundField in bound.Fields)
+            {
+                var candField = candStruct.GetFieldOrNull(boundField.Key);
+                var candFieldState = candField.GetNonReference().State;
+                var boundFieldState = boundField.Value.GetNonReference().State;
+
+                // S.fᵢ may be a CS with StructBound (F-bound self-ref via the
+                // owning CS, or a generic structural constraint).
+                if (boundFieldState is ConstraintsState boundCs)
+                {
+                    if (candFieldState is ITypeState candTypeState)
+                    {
+                        if (!boundCs.CanBeConvertedTo(candTypeState)) return false;
+                    }
+                    else if (candFieldState is ConstraintsState candCs)
+                    {
+                        // Both unsolved — assume coinductively, defer to merge phase.
+                        continue;
+                    }
+                    else return false;
+                }
+                else if (boundFieldState is ITypeState boundTypeState)
+                {
+                    // Bound field is concrete — candidate field must Fit it.
+                    if (candFieldState is ITypeState candTypeState)
+                    {
+                        // Reuse existing FitsInto logic from Algebra layer.
+                        if (!candTypeState.CanBePessimisticConvertedTo(boundTypeState as StatePrimitive ?? StatePrimitive.Any)
+                            && !boundTypeState.Equals(candTypeState))
+                        {
+                            // Composite vs composite — only accept exact match or primitive subtype.
+                            if (boundTypeState is ICompositeState && candTypeState is ICompositeState)
+                            {
+                                // Defer to existing structural rules — accept if shapes match.
+                                if (boundTypeState.GetType() != candTypeState.GetType())
+                                    return false;
+                                // shallow accept; deep check left to merge phase
+                            }
+                            else return false;
+                        }
+                    }
+                    else return false;
+                }
+            }
+            return true;
+        }
+        finally
+        {
+            guard.RemoveAt(guard.Count - 1);
         }
     }
 
@@ -151,7 +295,10 @@ public class ConstraintsState : ITicNodeState {
         // Add fields from incoming that aren't in existing
         foreach (var field in incoming.Fields)
             fields.TryAdd(field.Key, field.Value);
-        return new StateStruct(fields, isFrozen: false, isOpen: existing.IsOpen && incoming.IsOpen);
+        return new StateStruct(fields, isFrozen: false, isOpen: existing.IsOpen && incoming.IsOpen) {
+            IsOptionalSourced = StateStruct.MergedIsOptionalSourced(existing.IsOptionalSourced, incoming.IsOptionalSourced),
+            TypeName = StateStruct.MergedTypeName(existing.TypeName, incoming.TypeName),
+        };
     }
 
     /// <summary>
@@ -256,6 +403,24 @@ public class ConstraintsState : ITicNodeState {
     /// For most cases it means that ancestor type will be used
     /// </summary>
     public ITicNodeState SolveCovariant(bool ignorePreferred = false) {
+        // F-bound materialization. When the only constraint
+        // present is StructBound (no Ancestor/Descendant/Preferred), the
+        // covariant resolution is the bound ITSELF — return the structural
+        // shape rather than collapsing to Any. Iso-recursive packing
+        // fold[μX.S] (Pierce TAPL §20.2) wrapped in NFun's equirecursive
+        // RefTo encoding: the bound's self-references already point back to
+        // the owning CS, and after this materialization they semantically
+        // point into the result struct.
+        if (StructBound != null
+            && Ancestor == null
+            && !HasDescendant
+            && Preferred == null
+            && !IsComparable)
+        {
+            TraceLog.WriteLine($"  F-bound materialized: {StructBound.PrintState(0)}");
+            return IsOptional ? WrapOptional(StructBound) : StructBound;
+        }
+
         // Resolve inner type (ignoring IsOptional), then wrap if needed
         ITicNodeState inner;
         if (!ignorePreferred && Preferred != null && CanBeConvertedTo(Preferred))
@@ -287,6 +452,17 @@ public class ConstraintsState : ITicNodeState {
     /// For most cases it means that descendant type will be used
     /// </summary>
     public ITicNodeState SolveContravariant() {
+        // F-bound is also the narrowest contravariant resolution when it's the sole constraint —
+        // the bound IS the most specific shape that satisfies the F-bound predicate.
+        if (StructBound != null
+            && Ancestor == null
+            && !HasDescendant
+            && Preferred == null
+            && !IsComparable)
+        {
+            TraceLog.WriteLine($"  F-bound materialized (contra): {StructBound.PrintState(0)}");
+            return IsOptional ? WrapOptional(StructBound) : StructBound;
+        }
         // Resolve inner type (ignoring IsOptional), then wrap if needed
         ITicNodeState inner;
         if (Preferred != null && CanBeConvertedTo(Preferred))
@@ -308,6 +484,29 @@ public class ConstraintsState : ITicNodeState {
         inner == StatePrimitive.Any ? StatePrimitive.Any : StateOptional.Of(inner);
 
     public ITicNodeState SimplifyOrNull() {
+        // Three-way non-emptiness check on (D, A, S). F-bound StructBound is a third independent
+        // dimension; its presence imposes additional constraints on which D and A are compatible.
+        // Structs cannot be Comparable; D=primitive is incompatible with S=struct; non-Any
+        // primitive A rejects S.
+        if (StructBound != null) {
+            if (IsComparable) return null;                     // structs aren't Comparable
+            if (HasAncestor && Ancestor != StatePrimitive.Any) // primitive upper bound rejects struct
+                return null;
+            if (HasDescendant) {
+                // D must be a struct compatible with S, OR an Optional whose
+                // element is, OR a CS whose StructBound is compatible.
+                if (Descendant is StatePrimitive descPrim && descPrim != StatePrimitive.None)
+                    return null;
+                if (Descendant is StateStruct ds) {
+                    // Width subtype: D's fields must be a SUPERSET of S's fields.
+                    foreach (var (k, _) in StructBound.Fields)
+                        if (ds.GetFieldOrNull(k) == null) return null;
+                }
+                // Other Descendant kinds (StateOptional, ConstraintsState) are accepted
+                // conservatively here.
+            }
+        }
+
         if (!HasDescendant && !IsOptional) return this;
 
         if (IsComparable)
@@ -421,7 +620,97 @@ public class ConstraintsState : ITicNodeState {
         if (IsOptional != constrainsState.IsOptional)
             return false;
 
-        return IsComparable == constrainsState.IsComparable;
+        if (IsComparable != constrainsState.IsComparable)
+            return false;
+
+        // Structural equality on StructBound with coinductive cycle guard
+        // (Amadio–Cardelli equirecursive subtyping bisimulation, 1993; Pierce TAPL §21).
+        // Reference equality is unsafe because Gcd-style merges produce
+        // structurally-identical-but-reference-distinct bounds. We DON'T delegate to
+        // StateStruct.Equals because that path lacks a cycle guard for anonymous bounds
+        // (it relies on TypeName short-circuit, which lifted F-bounds may not have).
+        return StructBoundsEqual(StructBound, constrainsState.StructBound);
+    }
+
+    /// <summary>
+    /// Structural equality on F-bound StructBound, cycle-aware via
+    /// coinductive in-progress guard. Two bounds are equal iff:
+    /// 1. both null, or both non-null with same field-name set + arity;
+    /// 2. for every shared field, the recursive value-state compares equal.
+    /// Cycle guard: when (S₁,S₂) is on the in-progress stack we return true
+    /// (assume equal — equirecursive bisimulation rule); the actual
+    /// counter-example would surface elsewhere in the field walk before
+    /// the cycle closes.
+    /// </summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private static bool StructBoundsEqual(StateStruct a, StateStruct b) {
+        if (ReferenceEquals(a, b)) return true; // fast path; covers both-null
+        if (a == null || b == null) return false;
+        var guard = _structBoundEqInProgress ??= new();
+        return StructBoundsEqualInner(a, b, guard);
+    }
+
+    [ThreadStatic] private static System.Collections.Generic.List<(StateStruct, StateStruct)> _structBoundEqInProgress;
+
+    private static bool StructBoundsEqualInner(StateStruct a, StateStruct b, System.Collections.Generic.List<(StateStruct, StateStruct)> guard) {
+        // Coinductive break: assume equal on cycle close (Amadio–Cardelli).
+        for (int i = 0; i < guard.Count; i++)
+            if ((ReferenceEquals(guard[i].Item1, a) && ReferenceEquals(guard[i].Item2, b))
+             || (ReferenceEquals(guard[i].Item1, b) && ReferenceEquals(guard[i].Item2, a)))
+                return true;
+        if (a.FieldsCount != b.FieldsCount) return false;
+        // Field-name set check first (cheap rejection).
+        foreach (var (k, _) in a.Fields)
+            if (b.GetFieldOrNull(k) == null) return false;
+        guard.Add((a, b));
+        try {
+            foreach (var (k, valA) in a.Fields) {
+                var valB = b.GetFieldOrNull(k);
+                var sA = valA.GetNonReference().State;
+                var sB = valB.GetNonReference().State;
+                if (sA is ConstraintsState csA && sB is ConstraintsState csB) {
+                    // Both unsolved; compare by structural CS equality but
+                    // RECURSE into StructBound coinductively if both have one
+                    // (avoids re-entering full ConstraintsState.Equals which
+                    // would lose the in-progress guard's identity).
+                    if (csA.StructBound != null || csB.StructBound != null) {
+                        if (!StructBoundsEqualInner(csA.StructBound, csB.StructBound, guard))
+                            return false;
+                    } else if (!csA.Equals(csB)) {
+                        return false;
+                    }
+                } else if (sA is StateStruct ssA && sB is StateStruct ssB) {
+                    // Nested struct field — recurse with the same guard.
+                    if (!StructBoundsEqualInner(ssA, ssB, guard)) return false;
+                } else if (!sA.Equals(sB)) {
+                    return false;
+                }
+            }
+            return true;
+        } finally {
+            guard.RemoveAt(guard.Count - 1);
+        }
+    }
+
+    public override int GetHashCode() {
+        // Structural-aligned hash. Field NAMES + arity, NOT field types — recursing into types
+        // would cycle on F-bound self-refs. Equals is the source of truth for full equality;
+        // hash only ensures bucket spread for HashSet/Dictionary.
+        unchecked {
+            int h = 17;
+            h = h * 31 + (Ancestor?.Name.GetHashCode() ?? 0);
+            // Use type-tag of Descendant (cheap, cycle-safe) — full structural
+            // equality lives in Equals.
+            h = h * 31 + (HasDescendant ? Descendant.GetType().GetHashCode() : 0);
+            h = h * 31 + IsOptional.GetHashCode();
+            h = h * 31 + IsComparable.GetHashCode();
+            if (StructBound != null) {
+                h = h * 31 + StructBound.FieldsCount;
+                foreach (var f in StructBound.Fields)
+                    h = h * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(f.Key);
+            }
+            return h;
+        }
     }
 
     public string StateDescription => PrintState(0);
@@ -437,6 +726,8 @@ public class ConstraintsState : ITicNodeState {
             res += "<>";
         if (Preferred != null)
             res += Preferred + "!";
+        if (StructBound != null)
+            res += $"⊆μ"; // F-bound marker; full shape would self-recurse
         return res;
     }
 }

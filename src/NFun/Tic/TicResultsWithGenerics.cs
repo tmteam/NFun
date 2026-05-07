@@ -55,7 +55,7 @@ public class TicResultsWithGenerics : ITicResults {
         get
         {
             if (_genericsStates != null) return _genericsStates;
-            
+
             var states = new List<ConstraintsState>();
             foreach (var node in _typeVariables)
             {

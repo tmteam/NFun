@@ -129,7 +129,10 @@ public static partial class StateExtensions {
         // GCD(MutStruct, Struct) = MutStruct (symmetric).
         if (eitherMutable)
             return new StateMutableStruct(nodes, isFrozen: true);
-        return new StateStruct(nodes, isFrozen: true);
+        return new StateStruct(nodes, isFrozen: true) {
+            IsOptionalSourced = StateStruct.MergedIsOptionalSourced(a.IsOptionalSourced, b.IsOptionalSourced),
+            TypeName = StateStruct.MergedTypeName(a.TypeName, b.TypeName),
+        };
     }
 
     private static ITicNodeState Gcd(this StateFun funA, StateFun funB) {

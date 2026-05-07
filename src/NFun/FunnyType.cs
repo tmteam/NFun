@@ -331,6 +331,8 @@ public readonly struct FunnyType {
                 return Math.Max(iId.Value, oId.Value);
             case BaseFunnyType.Struct:
                 return ((IStructTypeSpecification)_payload).Values.Select(i => i.SearchMaxGenericTypeId()).Max();
+            case BaseFunnyType.NamedStruct:
+                return null;
             case BaseFunnyType.Generic:
                 return _extra;
             default:

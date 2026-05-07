@@ -168,12 +168,20 @@ public static class GraphBuilderExtensions {
     /// double-wrapping optional field types.
     /// </summary>
     public static void SetSafeFieldAccess(this GraphBuilder b, int sourceNodeId, int opId, string fieldName) {
+        // `?.` creates an IsOptionalSourced struct that participates in Push
+        // width-propagation and can close a μ-cycle. Mark the graph so
+        // cycle-aware passes know they may have work to do.
+        b.IsRecursion = true;
         // T — the field's type variable (shared between source and result constraints)
         var fieldTypeNode = b.CreateVarType();
 
-        // struct{fieldName: T}
+        // struct{fieldName: T}, opt-sourced (the closing edge originates from an
+        // Optional constructor — Push width-propagation reads this flag to
+        // restore the Optional break when a self-closing cycle would otherwise
+        // produce a non-contractive struct→struct loop).
         var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase) { { fieldName, fieldTypeNode } };
-        var structNode = b.CreateVarType(new StateStruct(fields, isFrozen: false, isOpen: true));
+        var structState = new StateStruct(fields, isFrozen: false, isOpen: true) { IsOptionalSourced = true };
+        var structNode = b.CreateVarType(structState);
 
         // Source type: opt(struct{fieldName: T})
         var sourceType = StateOptional.Of(structNode);
@@ -282,6 +290,15 @@ public static class GraphBuilderExtensions {
         var structNode = b.GetOrCreateNode(structNodeId);
         var ancestorNode = b.CreateVarType(typeState);
         structNode.AddAncestor(ancestorNode);
+        // When the struct literal corresponds to a NAMED type constructor (ancestor is a
+        // StateStruct with TypeName), stamp the literal's state with the same TypeName so
+        // subsequent conversion to FunnyType produces NamedStructOf at runtime, preserving
+        // identity for F-bound Fit checks. Otherwise the literal stays anonymous and converts to
+        // a structurally-expanded Struct, losing the identity needed for runtime dispatch.
+        if (ancestorType is StateStruct ancStruct && ancStruct.TypeName != null
+            && structNode.State is StateStruct litStruct && litStruct.TypeName == null) {
+            litStruct.TypeName = ancStruct.TypeName;
+        }
     }
 
     public static void SetCompareChain(this GraphBuilder b, int nodeOrderNumber, StateRefTo[] generics, int[] ids) {

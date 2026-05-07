@@ -25,12 +25,15 @@ Abstractest(P) = P
 ### ConstraintsState
 
 ```
-Abstractest([D..A])      = A          (если A определён)
-Abstractest([D..∅])      = Any        (если A не определён)
-Abstractest([D..∅, cmp]) = [.., cmp]  (если IsComparable — comparable нельзя потерять)
+Abstractest([D..A, cmp, S]) =
+    A                   если A определён
+    [.., cmp]           если A=∅, cmp=true  (comparable нельзя потерять)
+    Any                 иначе
 ```
 
 IsComparable — ограничение, не свойство типа. Abstractest сохраняет его как CS вместо расширения до Any.
+
+**`S` (StructBound) НЕ участвует в Abstractest.** F-bound — отдельное измерение, не projection в primitive-интервал. Если бы Abstractest возвращал `S` (StateStruct) при пустом Ancestor, то операторы вроде `LCA(T_primitive, ↑CS) = LCA(T_primitive, struct) = Any` потеряли бы `S` без следа. F-bound доступен только через `StructBound(CS)` accessor (используется в Fit и call-site dispatch). См. PushReform.md.
 
 ### Composites — общее правило
 

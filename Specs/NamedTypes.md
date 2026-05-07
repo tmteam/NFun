@@ -7,12 +7,14 @@ Named types give names to existing types. A named type is a transparent alias �
 Any type can be given a name. Aliases chain and compose freely:
 
 ```py
-type age = int
-type nums = int[]
-type matrix = int[][]
+type age      = int
+type nums     = int[]
+type matrix   = int[][]
 type maybeInt = int?
+type user     = {name: text, age: int}      # struct
+type binop    = rule(int, int)->int         # function
 
-type id = int
+type id  = int
 type ids = id[]           # int[]
 
 type a = int
@@ -20,37 +22,23 @@ type b = a
 type c = b                # c → b → a → int
 ```
 
-An alias works exactly like its target type — in expressions, annotations, functions:
+An alias works exactly like its target type — in expressions, annotations, function signatures:
 
 ```py
 type age = int
-
 x: age = 42
-y = x + 1                 # 43
-z: real = x                # coercion works
-inc(v: age): age = v + 1   # in function signatures
-```
+y = x + 1                  # 43
 
-## Struct Types
-
-A struct alias defines a type with named fields:
-
-```py
 type user = {name: text, age: int}
-
 u = user{name = 'Alice', age = 30}
 u.name                     # 'Alice'
+
+type transform = rule(int)->int
+apply(f: transform, x: int) = f(x)
+y = apply(rule it * 2, 21) # 42
 ```
 
-Fields can use any type — primitives, arrays, other aliases:
-
-```py
-type age = int
-type address = {city: text, zip: text = '00000'}
-type user = {name: text, a: age, addr: address}
-```
-
-### Field Formats
+## Struct field formats
 
 | Format | Example | Required? |
 |--------|---------|-----------|
@@ -59,7 +47,16 @@ type user = {name: text, a: age, addr: address}
 | `name = expr` | `{a = 42}` | no (type inferred) |
 | `name` | `{a}` | yes (type inferred) |
 
-### Construction and Defaults
+Field names may be primitive-type keywords (`int`, `real`, `bool`, `text`, `char`, etc.) — position disambiguates them from the type
+
+```py
+type complex = {real: real, imag: real}
+
+c = complex{real = 1.0, imag = 2.0}
+y = c.real                          # 1.0
+```
+
+## Construction and defaults
 
 `TypeName{...}` creates an instance, filling defaults for missing optional fields:
 
@@ -84,19 +81,9 @@ b: user = {name = 'Alice', age = 0}     # OK: anonymous struct matches
 c: user = {name = 'Alice'}              # ERROR: missing field 'age'
 ```
 
-## Function Type Aliases
+## Recursive types
 
-```py
-type transform = rule(int)->int
-type binop = rule(int, int)->int
-
-apply(f:transform, x:int)->int = f(x)
-y = apply(rule it * 2, 21)        # 42
-```
-
-## Recursive Types
-
-A struct field can reference its own type through `?` or `[]`:
+A struct field can reference its own type through `?`, `[]`, or `rule(...)->...?`:
 
 ```py
 type node = {v: int, next: node? = none}
@@ -112,7 +99,11 @@ t = tree{v = 0, children = [tree{v = 1}, tree{v = 2}]}
 t.children.count()                 # 2
 ```
 
-Direct self-reference (`type t = {f: t}`) is not allowed — must go through `?` or `[]`.
+```py
+type stream = {head: int, tail: rule()->stream?}    # lazy stream
+```
+
+Direct self-reference (`type t = {f: t}`) is not allowed — the recursion must cross an Optional, Array, or function-arrow constructor.
 
 ### Mutual Recursion
 

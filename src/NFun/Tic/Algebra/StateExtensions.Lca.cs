@@ -172,7 +172,14 @@ public static partial class StateExtensions {
         // Otherwise → immutable Struct (mixed mutability or Unify failure).
         if (bothMutable && !unifyFailed)
             return new StateMutableStruct(nodes, true);
-        return new StateStruct(nodes, true);
+        // Note: IsOptionalSourced is NOT propagated through Lca. Lca produces
+        // the structurally-narrowest common ancestor — its identity should not
+        // inherit a marker that originated only on one side. The marker
+        // matters for cycle-rescue gating, where Pull/Push merges share the
+        // identity (handled in PullConstraintsFunctions.Apply(Struct,Struct)).
+        return new StateStruct(nodes, true) {
+            TypeName = StateStruct.LcaTypeName(a.TypeName, b.TypeName),
+        };
     }
 
     private static ITicNodeState Lca(this StateFun a, StateFun b) {

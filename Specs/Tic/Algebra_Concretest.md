@@ -25,11 +25,15 @@ Concretest(P) = P
 ### ConstraintsState
 
 ```
-Concretest([D..A])     = D            (если D определён)
-Concretest([∅..A, cmp]) = [.., cmp]   (если D не определён — сохраняем comparable)
+Concretest([D..A, cmp, S]) =
+    D                  если D определён
+    [.., cmp]          если D=∅ и cmp=true  (сохраняем comparable)
+    ∅                  иначе
 ```
 
 Если CS.IsOptional и D определён: результат оборачивается в Optional (нижняя граница optional-интервала — optional тип). Opt(Any) коллапсирует в Any.
+
+**`S` (StructBound) НЕ участвует в Concretest.** F-bound — это **верхняя** граница (upper bound), не нижняя. Подставлять `S` как default lower сломало бы инвариант `T ∨ CS = T ∨ ↓CS`: для `T = primitive` и `CS = [∅..∅, S=struct{...}]` получили бы `T ∨ struct = Any`, отравляя последующие LCA. F-bound ortogonal к интервалу `[D..A]` и доступен только через отдельный accessor `StructBound(CS)` для Fit и call-site dispatch. См. PushReform.md.
 
 ### Composites — общее правило
 

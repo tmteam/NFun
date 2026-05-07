@@ -161,13 +161,13 @@ d = c!           # runtime error: Force unwrap of none value
 
 ## Safe field access `?.`
 
-The `?.` operator safely accesses a field of an optional struct. If the struct is `none`, the result is `none` instead of a runtime error
+The `?.` operator safely accesses a field of a struct. If the receiver is `none`, the result is `none` instead of a runtime error
 
 ```
 expression?.fieldName
 ```
 
-The left operand must be of optional struct type. The result type is the field type wrapped in optional
+The left operand must be a struct or an optional struct. The result type is the field type wrapped in optional
 
 ```py
 user = if(found) {name = 'Alice', age = 30} else none
@@ -176,6 +176,21 @@ name = user?.name      # text? — 'Alice' or none
 age  = user?.age       # int?  — 30 or none
 safe = user?.name ?? 'Guest'  # text — 'Alice' or 'Guest'
 ```
+
+`?.` also accepts a non-optional struct receiver — the safety check is a no-op (the value can't be `none`) but the syntax stays valid. Useful when chaining onto an inline constructor or when the accessed field is itself optional
+
+```py
+type n = {v: int, next: n? = none}
+
+# inline constructor — receiver is non-optional `n`, the field `next` is `n?`
+y = n{v=1, next=n{v=2}}?.next!.v      # 2
+
+# uniform `?.` chain works on both optional and non-optional segments
+d = n{v=1, next=n{v=2, next=n{v=3}}}
+y = d?.next?.next!.v                   # 3
+```
+
+`?.` on non-struct receivers (Int, Real, Text, Array, …) is rejected
 
 After `?.`, `none` propagates through the entire chain — both field accesses and method calls. You only need one `?.` at the beginning (TypeScript-style)
 
@@ -223,320 +238,132 @@ arr = [10, 20, 30]
 arr?[99] ?? 0    # int — 0 (out of bounds returns none, coalesced to 0)
 ```
 
-## Type Narrowing (сужение типов)
+## Type narrowing
 
-Компилятор анализирует условия проверки на `none` и автоматически сужает optional-тип переменной в соответствующей ветке. Если условие гарантирует, что переменная не `none`, то в теле ветки переменная имеет тип `T` вместо `T?`.
+In branches whose entry condition proves an optional is not `none`, the compiler narrows it from `T?` to `T`. Narrowing is purely syntactic — based on the shape of the condition, not on runtime data flow.
 
-### Базовое правило
+### Basic rule
 
-`x != none` сужает `x` в then-ветке. `x == none` сужает `x` в else-ветке.
-
-```py
-x:int? = 42
-
-y = if(x != none) x + 1 else 0    # then: x это int → 43
-z = if(x == none) 0 else x + 1    # else: x это int → 43
-```
-
-В ветке, где сужение НЕ применяется, переменная остаётся `T?`:
+`x != none` narrows `x` in the then-branch. `x == none` narrows `x` in the else-branch. Operand order is irrelevant — `none != x` works the same way
 
 ```py
 x:int? = 42
-y = if(x != none) x else none     # then: int, else: none → результат int?
+y = if(x != none) x + 1 else 0    # then: x is int → 43
+z = if(x == none) 0 else x + 1    # else: x is int → 43
 ```
 
-Порядок `none` не важен — `none != x` эквивалентно `x != none`:
+A branch where narrowing doesn't apply keeps `T?`
 
 ```py
 x:int? = 42
-y = if(none != x) x + 1 else 0   # то же самое, x сужается в then-ветке
+y = if(x != none) x else none     # then:int, else:none → int?
 ```
 
-### Распознаваемые паттерны
+### Compared to `true`/`false`
 
-`NarrowingAnalyzer` — чисто синтаксический анализ условий. Для каждого условия вычисляются два множества: `WhenTrue` (переменные, гарантированно не-`none` при истинности условия) и `WhenFalse` (при ложности).
-
-#### `x == none` / `x != none`
-
-```
-x == none  →  WhenTrue={},  WhenFalse={x}
-x != none  →  WhenTrue={x}, WhenFalse={}
-```
-
-```py
-x:int? = 42
-y = if(x != none) x + 1 else 0       # WhenTrue={x} → then-ветка: x это int
-z = if(x == none) 0 else x + 1       # WhenFalse={x} → else-ветка: x это int
-```
-
-#### `x == true` / `x == false` (bool?)
-
-Сравнение с `true` или `false` доказывает, что переменная не `none` (потому что `none != true` и `none != false`). Сужение применяется в **обеих** ветках:
-
-```
-x == true   →  WhenTrue={x}, WhenFalse={x}
-x != true   →  WhenTrue={x}, WhenFalse={x}
-x == false  →  WhenTrue={x}, WhenFalse={x}
-x != false  →  WhenTrue={x}, WhenFalse={x}
-```
+Comparing a `bool?` with `true` or `false` proves not-`none` in **both** branches (since `none != true` and `none != false`)
 
 ```py
 flag:bool? = true
-y = if(flag == true) flag else false        # обе ветки: flag это bool
-z = if(flag == false) not flag else false   # обе ветки: flag это bool
+y = if(flag == true) flag else false       # both branches: flag is bool
 ```
 
-Трёхсторонний pattern match для `bool?`:
+Three-way pattern match on `bool?`
 
 ```py
 x:bool? = true
 y = if(x == true) 'yes'
     if(x == false) 'no'
-    else 'unknown'                          # 'yes', 'no', или 'unknown' (none)
+    else 'unknown'                          # 'yes' | 'no' | 'unknown' (none)
 ```
 
-#### `and` — объединение WhenTrue, пересечение WhenFalse
+### Boolean combinators
 
-```
-(a and b)  →  WhenTrue  = union(a.WhenTrue, b.WhenTrue)
-              WhenFalse = intersect(a.WhenFalse, b.WhenFalse)
-```
+For each condition, narrowing tracks two sets: variables proven not-`none` when the condition is **true** (`T`) and when **false** (`F`)
 
-Если оба условия проверяют `!= none`, то в then-ветке все переменные сужены:
+| Operator | Then-branch (T) | Else-branch (F) |
+|---|---|---|
+| `a == none` | ∅ | {a} |
+| `a != none` | {a} | ∅ |
+| `a and b`   | `T(a) ∪ T(b)` | `F(a) ∩ F(b)` |
+| `a or b`    | `T(a) ∩ T(b)` | `F(a) ∪ F(b)` |
+| `not a`     | `F(a)`        | `T(a)` |
 
 ```py
-x:int? = 3
-z:int? = 4
-y = if(x != none and z != none) x + z else 0   # then: оба int → 7
+# and: both narrowed in then-branch
+y = if(x != none and z != none) x + z else 0       # x:int, z:int
+
+# or: both narrowed in else-branch (neither is none)
+y = if(x == none or z == none) 0 else x + z       # x:int, z:int
+
+# not: swap branches
+y = if(not(x == none)) x + 1 else 0                # equivalent to x != none
 ```
 
-**Прогрессивное сужение внутри `and`**: `and` является short-circuit — после проверки `x != none` правая часть условия уже видит `x` как `int`:
+De Morgan follows naturally — `not(a == none or b == none)` is `a != none and b != none`.
+
+### Progressive narrowing
+
+Short-circuit `and`/`or` propagates narrowing into their right operand. The same accumulation happens across elif chains — each `WhenFalse` is visible in all subsequent branches
 
 ```py
-x:int? = 42
-y = if(x != none and x > 0) x * 2 else 0
-#                   ^^^^^
-#                   x уже int, сравнение с int допустимо
-```
+# inside `and`
+y = if(x != none and x > 0) x * 2 else 0           # right side sees x:int
 
-Три переменные:
+# inside `or` (left WhenFalse passes through)
+y = if(x == none or x < 0) 0 else x + 1            # right side sees x:int
 
-```py
-a:int? = 1
-b:int? = 2
-c:int? = 3
-y = if(a != none and b != none and c != none) a + b + c else 0  # 6
-```
-
-#### `or` — пересечение WhenTrue, объединение WhenFalse
-
-```
-(a or b)  →  WhenTrue  = intersect(a.WhenTrue, b.WhenTrue)
-             WhenFalse = union(a.WhenFalse, b.WhenFalse)
-```
-
-В then-ветке сужаются только переменные, проверяемые в **обеих** частях `or` (пересечение). В else-ветке (ни одно из условий не выполнено) сужаются все упомянутые переменные (объединение):
-
-```py
-# or: else-ветка гарантирует, что ОБА условия ложны → оба не-none
-a:int? = 3
-b:int? = 4
-y = if(a == none or b == none) 0 else a + b    # else: оба int → 7
-```
-
-```py
-# or: then-ветка — только x (присутствует в обеих частях)
-x:int? = 42
-z:int? = 1
-y = if(x != none or x != none) x else 0
-# z НЕ сужается — упомянут только в одной стороне
-```
-
-**Прогрессивное сужение внутри `or`**: `or` является short-circuit — если левая часть `x == none` ложна (то есть `x` не `none`), правая часть видит `x` как сужённый:
-
-```py
-x:int? = 42
-y = if(x == none or x < 0) 0 else x + 1
-#                   ^^^^^
-#                   x уже int (left-side WhenFalse={x})
-```
-
-#### `not` — инверсия (swap WhenTrue/WhenFalse)
-
-```
-not(a)  →  WhenTrue = a.WhenFalse,  WhenFalse = a.WhenTrue
-```
-
-```py
-x:int? = 42
-y = if(not(x == none)) x + 1 else 0    # эквивалент x != none → 43
-z = if(not(x != none)) 0 else x + 1    # эквивалент x == none → 43
-```
-
-Двойное отрицание:
-
-```py
-x:int? = 42
-y = if(not(not(x != none))) x else 0   # 42 (отрицания уничтожаются)
-```
-
-#### De Morgan
-
-Комбинация `not` + `and`/`or` работает по законам Де Моргана:
-
-```py
-# not(a == none or b == none) = a != none and b != none
-x:int? = 10
-z:int? = 20
-y = if(not(x == none or z == none)) x + z else 0   # 30
-
-# not(a != none and b != none) = a == none or b == none
-y = if(not(x != none and z != none)) 0 else x + z  # 30
-
-# De Morgan + progressive comparison
-a:int? = 5
-b:int? = 3
-y = if(not(a == none or b == none) and a > b) a - b else 0  # 2
-```
-
-### Multi-elif: прогрессивное сужение
-
-При нескольких `if`/`elif`-ветках `WhenFalse` каждого условия **накапливается**. Если первая ветка проверяет `x == none`, то все последующие ветки (и else) видят `x` как сужённый тип:
-
-```py
-x:int? = 42
-y = if(x == none) -1       # WhenFalse={x} → далее x это int
-    if(x > 10) x           # x уже int, сравнение допустимо
+# elif chain — WhenFalse accumulates
+y = if(x == none) -1
+    if(x > 10) x                                    # x:int here
     else 0
 ```
 
-Множественные none-проверки сужают разные переменные:
-
-```py
-x:int? = 3
-z:int? = 4
-y = if(x == none) -1       # WhenFalse={x}
-    if(z == none) -2       # WhenFalse={x,z} (накопление)
-    else x + z             # оба int → 7
-```
-
-Длинные цепочки elif с вычислениями над сужёнными переменными:
-
-```py
-x:int? = 75
-y = if(x == none) 0
-    if(x < 25) 1           # x уже int
-    if(x < 50) 2
-    if(x < 100) 3          # → 3
-    else 4
-```
-
-### Сужение полей структур
-
-Анализатор распознаёт прямой доступ к полю `s.field` и сужает конкретное поле:
-
-```py
-s = {v = if(true) 42 else none}
-y = if(s.v == none) 0 else s.v + 1     # else: s.v это int → 43
-```
-
-Multi-elif с полями:
-
-```py
-s = {v = if(true) 42 else none}
-y = if(s.v == none) -1
-    if(s.v > 100) 100       # s.v уже int
-    else s.v                 # → 42
-```
-
-Два поля структуры:
-
-```py
-s = {a = if(true) 1 else none, b = if(true) 2 else none}
-y = if(s.a == none or s.b == none) 0 else s.a + s.b    # 3
-```
-
-### Сужение через safe access (`?.`)
-
-Если условие содержит safe access (`a?.field != none`), анализатор извлекает **корневую переменную** (`a`) и сужает её:
-
-```py
-a = if(true) {b = {c = 42}} else none
-y = if(a?.b?.c != none) a.b.c + 1 else 0    # a сужён → 43
-
-user = if(true) {name = 'hello world'} else none
-y = if(user?.name != none) user.name.count() else 0   # 11
-```
-
-После safe access + bool-литерал:
-
-```py
-s = if(true) {flag = true} else none
-y = if(s?.flag == true) 1 else 0    # s сужён → 1
-```
-
-### Прогрессивное сужение внутри `and` (вне if)
-
-Short-circuit `and` обеспечивает сужение и в обычных bool-выражениях (не только в if-условиях):
+Short-circuit `and` also narrows in plain bool expressions, not only inside `if`
 
 ```py
 y:int? = 15
-x = y != none and y > 12   # y > 12 видит y как int → true
+x = y != none and y > 12                            # right operand sees y:int
 ```
 
-### Сужение коллекций
+### Struct fields and safe access
 
-`filterNotNull()` сужает `T?[]` в `T[]`. После вызова элементы гарантированно не-`none`:
+Direct field access `s.field` narrows the specific field. A safe-access condition `a?.field != none` extracts the root variable (`a`) and narrows it
+
+```py
+s = {v = if(...) 42 else none}
+y = if(s.v == none) 0 else s.v + 1                  # else: s.v is int
+
+a = if(...) {b = {c = 42}} else none
+y = if(a?.b?.c != none) a.b.c + 1 else 0            # a is narrowed in else
+```
+
+### Collections
+
+`filterNotNull()` narrows `T?[]` to `T[]`. There is no narrowing through `all`/`any`/`filter`/`map` — use `filterNotNull()` when you need it
 
 ```py
 arr:int?[] = [1, none, 3]
-cleaned = arr.filterNotNull()              # int[] — [1, 3]
-y = cleaned.map(rule it + 1)              # int[] — [2, 4]
+y = arr.filterNotNull().map(rule it + 1)             # int[] — [2, 4]
 ```
 
-```py
-arr:int?[] = [none, 3, none, 1, none, 2]
-y = arr.filterNotNull().sort()             # int[] — [1, 2, 3]
-```
+### What does not narrow
 
-Полный конвейер:
+| Pattern | Reason |
+|---------|--------|
+| `if(myCheck(x))` | Arbitrary predicates are not analysed |
+| `s?.age > 18` | `s?.age` is `int?`, not comparable to `int`. Use explicit unwrap or `??` |
+| `arr.all(rule it != none)` | Collection operations don't narrow element type — use `filterNotNull()` |
+| `x:int? > 0` | Optional is not directly comparable — type error |
+| `x != none or true` | Tautological side makes `T = ∅` (intersection) — no narrowing |
 
-```py
-arr:int?[] = [none, 1, none, 2, none, 3]
-y = arr.filterNotNull()
-       .map(rule it * it)
-       .fold(rule it1 + it2)               # 1 + 4 + 9 = 14
-```
-
-Фильтрация с сужением внутри лямбды (паттерн `not(it == none or ...)`):
-
-```py
-items:int?[] = [1, none, -2, 3, none, -1]
-y = items.filter(rule not(it == none or it < 0))   # [1, 3]
-```
-
-### Что НЕ сужает
-
-| Паттерн | Причина |
-|---------|---------|
-| `if(myCheck(x))` | Произвольные предикаты не анализируются |
-| `s?.age > 18` | `s?.age` возвращает `int?`, а `int?` несравним с `int`. Нужен explicit unwrap или `??` |
-| `arr.all(rule it != none)` | Коллекционные операции (`all`, `any`, `filter`, `map`) не сужают тип элемента. Используйте `filterNotNull()` |
-| `x:int? > 0` | Optional нельзя сравнивать напрямую — ошибка типов |
-| `x != none or true` | `or true` делает условие всегда истинным, `WhenTrue = intersect({x},{}) = {}` — нет сужения |
-| Scope leak | Сужение не выходит за пределы ветки. После if-else переменная снова `T?` |
+Narrowing does not escape its branch — after `if-else` the variable is `T?` again
 
 ```py
 x:int? = 42
-z = if(x != none) x else 0    # ok: x сужён внутри
-y = x + 1                     # ОШИБКА: x всё ещё int? за пределами if
+z = if(x != none) x else 0    # ok: x narrowed inside
+y = x + 1                     # ERROR: x is still int? here
 ```
-
-### Механизм реализации
-
-1. **`NarrowingAnalyzer`** — чисто синтаксический анализ условия, возвращает `Result(WhenTrue, WhenFalse)` — множества имён переменных (или путей полей `s.age`), гарантированно не-`none` при истинности/ложности условия
-2. **TIC: `SetNarrowedVariable`** — создаёт алиас с развёрнутым типом. Для переменной `x: opt(T)` создаётся узел `x': T` и ограничение `merge(x, opt(x'))`
-3. **ExpressionBuilder** — в сужённой области использует `TypeOverrideNode`, подменяющий тип переменной на сужённый
 
 For operator precedence of `?.`, `??`, `!` see **Operators.md**
 

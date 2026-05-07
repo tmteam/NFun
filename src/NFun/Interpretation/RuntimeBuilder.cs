@@ -41,20 +41,43 @@ internal static class RuntimeBuilder {
                     if (!nt.Value.IsAlias)
                         customTypes = customTypes.CloneWith(nt.Key, FunnyType.NamedStructOf(nt.Key));
 
-                // Pass 2: resolve aliases. May need multiple passes for chaining (type b = a; type a = int).
-                // Most aliases resolve in one pass. Second pass only if there were unresolved forward refs.
+                // Collect aliases and detect which need by-name pre-registration.
+                // An alias body that references ANY alias name (its own or another's)
+                // participates in a recursion — self-recursive (`type x = rule()->x?`)
+                // or mutual (`type a = rule()->b?; type b = rule()->a?`). Such aliases
+                // get a NamedStructOf placeholder seeded before pass 2 so their bodies
+                // resolve cleanly with self/mutual references carried by name through
+                // TIC and the runtime.
                 var aliases = new List<KeyValuePair<string, NamedTypeDefinition>>();
+                var aliasNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var nt in namedTypes)
                     if (nt.Value.IsAlias)
+                    {
                         aliases.Add(nt);
+                        aliasNames.Add(nt.Key);
+                    }
+                foreach (var alias in aliases)
+                {
+                    if (TypeSyntaxContainsAnyName(alias.Value.AliasTypeSyntax, aliasNames))
+                        customTypes = customTypes.CloneWith(alias.Key, FunnyType.NamedStructOf(alias.Key));
+                }
 
+                // Pass 2: resolve aliases. May need multiple passes for chaining (type b = a; type a = int).
+                // Most aliases resolve in one pass. Second pass only if there were unresolved forward refs.
+                // For recursive aliases the pre-registered NamedStructOf placeholder makes self-references
+                // resolve cleanly; the alias's final resolved type contains NamedStructOf at the recursive
+                // positions, which carries the by-name identity through TIC and the runtime.
                 for (int pass = 0; pass < aliases.Count + 1; pass++)
                 {
                     bool anyUnresolved = false;
                     foreach (var alias in aliases)
                     {
-                        if (customTypes.TryResolve(alias.Key, out _))
-                            continue; // already resolved
+                        // For recursion-touched aliases the placeholder is already
+                        // present — we still want to overwrite it with the fully-
+                        // resolved type.
+                        bool isRecursionTouched = TypeSyntaxContainsAnyName(alias.Value.AliasTypeSyntax, aliasNames);
+                        if (!isRecursionTouched && customTypes.TryResolve(alias.Key, out _))
+                            continue; // already resolved (non-recursive forward-ref case)
                         try {
                             var resolved = TypeSyntaxResolver.Resolve(alias.Value.AliasTypeSyntax, customTypes);
                             customTypes = customTypes.CloneWith(alias.Key, resolved);
@@ -382,6 +405,12 @@ internal static class RuntimeBuilder {
 
         ////introduce function variable
         var graph = new GraphBuilder();
+        // Pre-analysis already determined recursion in FindFunctionSolvingOrder
+        // (FindFunctionDependenciesVisitor → IsRecursive). Propagate that
+        // determination to TIC so cycle-aware destruction-time passes can
+        // early-exit when no μ-recursion is possible.
+        if (functionSyntaxNode.IsRecursive)
+            graph.IsRecursion = true;
         var resultsBuilder = new TypeInferenceResultsBuilder();
         ITicResults types;
 
@@ -409,7 +438,23 @@ internal static class RuntimeBuilder {
         resultsBuilder.SetResults(types);
         var typeInferenceResuls = resultsBuilder.Build();
 
-        if (!types.HasGenerics)
+        // Post-body-solve freeze pass. Once function body solving completes, the signature's
+        // structural shape is determined. Mark reachable StateStructs as IsFrozen=true so script-
+        // body Pull cannot widen them by absorbing caller's fields. Algebraic analog of TAPL §22.6
+        // generalization closing the type at the let-boundary.
+        FreezeFunctionSignatureStructs(typeInferenceResuls, functionSyntaxNode);
+
+        // Classify by EXTERNAL signature, not by body's residual ConstraintsState. Operators like
+        // `==` and `+` inside a body leave CS placeholders in TypeInferenceResults.Generics even
+        // when the function's actual arg/return types are fully concrete. Routing those to the
+        // generic path triggers GenericFunctionBase ctor failure ("Type X has wrong generic
+        // definition") because argTypes/retType carry no Generic(i) positions. Probe the
+        // signature directly: if it is fully solved, take the concrete path regardless of body CS.
+        var ticSignature = (Tic.SolvingStates.StateFun)typeInferenceResuls.GetVariableType(
+            functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count);
+        bool signatureIsConcrete = SignatureIsFullyConcrete(ticSignature);
+
+        if (!types.HasGenerics || signatureIsConcrete)
         {
             #region concreteFunction
 
@@ -478,12 +523,98 @@ internal static class RuntimeBuilder {
             PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsRegistry,
-                dialect);
+                dialect, namedTypeFieldRegistry);
             var genRegistryKey = TicSetupVisitor.GetRegistryKey(function.Name, function.IsExtension, dialect.ExtensionFunctionsSeparation);
             functionsRegistry.Add(genRegistryKey, function);
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
             return function;
+        }
+    }
+
+    /// <summary>
+    /// True iff every leaf state in the function's TIC signature (arg types
+    /// and return type) is solved — no <c>ConstraintsState</c> reachable
+    /// through composite traversal. Used to classify a function as concrete
+    /// even when the body has residual CS from internal operator dispatches.
+    /// Cycle guard: μ-recursive types (named structs cycling through Optional/
+    /// Array fields) self-reference, so a HashSet of visited TicNodes prevents
+    /// infinite descent.
+    /// </summary>
+    /// <summary>
+    /// Walk function signature subgraph and freeze every reachable StateStruct. After body solve
+    /// completes, signature structural shape is determined; no script-body caller may extend it
+    /// via width propagation. Damas-Milner '82 let-generalization closes the type at the
+    /// let-boundary; analog here is that the function signature is "let-generalized" at
+    /// function-build. Cycle-guarded via visited set (μ-recursive structs).
+    /// </summary>
+    private static void FreezeFunctionSignatureStructs(
+        TypeInferenceResults results,
+        UserFunctionDefinitionSyntaxNode functionSyntaxNode) {
+        var ticName = functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count;
+        var sig = results.GetVariableType(ticName) as Tic.SolvingStates.StateFun;
+        if (sig == null) return;
+        var visited = new HashSet<Tic.TicNode>();
+        foreach (var arg in sig.ArgNodes)
+            FreezeStructsRecursive(arg, visited);
+        FreezeStructsRecursive(sig.RetNode, visited);
+    }
+
+    private static void FreezeStructsRecursive(Tic.TicNode node, HashSet<Tic.TicNode> visited) {
+        var nr = node.GetNonReference();
+        if (!visited.Add(nr)) return;
+        switch (nr.State) {
+            case Tic.SolvingStates.StateStruct s when !s.IsFrozen && s.TypeName == null:
+                // Freeze ONLY anonymous structs that are part of a recursive cycle (self-RefTo
+                // through fields). Non-recursive structs are genuinely row-polymorphic — a
+                // function like `fun1(x,y) = x.age + y.size` expects callers to merge bounds
+                // across args, which requires width propagation; freezing them breaks let-poly
+                // inference. Recursive structs (μ-shape) MUST be frozen: their bound determines
+                // the polymorphic skeleton; widening at call sites pollutes the shared signature.
+                if (Tic.SolvingFunctions.StructIsRecursiveCycle(s, nr))
+                    s.IsFrozen = true;
+                foreach (var (_, fieldNode) in s.Fields)
+                    FreezeStructsRecursive(fieldNode, visited);
+                break;
+            case Tic.SolvingStates.StateStruct s:
+                foreach (var (_, fieldNode) in s.Fields)
+                    FreezeStructsRecursive(fieldNode, visited);
+                break;
+            case Tic.SolvingStates.ConstraintsState cs:
+                if (cs.StructBound != null) {
+                    // RecursiveBound's struct: freeze too (idempotent if already frozen by lift)
+                    cs.StructBound.IsFrozen = true;
+                    foreach (var (_, fieldNode) in cs.StructBound.Fields)
+                        FreezeStructsRecursive(fieldNode, visited);
+                }
+                break;
+            case Tic.SolvingStates.ICompositeState comp:
+                for (int i = 0; i < comp.MemberCount; i++)
+                    FreezeStructsRecursive(comp.GetMember(i), visited);
+                break;
+        }
+    }
+
+    private static bool SignatureIsFullyConcrete(Tic.SolvingStates.StateFun signature) {
+        var visited = new HashSet<Tic.TicNode>();
+        foreach (var arg in signature.ArgNodes)
+            if (!StateIsSolved(arg.GetNonReference().State, visited)) return false;
+        return StateIsSolved(signature.RetNode.GetNonReference().State, visited);
+    }
+
+    private static bool StateIsSolved(Tic.SolvingStates.ITicNodeState state, HashSet<Tic.TicNode> visited) {
+        switch (state) {
+            case Tic.SolvingStates.StateRefTo r: return StateIsSolved(r.Node.GetNonReference().State, visited);
+            case Tic.SolvingStates.ConstraintsState: return false;
+            case Tic.SolvingStates.StateStruct s when s.TypeName != null: return true;
+            case Tic.SolvingStates.ICompositeState c:
+                for (int i = 0; i < c.MemberCount; i++) {
+                    var member = c.GetMember(i);
+                    if (!visited.Add(member)) continue; // cycle guard for μ-types
+                    if (!StateIsSolved(member.GetNonReference().State, visited)) return false;
+                }
+                return true;
+            default: return true;
         }
     }
 
@@ -555,6 +686,34 @@ internal static class RuntimeBuilder {
             SyntaxParsing.SyntaxNodes.IpAddressConstantSyntaxNode => FunnyType.Ip,
             _ => FunnyType.Any
         };
+
+    /// <summary>
+    /// True iff the type syntax tree contains a Named reference to any name in
+    /// <paramref name="names"/>. Used to detect aliases that participate in
+    /// self- or mutual-recursion so they can be pre-registered with a placeholder
+    /// before resolution.
+    /// </summary>
+    private static bool TypeSyntaxContainsAnyName(TypeSyntax syntax, HashSet<string> names) {
+        switch (syntax) {
+            case TypeSyntax.Named n:
+                return names.Contains(n.Name);
+            case TypeSyntax.OptionalOf o:
+                return TypeSyntaxContainsAnyName(o.Element, names);
+            case TypeSyntax.ArrayOf a:
+                return TypeSyntaxContainsAnyName(a.Element, names);
+            case TypeSyntax.FunOf f:
+                if (TypeSyntaxContainsAnyName(f.ReturnType, names)) return true;
+                foreach (var arg in f.ArgTypes)
+                    if (TypeSyntaxContainsAnyName(arg, names)) return true;
+                return false;
+            case TypeSyntax.StructOf s:
+                foreach (var field in s.Fields)
+                    if (TypeSyntaxContainsAnyName(field.FieldType, names)) return true;
+                return false;
+            default:
+                return false;
+        }
+    }
 
     /// <summary>Set OutputType on all nodes in a subtree from TIC results (for precomputing defaults).
     /// Resolves generic constraints to preferred/descendant types for precomputation.</summary>

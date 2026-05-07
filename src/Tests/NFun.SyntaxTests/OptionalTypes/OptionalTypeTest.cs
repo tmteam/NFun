@@ -1183,7 +1183,7 @@ public class OptionalTypeTest {
 
     // --- Generic function with optional ---
 
-    [TestCase("f(x) = x ?? 0\r y = f(none)", 0.0d)]
+    [TestCase("f(x) = x ?? 0\r y = f(none)", 0)]
     [TestCase("f(x) = x ?? 'default'\r y = f(none)", "default")]
     public void GenericFunc_WithCoalesce(string expr, object expected) =>
         expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", expected);

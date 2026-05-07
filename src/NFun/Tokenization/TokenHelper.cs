@@ -181,6 +181,41 @@ public static class TokenHelper {
         return true;
     }
 
+    /// <summary>
+    /// Moves if current token can be used as a struct field name: an Id, or any
+    /// primitive-type keyword (real, int, bool, text, …). Type-keywords carry
+    /// their lexeme in <see cref="Tok.Value"/>, so callers that only consume
+    /// <c>.Value</c> get the right string. This unblocks scripts like
+    /// <c>type c = {real: real, imag: real}</c> where a field happens to share
+    /// a primitive-type name. The relaxation is safe in field-name positions
+    /// (struct def / struct literal / dot-access) because the grammar there
+    /// always expects an identifier next — no ambiguity with a type slot.
+    /// </summary>
+    public static bool MoveIfFieldName(this TokFlow flow, out Tok tok) {
+        if (flow.IsCurrent(TokType.Id) || IsTypeKeyword(flow.Current.Type))
+        {
+            tok = flow.Current;
+            flow.MoveNext();
+            return true;
+        }
+        tok = null;
+        return false;
+    }
+
+    private static bool IsTypeKeyword(TokType type) => type
+        is TokType.TextType
+        or TokType.BoolType
+        or TokType.CharType
+        or TokType.RealType
+        or TokType.Int16Type
+        or TokType.Int32Type
+        or TokType.Int64Type
+        or TokType.UInt8Type
+        or TokType.UInt16Type
+        or TokType.UInt32Type
+        or TokType.UInt64Type
+        or TokType.AnythingType;
+
     /// <summary>Moves if current token is Id with the given value (contextual keyword).</summary>
     public static bool MoveIfIdEquals(this TokFlow flow, string value, out Tok tok) {
         if (flow.IsCurrent(TokType.Id) && flow.Current.Value == value)

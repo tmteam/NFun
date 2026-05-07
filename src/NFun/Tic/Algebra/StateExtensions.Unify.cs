@@ -133,6 +133,9 @@ public static partial class StateExtensions {
 
         if (a is StateMutableStruct)
             return new StateMutableStruct(fields, true);
-        return new StateStruct(fields, true);
+        return new StateStruct(fields, true) {
+            IsOptionalSourced = StateStruct.MergedIsOptionalSourced(a.IsOptionalSourced, b.IsOptionalSourced),
+            TypeName = StateStruct.MergedTypeName(a.TypeName, b.TypeName),
+        };
     }
 }

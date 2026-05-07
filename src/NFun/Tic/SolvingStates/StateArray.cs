@@ -55,10 +55,19 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     public bool CanBePessimisticConvertedTo(StatePrimitive type)
         => type== StatePrimitive.Any;
 
+    private const int ArrayCycleGuard = -57500;
+
     public override bool Equals(object obj) {
-        if (obj is StateArray arr)
-            return arr.Element.Equals(Element);
-        return false;
+        if (obj is not StateArray arr) return false;
+        // Cycle guard for true graph cycles in named recursive types (e.g. forest = {kids: forest[]}).
+        // Amadio-Cardelli '93 §4.2 coinductive bisimulation: assume equal under recursive subgoal.
+        var elem = ElementNode;
+        if (elem.VisitMark == ArrayCycleGuard) return true;
+        var prev = elem.VisitMark;
+        elem.VisitMark = ArrayCycleGuard;
+        var result = arr.Element.Equals(Element);
+        elem.VisitMark = prev;
+        return result;
     }
 
     public ICompositeState GetNonReferenced()

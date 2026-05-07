@@ -96,7 +96,6 @@ internal static class RuntimeBuilderHelper {
                 AssertChecks.Panic("Types not solved due unknown reasons");
 
             var bodyTypeSolving = graph.Solve().NotNull("Type graph solve nothing");
-
             resultBuilder.SetResults(bodyTypeSolving);
             return resultBuilder.Build();
         }

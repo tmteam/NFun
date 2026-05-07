@@ -67,10 +67,15 @@ public class OptionalChainingWorkingTest {
         expr.AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
 
 
+    // ?. on a non-optional struct receiver is now permissive — equivalent to
+    // `.field`. Useful when chaining into inline-constructed values or when the
+    // accessed field is itself Optional. The strict-mode rejection from earlier
+    // was unhelpful — BugHunt300 Section_E expects this to work.
     [Test]
-    public void SafeFieldAccess_OnNonOptionalStruct_Fails() =>
+    public void SafeFieldAccess_OnNonOptionalStruct_AccessesField() =>
         "x = {name = 'hi'}\r y = x?.name"
-            .AssertObviousFailsOnParse(optionalTypesSupport: OptionalTypesSupport.Enabled);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("y", "hi");
 
     [Test]
     public void SafeFieldAccess_OptionalIntField_HasValue() {

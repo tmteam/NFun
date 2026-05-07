@@ -36,6 +36,17 @@ public class PullConstraintsFunctions : IStateFunction {
         // the ancestor must be optional too. Uses AddDescendant(None) which sets the flag.
         if (descendant.IsOptional)
             ancestorCopy.AddDescendant(StatePrimitive.None);
+        // F-bound StructBound is a third independent constraint dimension. Combining two upper
+        // bounds is meet (Gcd = field union, narrower predicate). Both Pull and Push merge S via
+        // Gcd — there is no Lca on S because upper bounds are never widened by ≤. Contractivity
+        // preserved when both inputs are contractive (no wrapper structure changed).
+        if (descendant.StructBound != null) {
+            ancestorCopy.StructBound = ancestorCopy.StructBound == null
+                ? SolvingFunctions.RewireStructBoundOwnership(descendant.StructBound, descendantNode, ancestorNode)
+                : SolvingFunctions.GcdBound(ancestorCopy.StructBound, descendant.StructBound,
+                                            ancestorNode, descendantNode);
+            if (ancestorCopy.StructBound == null) return false; // conflict
+        }
         var result = ancestorCopy.SimplifyOrNull();
         if (result == null)
             return false;
@@ -66,9 +77,32 @@ public class PullConstraintsFunctions : IStateFunction {
             var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
             innerCs.Preferred = ancestor.Preferred;
             var innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
+            // F-bound migrates to inner CS on Optional wrap. The bound lives on the recursive
+            // variable (the inner element); self-RefTos in the bound that pointed at ancestorNode
+            // (the outer) must be rewired to point at innerNode, otherwise opt(CS{S}) with
+            // back-edges to outer-ancestor leaves dangling refs.
+            if (ancestor.StructBound != null)
+                innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
+                    ancestor.StructBound, ancestorNode, innerNode);
             descOpt.ElementNode.AddAncestor(innerNode);
             ancestorNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        // Descendant is StateStruct and ancestor has F-bound. The descendant struct is the
+        // candidate value; its fields contribute to the bound's required field set. GcdBound
+        // merges desc as another bound contributor (treats StateStruct as "CS-with-S = struct itself").
+        if (descendant is StateStruct descStruct && ancestor.StructBound != null)
+        {
+            var copy = ancestor.GetCopy();
+            copy.AddDescendant(descStruct);
+            var merged = SolvingFunctions.GcdBound(
+                copy.StructBound, descStruct, ancestorNode, descendantNode);
+            if (merged == null) return false;
+            copy.StructBound = merged;
+            var simplified = copy.SimplifyOrNull();
+            if (simplified == null) return false;
+            ancestorNode.State = simplified;
             return true;
         }
         return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
@@ -93,6 +127,9 @@ public class PullConstraintsFunctions : IStateFunction {
         {
             case StateArray ancArray:
             {
+                // Descendant has F-bound (struct shape) but ancestor is StateArray —
+                // structural conflict (struct ≠ array).
+                if (descendant.StructBound != null) return false;
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
                 if (result == null)
                     return false;
@@ -103,6 +140,8 @@ public class PullConstraintsFunctions : IStateFunction {
             }
             case StateFun ancFun:
             {
+                // F-bound vs Fun is a structural conflict.
+                if (descendant.StructBound != null) return false;
                 var result = SolvingFunctions.TransformToFunOrNull(
                     descendantNode.Name, descendant, ancFun);
                 if (result == null)
@@ -119,6 +158,17 @@ public class PullConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (result == null)
                     return false;
+                // F-bound flowing INTO concrete struct. Descendant carries S = upper-bound shape;
+                // merge S into the produced struct so width-required fields become explicit
+                // constraints. GcdBound treats result + S as two parallel descendants, returning
+                // their meet (field union).
+                if (descendant.StructBound != null)
+                {
+                    var merged = SolvingFunctions.GcdBound(
+                        result, descendant.StructBound, descendantNode, descendantNode);
+                    if (merged == null) return false;
+                    result = merged;
+                }
                 descendantNode.State = result;
                 // Width propagation: descendant struct may have more fields than
                 // ancestor (e.g., generic T constrained to {a} via SetFieldAccess,
@@ -136,6 +186,9 @@ public class PullConstraintsFunctions : IStateFunction {
                         }
                     }
                 }
+                // If descendant's struct is opt-sourced, propagate the marker to the ancestor —
+                // both share the same merged identity and the cycle-rescue rule must apply uniformly.
+                if (result.IsOptionalSourced) ancStruct.IsOptionalSourced = true;
                 return true;
             }
             case StateOptional ancOpt:
@@ -149,8 +202,13 @@ public class PullConstraintsFunctions : IStateFunction {
                         // (e.g., ?.field sets opt(struct) ancestor on lambda param that already
                         // has struct descendant from generic function binding).
                         // Transform to opt(inner) carrying the struct constraints.
+                        var innerCsCopy = descendant.GetCopy();
                         var innerNode = TicNode.CreateTypeVariableNode(
-                            "e" + descendantNode.Name + "'", descendant.GetCopy());
+                            "e" + descendantNode.Name + "'", innerCsCopy);
+                        // Rewire StructBound self-refs to new inner owner.
+                        if (innerCsCopy.StructBound != null)
+                            innerCsCopy.StructBound = SolvingFunctions.RewireStructBoundOwnership(
+                                innerCsCopy.StructBound, descendantNode, innerNode);
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
                         descendantNode.RemoveAncestor(ancestorNode);
@@ -166,6 +224,10 @@ public class PullConstraintsFunctions : IStateFunction {
                         innerCs.Preferred = descendant.Preferred;
                         var innerNode = TicNode.CreateTypeVariableNode(
                             "e" + descendantNode.Name + "'", innerCs);
+                        // F-bound migrates to inner CS on Optional materialization.
+                        if (descendant.StructBound != null)
+                            innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
+                                descendant.StructBound, descendantNode, innerNode);
                         innerNode.IsOptionalElement = true;
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
@@ -237,6 +299,19 @@ public class PullConstraintsFunctions : IStateFunction {
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
         TraceLog.WriteLine($"  Pull Struct<-Struct: anc={ancestorNode.Name}:{ancestor.StateDescription} desc={descendantNode.Name}:{descendant.StateDescription}");
+        // Merge identity bidirectionally across the Pull struct≤struct edge. After width
+        // propagation makes field sets equal, both sides represent the same merged value — they
+        // must agree on TypeName and IsOptionalSourced. The merge rule lives in
+        // StateStruct.MergedTypeName. On TypeName conflict (both named, names differ) reject the
+        // Pull — declared `type a` ≤ declared `type b` is a real type error.
+        var mergedName = StateStruct.MergedTypeName(ancestor.TypeName, descendant.TypeName);
+        if (mergedName == null && ancestor.TypeName != null && descendant.TypeName != null) {
+            TraceLog.WriteLine($"    BLOCKED: TypeName conflict {ancestor.TypeName} vs {descendant.TypeName}");
+            return false;
+        }
+        ancestor.TypeName = descendant.TypeName = mergedName;
+        var mergedOptSourced = StateStruct.MergedIsOptionalSourced(ancestor.IsOptionalSourced, descendant.IsOptionalSourced);
+        ancestor.IsOptionalSourced = descendant.IsOptionalSourced = mergedOptSourced;
         foreach (var ancField in ancestor.Fields)
         {
             var descField = descendant.GetFieldOrNull(ancField.Key);

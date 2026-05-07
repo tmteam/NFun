@@ -89,6 +89,17 @@ public static class VarTypeConverter {
             return o => o is FunnyNone ? o : inner(o);
         }
 
+        // Optional(NamedStruct) → Struct: runtime values are FunnyStruct either way,
+        // NoConvertion is safe because FunnyNone passes through unchanged.
+        if (from.BaseType == BaseFunnyType.Optional
+            && from.OptionalTypeSpecification.ElementType.BaseType == BaseFunnyType.NamedStruct
+            && to.BaseType == BaseFunnyType.Struct)
+            return o => o is FunnyNone ? o : o;
+        if (from.BaseType == BaseFunnyType.Optional
+            && from.OptionalTypeSpecification.ElementType.BaseType == BaseFunnyType.Struct
+            && to.BaseType == BaseFunnyType.NamedStruct)
+            return o => o is FunnyNone ? o : o;
+
         if (from.BaseType == BaseFunnyType.Char)
             return typeBehaviour.GetFromCharToNumberConverterOrNull(to.BaseType);
         if (from.IsNumeric())

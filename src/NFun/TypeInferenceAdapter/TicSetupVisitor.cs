@@ -916,8 +916,18 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
             // Propagate preferred for generics that only appear in return type.
             // These are safe: no call-site arg can conflict with the preferred type.
-            // Generics shared with arg types must stay wide for polymorphism.
-            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes);
+            // Generics shared with arg types stay wide UNLESS at least one call-site
+            // arg is the literal `none` — then the generic can't be pinned by callers
+            // and the body's Preferred is the right default (GH #126).
+            bool anyArgIsNone = false;
+            for (int i = 0; i < allArgs.Length; i++) {
+                var argNode = _ticTypeGraph.GetOrCreateNode(allArgs[i].OrderNumber).GetNonReference();
+                if (argNode.State is Tic.SolvingStates.StatePrimitive p && p == Tic.SolvingStates.StatePrimitive.None) {
+                    anyArgIsNone = true;
+                    break;
+                }
+            }
+            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes, anyArgIsNone);
         }
         else genericTypes = Array.Empty<StateRefTo>();
 
@@ -1372,12 +1382,20 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     /// <summary>
-    /// For each generic that has Preferred and appears ONLY in return type (not in any arg type),
-    /// set Preferred on the call-site constraint node. This allows f() = 2+3 to resolve to Int32
-    /// without breaking polymorphic functions like fib(n) where generics are shared with args.
+    /// For each generic that has Preferred, set Preferred on the call-site constraint
+    /// node when it is safe to do so. Two safe cases:
+    ///   1. T appears ONLY in return type (no arg can conflict)
+    ///       — covers f() = 2+3 → resolves to Int32.
+    ///   2. T appears in args AND at least one call-site arg is the literal `none`
+    ///       — none doesn't pin T (none ≤ opt(anything)), so the body's Preferred
+    ///         is the right default. Covers GH #126 (s(none) returning Real instead
+    ///         of Int).
+    /// Polymorphic functions like fib(n) where T is pinned by a typed-or-untyped
+    /// input variable still stay wide (no arg is StatePrimitive.None there).
     /// </summary>
     private static void PropagateReturnOnlyPreferred(
-        GenericConstrains[] constrains, FunnyType[] argTypes, FunnyType returnType, StateRefTo[] genericTypes) {
+        GenericConstrains[] constrains, FunnyType[] argTypes, FunnyType returnType,
+        StateRefTo[] genericTypes, bool anyCallArgIsNone) {
         for (int i = 0; i < constrains.Length; i++) {
             if (constrains[i].Preferred == null)
                 continue;
@@ -1389,8 +1407,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     break;
                 }
             }
-            if (!appearsInArgs) {
-                // Safe to propagate preferred — this generic is return-only
+            bool safe = !appearsInArgs || anyCallArgIsNone;
+            if (safe) {
                 var node = genericTypes[i].Node.GetNonReference();
                 if (node.State is ConstraintsState cs && cs.Preferred == null)
                     cs.Preferred = constrains[i].Preferred;
@@ -1425,6 +1443,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // generic field references (Generic(i)) to already-initialized type variables.
             var ticStruct = (ITypeState)constrains.StructDescendant.ConvertToTiType(genericTypes);
             return _ticTypeGraph.InitializeVarNode(ticStruct, constrains.Ancestor, constrains.IsComparable);
+        }
+        // F-bounded generic at call site: initialize empty CS here; StructBound is populated
+        // in the second pass of InitializeGenericTypes (which has all genericTypes ready
+        // for resolving self-RefTo via Generic(i) markers).
+        if (constrains.HasStructBound)
+        {
+            return _ticTypeGraph.InitializeVarNode(null, null, false);
         }
         // Do NOT propagate preferred into call-site TIC graph.
         // Preferred is used only in CreateSomeConcrete (fallback for uncalled functions).

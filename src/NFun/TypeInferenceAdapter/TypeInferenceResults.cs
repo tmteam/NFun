@@ -59,8 +59,35 @@ public class TypeInferenceResultsBuilder {
 
     public void SetResults(ITicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
 
-    public TypeInferenceResults Build() =>
-        new TypeInferenceResults(
+    public TypeInferenceResults Build() {
+        // Fill genericFunctionTypes[i] for recursive call sites with the function body's own generics.
+        // Per Amadio–Cardelli equirecursion, a recursive self-call's generic vector equals the
+        // enclosing instance's. Otherwise body-internal generics (operator T from ==/+, F-bounded CSs
+        // surfaced through cycle handling) would be left as default FunnyType (Empty) by
+        // CalcGenericArgTypeList(recSignature), breaking downstream substitution.
+        if (_bodyTypeSolving != null && _recursiveCalls != null)
+        {
+            var bodyGenerics = _bodyTypeSolving.GenericsStates;
+            if (bodyGenerics.Count > 0)
+            {
+                StateRefTo[] sharedRefs = null;
+                for (int i = 0; i < _recursiveCalls.Length; i++)
+                {
+                    if (_recursiveCalls[i] == null) continue;
+                    // Lazily build a single shared StateRefTo[] — every recursive
+                    // call site of THIS function shares the same generic vector
+                    // (Amadio–Cardelli identity). All call sites point at the
+                    // SAME ITicNodeState instances (the function body's CSs)
+                    // so GenericMapConverter's IndexOf(_constrainsMap, cs)
+                    // finds them by reference.
+                    sharedRefs ??= BuildSharedGenericRefs(bodyGenerics);
+                    EnsureCapacity(ref _genericFunctionTypes, i);
+                    if (_genericFunctionTypes[i] == null)
+                        _genericFunctionTypes[i] = sharedRefs;
+                }
+            }
+        }
+        return new TypeInferenceResults(
             bodyTypeSolving: _bodyTypeSolving,
             genericFunctionTypes: _genericFunctionTypes ?? Array.Empty<StateRefTo[]>(),
             functionalVariables: _functionalVariables ?? Array.Empty<IFunctionSignature>(),
@@ -69,6 +96,26 @@ public class TypeInferenceResultsBuilder {
             resolvedCallSignatures: _resolvedCallSignatures,
             narrowedVariables: _narrowedVariables
         );
+    }
+
+    /// <summary>
+    /// Wrap each body-generic ConstraintsState in a fresh StateRefTo whose
+    /// target TicNode carries that exact CS instance. ExpressionBuilder's
+    /// converter at the recursive call site then sees StateRefTo→Element ==
+    /// the CS instance, finds it by reference in _constrainsMap, and returns
+    /// the outer call's _argTypes[i]. Net effect: recursive call's
+    /// concreteTypes[i] = outer concreteTypes[i] for every body-internal
+    /// generic.
+    /// </summary>
+    private static StateRefTo[] BuildSharedGenericRefs(IReadOnlyList<ConstraintsState> bodyGenerics) {
+        var refs = new StateRefTo[bodyGenerics.Count];
+        for (int j = 0; j < bodyGenerics.Count; j++)
+        {
+            var node = NFun.Tic.TicNode.CreateInvisibleNode(bodyGenerics[j]);
+            refs[j] = new StateRefTo(node);
+        }
+        return refs;
+    }
 
     public void RememberRecursiveCall(int id, StateFun userFunction) {
         EnsureCapacity(ref _recursiveCalls, id);

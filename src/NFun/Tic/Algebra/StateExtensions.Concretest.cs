@@ -79,8 +79,13 @@ public static partial class StateExtensions {
             nodes[key] = nr;
         }
         if (!changed) return s;
-        return s is StateMutableStruct
-            ? new StateMutableStruct(nodes, s.IsFrozen, s.IsOpen)
-            : new StateStruct(nodes, s.IsFrozen, s.IsOpen);
+        if (s is StateMutableStruct)
+            return new StateMutableStruct(nodes, s.IsFrozen, s.IsOpen);
+        // Preserve TypeName/IsOptionalSourced through the path-compression copy so the named
+        // identity follows the struct.
+        return new StateStruct(nodes, s.IsFrozen, s.IsOpen) {
+            IsOptionalSourced = s.IsOptionalSourced,
+            TypeName = s.TypeName,
+        };
     }
 }

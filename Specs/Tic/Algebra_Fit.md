@@ -82,11 +82,12 @@ A[] ≤ B    только если B = Any
 
 ### 2. `A ≤ ConstraintsState` — проверка интервала
 
-A fits into CS `[D..Anc, cmp]` если:
+A fits into CS `[D..Anc, cmp, S]` если:
 
 1. **Ancestor check**: `A ≤ Anc` (если Anc определён)
 2. **Comparable check**: если `cmp=true` — A должен быть comparable. Comparable типы: числовые примитивы, Char, arr(Char). Optional, Struct, Fun, None, Bool — НЕ comparable. Если A comparable и примитивен — **достаточно** (descendant check пропускается, т.к. comparable примитив гарантированно лежит в числовом интервале).
 3. **Descendant check**: если `D` определён — `CanBeFitConverted(D, A)` (см. ниже)
+4. **StructBound check**: если `S` определён — `A` должен быть `StateStruct`, `Fields(A) ⊇ Fields(S)`, и `∀f ∈ S: A.f ≤ S.f` (covariant width subtyping). Это **F-bound check** — call-site arg должен структурно удовлетворять bound'у. См. PushReform.md.
 
 **IsOptional** НЕ проверяется в FitsInto. IsOptional — информация для materialization (Destruction/Finalize), не для проверки совместимости. Preferred — аналогично.
 

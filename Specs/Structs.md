@@ -33,6 +33,15 @@ id =  user.name #Access to field 'name' in struct 'user'
 z =  user.stats.coasts # Nested access
 ```
 
+## Field names
+
+Any identifier can be a field name, including primitive-type keywords (`int`, `real`, `bool`, `text`, `char`, etc.) — context disambiguates
+
+```py
+c = {real = 1.0, imag = 2.0}     # field named 'real' of type real
+y = c.real                       # 1.0
+```
+
 ## Immutability
 
 The structure is an immutable value. After the structure is created, you can

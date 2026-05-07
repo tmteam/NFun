@@ -384,7 +384,7 @@ public static class SyntaxNodeReader {
             else if (opToken.Type == TokType.Dot)
             {
                 flow.MoveNext(); // dot
-                if (!flow.MoveIf(TokType.Id, out var id))
+                if (!flow.MoveIfFieldName(out var id))
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
                 // Open parenthesis. It means call
                 if (flow.IsCurrent(TokType.ParenthObr)) {
@@ -399,7 +399,7 @@ public static class SyntaxNodeReader {
             else if (opToken.Type == TokType.SafeAccess)
             {
                 flow.MoveNext(); // ?.
-                if (!flow.MoveIf(TokType.Id, out var id))
+                if (!flow.MoveIfFieldName(out var id))
                     throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
                 // ?.method() — safe piped function call
                 if (flow.IsCurrent(TokType.ParenthObr))
@@ -571,7 +571,7 @@ public static class SyntaxNodeReader {
                 throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.CurrentTokenStartPosition - 1,
                     flow.CurrentTokenFinishPosition));
 
-            if (!flow.MoveIf(TokType.Id, out var idToken))
+            if (!flow.MoveIfFieldName(out var idToken))
                 throw Errors.StructFieldIdIsMissed(flow.Current);
 
             var type = TryReadTypeDef(flow);
@@ -1220,7 +1220,7 @@ public static class SyntaxNodeReader {
                 throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.CurrentTokenStartPosition - 1,
                     flow.CurrentTokenFinishPosition));
 
-            if (!flow.MoveIf(TokType.Id, out var idToken))
+            if (!flow.MoveIfFieldName(out var idToken))
                 throw Errors.StructFieldIdIsMissed(flow.Current);
 
             if (!flow.MoveIf(TokType.Def))

@@ -20,7 +20,7 @@ internal static class TicErrors {
     public static Exception CannotMerge(TicNode a, TicNode b)
         => IncompatibleNodes(a, b);
 
-    public static Exception RecursiveTypeDefinition(TicNode[] group) => 
+    public static Exception RecursiveTypeDefinition(TicNode[] group) =>
         new TicRecursiveTypeDefinitionException(group);
 
     public static Exception CannotSetState(TicNode node, ITicNodeState b) => 

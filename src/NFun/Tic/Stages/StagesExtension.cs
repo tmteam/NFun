@@ -1,10 +1,73 @@
 namespace NFun.Tic.Stages;
 
 using System;
+using System.Collections.Generic;
 using SolvingStates;
 
 public static class StagesExtension {
+
+    /// <summary>
+    /// Coinductive visited-pair guard for Pull/Push Apply over cyclic constraint graphs.
+    /// When (nodeA, nodeB) is re-encountered during a recursive Invoke, we assume compatibility
+    /// (return true) per Amadio-Cardelli '93 §3 coinductive subtyping: μ-recursive types are
+    /// equal/sub iff their unfoldings are equal/sub up to the visited-pair fixpoint.
+    /// </summary>
+    [System.ThreadStatic]
+    private static HashSet<(TicNode, TicNode)> _invokeVisitedPairs;
+
+    /// <summary>
+    /// Set by GraphBuilder.SolveCore: when false, the graph cannot contain
+    /// μ-recursive types (no SafeFieldAccess, no named-type registry, no
+    /// recursive user function — checked deterministically pre-TIC). The
+    /// visited-pair guard exists ONLY for cycle re-entry; with no cycles
+    /// possible, skip it entirely.
+    /// </summary>
+    [System.ThreadStatic]
+    internal static bool _isRecursion;
+
     public static bool Invoke<TFunction>(this TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
+        // Fast path: cycles in the TIC graph only arise through ICompositeState
+        // edges (StateOptional element, StateArray element, StateStruct fields,
+        // StateFun arg/ret). Pairs of nodes whose states are NOT composite —
+        // typically StatePrimitive or solved leaves — cannot re-enter Invoke
+        // recursively, so the visited-pair guard is unreachable. Skip the
+        // HashSet allocation/op pair and avoid the try/finally overhead. This
+        // is the dominant case in non-recursive expressions (numeric/string
+        // arithmetic). Correctness: if neither state is composite, InvokeCore
+        // dispatches directly to a single Apply call without further Invoke
+        // recursion (see switch arms 47-52 in InvokeCore).
+        if (nodeA.State is StatePrimitive && nodeB.State is StatePrimitive)
+            return InvokeCore(function, nodeA, nodeB);
+
+        // Skip visited-pair guard when the entire graph cannot contain cycles.
+        // The guard exists solely for μ-recursive type unfolding (Amadio-Cardelli
+        // '93 §3). Without recursive constructs (NamedTypeRegistry, ?., recursive
+        // user function), no cycle re-entry can occur — see GraphBuilder.
+        // IsRecursion which is set deterministically pre-TIC.
+        if (!_isRecursion)
+            return InvokeCore(function, nodeA, nodeB);
+
+        // Coinductive visited-pair guard. Required for the cycle members
+        // (not just the cycle head) during Apply recursion through composite
+        // elements. Per Amadio-Cardelli '93 §3 coinductive subtyping: when
+        // (nodeA, nodeB) is re-encountered, assume compatibility (return true).
+        var pairs = _invokeVisitedPairs;
+        if (pairs == null) {
+            pairs = new HashSet<(TicNode, TicNode)>();
+            _invokeVisitedPairs = pairs;
+        }
+        var pair = (nodeA, nodeB);
+        if (!pairs.Add(pair))
+            return true; // coinductive assumption: cycle re-entered
+        try {
+            return InvokeCore(function, nodeA, nodeB);
+        }
+        finally {
+            pairs.Remove(pair);
+        }
+    }
+
+    private static bool InvokeCore<TFunction>(TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
         if (nodeB.State is StateRefTo bRef)
             return function.Invoke(nodeA, bRef.Node);
         if (nodeA.State is StatePrimitive p)
@@ -88,6 +151,14 @@ public static class StagesExtension {
         TraceLog.WriteLine($"  WrapDescendantInOptional: nodeA={nodeA.Name}:{nodeA.State} nodeB={nodeB.Name}({nodeB.Type}):{nodeB.State}");
         if (nodeB.Type == TicNodeType.SyntaxNode || nodeB.IsSolved)
             return Invoke(function, optA.ElementNode, nodeB); // fallback: unwrap
+        // Do not wrap in Optional if nodeB is on a certified contractive μ-cycle. The cycle
+        // already represents the fixed-point μX. opt(...); each additional wrap would extend the
+        // chain unnecessarily, leading to exponential opt(opt(...)) explosion before the
+        // visited-pair guard catches the recursion. Per Pierce TAPL §20.2: μX. F(X) is a SINGLE
+        // fixed-point, not a tower of unfoldings. When descendant is also a TypeVariable
+        // (synthetic cycle marker, not a syntax node literal), unwrap (Optional absorbed by μ).
+        if (nodeB.IsContractiveCycleHead && nodeB.Type == TicNodeType.TypeVariable)
+            return Invoke(function, optA.ElementNode, nodeB);
         var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeB.Name, nodeB.State);
         innerNode.IsOptionalElement = true;
         nodeB.State = new StateOptional(innerNode);

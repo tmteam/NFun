@@ -113,6 +113,7 @@ public static class LangTiHelper {
         };
 
     [ThreadStatic] private static Dictionary<string, int> _resolveDepth;
+    [ThreadStatic] private static Dictionary<string, NFun.Tic.TicNode> _resolveRootNode;
 
     private static ITicNodeState ResolveNamedStruct(string typeName,
         INamedTypeFieldRegistry registry) {
@@ -121,13 +122,15 @@ public static class LangTiHelper {
 
         var isRoot = _resolveDepth == null;
         _resolveDepth ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        _resolveRootNode ??= new Dictionary<string, NFun.Tic.TicNode>(StringComparer.OrdinalIgnoreCase);
 
         _resolveDepth.TryGetValue(typeName, out var depth);
         if (depth >= 1) {
-            // Solved named struct: all fields concrete, recursive self-refs = Empty.
-            // TypeName enables ConvertToFunnyStruct → NamedStructOf at cycle boundary.
-            // ConstraintsState.Empty at boundary → resolved to Any by SolveUselessGenerics →
-            // converted to NamedStructOf by TicTypesConverter (when inside named struct).
+            // At depth ≥ 1, return RefTo to the root TicNode for a true graph cycle
+            // (Pottier-Rémy '05 §10.6). Cycle-aware Equals/Merge keep traversal bounded.
+            if (_resolveRootNode.TryGetValue(typeName, out var rootNode)) {
+                return new StateRefTo(rootNode);
+            }
             var placeholderFields = new (string, ITicNodeState)[fields.Length];
             for (int i = 0; i < fields.Length; i++)
                 placeholderFields[i] = (fields[i].name, WrapSolved(fields[i].type, typeName));
@@ -136,17 +139,24 @@ public static class LangTiHelper {
             return named;
         }
 
-        // depth 0: full expansion (mutable, for solving)
+        var rootPlaceholder = NFun.Tic.TicNode.CreateInvisibleNode(ConstraintsState.Empty);
+        _resolveRootNode[typeName] = rootPlaceholder;
         _resolveDepth[typeName] = depth + 1;
         try {
             var ticFields = new (string, ITicNodeState)[fields.Length];
             for (int i = 0; i < fields.Length; i++)
                 ticFields[i] = (fields[i].name, ConvertToTiType(fields[i].type, registry));
-            return StateStruct.Of(false, ticFields);
+            var rootStruct = StateStruct.Of(false, ticFields);
+            rootPlaceholder.State = rootStruct;
+            return rootStruct;
         }
         finally {
             _resolveDepth[typeName] = depth;
-            if (isRoot) _resolveDepth = null;
+            _resolveRootNode.Remove(typeName);
+            if (isRoot) {
+                _resolveDepth = null;
+                _resolveRootNode = null;
+            }
         }
     }
 

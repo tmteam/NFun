@@ -19,7 +19,11 @@ TIC Algebra — замкнутая система из шести операто
 
 - **Primitive**: I32, Real, Bool, Char, None, Any, ...
 - **Composite**: Array(T), Optional(T), Fun(A→R), Struct{f:T}
-- **Constraints[D..A, opt, cmp]**: интервал допустимых типов
+- **Constraints[D..A, opt, cmp, struct⊆S]**: интервал допустимых типов;
+  опциональная структурная верхняя граница `StructBound S` (F-bounded).
+  `S` может содержать `RefTo` обратно на сам Constraints — F-bound contractive
+  только если каждое back-edge пересекает Optional/Array (см. PushReform.md
+  §Contractivity invariant).
 - **RefTo(N)**: ссылка (прозрачна — разыменовывается перед любым оператором)
 
 Конкретный тип — частный случай описания: точечный интервал `[T..T]`.
@@ -206,6 +210,22 @@ Component link `Parent →component Child` — структурная завис
 Condition: runtime conversions корректны (A ≤ B ⟹ значение A безопасно используется как B). Алгебраическая часть (constraint satisfaction) доказуема; runtime часть — аксиома реализации (верифицируется тестами).
 
 Более сильная формулировка: **constraint satisfaction гарантирует что все требуемые conversions находятся в отношении ≤**. Корректность каждой отдельной conversion — per-conversion лемма.
+
+### Theorem PT-F — Principal F-Bounded Type (Push reform extension)
+
+Для unannotated параметра `n`, тело которого использует его в выражениях с вкладами `[Dᵢ..Aᵢ]`, `Sᵢ` (StructBound), `optᵢ`, `cmpᵢ`:
+
+> **Principal type** = `[D ≤ A, opt, cmp, struct⊆S]` где
+> - `D = ⋁ᵢ Dᵢ`  (LCA descendants — lattice join)
+> - `A = ⋀ᵢ Aᵢ`  (GCD ancestors — lattice meet)
+> - `S = GcdStruct(S₁,…,Sₖ)`  (field union — meet on F-bound lattice)
+> - `opt = ⋁ᵢ optᵢ`, `cmp = ⋁ᵢ cmpᵢ`
+>
+> Интервал **non-empty** ⟺ `D ≤ A` И `D` совместим с `S` (если `S ≠ null`: либо `D = null`, либо `D` — struct с `Fields(D) ⊇ Fields(S)`). При non-empty principal type **уникален** с точностью до lattice equality.
+
+`SimplifyOrNull` валидирует **three-way** non-emptiness `(D, A, S)`. F-bound — third independent dimension (peer to `IsComparable`, `IsOptional`); НЕ projection в `[D..A]`. Полное обоснование и operator extensions: `PushReform.md`.
+
+**Decidability fragment**: ограничение F-bound covariance (Pierce 1992) даёт **Amadio–Cardelli equirecursive subtyping with width-subtypable records** — decidable в `O(n²)`. Без variance restriction — undecidable.
 
 ## Примитивные и производные операторы
 

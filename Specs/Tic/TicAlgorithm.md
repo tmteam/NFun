@@ -44,12 +44,13 @@ FitsInto(∅, T) = true
 
 ### Флаги ConstraintsState
 
-Помимо интервала `[D..A]`, ConstraintsState содержит два boolean-флага:
+Помимо интервала `[D..A]`, ConstraintsState содержит boolean-флаги и опциональную структурную границу:
 
 - **IsOptional** — тип допускает None. Устанавливается через None absorption в Pull. Propagation: `opt_result := opt_a ∨ opt_d` (OR — расширяет множество допустимых значений).
 - **IsComparable** — тип должен поддерживать сравнение. Устанавливается из сигнатуры функции (операторы `>`, `<`, `==` и т.д.). Propagation: при **Pull** — не пропагируется (comparable на descendant не требует comparable на ancestor: `max(a,b)` возвращает comparable, но if-else может объединить comparable и non-comparable). При **Push** — передаётся от ancestor к descendant (`D.cmp := D.cmp ∨ A.cmp`): если ancestor comparable, descendant тоже должен быть. При **Merge** (Destruction): `cmp_result := cmp_a ∨ cmp_d` (OR). Валидация: SimplifyOrNull отвергает интервал если IsComparable=true но тип не comparable.
+- **StructBound** (`StateStruct?`) — структурная верхняя граница типа (F-bounded). Может содержать `RefTo` обратно на сам Constraints (F-bound). Propagation: **Pull(CS←CS)** и **Push(D←A)** — `Gcd` (поле-union, упрощение бункера). **LCA(CS∨CS)** — `Lca` (поле-intersection). **Unify** — `UnifyStruct`. **Не участвует** в Preferred. Contractivity: каждое back-edge от `S.Fields` к этому Constraints ДОЛЖНО пересекать Optional/Array — реиспользует существующий `ThrowIfRecursiveTypeDefinition` с CS как cycle anchor. Полная спецификация и cycle-rescue lifting: `PushReform.md`.
 
-Оба флага **не участвуют в LCA/GCD** напрямую. Они propagate по своим правилам при обработке CS←CS и CS→CS.
+Все три измерения (`IsOptional`, `IsComparable`, `StructBound`) **независимы**: каждое propagation идёт по своим правилам при обработке CS←CS и CS→CS, не вмешиваясь в `[D..A]`.
 
 **Preferred** — hint для resolution (pref=I32 для целочисленных литералов). **Не участвует** в алгебраических операциях (LCA, GCD, FitsInto). Preferred — metadata, не constraint. Влияет только на `SolveCovariant` при финальном выборе типа из интервала. Полная спецификация: `TicPreferred.md`.
 

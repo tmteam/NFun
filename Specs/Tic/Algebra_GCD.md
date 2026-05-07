@@ -111,7 +111,9 @@ F<...> ∧ G<...> = null      (если F ≠ G)
 
 **CS ∧ CS:** аналогично — оба раскрываются через Ancestor.
 
-**Desc, IsOptional, IsComparable** — при раскрытии CS в GCD теряются (используется только Ancestor). Это корректно: GCD сужает тип, а Desc/flags — нижняя граница и constraints, не верхняя.
+**StructBound (S):** `GcdStruct(S₁, S₂)` — null absorbs к другому; если оба non-null — **union полей** с рекурсивным GCD на общих. GCD сужает (richer bound), дуально к LCA. См. PushReform.md.
+
+**Desc, IsOptional, IsComparable** — при раскрытии CS в GCD теряются (используется только Ancestor). Это корректно: GCD сужает тип, а Desc/flags — нижняя граница и constraints, не верхняя. `StructBound` сохраняется потому что это **третья независимая верхняя граница** (структурная), а не lower-bound constraint.
 
 **Preferred** не участвует (resolution hint).
 

@@ -375,7 +375,9 @@ public class OptionalChainingTest {
             .AssertResultHas("y", expected);
 
 
-    [TestCase("x:{name:text} = {name = 'hi'}\r y = x?.name")]
+    // ?. on struct receivers is permissive (treated as `.` field access) — that
+    // shape is tested in BugHunt300 (Section_E). ?. on non-struct types like
+    // Int/Text is still an error.
     [TestCase("x:int\r y = x?.name")]
     [TestCase("x:text\r y = x?.count")]
     public void OptionalChaining_NonOptional_FailsOnParse(string expr) =>
