@@ -392,4 +392,21 @@ public class RecursiveTypeTest {
             "type tree = {v:int, children:tree[] = []}; forest = [tree{v=1, children=[tree{v=10}]}, tree{v=2}]; out = forest.map(rule it.children.count())"
                 .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
     }
+
+    // Recursive function with DIRECT field access (t.value) on named recursive type
+    // — REQUIRES explicit type annotation (t:tree), like RecursiveFunctionDepth4 above.
+    // Without annotation, TIC creates a cycle through generic param inference.
+    [Test]
+    public void RecursiveFunction_DirectFieldAccess_TreeSum_Annotated() {
+        var result = "type tree = {value: int, left: tree? = none, right: tree? = none}\r treeSum(t: tree): int = if(t.left == none) (if(t.right==none) t.value else t.value + treeSum(t.right!)) else if(t.right==none) t.value + treeSum(t.left!) else t.value + treeSum(t.left!) + treeSum(t.right!)\r y = treeSum(tree{value=1, left=tree{value=2}, right=tree{value=3}})"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+        result.AssertReturns("y", 6);
+    }
+
+    [Test]
+    public void RecursiveFunction_SafeAccessOnly_TreeSize() {
+        var result = "type tree = {value: int, left: tree?, right: tree?}\r treeSize(t) = if(t==none) 0 else 1 + treeSize(t?.left) + treeSize(t?.right)\r y = treeSize({value=1, left={value=2, left=none, right=none}, right=none})"
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+        result.AssertReturns("y", 2);
+    }
 }

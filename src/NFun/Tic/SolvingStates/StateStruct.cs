@@ -164,16 +164,28 @@ public class StateStruct : ICompositeState {
         // via UnifyOrNull (unlike the old inline logic which skipped ConstraintsState fields)
         this.Lca(otherType) as ITypeState;
 
+    private const int PrintMark = -57000;
     public virtual string PrintState(int depth) {
-        if (depth > 100)
+        if (depth > 16)
             return "{...REQ...}";
         if (_nodes.Count == 0)
             return IsFrozen ? "{frozen}" : "{}";
-        return
-            "{"
-            + (IsFrozen ? "F|" : "")
-            + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State.PrintState(depth + 1)}"))
-            + "}";
+        var parts = new List<string>(_nodes.Count);
+        foreach (var n in _nodes) {
+            var node = n.Value;
+            if (node.VisitMark == PrintMark) {
+                parts.Add($"{n.Key}:...");
+                continue;
+            }
+            var prev = node.VisitMark;
+            node.VisitMark = PrintMark;
+            try {
+                parts.Add($"{n.Key}:{node.State.PrintState(depth + 1)}");
+            } finally {
+                node.VisitMark = prev;
+            }
+        }
+        return "{" + (IsFrozen ? "F|" : "") + string.Join("; ", parts) + "}";
     }
 
     public bool CanBePessimisticConvertedTo(StatePrimitive type) => type== StatePrimitive.Any;
