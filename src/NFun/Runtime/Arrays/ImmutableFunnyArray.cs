@@ -104,6 +104,8 @@ public class ImmutableFunnyArray : IFunnyArray {
         }
     }
 
-    public override string ToString()
-        => $"Arr[{string.Join(",", ClrArray.Cast<object>())}]";
+    // Match ToText() so embeddings (e.g. struct field `{a=[1,2]}`) and ad-hoc
+    // Console.WriteLine debug output render the same user-visible form rather than
+    // leaking the internal `Arr[...]` debug prefix into `toText({a=[1,2]})`. (Bug DD.)
+    public override string ToString() => ToText();
 }

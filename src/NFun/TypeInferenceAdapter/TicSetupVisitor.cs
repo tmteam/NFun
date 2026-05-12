@@ -96,7 +96,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private readonly INamedTypeFieldRegistry _namedTypeFieldRegistry;
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
     internal bool _hasUserFunctions;
-    private System.Collections.Generic.HashSet<string> _narrowedFieldPaths;
+    private HashSet<string> _narrowedFieldPaths;
     /// <summary>
     /// Registry key prefix for extension functions when ExtensionFunctionsSeparation is enabled.
     /// Extension function "f" is stored as ".f" to avoid collision with regular function "f".
@@ -445,7 +445,43 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #if DEBUG
         Trace(node, $"[{string.Join(",", elementIds)}]");
 #endif
-        _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds);
+
+        // When all elements share the SAME named-struct type
+        // (post-NamedTypeElaborator OutputType = NamedStructOf), pre-resolve the element
+        // type slot to the full named recursive shape. Otherwise the element-LCA node
+        // starts as an empty Constraints and absorbs only the literal's raw post-Pull
+        // state — for default-`none` recursive fields, the "None desc → skip" rule
+        // leaves `next:None`, and the array element type collapses to a degenerate
+        // shape like `{next:none}` instead of preserving `t`'s recursive identity.
+        ITicNodeState elementHint = null;
+        if (node.Expressions.Count > 0 && _namedTypeFieldRegistry != null)
+        {
+            string commonName = null;
+            bool allSameNamed = true;
+            foreach (var expr in node.Expressions)
+            {
+                if (expr.OutputType.BaseType == BaseFunnyType.NamedStruct)
+                {
+                    var name = expr.OutputType.NamedStructTypeName;
+                    if (commonName == null) commonName = name;
+                    else if (!string.Equals(commonName, name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        allSameNamed = false; break;
+                    }
+                }
+                else { allSameNamed = false; break; }
+            }
+            if (allSameNamed && commonName != null
+                && _namedTypeFieldRegistry.TryGetFields(commonName, out _))
+            {
+                elementHint = ConvertType(FunnyType.NamedStructOf(commonName));
+            }
+        }
+
+        if (elementHint != null)
+            _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds, elementHint);
+        else
+            _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds);
         return true;
     }
 
@@ -546,10 +582,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
                 var fieldNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
                 var elementNode = _ticTypeGraph.CreateVarType();
-                var optNode = _ticTypeGraph.CreateVarType(Tic.SolvingStates.StateOptional.Of(elementNode));
-                Tic.SolvingFunctions.MergeInplace(optNode, fieldNode);
+                var optNode = _ticTypeGraph.CreateVarType(StateOptional.Of(elementNode));
+                SolvingFunctions.MergeInplace(optNode, fieldNode);
                 // Replace field result with the unwrapped element
-                fieldNode.State = new Tic.SolvingStates.StateRefTo(elementNode);
+                fieldNode.State = new StateRefTo(elementNode);
                 return true;
             }
         }
@@ -557,9 +593,29 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (node.IsSafeAccess || HasSafeAccessAncestor(node.Source))
             _ticTypeGraph.SetSafeFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
         else
-            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
+            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName,
+                sourceTypeNameHint: GetNamedSourceTypeNameOrNull(node.Source));
 
         return true;
+    }
+
+    /// <summary>
+    /// When the field-access source is a named variable bound to a named struct type,
+    /// return that named TypeName. Used by SetFieldAccess to stamp the synthesized open
+    /// struct with the same identity so downstream LCA preserves the μ-recursive cycle
+    /// repair anchor
+    /// </summary>
+    private string GetNamedSourceTypeNameOrNull(ISyntaxNode source) {
+        if (source is not NamedIdSyntaxNode varNode) return null;
+        var localId = _aliasScope.GetVariableAlias(varNode.Id);
+        if (!_ticTypeGraph.HasNamedNode(localId)) return null;
+        var namedNode = _ticTypeGraph.GetNamedNode(localId).GetNonReference();
+        return namedNode.State switch {
+            StateStruct s => s.TypeName,
+            ConstraintsState cs
+                when cs.HasDescendant && cs.Descendant is StateStruct ds => ds.TypeName,
+            _ => null
+        };
     }
 
     private static bool HasSafeAccessAncestor(ISyntaxNode node) {
@@ -790,13 +846,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             var unwrappedId = _nextSyntheticId++;
             var unwrappedNode = _ticTypeGraph.GetOrCreateNode(unwrappedId);
             _ticTypeGraph.SetCallArgument(
-                Tic.SolvingStates.StateOptional.Of(unwrappedNode), sourceId);
+                StateOptional.Of(unwrappedNode), sourceId);
             ids[0] = unwrappedId; // function sees T, not opt(T)
 
             // 2. Wrap result: raw function result → actual result = LCA(raw, None) = opt(R)
             var rawResultId = _nextSyntheticId++;
             var rawResultNode = _ticTypeGraph.GetOrCreateNode(rawResultId);
-            var noneNode = _ticTypeGraph.CreateVarType(Tic.SolvingStates.StatePrimitive.None);
+            var noneNode = _ticTypeGraph.CreateVarType(None);
             // Both raw result and None are subtypes of the actual result → LCA gives opt(R)
             var actualResultNode = _ticTypeGraph.GetOrCreateNode(resultId);
             rawResultNode.AddAncestor(actualResultNode);
@@ -852,8 +908,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 && !_dictionary.ContainsName(node.Id))
             {
                 var fieldNodeId = _nextSyntheticId++;
-                // 1. Field access: first arg is the struct, access field by name
-                _ticTypeGraph.SetFieldAccess(allArgs[0].OrderNumber, fieldNodeId, node.Id);
+                // 1. Field access: target the (possibly already-unwrapped) source. When
+                // IsSafeAccess+IsPipeForward fired at the top of this method, ids[0] was
+                // remapped from `allArgs[0].OrderNumber` (the outer Optional source) to a
+                // synthetic unwrappedNode (= the inner T). Using ids[0] here keeps the
+                // field-access targeting the struct shape, not the Optional wrapper —
+                _ticTypeGraph.SetFieldAccess(ids[0], fieldNodeId, node.Id);
                 // 2. Call the field (lambda) with remaining args
                 var callIds = new int[allArgs.Length]; // (remaining args) + result
                 for (int i = 1; i < allArgs.Length; i++)
@@ -922,7 +982,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             bool anyArgIsNone = false;
             for (int i = 0; i < allArgs.Length; i++) {
                 var argNode = _ticTypeGraph.GetOrCreateNode(allArgs[i].OrderNumber).GetNonReference();
-                if (argNode.State is Tic.SolvingStates.StatePrimitive p && p == Tic.SolvingStates.StatePrimitive.None) {
+                if (argNode.State is StatePrimitive p && p == None) {
                     anyArgIsNone = true;
                     break;
                 }
@@ -953,7 +1013,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private ITicNodeState ConvertFunArgType(FunnyType type, StateRefTo[] genericTypes) {
         if (genericTypes.Length == 0 && _namedTypeFieldRegistry != null)
             return type.ConvertToTiType(_namedTypeFieldRegistry);
-        return type.ConvertToTiType(genericTypes);
+        // When the function is generic (genericTypes non-empty), we still need to
+        // expand NamedStruct args via the registry. Without the registry threading, a
+        // generic function with a named-struct param (e.g. `applyFn(g, h:s) = g(h)`)
+        // would surface NamedStruct as ConstraintsState.Empty at SetCallArgument, throwing
+        // a bare NotSupportedException at the call-site setup.
+        return type.ConvertToTiType(genericTypes, _namedTypeFieldRegistry);
     }
 
     /// <summary>
@@ -962,11 +1027,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     /// Fix: replace the shared element with a fresh proxy linked via MergeInplace (RefTo).
     /// The proxy gets IsOptionalElement; the original generic node stays clean.
     /// </summary>
-    private void IsolateSharedOptionalElements(Tic.SolvingStates.ITicNodeState[] types) {
+    private void IsolateSharedOptionalElements(ITicNodeState[] types) {
         // Collect all nodes used directly (as StateRefTo)
-        System.Collections.Generic.HashSet<Tic.TicNode> directNodes = null;
+        HashSet<TicNode> directNodes = null;
         for (int i = 0; i < types.Length; i++) {
-            if (types[i] is Tic.SolvingStates.StateRefTo refTo) {
+            if (types[i] is StateRefTo refTo) {
                 directNodes ??= new();
                 directNodes.Add(refTo.Node);
             }
@@ -975,11 +1040,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         // For any StateOptional whose element is also used directly, replace with fresh proxy
         for (int i = 0; i < types.Length; i++) {
-            if (types[i] is Tic.SolvingStates.StateOptional opt && directNodes.Contains(opt.ElementNode)) {
+            if (types[i] is StateOptional opt && directNodes.Contains(opt.ElementNode)) {
                 var fresh = _ticTypeGraph.CreateVarType();
-                Tic.SolvingFunctions.MergeInplace(opt.ElementNode, fresh);
+                SolvingFunctions.MergeInplace(opt.ElementNode, fresh);
                 // fresh.State = RefTo(opt.ElementNode) — types unify, flags isolated
-                types[i] = new Tic.SolvingStates.StateOptional(fresh);
+                types[i] = new StateOptional(fresh);
             }
         }
     }
@@ -1029,7 +1094,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // if(x < 0) 0                   ← condition[1] visited with accumulated WhenFalse from [0]
         // else x                         ← else visited with all accumulated WhenFalse
         // When condition[0] is false → x != none → condition[1] and its expression see x narrowed.
-        System.Collections.Generic.HashSet<string> elseNarrowed = null;
+        HashSet<string> elseNarrowed = null;
 
         for (int i = 0; i < node.Ifs.Length; i++) {
             var ifCase = node.Ifs[i];
@@ -1040,7 +1105,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 { if (!VisitWithNarrowing(ifCase.Condition, elseNarrowed, node.OrderNumber)) return false; }
             else
                 { if (!ifCase.Condition.Accept(this)) return false; }
-            var narrowing = Interpretation.NarrowingAnalyzer.Analyze(ifCase.Condition);
+            var narrowing = NarrowingAnalyzer.Analyze(ifCase.Condition);
             // Expression sees: accumulated WhenFalse (from previous conditions) + current WhenTrue
             var exprNarrowed = Union(elseNarrowed, narrowing.WhenTrue);
             if (exprNarrowed is { Count: > 0 })
@@ -1063,11 +1128,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return true;
     }
 
-    private bool VisitWithNarrowing(ISyntaxNode expr, System.Collections.Generic.HashSet<string> narrowedVars, int scopeId) {
+    private bool VisitWithNarrowing(ISyntaxNode expr, HashSet<string> narrowedVars, int scopeId) {
         if (narrowedVars.Count == 0) return expr.Accept(this);
         _aliasScope.EnterScope(scopeId);
         foreach (var id in narrowedVars) {
-            if (Interpretation.NarrowingAnalyzer.IsFieldPath(id)) {
+            if (NarrowingAnalyzer.IsFieldPath(id)) {
                 // Field path narrowing: "s.age" → track for Visit(StructFieldAccessSyntaxNode)
                 (_narrowedFieldPaths ??= new()).Add(id);
                 continue;
@@ -1082,8 +1147,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 resolvedId = aliasedId;
             }
             var varNode = _ticTypeGraph.GetNamedNode(resolvedId);
-            if (varNode.State is Tic.SolvingStates.StatePrimitive
-                || (varNode.State is Tic.SolvingStates.ICompositeState cs && cs is not Tic.SolvingStates.StateOptional))
+            if (varNode.State is StatePrimitive
+                || (varNode.State is ICompositeState cs && cs is not StateOptional))
                 continue;
             var alias = scopeId + "~" + resolvedId;
             _aliasScope.AddVariableAlias(id, alias);
@@ -1094,19 +1159,19 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // Clean up field paths after scope exit
         if (_narrowedFieldPaths != null) {
             foreach (var id in narrowedVars)
-                if (Interpretation.NarrowingAnalyzer.IsFieldPath(id))
+                if (NarrowingAnalyzer.IsFieldPath(id))
                     _narrowedFieldPaths.Remove(id);
         }
         return result;
     }
 
     /// <summary>Union of two narrowing sets, either of which may be null.</summary>
-    private static System.Collections.Generic.HashSet<string> Union(
-        System.Collections.Generic.HashSet<string> a,
-        System.Collections.Generic.HashSet<string> b) {
+    private static HashSet<string> Union(
+        HashSet<string> a,
+        HashSet<string> b) {
         if (a == null || a.Count == 0) return b;
         if (b == null || b.Count == 0) return a;
-        var result = new System.Collections.Generic.HashSet<string>(a);
+        var result = new HashSet<string>(a);
         result.UnionWith(b);
         return result;
     }
@@ -1496,7 +1561,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // Progressive narrowing in OR: after visiting left side of `x == none or x < 0`,
         // if left is false (x != none), right side should see x as narrowed.
         if (_dialect.OptionalTypesSupport == OptionalTypesSupport.Enabled) {
-            var leftNarrowing = Interpretation.NarrowingAnalyzer.Analyze(node.Left);
+            var leftNarrowing = NarrowingAnalyzer.Analyze(node.Left);
             var narrowSet = node.Op == BinOp.And ? leftNarrowing.WhenTrue
                           : node.Op == BinOp.Or  ? leftNarrowing.WhenFalse
                           : null;
@@ -1610,12 +1675,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _aliasScope.AddVariableAlias(node.ErrorVariableName, aliasName);
 
             // Create error variable: {message: text, data: any}
-            var charType = new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.Char);
-            var textType = (Tic.SolvingStates.ITicNodeState)new Tic.SolvingStates.StateArray(
-                Tic.TicNode.CreateTypeVariableNode(charType));
-            var any = (Tic.SolvingStates.ITicNodeState)new Tic.SolvingStates.StatePrimitive(
-                Tic.SolvingStates.PrimitiveTypeName.Any);
-            var errorType = Tic.SolvingStates.StateStruct.Of(
+            var charType = new StatePrimitive(PrimitiveTypeName.Char);
+            var textType = (ITicNodeState)new StateArray(
+                TicNode.CreateTypeVariableNode(charType));
+            var any = (ITicNodeState)new StatePrimitive(
+                PrimitiveTypeName.Any);
+            var errorType = StateStruct.Of(
                 ("message", textType),
                 ("data", any));
             _ticTypeGraph.SetVarType(aliasName, errorType);
@@ -1629,7 +1694,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         // try and catch branches unify like if-else: result = LCA(try, catch)
         var expressions = new[] { node.TryExpr.OrderNumber, node.CatchExpr.OrderNumber };
-        _ticTypeGraph.SetIfElse(System.Array.Empty<int>(), expressions, node.OrderNumber);
+        _ticTypeGraph.SetIfElse(Array.Empty<int>(), expressions, node.OrderNumber);
         return true;
     }
 }

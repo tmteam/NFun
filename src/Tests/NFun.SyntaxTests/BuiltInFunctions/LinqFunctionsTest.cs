@@ -100,6 +100,14 @@ class LinqFunctionsTest {
     [TestCase("y = []. except([])", new object[0])]
     [TestCase("y = [1.0,2.0] . except([3.0,4.0])", new[] { 1.0, 2.0 })]
     [TestCase("y = [1.0,2.0,3.0].except([3.0,4.0])", new[] { 1.0, 2.0 })]
+    // Text-element coverage: HashSet-backed LINQ Union/Intersect/Except/Distinct
+    // require Equals + GetHashCode to be consistent. TextFunnyArray previously
+    // overrode only Equals — equal strings bucketed separately → silent wrong
+    // results (duplicates kept, intersections empty, etc.).
+    [TestCase("y = ['hello','world'].unite(['world','foo'])", new[] { "hello", "world", "foo" })]
+    [TestCase("y = ['hello','world'].intersect(['world','foo'])", new[] { "world" })]
+    [TestCase("y = ['hello','world'].except(['world','foo'])", new[] { "hello" })]
+    [TestCase("y = ['ab','cd','ab'].unique([])", new[] { "ab", "cd" })]
     [TestCase("y = find([1,2,3], 2)", 1)]
     [TestCase("y = find([1,2,3], 4)", -1)]
     [TestCase("y = find([1,2,-4], -4)", 2)]

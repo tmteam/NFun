@@ -10,91 +10,52 @@ public class MathSurgarTest {
 
     // ── π constant ──────────────────────────────────────────────────────────────
 
-    [Test]
-    public void Pi_Constant()
-        => "y = π".AssertReturns(Math.PI);
+    [TestCase("y = π")]
+    [TestCase("y = 2*π/2")]
+    [TestCase("y = 2π/2")]
+    public void Pi_Constant(string expr) => expr.AssertReturns(Math.PI);
 
-    [Test]
-    public void Pi_InExpression()
-        => "y = 2*π".AssertReturns(2 * Math.PI);
-
-    [Test]
-    public void Pi_ImplicitMultiplication()
-        => "y = 2π".AssertReturns(2 * Math.PI);
-
-    [Test]
-    public void Pi_Comparison()
-        => "y = π > 3 and π < 4".AssertReturns(true);
-
-    [Test]
-    public void Pi_InFunctionCall()
-        => "y = round(π, 0)".AssertReturns(3.0);
+    [TestCase("y = 2*π", 2 * Math.PI)]
+    [TestCase("y = 2π", 2 * Math.PI)]
+    [TestCase("y = π > 3 and π < 4", true)]
+    [TestCase("y = round(π, 0)", 3.0)]
+    public void Pi_InExpression(string expr, object expected) => expr.AssertReturns(expected);
 
     // ── ∞ constant ──────────────────────────────────────────────────────────────
+    // AssertReturns uses a JSON-based equality which cannot represent Infinity;
+    // assert via runtime["y"].Value directly for infinity-valued tests.
 
-    [Test]
-    public void Infinity_Constant() {
-        var runtime = "y = ∞".Build();
+    [TestCase("y = ∞", double.PositiveInfinity)]
+    [TestCase("y = -∞", double.NegativeInfinity)]
+    [TestCase("y = 2∞", double.PositiveInfinity)]
+    public void Infinity_Constant(string expr, double expected) {
+        var runtime = expr.Build();
         runtime.Run();
-        Assert.AreEqual(double.PositiveInfinity, runtime["y"].Value);
+        Assert.AreEqual(expected, runtime["y"].Value);
     }
 
-    [Test]
-    public void NegativeInfinity() {
-        var runtime = "y = -∞".Build();
-        runtime.Run();
-        Assert.AreEqual(double.NegativeInfinity, runtime["y"].Value);
-    }
-
-    [Test]
-    public void Infinity_GreaterThanAnyNumber()
-        => "y = ∞ > 1000000".AssertReturns(true);
-
-    [Test]
-    public void NegativeInfinity_LessThanAnyNumber()
-        => "y = -∞ < -1000000".AssertReturns(true);
-
-    [Test]
-    public void Infinity_ImplicitMultiplication() {
-        var runtime = "y = 2∞".Build();
-        runtime.Run();
-        Assert.AreEqual(double.PositiveInfinity, runtime["y"].Value);
-    }
-
-    [Test]
-    public void Infinity_InArithmetic()
-        => "y = ∞ + 1 == ∞".AssertReturns(true);
+    [TestCase("y = ∞ > 1000000", true)]
+    [TestCase("y = -∞ < -1000000", true)]
+    [TestCase("y = ∞ + 1 == ∞", true)]
+    public void Infinity_InComparison(string expr, object expected) => expr.AssertReturns(expected);
 
     // ── ≤ ≥ ≠ operator aliases ──────────────────────────────────────────────────
 
     [TestCase("y = 3 ≤ 5", true)]
     [TestCase("y = 5 ≤ 3", false)]
     [TestCase("y = 3 ≤ 3", true)]
-    public void LessOrEqual(string expr, bool expected)
-        => expr.AssertReturns(expected);
-
     [TestCase("y = 5 ≥ 3", true)]
     [TestCase("y = 3 ≥ 5", false)]
     [TestCase("y = 3 ≥ 3", true)]
-    public void GreaterOrEqual(string expr, bool expected)
-        => expr.AssertReturns(expected);
-
     [TestCase("y = 3 ≠ 5", true)]
     [TestCase("y = 3 ≠ 3", false)]
-    public void NotEqual(string expr, bool expected)
-        => expr.AssertReturns(expected);
+    [TestCase("y = π ≤ 4", true)]
+    [TestCase("y = ∞ ≠ 0", true)]
+    public void UnicodeOperatorAliases(string expr, object expected) => expr.AssertReturns(expected);
 
     [Test]
     public void UnicodeOperators_MixedWithRegular()
         => "y = 3 ≤ x and x ≤ 10".Calc("x", 5.0).AssertReturns(true);
-
-    [Test]
-    public void UnicodeOperators_WithPi()
-        => "y = π ≤ 4".AssertReturns(true);
-
-    [Test]
-    public void UnicodeOperators_InfNotEqualZero()
-        => "y = ∞ ≠ 0".AssertReturns(true);
 
     // ── Superscript power ²³⁴⁵⁶⁷⁸⁹ ─────────────────────────────────────────────
 
@@ -110,59 +71,39 @@ public class MathSurgarTest {
     public void Superscript_IntegerBase(string expr, int expected)
         => expr.AssertReturns(expected);
 
-    [Test]
-    public void Superscript_RealBase()
-        => "y = 2.5²".AssertReturns(6.25);
+    [TestCase("y = 2.5²", 6.25)]
+    public void Superscript_RealBase(string expr, object expected)
+        => expr.AssertReturns(expected);
 
-    [Test]
-    public void Superscript_Variable()
-        => "y = x²".Calc("x", 5).AssertReturns(25);
+    [TestCase("y = x²", 5, 25)]
+    [TestCase("y = x³", 3, 27)]
+    [TestCase("y = x² + x + 1", 3, 13)]
+    [TestCase("y = 2x²", 3, 18)]
+    [TestCase("y = x² * 2", 3, 18)]
+    [TestCase("y = 1 + x²", 3, 10)]
+    public void Superscript_OnVariable(string expr, object x, object expected)
+        => expr.Calc("x", x).AssertReturns(expected);
 
-    [Test]
-    public void Superscript_VariableCubed()
-        => "y = x³".Calc("x", 3).AssertReturns(27);
+    [TestCase("y = (x + 1)²", 2, 9)]
+    public void Superscript_OnParenthesizedExpr(string expr, object x, object expected)
+        => expr.Calc("x", x).AssertReturns(expected);
 
-    [Test]
-    public void Superscript_InPolynomial()
-        => "y = x² + x + 1".Calc("x", 3).AssertReturns(13);
-
-    [Test]
-    public void Superscript_WithImplicitMultiplication()
-        => "y = 2x²".Calc("x", 3).AssertReturns(18);
-
-    [Test]
-    public void Superscript_ConsecutiveDigits_Error()
-        => Assert.Throws<FunnyParseException>(() => "y = 2²³".Build());
-
-    [Test]
-    public void Superscript_HigherPriorityThanMultiply()
-        // x² * 2 should be (x²) * 2, not x^(2*2)
-        => "y = x² * 2".Calc("x", 3).AssertReturns(18);
-
-    [Test]
-    public void Superscript_HigherPriorityThanAddition()
-        => "y = 1 + x²".Calc("x", 3).AssertReturns(10);
-
-    [Test]
-    public void Superscript_OnParenthesizedExpr()
-        => "y = (x + 1)²".Calc("x", 2).AssertReturns(9);
+    [TestCase("y = 2²³")]
+    public void Superscript_ConsecutiveDigits_Error(string expr)
+        => Assert.Throws<FunnyParseException>(() => expr.Build());
 
     // ── Combined usage ──────────────────────────────────────────────────────────
 
-    [Test]
-    public void CircleArea()
-        // A = π*r²
-        => "y = π * r²".Calc("r", 1.0).AssertReturns(Math.PI);
+    [TestCase("y = π * r²", 1.0, Math.PI)]
+    [TestCase("y = 2π * r²", 1.0, 2 * Math.PI)]
+    public void CircleAreaWithPi(string expr, object r, object expected)
+        => expr.Calc("r", r).AssertReturns(expected);
 
     [Test]
-    public void CircleArea_ImplicitMult()
-        // 2π works (number + identifier), but πr is one identifier
-        => "y = 2π * r²".Calc("r", 1.0).AssertReturns(2 * Math.PI);
-
-    [Test]
-    public void QuadraticFormula()
-        // discriminant = b² - 4ac
+    public void QuadraticFormulaDiscriminant()
         => "y = b² - 4*a*c".Calc(("a", 1), ("b", 5), ("c", 6)).AssertReturns(1);
+
+    // ── Implicit multiplication (10x, 0.1x, etc.) ──────────────────────────────
 
       [TestCase("10x", 2, 20)]
     [TestCase("1x", 2, 2)]

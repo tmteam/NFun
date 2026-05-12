@@ -240,11 +240,8 @@ public class TypeAliasTest {
 
     [Test]
     public void UndefinedTypeAlias_Throws() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
             Calc("type a = nonexistent; x:a = 1; out = x"));
 
-    [Test]
-    public void CircularAlias_Throws() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
-            Calc("type a = b; type b = a; x:a = 1; out = x"));
+    // Circular alias detection is consolidated in ImpossibleRecursiveTypeDefinitionsTest.cs.
 }

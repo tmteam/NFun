@@ -1242,7 +1242,7 @@ public static class SyntaxNodeReader {
         }
 
         var interval = new Interval(headToken.Start, flow.CurrentTokenFinishPosition);
-        return new SyntaxNodes.NamedTypeConstructorSyntaxNode(
+        return new NamedTypeConstructorSyntaxNode(
             headToken.Value, headToken.Interval, equations, interval);
     }
 
@@ -1284,7 +1284,7 @@ public static class SyntaxNodeReader {
         if (catchExpr == null)
             throw Errors.ElseExpressionIsMissing(start, flow.CurrentTokenFinishPosition);
 
-        return new SyntaxNodes.TryCatchSyntaxNode(tryExpr, catchExpr, errorVarName,
+        return new TryCatchSyntaxNode(tryExpr, catchExpr, errorVarName,
             new Interval(start, flow.CurrentTokenFinishPosition));
     }
 }

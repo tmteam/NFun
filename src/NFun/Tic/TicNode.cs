@@ -144,8 +144,20 @@ public class TicNode {
         set
         {
             Debug.Assert(value != null);
+            // Allowed mutations of a "solved" state (IsMutable=false):
+            //  1. value.Equals(_state) — no-op (idempotent)
+            //  2. value is StateRefTo — redirection (graph rewiring)
+            //  3. value is StateOptional and _state is composite — the implicit-lift wrap
+            //     T ≤ opt(T). The wrap creates innerNode holding _state by reference, so
+            //     all structural identity (including TypeName, IsOptionalSourced) survives;
+            //     only an Optional layer is added on the outer node. Universal algebraic
+            //     postulate per TicTypeSystem §Optional. Previously this allowed
+            //     `_state is StateOptional` only (Opt(Opt(T))→Opt(T) flatten path); GH #126
+            //     followup adds the rest of ICompositeState (StateStruct, StateArray,
+            //     StateFun) so F-bound recursive function returns can be widened.
             Debug.Assert(_state == null || IsMutable || value.Equals(_state)
-                || value is StateRefTo || (value is StateOptional && _state is StateOptional),
+                || value is StateRefTo
+                || (value is StateOptional && _state is ICompositeState),
                 "Node is already solved");
             if (value is StateArray array)
                 array.ElementNode.IsMemberOfAnything = true;
@@ -179,7 +191,7 @@ public class TicNode {
                 && SolvingFunctions.StructHasFieldReaching(ns, this)
                 && SolvingFunctions.StructSubgraphIsOptSourced(ns))
             {
-                var inner = TicNode.CreateTypeVariableNode("e" + Name + "'", ns);
+                var inner = CreateTypeVariableNode("e" + Name + "'", ns);
                 inner.IsOptionalElement = true;
                 value = new StateOptional(inner);
             }

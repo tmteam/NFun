@@ -30,53 +30,8 @@ public class RecursiveTypeTest {
             optionalTypesSupport: OptionalTypesSupport.Enabled,
             namedTypesSupport: NamedTypesSupport.Enabled).Build(expr);
 
-    // ═══════════════════════════════════════════════════════════════
-    // NON-OPTIONAL DIRECT RECURSION — must error (infinite size)
-    // ═══════════════════════════════════════════════════════════════
-
-    #region Non-optional direct recursion — error
-
-    [Test]
-    public void Direct_NonOpt_SingleField() =>
-        Assert.Throws<FunnyParseException>(() => Build("type t = {self:t}"));
-
-    [Test]
-    public void Direct_NonOpt_WithOtherFields() =>
-        Assert.Throws<FunnyParseException>(() => Build("type node = {v:int, next:node}"));
-
-    [Test]
-    public void Direct_NonOpt_TwoRecursiveFields() =>
-        Assert.Throws<FunnyParseException>(() => Build("type t = {left:t, right:t}"));
-
-    #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // NON-OPTIONAL INDIRECT RECURSION — must error
-    // ═══════════════════════════════════════════════════════════════
-
-    #region Non-optional indirect recursion — error
-
-    [Test]
-    public void Indirect_NonOpt_TwoTypes() =>
-        Assert.Throws<FunnyParseException>(() =>
-            Build("type a = {b:b}; type b = {a:a}"));
-
-    [Test]
-    public void Indirect_NonOpt_ThreeTypes() =>
-        Assert.Throws<FunnyParseException>(() =>
-            Build("type a = {b:b}; type b = {c:c}; type c = {a:a}"));
-
-    [Test]
-    public void Indirect_NonOpt_FourTypes() =>
-        Assert.Throws<FunnyParseException>(() =>
-            Build("type a = {b:b}; type b = {c:c}; type c = {d:d}; type d = {a:a}"));
-
-    [Test]
-    public void Indirect_NonOpt_WithPayload() =>
-        Assert.Throws<FunnyParseException>(() =>
-            Build("type a = {x:int, b:b}; type b = {y:text, a:a}"));
-
-    #endregion
+    // Impossible recursive type definitions (non-optional direct/indirect self-refs)
+    // are covered in ImpossibleRecursiveTypeDefinitionsTest.cs.
 
     // ═══════════════════════════════════════════════════════════════
     // OPTIONAL DIRECT RECURSION — valid (none breaks recursion)
@@ -377,14 +332,9 @@ public class RecursiveTypeTest {
             .AssertResultHas("out", 15);
     }
 
-    [Test]
-    public void RecursiveDefaultConstructor_CompileError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
-            "type node = {v:int, next:node? = node{v=0}}; n = node{v=1}; out = n.v"
-                .CalcWithDialect(
-                    optionalTypesSupport: OptionalTypesSupport.Enabled,
-                    namedTypesSupport: NamedTypesSupport.Enabled));
-    }
+    // Recursive default constructor (`type node = {..., next:node? = node{v=0}}`)
+    // and non-contractive F-bound rejection are covered in
+    // ImpossibleRecursiveTypeDefinitionsTest.cs.
 
     [Test]
     public void TreeArrayMap_NoStackOverflow() {
@@ -663,35 +613,8 @@ public class RecursiveTypeTest {
         result.AssertReturns("r", 2);
     }
 
-    // ROADMAP sentinel: non-contractive bound rejection. `selfFunc(n) = n.f(n)`
-    // would infer T <: {f: (T) -> R}. The T appears in the FUNCTION-ARGUMENT
-    // position — contravariant — violating the variance restriction (C2)
-    // for decidable subtyping (Pierce 1992 undecidability would otherwise
-    // apply). Cycle-rescue MUST reject this with a clean error.
-    [Test]
-    public void Roadmap_NonContractiveBound_Rejected() {
-        var script =
-            "type fnode = {f: rule(fnode):int}\r " +
-            "selfFunc(n) = n.f(n)\r " +
-            "y = selfFunc(fnode{f = rule it.f(it)})";
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
-            script.CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
-    }
-
-    // ROADMAP sentinel: width-incompatible call site. `listSum` infers
-    // bound T <: {v: numeric, next: T?}. Calling with a primitive `42` must
-    // yield a type error referencing the inferred F-bound, NOT a generic
-    // "struct expected" message.
-    [Test]
-    [Ignore("Needs TIC-level Fit rejection for primitive→F-bound: listSum(42) passes solving but fails at runtime cast. Requires SetCall arg-type check against F-bound CS.")]
-    public void Roadmap_WidthIncompatibleCallSite_ErrorMessageReferencesBound() {
-        var script =
-            "type a = {v: int, next: a? = none}\r " +
-            "listSum(n) = if(n == none) 0 else n.v + listSum(n?.next)\r " +
-            "y = listSum(42)";
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
-            script.CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled));
-    }
+    // ROADMAP sentinel non-contractive-bound rejection moved to
+    // ImpossibleRecursiveTypeDefinitionsTest.cs (Declared_NonContractiveFBound_FailsOnParse).
 
     // ROADMAP sentinel: nominal carry. F-bound has no nominal info — but at
     // call site `getLast(a:typed)` the runtime should preserve the named-type

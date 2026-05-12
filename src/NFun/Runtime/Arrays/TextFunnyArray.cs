@@ -107,4 +107,10 @@ public class TextFunnyArray : IFunnyArray, IComparable {
             return t._text == _text;
         return false;
     }
+
+    // Pair the overridden Equals with a consistent hash. Without this, LINQ
+    // set ops backed by HashSet (Union/Intersect/Except/Distinct — used by
+    // unite/intersect/except/unique) bucket equal strings separately and
+    // silently fail to dedup / find duplicates. (Bug II.)
+    public override int GetHashCode() => _text.GetHashCode();
 }

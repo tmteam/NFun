@@ -53,22 +53,77 @@ public class ToNumTextFunction : FunctionWithManyArguments {
     }
 }
 
-/// <summary>toHexText(value:int) → text</summary>
-public class ToHexTextFunction : FunctionWithSingleArg {
-    public ToHexTextFunction() : base(CoreFunNames.ToHexText, FunnyType.Text, FunnyType.Int64) {
+/// <summary>
+/// toHexText(value: integer) → text. Width-aware: formats at the operand's
+/// declared bit width (byte→2 hex chars, int16/uint16→4, int32/uint32→8,
+/// int64/uint64→16). Signed values use two's-complement representation at the
+/// declared width. Without this, a widening to int64 before formatting would
+/// give `int -1` → 'FFFFFFFFFFFFFFFF' instead of 'FFFFFFFF'. (Bug MM.)
+/// </summary>
+public class ToHexTextFunction : GenericFunctionBase {
+    public ToHexTextFunction() : base(
+        CoreFunNames.ToHexText, GenericConstrains.Integers,
+        FunnyType.Text, FunnyType.Generic(0)) {
         ArgProperties = FunArgProperty.FromNames("value");
     }
-    public override object Calc(object a) =>
-        new TextFunnyArray(Convert.ToInt64(a).ToString("X"));
+
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
+        concreteTypes[0].BaseType switch {
+            // Cast signed → unsigned-of-same-width to capture two's-complement at the
+            // declared width, then ToString("X") with no fixed length (unpadded — keeps
+            // the existing convention `'{255:hex}'='FF'` while preventing the int64
+            // sign-extension that turned `int -1` into 'FFFFFFFFFFFFFFFF').
+            BaseFunnyType.UInt8 => new HexImpl(FunnyType.UInt8, o => ((byte)o).ToString("X")),
+            BaseFunnyType.UInt16 => new HexImpl(FunnyType.UInt16, o => ((ushort)o).ToString("X")),
+            BaseFunnyType.UInt32 => new HexImpl(FunnyType.UInt32, o => ((uint)o).ToString("X")),
+            BaseFunnyType.UInt64 => new HexImpl(FunnyType.UInt64, o => ((ulong)o).ToString("X")),
+            BaseFunnyType.Int16 => new HexImpl(FunnyType.Int16, o => unchecked((ushort)(short)o).ToString("X")),
+            BaseFunnyType.Int32 => new HexImpl(FunnyType.Int32, o => unchecked((uint)(int)o).ToString("X")),
+            BaseFunnyType.Int64 => new HexImpl(FunnyType.Int64, o => unchecked((ulong)(long)o).ToString("X")),
+            _ => throw new Exceptions.NFunImpossibleException($"toHexText: unsupported type {concreteTypes[0]}")
+        };
+
+    private sealed class HexImpl : FunctionWithSingleArg {
+        private readonly Func<object, string> _format;
+        public HexImpl(FunnyType argType, Func<object, string> format) :
+            base(CoreFunNames.ToHexText, FunnyType.Text, argType) => _format = format;
+        public override object Calc(object a) => new TextFunnyArray(_format(a));
+    }
 }
 
-/// <summary>toBinText(value:int) → text</summary>
-public class ToBinTextFunction : FunctionWithSingleArg {
-    public ToBinTextFunction() : base(CoreFunNames.ToBinText, FunnyType.Text, FunnyType.Int64) {
+/// <summary>
+/// toBinText(value: integer) → text. Width-aware (see ToHexTextFunction).
+/// `int -1` → '11111111111111111111111111111111' (32 bits) not 64. (Bug MM.)
+/// </summary>
+public class ToBinTextFunction : GenericFunctionBase {
+    public ToBinTextFunction() : base(
+        CoreFunNames.ToBinText, GenericConstrains.Integers,
+        FunnyType.Text, FunnyType.Generic(0)) {
         ArgProperties = FunArgProperty.FromNames("value");
     }
-    public override object Calc(object a) =>
-        new TextFunnyArray(Convert.ToString(Convert.ToInt64(a), 2));
+
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
+        concreteTypes[0].BaseType switch {
+            // Same width-preservation strategy as toHexText: capture two's-complement
+            // at the operand's declared width via signed→unsigned cast, then format
+            // without forcing padding to width (matches existing
+            // `'{42:bin}'='101010'` convention).
+            BaseFunnyType.UInt8 => new BinImpl(FunnyType.UInt8, o => Convert.ToString((byte)o, 2)),
+            BaseFunnyType.UInt16 => new BinImpl(FunnyType.UInt16, o => Convert.ToString((ushort)o, 2)),
+            BaseFunnyType.UInt32 => new BinImpl(FunnyType.UInt32, o => Convert.ToString(unchecked((int)(uint)o), 2)),
+            BaseFunnyType.UInt64 => new BinImpl(FunnyType.UInt64, o => Convert.ToString(unchecked((long)(ulong)o), 2)),
+            BaseFunnyType.Int16 => new BinImpl(FunnyType.Int16, o => Convert.ToString(unchecked((ushort)(short)o), 2)),
+            BaseFunnyType.Int32 => new BinImpl(FunnyType.Int32, o => Convert.ToString((int)o, 2)),
+            BaseFunnyType.Int64 => new BinImpl(FunnyType.Int64, o => Convert.ToString((long)o, 2)),
+            _ => throw new Exceptions.NFunImpossibleException($"toBinText: unsupported type {concreteTypes[0]}")
+        };
+
+    private sealed class BinImpl : FunctionWithSingleArg {
+        private readonly Func<object, string> _format;
+        public BinImpl(FunnyType argType, Func<object, string> format) :
+            base(CoreFunNames.ToBinText, FunnyType.Text, argType) => _format = format;
+        public override object Calc(object a) => new TextFunnyArray(_format(a));
+    }
 }
 
 /// <summary>toSciText(value:real, uppercase:bool=true) → text</summary>

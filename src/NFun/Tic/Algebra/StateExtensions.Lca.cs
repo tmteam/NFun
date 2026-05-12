@@ -66,9 +66,9 @@ public static partial class StateExtensions {
             return b.Lca(a); // symmetric: hits bc2 branch above
 
         // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
-        if (a == StatePrimitive.None)
+        if (a == None)
             return LcaWithNone(b);
-        if (b == StatePrimitive.None)
+        if (b == None)
             return LcaWithNone(a);
         // Optional: covariant wrapper
         if (a is StateOptional aopt)
@@ -111,12 +111,28 @@ public static partial class StateExtensions {
         return StateOptional.Of(inner);
     }
 
-    // Cycle guard for recursive struct LCA (e.g., tree = {children: tree[]}).
-    // Uses ReferenceEquals — structural Equals would also infinitely recurse.
+    // Cycle guard for recursive struct LCA. Two layers:
+    //   1. Named-type short-circuit: if both sides have the same TypeName, the μ-cycle
+    //      reached itself through Lca/Gcd interleaving (Lca creates new struct snapshots
+    //      every level, so ref-equality misses). Coinductively return one side.
+    //   2. Reference-equals fallback for anonymous structs (no TypeName).
     [ThreadStatic] private static List<(StateStruct, StateStruct)> _structLcaInProgress;
+    [ThreadStatic] private static List<string> _structLcaNamesInProgress;
 
     private static ITicNodeState Lca(this StateStruct a, StateStruct b) {
-        // LCA(T, T) = T — on cycle, return as-is (structurally equivalent).
+        if (a.TypeName != null && a.TypeName == b.TypeName) {
+            var nameGuard = _structLcaNamesInProgress ??= new();
+            for (int i = 0; i < nameGuard.Count; i++)
+                if (nameGuard[i] == a.TypeName)
+                    return a;
+            nameGuard.Add(a.TypeName);
+            try {
+                return LcaStructFields(a, b);
+            } finally {
+                nameGuard.RemoveAt(nameGuard.Count - 1);
+            }
+        }
+        // Anonymous struct ref-equality guard (pre-existing).
         var guard = _structLcaInProgress ??= new();
         for (int i = 0; i < guard.Count; i++)
             if (ReferenceEquals(guard[i].Item1, a) && ReferenceEquals(guard[i].Item2, b)

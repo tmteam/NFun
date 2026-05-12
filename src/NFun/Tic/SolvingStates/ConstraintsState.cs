@@ -140,9 +140,9 @@ public class ConstraintsState : ITicNodeState {
         return FitStructBoundInner(candidate, bound, guard);
     }
 
-    [ThreadStatic] private static System.Collections.Generic.List<(ITypeState, StateStruct)> _fitStructBoundInProgress;
+    [ThreadStatic] private static List<(ITypeState, StateStruct)> _fitStructBoundInProgress;
 
-    private static bool FitStructBoundInner(ITypeState candidate, StateStruct bound, System.Collections.Generic.List<(ITypeState, StateStruct)> guard) {
+    private static bool FitStructBoundInner(ITypeState candidate, StateStruct bound, List<(ITypeState, StateStruct)> guard) {
         // Coinductive cycle break for F-bound self-refs.
         for (int i = 0; i < guard.Count; i++)
             if (ReferenceEquals(guard[i].Item1, candidate) && ReferenceEquals(guard[i].Item2, bound))
@@ -261,6 +261,13 @@ public class ConstraintsState : ITicNodeState {
         }
         else
         {
+            // Short-circuit: if incoming is REFERENCE-equal to current Descendant, LCA is a no-op.
+            // (Cannot use structural Equals — StateStruct.Equals short-circuits on TypeName, so
+            // `n{v=1}` and `n{v=2}` would compare equal despite different field values, skipping
+            // necessary LCA propagation.) Reference equality safely captures the common case where
+            // multiple call sites share the same TIC node state for a named recursive arg type
+            // (GH #128 TreeSum 3-op regression).
+            if (ReferenceEquals(Descendant, type)) return;
             var prev = Descendant;
             var incoming = type is ConstraintsState ? type.Concretest() : type;
             // Row polymorphism: open structs (from SetFieldAccess) use field UNION,
@@ -316,6 +323,15 @@ public class ConstraintsState : ITicNodeState {
         };
         result.AddDescendant(other.Descendant);
         if (!result.TryAddAncestor(other.Ancestor))
+            return null;
+        // Satisfiability check: if the merged interval [Desc..Anc] is empty (Desc wider
+        // than Anc — e.g. intersecting [I16..I24] with [U32..U48] produces [I48..U16]),
+        // no type satisfies BOTH constraints. The function's name promises null on
+        // failure; without this check we'd return a "non-empty" CS whose interval is
+        // mathematical garbage, forcing every caller to remember to call
+        // IntervalIsNonEmpty separately. Found via bug-regression unit-test discovery
+        // of finding #3 — the API name lied about the contract.
+        if (!result.IntervalIsNonEmpty())
             return null;
         // Preserve Preferred through interval intersection.
         // Both sides may carry Preferred from integer constants (P=I32).
@@ -650,9 +666,9 @@ public class ConstraintsState : ITicNodeState {
         return StructBoundsEqualInner(a, b, guard);
     }
 
-    [ThreadStatic] private static System.Collections.Generic.List<(StateStruct, StateStruct)> _structBoundEqInProgress;
+    [ThreadStatic] private static List<(StateStruct, StateStruct)> _structBoundEqInProgress;
 
-    private static bool StructBoundsEqualInner(StateStruct a, StateStruct b, System.Collections.Generic.List<(StateStruct, StateStruct)> guard) {
+    private static bool StructBoundsEqualInner(StateStruct a, StateStruct b, List<(StateStruct, StateStruct)> guard) {
         // Coinductive break: assume equal on cycle close (Amadio–Cardelli).
         for (int i = 0; i < guard.Count; i++)
             if ((ReferenceEquals(guard[i].Item1, a) && ReferenceEquals(guard[i].Item2, b))

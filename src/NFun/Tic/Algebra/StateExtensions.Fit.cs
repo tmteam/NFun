@@ -35,7 +35,7 @@ public static partial class StateExtensions {
         // to is Optional: None ≤ Opt(T), T ≤ Opt(T) via implicit lift, Opt(A) ≤ Opt(B) covariant
         if (to is StateOptional optTo)
         {
-            if (target == StatePrimitive.None)
+            if (target == None)
                 return true;
             if (target is StateOptional targetOpt)
                 return targetOpt.Element.FitsInto(optTo.Element);
@@ -44,7 +44,7 @@ public static partial class StateExtensions {
         }
 
         // None fits into Opt(T) (handled above), None itself, or Any
-        if (target == StatePrimitive.None)
+        if (target == None)
             return to is StatePrimitive p && (p.Name == PrimitiveTypeName.None || p.Name == PrimitiveTypeName.Any);
 
         return target switch {

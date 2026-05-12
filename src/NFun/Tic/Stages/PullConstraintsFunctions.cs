@@ -158,6 +158,18 @@ public class PullConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (result == null)
                     return false;
+                // Per Specs/NamedTypes.md (L3 "transparent alias — fully interchangeable",
+                // L124 "named types are structural — no runtime distinction") two distinct
+                // named structs with identical shape ARE compatible. On TypeName conflict
+                // downgrade both sides to anonymous instead of rejecting; the field-level
+                // Pull below still catches genuine shape mismatches. (Bug HH.)
+                if (result.TypeName != null && ancStruct.TypeName != null
+                    && !result.TypeName.Equals(ancStruct.TypeName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    TraceLog.WriteLine($"    Structural merge: TypeName conflict in struct/CS Pull — anc {ancStruct.TypeName} vs desc {result.TypeName} → downgrade to anonymous");
+                    result.TypeName = null;
+                    ancStruct.TypeName = null;
+                }
                 // F-bound flowing INTO concrete struct. Descendant carries S = upper-bound shape;
                 // merge S into the produced struct so width-required fields become explicit
                 // constraints. GcdBound treats result + S as two parallel descendants, returning
@@ -302,12 +314,12 @@ public class PullConstraintsFunctions : IStateFunction {
         // Merge identity bidirectionally across the Pull struct≤struct edge. After width
         // propagation makes field sets equal, both sides represent the same merged value — they
         // must agree on TypeName and IsOptionalSourced. The merge rule lives in
-        // StateStruct.MergedTypeName. On TypeName conflict (both named, names differ) reject the
-        // Pull — declared `type a` ≤ declared `type b` is a real type error.
+        // StateStruct.MergedTypeName. Named types are structural per Specs/NamedTypes.md
+        // (L3 + L124) — on TypeName conflict downgrade to anonymous rather than rejecting;
+        // the field Pull recursion below catches actual shape mismatches. (Bug HH.)
         var mergedName = StateStruct.MergedTypeName(ancestor.TypeName, descendant.TypeName);
         if (mergedName == null && ancestor.TypeName != null && descendant.TypeName != null) {
-            TraceLog.WriteLine($"    BLOCKED: TypeName conflict {ancestor.TypeName} vs {descendant.TypeName}");
-            return false;
+            TraceLog.WriteLine($"    Structural merge: TypeName conflict {ancestor.TypeName} vs {descendant.TypeName} → downgrade to anonymous");
         }
         ancestor.TypeName = descendant.TypeName = mergedName;
         var mergedOptSourced = StateStruct.MergedIsOptionalSourced(ancestor.IsOptionalSourced, descendant.IsOptionalSourced);

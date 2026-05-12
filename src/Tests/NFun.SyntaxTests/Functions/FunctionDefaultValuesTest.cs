@@ -1,7 +1,7 @@
 namespace NFun.SyntaxTests.Functions;
 
-using NFun.Exceptions;
-using NFun.TestTools;
+using Exceptions;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>Default values for function args (#87)</summary>
@@ -252,7 +252,7 @@ public class FunctionDefaultValuesTest {
     [Test]
     public void Default_NoneOptionalParam() {
         var r = "f(x:int, fallback:int?=none) = x + (fallback ?? 0) \r y = f(5)"
-            .BuildWithDialect(optionalTypesSupport: NFun.OptionalTypesSupport.Enabled);
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         r.Run();
         Assert.AreEqual(5, r["y"].Value);
     }

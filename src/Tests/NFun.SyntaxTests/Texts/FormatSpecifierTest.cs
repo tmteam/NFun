@@ -1,7 +1,7 @@
 namespace NFun.SyntaxTests.Texts;
 
-using NFun.Exceptions;
-using NFun.TestTools;
+using Exceptions;
+using TestTools;
 using NUnit.Framework;
 
 [TestFixture]
@@ -144,162 +144,69 @@ public class FormatSpecifierTest {
     public void ExpressionWithFormat(string expr, string expected) =>
         $"y = {expr}".AssertReturns("y", expected);
 
-    // ═══════════════════════════════════════════════════════════════
-    // Array/collection expressions with format
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void ArrayElementWithFormat() =>
-        "y = '{[10,20,30][1]:0.0}'".AssertReturns("y", "20.0");
-
-    [Test] public void ArraySumWithFormat() =>
-        "y = '{[1,2,3].sum():#,##0}'".AssertReturns("y", "6");
-
-    [Test] public void ArrayCountWithAlign() =>
-        "y = '[{[1,2,3].count():>4}]'".AssertReturns("y", "[   3]");
-
-    [Test] public void ArrayMapSumWithFormat() =>
-        "y = '{[1,2,3].map(rule it*10).sum():0.00}'".AssertReturns("y", "60.00");
-
-    [Test] public void ArrayFilterCountWithAlign() =>
-        "y = '[{[1,2,3,4,5].filter(rule it>2).count():>4}]'".AssertReturns("y", "[   3]");
 
     // ═══════════════════════════════════════════════════════════════
+    // Array, struct, if-else, multiple interpolation, dollar-strings,
+    // implicit-mult, regressions — all assertable via TestCase
+    // ═══════════════════════════════════════════════════════════════
+
+    // Array / collection
+    [TestCase("'{[10,20,30][1]:0.0}'", "20.0")]
+    [TestCase("'{[1,2,3].sum():#,##0}'", "6")]
+    [TestCase("'[{[1,2,3].count():>4}]'", "[   3]")]
+    [TestCase("'{[1,2,3].map(rule it*10).sum():0.00}'", "60.00")]
+    [TestCase("'[{[1,2,3,4,5].filter(rule it>2).count():>4}]'", "[   3]")]
     // String operations with alignment
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void StringReverseWithAlign() =>
-        "y = '[{'hello'.reverse():>10}]'".AssertReturns("y", "[     olleh]");
-
-    [Test] public void StringConcatWithAlign() =>
-        "y = '[{'a'.concat('b'):^6}]'".AssertReturns("y", "[  ab  ]");
-
-    [Test] public void StringToUpperWithAlign() =>
-        "y = '[{'hello'.toUpper():<10}]'".AssertReturns("y", "[HELLO     ]");
-
-    // ═══════════════════════════════════════════════════════════════
-    // Struct field access with format
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void StructFieldWithFormat() =>
-        "y = '{{age = 25.5; score = 100}.age:0.0}'".AssertReturns("y", "25.5");
-
-    [Test] public void StructFieldWithAlign() =>
-        "y = '[{{x = 42}.x:>6}]'".AssertReturns("y", "[    42]");
-
-    // ═══════════════════════════════════════════════════════════════
-    // If-else expressions with format
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void IfElseWithMask() =>
-        "y = '{if(true) 3.14 else 0:0.00}'".AssertReturns("y", "3.14");
-
-    [Test] public void IfElseWithAlign() =>
-        "y = '[{if(true) 42 else 0:>6}]'".AssertReturns("y", "[    42]");
-
-    [Test] public void IfElseWithFormatAndAlign() =>
-        "y = '[{if(true) 3.14 else 0:0.00:>10}]'".AssertReturns("y", "[      3.14]");
-
-    // ═══════════════════════════════════════════════════════════════
-    // Implicit multiplication with format
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void ImplicitMult_WithMask() =>
-        "x:int \r y = '{2x:0.00}'".Calc(("x", 5)).AssertReturns(("y", "10.00"));
-
-    [Test] public void ImplicitMult_WithAlign() =>
-        "x:int \r y = '[{2x:>6}]'".Calc(("x", 5)).AssertReturns(("y", "[    10]"));
-
-    [Test] public void ImplicitMult_Real() =>
-        "x:int \r y = '{2.5x:0.0}'".Calc(("x", 4)).AssertReturns(("y", "10.0"));
-
-    [Test] public void ImplicitMult_Complex() =>
-        "x:int \r y = '{2x + 1:000}'".Calc(("x", 3)).AssertReturns(("y", "007"));
-
-    [Test] public void ImplicitMult_WithHex() =>
-        "x:int \r y = '{2x:hex}'".Calc(("x", 8)).AssertReturns(("y", "10"));
-
-    [Test] public void ImplicitMult_Superscript() =>
-        "x:int \r y = '{x²:0.00}'".Calc(("x", 3)).AssertReturns(("y", "9.00"));
-
-    // ═══════════════════════════════════════════════════════════════
+    [TestCase("'[{'hello'.reverse():>10}]'", "[     olleh]")]
+    [TestCase("'[{'a'.concat('b'):^6}]'", "[  ab  ]")]
+    [TestCase("'[{'hello'.toUpper():<10}]'", "[HELLO     ]")]
+    // Struct field access
+    [TestCase("'{{age = 25.5; score = 100}.age:0.0}'", "25.5")]
+    [TestCase("'[{{x = 42}.x:>6}]'", "[    42]")]
+    // If-else
+    [TestCase("'{if(true) 3.14 else 0:0.00}'", "3.14")]
+    [TestCase("'[{if(true) 42 else 0:>6}]'", "[    42]")]
+    [TestCase("'[{if(true) 3.14 else 0:0.00:>10}]'", "[      3.14]")]
     // Multiple interpolations in one string
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void MultipleFormats() =>
-        "y = '{3.14159:0.00} and {42:000}'".AssertReturns("y", "3.14 and 042");
-
-    [Test] public void MixedFormatAndNoFormat() =>
-        "y = '{3.14159:0.00} is {42}'".AssertReturns("y", "3.14 is 42");
-
-    [Test] public void ThreeWithFormats() =>
-        "y = '{1:000}-{2:000}-{3:000}'".AssertReturns("y", "001-002-003");
-
-    [Test] public void AlignedTableRow() =>
-        "y = '{42:>6} | {3.14:0.00:>8}'".AssertReturns("y", "    42 |     3.14");
-
-    [Test] public void MultipleAligned() =>
-        "y = '[{'A':^5}|{'B':^5}|{'C':^5}]'".AssertReturns("y", "[  A  |  B  |  C  ]");
-
-    [Test] public void FormatAndAlignMixed() =>
-        "y = '{255:hex:>6} {42:bin:<10}'".AssertReturns("y", "    FF 101010    ");
-
-    // ═══════════════════════════════════════════════════════════════
+    [TestCase("'{3.14159:0.00} and {42:000}'", "3.14 and 042")]
+    [TestCase("'{3.14159:0.00} is {42}'", "3.14 is 42")]
+    [TestCase("'{1:000}-{2:000}-{3:000}'", "001-002-003")]
+    [TestCase("'{42:>6} | {3.14:0.00:>8}'", "    42 |     3.14")]
+    [TestCase("'[{'A':^5}|{'B':^5}|{'C':^5}]'", "[  A  |  B  |  C  ]")]
+    [TestCase("'{255:hex:>6} {42:bin:<10}'", "    FF 101010    ")]
     // Dollar-prefixed strings
-    // ═══════════════════════════════════════════════════════════════
+    [TestCase("$'pi = ${3.14:0.0}'", "pi = 3.1")]
+    [TestCase("$'[${42:>6}]'", "[    42]")]
+    [TestCase("$'[${3.14:0.00:>10}]'", "[      3.14]")]
+    // Empty format / whitespace-only edge cases
+    [TestCase("'{42:}'", "42")]
+    [TestCase("'{42: }'", "42")]
+    // Regression: no-format interpolations + plain text
+    [TestCase("'answer is {42}!'", "answer is 42!")]
+    [TestCase("'{1} + {2} = {1+2}'", "1 + 2 = 3")]
+    [TestCase("'hello world'", "hello world")]
+    [TestCase("'{(1+2)*(3+4)}'", "21")]
+    [TestCase("'{[1,2,3]}'", "[1,2,3]")]
+    public void ConstantInterpolationWithFormat(string expr, string expected) =>
+        $"y = {expr}".AssertReturns("y", expected);
 
-    [Test] public void DollarString_WithFormat() =>
-        "y = $'pi = ${3.14:0.0}'".AssertReturns("y", "pi = 3.1");
+    // ── Input variables / implicit multiplication: need Calc(...) ─────
 
-    [Test] public void DollarString_WithAlign() =>
-        "y = $'[${42:>6}]'".AssertReturns("y", "[    42]");
+    [TestCase("'{x:0.00}'", "x", 42, "42.00")]
+    [TestCase("'[{x:>6}]'", "x", 42, "[    42]")]
+    [TestCase("'{2x:0.00}'", "x", 5, "10.00")]
+    [TestCase("'[{2x:>6}]'", "x", 5, "[    10]")]
+    [TestCase("'{2x + 1:000}'", "x", 3, "007")]
+    [TestCase("'{2x:hex}'", "x", 8, "10")]
+    [TestCase("'{x²:0.00}'", "x", 3, "9.00")]
+    [TestCase("'val={x}'", "x", 42, "val=42")]
+    public void IntVarInterpolationWithFormat(string expr, string id, int x, string expected) =>
+        $"x:int \r y = {expr}".Calc((id, x)).AssertReturns(("y", expected));
 
-    [Test] public void DollarString_FormatAndAlign() =>
-        "y = $'[${3.14:0.00:>10}]'".AssertReturns("y", "[      3.14]");
-
-    // ═══════════════════════════════════════════════════════════════
-    // Input variables with format
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void VariableWithFormat() =>
-        "x:int \r y = '{x:0.00}'".Calc(("x", 42)).AssertReturns(("y", "42.00"));
-
-    [Test] public void VariableWithAlign() =>
-        "x:int \r y = '[{x:>6}]'".Calc(("x", 42)).AssertReturns(("y", "[    42]"));
-
-    [Test] public void VariableWithFormatAndAlign() =>
-        "x:real \r y = '[{x:0.00:>10}]'".Calc(("x", 3.14)).AssertReturns(("y", "[      3.14]"));
-
-    // ═══════════════════════════════════════════════════════════════
-    // Empty format / edge cases
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void EmptyFormat_ConvertsToText() =>
-        "y = '{42:}'".AssertReturns("y", "42");
-
-    [Test] public void OnlyWhitespace_ConvertsToText() =>
-        "y = '{42: }'".AssertReturns("y", "42");
-
-    // ═══════════════════════════════════════════════════════════════
-    // Regression: no format
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test] public void Regression_NoFormat() =>
-        "y = 'answer is {42}!'".AssertReturns("y", "answer is 42!");
-
-    [Test] public void Regression_MultipleNoFormat() =>
-        "y = '{1} + {2} = {1+2}'".AssertReturns("y", "1 + 2 = 3");
-
-    [Test] public void Regression_PlainText() =>
-        "y = 'hello world'".AssertReturns("y", "hello world");
-
-    [Test] public void Regression_VariableInterpolation() =>
-        "x:int \r y = 'val={x}'".Calc(("x", 42)).AssertReturns(("y", "val=42"));
-
-    [Test] public void Regression_NestedParensInExpression() =>
-        "y = '{(1+2)*(3+4)}'".AssertReturns("y", "21");
-
-    [Test] public void Regression_ArrayInInterpolation() =>
-        "y = '{[1,2,3]}'".AssertReturns("y", "[1,2,3]");
+    [TestCase("'{2.5x:0.0}'", "x", 4, "10.0")]
+    [TestCase("'[{x:0.00:>10}]'", "x", 3.14, "[      3.14]")]
+    public void RealVarInterpolationWithFormat(string expr, string id, double x, string expected) =>
+        $"x:real \r y = {expr}".Calc((id, x)).AssertReturns(("y", expected));
 
     // ═══════════════════════════════════════════════════════════════
     // Error: invalid format

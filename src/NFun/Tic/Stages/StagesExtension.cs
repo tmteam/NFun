@@ -12,7 +12,7 @@ public static class StagesExtension {
     /// (return true) per Amadio-Cardelli '93 §3 coinductive subtyping: μ-recursive types are
     /// equal/sub iff their unfoldings are equal/sub up to the visited-pair fixpoint.
     /// </summary>
-    [System.ThreadStatic]
+    [ThreadStatic]
     private static HashSet<(TicNode, TicNode)> _invokeVisitedPairs;
 
     /// <summary>
@@ -22,7 +22,7 @@ public static class StagesExtension {
     /// visited-pair guard exists ONLY for cycle re-entry; with no cycles
     /// possible, skip it entirely.
     /// </summary>
-    [System.ThreadStatic]
+    [ThreadStatic]
     internal static bool _isRecursion;
 
     public static bool Invoke<TFunction>(this TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
@@ -128,12 +128,49 @@ public static class StagesExtension {
     /// <summary>
     /// LCA(F&lt;...&gt;, Opt(F&lt;...&gt;)) = Opt(F&lt;...&gt;): wrap ancestor in Optional.
     /// This is a standard LCA operation — ancestor widens to accommodate Optional descendant.
-    /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) indicate a type error.
+    /// Only wraps TypeVariable composite-state nodes — SyntaxNodes (literals), function-signature
+    /// params, and pinned primitive types reject the lift.
     /// </summary>
     private static bool WrapAncestorInOptional<TFunction>(
         TFunction function, TicNode nodeA, TicNode nodeB, StateOptional optB) where TFunction : IStateFunction {
         TraceLog.WriteLine($"  WrapAncestorInOptional: nodeA={nodeA.Name}({nodeA.Type}):{nodeA.State} nodeB={nodeB.Name}:{nodeB.State}");
-        if (nodeA.Type == TicNodeType.SyntaxNode || nodeA.IsSolved || nodeA.IsSignatureParam)
+
+        // Wrapping nodeA in
+        // StateOptional(innerNode) immediately makes nodeB.State (which references nodeA
+        // via opt(nodeA)) point to opt(opt(innerNode))-equivalent. The next Apply(opt,opt)
+        // calls PushConstraints(optB.ElementNode = nodeA, innerNode) which re-enters
+        // WrapAncestorInOptional on (innerNode, nodeA) since nodeA is now opt-stated.
+        // Unbounded re-wrap chain: arr(Ch) → opt(owarr) → opt(owowarr) → … (stack overflow).
+        //
+        // Algebraically: the lift `T ≤ opt(T)` is trivially satisfied when T's identity is
+        // the same as opt's element — wrapping is unnecessary, the inclusion already holds.
+        // Return true coinductively (Amadio-Cardelli '93 §3): the constraint is consistent.
+        if (ReferenceEquals(optB.ElementNode.GetNonReference(), nodeA))
+            return true;
+        // WORKAROUND (TicTechnicalDebt #5 — stale Pull snapshots): the algebraic postulate
+        // T ≤ opt(T) is universal — wrapping a TypeVariable's composite state in
+        // StateOptional(innerNode) preserves all structural identity (including TypeName for
+        // named structs, since the StateStruct moves verbatim into innerNode). The
+        // previous `nodeA.IsSolved` guard rejected legal lifts on named-struct returns from
+        // F-bound recursive functions (GH #126 followup: `loop(x, acc) = if(x==none) acc
+        // else loop(x?.next, n{next=acc})` — V0 inherits the bare-struct snapshot from
+        // Phase 1 before Phase 2 None propagation lifts acc; the late lift then needs to
+        // widen V0 to opt(n)).
+        //
+        // Pinned-identity rule: widening is rejected only when the node has an external
+        // identity commitment:
+        //   - SyntaxNode literals (the value has a fixed apparent type)
+        //   - Named nodes (user-declared variables — `y:text = x` must not silently widen
+        //     y to opt(text); same for function I/O vars after SetVarType)
+        //   - IsSignatureParam (function-signature shape is rigid by contract)
+        //   - IsSolved primitive (covers anonymous primitive-typed TypeVariables — e.g.
+        //     intermediate nodes pinned to I32 by ConvertType)
+        // TypeVariable + composite state (struct/array/fun) is NOT pinned — identity
+        // travels with the inner state via innerNode.
+        bool isPinned = nodeA.Type != TicNodeType.TypeVariable  // SyntaxNode literal OR Named user variable
+                     || nodeA.IsSignatureParam
+                     || (nodeA.IsSolved && nodeA.State is StatePrimitive);
+        if (isPinned)
             throw Errors.TicErrors.IncompatibleNodes(nodeA, nodeB); // opt(T) ≤ T is invalid
         var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeA.Name, nodeA.State);
         innerNode.IsOptionalElement = true;

@@ -420,20 +420,7 @@ public class NamedTypeDefinitionTest {
         // Empty struct type with no fields — valid but unusual
         "type t = {}\r out = t{}".CalcWithNamedTypes();
 
-    [Test]
-    public void Error_CircularAlias_TwoTypes() =>
-        Assert.Throws<FunnyParseException>(
-            () => "type a = b\r type b = a\r out = 1".BuildWithNamedTypes());
-
-    [Test]
-    public void Error_CircularAlias_ThreeTypes() =>
-        Assert.Throws<FunnyParseException>(
-            () => "type a = b\r type b = c\r type c = a\r out = 1".BuildWithNamedTypes());
-
-    [Test]
-    public void Error_CircularAlias_SelfReference() =>
-        Assert.Throws<FunnyParseException>(
-            () => "type a = a\r out = 1".BuildWithNamedTypes());
+    // Circular alias detection is covered in ImpossibleRecursiveTypeDefinitionsTest.cs.
 
     [Test]
     public void AliasChain_NoCycle_IsValid() =>
@@ -538,16 +525,7 @@ public class NamedTypeDefinitionTest {
                 .Build("type user = {score:int?}\r y = [user{score=10}, user{score=none}, user{score=5}]"));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Circular alias detection
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test]
-    public void CircularAlias_IsDetected() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
-            "type a = b; type b = a; out = 1"
-                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
-    }
+    // Circular alias detection lives in ImpossibleRecursiveTypeDefinitionsTest.cs.
 
     // ═══════════════════════════════════════════════════════════════
     // Struct field type inference with defaults
@@ -566,7 +544,7 @@ public class NamedTypeDefinitionTest {
 
     [Test]
     public void DuplicateFieldInNamedConstructor_CompileError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<FunnyParseException>(() =>
             "type pt = {x:int, y:int}; out = pt{x=1, y=2, x=3}.x"
                 .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
     }

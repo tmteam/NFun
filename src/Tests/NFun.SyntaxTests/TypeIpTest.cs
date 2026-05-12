@@ -10,6 +10,7 @@ public class TypeIpTest {
     [TestCase("out = 127.0.0.1", "127.0.0.1")]
     [TestCase("out:ip = default", "0.0.0.0")]
     [TestCase("out:any = 0.0.0.12", "0.0.0.12")]
+    [TestCase("out = 0xFF.0.0xA.0xFA", "255.0.10.250")]
     public void ConstantEquation_ResultIsIp(string expr, string expectedIp) =>
         expr.AssertResultHas("out", IPAddress.Parse(expectedIp));
 
@@ -76,13 +77,4 @@ public class TypeIpTest {
     [TestCase("0.0.0")]
     public void ObviousFails(string expr) =>
         expr.AssertObviousFailsOnParse();
-
-    // ═══════════════════════════════════════════════════════════════
-    // Hex IP literal
-    // ═══════════════════════════════════════════════════════════════
-
-    [Test]
-    public void HexIpLiteral_Works() {
-        "out = 0xFF.0.0xA.0xFA".Calc().AssertResultHas("out", IPAddress.Parse("255.0.10.250"));
-    }
 }

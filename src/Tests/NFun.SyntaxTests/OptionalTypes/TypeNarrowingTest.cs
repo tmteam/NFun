@@ -1,6 +1,6 @@
 namespace NFun.SyntaxTests.OptionalTypes;
 
-using NFun.TestTools;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>
@@ -289,31 +289,31 @@ public class TypeNarrowingTest {
 
     [Test]
     public void Negative_NoCheck_OptionalInArithmetic_MustFail() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 42\r y = x + 1"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_NarrowingDoesNotLeakOutsideIf() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z = if(x != none) x else 0\r y = x + 1"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_Or_DoesNotNarrowIndividual_MustFail() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z:int? = 10\r y:int = if(x != none or z != none) z else 0"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_OrTrue_DoesNotNarrow_MustFail() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = none\r y = if(x != none or true) x + 1 else 0"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void Negative_OrTrue_Reversed_DoesNotNarrow_MustFail() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = none\r y = if(true or x != none) x + 1 else 0"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
@@ -1394,7 +1394,7 @@ public class TypeNarrowingTest {
 
     [Test]
     public void ScopeIsolation_NarrowDoesNotLeakToBareMath() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z = if(x != none) x else 0\r y = x + 1"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
@@ -1561,13 +1561,13 @@ public class TypeNarrowingTest {
 
     [Test]
     public void EdgeCase_Negative_Or_UnsharedVar_NotNarrowed() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 42\r z:int? = 10\r y:int = if(x != none or z != none) z + 1 else 0"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
     [Test]
     public void EdgeCase_Negative_EqualNone_ThenBranchNotNarrowed() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 42\r y = if(x == none) x + 1 else 0"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
@@ -1690,7 +1690,7 @@ public class TypeNarrowingTest {
 
     [Test]
     public void Attack6_AsymmetricOr_ElseCannotUseX_MustFail() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x:int? = 10\r z:int? = 5\r y:int = if(x != none or z == none) 0 else x + 1"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
@@ -1887,6 +1887,35 @@ public class TypeNarrowingTest {
         var r = "arr:int?[] = [none, none]\r y = arr.filterNotNull()"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(new int[0], r.Get("y"));
+    }
+
+    // Chained filterNotNull is idempotent. TIC may collapse both calls to one
+    // generic and skip the wrapping cast, so the second call's input arrives
+    // as a non-Optional element type — the runtime must handle that as a no-op
+    // rather than NREing on ElementType.OptionalTypeSpecification.
+    [Test]
+    public void FilterNotNull_DoubleChain_FromOptionalSource() {
+        "arr:int?[] = [1, none, 3]\r y = arr.filterNotNull().filterNotNull()"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("y", new[] { 1, 3 });
+    }
+
+    [Test]
+    public void FilterNotNull_DoubleChain_FromPlainArray() {
+        "arr = [1,2,3]\r y = arr.filterNotNull().filterNotNull()"
+            .AssertResultHas("y", new[] { 1, 2, 3 });
+    }
+
+    [Test]
+    public void FilterNotNull_DoubleChain_ViaIntermediateVariable() {
+        "arr = [1,2,3]\r b = arr.filterNotNull()\r y = b.filterNotNull()"
+            .AssertResultHas("y", new[] { 1, 2, 3 });
+    }
+
+    [Test]
+    public void FilterNotNull_NestedCallForm() {
+        "arr = [1,2,3]\r y = filterNotNull(filterNotNull(arr))"
+            .AssertResultHas("y", new[] { 1, 2, 3 });
     }
 
     #endregion

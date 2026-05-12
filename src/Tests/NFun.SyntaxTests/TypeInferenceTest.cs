@@ -6,7 +6,16 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests;
 
+/// <summary>
+/// Full-pipeline type inference tests: parse → TIC → resolve → runtime/build.
+/// Verifies that the OUTPUT FunnyType of each variable matches expectation across
+/// a broad sample of expressions (literals, arithmetic, operators, generics,
+/// typed annotations, etc.). Distinct from TIC unit tests — these go through the
+/// entire compilation pipeline. There is some overlap with Operators/, Constants,
+/// and ImplicitCast tests; targeted dedupe is left as ongoing cleanup work.
+/// </summary>
 public class TypeInferenceTest {
+
     [TestCase("y = 0x2", BaseFunnyType.Int32)]
     [TestCase("y = 0x2*3", BaseFunnyType.Int32)]
     [TestCase("y = 2**3", BaseFunnyType.Int32)]
@@ -252,8 +261,6 @@ public class TypeInferenceTest {
     [TestCase("x:real \r y = [1..10][::x]")]
     [TestCase("y = x \r x:real ")]
     [TestCase("z:real \r  y = x+z \r x:real ")]
-    //todo: What is expected ?!
-    //[TestCase("y= [1,2,3].fold(rule '(rule it1}!'}")]
     [TestCase("a:int \r a=4")]
     [TestCase("a:int a=4")]
     [TestCase("a:real =false")]
@@ -276,8 +283,6 @@ public class TypeInferenceTest {
     [TestCase(1, "y= 1+x", 2)]
     [TestCase(2, "y= 1*x", 2)]
     [TestCase(1, "y= 1-x", 0)]
-    //todo
-    //[TestCase("1", "y= x.strConcat(1)", "11")]
     [TestCase(true, "x:bool\r y= x and true", true)]
     public void SingleInputTypedEquation(object x, string expr, object y) =>
         expr.Calc("x", x).AssertReturns(y);
@@ -510,17 +515,24 @@ public class TypeInferenceTest {
     }
 
     // ═══ Abstract type → concrete mapping (no overflow) ═══
+    // TIC's internal abstract types (U12/U24/U48) must resolve to concrete CLR types
+    // wide enough to hold the literal. Regression tests for past overflow bugs.
 
-    [Test] public void U12_SmallAndLarge_NoOverflow() => "out = if(false) [0] else [300]".Calc();
-    [Test] public void U12_BoundaryValue_255_And_300() => "out = if(false) [255] else [300]".Calc();
-    [Test] public void U12_MaxU12Value_4095() => "out = if(false) [0] else [4095]".Calc();
-    [Test] public void U24_ValueExceedsUInt16() => "out = if(false) [0] else [70000]".Calc();
-    [Test] public void U24_LargeValue() => "out = if(false) [255] else [100000]".Calc();
-    [Test] public void U48_ValueExceedsUInt32() => "out = if(false) [0] else [5000000000]".Calc();
+    [TestCase("out = if(false) [0] else [300]",         new[] { 300 })]
+    [TestCase("out = if(false) [255] else [300]",       new[] { 300 })]
+    [TestCase("out = if(false) [0] else [4095]",        new[] { 4095 })]
+    [TestCase("out = if(false) [0] else [70000]",       new[] { 70000 })]
+    [TestCase("out = if(false) [255] else [100000]",    new[] { 100000 })]
+    public void AbstractInt_ResolvesToInt32_NoOverflow(string expr, int[] expected) =>
+        expr.Calc().AssertResultHas("out", expected);
+
+    [TestCase("out = if(false) [0] else [5000000000]",  new ulong[] { 5_000_000_000UL })]
+    public void AbstractInt_ExceedsUInt32_ResolvesToUInt64(string expr, ulong[] expected) =>
+        expr.Calc().AssertResultHas("out", expected);
 
     [Test]
     public void I48_LargeUint32_NoOverflow() {
         var result = "x:uint32 = 3000000000; y:int = 1; out = max(x, y)".Calc();
-        Assert.IsNotNull(result.Get("out"));
+        Assert.AreEqual(3_000_000_000L, result.Get("out"));
     }
 }

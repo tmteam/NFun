@@ -83,7 +83,10 @@ public class Log10DoubleFunction : FunctionWithSingleArg {
 
 public class RoundToDoubleFunction : FunctionWithTwoArgs {
     public RoundToDoubleFunction() : base("round", FunnyType.Real, FunnyType.Real, FunnyType.Int32) { ArgProperties = FunArgProperty.FromNames("value", "digits"); }
-    public override object Calc(object a, object b) => Math.Round((double)a, (int)b);
+    // AwayFromZero matches the format-specifier rounding shown in Specs/Texts.md L165
+    // (`'{0.5:0}'` → `'1'`). Math.Round defaults to MidpointRounding.ToEven (banker's),
+    // which would give round(0.5,0)=0 — inconsistent with the format path. (Bug FF.)
+    public override object Calc(object a, object b) => Math.Round((double)a, (int)b, MidpointRounding.AwayFromZero);
 }
 
 public class CeilDoubleFunction : FunctionWithSingleArg {

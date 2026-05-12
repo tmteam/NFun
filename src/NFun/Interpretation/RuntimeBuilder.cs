@@ -30,7 +30,7 @@ internal static class RuntimeBuilder {
 
         // Named types: elaborate only when enabled, skip entirely otherwise
         INamedTypeFieldRegistry namedTypeFieldRegistry = null;
-        Runtime.TypeRegistry typeRegistry = null;
+        TypeRegistry typeRegistry = null;
         if (dialect.NamedTypesSupport == NamedTypesSupport.Enabled)
         {
             syntaxTree = NamedTypeElaborator.Elaborate(syntaxTree, out var namedTypes);
@@ -110,25 +110,25 @@ internal static class RuntimeBuilder {
                     namedTypeFieldRegistry = registry;
 
                 // Build TypeRegistry for runtime introspection
-                var typeInfos = new Dictionary<string, Runtime.NamedTypeInfo>(StringComparer.OrdinalIgnoreCase);
+                var typeInfos = new Dictionary<string, NamedTypeInfo>(StringComparer.OrdinalIgnoreCase);
                 foreach (var nt in namedTypes) {
                     if (nt.Value.IsAlias) {
                         customTypes.TryResolve(nt.Key, out var resolved);
-                        typeInfos[nt.Key] = new Runtime.NamedTypeInfo(nt.Key, resolved);
+                        typeInfos[nt.Key] = new NamedTypeInfo(nt.Key, resolved);
                     } else {
-                        var fieldInfos = new Runtime.NamedTypeFieldInfo[nt.Value.Fields.Count];
+                        var fieldInfos = new NamedTypeFieldInfo[nt.Value.Fields.Count];
                         for (int i = 0; i < nt.Value.Fields.Count; i++) {
                             var f = nt.Value.Fields[i];
                             var ft = f.TypeSyntax is TypeSyntax.EmptyType
                                 ? InferTypeFromConstantOrAny(f.DefaultValue)
                                 : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes);
-                            fieldInfos[i] = new Runtime.NamedTypeFieldInfo(f.Name, ft, f.HasDefault);
+                            fieldInfos[i] = new NamedTypeFieldInfo(f.Name, ft, f.HasDefault);
                         }
                         customTypes.TryResolve(nt.Key, out var structType);
-                        typeInfos[nt.Key] = new Runtime.NamedTypeInfo(nt.Key, structType, fieldInfos);
+                        typeInfos[nt.Key] = new NamedTypeInfo(nt.Key, structType, fieldInfos);
                     }
                 }
-                typeRegistry = new Runtime.TypeRegistry(typeInfos);
+                typeRegistry = new TypeRegistry(typeInfos);
             }
         }
 
@@ -171,7 +171,7 @@ internal static class RuntimeBuilder {
         ICustomTypeRegistry customTypes,
         DialectSettings dialect,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null,
-        Runtime.TypeRegistry typeRegistry = null) {
+        TypeRegistry typeRegistry = null) {
         #region build user functions
 
         //get topology sort of the functions call
@@ -554,13 +554,13 @@ internal static class RuntimeBuilder {
         var ticName = functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count;
         var sig = results.GetVariableType(ticName) as Tic.SolvingStates.StateFun;
         if (sig == null) return;
-        var visited = new HashSet<Tic.TicNode>();
+        var visited = new HashSet<TicNode>();
         foreach (var arg in sig.ArgNodes)
             FreezeStructsRecursive(arg, visited);
         FreezeStructsRecursive(sig.RetNode, visited);
     }
 
-    private static void FreezeStructsRecursive(Tic.TicNode node, HashSet<Tic.TicNode> visited) {
+    private static void FreezeStructsRecursive(TicNode node, HashSet<TicNode> visited) {
         var nr = node.GetNonReference();
         if (!visited.Add(nr)) return;
         switch (nr.State) {
@@ -571,7 +571,7 @@ internal static class RuntimeBuilder {
                 // across args, which requires width propagation; freezing them breaks let-poly
                 // inference. Recursive structs (μ-shape) MUST be frozen: their bound determines
                 // the polymorphic skeleton; widening at call sites pollutes the shared signature.
-                if (Tic.SolvingFunctions.StructIsRecursiveCycle(s, nr))
+                if (SolvingFunctions.StructIsRecursiveCycle(s, nr))
                     s.IsFrozen = true;
                 foreach (var (_, fieldNode) in s.Fields)
                     FreezeStructsRecursive(fieldNode, visited);
@@ -596,13 +596,13 @@ internal static class RuntimeBuilder {
     }
 
     private static bool SignatureIsFullyConcrete(Tic.SolvingStates.StateFun signature) {
-        var visited = new HashSet<Tic.TicNode>();
+        var visited = new HashSet<TicNode>();
         foreach (var arg in signature.ArgNodes)
             if (!StateIsSolved(arg.GetNonReference().State, visited)) return false;
         return StateIsSolved(signature.RetNode.GetNonReference().State, visited);
     }
 
-    private static bool StateIsSolved(Tic.SolvingStates.ITicNodeState state, HashSet<Tic.TicNode> visited) {
+    private static bool StateIsSolved(Tic.SolvingStates.ITicNodeState state, HashSet<TicNode> visited) {
         switch (state) {
             case Tic.SolvingStates.StateRefTo r: return StateIsSolved(r.Node.GetNonReference().State, visited);
             case Tic.SolvingStates.ConstraintsState: return false;
@@ -683,7 +683,7 @@ internal static class RuntimeBuilder {
         defaultExpr switch {
             ConstantSyntaxNode c => c.OutputType,
             GenericIntSyntaxNode => FunnyType.Int32,
-            SyntaxParsing.SyntaxNodes.IpAddressConstantSyntaxNode => FunnyType.Ip,
+            IpAddressConstantSyntaxNode => FunnyType.Ip,
             _ => FunnyType.Any
         };
 

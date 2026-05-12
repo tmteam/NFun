@@ -46,17 +46,17 @@ public class BooleanOperatorsTest {
 
     [Test]
     public void LogicalOnInt_TypeError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = 1 and 2".Calc());
+        Assert.Throws<Exceptions.FunnyParseException>(() => "y = 1 and 2".Calc());
     }
 
     [Test]
     public void IntLiteralInIfCondition_TypeError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "y = if(42) true else false".Calc());
     }
 
     [Test]
     public void IncompatibleAnnotation_TypeError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y:bool = 42".Calc());
+        Assert.Throws<Exceptions.FunnyParseException>(() => "y:bool = 42".Calc());
     }
 }

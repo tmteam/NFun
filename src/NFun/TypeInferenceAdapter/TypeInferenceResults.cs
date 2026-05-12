@@ -111,7 +111,7 @@ public class TypeInferenceResultsBuilder {
         var refs = new StateRefTo[bodyGenerics.Count];
         for (int j = 0; j < bodyGenerics.Count; j++)
         {
-            var node = NFun.Tic.TicNode.CreateInvisibleNode(bodyGenerics[j]);
+            var node = TicNode.CreateInvisibleNode(bodyGenerics[j]);
             refs[j] = new StateRefTo(node);
         }
         return refs;

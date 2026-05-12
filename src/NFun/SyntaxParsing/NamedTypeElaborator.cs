@@ -165,6 +165,24 @@ internal static class NamedTypeElaborator {
                 return SyntaxNodeFactory.Array(newElements, arr.Interval.Start, arr.Interval.Finish);
             }
 
+            case ListOfExpressionsSyntaxNode lof: {
+                // Produced by parenthesized comma-list `(a, b)` — not a valid NFun expression
+                // (no tuple syntax). The error is raised later by ExpressionBuilderVisitor as
+                // FU603 'is not an expression'. But we still must recurse here so that named-type
+                // ctors inside `(t{...}, t{...})` are elaborated before TIC sees them — otherwise
+                // the unhandled NamedTypeConstructorSyntaxNode trips an "impossible" internal
+                // exception leak
+                bool changed = false;
+                var newElements = new List<ISyntaxNode>(lof.Expressions.Count);
+                foreach (var el in lof.Expressions) {
+                    var newEl = ElaborateNode(el, types);
+                    if (!ReferenceEquals(newEl, el)) changed = true;
+                    newElements.Add(newEl);
+                }
+                if (!changed) return node;
+                return SyntaxNodeFactory.ListOf(newElements, lof.Interval, lof.ParenthesesCount);
+            }
+
             case FunCallSyntaxNode fun: {
                 bool changed = false;
                 var newArgs = new ISyntaxNode[fun.Args.Length];
@@ -351,7 +369,7 @@ internal static class NamedTypeElaborator {
             equations.Add(new EquationSyntaxNode(fieldDef.Name, fieldExpr.Interval.Start, fieldExpr, Array.Empty<FunnyAttribute>()));
         }
 
-        var structInit = (SyntaxNodes.StructInitSyntaxNode)SyntaxNodeFactory.Struct(equations, ctor.Interval);
+        var structInit = (StructInitSyntaxNode)SyntaxNodeFactory.Struct(equations, ctor.Interval);
         // Set OutputType so TIC knows this struct is a named type instance.
         // This provides field type constraints (especially Optional for defaults)
         // at any nesting depth without depth-limited expansion.
@@ -375,40 +393,40 @@ internal static class NamedTypeElaborator {
     private static void ValidateConstantExpression(ISyntaxNode node, string typeName, string fieldName) {
         switch (node) {
             // Literals — always OK
-            case SyntaxNodes.ConstantSyntaxNode:
-            case SyntaxNodes.GenericIntSyntaxNode:
-            case SyntaxNodes.DefaultValueSyntaxNode:
-            case SyntaxNodes.IpAddressConstantSyntaxNode:
+            case ConstantSyntaxNode:
+            case GenericIntSyntaxNode:
+            case DefaultValueSyntaxNode:
+            case IpAddressConstantSyntaxNode:
                 return;
             // Operators on constants — recurse into operands
-            case SyntaxNodes.BinOperatorSyntaxNode bin:
+            case BinOperatorSyntaxNode bin:
                 ValidateConstantExpression(bin.Left, typeName, fieldName);
                 ValidateConstantExpression(bin.Right, typeName, fieldName);
                 return;
-            case SyntaxNodes.UnaryOperatorSyntaxNode un:
+            case UnaryOperatorSyntaxNode un:
                 ValidateConstantExpression(un.Operand, typeName, fieldName);
                 return;
             // Array literal — recurse into elements
-            case SyntaxNodes.ArraySyntaxNode arr:
+            case ArraySyntaxNode arr:
                 foreach (var el in arr.Expressions)
                     ValidateConstantExpression(el, typeName, fieldName);
                 return;
             // Struct literal — recurse into field values
-            case SyntaxNodes.StructInitSyntaxNode si:
+            case StructInitSyntaxNode si:
                 foreach (var field in si.Fields)
                     ValidateConstantExpression(field.Node, typeName, fieldName);
                 return;
             // Named type constructor in default — recurse
-            case SyntaxNodes.NamedTypeConstructorSyntaxNode ctor:
+            case NamedTypeConstructorSyntaxNode ctor:
                 foreach (var eq in ctor.ProvidedFields)
                     ValidateConstantExpression(eq.Expression, typeName, fieldName);
                 return;
             // Variable reference — FORBIDDEN
-            case SyntaxNodes.NamedIdSyntaxNode id:
+            case NamedIdSyntaxNode id:
                 throw Errors.NamedTypeDefaultCannotReferenceVariable(typeName, fieldName, id.Id, node.Interval);
             // Function call — FORBIDDEN
-            case SyntaxNodes.FunCallSyntaxNode:
-            case SyntaxNodes.ResultFunCallSyntaxNode:
+            case FunCallSyntaxNode:
+            case ResultFunCallSyntaxNode:
                 throw Errors.NamedTypeDefaultCannotCallFunction(typeName, fieldName, node.Interval);
             // Anything else — FORBIDDEN
             default:

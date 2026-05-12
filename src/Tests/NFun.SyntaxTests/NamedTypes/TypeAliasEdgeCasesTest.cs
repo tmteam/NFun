@@ -341,21 +341,21 @@ public class TypeAliasEdgeCasesTest {
 
     [Test]
     public void DuplicateTypeName_Throws() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
             Calc("type t = {x:int}; type t = {y:int}; out = 1"));
 
     [Test]
     public void UnknownFieldInConstructor_Throws() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
             Calc("type t = {x:int}; out = t{y=1}.x"));
 
     [Test]
     public void MissingRequiredField_Throws() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
             Calc("type t = {x:int}; out = t{}.x"));
 
     [Test]
     public void WrongFieldType_Throws() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
             Calc("type t = {x:int}; out = t{x='text'}.x"));
 }

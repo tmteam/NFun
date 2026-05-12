@@ -8,21 +8,21 @@ namespace NFun.SyntaxTests;
 
 [TestFixture]
 public class AnonymousFunTest {
-    [TestCase(@"y = [11.0,20.0,1.0,2.0].filter(rule(i)= i>10)", new[] { 11.0, 20.0 })]
-    [TestCase(@"y = [11,20,1,2].filter(rule(i:int)= i>10)", new[] { 11, 20 })]
-    [TestCase(@"y = [11,20,1,2].filter(rule(i:int):bool = i>10)", new[] { 11, 20 })]
-    [TestCase(@"y = map([1,2,3], rule(i:int)=i*i)", new[] { 1, 4, 9 })]
-    [TestCase(@"y = map([1,2,3], rule(i:int):real  =i*i)", new[] { 1.0, 4, 9 })]
-    [TestCase(@"y = map([1,2,3], rule(i:int):int64  =i*i)", new long[] { 1, 4, 9 })]
-    [TestCase(@"y = [1,2,3] . map(rule(i:int)=i*i)", new[] { 1, 4, 9 })]
-    [TestCase(@"y = [1.0,2.0,3.0] . map(rule(i)=i*i)", new[] { 1.0, 4.0, 9.0 })]
-    [TestCase(@"y = [1.0,2.0,3.0] . fold(rule(i,j)=i+j)", 6.0)]
-    [TestCase(@"y = [1.0,2.0,3.0] . fold(rule(i:real,j)=i+j)", 6.0)]
-    [TestCase(@"y = [1.0,2.0,3.0] . fold(rule(i,j:real):real=i+j)", 6.0)]
-    [TestCase(@"y = [1.0,2.0,3.0] . fold(rule(i,j):real=i+j)", 6.0)]
-    [TestCase(@"y = fold([1.0,2.0,3.0],rule(i,j)=i+j)", 6.0)]
-    [TestCase(@"y = [1,2,3] . fold(rule(i:int, j:int)=i+j)", 6)]
-    [TestCase(@"y = fold([1,2,3],rule(i:int, j:int)=i+j)", 6)]
+    [TestCase("y = [11.0,20.0,1.0,2.0].filter(rule(i)= i>10)", new[] { 11.0, 20.0 })]
+    [TestCase("y = [11,20,1,2].filter(rule(i:int)= i>10)", new[] { 11, 20 })]
+    [TestCase("y = [11,20,1,2].filter(rule(i:int):bool = i>10)", new[] { 11, 20 })]
+    [TestCase("y = map([1,2,3], rule(i:int)=i*i)", new[] { 1, 4, 9 })]
+    [TestCase("y = map([1,2,3], rule(i:int):real  =i*i)", new[] { 1.0, 4, 9 })]
+    [TestCase("y = map([1,2,3], rule(i:int):int64  =i*i)", new long[] { 1, 4, 9 })]
+    [TestCase("y = [1,2,3] . map(rule(i:int)=i*i)", new[] { 1, 4, 9 })]
+    [TestCase("y = [1.0,2.0,3.0] . map(rule(i)=i*i)", new[] { 1.0, 4.0, 9.0 })]
+    [TestCase("y = [1.0,2.0,3.0] . fold(rule(i,j)=i+j)", 6.0)]
+    [TestCase("y = [1.0,2.0,3.0] . fold(rule(i:real,j)=i+j)", 6.0)]
+    [TestCase("y = [1.0,2.0,3.0] . fold(rule(i,j:real):real=i+j)", 6.0)]
+    [TestCase("y = [1.0,2.0,3.0] . fold(rule(i,j):real=i+j)", 6.0)]
+    [TestCase("y = fold([1.0,2.0,3.0],rule(i,j)=i+j)", 6.0)]
+    [TestCase("y = [1,2,3] . fold(rule(i:int, j:int)=i+j)", 6)]
+    [TestCase("y = fold([1,2,3],rule(i:int, j:int)=i+j)", 6)]
     [TestCase("y = [1.0,2.0,3.0].any(rule(i)= i == 1.0)", true)]
     [TestCase("y = [1.0,2.0,3.0].any(rule(i)= i == 0.0)", false)]
     [TestCase("y = [1.0,2.0,3.0].all(rule(i)= i >0)", true)]
@@ -229,11 +229,11 @@ public class AnonymousFunTest {
     [TestCase("y = [1.0,2.0,3.0].map (rule it*x)", 3.0, new[] { 3.0, 6.0, 9.0 })]
     [TestCase("y = [1.0,2.0,3.0].all (rule it >x)", 1.0, false)]
     [TestCase("x:int\r y = [1,2,3].all (rule it >x)", 1, false)]
-    [TestCase(@"y = [1.0,2.0,3.0].fold(rule x)", 123.0, 123.0)]
-    [TestCase(@"y = [1.0,2.0,3.0].fold(rule it1+it2+x)", 2.0, 10.0)]
-    [TestCase(@"y = [1.0,2.0,3.0].fold(rule it2+x)", 2.0, 5.0)]
-    [TestCase(@"y = [1.0,2.0,3.0].fold(rule it1+x)", 2.0, 5.0)]
-    [TestCase(@"y = [[1,2],[3,4],[5,6]].map(rule it.map(rule it+x).sum()).sum()", 1, 27)]
+    [TestCase("y = [1.0,2.0,3.0].fold(rule x)", 123.0, 123.0)]
+    [TestCase("y = [1.0,2.0,3.0].fold(rule it1+it2+x)", 2.0, 10.0)]
+    [TestCase("y = [1.0,2.0,3.0].fold(rule it2+x)", 2.0, 5.0)]
+    [TestCase("y = [1.0,2.0,3.0].fold(rule it1+x)", 2.0, 5.0)]
+    [TestCase("y = [[1,2],[3,4],[5,6]].map(rule it.map(rule it+x).sum()).sum()", 1, 27)]
     public void SuperAnonymousFunctions_SingleArgumentEquation(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 
@@ -382,4 +382,41 @@ public class AnonymousFunTest {
     [TestCase("it1 = 1")]
     [TestCase("it2 = 1")]
     public void ObviouslyFailsOnParse(string expr) => expr.AssertObviousFailsOnParse();
+
+    // Closure capture per Specs/Rules.md "Capturing variables": every rule emission
+    // is a closed term — outer-scope writes after the rule is returned must not
+    // mutate the captured value. Previously a single shared cell leaked the latest
+    // outer-fn argument back into all previously-returned closures.
+    [Test]
+    public void Closure_CapturesOuterArg_PerInvocation() {
+        ("mkAdd(x) = rule(y) = x+y\r" +
+         "addOne = mkAdd(1)\r" +
+         "addTwo = mkAdd(2)\r" +
+         "a1 = addOne(10)\r" +
+         "a2 = addTwo(10)\r" +
+         "a3 = addOne(20)")
+            .AssertResultHas(("a1", 11), ("a2", 12), ("a3", 21));
+    }
+
+    [Test]
+    public void Closure_ArrayOfClosures_IndependentCells() {
+        // Before the fix, all three closures shared one (a,b) cell — [21,21,21].
+        ("mk(a,b) = rule(c) = a+b+c\r" +
+         "fs = [mk(1,2), mk(3,4), mk(5,6)]\r" +
+         "out = fs.map(rule it(10))")
+            .AssertResultHas("out", new object[] { 13, 17, 21 });
+    }
+
+    [Test]
+    public void Closure_FunctionValuedCapture_Independent() {
+        // `f` is a function-valued capture carried by ConcreteHiOrderFunction
+        // (not a VariableExpressionNode) — the lazy snapshot context picks it
+        // up so cloned closures don't share `f` either.
+        ("apply(f, x) = rule(y) = f(x, y)\r" +
+         "addOne = apply(rule(a,b) = a+b, 1)\r" +
+         "addTwo = apply(rule(a,b) = a+b, 100)\r" +
+         "a1 = addOne(10)\r" +
+         "a2 = addTwo(10)")
+            .AssertResultHas(("a1", 11), ("a2", 110));
+    }
 }

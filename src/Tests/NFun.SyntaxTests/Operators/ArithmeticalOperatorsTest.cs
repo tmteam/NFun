@@ -372,6 +372,6 @@ public class ArithmeticalOperatorsTest {
 
     [Test]
     public void ArithmeticOnBool_TypeError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => "y = true + 1".Calc());
+        Assert.Throws<FunnyParseException>(() => "y = true + 1".Calc());
     }
 }

@@ -59,6 +59,15 @@ public class FilterNotNullFunction : GenericFunctionBase {
 
     protected override object Calc(object[] args) {
         var arr = (IFunnyArray)args[0];
+        // Spec signature is `(T?[]) → T[]`; an explicit `int[] → int?[]` cast normally
+        // wraps a plain T[] input on the way in. But TIC sometimes resolves both
+        // halves of a chain (`.filterNotNull().filterNotNull()`) to a single shared
+        // generic and skips the intermediate cast — so the second call's args[0]
+        // arrives as plain T[] whose ElementType is non-Optional. Treat that case
+        // as the no-op it semantically is (no `none` element can exist), rather
+        // than NREing on `OptionalTypeSpecification`. (Bug GG.)
+        if (arr.ElementType.BaseType != BaseFunnyType.Optional)
+            return arr;
         return FunnyArrayTools.CreateEnumerable(
             arr.Where(e => e is not FunnyNone),
             arr.ElementType.OptionalTypeSpecification.ElementType);

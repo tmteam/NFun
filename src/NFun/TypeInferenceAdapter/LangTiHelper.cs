@@ -113,7 +113,7 @@ public static class LangTiHelper {
         };
 
     [ThreadStatic] private static Dictionary<string, int> _resolveDepth;
-    [ThreadStatic] private static Dictionary<string, NFun.Tic.TicNode> _resolveRootNode;
+    [ThreadStatic] private static Dictionary<string, TicNode> _resolveRootNode;
 
     private static ITicNodeState ResolveNamedStruct(string typeName,
         INamedTypeFieldRegistry registry) {
@@ -122,7 +122,7 @@ public static class LangTiHelper {
 
         var isRoot = _resolveDepth == null;
         _resolveDepth ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        _resolveRootNode ??= new Dictionary<string, NFun.Tic.TicNode>(StringComparer.OrdinalIgnoreCase);
+        _resolveRootNode ??= new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
 
         _resolveDepth.TryGetValue(typeName, out var depth);
         if (depth >= 1) {
@@ -139,7 +139,7 @@ public static class LangTiHelper {
             return named;
         }
 
-        var rootPlaceholder = NFun.Tic.TicNode.CreateInvisibleNode(ConstraintsState.Empty);
+        var rootPlaceholder = TicNode.CreateInvisibleNode(ConstraintsState.Empty);
         _resolveRootNode[typeName] = rootPlaceholder;
         _resolveDepth[typeName] = depth + 1;
         try {
@@ -147,6 +147,7 @@ public static class LangTiHelper {
             for (int i = 0; i < fields.Length; i++)
                 ticFields[i] = (fields[i].name, ConvertToTiType(fields[i].type, registry));
             var rootStruct = StateStruct.Of(false, ticFields);
+            rootStruct.TypeName = typeName;
             rootPlaceholder.State = rootStruct;
             return rootStruct;
         }
@@ -179,26 +180,35 @@ public static class LangTiHelper {
         };
 
     public static ITicNodeState ConvertToTiType(this FunnyType origin, StateRefTo[] genericMap) =>
+        ConvertToTiType(origin, genericMap, registry: null);
+
+    /// <summary>
+    /// Convert FunnyType to TIC state for a generic function signature instantiation.
+    /// Threads both <paramref name="genericMap"/> (T0/T1/... → fresh StateRefTo) and a
+    /// <paramref name="registry"/> for NamedStruct expansion.
+    /// </summary>
+    public static ITicNodeState ConvertToTiType(this FunnyType origin,
+        StateRefTo[] genericMap, INamedTypeFieldRegistry registry) =>
         origin.BaseType switch {
             BaseFunnyType.Generic => genericMap[origin.GenericId.Value],
             BaseFunnyType.Optional => StateOptional.Of(
-                ConvertToTiType(origin.OptionalTypeSpecification.ElementType, genericMap)),
+                ConvertToTiType(origin.OptionalTypeSpecification.ElementType, genericMap, registry)),
             BaseFunnyType.ArrayOf => StateArray.Of(
-                ConvertToTiType(origin.ArrayTypeSpecification.FunnyType, genericMap)),
+                ConvertToTiType(origin.ArrayTypeSpecification.FunnyType, genericMap, registry)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(
-                    type => ConvertToTiType(type, genericMap)),
-                returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap)),
+                    type => ConvertToTiType(type, genericMap, registry)),
+                returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap, registry)),
             // Generic function constraints: struct is open ("at least these fields").
             // Row polymorphism: the function only requires listed fields, not exact match.
             BaseFunnyType.Struct => StateStruct.Of(
                 origin.StructTypeSpecification.Select(
                     s => new KeyValuePair<string, ITicNodeState>(
                         key: s.Key,
-                        value: ConvertToTiType(s.Value, genericMap))),
+                        value: ConvertToTiType(s.Value, genericMap, registry))),
                 origin.StructTypeSpecification.IsFrozen,
                 isOpen: true),
-            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, null),
+            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, registry),
             _ => origin.ConvertToTiType()
         };
 }

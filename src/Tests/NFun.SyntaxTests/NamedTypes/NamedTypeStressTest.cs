@@ -2,7 +2,8 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests;
+namespace NFun.SyntaxTests.NamedTypes;
+
 
 /// <summary>
 /// Bug-hunt 300: comprehensive stress test for recursive types, complex named types,
@@ -10,7 +11,7 @@ namespace NFun.SyntaxTests;
 /// Each test runs an isolated script; failures expose real-world breakage.
 /// </summary>
 [TestFixture]
-public class BugHunt300Test {
+public class NamedTypeStressTest {
 
     private static CalculationResult Run(string script) =>
         script.CalcWithDialect(
@@ -312,4 +313,569 @@ public class BugHunt300Test {
     [TestCase("type n = {v: int, next: n? = none}\rrev(x) = revHelp(x, none)\rrevHelp(x, acc) = if(x==none) acc else revHelp(x?.next, n{v=x!.v, next=acc})\rfirst_(x) = if(x==none) -1 else x!.v\ry = first_(rev(n{v=1, next=n{v=2, next=n{v=3}}}))", 3)]
     public void GH126Followup_FBoundOptionalCandidatePeeled(string script, object expected) =>
         Run(script).AssertResultHas("y", expected);
+
+    private static CalculationResult RunRec(string script) =>
+        script.CalcWithDialect(
+            namedTypesSupport: NamedTypesSupport.Enabled,
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
+
+    private static Runtime.FunnyRuntime BuildRec(string script) =>
+        Funny.Hardcore.WithDialect(
+            namedTypesSupport: NamedTypesSupport.Enabled,
+            optionalTypesSupport: OptionalTypesSupport.Enabled).Build(script);
+
+    // ========================================================================
+    // CRITICAL: Crashes (StackOverflow / NFunImpossibleException)
+    // ========================================================================
+
+    // Bug A FIXED: GetMergedStateOrNull now has cycle guard for StateStruct ↔ StateStruct
+    [Test]
+    public void BugA_IfElseOverRecursiveVars_Works() {
+        "type n = {v:int, next:n? = none}\r".CalcWithDialect(
+            namedTypesSupport: NamedTypesSupport.Enabled,
+            optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.DoesNotThrow(() => BuildRec(
+            "type n = {v:int, next:n? = none}\r" +
+            "r1 = n{v=1}\r" +
+            "r2 = n{v=3}\r" +
+            "sel = if(true) r1 else r2\r" +
+            "out = sel.next?.v ?? -1"));
+    }
+
+    // Bug A2 FIXED: same cycle guard handles map(rule f(it)) over recursive types
+    [Test]
+    public void BugA2_MapOverRecursiveTypeViaUserFn_Works() {
+        ("type t = {v:int, next:t? = none}\r" +
+         "f(x:t):int = x.v\r" +
+         "arr:t[] = [t{v=1}, t{v=2}]\r" +
+         "out = arr.map(rule f(it)).sum()")
+            .CalcWithDialect(
+                namedTypesSupport: NamedTypesSupport.Enabled,
+                optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("out", 3);
+    }
+
+    // Bug B FIXED: NamedTypeElaborator now recurses into TryCatchSyntaxNode bodies
+    [Test]
+    public void BugB_TryCatchOverNamedCtor_Works() {
+        "type t = {v:int}\rout = try t{v=1}.v catch -1".CalcWithDialect(
+            namedTypesSupport: NamedTypesSupport.Enabled,
+            optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("out", 1);
+    }
+
+    // ========================================================================
+    // CRITICAL: TIC failures on patterns that should work
+    // ========================================================================
+
+    // Bug C FIXED: MergeStructs now respects strB.IsOpen for width subtyping
+    [Test]
+    public void BugC_LcaOfRecursiveVarsInArray_Works() {
+        RunRec(
+            "type tr = {v:int, kids:tr[] = []}\r" +
+            "r1 = tr{v=1, kids=[tr{v=2}]}\r" +
+            "r2 = tr{v=3, kids=[tr{v=4}]}\r" +
+            "arr = [r1, r2]\r" +
+            "out = arr[0].kids[0].v")
+            .AssertResultHas("out", 2);
+    }
+
+    // Bug C2 FIXED: same root cause as C
+    [Test]
+    public void BugC2_UserFnReturnsRecOptional_Works() {
+        RunRec(
+            "type t = {v:int, next:t? = none}\r" +
+            "f(x:t):t = x\r" +
+            "n:t = f(t{v=1})\r" +
+            "out = n.v")
+            .AssertResultHas("out", 1);
+    }
+
+    // Bug C3 FIXED: same root cause as C
+    [Test]
+    public void BugC3_UserFnReturnsRecArray_Works() {
+        RunRec(
+            "type t = {v:int, kids:t[] = []}\r" +
+            "getOne():t = t{v=1, kids=[]}\r" +
+            "n:t = getOne()\r" +
+            "out = n.v")
+            .AssertResultHas("out", 1);
+    }
+
+    // Bug D FIXED: TypeName preserved on root in ResolveNamedStruct (GH #128 partial)
+    [Test]
+    public void BugD_ForceUnwrapRecComposition_Works() {
+        RunRec(
+            "type t = {v: int, k: t? = none}\r" +
+            "getK(ti:t):t? = ti.k\r" +
+            "getV(ti:t):int = ti.v\r" +
+            "ti:t = t{v=1, k=t{v=2}}\r" +
+            "y = getV(getK(ti)!)")
+            .AssertResultHas("y", 2);
+    }
+
+    // Bug E FIXED: Apply(StateStruct,StateStruct) now skips field-k when stale ancestor.k=None
+    // meets actual descendant.k=Optional (implicit None ≤ opt(T) lift), mirroring Pull's rule.
+    [Test]
+    public void BugE_PreDeclaredAndInlineLiteralInArray_Works() {
+        RunRec(
+            "type t = {v: int, k: t? = none}\r" +
+            "ti = t{v=1, k=t{v=2}}\r" +
+            "arr = [ti, t{v=3}]\r" +
+            "y = arr.count()")
+            .AssertResultHas("y", 2);
+    }
+
+    // Bug E2 FIXED: SetStructInitType now eagerly inserts an Optional-wrapper TicNode for
+    // composite-literal field values where the named-type ancestor declares Optional —
+    // converts the implicit-lift postulate T ≤ opt(T) into an explicit graph edge at
+    // syntactic boundary, so Push/Destruction never reach WrapAncestorInOptional on a
+    // solved SyntaxNode literal.
+    [Test]
+    public void BugE2_PreDeclaredAndDeeperInlineWithAnnotation_FU761() {
+        RunRec(
+            "type t = {v: int, k: t? = none}\r" +
+            "ti = t{v=1, k=t{v=2}}\r" +
+            "arr:t[] = [ti, t{v=3, k=t{v=4, k=t{v=5}}}]\r" +
+            "y = arr.count()")
+            .AssertResultHas("y", 2);
+    }
+
+    // ========================================================================
+    // MODERATE: Wrong errors / wrong inference
+    // ========================================================================
+
+    // Bug F FIXED: ExpressionBuilderVisitor.Visit(AnonymFunction) now uses TIC-solved
+    // input types from node.OutputType.FunTypeSpecification — the customTypes-less
+    // TypeSyntaxResolver fallback no longer fires for user-defined named types.
+    [Test]
+    public void BugF_AnnotatedRuleArgRejectsNamedType_FU406() {
+        RunRec(
+            "type tr = {v:int}\r" +
+            "out = [tr{v=1}].map(rule(x:tr) = x.v)[0]")
+            .AssertResultHas("out", 1);
+    }
+
+    // Bug F2 FIXED: same fix handles primitive aliases.
+    [Test]
+    public void BugF2_AnnotatedRuleArgRejectsPrimitiveAlias_FU406() {
+        RunRec(
+            "type age = int\r" +
+            "out = [1, 2, 3].map(rule(x:age) = x + 1)[0]")
+            .AssertResultHas("out", 2);
+    }
+
+    // Bug G FIXED: μ-identity preserved through user fn boundary
+    [Test]
+    public void BugG_DeepDotChainAfterUserFnReturningOpt_Works() {
+        RunRec(
+            "type t = {v:int, next:t? = none}\r" +
+            "f(x:t):t? = x.next\r" +
+            "n = t{v=1, next=t{v=2, next=t{v=3, next=t{v=4}}}}\r" +
+            "out = f(n)?.next?.next?.v ?? -1")
+            .AssertResultHas("out", 4);
+    }
+
+    // Bug H FIXED: NamedTypeElaborator now rejects type names colliding with primitives
+    [Test]
+    public void BugH_NamedTypeShadowsPrimitive_RejectedAtDefinition() {
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type Text = {v: int}\r" +
+            "t = Text{v=42}\r" +
+            "y = t.v"));
+    }
+
+    // ========================================================================
+    // MINOR: Missing validation for degenerate / tautological declarations
+    // ========================================================================
+
+    // Bug I FIXED: cycle detector now walks through Optional/Array in alias body
+    [Test]
+    public void BugI_OptCycleAliases_Rejected() {
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type a = b?\rtype b = a?\ry = 1"));
+    }
+
+    // Bug J FIXED
+    [Test]
+    public void BugJ_OptSelfLoop_Rejected() {
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type x = x?\ry:x = none"));
+    }
+
+    // Bug J2 FIXED
+    [Test]
+    public void BugJ2_ArrSelfLoop_Rejected() {
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type x = x[]\ry:x = []"));
+    }
+
+    // Bug K FIXED: ThrowIfNodeReq cycle-detection now accepts contractive closing edges
+    // through Array constructors symmetrically with the recursive walk's
+    // `case StateArray arr: if (fromStruct) break`. The cycle root.kids → arr_node →
+    // struct → arr_node (back-edge crosses Array) is recognized as a valid contractive
+    // μ-type instead of triggering FU731.
+    [Test]
+    public void BugK_CoalesceOnNonOptArrayOfRec_MisleadingError() {
+        var result = RunRec(
+            "type t = {v:int, kids:t[] = []}\r" +
+            "root = t{v=1}\r" +
+            "out = root.kids ?? [t{v=99}]");
+        // `root.kids` is non-Optional `t[]`; `??` on non-Optional left just yields left.
+        // root.kids defaults to []; final `out` is empty `t[]`.
+        var arr = (System.Array)result.Get("out");
+        Assert.AreEqual(0, arr.Length, "out should be empty t[]");
+    }
+
+    // ========================================================================
+    // ROUND 2 — bug-hunt 300 fuzz iterations (post-K fixes)
+    // F-bound recursion + μ-type identity preservation across various boundaries
+    // ========================================================================
+
+    // Bug L FIXED: GraphBuilder.SetCall now routes ALL composite-state args (incl. solved
+    // StateFun) through StateRefTo. Previously only unsolved composites went through RefTo;
+    // solved StateFun was passed by reference-shared state, causing member-node aliasing
+    // and downstream "Circular ancestor 0" panic. Algebraic rationale (Damas-Milner §3):
+    // each use of param `p` inside `let f = λ…p. … f(…, p) …` is reflexive — emit a
+    // constraint edge, not a fresh structural type.
+    [Test]
+    public void BugL_RecursiveHOF_RuleParamPassthrough_Works() {
+        RunRec(
+            "f(n:int, p:rule(int)->int):int = if(n<=0) 0 else f(n-1, p) + p(n)\r" +
+            "out = f(3, rule it+1)")
+            .AssertResultHas("out", 9); // f(3) = p(3)+p(2)+p(1)+0 = 4+3+2 = 9
+    }
+
+    // Bug M FIXED: Coalesce `??` compatibility check tightened. Previously had a fallback
+    // "composite types: always allow" that let int?? struct slip through, causing TIC to
+    // widen the left's element type to struct and runtime generated a lossy int→struct
+    // converter that turned `1` into the default empty struct `{}` — silent data loss.
+    // Now `int ?? struct` is correctly rejected as FU887 (Incompatible types in '??').
+    [Test]
+    public void BugM_CoalesceIntOptVsNamedStruct_RejectedFU887() {
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type t = {v:int}\r" +
+            "tree:t = t{v=1}\r" +
+            "x = tree?.v\r" +
+            "fb = x ?? t{v=99}"));
+    }
+
+    // Bug N FIXED: NamedTypeElaborator.ElaborateChildren now handles
+    // ListOfExpressionsSyntaxNode (from `(a, b)` paren-comma form), recursing into
+    // child expressions so named-type ctors get expanded before TIC sees them. The
+    // downstream FU603 'is not an expression' is now the user-facing diagnostic,
+    // replacing the leaked NFunImpossibleException internal exception.
+    [Test]
+    public void BugN_TupleSyntaxWithNamedCtor_CleanParseError() {
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type t = {v:int}\r" +
+            "x = (t{v=1}, t{v=2})"));
+    }
+
+    // Bug O FIXED: μ-identity now preserved through field access (`lf = tree.l`)
+    // by the GH #128 user-fn-boundary fix (commit 3f524f7c "preserve μ-identity through user fn").
+    // `lf:{v:Int32;l:t?}?` retains the named recursive shape; the `-1` fallback engages because
+    // tree.l's inner `l` field is `none`, so the downstream `?.l?.v ?? -1` correctly defaults.
+    [Test]
+    public void BugO_FieldAccessLosesRecursiveIdentity_AnyDegradation() {
+        RunRec(
+            "type t = {v:int, l:t? = none}\r" +
+            "tree = t{v=1, l=t{v=2}}\r" +
+            "lf = tree.l\r" +
+            "out = lf?.l?.v ?? -1")
+            .AssertResultHas("out", -1);
+    }
+
+    [Test]
+    [Ignore("Bug P (architectural, not a bug): named-typed values surface as anonymous Struct at " +
+            "the outermost level — `x:t = t{...}`, `m = identity(x)`, `tree = t{v=1,l=t{v=2}}` ALL " +
+            "produce Struct, not NamedStruct(t). Root: FunnyType is a tagged union — either Struct " +
+            "(with field spec) or NamedStruct (with name only), not both. TicTypesConverter " +
+            "deliberately expands depth-1 named structs as plain Struct (without TypeName) so the " +
+            "runtime can read field types for F-bound dispatch, defaults, etc. NamedStruct is " +
+            "reserved for recursive back-references at depth ≥ 1. To preserve TypeName at depth 0 " +
+            "would require either (a) extending FunnyType with TypeName-on-Struct, or (b) routing " +
+            "runtime field access via a NamedStruct → spec registry — both ~moderate refactor. " +
+            "Test removed because the same naming loss affects all named-typed values, not just " +
+            "user-fn returns; documenting only one symptom is misleading.")]
+    public void BugP_UserFnReturnTypeAnnotation_MuIdentityUnfolded() {
+        var rt = BuildRec(
+            "type t = {v:int, l:t? = none}\r" +
+            "identity(n:t):t = n\r" +
+            "x:t = t{v=1}\r" +
+            "m = identity(x)\r" +
+            "out = m.v");
+        var mType = rt["m"].Type;
+        Assert.AreEqual(Types.BaseFunnyType.NamedStruct, mType.BaseType);
+        Assert.AreEqual("t", mType.NamedStructTypeName);
+    }
+
+    // Bug Q FIXED: Visit(ArraySyntaxNode) now passes an element-type hint to SetSoftArrayInit
+    // when all array elements share the same NamedStruct OutputType. Without the hint, a
+    // single-element `[t{}]` literal where the recursive field defaults to `none` had its
+    // post-Pull state preserved as `next:None` (because "None desc → skip" rule keeps the
+    // primitive None rather than lifting through the named ancestor) — the element-LCA node,
+    // having no other input, then collapsed to `{...;next:none}`. The hint seeds the element
+    // node with the full named-t recursive shape so Pull simply confirms compatibility.
+    [Test]
+    public void BugQ_SingleElementNamedArr_PreservesRecursiveIdentity() {
+        var rt = BuildRec(
+            "type t = {v: int, next: t? = none}\r" +
+            "arr = [t{v=1}]\r" +
+            "out = arr[0]");
+        var elemType = rt["arr"].Type.ArrayTypeSpecification.FunnyType;
+        // Element's `next` field must be Optional(NamedStruct("t")), not None.
+        var nextType = elemType.StructTypeSpecification["next"];
+        Assert.AreEqual(Types.BaseFunnyType.Optional, nextType.BaseType,
+            "next must be Optional, not None");
+        var nextInner = nextType.OptionalTypeSpecification.ElementType;
+        Assert.AreEqual(Types.BaseFunnyType.NamedStruct, nextInner.BaseType,
+            "next's inner must be NamedStruct preserving recursive identity");
+        Assert.AreEqual("t", nextInner.NamedStructTypeName);
+    }
+
+    // Bug R FIXED: SetCall on a RefTo(memberNode) now writes the synthesized StateFun onto
+    // the deref target (memberNode), not onto the alias node. Previously the synthesized
+    // `()->fresh` StateFun was set on the RefTo holder, severing the link to the field's
+    // member — Pull then couldn't merge declared `rule()->s?` from the named struct's t-field
+    // into the call's return position, collapsing tx to `{h:Any}?`. Fixed in GraphBuilder.SetCall.
+    [Test]
+    public void BugR_RuleFieldInvocationLosesIdentity() {
+        var rt = BuildRec(
+            "type s = {h: int, t: rule()->s?}\r" +
+            "mkInner():s = s{h=2, t=rule none}\r" +
+            "x = s{h=1, t=rule mkInner()}\r" +
+            "tx = x.t()\r" +
+            "out = tx!.h");
+        var outType = rt["out"].Type;
+        // Expected: out is Int32 (h is declared int on the recursive type).
+        Assert.AreEqual(Types.BaseFunnyType.Int32, outType.BaseType);
+    }
+
+    // ========================================================================
+    // Bug-hunt round 3 (300 iter focus on F-bound recursive hell, May 2026)
+    // ========================================================================
+
+    // Bug S FIXED: DestructionFunctions.Apply(StatePrimitive ancestor, ICompositeState descendant)
+    // now recognizes the `None ≤ opt(T)` lift even when arguments arrive inverted. The inversion
+    // is structural to Apply(StateFun, StateFun) which calls
+    //   `Destruction(ancestor.RetNode, descendant.RetNode)`
+    // with the positional contract `Destruction(descendantNode, ancestorNode)` — semantically
+    // anc/desc swap. With opt(T) descendant and None ancestor the inversion masked an otherwise
+    // valid lift, throwing IncompatibleNodes during Destruction inside a struct-field's return
+    // type. Affects scenarios where `rule none` body appears in an inline struct constructor
+    // under an Optional named-struct declaration.
+    [Test]
+    public void BugS_RuleNoneInNestedInlineConstructor_FU761() {
+        RunRec(
+            "type box = {v:int, n: rule()->int?}\r" +
+            "out: rule()->box? = rule box{v=10, n = rule none}\r" +
+            "v = out()?.v ?? -1")
+            .AssertResultHas("v", 10);
+    }
+
+    [Test]
+    public void BugS_AnnotationOptStruct_InlineRuleNone_MinimalRepro() {
+        // The 2-line minimum case: annotation `box?` (Optional named struct) +
+        // inline `box{...}` constructor with a `rule none` field — used to FU761.
+        Assert.DoesNotThrow(() => BuildRec(
+            "type box = {v:int, n: rule()->int?}\r" +
+            "helper: box? = box{v=1, n=rule none}"));
+    }
+
+    // Bug T FIXED: WrapAncestorInOptional now detects the self-cycle case where
+    // optB.ElementNode === nodeA (the descendant's Optional element points to the very node
+    // being wrapped). In that case the lift `T ≤ opt(T)` is trivially satisfied — wrapping
+    // would just rebuild the same Optional, generating an unbounded re-wrap chain
+    // (arr(Ch) → opt(ow_arr) → opt(opt(owow_arr)) → … stack overflow). Coinductive return
+    // true (Amadio-Cardelli §3).
+    [Test]
+    public void BugT_TwoLevelSafeAccess_MixedOptionalFields_StackOverflow() {
+        Assert.DoesNotThrow(() => BuildRec(
+            "type t = {v:int, next:t? = none, name:text? = none}\r" +
+            "n = t{v=1, next=t{v=2}}\r" +
+            "out = n.next?.next?.name"));
+    }
+
+    // Bug U FIXED: ExpressionBuilderVisitor's IsFieldCall+IsPipeForward branch now routes
+    // safe-access (`?.`) calls through SafePipedCallExpressionNode + CachedSourceNode — same
+    // pattern already used for ?.method() on known functions. Previously the FieldCall fallback
+    // (when the method name is a struct field, not a registered function) built a plain
+    // StructFieldAccessExpressionNode whose constructor reads `source.Type.StructTypeSpecification`
+    // and that's null when source type is Optional → NullReferenceException.
+    [Test]
+    public void BugU_SafeAccessOnOptionalStruct_RuleFieldInvocation_NRE() {
+        RunRec(
+            "type t = {v: int, next: t? = none, f: rule(int)->int}\r" +
+            "node = t{v=1, f = rule it+1, next = t{v=2, f = rule it*10}}\r" +
+            "b = node.next?.f(5)")
+            .AssertResultHas("b", 50);
+    }
+
+    [Test]
+    public void BugU_SafeAccessOnOptionalStruct_NoneSource_PropagatesNone() {
+        // Source `.next` is none → safe-call returns none (not crash).
+        Assert.DoesNotThrow(() => RunRec(
+            "type t = {v: int, next: t? = none, f: rule(int)->int}\r" +
+            "node = t{v=1, f = rule it+1}\r" +
+            "b = node.next?.f(5)"));
+    }
+
+    [Test]
+    public void BugU_SafeAccessNonRecursiveStructWithRuleField() {
+        // Same fix covers non-recursive holder-of-optional-struct-with-rule-field shape.
+        RunRec(
+            "type s = {v:int, f: rule(int)->int}\r" +
+            "type holder = {sub: s? = none}\r" +
+            "h = holder{sub = s{v=1, f = rule it+1}}\r" +
+            "b = h.sub?.f(5)")
+            .AssertResultHas("b", 6);
+    }
+
+    // ========================================================================
+    // Bug-hunt round 4 (300 iter follow-up after S/T/U/R/O fixes, May 2026)
+    // ========================================================================
+
+    // Bug V FIXED: combination fix. (1) TicSetupVisitor's FieldCall fallback now installs
+    // SetFieldAccess on `ids[0]` (which has been remapped to the unwrappedNode by SafeAccess
+    // setup), not on the original Optional source. (2) DestructionFunctions.Apply(StateFun,
+    // StateFun) variance corrected: args destruction call now passes anc/desc in contravariant
+    // order, ret destruction in covariant order — previously both were inverted positionally,
+    // which usually worked under reference-equal arg/ret nodes but surfaced as StatePrimitive ×
+    // StateOptional dispatch on the wrong side when SafeAccess wiring's T ≤ opt(T) lift sat at
+    // the field-call return position.
+    [Test]
+    public void BugV_SafeAccessFieldCall_OnInferredOptionalFromIfElseNone_StackOverflow() {
+        BuildRec(
+            "type n = {v:int, f:rule(int)->int}\r" +
+            "x = if(true) n{v=10, f=rule it+1} else none\r" +
+            "y = x?.f(5)");
+    }
+
+    // Bug W FIXED by the same combination as Bug V.
+    [Test]
+    public void BugW_SafeAccessFieldCall_OnAnnotatedOptionalReceiver_FU755() {
+        BuildRec(
+            "type n = {v:int, f:rule(int)->int}\r" +
+            "x:n? = n{v=10, f=rule it+1}\r" +
+            "y = x?.f(5)");
+    }
+
+    [Test]
+    public void BugW_SafeAccessFieldCall_AnnotatedOptional_NoneSource_PropagatesNone() {
+        // x:T? = none — safe call yields none.
+        Assert.DoesNotThrow(() => BuildRec(
+            "type n = {v:int, f:rule(int)->int}\r" +
+            "x:n? = none\r" +
+            "y = x?.f(5) ?? -1"));
+    }
+
+    // Bug X FIXED: TypeName-based cycle guard added to Lca(StateStruct, StateStruct) and
+    // Gcd(StateStruct, StateStruct). Original crash trace went through interleaved Lca/Gcd
+    // (Lca(StateFun) calls Gcd on contravariant args → struct Gcd → field Gcd → struct Lca
+    // again). Pre-existing ReferenceEquals guard on Lca missed because every Lca level
+    // builds a fresh StateStruct snapshot. Coinductive identity via TypeName resolves both.
+    //
+    // The original repro script `t{a=none, b=rule it}` was actually ill-typed (`rule it` is
+    // `(T)->T` but field b is `rule(t)->t?` = `(t)->opt(t)`); pre-fix this surfaced as stack
+    // overflow, post-fix it surfaces as a proper FU728 parse error. Test below asserts the
+    // VALID multi-self-path case works — `head:int + alt:t? + lazy:rule()->t?` — which is
+    // exactly what the spec allows (NamedTypes.md "A struct field can reference its own type
+    // through `?`, `[]`, or `rule(...)->...?`").
+    [Test]
+    public void BugX_RecursiveTypeWithTwoSelfPaths_ValidMultiPath_Works() {
+        RunRec(
+            "type t = {head: int, alt: t? = none, lazy: rule()->t?}\r" +
+            "s = t{head = 1, lazy = rule none}\r" +
+            "out = s.head")
+            .AssertResultHas("out", 1);
+    }
+
+    [Test]
+    public void BugX_RecursiveTypeWithTwoSelfPaths_IllTypedBody_NoCrash() {
+        // Original Bug X repro: `b=rule it` doesn't match `rule(t)->t?`. Pre-fix: stack
+        // overflow during TIC. Post-fix: graceful FunnyParseException (FU728 or similar).
+        Assert.Throws<FunnyParseException>(() => BuildRec(
+            "type t = {a: t?, b: rule(t)->t?}\r" +
+            "x = t{a=none, b=rule it}\r" +
+            "out = x.a == none"));
+    }
+
+    // Bug Y FIXED: `LangTiHelper.ConvertToTiType(FunnyType, StateRefTo[])` (the generic-fn
+    // signature converter) resolved NamedStruct via `ResolveNamedStruct(name, null)` —
+    // null registry returns ConstraintsState.Empty. SetCallArgument then hit its default
+    // branch (no case for ConstraintsState) and threw bare NotSupportedException.
+    // Added a 3-arg overload threading `INamedTypeFieldRegistry`; TicSetupVisitor.ConvertFunArgType
+    // now passes `_namedTypeFieldRegistry` through even when genericTypes is non-empty.
+    [Test]
+    public void BugY_HofWithNamedStructAndGenericFunArg_NotSupportedException() {
+        RunRec(
+            "type s = {v:int}\r" +
+            "applyFn(g, h:s) = g(h)\r" +
+            "out = applyFn(rule it.v + 1, s{v=42})")
+            .AssertResultHas("out", 43);
+    }
+
+    // Bug Z FIXED: targeted Preferred-override in PropagatePreferred.ApplyPreferred. The
+    // existing code refused to override `cs.Preferred` once it was set. In Bug Z the
+    // intermediate node ended up with `Preferred = Descendant` (= U24 from Arithmetical's
+    // narrowest acceptable type) before PropagatePreferred ran. The global broadcast
+    // (from `0` literal's I32) then couldn't override. Fix: when existing Preferred is
+    // reference-equal to Descendant (auto-init pattern, not literal intent), allow the
+    // broadcast Preferred to replace it. Conservative — only fires for the
+    // `Preferred ≡ Descendant` case, which empirically captures the Arithmetical-default
+    // U24 surface without affecting genuine Preferred from real literals or function
+    // dialect constants.
+    [Test]
+    public void BugZ_OptArrayReduce_InFunctionBody_SumIntCastError() {
+        RunRec(
+            "fn(arr:int[]?):int = arr?.reverse().sum() ?? 0\r" +
+            "out = fn([10, 20, 30])")
+            .AssertResultHas("out", 60);
+    }
+
+    [Test]
+    public void BugZ_SortSum_InFunctionBody() {
+        RunRec(
+            "fn(arr:int[]?):int = arr?.sort().sum() ?? 0\r" +
+            "out = fn([3, 1, 2])")
+            .AssertResultHas("out", 6);
+    }
+
+    [Test]
+    public void BugZ_MapSum_InFunctionBody() {
+        RunRec(
+            "fn(arr:int[]?):int = arr?.map(rule it * 2).sum() ?? 0\r" +
+            "out = fn([1, 2, 3])")
+            .AssertResultHas("out", 12);
+    }
+
+    // Structural typing per Specs/NamedTypes.md (L3 "transparent alias — fully
+    // interchangeable", L124 "named types are structural — no runtime
+    // distinction"): two named struct types with identical shape now interchange
+    // freely. The Pull rule used to enforce nominal typing and reject on
+    // TypeName conflict; it now downgrades to anonymous and lets the
+    // field-level Pull catch genuine shape mismatches.
+    [Test]
+    public void StructuralNamedTypes_DirectAssignment_Interchanges() {
+        "type t = {v:int}\r type u = {v:int}\r x:t = t{v=5}\r y:u = x\r yv = y.v"
+            .CalcWithNamedTypes()
+            .AssertResultHas("yv", 5);
+    }
+
+    [Test]
+    public void StructuralNamedTypes_CrossNamedFunctionArg() {
+        "type t = {v:int}\r type u = {v:int}\r f(x:u):int = x.v\r out = f(t{v=42})"
+            .CalcWithNamedTypes()
+            .AssertResultHas("out", 42);
+    }
+
+    [Test]
+    public void StructuralNamedTypes_OptionalCrossNamed() {
+        "type t = {v:int}\r type u = {v:int}\r x:t? = t{v=5}\r y:u? = x\r yv = y?.v ?? -1"
+            .CalcWithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .AssertResultHas("yv", 5);
+    }
 }

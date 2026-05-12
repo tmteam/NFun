@@ -33,6 +33,15 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // StateFun's Destruction calls `Destruction(ancestor.RetNode, descendant.RetNode)`
+        // with positional args (descendantNode=ancestor.RetNode, ancestorNode=descendant.RetNode)
+        // — semantically inverted from intuitive (anc,desc) order. When the actual return-type
+        // relation is `None ≤ opt(T)` (e.g. `rule none` body fed into `rule()->T?` field with
+        // the body wrapped in a struct under an Optional declaration), this swap surfaces here
+        // as `ancestor=None, descendant=opt(T)`. The lift `None ≤ opt(T)` is algebraically
+        // valid; accept silently to honor the inversion.
+        if (ancestor == StatePrimitive.None && descendant is StateOptional)
+            return true;
         // Composite can only fit into Any. However, during Optional solving, Optional element
         // nodes may temporarily have Optional state before Destruction resolves them.
         if (!descendant.CanBePessimisticConvertedTo(ancestor) && !descendantNode.IsOptionalElement)
@@ -305,10 +314,22 @@ public class DestructionFunctions : IStateFunction {
         SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
 
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Variance: for `desc ≤ anc` on StateFun (function subtyping):
+        //   args contravariant — anc.arg ≤ desc.arg, so call `Destruction(anc.arg, desc.arg)`
+        //   ret  covariant     — desc.ret ≤ anc.ret, so call `Destruction(desc.ret, anc.ret)`
+        // Signature `Destruction(descendantNode, ancestorNode)`: first positional is the
+        // subtype, second is the supertype. The previous wiring inverted both directions
+        // : args called as `Destruction(desc.arg, anc.arg)` (covariant —
+        // wrong), ret called as `Destruction(anc.ret, desc.ret)` (contravariant — wrong).
+        // It usually still worked because in most cases arg/ret nodes are reference-equal after
+        // merge (Destruction line 1438 returns true at identity). But when args/rets have a
+        // genuine T ≤ opt(T) lift on either side (e.g. SafeAccess unwrap+wrap setup wiring),
+        // the inversion surfaced StatePrimitive vs StateOptional mismatch on the wrong side and
+        // threw IncompatibleNodes.
         if (ancestor.ArgsCount == descendant.ArgsCount)
             for (int i = 0; i < ancestor.ArgsCount; i++)
-                SolvingFunctions.Destruction(descendant.ArgNodes[i], ancestor.ArgNodes[i]);
-        SolvingFunctions.Destruction(ancestor.RetNode, descendant.RetNode);
+                SolvingFunctions.Destruction(ancestor.ArgNodes[i], descendant.ArgNodes[i]);
+        SolvingFunctions.Destruction(descendant.RetNode, ancestor.RetNode);
         return true;
     }
 
@@ -333,8 +354,27 @@ public class DestructionFunctions : IStateFunction {
                 // Invariant: unify fields (must be same type)
                 SolvingFunctions.MergeInplace(descFieldNode, ancFieldNode);
                 sameFieldCount++;
+                continue;
             }
-            else if (SolvingFunctions.Destruction(descFieldNode, ancFieldNode))
+
+            // Stale snapshot lift: ancestor field came from a Pull-Phase-1 snapshot that captured
+            // a `none` default (StatePrimitive.None) before Phase 2 wrapped the corresponding
+            // descendant field in Optional. None ≤ opt(T) is a valid implicit lift; rejecting it
+            // would error on the algebraically-trivial case. Mirrors Pull's "Field 'X': None desc
+            // → skip (handled by outer Optional)" rule. We refresh ancestor's field to RefTo the
+            // descendant's (correctly-inferred) field — otherwise the inferred output type would
+            // still render the stale `k:none` instead of `k:opt(T)`. Same root as
+            var ancFieldNr = ancFieldNode.GetNonReference();
+            var descFieldNr = descFieldNode.GetNonReference();
+            if (ancFieldNr.State is StatePrimitive { Name: PrimitiveTypeName.None }
+                && descFieldNr.State is StateOptional)
+            {
+                ancFieldNr.State = new StateRefTo(descFieldNr);
+                sameFieldCount++;
+                continue;
+            }
+
+            if (SolvingFunctions.Destruction(descFieldNode, ancFieldNode))
                 sameFieldCount++;
         }
 
@@ -364,22 +404,40 @@ public class DestructionFunctions : IStateFunction {
     /// Checks if the actual descendant composite contains Optional-wrapped elements
     /// that the stale constraint descendant doesn't (e.g. arr(opt(T)) vs arr(U8)).
     /// This happens when Phase 2 wraps array/struct elements in Optional after
-    /// the constraint's Descendant was already set.
+    /// the constraint's Descendant was already set. Recurses transitively through
+    /// composite layers — μ-identity preservation
+    /// keeps deeper nesting intact so the lift detection must walk past one level.
     /// </summary>
     private static bool DescendantHasOptionalLift(ITicNodeState staleDescendant, ICompositeState actual) =>
         (staleDescendant, actual) switch {
             (StateArray staleArr, StateArray actualArr) =>
-                actualArr.Element is StateOptional && staleArr.Element is not StateOptional,
+                IsOptionalLiftBetween(staleArr.Element, actualArr.Element),
             (StateStruct staleStr, StateStruct actualStr) =>
                 HasAnyOptionalLiftedField(staleStr, actualStr),
             _ => false
         };
 
+    /// <summary>
+    /// Two states differ by Optional-lift if either:
+    /// - actual is Optional and stale is not (the direct case);
+    /// - both are composite of the same kind, and recursively a deeper position
+    ///   shows the same divergence (μ-recursion case: arr(struct{k:opt}) vs arr(struct{k:None})).
+    /// </summary>
+    private static bool IsOptionalLiftBetween(ITicNodeState stale, ITicNodeState actual) {
+        if (actual is StateOptional && stale is not StateOptional)
+            return true;
+        return (stale, actual) switch {
+            (StateArray sa, StateArray aa) => IsOptionalLiftBetween(sa.Element, aa.Element),
+            (StateStruct ss, StateStruct sas) => HasAnyOptionalLiftedField(ss, sas),
+            _ => false
+        };
+    }
+
     private static bool HasAnyOptionalLiftedField(StateStruct stale, StateStruct actual) {
         foreach (var (key, actualFieldNode) in actual.Fields) {
             var staleFieldNode = stale.GetFieldOrNull(key);
             if (staleFieldNode == null) continue;
-            if (actualFieldNode.State is StateOptional && staleFieldNode.State is not StateOptional)
+            if (IsOptionalLiftBetween(staleFieldNode.State, actualFieldNode.State))
                 return true;
         }
         return false;

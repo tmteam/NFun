@@ -107,11 +107,13 @@ public readonly struct GenericConstrains {
         StructDescendant = structDescendant;
         Preferred = preferred;
         StructBound = structBound;
+        #if DEBUG
         // Sanity: StructBound and StructDescendant carry different semantics
         // (F-bound vs open-row); a single constraint never has both.
         System.Diagnostics.Debug.Assert(
             !(StructDescendant.BaseType == BaseFunnyType.Struct
               && StructBound.BaseType == BaseFunnyType.Struct),
             "GenericConstrains: StructBound and StructDescendant must not coexist");
+        #endif
     }
 }

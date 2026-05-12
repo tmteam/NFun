@@ -18,8 +18,8 @@ public static partial class StateExtensions {
             return true;
 
         // None can only optimistically convert to None or Optional targets
-        if (from == StatePrimitive.None)
-            return to == StatePrimitive.None
+        if (from == None)
+            return to == None
                 || (to is ICompositeState cs && from.CanBeConvertedOptimisticTo(cs));
 
         // Optional can only optimistically convert to Optional targets
@@ -182,7 +182,7 @@ public static partial class StateExtensions {
         // to is Optional: None → Opt(T) = true, Opt(A) → Opt(B) covariant, T → Opt(T) implicit lift
         if (to is StateOptional optTo)
         {
-            if (from == StatePrimitive.None)
+            if (from == None)
                 return true;
             if (from is StateOptional optFrom)
                 return optFrom.Element.CanBeConvertedPessimisticTo(optTo.Element);
@@ -193,8 +193,8 @@ public static partial class StateExtensions {
             return true;
 
         // None and Optional can't pessimistically convert to non-optional targets (except Any above)
-        if (from == StatePrimitive.None)
-            return to == StatePrimitive.None;
+        if (from == None)
+            return to == None;
         if (from is StateOptional)
             return false;
 

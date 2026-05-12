@@ -208,14 +208,14 @@ public class IntegerBitOperatorsTest {
         => expression.AssertReturns("y", expected);
 
 
+    // Bits shift OUT of the operand's range when the count is below `bits`:
+    // genuine value-overflow → 0. Counts ≥ bits are covered by the wrapping
+    // test below (mask to operand bit width per Specs/Operators.md L185).
     [TestCase("y:uint64 = 0xF000_0000_0000_0000<<8", (ulong)0)]
     [TestCase("y:uint64 = 0xFEC0_0000_0000_0000<<16", (ulong)0)]
     [TestCase("y:uint32 = 0xF000_0000<<8", (uint)0)]
     [TestCase("y:uint32 = 0xFEC0_0000<<16", (uint)0)]
     [TestCase("y:uint16 = 0xF000<<8", (UInt16)0)]
-    [TestCase("y:uint16 = 0xFEC0<<16", (UInt16)0)]
-    [TestCase("y:uint8 = 0xF0<<8", (byte)0)]
-    [TestCase("y:uint8 = 0xFE<<16", (byte)0)]
     public void BitShiftOverflow(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
@@ -223,9 +223,15 @@ public class IntegerBitOperatorsTest {
     // Bitshift wrapping: standard behavior (matches C#/Java/Rust).
     // Shift count is masked to bit width: x << n = x << (n % bits).
     [TestCase("y:uint32 = 0xFFFF_ffff<<1", (uint)0xFFFFFFFE)]
-    [TestCase("y:uint32 = 0x1<<33", (uint)2)]        // 33 % 32 = 1
-    [TestCase("y:int32 = 0x1<<33", 2)]                // 33 % 32 = 1
-    public void BitshiftWraps_32bit(string expr, object expected) =>
+    [TestCase("y:uint32 = 0x1<<33", (uint)2)]                  // 33 % 32 = 1
+    [TestCase("y:int32 = 0x1<<33", 2)]                          // 33 % 32 = 1
+    [TestCase("y:uint16 = 0xFEC0<<16", (UInt16)0xFEC0)]         // 16 % 16 = 0
+    [TestCase("y:uint16 = 0x1<<17", (UInt16)2)]                 // 17 % 16 = 1
+    [TestCase("y:int16  = 0x1<<16", (Int16)1)]                  // 16 % 16 = 0
+    [TestCase("y:uint8  = 0xF0<<8",  (byte)0xF0)]               // 8 % 8 = 0
+    [TestCase("y:uint8  = 0xFE<<16", (byte)0xFE)]               // 16 % 8 = 0
+    [TestCase("y:uint8  = 0x1<<9",   (byte)2)]                  // 9 % 8 = 1
+    public void BitshiftWraps_AllWidths(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 
     [TestCase("y:uint64 = 0xFFFF_ffff_FFFF_ffff<<1", (ulong)0xFFFFFFFFFFFFFFFE)]
@@ -298,4 +304,18 @@ public class IntegerBitOperatorsTest {
     [TestCase("y = false | 7")]
     public void BitwiseOnBool_GivesTypeError(string expr) =>
         expr.AssertObviousFailsOnParse();
+
+    // `~` preserves operand bit-width even when a surrounding expression widens
+    // the result (e.g. `~a + 0` with a:byte). Without this, TIC unifies operand
+    // and result via one generic and the operand gets widened BEFORE complement,
+    // turning `~byte 5` into int32 -6 instead of byte 250 widened to 250.
+    // Spec L176 + L193 — `~A = 0b1100_0011` for byte A is defined at byte width.
+    [TestCase("a:byte=1\r y = ~a + 0", 254)]
+    [TestCase("a:byte=5\r y = ~a + 0", 250)]
+    [TestCase("a:byte=255\r y = ~a + 0", 0)]
+    [TestCase("a:uint16=60\r y = ~a + 0", 65475)]
+    [TestCase("a:uint16=0\r y = ~a + 0", 65535)]
+    [TestCase("a:byte=5\r y:int32 = ~a", 250)]
+    public void BitwiseNot_PreservesUnsignedOperandWidth(string expr, int expected) =>
+        expr.AssertResultHas("y", expected);
 }

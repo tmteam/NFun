@@ -110,4 +110,12 @@ public class TextTypeTest {
     [TestCase("y = 'arr: '+ [1,2,3]")]
     [TestCase("y = 'arr: '+ [[1,2],[3]]")]
     public void PlusOperatorFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    // toText of a struct containing an array used to leak ImmutableFunnyArray's
+    // internal `Arr[...]` debug ToString. Now ToString delegates to ToText so
+    // embedded shapes match the standalone `[1,2]` form across all contexts.
+    [TestCase("y = toText({a=[1,2]})", "{ a=[1,2] }")]
+    [TestCase("y = toText({a={b=[1,2]}})", "{ a={ b=[1,2] } }")]
+    public void ToText_NestedArrayField_RendersAsBrackets(string expr, string expected) =>
+        expr.AssertReturns("y", expected);
 }

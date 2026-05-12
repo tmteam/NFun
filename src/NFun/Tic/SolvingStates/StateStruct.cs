@@ -22,6 +22,15 @@ public class StateStruct : ICompositeState {
         _nodes.Add(name, memberNode);
     }
 
+    /// <summary>
+    /// Replace an existing field's TicNode in-place. Used by SetStructInitType to insert
+    /// Optional-wrapper intermediaries between a struct literal and its declared-Optional
+    /// ancestor field. Caller's responsibility to ensure the field exists.
+    /// </summary>
+    internal void ReplaceField(string name, TicNode memberNode) {
+        _nodes[name] = memberNode;
+    }
+
     public static StateStruct Empty(bool isFrozen = true) => Of(isFrozen);
     public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields, bool isFrozen, bool isOpen = false) {
         var nodeFields = new Dictionary<string, TicNode>();
@@ -250,12 +259,21 @@ public class StateStruct : ICompositeState {
     public override bool Equals(object obj) {
         if (obj is not StateStruct stateStruct) return false;
         if (ReferenceEquals(this, stateStruct)) return true;
-        // Two named structs with the same declared TypeName are the same type by definition.
-        // The short-circuit lets equivalence checks on cycle-rescued recursive types succeed
-        // without descending into the cyclic field graph.
-        if (TypeName != null && stateStruct.TypeName != null
-            && TypeName.Equals(stateStruct.TypeName, StringComparison.OrdinalIgnoreCase))
-            return true;
+        // Nominal-typing rule for named structs:
+        // When BOTH sides have a declared TypeName, equality is determined by the name
+        // alone (case-insensitive). The names match → equal (cycle-rescued recursive
+        // types succeed without descending into the cyclic field graph). The names
+        // differ → NOT equal, even if shapes coincide — `type t1 = {v:int}` and
+        // `type t2 = {v:int}` are distinct types per nominal typing (Pierce TAPL §19).
+        //
+        // Previously a name-mismatch fell through to structural comparison, allowing
+        // silent merge of two distinct named types — caught by bug-regression unit tests
+        // and verified to cause `y:t2 = x` (where `x:t1`) to be accepted with TypeName
+        // dropped. The structural fall-through is preserved only when at least one side
+        // is anonymous (no TypeName) — that's row-polymorphism / structural-subtyping
+        // territory, not nominal-vs-nominal.
+        if (TypeName != null && stateStruct.TypeName != null)
+            return TypeName.Equals(stateStruct.TypeName, StringComparison.OrdinalIgnoreCase);
         if (_nodes.Count != stateStruct._nodes.Count) return false;
 
         // Coinductive Equals for cyclic struct shapes (Amadio-Cardelli '93 §4.2). With true graph

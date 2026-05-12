@@ -41,7 +41,7 @@ public static partial class StateExtensions {
                 var elem = aOpt.Element.UnifyOrNull(bOpt.Element);
                 return elem == null ? null : StateOptional.Of(elem);
             }
-            if (b == StatePrimitive.None)
+            if (b == None)
                 return b; // None ≤ Opt(T), intersection = None
             return null;
         }

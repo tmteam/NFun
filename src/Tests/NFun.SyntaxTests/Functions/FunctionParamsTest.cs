@@ -1,7 +1,7 @@
 namespace NFun.SyntaxTests.Functions;
 
-using NFun.Exceptions;
-using NFun.TestTools;
+using Exceptions;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>Vararg params syntax (#86)</summary>

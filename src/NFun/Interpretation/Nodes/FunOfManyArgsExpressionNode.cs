@@ -22,6 +22,7 @@ internal class FunOfManyArgsExpressionNode : IExpressionNode {
     private readonly IExpressionNode[] _argsNodes;
     private readonly bool[] _lazyArgs;
 
+    internal IConcreteFunction Fun => _fun;
     public Interval Interval { get; }
     public FunnyType Type => _fun.ReturnType;
     public IEnumerable<IRuntimeNode> Children => _argsNodes;

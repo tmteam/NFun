@@ -158,7 +158,7 @@ public class PushConstraintsFunctions : IStateFunction {
                 "e" + descendantNode.Name + "'",
                 ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable));
             innerNode.IsOptionalElement = true;
-            descendantNode.State = new SolvingStates.StateOptional(innerNode);
+            descendantNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
             innerNode.AddAncestor(ancestorNode);
             SolvingFunctions.PushConstraints(innerNode, ancestorNode);

@@ -27,7 +27,7 @@ public class MultiSumFunction : GenericFunctionBase {
             BaseFunnyType.Int32  => context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
             BaseFunnyType.Int64  => context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
             BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
-            _                    => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
+            _                    => throw new NFunImpossibleException("Unsupported type for this function")
         };
 
 
@@ -532,7 +532,7 @@ public class RangeStepFunction : GenericFunctionBase {
             BaseFunnyType.Int32  => Int32Function.Instance,
             BaseFunnyType.Int64  => Int64Function.Instance,
             BaseFunnyType.Real   =>context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance,RealDecimalFunction.Instance),
-            _                    => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
+            _                    => throw new NFunImpossibleException("Unsupported type for this function")
         };
 
     private const string Id = "rangeWithStep";

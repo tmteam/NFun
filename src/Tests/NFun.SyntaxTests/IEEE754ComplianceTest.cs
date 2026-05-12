@@ -228,4 +228,42 @@ public class IEEE754ComplianceTest {
     public void MaxNaN_ShouldPropagateNaN() {
         "out = max(0.0/0.0, 1.0)".Calc().AssertResultHas("out", double.NaN);
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // NaN production from non-arithmetic sources
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("y = sqrt(-1.0)")]
+    public void Sqrt_Negative_ProducesNaN(string expr) {
+        var d = (double)expr.Calc().Get("y");
+        Assert.IsTrue(double.IsNaN(d), $"Expected NaN, got {d}");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // NaN propagation through max/min (with various sign combinations)
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("y = max(0.0/0.0, 1.0)")]
+    [TestCase("y = max(1.0, 0.0/0.0)")]
+    [TestCase("y = max(0.0/0.0, 0.0/0.0)")]
+    [TestCase("y = max(0.0/0.0, -100.0)")]
+    [TestCase("y = max(0.0/0.0, 0.0)")]
+    [TestCase("y = min(0.0/0.0, 1.0)")]
+    [TestCase("y = min(1.0, 0.0/0.0)")]
+    [TestCase("y = min(0.0/0.0, 0.0/0.0)")]
+    public void MinMax_NaN_ReturnsNaN(string expr) {
+        var d = (double)expr.Calc().Get("y");
+        Assert.IsTrue(double.IsNaN(d), $"Expected NaN, got {d}");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Normal min/max sanity (no NaN)
+    // ═══════════════════════════════════════════════════════════════
+
+    [TestCase("y = max(3.0, 7.0)", 7.0)]
+    [TestCase("y = min(3.0, 7.0)", 3.0)]
+    [TestCase("y = max(-5.0, -1.0)", -1.0)]
+    [TestCase("y = min(-5.0, -1.0)", -5.0)]
+    public void MinMax_Sanity(string expr, double expected) =>
+        expr.AssertReturns(expected);
 }

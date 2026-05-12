@@ -220,7 +220,7 @@ public class SimplePrimitiveSolverDifferentialTest {
     [TestCase("y:bool = 1.0")]
     [TestCase("y:real = false")]
     public void SpsRejectsTypeMismatch(string expr) {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => expr.Build());
+        Assert.Throws<Exceptions.FunnyParseException>(() => expr.Build());
     }
 
     // ======================================================================
@@ -277,7 +277,7 @@ public class SimplePrimitiveSolverDifferentialTest {
 
     [Test]
     public void MixedSignedUnsigned_Bitwise_U64_I64_Error() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
             "a:uint64 = 5\r b:int64 = 3\r c = a & b".Build());
     }
 }

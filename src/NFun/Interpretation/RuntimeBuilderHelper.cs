@@ -72,7 +72,7 @@ internal static class RuntimeBuilderHelper {
         // Fast path: primitive-only bodies solved with interval arithmetic.
         // IsSimpleBody determined during numbering pass — zero-cost gate.
         if (namedTypeFieldRegistry == null && syntaxTree.IsSimpleBody) {
-            var fastResult = Tic.SimplePrimitiveSolver.SolveOrNull(
+            var fastResult = SimplePrimitiveSolver.SolveOrNull(
                 syntaxTree, functions, constants, aprioriTypes, dialect,
                 out typesApplied, customTypes);
             if (fastResult != null) return fastResult;

@@ -88,25 +88,28 @@ public class NamedRecursiveTypeApiTest {
     }
 
     [Test]
-    public void LinkedList_InnerStructType_HasSameFields() {
+    public void LinkedList_InnerStructType_IsNamed() {
+        // The `next: node?` field's inner type IS the named type `node` itself.
+        // Recursive references preserve named identity (NamedStruct, not anonymous Struct) —
+        // see TypeRegistry_RecursiveFieldType_IsNamedStruct for the canonical assertion.
         var rt = Build("type node = {v:int, next:node? = none}; out = node{v=42}");
         var nextType = rt["out"].Type.StructTypeSpecification["next"];
         var inner = nextType.OptionalTypeSpecification.ElementType;
-        Assert.AreEqual(BaseFunnyType.Struct, inner.BaseType);
-        Assert.IsTrue(inner.StructTypeSpecification.ContainsKey("v"));
-        Assert.IsTrue(inner.StructTypeSpecification.ContainsKey("next"));
+        Assert.AreEqual(BaseFunnyType.NamedStruct, inner.BaseType);
+        Assert.AreEqual("node", inner.NamedStructTypeName);
     }
 
     [Test]
     public void ArrayTree_FieldTypes_Correct() {
+        // The `children: t[]` field's array element type IS the named type `t` itself.
+        // Recursive references preserve named identity.
         var rt = Build("type t = {v:int, children:t[] = []}; out = t{v=1}");
         var fields = rt["out"].Type.StructTypeSpecification;
         Assert.AreEqual(BaseFunnyType.Int32, fields["v"].BaseType);
         Assert.AreEqual(BaseFunnyType.ArrayOf, fields["children"].BaseType);
         var elemType = fields["children"].ArrayTypeSpecification.FunnyType;
-        Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType);
-        Assert.IsTrue(elemType.StructTypeSpecification.ContainsKey("v"));
-        Assert.IsTrue(elemType.StructTypeSpecification.ContainsKey("children"));
+        Assert.AreEqual(BaseFunnyType.NamedStruct, elemType.BaseType);
+        Assert.AreEqual("t", elemType.NamedStructTypeName);
     }
 
     // ─── Runtime values ───

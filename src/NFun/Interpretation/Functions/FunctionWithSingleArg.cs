@@ -34,7 +34,7 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
 
     public virtual IConcreteFunction Clone(ICloneContext context) => this;
 
-    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
+    public virtual IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
         var argNode = children[0];
         var toType = ArgTypes[0];
         var fromType = argNode.Type;

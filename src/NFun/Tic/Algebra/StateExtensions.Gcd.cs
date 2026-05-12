@@ -39,8 +39,8 @@ public static partial class StateExtensions {
             }
 
             // None: GCD(None, Opt(T)) = None, GCD(None, Any) = None, GCD(None, T) = null
-            if (a == StatePrimitive.None) return GcdWithNone(b);
-            if (b == StatePrimitive.None) return GcdWithNone(a);
+            if (a == None) return GcdWithNone(b);
+            if (b == None) return GcdWithNone(a);
 
             // Optional: covariant GCD
             if (a is StateOptional aopt) return GcdWithOptional(aopt, b);
@@ -89,7 +89,34 @@ public static partial class StateExtensions {
         return StateArray.Of(lcd);
     }
 
+    // Cycle guard for recursive struct GCD (e.g., type t = {a:t?, b:rule(t)->t?}).
+    // GCD reaches itself via Lca(StateFun) → contravariant-args Gcd → struct Gcd → field
+    // Gcd → here again. Each Lca/Gcd level builds a NEW struct snapshot, so ReferenceEquals
+    // alone misses the cycle. Use TypeName as the structural key: when both sides carry the
+    // same named-type identity, they're the same recursive μ-type — return one side
+    // coinductively. Without this guard, multi-self-path recursive named types (a path
+    // through `?` + a path through `rule(t)->...`) cause exponential snapshot expansion
+    // until stack/memory exhaustion
+    [ThreadStatic] private static List<string> _structGcdNamesInProgress;
+
     private static ITicNodeState Gcd(this StateStruct a, StateStruct b) {
+        // Named-type cycle short-circuit.
+        if (a.TypeName != null && a.TypeName == b.TypeName) {
+            var guard = _structGcdNamesInProgress ??= new();
+            for (int i = 0; i < guard.Count; i++)
+                if (guard[i] == a.TypeName)
+                    return a;
+            guard.Add(a.TypeName);
+            try {
+                return GcdStructFields(a, b);
+            } finally {
+                guard.RemoveAt(guard.Count - 1);
+            }
+        }
+        return GcdStructFields(a, b);
+    }
+
+    private static ITicNodeState GcdStructFields(StateStruct a, StateStruct b) {
         bool bothMutable = a is StateMutableStruct && b is StateMutableStruct;
         bool eitherMutable = a is StateMutableStruct || b is StateMutableStruct;
 

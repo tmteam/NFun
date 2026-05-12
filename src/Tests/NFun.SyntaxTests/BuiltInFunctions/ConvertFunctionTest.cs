@@ -92,7 +92,7 @@ public class ConvertFunctionsTest {
     [TestCase("x:real[] = [65];           out:char = x.convert()", 'A')]
     [TestCase("x:real[] = [32];           out:char = x.convert()", ' ')]
     [TestCase("x:real[] = [0x04, 0x4b];   out:char = x.convert()", 'ы')]
-    public void TODOConstantConvertTest(string expr, object expected)
+    public void ConstantConvertTest(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
     [TestCase("y:byte[]='a'[0].convert(); ", new byte[] { 0x61 })]
@@ -326,7 +326,7 @@ public class ConvertFunctionsTest {
     public void ConvertTextToBool_Invalid_Throws() {
         var r = "y:bool = convert('invalid')"
             .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.Throws<NFun.Exceptions.FunnyRuntimeException>(() => r.Run());
+        Assert.Throws<Exceptions.FunnyRuntimeException>(() => r.Run());
     }
 
     [Test]

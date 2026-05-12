@@ -132,6 +132,18 @@ public class VariableSource : IFunnyVar {
 
     internal VariableSource Clone() => new(Name, Type, _access, _funnyConverter, Attributes);
 
+    /// <summary>
+    /// Clone with the current `_funnyValue` snapshotted into the new instance.
+    /// Used by closure-capture: when a rule is emitted from an enclosing function call,
+    /// each captured outer variable is snapshotted so subsequent outer-call writes
+    /// don't mutate the already-returned closure (Specs/Rules.md "Capturing variables").
+    /// </summary>
+    internal VariableSource CloneWithValueSnapshot() {
+        var clone = new VariableSource(Name, Type, _access, _funnyConverter, Attributes);
+        clone._funnyValue = _funnyValue;
+        return clone;
+    }
+
     public Func<T> CreateGetterOf<T>() {
         if (!IsOutput)
             throw new NotSupportedException("Cannot create value getter for non output variable");

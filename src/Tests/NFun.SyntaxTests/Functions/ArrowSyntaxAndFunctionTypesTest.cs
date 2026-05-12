@@ -1,6 +1,6 @@
 namespace NFun.SyntaxTests.Functions;
 
-using NFun.TestTools;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>
@@ -234,21 +234,21 @@ public class ArrowSyntaxAndFunctionTypesTest {
 
     [Test]
     public void Error_ArrowOnVariable() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "x->int = 42".Calc());
 
     [Test]
     public void Error_MissingArrowInFunctionType() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "apply(f:rule(int), x:int):int = f(x)\r out = apply(rule it, 1)".Calc());
 
     [Test]
     public void Error_MissingReturnTypeAfterArrow() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "f(x:int)-> = x".Calc());
 
     [Test]
     public void Error_WrongReturnType() =>
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "f(x:int)->bool = x * 2\r out = f(1)".Calc());
 }

@@ -16,7 +16,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     private readonly IFunctionRegistry _dictionary;
     private readonly DialectSettings _dialect;
     private readonly IReadOnlyList<(StateStruct Struct, ConstraintsState Wrapper)> _structGenericMap;
-    private readonly Types.INamedTypeFieldRegistry _namedTypeFieldRegistry;
+    private readonly INamedTypeFieldRegistry _namedTypeFieldRegistry;
 
     private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
     public int BuiltCount { get; private set; }
@@ -28,7 +28,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         UserFunctionDefinitionSyntaxNode syntaxNode,
         IFunctionRegistry dictionary,
         DialectSettings dialect,
-        Types.INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
         var ticGenerics = typeInferenceResults.Generics;
 
         var ticFunName = syntaxNode.Id + "'" + syntaxNode.Args.Count;
@@ -134,8 +134,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     ///
     /// Only structs shared between arg and return need this treatment.
     /// Structs that only appear in arg positions work correctly with normal
-    /// open struct merging. The bug only manifests when the return type
-    /// is the same struct as the arg's element type.
+    /// open struct merging.
     /// </summary>
     private static List<(StateStruct OriginalStruct, ConstraintsState Wrapper)> DetectStructGenerics(
         StateFun signature, IReadOnlyList<ConstraintsState> ticGenerics) {
@@ -252,7 +251,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         IReadOnlyList<ConstraintsState> constrainsMap,
         IReadOnlyList<(StateStruct, ConstraintsState)> structGenericMap,
         DialectSettings dialect,
-        Types.INamedTypeFieldRegistry namedTypeFieldRegistry = null) : base(syntaxNode.Id, constrains, returnType, argTypes) {
+        INamedTypeFieldRegistry namedTypeFieldRegistry = null) : base(syntaxNode.Id, constrains, returnType, argTypes) {
         _typeInferenceResults = typeInferenceResults;
         _constrainsMap = constrainsMap;
         _structGenericMap = structGenericMap;
@@ -283,7 +282,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
                 continue;
             }
             if (!FunnyTypeFitsStructBound(concreteTypes[i], Constrains[i].StructBound, _namedTypeFieldRegistry))
-                throw new NFun.Exceptions.FunnyParseException(
+                throw new Exceptions.FunnyParseException(
                     code: 783,
                     message: $"Argument {i} of '{Name}' does not satisfy the inferred recursive shape: " +
                              $"expected {Constrains[i].StructBound}, got {concreteTypes[i]}",
@@ -349,7 +348,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     /// in-progress (candidate, bound) pairs return true on hit.
     /// </summary>
     private static bool FunnyTypeFitsStructBound(
-        FunnyType candidate, FunnyType bound, Types.INamedTypeFieldRegistry registry) {
+        FunnyType candidate, FunnyType bound, INamedTypeFieldRegistry registry) {
         var visited = new HashSet<(string, string)>();
         return FitInner(candidate, bound, candidate, registry, visited);
     }
@@ -360,7 +359,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     /// CreateConcrete to align function's expected ArgTypes with caller's
     /// NamedStruct identity.
     /// </summary>
-    private static FunnyType FoldStructToNamedRecursive(FunnyType t, Types.INamedTypeFieldRegistry registry) {
+    private static FunnyType FoldStructToNamedRecursive(FunnyType t, INamedTypeFieldRegistry registry) {
         switch (t.BaseType) {
             case BaseFunnyType.Struct: {
                 var folded = TryFoldBackToNamedStruct(t, registry);
@@ -398,11 +397,11 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     /// Returns null if no unique match.
     /// </summary>
     private static FunnyType? TryFoldBackToNamedStruct(
-        FunnyType candidate, Types.INamedTypeFieldRegistry registry) {
+        FunnyType candidate, INamedTypeFieldRegistry registry) {
         if (candidate.BaseType != BaseFunnyType.Struct) return null;
         var cSpec = candidate.StructTypeSpecification;
         // First pass: collect all named types matching by field-set names.
-        var nameMatches = new System.Collections.Generic.List<string>();
+        var nameMatches = new List<string>();
         foreach (var kv in registry.All) {
             var declared = kv.Value;
             if (declared.Length != cSpec.Count) continue;
@@ -431,7 +430,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         // Disambiguate by primitive field type when multiple recursive named
         // types share field names (intList vs realList).
         string match = null;
-        var primitiveCompatible = new System.Collections.Generic.List<string>();
+        var primitiveCompatible = new List<string>();
         foreach (var name in nameMatches) {
             registry.TryGetFields(name, out var declared);
             bool primitiveTypesMatch = true;
@@ -450,7 +449,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             else match = name;
         }
         if (match != null) return FunnyType.NamedStructOf(match);
-        // Bug #123 fix: when multiple recursive named types are structurally
+        // when multiple recursive named types are structurally
         // indistinguishable (same field names + same primitive types), they
         // are all valid candidates for an F-bound width-subtyping check —
         // the bound is purely structural so any of them satisfies it.
@@ -474,7 +473,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
     }
 
     private static bool FitInner(FunnyType candidate, FunnyType bound,
-        FunnyType selfRefTarget, Types.INamedTypeFieldRegistry registry,
+        FunnyType selfRefTarget, INamedTypeFieldRegistry registry,
         HashSet<(string, string)> visited) {
         // Fold Struct→NamedStruct at every depth.
         if (candidate.BaseType == BaseFunnyType.Struct && registry != null) {

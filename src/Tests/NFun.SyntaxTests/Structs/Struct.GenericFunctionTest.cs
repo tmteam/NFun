@@ -15,10 +15,23 @@ public class StructGenericFunctionTest {
         .AssertResultHas("r", 12)
         .AssertResultHas("b", true);
 
+    // Verifies generic function `f(x) = x.age` accepts an external typed input `user`
+    // via row-polymorphism / structural subtyping (req-interface style). TIC infers
+    // `user:{child:{age:Any}[]; age:Any}` from the two call sites `f(user)` and
+    // `f(user.child[0])`. Runtime accepts a Dictionary<string,object> with required fields.
     [Test]
-    [Ignore("Generic function with external 'user' input: NullReferenceException in StructFieldAccess — req interface typing not implemented")]
-    public void CallToAllowedReqTypeDef() =>
-        "f(x) = x.age; y1 = f(user); y2 = f(user.child[0])".Calc();
+    public void CallToAllowedReqTypeDef() {
+        var runtime = Funny.Hardcore.Build("f(x) = x.age; y1 = f(user); y2 = f(user.child[0])");
+        var childItem = new System.Collections.Generic.Dictionary<string, object> { { "age", 7 } };
+        var userValue = new System.Collections.Generic.Dictionary<string, object> {
+            { "age", 42 },
+            { "child", new[] { childItem } }
+        };
+        runtime["user"].Value = userValue;
+        runtime.Run();
+        Assert.AreEqual(42, runtime["y1"].Value);
+        Assert.AreEqual(7, runtime["y2"].Value);
+    }
 
     [Test]
     public void CallGenericFunctionFieldNegate() =>

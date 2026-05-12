@@ -395,16 +395,25 @@ public class GraphBuilder {
                 ? cloned
                 : argNode;
             var state = effectiveArgNode.State;
-            // Use StateRefTo for unconstrained (generic) and unsolved composite args.
-            // For unsolved ICompositeState (e.g., StateFun from higher-order params):
-            //   passing the state directly causes SetCallArgument to create a new node
-            //   sharing the same ICompositeState object. When the caller is a recursive
-            //   call passing the same parameter through, this shared state causes
-            //   "Circular ancestor" during PullConstraints (both the original and the
-            //   clone share the same member nodes).
-            // Using StateRefTo avoids this: the call arg gets a constraint edge to the
-            // parameter node, not a cloned copy of its state.
-            if (state is ConstraintsState || (state is ICompositeState comp && !comp.IsSolved))
+            // Route ALL composite-state and constraint-state args through StateRefTo.
+            //
+            // Algebraic rationale (Damas-Milner '82 §3 — let-monomorphic body):
+            // each occurrence of param `p` inside the body of `let f = λ…p. … f(…, p) …`
+            // is a USE, generating the constraint `τ(p) ≤ τ(f.argₖ)`. Since `τ(f.argₖ) ≡
+            // τ(p)` by the binding itself, the constraint is reflexive — the call should
+            // add NO new structural type, only a constraint edge. `StateRefTo(P)` realizes
+            // this exactly; the existing self-loop guard in SetCallArgument's StateRefTo
+            // branch collapses the reflexive case.
+            //
+            // Previously the IsSolved=true case was excluded under the assumption "solved ⇒
+            // leaf, no aliasing" — but a StateFun with concrete arg/ret types is still a
+            // composite whose member TicNodes get SHARED when passed directly via
+            // `SetCallArgument(composite, …)`'s `CreateVarType(composite)` path. When the
+            // call site is a recursive self-call passing the same param through, the new
+            // ancestor node's StateFun shares member TicNodes with the original param's
+            // StateFun. Downstream MergeInplace/Pull then attempts AddAncestor where
+            // node == target, hitting "Circular ancestor 0" panic.
+            if (state is ConstraintsState || state is ICompositeState)
                 state = new StateRefTo(effectiveArgNode);
             SetCallArgument(state, argThenReturnIds[i]);
         }
@@ -505,7 +514,7 @@ public class GraphBuilder {
             case StateStruct s:
                 // Anonymous struct (potentially recursive): clone fields
                 // through the map to preserve cycles.
-                var newFields = new System.Collections.Generic.Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+                var newFields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
                 foreach (var (name, fn) in s.Fields)
                     newFields[name] = DeepCloneNode(fn, map);
                 return new StateStruct(newFields, isFrozen: s.IsFrozen, isOpen: s.IsOpen) {
@@ -588,14 +597,20 @@ public class GraphBuilder {
     private void SetCall(TicNode functionNode, int[] argThenReturnIds) {
         var id = argThenReturnIds[^1];
 
-        var state = functionNode.State;
-        if (state is StateRefTo r)
-            state = r.Node.State;
+        // When functionNode is RefTo(target), the synthesized StateFun must be written
+        // onto target.State, not functionNode.State. Overwriting functionNode.State would
+        // sever the RefTo link and the target node — which carries the declared field type
+        // (e.g. `t: rule()->s?` on a named struct) once Pull propagates from the source —
+        // would remain unconstrained, disconnected from the call's fresh args/return.
+        var targetNode = functionNode;
+        if (functionNode.State is StateRefTo r)
+            targetNode = r.Node;
+        var state = targetNode.State;
 
         if (state is StateFun fun)
         {
             if (fun.ArgsCount != argThenReturnIds.Length - 1)
-                throw TicErrors.InvalidFunctionalVariableSignature(functionNode);
+                throw TicErrors.InvalidFunctionalVariableSignature(targetNode);
 
             SetCall(fun, argThenReturnIds);
         }
@@ -609,8 +624,8 @@ public class GraphBuilder {
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
             if (state is not ConstraintsState constrains || !constrains.CanBeConvertedTo(newFunVar))
-                throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
-            functionNode.State = newFunVar;
+                throw TicErrors.IsNotAFunctionalVariableOrFunction(targetNode, newFunVar);
+            targetNode.State = newFunVar;
             SetCall(newFunVar, argThenReturnIds);
         }
     }

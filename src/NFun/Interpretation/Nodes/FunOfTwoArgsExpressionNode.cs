@@ -24,6 +24,7 @@ internal class FunOfTwoArgsExpressionNode : IExpressionNode {
     private readonly bool _lazy1;
     private readonly bool _lazy2;
 
+    internal IConcreteFunction Fun => _fun;
     public Interval Interval { get; }
     public FunnyType Type => _fun.ReturnType;
     public IEnumerable<IRuntimeNode> Children => new[] { _arg1, _arg2 };

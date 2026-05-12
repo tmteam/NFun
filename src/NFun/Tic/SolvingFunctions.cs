@@ -13,6 +13,24 @@ public static class SolvingFunctions {
 
     [ThreadStatic] private static HashSet<(ITicNodeState, ITicNodeState)> _mergeVisited;
 
+    /// <summary>
+    /// Compute the merge (greatest lower bound under the type lattice) of two node states,
+    /// or return <c>null</c> when no consistent merge exists.
+    ///
+    /// <para><b>Contract for <see cref="StateRefTo"/>:</b> if <paramref name="stateA"/> is a
+    /// <see cref="StateRefTo"/>, the function dereferences to <c>refA.Node.State</c>, recursively
+    /// merges with <paramref name="stateB"/>, and on success <i>mutates</i> the target node's
+    /// <c>State</c> to hold the merged result. The return value is the ORIGINAL
+    /// <see cref="StateRefTo"/> pointer — NOT the merged type. Callers that need the actual
+    /// type must call <c>GetNonReference()</c> on the returned reference. This preserves the
+    /// pointer-identity discipline used by <see cref="MergeInplace"/>: nodes already aliased
+    /// to a target keep their alias, while the underlying state updates in place.</para>
+    ///
+    /// <para>Cycle handling: <c>_mergeVisited</c> guards both <see cref="StateStruct"/> and
+    /// <see cref="StateRefTo"/> recursion (Pottier-Rémy '05 graph cycles; Amadio-Cardelli '93
+    /// coinductive bisimulation). A re-entered pair is treated as "already merged" — the merge
+    /// is idempotent under cycle, returning the first state.</para>
+    /// </summary>
     public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB) {
         // Cycle guard for true graph cycles (Pottier-Rémy '05): RefTo→root→RefTo… recursion would
         // overflow on cyclic types. Coinductive bisimulation: assume already-visited pair
@@ -20,6 +38,17 @@ public static class SolvingFunctions {
         if (ReferenceEquals(stateA, stateB)) return stateA;
         if (stateB is ConstraintsState c && c.NoConstrains)
             return stateA;
+
+        // None fits into any Optional type (universal: regardless of opt's IsSolved state).
+        // MUST be checked BEFORE the immutable-vs-immutable equality shortcut below —
+        // both None and solved Optionals are immutable ITypeState, so the shortcut would
+        // mistakenly return null (None.Equals(opt(T)) = false). Found via unit-test coverage:
+        // previously this rule was reachable only for UNSOLVED opt (mutable side), creating
+        // an asymmetric contract that quietly diverged from the algebraic lift `None ≤ opt(T)`.
+        if (stateA is StatePrimitive { Name: PrimitiveTypeName.None } && stateB is StateOptional optB1)
+            return optB1;
+        if (stateB is StatePrimitive { Name: PrimitiveTypeName.None } && stateA is StateOptional optA1)
+            return optA1;
 
         if (stateA is ITypeState typeA && !typeA.IsMutable)
         {
@@ -29,12 +58,6 @@ public static class SolvingFunctions {
             if (stateB is ConstraintsState constrainsB)
                 return !constrainsB.CanBeConvertedTo(typeA) ? null : typeA;
         }
-
-        // None fits into any Optional type
-        if (stateA is StatePrimitive { Name: PrimitiveTypeName.None } && stateB is StateOptional optB1)
-            return optB1;
-        if (stateB is StatePrimitive { Name: PrimitiveTypeName.None } && stateA is StateOptional optA1)
-            return optA1;
 
         switch (stateA)
         {
@@ -100,6 +123,8 @@ public static class SolvingFunctions {
                 return GetMergedStateOrNull(stateB, stateA);
             case StateRefTo refA:
             {
+                // See method-level xmldoc: mutates refA.Node.State, returns the ORIGINAL
+                // StateRefTo (pointer). Callers needing the resolved type call GetNonReference().
                 var owns = _mergeVisited == null;
                 _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
                 var key = (stateA, stateB);
@@ -154,6 +179,14 @@ public static class SolvingFunctions {
                 }
                 else
                     MergeInplace(value, bNode);
+            }
+            else if (strB.IsOpen)
+            {
+                // strB is row-polymorphic ("at least these fields"); width-subtype lift —
+                // missing field is supplied by strA. Result inherits the field. GH #128 Bug C:
+                // multiple distinct field-access chains (`arr[0].v` and `arr[0].kids[0].v`)
+                // emit open-row struct demands at different positions; their LCA with the
+                // closed named-type literal must widen to include both.
             }
             else if (strA.IsFrozen || strB.IsFrozen)
                 return null;
@@ -525,10 +558,22 @@ public static class SolvingFunctions {
                 ApplyPreferred(composite.GetMember(mi), preferred, mark);
             nr.VisitMark = prev;
         }
-        if (nr.State is ConstraintsState cs && cs.Preferred == null
-            && cs.HasDescendant && cs.Descendant is StatePrimitive
-            && cs.CanBeConvertedTo(preferred))
-            cs.Preferred = preferred;
+        if (nr.State is ConstraintsState cs
+            && cs.HasDescendant && cs.Descendant is StatePrimitive descPrim
+            && cs.CanBeConvertedTo(preferred)) {
+            // Override an existing Preferred that came from a generic-constraint
+            // default (e.g., Arithmetical → U24) when the broadcast Preferred matches the
+            // descendant exactly OR is wider. PropagatePreferred's source-of-truth is
+            // typically a literal int's I32 — that should dominate over a snapshot of the
+            // constraint's narrowest bound. Conservative override condition: only when the
+            // existing Preferred is reference-equal to Descendant (i.e., it was set to the
+            // narrowest bound, suggesting auto-init rather than literal intent).
+            if (cs.Preferred == null)
+                cs.Preferred = preferred;
+            else if (!cs.Preferred.Equals(preferred)
+                  && ReferenceEquals(cs.Preferred, descPrim))
+                cs.Preferred = preferred;
+        }
     }
 
     public static void PushConstraints(TicNode[] toposortedNodes) {
@@ -782,13 +827,13 @@ public static class SolvingFunctions {
     /// </summary>
     internal static StateStruct GcdBound(
         StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner) {
-        var visited = new System.Collections.Generic.Dictionary<(StateStruct, StateStruct), StateStruct>();
+        var visited = new Dictionary<(StateStruct, StateStruct), StateStruct>();
         return GcdBoundInner(a, b, resultOwner, otherOwner, visited);
     }
 
     private static StateStruct GcdBoundInner(
         StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner,
-        System.Collections.Generic.Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
+        Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
         if (ReferenceEquals(a, b)) return a; // idempotent fast path
         if (visited.TryGetValue((a, b), out var memo)) return memo;
         var mergedName = StateStruct.MergedTypeName(a.TypeName, b.TypeName);
@@ -804,7 +849,7 @@ public static class SolvingFunctions {
         if (b.IsFrozen && !a.IsFrozen) return GcdFrozenAndOpen(b, a, resultOwner, otherOwner, visited);
 
         var result = new StateStruct(
-            new System.Collections.Generic.Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase),
+            new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase),
             isFrozen: a.IsFrozen && b.IsFrozen,
             isOpen: a.IsOpen && b.IsOpen) {
             TypeName = mergedName,
@@ -848,7 +893,7 @@ public static class SolvingFunctions {
     /// </summary>
     private static StateStruct GcdFrozenAndOpen(
         StateStruct frozen, StateStruct candidate, TicNode resultOwner, TicNode otherOwner,
-        System.Collections.Generic.Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
+        Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
         var key = (frozen, candidate);
         if (visited.TryGetValue(key, out var memo)) return memo;
         var mergedName = StateStruct.MergedTypeName(frozen.TypeName, candidate.TypeName);
@@ -857,7 +902,7 @@ public static class SolvingFunctions {
         // The result preserves the frozen bound's shape — same field set,
         // recursively-merged value states for shared fields. Frozen is preserved.
         var result = new StateStruct(
-            new System.Collections.Generic.Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase),
+            new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase),
             isFrozen: true,
             isOpen: false) {
             TypeName = mergedName,
@@ -886,7 +931,7 @@ public static class SolvingFunctions {
 
     private static ITicNodeState MergeFieldStateGcd(
         ITicNodeState sA, ITicNodeState sB, TicNode resultOwner, TicNode otherOwner,
-        System.Collections.Generic.Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
+        Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
         // Self-ref handling.
         // Pierce TAPL §20.2 fold/unfold: μX. F(X) ≡ F(μX. F(X)). When merging
         // a bound's field (carrying X = self-ref) with a concrete value, the
@@ -1000,7 +1045,7 @@ public static class SolvingFunctions {
             }
         }
         if (!needsCopy) return s;
-        var newFields = new System.Collections.Generic.Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+        var newFields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
         foreach (var (name, fieldNode) in s.Fields) {
             var nr = fieldNode.GetNonReference();
             var rewired = RewireState(nr.State, oldOwner, newOwner);
@@ -1642,6 +1687,18 @@ public static class SolvingFunctions {
             if (node.State is StateStruct s && s.IsOptionalSourced) optSeen[0] = true;
             if (node.VisitMark == mark)
             {
+                // Contractive closing edge: if we re-entered an Array node from inside a
+                // struct field traversal (fromStruct=true), the closing back-edge of the
+                // cycle crosses an Array constructor — algebraically equivalent to the
+                // Optional break that the recursion case `case StateArray arr: if
+                // (fromStruct) break` accepts as a valid μ-type. Symmetric handling: the
+                // cycle-detection branch must accept the same shape, otherwise the
+                // VisitMark trips BEFORE the StateArray case runs. Type
+                // t = {v:int, kids:t[]} — `root.kids` traverses struct → kids field →
+                // arr_node and back, crossing arr_node twice via the array constructor.
+                if (fromStruct && node.GetNonReference().State is StateArray)
+                    return;
+
                 // If any struct on the cycle path is opt-sourced, OR if the cycle's struct itself
                 // is opt-sourced somewhere in its full reachable subgraph, this is a contractive
                 // iso-recursive type μX. opt(struct{…X…}) — repair by wrapping the back-edge in

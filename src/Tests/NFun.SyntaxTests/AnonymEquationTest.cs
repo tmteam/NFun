@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests;
 
-class AnonymEquationTest {
+public class AnonymEquationTest {
     [TestCase("1", 1)]
     [TestCase("true", true)]
     [TestCase("(1+2)", 3)]

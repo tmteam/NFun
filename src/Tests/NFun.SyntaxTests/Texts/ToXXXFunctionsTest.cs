@@ -1,7 +1,7 @@
-using NFun.TestTools;
-using NUnit.Framework;
+namespace NFun.SyntaxTests.Texts;
 
-namespace NFun.SyntaxTests;
+using TestTools;
+using NUnit.Framework;
 
 public class ExplicitConvertationTest {
     [Ignore("toXXX explicit cast functions (toByte, toUint32, etc.) are not implemented")]

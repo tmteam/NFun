@@ -279,13 +279,13 @@ public class Parser {
             if (aliasType is TypeSyntax.EmptyType)
                 throw Errors.TypeBodyExpected(nameToken.Value, flow.Current);
             var aliasInterval = new Interval(start, flow.CurrentTokenFinishPosition);
-            _nodes.Add(new SyntaxNodes.TypeDeclarationSyntaxNode(nameToken.Value, aliasType, aliasInterval));
+            _nodes.Add(new TypeDeclarationSyntaxNode(nameToken.Value, aliasType, aliasInterval));
             return;
         }
 
         flow.MoveNext(); // skip '{'
 
-        var fields = new List<SyntaxNodes.TypeFieldDefinition>();
+        var fields = new List<TypeFieldDefinition>();
         bool hasAnyDelimiter = true;
         flow.SkipNewLines();
 
@@ -334,7 +334,7 @@ public class Parser {
                 throw Errors.NamedTypeDuplicateField(nameToken.Value, fieldId.Value, fieldId.Interval);
 
             var fieldFinish = defaultValue?.Interval.Finish ?? flow.CurrentTokenFinishPosition;
-            fields.Add(new SyntaxNodes.TypeFieldDefinition(
+            fields.Add(new TypeFieldDefinition(
                 fieldId.Value, typeSyntax, defaultValue, new Interval(fieldStart, fieldFinish)));
 
             hasAnyDelimiter = flow.Previous.Type == TokType.NewLine;
@@ -347,6 +347,6 @@ public class Parser {
         }
 
         var interval = new Interval(start, flow.CurrentTokenFinishPosition);
-        _nodes.Add(new SyntaxNodes.TypeDeclarationSyntaxNode(nameToken.Value, fields, interval));
+        _nodes.Add(new TypeDeclarationSyntaxNode(nameToken.Value, fields, interval));
     }
 }

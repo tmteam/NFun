@@ -1,7 +1,7 @@
 namespace NFun.SyntaxTests.Functions;
 
-using NFun.Exceptions;
-using NFun.TestTools;
+using Exceptions;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>
@@ -111,6 +111,21 @@ public class BuiltInDefaultArgsTest {
 
     [Test] public void Error_ToBinText_OnText() =>
         Assert.Throws<FunnyParseException>(() => "y = toBinText('hello')".Build());
+
+    // Width-aware hex/bin formatting per operand's declared bit width.
+    // Without this, the value was widened to int64 before formatting and a
+    // negative typed-narrower input got 64 hex chars: `int -1` →
+    // 'FFFFFFFFFFFFFFFF' instead of 'FFFFFFFF'. Now signed values are cast
+    // to unsigned of the same width to capture two's-complement at the
+    // declared width, then formatted without forced padding.
+    [TestCase("y:int=-1\r o=toHexText(y)", "FFFFFFFF")]
+    [TestCase("y:int16=-1\r o=toHexText(y)", "FFFF")]
+    [TestCase("y:int64=-1\r o=toHexText(y)", "FFFFFFFFFFFFFFFF")]
+    [TestCase("y:byte=255\r o=toHexText(y)", "FF")]
+    [TestCase("y:int=-1\r o=toBinText(y)", "11111111111111111111111111111111")]
+    [TestCase("y:int16=-1\r o=toBinText(y)", "1111111111111111")]
+    public void ToHexBin_PreservesOperandBitWidth(string expr, string expected) =>
+        expr.AssertResultHas("o", expected);
 
     [Test] public void Error_PadLeftText_WrongWidthType() =>
         Assert.Throws<FunnyParseException>(() => "y = padLeftText('hi', 'ten')".Build());

@@ -152,7 +152,7 @@ internal static partial class Errors {
         return new(882, $"Operator '{opSymbol}' requires optional types to be enabled", interval);
     }
 
-    internal static FunnyParseException CoalesceTypeMismatch(FunnyType leftInner, FunnyType right, Tokenization.Interval interval) =>
+    internal static FunnyParseException CoalesceTypeMismatch(FunnyType leftInner, FunnyType right, Interval interval) =>
         new(887, $"Incompatible types in '??': cannot coalesce {leftInner} with {right}", interval);
 
     internal static FunnyParseException CoalesceRightOperandIsOptional(Interval interval) =>

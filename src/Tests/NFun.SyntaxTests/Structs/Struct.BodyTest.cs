@@ -1,6 +1,5 @@
 using System.Linq;
 using NFun.TestTools;
-using NFun.Tic;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.Structs;
@@ -179,7 +178,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessNestedCreated() {
-        TraceLog.IsEnabled = true;
 
         ("first = {b = 24; c=25}; " +
          "second = {d = first; e = first.c; f = 3}; " +
@@ -189,7 +187,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessNestedCreatedSimple() {
-        TraceLog.IsEnabled = true;
         ("first = {b = 24; c=25}; " +
          "second = {d = first; e = first.c}; " +
          "y = second.d.b + second.e").AssertResultHas("y", 49);
@@ -198,7 +195,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessNestedCreatedSuperSimple() {
-        TraceLog.IsEnabled = true;
         ("first = {b = 24}; " +
          "second = {d = 1.0; e = first.b}; " +
          "y = second.e").AssertResultHas("y", 24);
@@ -206,7 +202,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessManyNestedCreatedHellTest() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "c3 = {cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
@@ -216,7 +211,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessManyNestedCreatedHellTest3() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "c3 = {cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
@@ -225,7 +219,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccess_twinComplex() {
-        TraceLog.IsEnabled = true;
         ("x1 = {aField = 24;}; " +
          "x2 = {cField = x1.aField}; " +
          "y = x1.aField  + x1.aField").AssertResultHas("y", 48);
@@ -233,7 +226,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessManyNestedCreatedHellTest4() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertResultHas("y", 50);
@@ -241,7 +233,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessManyNestedCreatedHellTest5() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertResultHas("y", 50);
@@ -249,7 +240,6 @@ public class StructBodyTest {
 
     [Test]
     public void Constant_TwinAccessToTwinNested() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "y = a1.af1_24 + b2.bf1.af2_1").AssertResultHas("y", 25);
@@ -257,7 +247,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccessManyNestedCreatedHellTest2() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf2_1 = 1}; " +
          "c3 = {cf1_1 = b2.bf2_1; cf2_24 = 24}; " +
@@ -267,7 +256,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccess3EquationNested() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertResultHas("y", 50);
@@ -275,7 +263,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccess3EquationNested3() {
-        TraceLog.IsEnabled = true;
         ("a1 = { af1_24 = 24; af2_1=1 }; " +
          "b2 = { bf1 = a1; bf2_1 = a1.af2_1 }; " +
          "y = a1.af1_24 + b2.bf1.af2_1 + a1.af1_24").AssertResultHas("y", 49);
@@ -286,7 +273,6 @@ public class StructBodyTest {
     [TestCase(3)]
     [TestCase(42)]
     public void ConstantNCountAccessConcrete(int n) {
-        TraceLog.IsEnabled = true;
         ("str = {field = 1.0}; " +
          $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
             .AssertResultHas("y", (double)n);
@@ -297,7 +283,6 @@ public class StructBodyTest {
     [TestCase(3)]
     [TestCase(42)]
     public void ConstantNCountAccess(int n) {
-        TraceLog.IsEnabled = true;
         ("str = {field = 1}; " +
          $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
             .AssertResultHas("y", n);
@@ -305,7 +290,6 @@ public class StructBodyTest {
 
     [Test]
     public void ConstantAccess3EquationNested2() {
-        TraceLog.IsEnabled = true;
         ("a1 = {af1_24 = 24; af2_1=1}; " +
          "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
          "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1")
@@ -333,26 +317,18 @@ public class StructBodyTest {
          "d = {e = 'lala'; f = a};" +
          "y = d.f.b[1]")
         .AssertResultHas("y", 2);
-    //todo - start debug from here
     [Test]
-    public void ConstAccessDoubleNestedCreatedComposite2() {
-        TraceLog.IsEnabled = true;
-
+    public void ConstAccessDoubleNestedCreatedComposite2() =>
         ("a = {b= [1]};" +
          "d = {f = a};" +
          "y = d.f.b[0]")
             .AssertResultHas("y", 1);
-    }
 
     [Test]
-    public void ConstAccessDoubleNestedCreatedComposite3() {
-        TraceLog.IsEnabled = true;
-
-        (
-         "d = {f = {b= [1]}};" +
+    public void ConstAccessDoubleNestedCreatedComposite3() =>
+        ("d = {f = {b= [1]}};" +
          "y = d.f.b[0]")
             .AssertResultHas("y", 1);
-    }
 
     [Test]
     public void ConstAccessDoubleNestedCreated() => "d = {f = {b= 2.0}}; y = d.f.b".AssertResultHas("y", 2.0);

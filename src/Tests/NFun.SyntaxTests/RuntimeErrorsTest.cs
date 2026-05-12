@@ -7,95 +7,23 @@ namespace NFun.SyntaxTests;
 [TestFixture]
 public class RuntimeErrorsTest {
 
-    // ── Integer overflow → FunnyRuntimeException ────────────────────
+    // ── Integer overflow / division by zero / negative repeat etc. ─────
+    // All expressions parse cleanly but throw FunnyRuntimeException on Calc().
 
-    [Test]
-    public void IntegerOverflow_ThrowsFunnyRuntimeException() {
-        var runtime = "y = 2147483647 + 1".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void IntegerUnderflow_ThrowsFunnyRuntimeException() {
-        var runtime = "y = -2147483648 - 1".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void PowerOverflow_ThrowsFunnyRuntimeException() {
-        var runtime = "y = 2 ** 32".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void Int64Overflow_ThrowsFunnyRuntimeException() {
-        var runtime = "y:int64 = 9223372036854775807 + 1".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    // ── Division by zero → FunnyRuntimeException ────────────────────
-
-    [Test]
-    public void IntDivisionByZero_ThrowsFunnyRuntimeException() {
-        var runtime = "y = 1 // 0".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void ModuloByZero_ThrowsFunnyRuntimeException() {
-        var runtime = "y = 5 % 0".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    // ── Empty array operations → FunnyRuntimeException ──────────────
-
-    [Test]
-    public void LastOfEmptyArray_ThrowsFunnyRuntimeException() {
-        var runtime = "y:int[] = []\r z = y.last()".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void MedianOfEmptyArray_ThrowsFunnyRuntimeException() {
-        var runtime = "y:int[] = []\r z = y.median()".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void AvgOfEmptyArray_ThrowsFunnyRuntimeException() {
-        var runtime = "y:real[] = []\r z = y.avg()".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void MaxOfEmptyArray_ThrowsFunnyRuntimeException() {
-        var runtime = "y:int[] = []\r z = y.max()".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void MinOfEmptyArray_ThrowsFunnyRuntimeException() {
-        var runtime = "y:int[] = []\r z = y.min()".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    // ── Other runtime errors ────────────────────────────────────────
-
-    [Test]
-    public void RepeatNegativeCount_ThrowsFunnyRuntimeException() {
-        var runtime = "y = repeat(1, -1)".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void BackwardsSlice_ThrowsFunnyRuntimeException() {
-        var runtime = "y = [1,2,3,4,5][3:1]".Build();
-        Assert.Throws<FunnyRuntimeException>(() => runtime.Calc());
-    }
-
-    [Test]
-    public void NegateIntMin_ShouldOverflow() {
-        Assert.Throws<FunnyRuntimeException>(
-            () => "y:int = -2147483648\r out = -y".Calc());
-    }
+    [TestCase("y = 2147483647 + 1",              TestName = "Int32 overflow")]
+    [TestCase("y = -2147483648 - 1",             TestName = "Int32 underflow")]
+    [TestCase("y = 2 ** 32",                     TestName = "Int32 power overflow")]
+    [TestCase("y:int64 = 9223372036854775807 + 1", TestName = "Int64 overflow")]
+    [TestCase("y = 1 // 0",                      TestName = "Int division by zero")]
+    [TestCase("y = 5 % 0",                       TestName = "Modulo by zero")]
+    [TestCase("y:int[] = []\r z = y.last()",     TestName = "last() of empty array")]
+    [TestCase("y:int[] = []\r z = y.median()",   TestName = "median() of empty array")]
+    [TestCase("y:real[] = []\r z = y.avg()",     TestName = "avg() of empty array")]
+    [TestCase("y:int[] = []\r z = y.max()",      TestName = "max() of empty array")]
+    [TestCase("y:int[] = []\r z = y.min()",      TestName = "min() of empty array")]
+    [TestCase("y = repeat(1, -1)",               TestName = "repeat with negative count")]
+    [TestCase("y = [1,2,3,4,5][3:1]",            TestName = "backwards slice")]
+    [TestCase("y:int = -2147483648\r out = -y",  TestName = "negate Int32.MinValue overflows")]
+    public void RuntimeExceptionExpected(string expr) =>
+        Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
 }

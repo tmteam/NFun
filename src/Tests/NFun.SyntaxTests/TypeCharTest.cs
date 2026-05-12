@@ -104,12 +104,12 @@ public class CharTest {
     [TestCase("y = /'ü'", 'ü')]
     public void NonAsciiCharLiteral(string expr, char expected) => expr.AssertReturns(expected);
 
-    [TestCase("y = /''")]          // empty char literal
-    [TestCase("y = /'ab'")]        // multiple chars
-    [TestCase("y = /'abc'")]       // multiple chars
-    [TestCase("y = /'")]           // unclosed
-    [TestCase("y = /'a")]          // missing closing quote
-    [TestCase("y = /'\\q'")]       // invalid escape
-    [TestCase("y = /'\\GGG'")]     // invalid escape
+    [TestCase("y = /''")]
+    [TestCase("y = /'ab'")]
+    [TestCase("y = /'abc'")]
+    [TestCase("y = /'")]
+    [TestCase("y = /'a")]
+    [TestCase("y = /'\\q'")]
+    [TestCase("y = /'\\GGG'")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }

@@ -22,6 +22,8 @@ internal class ConcreteHiOrderFunctionWithSyntaxNode : FunctionWithManyArguments
         : base(source.ToString(), returnType, argTypes) =>
         _source = source;
 
+    internal IExpressionNode Source => _source;
+
     public override object Calc(object[] args) => ((IConcreteFunction)_source.Calc()).Calc(args);
 
     /// <summary>
@@ -46,6 +48,8 @@ internal class ConcreteHiOrderFunction : FunctionWithManyArguments {
     private ConcreteHiOrderFunction(VariableSource source, FunnyType returnType, FunnyType[] argTypes)
         : base(source.Name, returnType, argTypes) =>
         _source = source;
+
+    internal VariableSource Source => _source;
 
     public override object Calc(object[] args) =>
         ((IConcreteFunction)_source.FunnyValue).Calc(args);

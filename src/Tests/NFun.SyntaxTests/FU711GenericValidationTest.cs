@@ -5,14 +5,17 @@ using NUnit.Framework;
 namespace NFun.SyntaxTests;
 
 /// <summary>
-/// Tests for FU711 generic resolution validation.
-/// WORKAROUND: When a generic function's type parameter T resolves to Any and T appears
-/// at different structural depths in the function's input arguments (e.g., bare T and T[]),
-/// the expression is rejected because the Any resolution is vacuous --
-/// TIC merged structurally incompatible constraints instead of reporting a contradiction.
+/// Cohesive test suite for the FU711 generic-validation rule. When a generic function's
+/// type parameter T would resolve to Any AND T appears at different structural depths
+/// in the function's input arguments (e.g. bare T vs. T[] in `in(T, T[])`), the rule
+/// rejects the expression — Any here is vacuous (TIC merged structurally incompatible
+/// constraints instead of reporting a contradiction).
+///
+/// Tests stay grouped: the rule covers many surface operators/functions, but the
+/// invariant ("vacuous Any at mismatched depths → reject") is one feature.
 /// </summary>
 [TestFixture]
-public class GenericValidationTest {
+public class FU711GenericValidationTest {
 
     // ═══════════════════════════════════════════════════════════════
     // 1. `in` operator -- the original bug

@@ -48,7 +48,7 @@ internal static class TypeSyntaxResolver {
     private static FunnyType ResolveCustomOrThrow(TypeSyntax.Named named, ICustomTypeRegistry customTypes) {
         if (customTypes != null && customTypes.TryResolve(named.Name, out var customType))
             return customType;
-        throw new NFun.Exceptions.FunnyParseException(
+        throw new Exceptions.FunnyParseException(
             406, $"Expected: type, but was '{named.Name}'", named.Interval.Start, named.Interval.Finish);
     }
 }

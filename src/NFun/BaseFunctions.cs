@@ -29,6 +29,9 @@ internal static class BaseFunctions {
             new MinFunction(),
             new MaxFunction(),
 
+            new ToHexTextFunction(),
+            new ToBinTextFunction(),
+
             new BitOrFunction(),
             new BitAndFunction(),
             new BitXorFunction(),
@@ -105,8 +108,6 @@ internal static class BaseFunctions {
 
             new ToTextFunction(),
             new ToNumTextFunction(),
-            new ToHexTextFunction(),
-            new ToBinTextFunction(),
             new ToSciTextFunction(),
             new PadLeftTextFunction(),
             new PadRightTextFunction(),

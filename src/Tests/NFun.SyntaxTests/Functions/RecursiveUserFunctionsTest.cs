@@ -1,8 +1,8 @@
 namespace NFun.SyntaxTests.Functions;
 
-using NFun.Exceptions;
-using NFun.TestTools;
-using NFun.Tic;
+using Exceptions;
+using TestTools;
+using Tic;
 using NUnit.Framework;
 
 [TestFixture]

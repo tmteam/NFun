@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Functions;
@@ -47,7 +48,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             return result;
         // When the coalesce expression builder resolved a more precise type than TIC
         // (stripped Optional because right operand is non-optional), prefer the expression's type.
-        if (result is Nodes.CoalesceExpressionNode
+        if (result is CoalesceExpressionNode
             && outputType.BaseType == BaseFunnyType.Optional
             && result.Type == outputType.OptionalTypeSpecification.ElementType)
             return result;
@@ -79,7 +80,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled && isPiped)
         {
             // Try extension function first, then fall back to built-in
-            var ext = _functions.GetOrNull(TypeInferenceAdapter.TicSetupVisitor.ExtensionKeyPrefix + name, argCount);
+            var ext = _functions.GetOrNull(TicSetupVisitor.ExtensionKeyPrefix + name, argCount);
             if (ext != null) return ext;
         }
         return _functions.GetOrNull(name, argCount);
@@ -214,7 +215,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             && outputType.BaseType != BaseFunnyType.Optional)
         {
             var innerType = expr.Type.OptionalTypeSpecification.ElementType;
-            IExpressionNode unwrapped = new Nodes.TypeOverrideNode(expr, innerType);
+            IExpressionNode unwrapped = new TypeOverrideNode(expr, innerType);
             if (innerType != outputType)
                 unwrapped = CastExpressionNode.GetConvertedOrOriginOrThrow(
                     unwrapped, outputType, _dialect.Converter.TypeBehaviour);
@@ -268,12 +269,20 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         //Capture all outerscope variables
         var localVariables = new VariableDictionary(_variables.GetAll(), _variables.Count);
 
+        // TIC-solved fun signature: input types live in node.OutputType.FunTypeSpecification.Inputs.
+        // Use them when the argument has a type annotation (e.g. `rule(x:age)=...`), because
+        // FunArgumentDeclarationRuntimeNode.CreateWith falls back to a customTypes-less resolver
+        // and would reject user-defined named types / aliases.
+        var funSpec = node.OutputType.BaseType == BaseFunnyType.Fun
+            ? node.OutputType.FunTypeSpecification
+            : null;
+
         var arguments = new VariableSource[argumentLexNodes.Count];
         var argIndex = 0;
         foreach (var arg in argumentLexNodes)
         {
             //Convert argument node
-            var varNode = FunArgumentDeclarationRuntimeNode.CreateWith(arg);
+            var varNode = FunArgumentDeclarationRuntimeNode.CreateWith(arg, funSpec?.Inputs[argIndex]);
             var source = VariableSource.CreateWithStrictTypeLabel(
                 varNode.Name, varNode.Type, arg.Interval,
                 FunnyVarAccess.Input,
@@ -364,33 +373,72 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 ? left.Type.OptionalTypeSpecification.ElementType
                 : left.Type;
             // Reject coalesce of incompatible types: int? ?? 'hello' → error.
-            // Compatible: both numeric, same base type, or either is Any/None.
-            // Incompatible: different primitive families (numeric vs bool vs char vs ip vs text).
+            // The right operand of `??` may itself be Optional (int? ?? int? = int?), so
+            // unwrap before comparing to innerType. Then both sides reduce to the same
+            // family rule: same base type, both numeric, both text, or Struct↔NamedStruct
+            // (runtime-interchangeable per VarTypeConverter). Any/None is permissive.
+            //
+            // Previously the check had a "composite always allow" fallback
+            // (`!innerType.IsPrimitive && !innerType.IsText`) which silently allowed
+            // primitive↔composite mismatches like `int ?? struct{v:int}`. TIC then
+            // back-propagated the struct type to the left's unwrapped element, corrupting
+            // the variable's reference type, and the runtime generated a lossy
+            // int→struct converter that turned the integer value into the default
+            // empty struct `{}` — silent data loss.
             if (innerType.BaseType is not (BaseFunnyType.Any or BaseFunnyType.None)
                 && right.Type.BaseType is not (BaseFunnyType.Any or BaseFunnyType.None))
             {
-                bool compatible = innerType.BaseType == right.Type.BaseType
-                    || (innerType.IsNumeric() && right.Type.IsNumeric())
-                    || innerType.IsText && right.Type.IsText
-                    || !innerType.IsPrimitive && !innerType.IsText  // composite types: always allow
-                    || !right.Type.IsPrimitive && !right.Type.IsText;
-                if (!compatible)
-                    throw Errors.CoalesceTypeMismatch(innerType, right.Type, node.Interval);
+                var rightInner = right.Type.BaseType == BaseFunnyType.Optional
+                    ? right.Type.OptionalTypeSpecification.ElementType
+                    : right.Type;
+                if (rightInner.BaseType is BaseFunnyType.Any or BaseFunnyType.None)
+                {
+                    // permissive — Any/None on the right's element accepts any left
+                }
+                else
+                {
+                    bool compatible = innerType.BaseType == rightInner.BaseType
+                        || (innerType.IsNumeric() && rightInner.IsNumeric())
+                        || (innerType.IsText && rightInner.IsText)
+                        // Struct ↔ NamedStruct: runtime-interchangeable (both FunnyStruct).
+                        || ((innerType.BaseType == BaseFunnyType.Struct || innerType.BaseType == BaseFunnyType.NamedStruct)
+                            && (rightInner.BaseType == BaseFunnyType.Struct || rightInner.BaseType == BaseFunnyType.NamedStruct));
+                    if (!compatible)
+                        throw Errors.CoalesceTypeMismatch(innerType, right.Type, node.Interval);
+                }
             }
             Func<object, object> leftConverter = innerType != outputType
                 ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, innerType, outputType)
                 : null;
             var castRight = CastExpressionNode.GetConvertedOrOriginOrThrow(
                 right, outputType, _dialect.Converter.TypeBehaviour);
-            return new Nodes.CoalesceExpressionNode(left, castRight, leftConverter, outputType, node.Interval);
+            return new CoalesceExpressionNode(left, castRight, leftConverter, outputType, node.Interval);
         }
 
         // Pipe-forward reinterpreted as struct field access + call: a.f(args) → (a.f)(args)
-        if (node is FunCallSyntaxNode { IsFieldCall: true, IsPipeForward: true } fieldCallNode)
+        if (node is { IsFieldCall: true, IsPipeForward: true } fieldCallNode)
         {
             // First arg is the struct source, remaining are the call args
             var structSource = ReadNode(args[0]);
-            var fieldAccess = new Nodes.StructFieldAccessExpressionNode(id, structSource, node.Interval);
+
+            if (fieldCallNode.IsSafeAccess && structSource.Type.BaseType == BaseFunnyType.Optional)
+            {
+                var unwrappedType = structSource.Type.OptionalTypeSpecification.ElementType;
+                var cachedSource = new CachedSourceNode(unwrappedType, node.Interval);
+                var fieldAccessSafe = new StructFieldAccessExpressionNode(id, cachedSource, node.Interval);
+                if (fieldAccessSafe.Type.FunTypeSpecification == null)
+                    throw Errors.FieldIsNotCallable(id, fieldAccessSafe.Type, node.Interval);
+                var hiOrderFuncSafe = ConcreteHiOrderFunctionWithSyntaxNode.Create(fieldAccessSafe);
+                var callArgsSafe = new ISyntaxNode[args.Length - 1];
+                Array.Copy(args, 1, callArgsSafe, 0, callArgsSafe.Length);
+                var childrenSafe = callArgsSafe.SelectToArray(ReadNode);
+                var innerCall = hiOrderFuncSafe.CreateWithConvertionOrThrow(
+                    childrenSafe, _dialect.Converter.TypeBehaviour, node.Interval);
+                return new SafePipedCallExpressionNode(
+                    structSource, cachedSource, innerCall, node.OutputType, node.Interval);
+            }
+
+            var fieldAccess = new StructFieldAccessExpressionNode(id, structSource, node.Interval);
             if (fieldAccess.Type.FunTypeSpecification == null)
                 throw Errors.FieldIsNotCallable(id, fieldAccess.Type, node.Interval);
             var hiOrderFunc = ConcreteHiOrderFunctionWithSyntaxNode.Create(fieldAccess);
@@ -669,7 +717,46 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             name: "rule",
             variables: arguments,
             expression: expr);
-        return new FunRuleExpressionNode(fun, interval);
+        // Captures = every VariableSource the body reads that is not one of the
+        // rule's own arguments. At Calc() these get snapshotted so the returned
+        // closure is independent of subsequent writes to the enclosing scope
+        // (Specs/Rules.md "Capturing variables").
+        var captures = CollectCaptures(expr, arguments);
+        return new FunRuleExpressionNode(fun, captures, interval);
+    }
+
+    private static VariableSource[] CollectCaptures(IExpressionNode body, VariableSource[] ruleArguments) {
+        var unique = new HashSet<VariableSource>();
+        CollectVariableSources(body, unique);
+        if (unique.Count == 0)
+            return Array.Empty<VariableSource>();
+        for (int i = 0; i < ruleArguments.Length; i++)
+            unique.Remove(ruleArguments[i]);
+        if (unique.Count == 0)
+            return Array.Empty<VariableSource>();
+        var result = new VariableSource[unique.Count];
+        unique.CopyTo(result);
+        return result;
+    }
+
+    private static void CollectVariableSources(IRuntimeNode node, HashSet<VariableSource> sink) {
+        switch (node) {
+            case VariableExpressionNode v:
+                sink.Add(v.Source);
+                return;
+            case FunRuleExpressionNode:
+                // A nested rule manages its own captures — its body references (including
+                // its own args) are not captures of the enclosing rule.
+                return;
+            case FunOfSingleArgExpressionNode s when s.Fun is ConcreteHiOrderFunction hi:
+                sink.Add(hi.Source); break;
+            case FunOfTwoArgsExpressionNode t when t.Fun is ConcreteHiOrderFunction hi:
+                sink.Add(hi.Source); break;
+            case FunOfManyArgsExpressionNode m when m.Fun is ConcreteHiOrderFunction hi:
+                sink.Add(hi.Source); break;
+        }
+        foreach (var child in node.Children)
+            CollectVariableSources(child, sink);
     }
 
     private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function) {
@@ -685,10 +772,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         {
             var sourceExpr = children[0];
             var unwrappedType = sourceExpr.Type.OptionalTypeSpecification.ElementType;
-            var cachedSource = new Nodes.CachedSourceNode(unwrappedType, node.Interval);
+            var cachedSource = new CachedSourceNode(unwrappedType, node.Interval);
             children[0] = cachedSource;
             var innerCall = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
-            return new Nodes.SafePipedCallExpressionNode(sourceExpr, cachedSource, innerCall, node.OutputType, node.Interval);
+            return new SafePipedCallExpressionNode(sourceExpr, cachedSource, innerCall, node.OutputType, node.Interval);
         }
 
         var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);

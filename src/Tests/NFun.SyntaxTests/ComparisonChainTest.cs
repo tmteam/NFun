@@ -1,7 +1,7 @@
 namespace NFun.SyntaxTests;
 
+using NFun.TestTools;
 using NUnit.Framework;
-using TestTools;
 
 public class ComparisonChainTest {
 
@@ -33,10 +33,8 @@ public class ComparisonChainTest {
     [TestCase("-1<-1.0>-0x1", false)]
     [TestCase("-1<=-1.0>=-0x1", true)]
     [TestCase("-1<=-1.0>=-0x1<1<0x1<0x2", false)]
-    //todo
-    //[TestCase("'a'<= 'b'.reverse()>=reverse('a')<''", true)]
-    //[TestCase("out = 'a'<='b'.reverse()>=reverse('a')<''", true)]
-    //[TestCase("out = 'a'<='b'.reverse()>=reverse('a')<''", true)]
+    [TestCase("'a'<= 'b'.reverse()>=reverse('a')<''", false)]
+    [TestCase("out = 'a'<='b'.reverse()>=reverse('a')<''", false)]
     [TestCase("(1<2<3>-100>-150) != (1<4<3>-100>-150)", true)]
     [TestCase("1<2<3>-100>-150 != 1<4<3>-100>-150", true)]
     [TestCase("(1<2<3>-100>-150) == (1<4<3>-100>-150) == true", false)]

@@ -87,19 +87,19 @@ public static class TokenHelper {
             flow.MoveNext(); // skip 'rule'
             flow.MoveNext(); // skip '('
 
-            var argTypes = new System.Collections.Generic.List<TypeSyntax>();
+            var argTypes = new List<TypeSyntax>();
             if (!flow.IsCurrent(TokType.ParenthCbr)) {
                 argTypes.Add(ReadTypeSyntax(flow));
                 while (flow.MoveIf(TokType.Sep, out _))
                     argTypes.Add(ReadTypeSyntax(flow));
             }
             if (!flow.MoveIf(TokType.ParenthCbr, out _))
-                throw new NFun.Exceptions.FunnyParseException(
+                throw new FunnyParseException(
                     541, "Expected ')' after rule type arguments", flow.Current.Start, flow.Current.Finish);
 
             // Arrow is required for function type syntax
             if (!flow.MoveIf(TokType.Arrow, out _))
-                throw new NFun.Exceptions.FunnyParseException(
+                throw new FunnyParseException(
                     540, "Expected '->' after rule type arguments", flow.Current.Start, flow.Current.Finish);
 
             var returnType = ReadTypeSyntax(flow);

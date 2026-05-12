@@ -97,10 +97,9 @@ public class CompareOperatorsTest {
     [TestCase("'avatar'<= 'avatar' ", true)]
     [TestCase("'avatar'>= 'avatar' ", true)]
     [TestCase("'avatar'>  'avatar' ", false)]
-    //todo
-    //[TestCase("'avatar'.reverse() >  reverse('avatar') ", false)]
-    //[TestCase("('avatar'.reverse()) >  reverse('avatar') ", false)]
-    //[TestCase("'avatar'.reverse() <  'avatar'", false)]
+    [TestCase("'avatar'.reverse() >  reverse('avatar') ", false)]
+    [TestCase("('avatar'.reverse()) >  reverse('avatar') ", false)]
+    [TestCase("'avatar'.reverse() <  'avatar'", false)]
     [TestCase("0==0.0", true)]
     [TestCase("0!=0.5", true)]
     [TestCase("-1.0>=-0x1", true)]
@@ -317,4 +316,27 @@ public class CompareOperatorsTest {
         var arr = (object[])r.Get("out");
         Assert.AreEqual(1, arr.Length, "intersect should find {x=2} in both arrays");
     }
+
+    // `==` no longer applies implicit ToText coercion of one operand to fit the
+    // other. Char vs Char[] (and any cross-family pair) returns false directly.
+    // Previously inside `rule it == 'a'` TIC narrowed equality's T to Char[]
+    // and ToText'd `it` (Char) into a 1-char text — silently producing true.
+    [TestCase("out = [/'a'].any(rule it == 'a')", false)]
+    [TestCase("out = [/'a'].any(rule it == [/'a'])", false)]
+    [TestCase("out = 'hello'.filter(rule it == 'l')", "")]
+    public void RuleIt_CharVsText_NoImplicitToText(string expr, object expected) =>
+        expr.AssertResultHas("out", expected);
+
+    // Binary min/max reject bool and ip at parse time — matching the array
+    // variant `[T].max()` and the relational operators `< > <= >=`. Per
+    // Specs/Operators.md L115-118 Comparables are text/char/numeric. Without
+    // this guard, max(true,false) silently returned a value (Bool happens to
+    // implement IComparable in .NET) and max(ip,ip) crashed with a raw
+    // InvalidCastException since IPAddress is not IComparable.
+    [TestCase("out = max(true, false)")]
+    [TestCase("out = min(true, false)")]
+    [TestCase("out = max(127.0.0.1, 192.168.0.1)")]
+    [TestCase("out = min(127.0.0.1, 192.168.0.1)")]
+    public void MinMax_NonComparable_RejectedAtParse(string expr) =>
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() => expr.Calc());
 }

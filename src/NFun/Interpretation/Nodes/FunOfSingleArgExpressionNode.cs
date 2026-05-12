@@ -19,6 +19,7 @@ internal class FunOfSingleArgExpressionNode : IExpressionNode {
     private readonly IExpressionNode _arg1;
     private readonly bool _lazy;
 
+    internal IConcreteFunction Fun => _fun;
     public Interval Interval { get; }
     public FunnyType Type => _fun.ReturnType;
     public IEnumerable<IRuntimeNode> Children => new[] { _arg1 };

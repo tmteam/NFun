@@ -128,7 +128,7 @@ internal sealed class SimplePrimitiveSolver {
             s_syntaxNodeSingletons[i] = TicNode.CreateSyntaxNode(0, p, true);
             refToSingletons[i] = new StateRefTo(TicNode.CreateTypeVariableNode("T", p, true));
             s_singleRefToArrays[i] = new[] { refToSingletons[i] };
-            s_ordToFunnyType[i] = TypeInferenceAdapter.TicTypesConverter.ToConcrete(p.Name);
+            s_ordToFunnyType[i] = TicTypesConverter.ToConcrete(p.Name);
         }
     }
 

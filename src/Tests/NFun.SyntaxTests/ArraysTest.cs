@@ -415,18 +415,12 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
     [TestCase("y = [1,2,3,4,5][::0]")]
     public void ObviouslyFailsOnRuntime(string expr) =>
         Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
-
-    [Test]
-    public void IfElse_EmptyArrayFirst_PreservesPreferredType() {
-        // Bug: `if(false) [] else [1,2,3]` resolved to UInt8[] instead of Int32[]
-        // when empty array was the first branch in if-else.
-        var result = "y = if(false) [] else [1,2,3]".Calc();
-        Assert.AreEqual(new[] { 1, 2, 3 }, result.Get("y"));
-    }
-
-    [Test]
-    public void IfElse_EmptyArraySecond_PreservesPreferredType() {
-        var result = "y = if(true) [1,2,3] else []".Calc();
+    // Bug: `if(false) [] else [1,2,3]` previously resolved to UInt8[] instead of Int32[]
+    // when empty array was the first branch in if-else. Now preserves preferred type.
+    [TestCase("y = if(false) [] else [1,2,3]")]
+    [TestCase("y = if(true) [1,2,3] else []")]
+    public void IfElse_EmptyArray_PreservesPreferredType(string expr) {
+        var result = expr.Calc();
         Assert.AreEqual(new[] { 1, 2, 3 }, result.Get("y"));
     }
 
@@ -526,5 +520,15 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
     [Test]
     public void TextSort_DoesNotCrash() {
         Assert.DoesNotThrow(() => "y = 'cba'.sort()".Calc());
+    }
+
+    // take/skip with negative count emit a clean domain error rather than
+    // leaking the underlying .NET overflow / Array.Copy sourceIndex message.
+    // Mirrors the existing `repeat(_, -1)` contract.
+    [TestCase("out = take([1,2], -1)", "Take count cannot be negative")]
+    [TestCase("out = skip([1,2,3], -1)", "Skip count cannot be negative")]
+    public void TakeOrSkip_NegativeCount_DomainError(string expr, string expectedMessageFragment) {
+        var ex = Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
+        StringAssert.Contains(expectedMessageFragment, ex.Message);
     }
 }

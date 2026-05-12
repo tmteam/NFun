@@ -1,6 +1,6 @@
 namespace NFun.SyntaxTests.OptionalTypes;
 
-using NFun.TestTools;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>

@@ -96,7 +96,7 @@ public class MultiMapSumFunction : GenericFunctionBase {
                            BaseFunnyType.Real => context.RealTypeSelect(
                                ifIsDouble: new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0),
                                ifIsDecimal: new ConcreteMapSumBase((a, b) => (decimal)a + (decimal)b, (decimal)0)),
-                           _ => throw new NFun.Exceptions.NFunImpossibleException("Unsupported type for this function")
+                           _ => throw new NFunImpossibleException("Unsupported type for this function")
                        };
         concrete.Name = Id;
         concrete.ArgTypes = SubstitudeArgTypes(concreteTypes);
@@ -679,8 +679,11 @@ public class TakeGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.Int32) { ArgProperties = FunArgProperty.FromNames("arr", "count"); }
 
-    protected override object Calc(object a, object b)
-        => ((IFunnyArray)a).Slice(null, (int)b - 1, 1);
+    protected override object Calc(object a, object b) {
+        var count = (int)b;
+        if (count < 0) throw new FunnyRuntimeException("Take count cannot be negative");
+        return ((IFunnyArray)a).Slice(null, count - 1, 1);
+    }
 }
 
 public class SkipGenericFunctionDefinition : GenericFunctionWithTwoArguments {
@@ -690,6 +693,9 @@ public class SkipGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.Int32) { ArgProperties = FunArgProperty.FromNames("arr", "count"); }
 
-    protected override object Calc(object a, object b)
-        => ((IFunnyArray)a).Slice((int)b, null, 1);
+    protected override object Calc(object a, object b) {
+        var count = (int)b;
+        if (count < 0) throw new FunnyRuntimeException("Skip count cannot be negative");
+        return ((IFunnyArray)a).Slice(count, null, 1);
+    }
 }

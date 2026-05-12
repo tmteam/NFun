@@ -43,18 +43,18 @@ public abstract class TicTypesConverter {
     /// Per-walk visit marks prevent infinite descent on shared struct subgraphs.
     /// </summary>
     public static FunnyType BuildStructBoundFunnyType(StateStruct bound, ConstraintsState ownerCs, int genericIdx) {
-        var visited = new HashSet<NFun.Tic.TicNode>();
+        var visited = new HashSet<Tic.TicNode>();
         return BuildStructLayer(bound, bound, ownerCs, genericIdx, visited);
     }
 
-    private static FunnyType BuildStructLayer(StateStruct s, StateStruct bound, ConstraintsState ownerCs, int genericIdx, HashSet<NFun.Tic.TicNode> visited) {
+    private static FunnyType BuildStructLayer(StateStruct s, StateStruct bound, ConstraintsState ownerCs, int genericIdx, HashSet<Tic.TicNode> visited) {
         var fieldsSpec = new StructTypeSpecification(s.FieldsCount, isFrozen: s.IsFrozen);
         foreach (var (name, valueNode) in s.Fields)
             fieldsSpec.Add(name, BuildFieldType(valueNode, bound, ownerCs, genericIdx, visited));
         return FunnyType.StructOf(fieldsSpec);
     }
 
-    private static FunnyType BuildFieldType(NFun.Tic.TicNode node, StateStruct bound, ConstraintsState ownerCs, int genericIdx, HashSet<NFun.Tic.TicNode> visited) {
+    private static FunnyType BuildFieldType(Tic.TicNode node, StateStruct bound, ConstraintsState ownerCs, int genericIdx, HashSet<Tic.TicNode> visited) {
         // Peel RefTo chains; if any link reaches the F-bound owner, this is a self-edge.
         var current = node;
         while (current.State is StateRefTo r) {
@@ -170,11 +170,11 @@ public abstract class TicTypesConverter {
             if (fieldNode.VisitMark == _convertMark)
             {
                 // Cycle detected — use TypeName if available (from node state or parent chain)
-                if (fieldNode.State is Tic.SolvingStates.StateStruct { TypeName: { } tn })
+                if (fieldNode.State is StateStruct { TypeName: { } tn })
                     fields.Add(ticField.Key, FunnyType.NamedStructOf(tn));
                 // If this is a StateStruct (TypeName lost via GetNonReferenced)
                 // and we're inside a named struct conversion, use the parent's TypeName.
-                else if (fieldNode.State is Tic.SolvingStates.StateStruct
+                else if (fieldNode.State is StateStruct
                          && _convertingNamedTypes is { Count: > 0 })
                     fields.Add(ticField.Key,
                         FunnyType.NamedStructOf(_convertingNamedTypes.First()));
@@ -225,12 +225,12 @@ public abstract class TicTypesConverter {
                         continue;
                     case StatePrimitiveCustom custom:
                         return custom.OriginalFunnyType;
-                    case StatePrimitive { Name: PrimitiveTypeName.Any }
-                        when _convertingNamedTypes is { Count: > 0 }:
-                        // Inside a named struct conversion, Any at the recursion boundary
-                        // should be NamedStructOf so the call site matches by named type
-                        // rather than trying to merge struct with Any.
-                        return FunnyType.NamedStructOf(_convertingNamedTypes.First());
+                    // Note: previously had a rule that converted Any → NamedStructOf when inside a
+                    // named struct conversion (the "recursion boundary" heuristic). Removed because
+                    // it conflates genuine Any fields (e.g. `type t = {a:any}`) with the recursion
+                    // boundary case. With LangTiHelper.ResolveNamedStruct now stamping TypeName on
+                    // the root, recursion boundary identity is preserved through ConvertToFunnyStruct's
+                    // own _convertingNamedTypes machinery — no need to special-case Any here.
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstraintsState constrains when constrains.Preferred != null:

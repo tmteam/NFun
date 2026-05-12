@@ -1,6 +1,6 @@
 namespace NFun.SyntaxTests.Functions;
 
-using NFun.TestTools;
+using TestTools;
 using NUnit.Framework;
 
 public class FunctionCallTest {

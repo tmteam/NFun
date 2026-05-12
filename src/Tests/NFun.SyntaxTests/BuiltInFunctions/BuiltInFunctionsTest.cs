@@ -34,6 +34,13 @@ public class BuiltInFunctionsTest {
     [TestCase("round(1.222,2)", 1.22)]
     [TestCase("round(1.66666,0)", 2.0)]
     [TestCase("round(1.2,0)", 1.0)]
+    // Half values: MidpointRounding.AwayFromZero, matching the text format
+    // specifier (`'{0.5:0}'` = `'1'` per Specs/Texts.md L165). Default
+    // Math.Round uses banker's rounding which would give round(0.5,0)=0.
+    [TestCase("round(0.5, 0)", 1.0)]
+    [TestCase("round(-0.5, 0)", -1.0)]
+    [TestCase("round(2.5, 0)", 3.0)]
+    [TestCase("round(-1.5, 0)", -2.0)]
     [TestCase("min(0.5, 1)", 0.5)]
     [TestCase("[1,2,3].count()", 3)]
     [TestCase("['1','2','3'].count()", 3)]
@@ -169,7 +176,7 @@ public class BuiltInFunctionsTest {
     [TestCase("floor(-0.12)", -1.0)]
     [TestCase("floor(-7.1)", -8.0)]
     [TestCase("floor(-7.6)", -8.0)]
-    public void TODOConstantEquationWithPredefinedFunction(string expr, object expected)
+    public void CeilFloorConstantEquations(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
     [TestCase("['a'].sort(rule it)", new[] { "a" })]
@@ -224,7 +231,7 @@ public class BuiltInFunctionsTest {
     [TestCase("y = abs(toInt(x)-toInt(4))", 1, 3)]
     [TestCase("y = abs(x-toInt(4))", 1, 3)]
     [TestCase("x:int; y = abs(toInt(x)-toInt(4))", 1, 3)]
-    public void TODOEquationWithPredefinedFunction(string expr, object arg, object expected) =>
+    public void EquationWithUnimplementedToIntFunction(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 
 
@@ -256,7 +263,7 @@ public class BuiltInFunctionsTest {
         "toUnicode('hi there')",
         new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
     [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
-    public void TODOConstWithPredefinedFunction(string expr, object expected)
+    public void ToIntToRealToBitsConstants(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
     [TestCase("y = pi(")]
@@ -310,7 +317,7 @@ public class BuiltInFunctionsTest {
 
     [Test]
     public void TextInText_ShouldBeTypeError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(
+        Assert.Throws<Exceptions.FunnyParseException>(
             () => "out = 'h' in 'hello'".Calc());
     }
 }

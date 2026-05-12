@@ -1,7 +1,7 @@
 namespace NFun.SyntaxTests.OptionalTypes;
 
-using NFun.Exceptions;
-using NFun.TestTools;
+using Exceptions;
+using TestTools;
 using NUnit.Framework;
 
 /// <summary>

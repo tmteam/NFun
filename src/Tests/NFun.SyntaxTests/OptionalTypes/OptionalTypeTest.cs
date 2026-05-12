@@ -1,8 +1,8 @@
 namespace NFun.SyntaxTests.OptionalTypes;
 
 using System;
-using NFun.Exceptions;
-using NFun.TestTools;
+using Exceptions;
+using TestTools;
 using NUnit.Framework;
 
 [TestFixture]
@@ -2343,7 +2343,7 @@ public class OptionalTypeTest {
 
     [Test]
     public void OptionalInNonOptionalArray_CompileError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<FunnyParseException>(() =>
             "y:int? = none; out:int[] = [y, 1, 2]"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
@@ -2484,7 +2484,7 @@ public class OptionalTypeTest {
 
     [Test]
     public void CoalesceIncompatibleTypes_ShouldError() {
-        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+        Assert.Throws<FunnyParseException>(() =>
             "a:int? = 42; out = a ?? 'hello'"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }

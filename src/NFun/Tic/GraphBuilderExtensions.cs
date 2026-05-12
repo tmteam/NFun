@@ -118,8 +118,32 @@ public static class GraphBuilderExtensions {
         return new StateRefTo(elementType);
     }
 
-    public static void SetSoftArrayInit(this GraphBuilder b, int resultIds, params int[] elementIds) {
-        var elementType = b.CreateVarType();
+    public static void SetSoftArrayInit(this GraphBuilder b, int resultIds, params int[] elementIds)
+        => SetSoftArrayInit(b, resultIds, elementIds, elementAncestorHint: null);
+
+    /// <summary>
+    /// Variant that accepts an optional pre-resolved element type. When the caller knows all
+    /// array elements share a named-struct type (e.g. `[t{}, t{}]` where each element's
+    /// post-elaboration OutputType is `NamedStructOf("t")`), passing the resolved TIC state
+    /// lets the element-LCA node start with the full named recursive shape — instead of an
+    /// empty ConstraintsState that absorbs only the literal's raw post-Pull state.
+    ///
+    /// Without this hint, a single-element array `[t{}]` infers `arr:{...;next:none}[]`
+    /// rather than `arr:t[]`: the literal's `next` field stays as `StatePrimitive.None`
+    /// (the "None desc → skip" rule preserves None rather than lifting it through the named
+    /// ancestor) and the element-LCA node, having no other input, adopts that raw shape.
+    /// </summary>
+    public static void SetSoftArrayInit(this GraphBuilder b, int resultIds, int[] elementIds,
+        ITicNodeState elementAncestorHint) {
+        TicNode elementType;
+        if (elementAncestorHint is ITypeState hintTypeState)
+        {
+            elementType = b.CreateVarType(hintTypeState);
+        }
+        else
+        {
+            elementType = b.CreateVarType();
+        }
         b.GetOrCreateArrayNode(resultIds, elementType);
         foreach (var id in elementIds)
         {
@@ -128,11 +152,20 @@ public static class GraphBuilderExtensions {
         }
     }
 
-    public static void SetFieldAccess(this GraphBuilder b, int structNodeId, int opId, string fieldName) {
+    public static void SetFieldAccess(this GraphBuilder b, int structNodeId, int opId, string fieldName,
+        string sourceTypeNameHint = null) {
         var node = b.GetOrCreateStructNode(structNodeId, new StateStruct(isOpen: true))
             .GetNonReference();
 
         var state = (StateStruct)node.State;
+        // Propagate the source variable's named-struct TypeName onto the
+        // synthesized open struct. LCA(arr(named-t), arr(anonymous-{...})) drops to anonymous
+        // because LcaTypeName is strict (one null → null); stamping the open struct's
+        // TypeName from the source's named identity makes both LCA inputs named, so
+        // LcaTypeName(t,t)=t survives downstream and ThrowIfRecursiveTypeDefinition's
+        // named-type cycle-rescue can repair the contractive μ-cycle.
+        if (state.TypeName == null && sourceTypeNameHint != null)
+            state.TypeName = sourceTypeNameHint;
         var memberNode = state.GetFieldOrNull(fieldName);
         if (memberNode == null)
         {
@@ -298,6 +331,57 @@ public static class GraphBuilderExtensions {
         if (ancestorType is StateStruct ancStruct && ancStruct.TypeName != null
             && structNode.State is StateStruct litStruct && litStruct.TypeName == null) {
             litStruct.TypeName = ancStruct.TypeName;
+        }
+        // When the ancestor declares a field as Optional but the literal's
+        // corresponding field-value is a non-Optional composite (struct/array literal), the
+        // implicit lift `T ≤ opt(T)` is invoked at Push/Destruction time as
+        // WrapAncestorInOptional, which refuses to mutate SyntaxNode literal state and throws.
+        // Eagerly *insert* an Optional wrapper node between the literal and the ancestor at
+        // graph-construction time, leaving the literal solved and untouched. This converts the
+        // implicit-lift postulate into an explicit graph-level edge — exactly once per
+        // syntactic field-init boundary, with no runtime detection cost.
+        if (ancestorType is StateStruct ancNamed
+            && structNode.State is StateStruct lit
+            && ancNamed.IsOptionalFieldOrNone()) {
+            // (placeholder — helper below). Per-field wrap.
+            WrapNonOptionalCompositeLiteralFields(b, lit, ancNamed);
+        }
+    }
+
+    /// <summary>True iff <paramref name="s"/> has at least one Optional field.</summary>
+    private static bool IsOptionalFieldOrNone(this StateStruct s) {
+        foreach (var f in s.Fields) {
+            if (f.Value.GetNonReference().State is StateOptional) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// For each field of <paramref name="lit"/> where the matching ancestor field declares
+    /// <see cref="StateOptional"/>: if the literal's field-value node is a non-Optional
+    /// composite (struct/array) literal, insert a fresh TIC node holding
+    /// <c>StateOptional.Of(litValueNode)</c> and replace the field link. Skips
+    /// already-Optional values, None primitives, and non-composite values (primitives can
+    /// be lifted by existing TIC algebra — only solved composite literals are problematic).
+    /// </summary>
+    private static void WrapNonOptionalCompositeLiteralFields(GraphBuilder b, StateStruct lit, StateStruct anc) {
+        foreach (var ancField in anc.Fields) {
+            if (ancField.Value.GetNonReference().State is not StateOptional) continue;
+            var litFieldNode = lit.GetFieldOrNull(ancField.Key);
+            if (litFieldNode == null) continue;
+            var litFieldNr = litFieldNode.GetNonReference();
+            // Already Optional or None: nothing to do.
+            if (litFieldNr.State is StateOptional) continue;
+            if (litFieldNr.State is StatePrimitive { Name: PrimitiveTypeName.None }) continue;
+            // Only wrap composite (struct/array/fun) literals — they are the cases where
+            // WrapAncestorInOptional throws. Primitives/CS lift naturally via T ≤ opt(T).
+            if (litFieldNr.State is not ICompositeState) continue;
+            // Build wrapper: opt(litFieldNode). The literal node is untouched; the wrapper
+            // is what the ancestor's Optional field gets compared against.
+            var wrapper = b.CreateVarType(StateOptional.Of(litFieldNode));
+            wrapper.IsOptionalElement = false;
+            litFieldNode.IsOptionalElement = true;
+            lit.ReplaceField(ancField.Key, wrapper);
         }
     }
 
