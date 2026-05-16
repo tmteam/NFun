@@ -128,7 +128,12 @@ public class StateStruct : ICompositeState {
             return true;
         }
     }
-    public bool IsMutable => TypeName == null; // Named types are solved (declared, not inferred)
+    // Follows the StateArray/StateOptional/StateFun pattern: a struct is immutable iff fully
+    // solved. Named structs are always solved (IsSolved returns true on TypeName!=null), so the
+    // previous rule `TypeName==null` is preserved for them. The new edge: fully-concrete
+    // anonymous structs are now also immutable — required by Phase 1 of RecBound elimination
+    // so the F-bound check has a uniform "is this state fully determined" probe.
+    public bool IsMutable => !IsSolved;
     public string Description => ToString();
     public bool IsFrozen { get; internal set; }
 
@@ -254,26 +259,24 @@ public class StateStruct : ICompositeState {
     public static ITypeState WithField(string name, StatePrimitive type)
         => new StateStruct(name, TicNode.CreateNamedNode(type.ToString(), type), isFrozen: false);
 
+    /// <summary>
+    /// Nominal comparison: when BOTH sides carry TypeName, equality is decided by name
+    /// (case-insensitive, Pierce TAPL §19) and we DO NOT descend into fields — that avoids
+    /// cycle-traversal on recursive μ-types AND prevents same-shape-but-distinct-name
+    /// types from silently unifying. Returns null when the rule does not apply (at least
+    /// one side anonymous); caller falls through to structural comparison/merge.
+    /// </summary>
+    internal static bool? NominalEquals(StateStruct a, StateStruct b) {
+        if (a.TypeName == null || b.TypeName == null) return null;
+        return a.TypeName.Equals(b.TypeName, StringComparison.OrdinalIgnoreCase);
+    }
+
     [ThreadStatic] private static HashSet<(StateStruct, StateStruct)> _equalsVisited;
 
     public override bool Equals(object obj) {
         if (obj is not StateStruct stateStruct) return false;
         if (ReferenceEquals(this, stateStruct)) return true;
-        // Nominal-typing rule for named structs:
-        // When BOTH sides have a declared TypeName, equality is determined by the name
-        // alone (case-insensitive). The names match → equal (cycle-rescued recursive
-        // types succeed without descending into the cyclic field graph). The names
-        // differ → NOT equal, even if shapes coincide — `type t1 = {v:int}` and
-        // `type t2 = {v:int}` are distinct types per nominal typing (Pierce TAPL §19).
-        //
-        // Previously a name-mismatch fell through to structural comparison, allowing
-        // silent merge of two distinct named types — caught by bug-regression unit tests
-        // and verified to cause `y:t2 = x` (where `x:t1`) to be accepted with TypeName
-        // dropped. The structural fall-through is preserved only when at least one side
-        // is anonymous (no TypeName) — that's row-polymorphism / structural-subtyping
-        // territory, not nominal-vs-nominal.
-        if (TypeName != null && stateStruct.TypeName != null)
-            return TypeName.Equals(stateStruct.TypeName, StringComparison.OrdinalIgnoreCase);
+        if (NominalEquals(this, stateStruct) is bool nominal) return nominal;
         if (_nodes.Count != stateStruct._nodes.Count) return false;
 
         // Coinductive Equals for cyclic struct shapes (Amadio-Cardelli '93 §4.2). With true graph

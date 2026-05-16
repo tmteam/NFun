@@ -80,7 +80,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             // runtime FunnyType struct with FunnyType.Generic(i) for self-references. The
             // runtime dispatcher uses this for structural Fit at call sites. Mutually exclusive
             // with primitive Ancestor/Descendant per GenericConstrains assertion.
-            if (ticGenerics[i].StructBound != null)
+            if (ticGenerics[i].HasStructBound)
             {
                 var boundFt = TicTypesConverter.BuildStructBoundFunnyType(
                     ticGenerics[i].StructBound, ticGenerics[i], i);

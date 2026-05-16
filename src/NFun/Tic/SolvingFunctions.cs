@@ -50,9 +50,13 @@ public static class SolvingFunctions {
         if (stateB is StatePrimitive { Name: PrimitiveTypeName.None } && stateA is StateOptional optA1)
             return optA1;
 
-        if (stateA is ITypeState typeA && !typeA.IsMutable)
+        // Immutable-vs-immutable shortcut: equality on solved leaf types is cheap and final.
+        // EXCLUDE StateStruct because (1) fully-concrete anonymous structs are now immutable
+        // under IsMutable=>!IsSolved, and (2) the struct↔struct case below has its own nominal
+        // short-circuit + MergeStructs path that handles row-poly union and cycle correctly.
+        if (stateA is ITypeState typeA && !typeA.IsMutable && stateA is not StateStruct)
         {
-            if (stateB is ITypeState typeB && !typeB.IsMutable)
+            if (stateB is ITypeState typeB && !typeB.IsMutable && stateB is not StateStruct)
                 return !typeB.Equals(typeA) ? null : typeA;
 
             if (stateB is ConstraintsState constrainsB)
@@ -86,6 +90,11 @@ public static class SolvingFunctions {
                 return MergeMutableStructs(mutA, mutB);
             case StateStruct strA when stateB is StateStruct strB:
             {
+                // Nominal short-circuit: same TypeName ⇒ same type, return either side
+                // without descending into MergeStructs (which would mutate field nodes via
+                // MergeInplace and corrupt registry instances). Different names ⇒ null.
+                if (StateStruct.NominalEquals(strA, strB) is bool nominal)
+                    return nominal ? strA : null;
                 // Cycle guard for recursive struct types (Amadio-Cardelli '93 bisimulation):
                 // self-referential fields cause MergeStructs → MergeInplace → GetMergedStateOrNull
                 // → MergeStructs infinite recursion. Re-entered pair = "already merged"
@@ -612,7 +621,6 @@ public static class SolvingFunctions {
 
     public static bool Destruction(TicNode[] toposorteNodes, bool hasOptionalTypes = true, Types.INamedTypeFieldRegistry namedTypeRegistry = null, bool isRecursion = true) {
         int notSolvedCount = 0;
-        _isRecursionCtx = isRecursion;
 
         // VisitMark-based dedup: each top-level call gets a fresh mark via
         // NextMark(); within that call, a node is visited at most once. This
@@ -621,7 +629,7 @@ public static class SolvingFunctions {
         for (int i = toposorteNodes.Length - 1; i >= 0; i--) {
             var descendant = toposorteNodes[i];
             if (descendant.IsMemberOfAnything) continue;
-            DestructionRec(descendant, namedTypeRegistry, NextMark());
+            DestructionRec(descendant, namedTypeRegistry, NextMark(), isRecursion);
             if (!descendant.IsSolved) notSolvedCount++;
         }
 
@@ -697,7 +705,7 @@ public static class SolvingFunctions {
             // Top-level fast path first: if no node directly has StructBound,
             // skip the recursive composite walk (which allocates HashSet).
             var nr = n.GetNonReference();
-            if (nr.State is ConstraintsState cs && cs.StructBound != null) {
+            if (nr.State is ConstraintsState cs && cs.HasStructBound) {
                 visited ??= new HashSet<TicNode>();
                 CollectFBoundRec(n, result, visited);
             } else if (nr.State is ICompositeState) {
@@ -711,7 +719,7 @@ public static class SolvingFunctions {
     private static void CollectFBoundRec(TicNode n, List<TicNode> result, HashSet<TicNode> visited) {
         var nr = n.GetNonReference();
         if (!visited.Add(nr)) return;
-        if (nr.State is ConstraintsState cs && cs.StructBound != null)
+        if (nr.State is ConstraintsState cs && cs.HasStructBound)
             result.Add(nr);
         if (nr.State is ICompositeState comp) {
             for (int i = 0; i < comp.MemberCount; i++)
@@ -734,7 +742,7 @@ public static class SolvingFunctions {
                 if (fbounds.Count == 0) return false;
                 var fbound = fbounds[0];
                 if (fbound == cycleHead) return false;
-                if (fbound.State is not ConstraintsState fbCs || fbCs.StructBound == null) return false;
+                if (fbound.State is not ConstraintsState fbCs || !fbCs.HasStructBound) return false;
                 cycleHead.State = new StateRefTo(fbound);
                 TraceLog.WriteLine($"  TryRedirectDegenerateOptCycle: {cycleHead.Name} opt-only cycle head → RefTo({fbound.Name})");
                 return true;
@@ -748,7 +756,7 @@ public static class SolvingFunctions {
                 next = r.Node.GetNonReference();
             }
             else if (probe.State is StateStruct) return false;
-            else if (probe.State is ConstraintsState pCs && pCs.StructBound != null) return false;
+            else if (probe.State is ConstraintsState pCs && pCs.HasStructBound) return false;
             else return false;
             probe = next;
         }
@@ -776,9 +784,8 @@ public static class SolvingFunctions {
     private static bool TryLiftElement(TicNode elemNode, Types.INamedTypeFieldRegistry registry) {
         var elem = elemNode.GetNonReference();
         if (elem.State is not StateStruct s) return false;
-        if (s.TypeName != null) return false;          // stamped — F-bound coexists with TypeName
+        if (s.TypeName != null) return false;          // nominally locked — never replace
         if (!s.IsOptionalSourced) return false;         // not from ?. — not a μ-recursive shape
-        if (!elem.IsMutable) return false;              // already locked — can't replace
         // C1 contractivity check — only lift true μ-cycles. Plain `?.field` access on a
         // non-recursive struct also has IsOptionalSourced=true but is NOT a μ-type; lifting it
         // would create a phantom F-bound generic where there should be a fully-solved
@@ -978,7 +985,7 @@ public static class SolvingFunctions {
     /// StateRefTo back to owner.
     /// </summary>
     private static bool IsBoundCarrierCs(ITicNodeState state) {
-        return state is ConstraintsState cs && cs.StructBound != null;
+        return state is ConstraintsState cs && cs.HasStructBound;
     }
 
     private static bool IsSelfRefBackToOwner(ITicNodeState state, TicNode owner) {
@@ -1179,7 +1186,7 @@ public static class SolvingFunctions {
                 return ClosingPathVerdict(opt.ElementNode, owner, ownerStruct, visited, crossedOptOrArr: true);
             case StateArray arr:
                 return ClosingPathVerdict(arr.ElementNode, owner, ownerStruct, visited, crossedOptOrArr: true);
-            case ConstraintsState cs when cs.StructBound != null:
+            case ConstraintsState cs when cs.HasStructBound:
                 // F-bound is itself a contractive boundary — re-entering a
                 // bounded variable does not continue the path (Pierce TAPL §20).
                 return PathVerdict.NoClose;
@@ -1343,8 +1350,6 @@ public static class SolvingFunctions {
     /// <summary>Get the next unique VisitMark value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int NextMark() => System.Threading.Interlocked.Increment(ref _nextMark);
-    [ThreadStatic] private static int _materializeMark;
-
     private static void MaterializeOptionalFlags(TicNode[] nodes) {
         // Quick scan: skip if no node (or composite member) has IsOptional flag
         bool hasOptional = false;
@@ -1364,15 +1369,15 @@ public static class SolvingFunctions {
         }
         if (!hasOptional) return;
 
-        _materializeMark = NextMark();
+        var mark = NextMark();
         foreach (var node in nodes)
-            MaterializeOptionalNode(node, nodes);
+            MaterializeOptionalNode(node, nodes, mark);
     }
 
-    private static void MaterializeOptionalNode(TicNode node, TicNode[] allNodes) {
+    private static void MaterializeOptionalNode(TicNode node, TicNode[] allNodes, int mark) {
         var n = node.GetNonReference();
-        if (n.VisitMark == _materializeMark) return;
-        n.VisitMark = _materializeMark;
+        if (n.VisitMark == mark) return;
+        n.VisitMark = mark;
 
         if (n.State is ConstraintsState cs && cs.IsOptional) {
             // Pure IsOptional with no type constraints: this is standalone None
@@ -1405,24 +1410,22 @@ public static class SolvingFunctions {
         }
         if (n.State is ICompositeState composite) {
             for (int mi = 0; mi < composite.MemberCount; mi++)
-                MaterializeOptionalNode(composite.GetMember(mi), allNodes);
+                MaterializeOptionalNode(composite.GetMember(mi), allNodes, mark);
         }
     }
 
-    [ThreadStatic] private static bool _isRecursionCtx;
-
-    private static void DestructionRec(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry, int mark) {
+    private static void DestructionRec(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry, int mark, bool isRecursion) {
         // Mark-based dedup: once a node is reached within this traversal it
         // won't be revisited (equivalent to a HashSet, allocation-free). Works
         // uniformly for DAGs and μ-cyclic Pottier-Rémy '05 graphs — re-entry
         // via different parent paths short-circuits at the first encounter.
         if (node.VisitMark == mark) return;
         node.VisitMark = mark;
-        ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, _isRecursionCtx);
+        ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, isRecursion);
         if (node.State is ICompositeState composite) {
             if (composite.HasAnyReferenceMember) node.State = composite.GetNonReferenced();
             for (int mi = 0; mi < composite.MemberCount; mi++)
-                DestructionRec(composite.GetMember(mi), namedTypeRegistry, mark);
+                DestructionRec(composite.GetMember(mi), namedTypeRegistry, mark, isRecursion);
             if (node.State is StateOptional)
                 node.FlattenNestedOptional();
         }
@@ -1657,7 +1660,7 @@ public static class SolvingFunctions {
                     // to a struct that ITSELF satisfies the contractive bound, so a back-edge
                     // closing through `RefTo(node-with-CS{StructBound})` is analogous to a
                     // StateOptional break — terminate the walk.
-                    if (cs.StructBound != null)
+                    if (cs.HasStructBound)
                     {
                         if (cs.HasDescendant)
                             ThrowIfRecursiveReq(cs.Descendant, mark, fromStruct, optSeen);
@@ -1795,7 +1798,7 @@ public static class SolvingFunctions {
         bool TryPromoteCSDescendantToStructBound(TicNode node) {
             var nr = node.GetNonReference();
             if (nr.State is not ConstraintsState cs) return false;
-            if (cs.StructBound != null) return false;          // already lifted
+            if (cs.HasStructBound) return false;          // already lifted
             if (!cs.HasDescendant) return false;
             if (cs.Descendant is not StateStruct s) return false;
             // Closing-path contractivity check.
@@ -1890,7 +1893,8 @@ public static class SolvingFunctions {
         TicNode[] syntaxNodes,
         Dictionary<string, TicNode> namedNodes,
         bool ignorePreferred,
-        Types.INamedTypeFieldRegistry namedTypeRegistry = null) {
+        Types.INamedTypeFieldRegistry namedTypeRegistry = null,
+        bool isRecursion = true) {
         var typeVariables = new List<TicNode>();
 
         int genericNodesCount = 0;
@@ -1898,8 +1902,7 @@ public static class SolvingFunctions {
         for (int i = toposortedNodes.Length - 1; i >= 0; i--)
         {
             var node = toposortedNodes[i];
-            _finalizeMark = NextMark();
-            FinalizeRecursive(node, namedTypeRegistry);
+            FinalizeRecursive(node, namedTypeRegistry, NextMark(), isRecursion);
 
             CollectLeafTypeVariables(node, typeVariables, typeVariableVisitedMark);
 
@@ -1934,17 +1937,15 @@ public static class SolvingFunctions {
         return new TicResultsWithGenerics(typeVariables, namedNodes, syntaxNodes);
     }
 
-    [ThreadStatic] private static int _finalizeMark;
-
-    private static void FinalizeRecursive(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry) {
-        if (node.VisitMark == _finalizeMark)
+    private static void FinalizeRecursive(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry, int mark, bool isRecursion) {
+        if (node.VisitMark == mark)
             return; // cycle — recursive struct
         var prevMark = node.VisitMark;
-        node.VisitMark = _finalizeMark;
+        node.VisitMark = mark;
 
         if (node.State is StateRefTo refTo)
         {
-            ThrowIfRecursiveTypeDefinition(refTo.Node, namedTypeRegistry, _isRecursionCtx);
+            ThrowIfRecursiveTypeDefinition(refTo.Node, namedTypeRegistry, isRecursion);
             var originalOne = refTo.Node.GetNonReference();
 
             if (originalOne.State is ITypeState)
@@ -1955,7 +1956,7 @@ public static class SolvingFunctions {
 
         if (node.State is ICompositeState composite)
         {
-            ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, _isRecursionCtx);
+            ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, isRecursion);
 
             if (composite.HasAnyReferenceMember)
             {
@@ -1964,7 +1965,7 @@ public static class SolvingFunctions {
             }
 
             for (int mi = 0; mi < composite.MemberCount; mi++)
-                FinalizeRecursive(composite.GetMember(mi), namedTypeRegistry);
+                FinalizeRecursive(composite.GetMember(mi), namedTypeRegistry, mark, isRecursion);
 
             // Safety net: flatten any remaining nested optionals after member finalization
             node.FlattenNestedOptional();

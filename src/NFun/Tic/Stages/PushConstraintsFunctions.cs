@@ -39,12 +39,12 @@ public class PushConstraintsFunctions : IStateFunction {
         // F-bound StructBound merges via Gcd (meet of upper bounds). Symmetric to Pull's
         // Apply(CS,CS). Runs independently of HasAncestor — StructBound is a third dimension,
         // peer to IsComparable (which is also propagated above without HasAncestor gating).
-        if (ancestor.StructBound != null) {
-            descendant.StructBound = descendant.StructBound == null
+        if (ancestor.HasStructBound) {
+            descendant.StructBound = !descendant.HasStructBound
                 ? SolvingFunctions.RewireStructBoundOwnership(ancestor.StructBound, ancestorNode, descendantNode)
                 : SolvingFunctions.GcdBound(descendant.StructBound, ancestor.StructBound,
                                             descendantNode, ancestorNode);
-            if (descendant.StructBound == null) return false; // conflict
+            if (!descendant.HasStructBound) return false; // conflict
         }
 
         if (!ancestor.HasAncestor)
@@ -68,7 +68,7 @@ public class PushConstraintsFunctions : IStateFunction {
         // additional ancestor-side struct descendant — propagate any S-required field that's
         // missing from desc (open-row extension), and push field-state constraints into shared
         // fields. F-bound vs non-struct composite is a structural conflict — reject.
-        if (ancestor.StructBound != null)
+        if (ancestor.HasStructBound)
         {
             if (descendant is StateStruct descStructForBound)
             {

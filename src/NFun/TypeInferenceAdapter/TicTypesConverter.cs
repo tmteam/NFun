@@ -64,7 +64,7 @@ public abstract class TicTypesConverter {
             // A different CS{StructBound} sharing the same bound shape is also a recursion variable
             // for this F-bound — multiple LiftMuTypes calls within one body can produce parallel CS
             // instances that all represent the same μ-recursion (Cardelli-Mitchell '89 §4.2 coinductive equality).
-            if (r.Node.State is ConstraintsState csR && csR.StructBound != null
+            if (r.Node.State is ConstraintsState csR && csR.HasStructBound
                 && ReferenceEquals(csR.StructBound, bound))
                 return FunnyType.Generic(genericIdx);
             current = r.Node;
@@ -74,7 +74,7 @@ public abstract class TicTypesConverter {
             return FunnyType.Generic(genericIdx);
         if (ReferenceEquals(nr.State, bound))
             return FunnyType.Generic(genericIdx);
-        if (nr.State is ConstraintsState csNr && csNr.StructBound != null
+        if (nr.State is ConstraintsState csNr && csNr.HasStructBound
             && ReferenceEquals(csNr.StructBound, bound))
             return FunnyType.Generic(genericIdx);
         if (!visited.Add(nr)) return FunnyType.Any; // cycle without self-edge — bail

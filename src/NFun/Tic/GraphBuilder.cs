@@ -457,7 +457,7 @@ public class GraphBuilder {
     private static bool NodeHasRecursiveShape(TicNode n, HashSet<TicNode> visited) {
         var nr = n.GetNonReference();
         if (!visited.Add(nr)) return false;
-        if (nr.State is ConstraintsState cs && cs.StructBound != null) return true;
+        if (nr.State is ConstraintsState cs && cs.HasStructBound) return true;
         if (nr.State is StateStruct s && SolvingFunctions.StructIsRecursiveCycle(s, nr)) return true;
         if (nr.State is StateOptional opt) return NodeHasRecursiveShape(opt.ElementNode, visited);
         if (nr.State is ICompositeState composite) {
@@ -699,7 +699,8 @@ public class GraphBuilder {
             syntaxNodes: _syntaxNodes,
             namedNodes: _variables,
             ignorePreferred: ignorePrefered,
-            namedTypeRegistry: NamedTypeRegistry);
+            namedTypeRegistry: NamedTypeRegistry,
+            isRecursion: IsRecursion);
         PrintTrace("5. Finalized");
 
         return results;
@@ -742,7 +743,7 @@ public class GraphBuilder {
             var n = sorted[i];
             if (n == null) continue;
             if (n.IsContractiveCycleHead) return true;
-            if (n.State is ConstraintsState cs && cs.StructBound != null) return true;
+            if (n.State is ConstraintsState cs && cs.HasStructBound) return true;
             if (n.State is StateStruct s && SolvingFunctions.StructIsRecursiveCycle(s, n)) return true;
         }
         return false;

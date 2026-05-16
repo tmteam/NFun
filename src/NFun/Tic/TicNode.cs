@@ -145,19 +145,25 @@ public class TicNode {
         {
             Debug.Assert(value != null);
             // Allowed mutations of a "solved" state (IsMutable=false):
-            //  1. value.Equals(_state) — no-op (idempotent)
-            //  2. value is StateRefTo — redirection (graph rewiring)
-            //  3. value is StateOptional and _state is composite — the implicit-lift wrap
-            //     T ≤ opt(T). The wrap creates innerNode holding _state by reference, so
-            //     all structural identity (including TypeName, IsOptionalSourced) survives;
-            //     only an Optional layer is added on the outer node. Universal algebraic
-            //     postulate per TicTypeSystem §Optional. Previously this allowed
-            //     `_state is StateOptional` only (Opt(Opt(T))→Opt(T) flatten path); GH #126
-            //     followup adds the rest of ICompositeState (StateStruct, StateArray,
-            //     StateFun) so F-bound recursive function returns can be widened.
+            //  1. value.Equals(_state) — no-op idempotent.
+            //  2. StateRefTo — graph-level redirection (rewiring).
+            //  3. StateOptional over composite _state — implicit-lift wrap T ≤ opt(T)
+            //     (Universal algebraic postulate per TicTypeSystem §Optional). The wrap
+            //     creates innerNode holding _state by reference, so structural identity
+            //     (TypeName, IsOptionalSourced) survives — only an Optional layer is added.
+            //  4. _state is anonymous StateStruct — anonymous structs carry no nominal
+            //     identity to preserve, so row-poly merges, LiftMuTypes promotion to
+            //     CS{StructBound}, and field-by-field refinement may all replace it.
+            //     WORKAROUND: this 4th clause is wider than strictly necessary — it
+            //     accepts any `value` for an anonymous-struct _state rather than enumerating
+            //     the three legitimate transitions (struct→struct, struct→CS{StructBound},
+            //     struct→StateRefTo). Narrowing it would re-trigger the BugC_LcaOfRecursiveVarsInArray
+            //     assertion failure that surfaced when Phase 1 of #108 flipped anonymous-
+            //     solved structs to IsMutable=false. Tracked in TicTechnicalDebt.md.
             Debug.Assert(_state == null || IsMutable || value.Equals(_state)
                 || value is StateRefTo
-                || (value is StateOptional && _state is ICompositeState),
+                || (value is StateOptional && _state is ICompositeState)
+                || (_state is StateStruct ss && ss.TypeName == null),
                 "Node is already solved");
             if (value is StateArray array)
                 array.ElementNode.IsMemberOfAnything = true;

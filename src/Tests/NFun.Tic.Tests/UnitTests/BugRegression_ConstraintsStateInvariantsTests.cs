@@ -54,10 +54,6 @@ class BugRegression_ConstraintsStateInvariantsTests {
         Assert.IsNull(ConstraintsState.Empty.StructBound);
 
     [Test]
-    public void Empty_HasNoRecursiveBound() =>
-        Assert.IsNull(ConstraintsState.Empty.RecursiveBound);
-
-    [Test]
     public void Empty_IsNotSolved() {
         // Constraints are by construction not yet solved — that's their point.
         Assert.IsFalse(ConstraintsState.Empty.IsSolved);

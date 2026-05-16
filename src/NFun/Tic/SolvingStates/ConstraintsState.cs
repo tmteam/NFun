@@ -34,31 +34,30 @@ public class ConstraintsState : ITicNodeState {
     public bool IsOptional { get; private set; }
 
     /// <summary>
-    /// F-bounded recursive upper bound: `T &lt;: τ(T)` — T is a fixed-point of the body τ.
-    /// Currently τ is always StateStruct (StructShape kind). Pierce TAPL §20.2 iso-recursive types.
-    ///
-    /// May contain StateRefTo back to the owning ConstraintsState (F-bound). Contractivity
-    /// (Cardelli-Mitchell '89 §3) and covariance positions for the self-ref MUST hold.
+    /// F-bounded recursive upper bound: `T &lt;: τ(T)` — T is a fixed-point of the body τ
+    /// (Pierce TAPL §20.2 iso-recursive types). The body is currently always a
+    /// <see cref="StateStruct"/> whose fields may carry <see cref="StateRefTo"/> back to the
+    /// owning ConstraintsState — that's the F-bound self-reference. Contractivity
+    /// (Cardelli-Mitchell '89 §3) and covariance positions MUST hold for any such self-ref.
     ///
     /// Third independent dimension on CS, peer to IsComparable/IsOptional. Owned by exactly one
     /// ConstraintsState — never aliased.
     /// </summary>
-    public RecBound RecursiveBound { get; set; }
+    public StateStruct StructBound { get; set; }
 
     /// <summary>
-    /// Returns the F-bound's body if it is a StateStruct, null otherwise. Setting wraps the
-    /// struct in <see cref="RecBound.OfStruct"/>.
+    /// True iff this CS carries an F-bound. Single source of truth for "is this CS the holder
+    /// of a recursive bound" — read-side analogue of the <see cref="StructBound"/> slot. Phase
+    /// 3 of #108 migrates the source of truth to a new representation; this predicate is the
+    /// stable read API while that migration happens.
     /// </summary>
-    public StateStruct StructBound {
-        get => RecursiveBound?.Body as StateStruct;
-        set => RecursiveBound = value == null ? null : RecBound.OfStruct(value);
-    }
+    public bool HasStructBound => StructBound != null;
 
     public bool IsSolved => false;
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
     public bool IsComparable { get; internal set; }
-    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional && RecursiveBound == null;
+    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional && !HasStructBound;
 
     public static ConstraintsState Empty => new(null, null, false);
 
@@ -76,10 +75,10 @@ public class ConstraintsState : ITicNodeState {
         new(_descendant, Ancestor, IsComparable) {
             Preferred = Preferred,
             IsOptional = IsOptional,
-            // RecursiveBound copied by reference: defensive deep-copy is only needed when the
+            // StructBound copied by reference: defensive deep-copy is only needed when the
             // copy participates in a merge that could mutate either side. Read-after-lift is
             // correct with reference-copy.
-            RecursiveBound = RecursiveBound,
+            StructBound = StructBound,
         };
 
     public bool CanBeConvertedTo(ITypeState type) {
@@ -89,7 +88,7 @@ public class ConstraintsState : ITicNodeState {
         // F-bound check: T ≤ CS{S} requires T:Struct, Fields(T) ⊇ Fields(S), and pointwise
         // covariant ≤ on shared fields. F-bound self-references are guarded by FitStructBound
         // (cycle-aware).
-        if (StructBound != null && !FitStructBound(type, StructBound))
+        if (HasStructBound && !FitStructBound(type, StructBound))
             return false;
 
         switch (type)
@@ -427,7 +426,7 @@ public class ConstraintsState : ITicNodeState {
         // RefTo encoding: the bound's self-references already point back to
         // the owning CS, and after this materialization they semantically
         // point into the result struct.
-        if (StructBound != null
+        if (HasStructBound
             && Ancestor == null
             && !HasDescendant
             && Preferred == null
@@ -470,7 +469,7 @@ public class ConstraintsState : ITicNodeState {
     public ITicNodeState SolveContravariant() {
         // F-bound is also the narrowest contravariant resolution when it's the sole constraint —
         // the bound IS the most specific shape that satisfies the F-bound predicate.
-        if (StructBound != null
+        if (HasStructBound
             && Ancestor == null
             && !HasDescendant
             && Preferred == null
@@ -504,7 +503,7 @@ public class ConstraintsState : ITicNodeState {
         // dimension; its presence imposes additional constraints on which D and A are compatible.
         // Structs cannot be Comparable; D=primitive is incompatible with S=struct; non-Any
         // primitive A rejects S.
-        if (StructBound != null) {
+        if (HasStructBound) {
             if (IsComparable) return null;                     // structs aren't Comparable
             if (HasAncestor && Ancestor != StatePrimitive.Any) // primitive upper bound rejects struct
                 return null;
@@ -689,7 +688,7 @@ public class ConstraintsState : ITicNodeState {
                     // RECURSE into StructBound coinductively if both have one
                     // (avoids re-entering full ConstraintsState.Equals which
                     // would lose the in-progress guard's identity).
-                    if (csA.StructBound != null || csB.StructBound != null) {
+                    if (csA.HasStructBound || csB.HasStructBound) {
                         if (!StructBoundsEqualInner(csA.StructBound, csB.StructBound, guard))
                             return false;
                     } else if (!csA.Equals(csB)) {
@@ -720,7 +719,7 @@ public class ConstraintsState : ITicNodeState {
             h = h * 31 + (HasDescendant ? Descendant.GetType().GetHashCode() : 0);
             h = h * 31 + IsOptional.GetHashCode();
             h = h * 31 + IsComparable.GetHashCode();
-            if (StructBound != null) {
+            if (HasStructBound) {
                 h = h * 31 + StructBound.FieldsCount;
                 foreach (var f in StructBound.Fields)
                     h = h * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(f.Key);
@@ -742,7 +741,7 @@ public class ConstraintsState : ITicNodeState {
             res += "<>";
         if (Preferred != null)
             res += Preferred + "!";
-        if (StructBound != null)
+        if (HasStructBound)
             res += $"⊆μ"; // F-bound marker; full shape would self-recurse
         return res;
     }

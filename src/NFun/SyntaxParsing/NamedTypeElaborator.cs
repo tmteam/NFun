@@ -116,16 +116,16 @@ internal static class NamedTypeElaborator {
         return new SyntaxTree(newNodes.ToArray());
     }
 
-    private static ISyntaxNode ElaborateNode(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types) {
+    private static ISyntaxNode ElaborateNode(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding = null) {
         return node switch {
-            NamedTypeConstructorSyntaxNode ctor => ExpandConstructor(ctor, types),
-            EquationSyntaxNode eq => ElaborateEquation(eq, types),
-            _ => ElaborateChildren(node, types)
+            NamedTypeConstructorSyntaxNode ctor => ExpandConstructor(ctor, types, expanding),
+            EquationSyntaxNode eq => ElaborateEquation(eq, types, expanding),
+            _ => ElaborateChildren(node, types, expanding)
         };
     }
 
-    private static EquationSyntaxNode ElaborateEquation(EquationSyntaxNode eq, Dictionary<string, NamedTypeDefinition> types) {
-        var newExpr = ElaborateNode(eq.Expression, types);
+    private static EquationSyntaxNode ElaborateEquation(EquationSyntaxNode eq, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding) {
+        var newExpr = ElaborateNode(eq.Expression, types, expanding);
         var typeSpec = eq.TypeSpecificationOrNull;
 
         // If the expression was a named type constructor AND the equation has no type annotation,
@@ -148,7 +148,7 @@ internal static class NamedTypeElaborator {
         };
     }
 
-    private static ISyntaxNode ElaborateChildren(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types) {
+    private static ISyntaxNode ElaborateChildren(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding) {
         // For nodes that have children (arrays, function calls, if-else, etc.),
         // we need to recurse. Since the syntax nodes are mostly immutable,
         // we handle the common container types.
@@ -157,7 +157,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newElements = new List<ISyntaxNode>(arr.Expressions.Count);
                 foreach (var el in arr.Expressions) {
-                    var newEl = ElaborateNode(el, types);
+                    var newEl = ElaborateNode(el, types, expanding);
                     if (!ReferenceEquals(newEl, el)) changed = true;
                     newElements.Add(newEl);
                 }
@@ -175,7 +175,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newElements = new List<ISyntaxNode>(lof.Expressions.Count);
                 foreach (var el in lof.Expressions) {
-                    var newEl = ElaborateNode(el, types);
+                    var newEl = ElaborateNode(el, types, expanding);
                     if (!ReferenceEquals(newEl, el)) changed = true;
                     newElements.Add(newEl);
                 }
@@ -187,7 +187,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newArgs = new ISyntaxNode[fun.Args.Length];
                 for (int i = 0; i < fun.Args.Length; i++) {
-                    newArgs[i] = ElaborateNode(fun.Args[i], types);
+                    newArgs[i] = ElaborateNode(fun.Args[i], types, expanding);
                     if (!ReferenceEquals(newArgs[i], fun.Args[i])) changed = true;
                 }
                 if (!changed) return node;
@@ -199,8 +199,8 @@ internal static class NamedTypeElaborator {
                 var newCases = new IfCaseSyntaxNode[ite.Ifs.Length];
                 for (int i = 0; i < ite.Ifs.Length; i++) {
                     var c = ite.Ifs[i];
-                    var newCond = ElaborateNode(c.Condition, types);
-                    var newExpr = ElaborateNode(c.Expression, types);
+                    var newCond = ElaborateNode(c.Condition, types, expanding);
+                    var newExpr = ElaborateNode(c.Expression, types, expanding);
                     if (!ReferenceEquals(newCond, c.Condition) || !ReferenceEquals(newExpr, c.Expression)) {
                         changed = true;
                         newCases[i] = SyntaxNodeFactory.IfCase(newCond, newExpr, c.Interval.Start, c.Interval.Finish);
@@ -208,7 +208,7 @@ internal static class NamedTypeElaborator {
                         newCases[i] = c;
                     }
                 }
-                var newElse = ElaborateNode(ite.ElseExpr, types);
+                var newElse = ElaborateNode(ite.ElseExpr, types, expanding);
                 if (!ReferenceEquals(newElse, ite.ElseExpr)) changed = true;
                 if (!changed) return node;
                 return SyntaxNodeFactory.IfElse(newCases, newElse, ite.Interval.Start, ite.Interval.Finish);
@@ -218,7 +218,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newEquations = new List<EquationSyntaxNode>(si.Fields.Count);
                 foreach (var field in si.Fields) {
-                    var newBody = ElaborateNode(field.Node, types);
+                    var newBody = ElaborateNode(field.Node, types, expanding);
                     if (!ReferenceEquals(newBody, field.Node)) {
                         changed = true;
                         newEquations.Add(new EquationSyntaxNode(field.Name, field.Node.Interval.Start, newBody, Array.Empty<FunnyAttribute>()));
@@ -231,7 +231,7 @@ internal static class NamedTypeElaborator {
             }
 
             case StructFieldAccessSyntaxNode sfa: {
-                var newSource = ElaborateNode(sfa.Source, types);
+                var newSource = ElaborateNode(sfa.Source, types, expanding);
                 if (ReferenceEquals(newSource, sfa.Source)) return node;
                 return new StructFieldAccessSyntaxNode(newSource, sfa.FieldName,
                     new Interval(newSource.Interval.Start, sfa.Interval.Finish), sfa.IsSafeAccess);
@@ -239,11 +239,11 @@ internal static class NamedTypeElaborator {
 
             case ResultFunCallSyntaxNode rfc: {
                 bool changed = false;
-                var newResult = ElaborateNode(rfc.ResultExpression, types);
+                var newResult = ElaborateNode(rfc.ResultExpression, types, expanding);
                 if (!ReferenceEquals(newResult, rfc.ResultExpression)) changed = true;
                 var newArgs = new ISyntaxNode[rfc.Args.Length];
                 for (int i = 0; i < rfc.Args.Length; i++) {
-                    newArgs[i] = ElaborateNode(rfc.Args[i], types);
+                    newArgs[i] = ElaborateNode(rfc.Args[i], types, expanding);
                     if (!ReferenceEquals(newArgs[i], rfc.Args[i])) changed = true;
                 }
                 if (!changed) return node;
@@ -254,7 +254,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newOperands = new List<ISyntaxNode>(cmp.Operands.Count);
                 foreach (var op in cmp.Operands) {
-                    var newOp = ElaborateNode(op, types);
+                    var newOp = ElaborateNode(op, types, expanding);
                     if (!ReferenceEquals(newOp, op)) changed = true;
                     newOperands.Add(newOp);
                 }
@@ -263,41 +263,41 @@ internal static class NamedTypeElaborator {
             }
 
             case SuperAnonymFunctionSyntaxNode saf: {
-                var newBody = ElaborateNode(saf.Body, types);
+                var newBody = ElaborateNode(saf.Body, types, expanding);
                 if (ReferenceEquals(newBody, saf.Body)) return node;
                 return new SuperAnonymFunctionSyntaxNode(newBody);
             }
 
             case BinOperatorSyntaxNode bin: {
-                var newLeft = ElaborateNode(bin.Left, types);
-                var newRight = ElaborateNode(bin.Right, types);
+                var newLeft = ElaborateNode(bin.Left, types, expanding);
+                var newRight = ElaborateNode(bin.Right, types, expanding);
                 if (ReferenceEquals(newLeft, bin.Left) && ReferenceEquals(newRight, bin.Right))
                     return node;
                 return new BinOperatorSyntaxNode(bin.Op, newLeft, newRight, bin.Interval);
             }
 
             case UnaryOperatorSyntaxNode un: {
-                var newOperand = ElaborateNode(un.Operand, types);
+                var newOperand = ElaborateNode(un.Operand, types, expanding);
                 if (ReferenceEquals(newOperand, un.Operand)) return node;
                 return new UnaryOperatorSyntaxNode(un.Op, newOperand, un.Interval);
             }
 
             case TryCatchSyntaxNode tc: {
-                var newTry = ElaborateNode(tc.TryExpr, types);
-                var newCatch = ElaborateNode(tc.CatchExpr, types);
+                var newTry = ElaborateNode(tc.TryExpr, types, expanding);
+                var newCatch = ElaborateNode(tc.CatchExpr, types, expanding);
                 if (ReferenceEquals(newTry, tc.TryExpr) && ReferenceEquals(newCatch, tc.CatchExpr))
                     return node;
                 return new TryCatchSyntaxNode(newTry, newCatch, tc.ErrorVariableName, tc.Interval);
             }
 
             case UserFunctionDefinitionSyntaxNode func: {
-                var newBody = ElaborateNode(func.Body, types);
+                var newBody = ElaborateNode(func.Body, types, expanding);
                 if (ReferenceEquals(newBody, func.Body)) return node;
                 return new UserFunctionDefinitionSyntaxNode(func.Args, func.Head, newBody, func.ReturnTypeSyntax);
             }
 
             case AnonymFunctionSyntaxNode anon: {
-                var newBody = ElaborateNode(anon.Body, types);
+                var newBody = ElaborateNode(anon.Body, types, expanding);
                 if (ReferenceEquals(newBody, anon.Body)) return node;
                 return SyntaxNodeFactory.AnonymFunction(anon.Definition, anon.ReturnTypeSyntax, newBody);
             }
@@ -311,11 +311,10 @@ internal static class NamedTypeElaborator {
     /// Expand a NamedTypeConstructorSyntaxNode into a StructInitSyntaxNode,
     /// filling in default values for missing fields.
     /// </summary>
-    [ThreadStatic] private static HashSet<string> _expandingTypes;
-
     private static ISyntaxNode ExpandConstructor(
         NamedTypeConstructorSyntaxNode ctor,
-        Dictionary<string, NamedTypeDefinition> types) {
+        Dictionary<string, NamedTypeDefinition> types,
+        HashSet<string> expanding) {
 
         if (!types.TryGetValue(ctor.TypeName, out var typeDef))
             throw Errors.NamedTypeNotDefined(ctor.TypeName, ctor.TypeNameInterval);
@@ -340,7 +339,7 @@ internal static class NamedTypeElaborator {
             if (providedFields.ContainsKey(eq.Id))
                 throw Errors.NamedTypeDuplicateField(ctor.TypeName, eq.Id, eq.Interval);
             // Elaborate the provided expression (it might contain nested constructors)
-            providedFields[eq.Id] = ElaborateNode(eq.Expression, types);
+            providedFields[eq.Id] = ElaborateNode(eq.Expression, types, expanding);
         }
 
         // Build the full field list
@@ -351,16 +350,16 @@ internal static class NamedTypeElaborator {
                 fieldExpr = provided;
             } else if (fieldDef.HasDefault) {
                 // Use the default expression, elaborating any nested constructors.
-                // Guard: detect recursive defaults (node? = node{v=0}) to prevent stack overflow.
-                var isRoot = _expandingTypes == null;
-                _expandingTypes ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                if (!_expandingTypes.Add(resolvedName))
+                // Guard: detect recursive defaults (`type node = {next:node? = node{v=0}}`)
+                // to prevent stack overflow. The expanding-set is created lazily on first
+                // default elaboration and threaded through ElaborateNode's recursion.
+                expanding ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                if (!expanding.Add(resolvedName))
                     throw Errors.NamedTypeRecursiveDefault(resolvedName, ctor.Interval);
                 try {
-                    fieldExpr = ElaborateNode(fieldDef.DefaultValue, types);
+                    fieldExpr = ElaborateNode(fieldDef.DefaultValue, types, expanding);
                 } finally {
-                    _expandingTypes.Remove(resolvedName);
-                    if (isRoot) _expandingTypes = null;
+                    expanding.Remove(resolvedName);
                 }
             } else {
                 throw Errors.NamedTypeMissingRequiredField(ctor.TypeName, fieldDef.Name, ctor.Interval);

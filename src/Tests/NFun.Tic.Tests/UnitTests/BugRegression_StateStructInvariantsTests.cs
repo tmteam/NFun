@@ -152,13 +152,10 @@ class BugRegression_StateStructInvariantsTests {
     }
 
     // ─── IsMutable invariants ───
-    // Contract: IsMutable = (TypeName == null). Named types are not mutable —
-    // setting TypeName commits to a declared identity.
-
-    [Test]
-    public void IsMutable_Anonymous_True() {
-        Assert.IsTrue(new StateStruct().IsMutable);
-    }
+    // Contract: IsMutable = !IsSolved (follows the StateArray/Optional/Fun pattern).
+    // A struct is immutable iff fully resolved: either named (TypeName!=null is always
+    // solved) or anonymous with every field state solved. An anonymous struct with an
+    // unresolved field is mutable.
 
     [Test]
     public void IsMutable_Named_False() {
@@ -168,14 +165,35 @@ class BugRegression_StateStructInvariantsTests {
     }
 
     [Test]
-    public void IsMutable_NamedThenCleared_TrueAgain() {
-        // TypeName is a settable property — if cleared, mutability returns.
-        // (Not used by current code paths, but the contract must hold.)
-        var s = new StateStruct();
+    public void IsMutable_AnonymousEmpty_False() {
+        // Empty struct: no fields, vacuously solved → immutable. Same shape as a
+        // closed-empty struct literal `{}` — no further refinement possible.
+        Assert.IsFalse(new StateStruct().IsMutable);
+    }
+
+    [Test]
+    public void IsMutable_AnonymousWithSolvedField_False() {
+        // All fields concrete → solved → immutable.
+        var s = StateStruct.Of("x", StatePrimitive.I32);
+        Assert.IsFalse(s.IsMutable);
+    }
+
+    [Test]
+    public void IsMutable_AnonymousWithUnsolvedField_True() {
+        // Field is an unresolved ConstraintsState → struct is mutable (field needs refinement).
+        var s = StateStruct.Of("x", ConstraintsState.Empty);
+        Assert.IsTrue(s.IsMutable);
+    }
+
+    [Test]
+    public void IsMutable_NamedThenCleared_ReflectsFieldSolvedness() {
+        // TypeName!=null → IsSolved short-circuits true → IsMutable=false.
+        // Clearing TypeName re-exposes the underlying field-by-field solvedness.
+        var s = StateStruct.Of("x", ConstraintsState.Empty);
         s.TypeName = "t";
         Assert.IsFalse(s.IsMutable);
         s.TypeName = null;
-        Assert.IsTrue(s.IsMutable);
+        Assert.IsTrue(s.IsMutable); // x's CS is unresolved
     }
 
     // ─── IsOpen vs IsFrozen ───

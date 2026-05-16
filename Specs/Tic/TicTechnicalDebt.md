@@ -1,9 +1,30 @@
 # TIC Technical Debt
 
-Ограничения текущей реализации, которые отклоняются от идеальной алгебры. 
+Ограничения текущей реализации, которые отклоняются от идеальной алгебры.
 
 ---
 
+## 9. IsMutable decoupling cascade — two narrow workarounds (#108 Phase 1)
+
+**Контекст**: Phase 1 #108 поменяла `StateStruct.IsMutable => TypeName == null` на `=> !IsSolved`, чтобы привести StateStruct в соответствие с StateArray/Optional/Fun. Cascade оставил два workaround'а:
+
+### 9a. `GetMergedStateOrNull` immutable-shortcut excludes StateStruct
+
+**Где**: `SolvingFunctions.cs:53-60` (`stateA is not StateStruct && stateB is not StateStruct`).
+
+**Почему**: shortcut "both immutable → equality decides" больше не подходит для struct после Phase 1 — empty struct + non-empty struct оба immutable, но Equals по shape возвращает false, что ломает row-poly union. Текущее решение — type-keyed exclusion + специальный struct↔struct case ниже.
+
+**Правильный fix**: либо `HasNominalIdentity` свойство на ITypeState (типы с TypeName / sealed leaf), либо вообще убрать shortcut (опираться на switch-case разбиение). Оба требуют ревизии всех ITypeState callers.
+
+### 9b. `TicNode.State` setter assertion слишком широкая для anonymous struct
+
+**Где**: `TicNode.cs:158-170` — четвёртый disjunct `(_state is StateStruct ss && ss.TypeName == null)` пропускает ЛЮБОЙ `value` для anonymous-struct `_state`.
+
+**Почему**: должны быть три конкретных перехода: `value is StateStruct` (struct→struct refinement), `value is ConstraintsState cs && cs.HasStructBound` (LiftMuTypes), `value is StateRefTo` (уже покрыто). Любое сужение ловит BugC_LcaOfRecursiveVarsInArray, который заассертился после Phase 1 (anonymous-solved structs стали IsMutable=false).
+
+**Правильный fix**: сузить до трёх explicit cases после того как точно протрассированы все легитимные replace-paths. Безопасно делать с реальным debugger'ом.
+
+---
 
 ## 5. Stale Pull snapshots (DescendantHasOptionalLift) — WORKAROUND
 

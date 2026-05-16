@@ -587,7 +587,7 @@ internal static class RuntimeBuilder {
                     FreezeStructsRecursive(fieldNode, visited);
                 break;
             case Tic.SolvingStates.ConstraintsState cs:
-                if (cs.StructBound != null) {
+                if (cs.HasStructBound) {
                     // RecursiveBound's struct: freeze too (idempotent if already frozen by lift)
                     cs.StructBound.IsFrozen = true;
                     foreach (var (_, fieldNode) in cs.StructBound.Fields)

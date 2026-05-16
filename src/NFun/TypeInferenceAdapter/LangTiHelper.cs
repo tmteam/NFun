@@ -71,16 +71,30 @@ public static class LangTiHelper {
                 origin.StructTypeSpecification.Select(
                     d => new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value))),
                 origin.StructTypeSpecification.IsFrozen),
-            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, null),
+            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, null, null),
             _ => throw new ArgumentOutOfRangeException(
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
         };
+
+    /// <summary>
+    /// Per-call state for recursive NamedStruct resolution. Created lazily on first nested
+    /// resolution; tracks the in-progress type names + their root TicNode placeholders so a
+    /// re-entered name becomes a StateRefTo to the placeholder (closing a μ-cycle).
+    /// </summary>
+    private sealed class ResolveContext {
+        public readonly Dictionary<string, int> Depth = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, TicNode> RootNode = new(StringComparer.OrdinalIgnoreCase);
+    }
 
     /// <summary>
     /// Convert FunnyType to TIC state with named type registry for recursive type resolution.
     /// </summary>
     internal static ITicNodeState ConvertToTiType(this FunnyType origin,
         INamedTypeFieldRegistry registry) =>
+        ConvertToTiTypeInner(origin, registry, ctx: null);
+
+    private static ITicNodeState ConvertToTiTypeInner(FunnyType origin,
+        INamedTypeFieldRegistry registry, ResolveContext ctx) =>
         origin.BaseType switch {
             BaseFunnyType.Bool => StatePrimitive.Bool,
             BaseFunnyType.Int16 => StatePrimitive.I16,
@@ -97,38 +111,33 @@ public static class LangTiHelper {
             BaseFunnyType.None => StatePrimitive.None,
             BaseFunnyType.Custom => new StatePrimitiveCustom(origin.CustomTypeDefinition.Name, origin),
             BaseFunnyType.Optional => StateOptional.Of(
-                ConvertToTiType(origin.OptionalTypeSpecification.ElementType, registry)),
+                ConvertToTiTypeInner(origin.OptionalTypeSpecification.ElementType, registry, ctx)),
             BaseFunnyType.ArrayOf => StateArray.Of(
-                ConvertToTiType(origin.ArrayTypeSpecification.FunnyType, registry)),
+                ConvertToTiTypeInner(origin.ArrayTypeSpecification.FunnyType, registry, ctx)),
             BaseFunnyType.Fun => StateFun.Of(
-                argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(t => ConvertToTiType(t, registry)),
-                returnType: ConvertToTiType(origin.FunTypeSpecification.Output, registry)),
+                argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(t => ConvertToTiTypeInner(t, registry, ctx)),
+                returnType: ConvertToTiTypeInner(origin.FunTypeSpecification.Output, registry, ctx)),
             BaseFunnyType.Struct => StateStruct.Of(
                 origin.StructTypeSpecification.Select(
-                    d => new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value, registry))),
+                    d => new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiTypeInner(d.Value, registry, ctx))),
                 origin.StructTypeSpecification.IsFrozen),
-            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, registry),
+            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, registry, ctx),
             _ => throw new ArgumentOutOfRangeException(
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
         };
 
-    [ThreadStatic] private static Dictionary<string, int> _resolveDepth;
-    [ThreadStatic] private static Dictionary<string, TicNode> _resolveRootNode;
-
     private static ITicNodeState ResolveNamedStruct(string typeName,
-        INamedTypeFieldRegistry registry) {
+        INamedTypeFieldRegistry registry, ResolveContext ctx) {
         if (registry == null || !registry.TryGetFields(typeName, out var fields))
             return ConstraintsState.Empty;
 
-        var isRoot = _resolveDepth == null;
-        _resolveDepth ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        _resolveRootNode ??= new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+        ctx ??= new ResolveContext();
 
-        _resolveDepth.TryGetValue(typeName, out var depth);
+        ctx.Depth.TryGetValue(typeName, out var depth);
         if (depth >= 1) {
             // At depth ≥ 1, return RefTo to the root TicNode for a true graph cycle
             // (Pottier-Rémy '05 §10.6). Cycle-aware Equals/Merge keep traversal bounded.
-            if (_resolveRootNode.TryGetValue(typeName, out var rootNode)) {
+            if (ctx.RootNode.TryGetValue(typeName, out var rootNode)) {
                 return new StateRefTo(rootNode);
             }
             var placeholderFields = new (string, ITicNodeState)[fields.Length];
@@ -140,24 +149,20 @@ public static class LangTiHelper {
         }
 
         var rootPlaceholder = TicNode.CreateInvisibleNode(ConstraintsState.Empty);
-        _resolveRootNode[typeName] = rootPlaceholder;
-        _resolveDepth[typeName] = depth + 1;
+        ctx.RootNode[typeName] = rootPlaceholder;
+        ctx.Depth[typeName] = depth + 1;
         try {
             var ticFields = new (string, ITicNodeState)[fields.Length];
             for (int i = 0; i < fields.Length; i++)
-                ticFields[i] = (fields[i].name, ConvertToTiType(fields[i].type, registry));
+                ticFields[i] = (fields[i].name, ConvertToTiTypeInner(fields[i].type, registry, ctx));
             var rootStruct = StateStruct.Of(false, ticFields);
             rootStruct.TypeName = typeName;
             rootPlaceholder.State = rootStruct;
             return rootStruct;
         }
         finally {
-            _resolveDepth[typeName] = depth;
-            _resolveRootNode.Remove(typeName);
-            if (isRoot) {
-                _resolveDepth = null;
-                _resolveRootNode = null;
-            }
+            ctx.Depth[typeName] = depth;
+            ctx.RootNode.Remove(typeName);
         }
     }
 
@@ -208,7 +213,7 @@ public static class LangTiHelper {
                         value: ConvertToTiType(s.Value, genericMap, registry))),
                 origin.StructTypeSpecification.IsFrozen,
                 isOpen: true),
-            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, registry),
+            BaseFunnyType.NamedStruct => ResolveNamedStruct(origin.NamedStructTypeName, registry, null),
             _ => origin.ConvertToTiType()
         };
 }
