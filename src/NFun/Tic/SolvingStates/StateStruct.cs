@@ -279,10 +279,11 @@ public class StateStruct : ICompositeState {
         // Coinductive Equals for cyclic struct shapes (Amadio-Cardelli '93 §4.2). With true graph
         // cycles in named recursive types, descending through fields can recurse infinitely.
         // Visited-pair guard: assume equal under recursive subgoal, return true on cycle.
-        var owns = _equalsVisited == null;
-        _equalsVisited ??= new HashSet<(StateStruct, StateStruct)>();
+        // HashSet reused per-thread via Remove (one alloc for process lifetime) — see
+        // SolvingFunctions.GetMergedStateOrNull for the same pattern.
+        var visited = _equalsVisited ??= new HashSet<(StateStruct, StateStruct)>();
         var key = (this, stateStruct);
-        if (!_equalsVisited.Add(key)) return true;
+        if (!visited.Add(key)) return true;
         try {
             foreach (var (k, value) in _nodes)
             {
@@ -294,8 +295,7 @@ public class StateStruct : ICompositeState {
             }
             return true;
         } finally {
-            _equalsVisited.Remove(key);
-            if (owns) _equalsVisited = null;
+            visited.Remove(key);
         }
     }
 

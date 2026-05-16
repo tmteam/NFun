@@ -26,25 +26,17 @@ public static class StagesExtension {
     internal static bool _isRecursion;
 
     public static bool Invoke<TFunction>(this TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
-        // Fast path: cycles in the TIC graph only arise through ICompositeState
-        // edges (StateOptional element, StateArray element, StateStruct fields,
-        // StateFun arg/ret). Pairs of nodes whose states are NOT composite —
-        // typically StatePrimitive or solved leaves — cannot re-enter Invoke
-        // recursively, so the visited-pair guard is unreachable. Skip the
-        // HashSet allocation/op pair and avoid the try/finally overhead. This
-        // is the dominant case in non-recursive expressions (numeric/string
-        // arithmetic). Correctness: if neither state is composite, InvokeCore
-        // dispatches directly to a single Apply call without further Invoke
-        // recursion (see switch arms 47-52 in InvokeCore).
-        if (nodeA.State is StatePrimitive && nodeB.State is StatePrimitive)
-            return InvokeCore(function, nodeA, nodeB);
-
-        // Skip visited-pair guard when the entire graph cannot contain cycles.
-        // The guard exists solely for μ-recursive type unfolding (Amadio-Cardelli
-        // '93 §3). Without recursive constructs (NamedTypeRegistry, ?., recursive
-        // user function), no cycle re-entry can occur — see GraphBuilder.
-        // IsRecursion which is set deterministically pre-TIC.
-        if (!_isRecursion)
+        // Two fast paths to skip the visited-pair guard:
+        // (1) graph cannot contain cycles (`!_isRecursion`) — single bool check, the
+        //     dominant case in non-recursive expressions. Set deterministically pre-TIC
+        //     by GraphBuilder (no SafeFieldAccess, no named-type registry, no recursive
+        //     user fn).
+        // (2) both states primitive — even in recursive graphs, primitive↔primitive pairs
+        //     cannot re-enter Invoke (InvokeCore dispatches to a single Apply with no
+        //     further recursion through this method).
+        // Order matters: (1) is one op and covers the bulk of calls; (2) is two type
+        // checks and only adds value when _isRecursion=true.
+        if (!_isRecursion || (nodeA.State is StatePrimitive && nodeB.State is StatePrimitive))
             return InvokeCore(function, nodeA, nodeB);
 
         // Coinductive visited-pair guard. Required for the cycle members

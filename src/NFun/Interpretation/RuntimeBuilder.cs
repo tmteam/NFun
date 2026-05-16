@@ -442,7 +442,13 @@ internal static class RuntimeBuilder {
         // structural shape is determined. Mark reachable StateStructs as IsFrozen=true so script-
         // body Pull cannot widen them by absorbing caller's fields. Algebraic analog of TAPL §22.6
         // generalization closing the type at the let-boundary.
-        FreezeFunctionSignatureStructs(typeInferenceResuls, functionSyntaxNode);
+        // Only anonymous recursive-cycle structs are frozen by this pass (named structs are
+        // frozen at namedTypeFieldRegistry time; non-recursive anonymous structs stay
+        // row-polymorphic for caller-side merging). Anonymous μ-cycles in a function's signature
+        // arise only from a recursive call pattern, so the function must be IsRecursive — gate
+        // the walk to spend zero time on non-recursive user functions.
+        if (functionSyntaxNode.IsRecursive)
+            FreezeFunctionSignatureStructs(typeInferenceResuls, functionSyntaxNode);
 
         // Classify by EXTERNAL signature, not by body's residual ConstraintsState. Operators like
         // `==` and `+` inside a body leave CS placeholders in TypeInferenceResults.Generics even

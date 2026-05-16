@@ -70,12 +70,7 @@ public class PushConstraintsFunctions : IStateFunction {
         // fields. F-bound vs non-struct composite is a structural conflict — reject.
         if (ancestor.StructBound != null)
         {
-            if (descendant is StateOptional)
-            {
-                // Optional handled below by the existing struct-descendant path
-                // when applicable; for now defer.
-            }
-            else if (descendant is StateStruct descStructForBound)
+            if (descendant is StateStruct descStructForBound)
             {
                 foreach (var bf in ancestor.StructBound.Fields)
                 {

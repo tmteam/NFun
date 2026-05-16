@@ -187,9 +187,14 @@ public class TicNode {
             // instead of an invalid struct→struct loop. The IsOptionalSourced gate (set by
             // SetSafeFieldAccess and preserved through merges) distinguishes inferred recursion
             // through `?.` from a declared `type t = {self:t}` which must error.
+            // Gate order: StructSubgraphIsOptSourced short-circuits on `ns.IsOptionalSourced`
+            // (O(1)) and on a non-opt-sourced subgraph (single field walk, no recursion into
+            // unrelated nodes). StructHasFieldReaching walks the struct's reachable subgraph
+            // looking for `this` — the more expensive predicate, evaluated only when the
+            // cheaper one already classified the struct as opt-sourced.
             if (value is StateStruct ns
-                && SolvingFunctions.StructHasFieldReaching(ns, this)
-                && SolvingFunctions.StructSubgraphIsOptSourced(ns))
+                && SolvingFunctions.StructSubgraphIsOptSourced(ns)
+                && SolvingFunctions.StructHasFieldReaching(ns, this))
             {
                 var inner = CreateTypeVariableNode("e" + Name + "'", ns);
                 inner.IsOptionalElement = true;

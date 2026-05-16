@@ -375,7 +375,9 @@ public class GraphBuilder {
         // call sites — without cloning, two sites passing structurally-different types collide on
         // the Descendant slot (LCA → Any). Damas-Milner '82 let-polymorphism: instantiate
         // signature fresh per call.
-        bool needsPerSiteClone = SignatureHasRecursiveShape(funState);
+        // IsRecursion gates the entire μ-machinery: when false, no signature can carry a
+        // recursive shape (named-type registry hasn't been set), so skip the walk.
+        bool needsPerSiteClone = IsRecursion && SignatureHasRecursiveShape(funState);
         var argNodeMap = needsPerSiteClone
             ? CreatePerSiteCloneMap(funState)
             : null;
@@ -395,25 +397,23 @@ public class GraphBuilder {
                 ? cloned
                 : argNode;
             var state = effectiveArgNode.State;
-            // Route ALL composite-state and constraint-state args through StateRefTo.
+            // Route composite-state and constraint-state args through StateRefTo when sharing
+            // would create aliased member TicNodes downstream (Damas-Milner '82 §3
+            // let-monomorphic body — each param-use is a reflexive constraint, so the call
+            // should add an edge, not a fresh structural copy).
             //
-            // Algebraic rationale (Damas-Milner '82 §3 — let-monomorphic body):
-            // each occurrence of param `p` inside the body of `let f = λ…p. … f(…, p) …`
-            // is a USE, generating the constraint `τ(p) ≤ τ(f.argₖ)`. Since `τ(f.argₖ) ≡
-            // τ(p)` by the binding itself, the constraint is reflexive — the call should
-            // add NO new structural type, only a constraint edge. `StateRefTo(P)` realizes
-            // this exactly; the existing self-loop guard in SetCallArgument's StateRefTo
-            // branch collapses the reflexive case.
-            //
-            // Previously the IsSolved=true case was excluded under the assumption "solved ⇒
-            // leaf, no aliasing" — but a StateFun with concrete arg/ret types is still a
-            // composite whose member TicNodes get SHARED when passed directly via
-            // `SetCallArgument(composite, …)`'s `CreateVarType(composite)` path. When the
-            // call site is a recursive self-call passing the same param through, the new
-            // ancestor node's StateFun shares member TicNodes with the original param's
-            // StateFun. Downstream MergeInplace/Pull then attempts AddAncestor where
-            // node == target, hitting "Circular ancestor 0" panic.
-            if (state is ConstraintsState || state is ICompositeState)
+            // Gate:
+            // - ConstraintsState: always (Descendant slot may share TicNodes across sites).
+            // - StateFun: always — even when solved, function-shaped composites contain
+            //   member TicNodes that get shared via SetCallArgument(composite,…)'s
+            //   CreateVarType(composite) path; a recursive self-call passing the same
+            //   param through would hit "Circular ancestor 0" on AddAncestor.
+            // - Other composites (StateArray/StateOptional/StateStruct): only when unsolved.
+            //   Solved arrays/structs have terminal member states with no further
+            //   constraint propagation, so sharing them is safe and skips an indirection.
+            if (state is ConstraintsState
+                || state is StateFun
+                || (state is ICompositeState comp && !comp.IsSolved))
                 state = new StateRefTo(effectiveArgNode);
             SetCallArgument(state, argThenReturnIds[i]);
         }
@@ -425,7 +425,9 @@ public class GraphBuilder {
         // across solves) or trigger Circular ancestor on SetAncestor. Route the return through
         // StateRefTo to the function's return node so the cycle stays internal to the function's
         // signature; the call site sees a single RefTo edge.
-        if (ReturnContainsContractiveCycle(funState.RetNode))
+        // Same IsRecursion gate as needsPerSiteClone above — without recursive constructs in
+        // the graph, no return position can carry a contractive cycle.
+        if (IsRecursion && ReturnContainsContractiveCycle(funState.RetNode))
         {
             var refToFunReturn = new StateRefTo(funState.RetNode);
             if (returnNode.State is ConstraintsState cs && cs.NoConstrains)

@@ -88,20 +88,17 @@ public static class SolvingFunctions {
             {
                 // Cycle guard for recursive struct types (Amadio-Cardelli '93 bisimulation):
                 // self-referential fields cause MergeStructs → MergeInplace → GetMergedStateOrNull
-                // → MergeStructs infinite recursion. Reuse the existing _mergeVisited pair-set:
-                // a re-entered pair is treated as "already merged" (idempotent under cycle).
-                var ownsStruct = _mergeVisited == null;
-                _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
+                // → MergeStructs infinite recursion. Re-entered pair = "already merged"
+                // (idempotent under cycle). HashSet is reused per-thread via Clear (one alloc
+                // for process lifetime) — not nulled+realloc'd per outer call.
+                var visited = _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
                 var keyStruct = (stateA, stateB);
-                if (!_mergeVisited.Add(keyStruct)) {
-                    if (ownsStruct) _mergeVisited = null;
+                if (!visited.Add(keyStruct))
                     return strA; // cycle — coinductive merge to self
-                }
                 try {
                     return MergeStructs(strA, strB);
                 } finally {
-                    _mergeVisited.Remove(keyStruct);
-                    if (ownsStruct) _mergeVisited = null;
+                    visited.Remove(keyStruct);
                 }
             }
             case StateStruct strA2 when stateB is ConstraintsState constrainsB2:
@@ -125,21 +122,18 @@ public static class SolvingFunctions {
             {
                 // See method-level xmldoc: mutates refA.Node.State, returns the ORIGINAL
                 // StateRefTo (pointer). Callers needing the resolved type call GetNonReference().
-                var owns = _mergeVisited == null;
-                _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
+                // HashSet reused per-thread via Clear (see StateStruct branch above).
+                var visited = _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
                 var key = (stateA, stateB);
-                if (!_mergeVisited.Add(key)) {
-                    if (owns) _mergeVisited = null;
+                if (!visited.Add(key))
                     return stateA; // cycle — coinductive merge to self
-                }
                 try {
                     var state = GetMergedStateOrNull(refA.Node.State, stateB);
                     if (state == null) return null;
                     refA.Node.State = state;
                     return stateA;
                 } finally {
-                    _mergeVisited.Remove(key);
-                    if (owns) _mergeVisited = null;
+                    visited.Remove(key);
                 }
             }
         }
@@ -785,17 +779,13 @@ public static class SolvingFunctions {
         if (s.TypeName != null) return false;          // stamped — F-bound coexists with TypeName
         if (!s.IsOptionalSourced) return false;         // not from ?. — not a μ-recursive shape
         if (!elem.IsMutable) return false;              // already locked — can't replace
-        if (!StructHasSelfRef(s, elem)) return false;   // C1 contractivity — not a μ-cycle
+        // C1 contractivity check — only lift true μ-cycles. Plain `?.field` access on a
+        // non-recursive struct also has IsOptionalSourced=true but is NOT a μ-type; lifting it
+        // would create a phantom F-bound generic where there should be a fully-solved
+        // structural type. Walk fields looking for a RefTo back to elem.
+        if (!StructHasSelfRef(s, elem)) return false;
         // Subset-match lift gate: only lift if fields match some registered named type.
         if (registry != null && !StructFieldsSubsetOfAnyRegistered(s, registry)) return false;
-        // Critical: only lift if THIS struct actually self-references (μ-cycle).
-        // Plain `?.field` access on a non-recursive struct also has
-        // IsOptionalSourced=true but is NOT a μ-type — lifting it would create
-        // a phantom F-bound generic where there should be a fully-solved
-        // structural type. C1 contractivity check: walk fields looking for a
-        // RefTo back to elem (the cycle-rescue invariant: closing edges
-        // RefTo'd to the inner node holding the cycle struct).
-        if (!StructHasSelfRef(s, elem)) return false;
 
         // Build the lifted form: elem.State = CS{StructBound = s}.
         // s's back-edges already RefTo(elem); after the swap they semantically

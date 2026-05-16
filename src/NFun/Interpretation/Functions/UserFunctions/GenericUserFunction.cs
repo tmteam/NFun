@@ -427,10 +427,11 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         if (nameMatches.Count == 0) return null;
         if (nameMatches.Count == 1) return FunnyType.NamedStructOf(nameMatches[0]);
 
-        // Disambiguate by primitive field type when multiple recursive named
-        // types share field names (intList vs realList).
-        string match = null;
-        var primitiveCompatible = new List<string>();
+        // Filter by primitive field-type compatibility. When the inferred type provides
+        // values for the named-type's primitive fields they must agree on BaseType. Returns
+        // the first compatible candidate — F-bound width-subtyping is purely structural, so
+        // any structurally-indistinguishable named type satisfies the bound; the first
+        // recovers a stable identity for downstream Fit / conversion.
         foreach (var name in nameMatches) {
             registry.TryGetFields(name, out var declared);
             bool primitiveTypesMatch = true;
@@ -443,19 +444,8 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
                 if (!cSpec.TryGetValue(d.name, out var cType)) { primitiveTypesMatch = false; break; }
                 if (cType.BaseType != d.type.BaseType) { primitiveTypesMatch = false; break; }
             }
-            if (!primitiveTypesMatch) continue;
-            primitiveCompatible.Add(name);
-            if (match != null) match = null; // mark as still ambiguous; final decision below
-            else match = name;
+            if (primitiveTypesMatch) return FunnyType.NamedStructOf(name);
         }
-        if (match != null) return FunnyType.NamedStructOf(match);
-        // when multiple recursive named types are structurally
-        // indistinguishable (same field names + same primitive types), they
-        // are all valid candidates for an F-bound width-subtyping check —
-        // the bound is purely structural so any of them satisfies it.
-        // Pick the first to recover identity for downstream fit/conversion.
-        if (primitiveCompatible.Count > 1)
-            return FunnyType.NamedStructOf(primitiveCompatible[0]);
         return null;
     }
 
@@ -511,7 +501,6 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
                 if (registry == null) return false;
                 if (!registry.TryGetFields(candidate.NamedStructTypeName, out var declared)) return false;
                 // Build FunnyType.Struct from registry fields and recurse.
-                var (fnames, ftypes) = (new System.Text.StringBuilder(), declared);
                 var fields = new (string, FunnyType)[declared.Length];
                 for (int j = 0; j < declared.Length; j++) fields[j] = (declared[j].name, declared[j].type);
                 var expanded = FunnyType.StructOf(fields);

@@ -224,6 +224,9 @@ public class GetLastCanaryTest {
         //   ra = getLast(a{...})  where a = {v:int, next:a?}
         //   rb = getLast(b{...})  where b = {v:real, next:b?, label:text}
         var bodyGraph = new GraphBuilder();
+        // Production sets this when NamedTypeRegistry / SafeFieldAccess / IsRecursive user-fn
+        // appears; this test bypasses those paths but exercises a recursive shape.
+        bodyGraph.IsRecursion = true;
 
         // NamedStruct A: a = {v:int, next:a?}
         var aFields = new System.Collections.Generic.Dictionary<string, TicNode>();
