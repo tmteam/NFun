@@ -124,14 +124,14 @@ public readonly struct FunnyType {
 
     public IStructTypeSpecification StructTypeSpecification => _payload as IStructTypeSpecification;
 
-    internal ArrayTypeSpecification ArrayTypeSpecification => _payload as ArrayTypeSpecification;
+    public ArrayTypeSpecification ArrayTypeSpecification => _payload as ArrayTypeSpecification;
 
-    internal OptionalTypeSpecification OptionalTypeSpecification => _payload as OptionalTypeSpecification;
+    public OptionalTypeSpecification OptionalTypeSpecification => _payload as OptionalTypeSpecification;
 
-    internal FunTypeSpecification FunTypeSpecification => _payload as FunTypeSpecification;
+    public FunTypeSpecification FunTypeSpecification => _payload as FunTypeSpecification;
 
     public IFunnyCustomTypeDefinition CustomTypeDefinition => _payload as IFunnyCustomTypeDefinition;
-    internal string NamedStructTypeName => _payload as string;
+    public string NamedStructTypeName => _payload as string;
 
     /// <summary>
     /// Type arguments count

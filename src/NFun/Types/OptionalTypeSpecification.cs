@@ -1,6 +1,6 @@
 namespace NFun.Types;
 
-internal class OptionalTypeSpecification {
+public class OptionalTypeSpecification {
     public readonly FunnyType ElementType;
 
     public OptionalTypeSpecification(FunnyType elementType) => ElementType = elementType;

@@ -6,14 +6,14 @@ namespace NFun.Types;
 /// <summary>
 /// Registry of user-defined custom types.
 /// </summary>
-internal interface ICustomTypeRegistry {
+public interface ICustomTypeRegistry {
     bool TryResolve(string name, out FunnyType type);
     ICustomTypeRegistry CloneWith(string name, FunnyType customType);
     bool IsEmpty { get; }
     bool TryResolveByClrType(Type clrType, out FunnyType funnyType);
 }
 
-internal class EmptyCustomTypeRegistry : ICustomTypeRegistry {
+public class EmptyCustomTypeRegistry : ICustomTypeRegistry {
     public static readonly ICustomTypeRegistry Instance = new EmptyCustomTypeRegistry();
     private EmptyCustomTypeRegistry() { }
 
@@ -33,11 +33,11 @@ internal class EmptyCustomTypeRegistry : ICustomTypeRegistry {
     }
 }
 
-internal class CustomTypeRegistry : ICustomTypeRegistry {
+public class CustomTypeRegistry : ICustomTypeRegistry {
 
     private readonly Dictionary<string, FunnyType> _types;
 
-    internal CustomTypeRegistry(string name, FunnyType customType) {
+    public CustomTypeRegistry(string name, FunnyType customType) {
         _types = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase) {
             [name.ToLowerInvariant()] = customType
         };

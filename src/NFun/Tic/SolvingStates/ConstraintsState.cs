@@ -19,7 +19,7 @@ public class ConstraintsState : ITicNodeState {
     /// F-bound (`T &lt;: S`); leaving Descendant set would over-constrain `T = S` exactly,
     /// defeating F-bounded polymorphism.
     /// </summary>
-    internal void ClearDescendant() {
+    public void ClearDescendant() {
         _descendant = null;
     }
 
@@ -56,7 +56,7 @@ public class ConstraintsState : ITicNodeState {
     public bool IsSolved => false;
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
-    public bool IsComparable { get; internal set; }
+    public bool IsComparable { get; set; }
     public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional && !HasStructBound;
 
     public static ConstraintsState Empty => new(null, null, false);

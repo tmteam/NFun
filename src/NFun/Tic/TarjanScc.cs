@@ -21,7 +21,7 @@ namespace NFun.Tic;
 /// O(V+E). Allocates per-node visit state — used only when a cyclic SCC is detected (via
 /// <see cref="ContainsCyclicSCC"/> precheck) to keep the non-recursive hot path zero-overhead.
 /// </summary>
-internal static class TarjanScc {
+public static class TarjanScc {
 
     /// <summary>
     /// Compute strongly-connected components of the graph induced by the

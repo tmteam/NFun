@@ -822,7 +822,7 @@ public static class SolvingFunctions {
     /// back-edge crosses Optional/Array): we never strip a wrapper, never
     /// introduce a new self-ref, only rewire existing ones to the new owner.
     /// </summary>
-    internal static StateStruct GcdBound(
+    public static StateStruct GcdBound(
         StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner) {
         var visited = new Dictionary<(StateStruct, StateStruct), StateStruct>();
         return GcdBoundInner(a, b, resultOwner, otherOwner, visited);

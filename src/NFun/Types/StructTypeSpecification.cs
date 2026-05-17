@@ -7,7 +7,7 @@ public interface IStructTypeSpecification: IReadOnlyDictionary<string,FunnyType>
     bool IsFrozen { get; }
 }
 
-internal class StructTypeSpecification:Dictionary<string, FunnyType>, IStructTypeSpecification{
+public class StructTypeSpecification:Dictionary<string, FunnyType>, IStructTypeSpecification{
 
     public bool IsFrozen { get; }
 

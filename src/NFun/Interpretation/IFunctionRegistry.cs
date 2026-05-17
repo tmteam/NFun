@@ -187,7 +187,7 @@ internal static class FunctionRegistryHelper {
 }
 
 
-internal sealed class ImmutableFunctionRegistry : IFunctionRegistry {
+public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
     public ImmutableFunctionRegistry(IConcreteFunction[] concretes, GenericFunctionBase[] generics)
     {
         _registry = new Dictionary<string, OverloadSet>(concretes.Length + generics.Length);
@@ -267,7 +267,7 @@ internal sealed class ImmutableFunctionRegistry : IFunctionRegistry {
 }
 
 
-internal sealed class ScopeFunctionRegistry : IFunctionRegistry {
+public sealed class ScopeFunctionRegistry : IFunctionRegistry {
     public ScopeFunctionRegistry(IFunctionRegistry origin) {
         _origin = origin;
         _local = new();

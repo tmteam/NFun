@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>1.1.0</PackageVersion>
-    <Version>1.1.0</Version>
+    <PackageVersion>1.1.1</PackageVersion>
+    <Version>1.1.1</Version>
     <LangVersion>10</LangVersion>
     <Title>NFun</Title>
     <Authors>tmteam</Authors>
@@ -13,9 +13,9 @@
     <PackageIcon>Icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
     <PackageTags>expression-evaluator scripting type-inference optional-types named-types</PackageTags>
-    <PackageReleaseNotes>v1.1.0: Optional types (T?, none, ??, ?., ?[, !), named types, type narrowing, row polymorphism, format specifiers, try-catch, char literals, 150+ new built-in tests.</PackageReleaseNotes>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
+    <PackageReleaseNotes>v1.1.1: Recursive named types support.</PackageReleaseNotes>
+    <AssemblyVersion>1.1.1</AssemblyVersion>
+    <FileVersion>1.1.1</FileVersion>
     <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -23,14 +23,6 @@
     <AssemblyOriginatorKeyFile>NFunKey.snk</AssemblyOriginatorKeyFile>
     <PackageReadmeFile>nuget-readme.md</PackageReadmeFile>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <InternalsVisibleTo Include="NFun.UnitTests"/>
-    <InternalsVisibleTo Include="NFun.Tic.Tests"/>
-    <InternalsVisibleTo Include="NFun.SyntaxTests"/>
-    <InternalsVisibleTo Include="NFun.ApiTests"/>
-    <InternalsVisibleTo Include="NFun.ConcurrentTests"/>
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="NFun.nuspec"/>

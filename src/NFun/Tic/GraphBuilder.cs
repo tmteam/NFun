@@ -42,7 +42,7 @@ public class GraphBuilder {
     /// when this is false. Non-recursive expressions thus pay zero cycle-
     /// detection cost.
     /// </summary>
-    internal bool IsRecursion { get; set; }
+    public bool IsRecursion { get; set; }
 
     public GraphBuilder() { _syntaxNodes = new TicNode[16]; _syntaxNodesLength = 16; }
     public GraphBuilder(int maxSyntaxNodeId) { _syntaxNodes = new TicNode[maxSyntaxNodeId]; _syntaxNodesLength = maxSyntaxNodeId; }

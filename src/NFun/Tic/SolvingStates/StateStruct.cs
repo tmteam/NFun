@@ -27,7 +27,7 @@ public class StateStruct : ICompositeState {
     /// Optional-wrapper intermediaries between a struct literal and its declared-Optional
     /// ancestor field. Caller's responsibility to ensure the field exists.
     /// </summary>
-    internal void ReplaceField(string name, TicNode memberNode) {
+    public void ReplaceField(string name, TicNode memberNode) {
         _nodes[name] = memberNode;
     }
 

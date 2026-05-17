@@ -9,8 +9,8 @@ namespace NFun.TypeInferenceAdapter;
 /// Resolves TypeSyntax (syntactic type description) into FunnyType (semantic type).
 /// This is where custom type names are looked up.
 /// </summary>
-internal static class TypeSyntaxResolver {
-    internal static FunnyType Resolve(TypeSyntax syntax, ICustomTypeRegistry customTypes = null) =>
+public static class TypeSyntaxResolver {
+    public static FunnyType Resolve(TypeSyntax syntax, ICustomTypeRegistry customTypes = null) =>
         syntax switch {
             TypeSyntax.EmptyType => FunnyType.Empty,
             TypeSyntax.Named n => ResolveNamed(n, customTypes),
