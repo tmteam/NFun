@@ -64,7 +64,8 @@ Receiver before `.` defines an extension function. The receiver becomes the firs
 fun x.double():
     return x * 2
 
-fun x.add(n):
+# with type annotations
+fun x:int.add(n:int)->int: 
     return x + n
 
 y = 21.double()       # 42

@@ -121,7 +121,7 @@ public class LangStructTreeTest {
         Assert.AreEqual(2, Convert.ToInt32(rt["y"].Value));
     }
 
-    [Test][Ignore("Lang mode parser does not support expression-style function definitions")]
+    [Test]
     public void NamedTypeTree_LangMode_ExpressionFunction() {
         // Same but with expression-style function (no fun/return)
         var rt = Funny.Hardcore.BuildLang(
