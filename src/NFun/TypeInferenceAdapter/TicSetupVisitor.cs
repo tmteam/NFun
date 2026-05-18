@@ -2164,7 +2164,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             if (node.ErrorVariableName != null) {
                 // Enter scope for catch body — error variable visible only inside.
                 // Mirror of Visit(TryCatchSyntaxNode): the error variable is a struct
-                // {message: text, data: any} per Lang.md.
+                // {message: text, data: any} per Statements.md.
                 _aliasScope.EnterScope(node.OrderNumber);
                 var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
                 _aliasScope.AddVariableAlias(node.ErrorVariableName, aliasName);
