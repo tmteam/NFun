@@ -40,6 +40,13 @@ public class NodeToposort {
             Visit(nonReferenceNode);
 
         // Post-process: dereference ancestors, transfer RefTo edges, build result array.
+        // `_referenceNodesCount` only tracks RefTo nodes encountered live during Visit;
+        // MergeGroup (called from VisitNodeInCycle) ALSO converts cycle members to RefTo
+        // post-Visit, and those don't increment the counter. Pre-sizing the array off
+        // that counter would leave trailing null entries when a cycle merged >1 node
+        // (BugHunt-stmt #51: multiple `p.x = N` field mutations on an anonymous-typed
+        // struct produced 2+ cycles, each merging into one node). Size optimistically
+        // then Array.Resize if MergeGroup created extra RefTos.
         NonReferenceOrdered = new TicNode[_path.Count - _referenceNodesCount];
         var nonRefId = 0;
         foreach (var node in _path)
@@ -76,6 +83,12 @@ public class NodeToposort {
                 // Streaming: process node immediately in toposort order
                 onNodeReady?.Invoke(node);
             }
+        }
+
+        if (nonRefId < NonReferenceOrdered.Length) {
+            var trimmed = new TicNode[nonRefId];
+            Array.Copy(NonReferenceOrdered, trimmed, nonRefId);
+            NonReferenceOrdered = trimmed;
         }
     }
 

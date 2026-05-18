@@ -216,8 +216,15 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyOptional(StateOptional opt) {
         // Cycle guard: generic functions with if..else none create cyclic Optionals
         var elem = opt.ElementNode;
-        if (elem.VisitMark == OptionalConvertMark)
+        if (elem.VisitMark == OptionalConvertMark) {
+            // Named struct cycle (#10 invert/sameTree composition): preserve TypeName instead
+            // of dropping to Any. Otherwise `fun f(t:tree?)->tree?` returns
+            // `{value, left:Any, right:Any}?` because the depth-1 cycle position
+            // triggers this guard before ConvertToFunnyStruct's NamedStructOf path.
+            if (elem.State is StateStruct { TypeName: { } tn })
+                return FunnyType.OptionalOf(FunnyType.NamedStructOf(tn));
             return FunnyType.Any; // break cycle
+        }
         var prev = elem.VisitMark;
         elem.VisitMark = OptionalConvertMark;
         var result = FunnyType.OptionalOf(Convert(opt.Element));

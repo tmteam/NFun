@@ -19,13 +19,43 @@ public class RecursiveUserFunctionsTest {
             .Calc("x", x)
             .AssertReturns("y", y);
 
+    // Generic fact called in three ways — caller decides T via context:
+    //   `y:int  = fact(x)` → x inferred as Int32 (descendant constraint pins T=Int32)
+    //   `y:real = fact(x)` → x inferred as Real (descendant constraint pins T=Real)
+    //   `y       = fact(x)` → no caller context, body's Preferred (I32 from literal `1`)
+    //                          wins, so x inferred as Int32.
+
     [TestCase(1, 1)]
     [TestCase(2, 2)]
     [TestCase(3, 6)]
     [TestCase(4, 24)]
     [TestCase(5, 120)]
     [TestCase(6, 720)]
-    public void FactorialGeneric(double x, double y) =>
+    public void FactorialGeneric_OutInt(int x, int y) =>
+        @"fact(n) = if(n<=1) 1 else fact(n-1)*n
+              y:int = fact(x)"
+            .Calc("x", x)
+            .AssertReturns("y", y);
+
+    [TestCase(1.0, 1.0)]
+    [TestCase(2.0, 2.0)]
+    [TestCase(3.0, 6.0)]
+    [TestCase(4.0, 24.0)]
+    [TestCase(5.0, 120.0)]
+    [TestCase(6.0, 720.0)]
+    public void FactorialGeneric_OutReal(double x, double y) =>
+        @"fact(n) = if(n<=1) 1 else fact(n-1)*n
+              y:real = fact(x)"
+            .Calc("x", x)
+            .AssertReturns("y", y);
+
+    [TestCase(1, 1)]
+    [TestCase(2, 2)]
+    [TestCase(3, 6)]
+    [TestCase(4, 24)]
+    [TestCase(5, 120)]
+    [TestCase(6, 720)]
+    public void FactorialGeneric_PreferredFromBody(int x, int y) =>
         @"fact(n) = if(n<=1) 1 else fact(n-1)*n
               y = fact(x)"
             .Calc("x", x)
@@ -89,7 +119,6 @@ public class RecursiveUserFunctionsTest {
     public void ConstantEquationOfReal_RecFunctions(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 
-    [Ignore("Recursive generic function input type not propagated as preferred — x inferred as Real instead of Int32")]
     [Test]
     public void UserFunctionPreferedTypeIsUsedInBody() =>
         "g(x) = g(x-1); out = g(x)".Build().AssertContains("x", FunnyType.Int32);

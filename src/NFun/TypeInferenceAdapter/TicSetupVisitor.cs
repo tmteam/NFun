@@ -139,7 +139,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             for (int a = 0; a < fn.Args.Count; a++)
                 visitor._aliasScope.AddVariableAlias(fn.Args[a].Id, prefixes[i] + fn.Args[a].Id);
 
-            if (!fn.Body.Accept(visitor)) { visitor._aliasScope.ExitScope(); return false; }
+            visitor._returnSlotStack.Push(fn.Body.OrderNumber);
+            try {
+                if (!fn.Body.Accept(visitor)) { visitor._aliasScope.ExitScope(); return false; }
+            } finally {
+                visitor._returnSlotStack.Pop();
+            }
 
             foreach (var arg in fn.Args) {
                 if (arg.HasDefault) {
@@ -158,6 +163,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
     internal bool _hasUserFunctions;
     private HashSet<string> _narrowedFieldPaths;
+    /// <summary>
+    /// Stack of "return-slot" OrderNumbers — one per enclosing function /
+    /// lambda. Every `return expr` constrains its expression's type to the
+    /// top entry so all return paths in a function unify (LCA).
+    /// Without this only the body's LAST statement contributed to the
+    /// function's return type and early-return values with incompatible
+    /// types crashed with InvalidCastException at runtime
+    /// (BugHuntStatementsResults #10).
+    /// </summary>
+    private readonly Stack<int> _returnSlotStack = new();
     /// <summary>
     /// Registry key prefix for extension functions when ExtensionFunctionsSeparation is enabled.
     /// Extension function "f" is stored as ".f" to avoid collision with regular function "f".
@@ -457,7 +472,29 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(UserFunctionDefinitionSyntaxNode node) {
         // Single-function path. No arg name prefixing — own graph, no peers.
         RegisterUserFunctionHeader(node, argNamePrefix: null);
-        var result = VisitChildren(node);
+        // Push the function's return slot so all `return` statements inside
+        // the body unify their expression types against this node.
+        _returnSlotStack.Push(node.Body.OrderNumber);
+        bool result;
+        try {
+            result = VisitChildren(node);
+        }
+        finally {
+            _returnSlotStack.Pop();
+        }
+
+        // If the body can fall off the end without `return`/`break`/`continue`,
+        // the runtime returns FunnyNone per Statements.md §Functions. Reflect
+        // that in the type system by adding a `none` descendant to the body's
+        // return-slot — LCA(body, none) widens the function's return type to
+        // Optional (BugHunt-stmt #41/#42/#46). Lambdas keep the
+        // last-expression-as-implicit-return semantics and are NOT included.
+        if (result && node.Body is BlockSyntaxNode && !AlwaysExits(node.Body))
+        {
+            var bodyNode = _ticTypeGraph.GetOrCreateNode(node.Body.OrderNumber);
+            var noneNode = _ticTypeGraph.CreateVarType(StatePrimitive.None);
+            noneNode.AddAncestor(bodyNode);
+        }
 
         // Constrain default expressions: type must be assignable to parameter type.
         // DefaultValue is already visited by Visit(TypedVarDefSyntaxNode) → VisitChildren.
@@ -468,6 +505,34 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Conservative test: does every path through <paramref name="node"/> end
+    /// in an explicit control-flow exit (`return`/`break`/`continue`)?
+    /// Used to decide whether a function body has a fall-off path that
+    /// implicitly returns FunnyNone.
+    /// </summary>
+    private static bool AlwaysExits(ISyntaxNode node) {
+        if (node == null) return false;
+        switch (node) {
+            case ReturnSyntaxNode:
+            case BreakSyntaxNode:
+            case ContinueSyntaxNode:
+                return true;
+            case BlockSyntaxNode block:
+                return block.Statements.Count > 0
+                       && AlwaysExits(block.Statements[block.Statements.Count - 1]);
+            case IfThenElseSyntaxNode ite:
+                // An auto-inserted DefaultValueSyntaxNode else (lang-mode if
+                // without explicit else) is the fall-off path itself.
+                if (ite.ElseExpr is DefaultValueSyntaxNode) return false;
+                foreach (var ifCase in ite.Ifs)
+                    if (!AlwaysExits(ifCase.Expression)) return false;
+                return AlwaysExits(ite.ElseExpr);
+            default:
+                return false;
+        }
     }
 
     /// <summary>
@@ -795,7 +860,18 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _aliasScope.AddVariableAlias(originName, anonymName);
         }
 
-        VisitChildren(node);
+        // Multi-line lambda body (`f = fun(x): return x * 2`) has explicit
+        // `return` statements that need a return slot to bind against —
+        // otherwise the return's expression isn't constrained and the
+        // lambda's return type widens to Any (BugHunt-stmt #53). Push the
+        // body's OrderNumber as the return slot — same mechanism used by
+        // named UserFunctionDefinitionSyntaxNode.
+        _returnSlotStack.Push(node.Body.OrderNumber);
+        try {
+            VisitChildren(node);
+        } finally {
+            _returnSlotStack.Pop();
+        }
 
         var aliasNames = new string[node.ArgumentsDefinition.Count];
         for (var i = 0; i < node.ArgumentsDefinition.Count; i++)
@@ -850,13 +926,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
             && node.IsPipeForward)
         {
-            // Piped call with separation: look up extension function first, then fall back to built-in.
-            // Extension user functions are stored with "." prefix to avoid name collision.
+            // Piped call with separation: look up extension function first, then fall back
+            // to built-in or regular user function. Pipe is a general call form per
+            // Statements.md §Extension — extension fns MUST use pipe, but regular fns
+            // (and builtins) MAY also be piped (`5.double()`). Previously rejected
+            // non-extension user fns here, which broke piped calls of generic user fns
+            // (BugHunt-stmt #44 — MJ78 "Function double`1 was not found").
             signature = _dictionary.GetOrNull(ExtensionKeyPrefix + node.Id, allArgs.Length)
                      ?? _dictionary.GetOrNull(node.Id, allArgs.Length);
-            // If we found a regular user function via the second lookup, reject it
-            if (signature != null && signature.IsUserDefined && !signature.IsExtension)
-                signature = null;
         }
         else if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
                  && !node.IsPipeForward && !node.IsOperator)
@@ -1132,20 +1209,31 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // save refernces to generic types, for use at 'apply tic results' step
             _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
 
-            // Propagate preferred for generics that only appear in return type.
-            // These are safe: no call-site arg can conflict with the preferred type.
-            // Generics shared with arg types stay wide UNLESS at least one call-site
-            // arg is the literal `none` — then the generic can't be pinned by callers
-            // and the body's Preferred is the right default (GH #126).
-            bool anyArgIsNone = false;
+            // Propagate preferred for generics. Two safety conditions allow the body's
+            // Preferred to win over caller-driven inference:
+            //   (1) The generic appears ONLY in return type — no call-site arg can pin it.
+            //   (2) At least one call-site arg cannot pin the generic — either the literal
+            //       `none` (GH #126) or an unbound name with empty constraints. In both
+            //       cases the caller hasn't expressed a type preference, so body's Preferred
+            //       is the right default. Without this, `g(x) = g(x-1); out = g(x)` infers
+            //       x:Real instead of x:Int32 — the integer literal `1` in the body is the
+            //       only typing signal and must win.
+            bool anyArgDoesNotPin = false;
             for (int i = 0; i < allArgs.Length; i++) {
                 var argNode = _ticTypeGraph.GetOrCreateNode(allArgs[i].OrderNumber).GetNonReference();
                 if (argNode.State is StatePrimitive p && p == None) {
-                    anyArgIsNone = true;
+                    anyArgDoesNotPin = true;
+                    break;
+                }
+                if (argNode.State is ConstraintsState ucs
+                    && !ucs.HasAncestor && !ucs.HasDescendant
+                    && !ucs.HasStructBound && !ucs.IsComparable
+                    && !ucs.IsOptional && ucs.Preferred == null) {
+                    anyArgDoesNotPin = true;
                     break;
                 }
             }
-            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes, anyArgIsNone);
+            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes, anyArgDoesNotPin);
         }
         else genericTypes = Array.Empty<StateRefTo>();
 
@@ -1999,6 +2087,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         ReturnSyntaxNode => true,
         ContinueSyntaxNode => true,
         BreakSyntaxNode => true,
+        // `oops(...)` always throws — bottom type, no return path. The narrowing
+        // contract ("guard fired ⇒ subsequent statements unreachable") holds.
+        FunCallSyntaxNode call when call.Id == "oops" => true,
         BlockSyntaxNode block => block.Statements.Count > 0
             && BodyAlwaysExits(block.Statements[block.Statements.Count - 1]),
         _ => false
@@ -2009,11 +2100,29 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             if (!node.Expression.Accept(this))
                 return false;
 
-            // Return's type = expression's type
-            var returnNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
-            var exprNode = _ticTypeGraph.GetOrCreateNode(node.Expression.OrderNumber);
-            exprNode.AddAncestor(returnNode);
+            // Bind the return's expression type to the enclosing function/
+            // lambda's return slot so all return paths unify via LCA and the
+            // function signature reflects the join.
+            if (_returnSlotStack.Count > 0) {
+                var exprNode = _ticTypeGraph.GetOrCreateNode(node.Expression.OrderNumber);
+                var funcReturnNode = _ticTypeGraph.GetOrCreateNode(_returnSlotStack.Peek());
+                exprNode.AddAncestor(funcReturnNode);
+            }
         }
+        else if (_returnSlotStack.Count > 0) {
+            // Bare `return` returns `none` (per Statements.md). Without this
+            // contribution the return slot's LCA ignores the bare-return path —
+            // a function like `fun f(x): if cond: return; return 99` infers
+            // return type Int32 while the runtime can produce `none`, violating
+            // the type/value invariant (BugHunt-stmt #27).
+            var funcReturnNode = _ticTypeGraph.GetOrCreateNode(_returnSlotStack.Peek());
+            var noneNode = _ticTypeGraph.CreateVarType(None);
+            noneNode.AddAncestor(funcReturnNode);
+        }
+        // ReturnSyntaxNode itself has bottom type (it diverges — never produces a
+        // value as an expression). Leaving its TIC node unconstrained lets `??`
+        // and similar combinators see it as a "no-information" branch:
+        //   `x ?? return e`  →  type of x's element  (return contributes ⊥).
         return true;
     }
 
@@ -2056,9 +2165,27 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.Bool),
             node.Condition.OrderNumber);
 
-        // Visit body
-        if (!node.Body.Accept(this))
-            return false;
+        // Visit body — narrow variables proven non-none by the loop condition.
+        // The condition is re-checked before every iteration, so on entry to
+        // any iteration's body the narrowed variables are guaranteed non-none.
+        // Body reassignments fall back to the original (possibly Optional) type:
+        // the alias governs READS only; equation-style writes flow through the
+        // outer VariableSource via BuildEquationForLang, so a pattern like
+        //   while cur != none:
+        //     out = concat(out, [cur.value])     ← cur narrowed → tree
+        //     cur = cur.next                     ← LHS is the outer optional
+        // works without `!` on cur.value.
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.Enabled) {
+            var narrowing = Interpretation.NarrowingAnalyzer.Analyze(node.Condition);
+            if (narrowing.WhenTrue.Count > 0) {
+                if (!VisitWithNarrowing(node.Body, narrowing.WhenTrue, node.OrderNumber))
+                    return false;
+            } else {
+                if (!node.Body.Accept(this)) return false;
+            }
+        } else {
+            if (!node.Body.Accept(this)) return false;
+        }
 
         // While loop produces none (it's a statement)
         _ticTypeGraph.SetConst(node.OrderNumber, None);
@@ -2200,8 +2327,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             var bodyIds = new[] { node.TryBody.OrderNumber, node.CatchBody.OrderNumber };
             _ticTypeGraph.SetIfElse(System.Array.Empty<int>(), bodyIds, node.OrderNumber);
         } else {
-            // Statement form (try-anyway only) — produces none
-            _ticTypeGraph.SetConst(node.OrderNumber, None);
+            // `try-anyway` (no catch): on success result = tryBody value (anyway's value
+            // is discarded per Statements.md); on error, the error propagates after
+            // anyway runs, so the result is never observed. Type = tryBody type.
+            // BugHunt-stmt #28: previously marked the whole try-block as `None`,
+            // which dropped the try-body value when assigned (`result = try: 42
+            // anyway: 99` → none instead of 42).
+            _ticTypeGraph.SetIfElse(System.Array.Empty<int>(),
+                new[] { node.TryBody.OrderNumber }, node.OrderNumber);
         }
         return true;
     }
@@ -2239,6 +2372,42 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // Value type must be assignable to the field type (value is descendant of field type)
         var valueNode = _ticTypeGraph.GetOrCreateNode(node.Value.OrderNumber);
         var fieldNode = _ticTypeGraph.GetOrCreateNode(fieldAccessId);
+
+        // Pin the field's TIC node when the source variable bears a named-type
+        // contract: `type box = {v:int}; p = box{v=10}; p.v = none` must reject
+        // (`none` cannot be assigned to a non-optional field per Optionals.md).
+        // Without pinning, WrapAncestorInOptional auto-lifts the field to int?,
+        // silently changing the type of the named declaration (BugHunt-stmt #33).
+        // Mark IsSignatureParam — same mechanism that protects function-signature
+        // composite params from Opt-lift.
+        if (_namedTypeFieldRegistry != null) {
+            // Resolve the variable's TIC node by NAME (for top-level NamedId references),
+            // not by syntax node — VariableSyntaxNode.OrderNumber points at the *use site*
+            // whose state is RefTo to the actual variable node; only the named-node carries
+            // the registered StateStruct + TypeName.
+            Tic.TicNode varTicNode = null;
+            if (node.Source is NamedIdSyntaxNode nameRef
+                && _ticTypeGraph.HasNamedNode(nameRef.Id))
+                varTicNode = _ticTypeGraph.GetNamedNode(nameRef.Id).GetNonReference();
+            else
+                varTicNode = _ticTypeGraph.GetOrCreateNode(node.Source.OrderNumber).GetNonReference();
+            string typeName = varTicNode.State switch {
+                Tic.SolvingStates.StateStruct s => s.TypeName,
+                Tic.SolvingStates.StateOptional opt when opt.ElementNode.GetNonReference().State is Tic.SolvingStates.StateStruct ss => ss.TypeName,
+                _ => null
+            };
+            if (typeName != null
+                && _namedTypeFieldRegistry.TryGetFields(typeName, out var declaredFields)) {
+                foreach (var (fname, ftype) in declaredFields) {
+                    if (string.Equals(fname, node.FieldName, System.StringComparison.OrdinalIgnoreCase)
+                        && ftype.BaseType != BaseFunnyType.Optional) {
+                        fieldNode.GetNonReference().IsSignatureParam = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         valueNode.AddAncestor(fieldNode);
 
         // Result of the field assignment expression = source struct type

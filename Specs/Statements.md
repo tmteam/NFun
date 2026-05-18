@@ -1,8 +1,8 @@
 # NFun Statements
 
-Statement mode is an **extension** of expression mode. Everything that works in expression mode — operators, types, optionals, arrays, structs, named types, math sugar, comments, single-line user functions, `oops`, `try expr catch expr` as an expression — works here unchanged. See `Basics.md`, `Types.md`, `NamedTypes.md`, `Operators.md`, … for those.
+Statement mode is an **extension** of expression mode. Everything that works in expression mode  as an expression — works here unchanged. 
 
-This document covers only what statement mode **adds**: indented blocks, control flow, mutable variables and structs, multi-line function bodies, pattern matching, error-handling block forms, type narrowing and I/O. File extension: `.fun`.
+This document covers only what statement mode **adds**: indented blocks, control flow, mutable variables and structs, multi-line function bodies, pattern matching, error-handling block forms, type narrowing and I/O. 
 
 ## Blocks
 
@@ -98,7 +98,7 @@ fun add(a, b):
     return a + b
 ```
 
-Type annotations are optional. Return type uses `:T` or `-> T`:
+Type annotations are optional. Return type uses `:T` for arguments or `-> T` for result type:
 
 ```
 fun add(a: int, b: int) -> int:
@@ -116,6 +116,11 @@ fun x.double():
     return x * 2
 
 y = 21.double()    # 42
+
+fun x:real.tripple()->real:
+    return x * 3
+    
+y = 21.tripple() # 63
 ```
 
 The single-line form `x.double() = x * 2` works equivalently.
@@ -254,7 +259,7 @@ fun process(x):
 
 ## Type narrowing
 
-A guard that exits the current block narrows the variable for the remaining statements in that block. A guard is `if condition: <exit>` where `<exit>` is `return`, `break` or `continue`.
+A guard that exits the current block narrows the variable for the remaining statements in that block. A guard is `if condition: <exit>` where `<exit>` is `return`, `break`, `continue` or `oops(...)` (always-throwing call — bottom type).
 
 ```
 fun first(xs: int?[]):
@@ -306,7 +311,3 @@ print('hello', end = '')       # no newline
 line = readLine()              # read a line from stdin; returns text
 ch   = readChar()              # read a single char
 ```
-
-## Tests
-
-`@Test` annotations turn a `.fun` file into a test suite — see `TestFun.md`.

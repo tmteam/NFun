@@ -392,13 +392,28 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             {
                 var unwrappedType = structSource.Type.OptionalTypeSpecification.ElementType;
                 var cachedSource = new CachedSourceNode(unwrappedType, node.Interval);
-                var fieldAccessSafe = new StructFieldAccessExpressionNode(id, cachedSource, node.Interval);
-                if (fieldAccessSafe.Type.FunTypeSpecification == null)
-                    throw Errors.FieldIsNotCallable(id, fieldAccessSafe.Type, node.Interval);
-                var hiOrderFuncSafe = ConcreteHiOrderFunctionWithSyntaxNode.Create(fieldAccessSafe);
+                // For NamedStruct (cycle-rendering case for recursive named types — BugHunt-stmt
+                // #35) the field's type is not readable from StructTypeSpecification (NamedStruct
+                // only carries the name). Reconstruct the field's function type from the call's
+                // TIC-resolved output type and the remaining argument types — same shape the
+                // resolved struct's field would have.
                 var callArgsSafe = new ISyntaxNode[args.Length - 1];
                 Array.Copy(args, 1, callArgsSafe, 0, callArgsSafe.Length);
                 var childrenSafe = callArgsSafe.SelectToArray(ReadNode);
+                StructFieldAccessExpressionNode fieldAccessSafe;
+                if (unwrappedType.BaseType == BaseFunnyType.NamedStruct)
+                {
+                    var inputTypes = childrenSafe.SelectToArray(c => c.Type);
+                    var fieldFunType = FunnyType.FunOf(node.OutputType, inputTypes);
+                    fieldAccessSafe = new StructFieldAccessExpressionNode(id, cachedSource, node.Interval, fieldFunType);
+                }
+                else
+                {
+                    fieldAccessSafe = new StructFieldAccessExpressionNode(id, cachedSource, node.Interval);
+                }
+                if (fieldAccessSafe.Type.FunTypeSpecification == null)
+                    throw Errors.FieldIsNotCallable(id, fieldAccessSafe.Type, node.Interval);
+                var hiOrderFuncSafe = ConcreteHiOrderFunctionWithSyntaxNode.Create(fieldAccessSafe);
                 var innerCall = hiOrderFuncSafe.CreateWithConvertionOrThrow(
                     childrenSafe, _dialect.Converter.TypeBehaviour, node.Interval);
                 return new SafePipedCallExpressionNode(
@@ -530,6 +545,15 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         if (_dialect.IfExpressionSetup == IfExpressionSetup.IfElseIf && node.Ifs.Length > 1)
             throw Errors.ElseKeywordIsMissing(node.Interval.Start, node.Ifs[1].Interval.Start);
 
+        // Scoping rule: if there is NO real else clause, branch-introduced
+        // vars can't be guaranteed-assigned for downstream code, so scope
+        // them away after the if. With a real else we preserve the common
+        // `if cond: x = a else: x = b; use x` idiom — both branches reuse
+        // the same VariableSource via Visit(BlockSyntaxNode)'s `existing`
+        // check, so `x` survives naturally.
+        bool hasRealElse = node.ElseExpr is not DefaultValueSyntaxNode;
+        var preIf = hasRealElse ? null : SnapshotVariableNames();
+
         for (int i = 0; i < expressionNodes.Length; i++)
         {
             var ifCaseNode = node.Ifs[i];
@@ -543,6 +567,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType,
             _dialect.Converter.TypeBehaviour);
+
+        if (!hasRealElse)
+            RemoveVariablesAddedSince(preIf);
 
         return new IfElseExpressionNode(
             expressionNodes, conditionNodes, elseNode,
@@ -672,6 +699,12 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var originVariableNames = new string[originVariables.Length];
         for (int i = 0; i < originVariableNames.Length; i++) originVariableNames[i] = originVariables[i].Name;
 
+        // Collect body-local equation names (multi-line lambda's `y = ...`) — these
+        // must stay private to the lambda (BugHunt-stmt #36). Closures over outer scope
+        // are recognised by NOT being defined as equations in the body.
+        var bodyLocalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        CollectBodyLocalEquationNames(body, bodyLocalNames);
+
         var expr = BuildExpression(
             body, _functions, localVariables, _typeInferenceResults, _typesConverter,
             _dialect);
@@ -686,21 +719,44 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             throw Errors.CannotUseSuperAnonymousVariableHere(
                 expr.FindFirstUsageOrThrow(wrongItVariable).Interval, wrongItVariable.Name);
 
-        //Add closured vars to outer-scope dictionary
+        //Add closured vars to outer-scope dictionary so the outer compiler sees them
+        //(needed for unbound-input inference and outer-error analysis). Exclude
+        //body-local equation names — those are private to the lambda's body scope
+        //and must not surface as top-level outputs.
         foreach (var newVar in closured)
-            _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
+            if (!bodyLocalNames.Contains(newVar.Name))
+                _variables.TryAdd(newVar);
 
         var fun = ConcreteUserFunction.Create(
             isRecursive: false,
             name: "rule",
             variables: arguments,
-            expression: expr);
+            expression: expr,
+            isLambda: true);
         // Captures = every VariableSource the body reads that is not one of the
         // rule's own arguments. At Calc() these get snapshotted so the returned
         // closure is independent of subsequent writes to the enclosing scope
         // (Specs/Rules.md "Capturing variables").
         var captures = CollectCaptures(expr, arguments);
         return new FunRuleExpressionNode(fun, captures, interval);
+    }
+
+    /// <summary>
+    /// Collects names of equation-introduced locals inside a lambda body (multi-line
+    /// `fun(x): y = x+1; …`). These must NOT leak to the enclosing scope after the
+    /// lambda is built. Recurses into nested blocks (if/while/for bodies) but stops at
+    /// inner lambda definitions — those have their own scope.
+    /// </summary>
+    private static void CollectBodyLocalEquationNames(ISyntaxNode node, HashSet<string> sink) {
+        if (node == null) return;
+        // Stop at nested lambda/function definitions — they introduce their own scope.
+        if (node is AnonymFunctionSyntaxNode or SuperAnonymFunctionSyntaxNode
+                or UserFunctionDefinitionSyntaxNode)
+            return;
+        if (node is EquationSyntaxNode eq)
+            sink.Add(eq.Id);
+        foreach (var child in node.Children)
+            CollectBodyLocalEquationNames(child, sink);
     }
 
     private static VariableSource[] CollectCaptures(IExpressionNode body, VariableSource[] ruleArguments) {
@@ -936,13 +992,33 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 Runtime.VariableSource source;
                 if (existing != null)
                 {
+                    // Spec §Reassignment: "Reassigning a value that doesn't widen into a
+                    // single type is a parse error." If TIC widened the variable's type
+                    // to `Any` while the new RHS is intrinsically not `Any`, the user
+                    // assigned incompatible types — reject. Mirror of the check in
+                    // BuildEquationForLang for top-level equations (BugHunt-stmt #32).
+                    if (existing.Type.BaseType == BaseFunnyType.Any
+                        && existing.TypeSpecificationIntervalOrNull == null
+                        && bodyExpr.Type.BaseType != BaseFunnyType.Any)
+                        throw new FunnyParseException(0,
+                            $"Cannot reassign '{eq.Id}' to a value of incompatible type "
+                            + $"'{bodyExpr.Type}' — reassignment requires types that widen into one type.",
+                            eq.Interval);
                     source = existing;
                 }
                 else
                 {
                     var varType = eq.OutputType != FunnyType.Empty ? eq.OutputType : bodyExpr.Type;
-                    source = Runtime.VariableSource.CreateWithoutStrictTypeLabel(
-                        eq.Id, varType, Runtime.FunnyVarAccess.Output, _dialect.Converter);
+                    // Carry the type-annotation interval through to VariableSource so the
+                    // reassignment Any-widening check above can tell user-declared `x:any`
+                    // (intentional) from TIC-inferred `Any` (incompatible reassignment).
+                    if (eq.OutputTypeSpecified)
+                        source = Runtime.VariableSource.CreateWithStrictTypeLabel(
+                            eq.Id, varType, eq.TypeSpecificationOrNull.Interval,
+                            Runtime.FunnyVarAccess.Output, _dialect.Converter);
+                    else
+                        source = Runtime.VariableSource.CreateWithoutStrictTypeLabel(
+                            eq.Id, varType, Runtime.FunnyVarAccess.Output, _dialect.Converter);
                     _variables.AddOrReplace(source);
                 }
 
@@ -979,20 +1055,24 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         else
             elementType = FunnyType.Any;
 
+        // Snapshot scope BEFORE adding iterator: iterator + body locals all
+        // belong to the loop scope and must not leak after the loop ends.
+        var preBody = SnapshotVariableNames();
+
         // Create iterator variable
         var iteratorVar = Runtime.VariableSource.CreateWithoutStrictTypeLabel(
             node.IteratorName, elementType, Runtime.FunnyVarAccess.Output, _dialect.Converter);
         _variables.AddOrReplace(iteratorVar);
 
-        // Build body expression
         var bodyExpr = ReadNode(node.Body);
+        RemoveVariablesAddedSince(preBody);
 
         return new Nodes.ForExpressionNode(collectionExpr, bodyExpr, iteratorVar, node.OutputType, node.Interval);
     }
 
     public IExpressionNode Visit(WhileSyntaxNode node) {
         var conditionExpr = ReadNode(node.Condition);
-        var bodyExpr = ReadNode(node.Body);
+        var bodyExpr = ReadScopedBody(node.Body);
         return new Nodes.WhileExpressionNode(conditionExpr, bodyExpr, node.OutputType, node.Interval);
     }
 
@@ -1004,7 +1084,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var arms = new (IExpressionNode condition, IExpressionNode body)[node.Arms.Length];
         for (int i = 0; i < node.Arms.Length; i++) {
             var armCondition = ReadNode(node.Arms[i].Condition);
-            var armBody = ReadNode(node.Arms[i].Body);
+            // Each arm body opens its own scope — locals don't leak across arms.
+            var armBody = ReadScopedBody(node.Arms[i].Body);
             // Cast arm body to output type if needed (for expression form with else)
             if (node.ElseBody != null)
                 armBody = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
@@ -1014,12 +1095,61 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         IExpressionNode elseExpr = null;
         if (node.ElseBody != null) {
-            elseExpr = ReadNode(node.ElseBody);
+            elseExpr = ReadScopedBody(node.ElseBody);
             elseExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
                 elseExpr, node.OutputType, _dialect.Converter.TypeBehaviour);
         }
 
         return new Nodes.WhenExpressionNode(subjectExpr, arms, elseExpr, node.OutputType, node.Interval);
+    }
+
+    /// <summary>
+    /// Snapshot the set of variable names currently registered. Use with
+    /// <see cref="RemoveVariablesAddedSince"/> to scope a block — variables
+    /// introduced inside the block are removed when the block exits and
+    /// don't leak to the enclosing scope.
+    /// </summary>
+    private System.Collections.Generic.HashSet<string> SnapshotVariableNames() {
+        var snap = new System.Collections.Generic.HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+        foreach (var v in _variables.GetAll())
+            snap.Add(v.Name);
+        return snap;
+    }
+
+    private System.Collections.Generic.HashSet<string> NamesAddedSince(System.Collections.Generic.HashSet<string> snapshot) {
+        var added = new System.Collections.Generic.HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+        foreach (var v in _variables.GetAll())
+            if (!snapshot.Contains(v.Name)) added.Add(v.Name);
+        return added;
+    }
+
+    private void RemoveVariablesAddedSince(System.Collections.Generic.HashSet<string> snapshot) {
+        // Only remove block-local OUTPUT variables (assignments inside the
+        // block). INPUTs created during the block's body resolve to script-
+        // level inputs and must NOT be scoped away — otherwise sibling
+        // branches encountering the same input would each get a separate
+        // VariableSource (e.g. `if(x==1) 1 else if(x==2) 2` would have two
+        // different `x`-sources, one in each branch).
+        var toRemove = new System.Collections.Generic.List<string>();
+        foreach (var v in _variables.GetAll())
+            if (!snapshot.Contains(v.Name) && v.IsOutput) toRemove.Add(v.Name);
+        foreach (var name in toRemove)
+            _variables.TryRemove(name);
+    }
+
+    /// <summary>
+    /// Build a block expression inside a fresh lexical scope. Any variables
+    /// introduced inside <paramref name="body"/> are removed from
+    /// <c>_variables</c> after the build so they don't leak. Function-body
+    /// blocks (called from BuildConcrete with a fresh variables dict) do
+    /// NOT use this — their locals are tracked for the function's runtime
+    /// stack-frame semantics.
+    /// </summary>
+    private IExpressionNode ReadScopedBody(ISyntaxNode body) {
+        var snap = SnapshotVariableNames();
+        var expr = ReadNode(body);
+        RemoveVariablesAddedSince(snap);
+        return expr;
     }
 
     public IExpressionNode Visit(WhenArmSyntaxNode node)
@@ -1039,7 +1169,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(TryBlockSyntaxNode node) {
-        var tryExpr = ReadNode(node.TryBody);
+        var tryExpr = ReadScopedBody(node.TryBody);
 
         // Pre-create the error variable before visiting catch body, so Visit(NamedIdSyntaxNode)
         // finds it as a script-scoped local rather than emitting an unbound input. The variable
@@ -1057,20 +1187,24 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             _variables.TryAdd(errorVar);
         }
 
+        // Catch body opens a scope that includes the error variable. ReadScopedBody
+        // removes both the error var and any catch-local bindings when done.
         IExpressionNode catchExpr = null;
         if (node.CatchBody != null) {
-            catchExpr = ReadNode(node.CatchBody);
+            catchExpr = ReadScopedBody(node.CatchBody);
             // Cast catch body to output type if needed
             catchExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
                 catchExpr, node.OutputType, _dialect.Converter.TypeBehaviour);
         }
-
+        // The scoped cleanup above removes errorVar too; the explicit TryRemove
+        // below would be a no-op but keep it for symmetry with paths where
+        // catchBody is null.
         if (errorVar != null)
             _variables.TryRemove(node.ErrorVariableName);
 
         IExpressionNode anywayExpr = null;
         if (node.AnywayBody != null)
-            anywayExpr = ReadNode(node.AnywayBody);
+            anywayExpr = ReadScopedBody(node.AnywayBody);
 
         IExpressionNode result;
         if (catchExpr != null) {
@@ -1091,17 +1225,19 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(IfBlockSyntaxNode node) {
-        // Build like IfElse: parallel arrays of conditions and bodies
+        // Build like IfElse: parallel arrays of conditions and bodies.
+        // Each branch body opens its own scope — locals don't leak across
+        // branches or out to the enclosing block.
         var conditions = new IExpressionNode[node.Ifs.Length];
         var bodies = new IExpressionNode[node.Ifs.Length];
         for (int i = 0; i < node.Ifs.Length; i++) {
             conditions[i] = ReadNode(node.Ifs[i].Condition);
-            bodies[i] = ReadNode(node.Ifs[i].Expression);
+            bodies[i] = ReadScopedBody(node.Ifs[i].Expression);
         }
 
         IExpressionNode elseExpr;
         if (node.ElseBody != null)
-            elseExpr = ReadNode(node.ElseBody);
+            elseExpr = ReadScopedBody(node.ElseBody);
         else
             elseExpr = new Nodes.ConstantExpressionNode(
                 Types.FunnyNone.Instance, FunnyType.None, node.Interval);
@@ -1112,7 +1248,29 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     public IExpressionNode Visit(FieldAssignmentSyntaxNode node) {
         var sourceExpr = ReadNode(node.Source);
         var valueExpr = ReadNode(node.Value);
+
+        // Spec §Reassignment: assigning a value whose type doesn't widen into
+        // the field's type is a parse error. TIC silently widens the field to
+        // `Any` when incompatible types meet — but if neither the field's
+        // intrinsic shape nor the new value is genuinely `Any`, that widening
+        // came from a type-incompatible assignment and must be rejected
+        // (BugHunt-stmt #59 — mirrors the variable-reassignment guard in
+        // RuntimeBuilder.BuildEquationForLang).
+        if (sourceExpr.Type.BaseType == BaseFunnyType.Struct
+            && sourceExpr.Type.StructTypeSpecification != null
+            && sourceExpr.Type.StructTypeSpecification.TryGetValue(node.FieldName, out var fieldType)
+            && fieldType.BaseType == BaseFunnyType.Any
+            && valueExpr.Type.BaseType != BaseFunnyType.Any)
+        {
+            throw new FunnyParseException(0,
+                $"Cannot assign value of type '{valueExpr.Type}' to field '.{node.FieldName}' — "
+                + $"field type widened to 'Any' due to incompatible assignments. "
+                + $"Reassignment requires types that widen into one type.",
+                node.Interval);
+        }
+
         return new Nodes.FieldAssignExpressionNode(
-            node.FieldName, sourceExpr, valueExpr, node.Interval, sourceExpr.Type);
+            node.FieldName, sourceExpr, valueExpr, node.Interval, sourceExpr.Type,
+            variableName: node.VariableName);
     }
 }

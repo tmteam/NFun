@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.Exceptions;
 
 namespace NFun.Tokenization;
 
@@ -52,14 +53,33 @@ internal static class IndentTokenizer {
                 }
 
                 var nextTok = rawTokens[nextIdx];
+
+                // Implicit line continuation — matches Basics.md "line breaks are
+                // ignored when reading an expression". Two trigger conditions:
+                //   (1) trailing operator: previous emitted token is a binary
+                //       operator → expression incomplete, next line is RHS.
+                //   (2) leading operator: next line starts with a binary operator
+                //       that cannot begin a statement → previous expression
+                //       continues on this line.
+                // Suppressed when the previous real token is `:` (block opener) —
+                // a new indented block starts there, even if its first token is
+                // syntactically a leading operator like unary `-`.
+                var prevReal = FindPreviousRealToken(result);
+                bool atBlockOpener = prevReal == TokType.Colon;
+                if (!atBlockOpener
+                    && (IsTrailingContinuation(result) || IsLeadingContinuationOperator(nextTok.Type))) {
+                    i = nextIdx - 1;
+                    continue;
+                }
                 var (indent, lineHasTabs, lineHasSpaces) = MeasureIndent(source, nextTok);
 
                 // Rule 1: Tabs vs spaces — detect and enforce consistency
                 if (indent > 0) {
                     if (lineHasTabs && lineHasSpaces) {
                         int line = CountLines(source, nextTok.Start);
-                        throw new InvalidOperationException(
-                            $"Indentation error: mixed tabs and spaces at line {line}");
+                        throw new FunnyParseException(0,
+                            $"Indentation error: mixed tabs and spaces at line {line}",
+                            new Interval(nextTok.Start, nextTok.Start));
                     }
                     if (lineHasTabs || lineHasSpaces) {
                         bool thisLineUsesTabs = lineHasTabs;
@@ -69,8 +89,9 @@ internal static class IndentTokenizer {
                             int line = CountLines(source, nextTok.Start);
                             var expected = usesTabs.Value ? "tabs" : "spaces";
                             var found = thisLineUsesTabs ? "tabs" : "spaces";
-                            throw new InvalidOperationException(
-                                $"Indentation error: file uses {expected}, but {found} found at line {line}");
+                            throw new FunnyParseException(0,
+                                $"Indentation error: file uses {expected}, but {found} found at line {line}",
+                                new Interval(nextTok.Start, nextTok.Start));
                         }
                     }
                 }
@@ -89,11 +110,27 @@ internal static class IndentTokenizer {
                         indentStack.Pop();
                         result.Add(Tok.New(TokType.Dedent, nextTok.Start, nextTok.Start));
                     }
-                    // Verify we landed on an exact prior level
-                    if (indentStack.Peek() != indent) {
+                    // Verify we landed on an exact prior level.
+                    //
+                    // Exception: continuation keywords (else / elif / catch /
+                    // anyway) that continue an enclosing if/when/try statement
+                    // may legitimately appear at a column that isn't on the
+                    // stack when the originating keyword sits inline after
+                    // something else, e.g.:
+                    //     x = try:
+                    //             riskyOp()
+                    //         catch:                 ← indent 4 (no stack level)
+                    //             fallback()
+                    // The originating `try:` was on a line whose own indent is
+                    // 0 (`x = …`), so `catch:` at indent 4 falls between the
+                    // stack's 0 and the body's 8. Accept it — the body after
+                    // the continuation keyword re-INDENTs and resumes the
+                    // normal stack discipline.
+                    if (indentStack.Peek() != indent && !IsContinuationKeyword(nextTok.Type)) {
                         int line = CountLines(source, nextTok.Start);
-                        throw new InvalidOperationException(
-                            $"Indentation error: unindent does not match any outer indentation level at line {line}");
+                        throw new FunnyParseException(0,
+                            $"Indentation error: unindent does not match any outer indentation level at line {line}",
+                            new Interval(nextTok.Start, nextTok.Start));
                     }
                     result.Add(tok); // NewLine after dedents
                 }
@@ -120,6 +157,86 @@ internal static class IndentTokenizer {
 
         return result.ToArray();
     }
+
+    // Keywords that continue an enclosing if/when/try statement. They may
+    // appear at any indent ≥ the originating keyword's line indent — the
+    // body that follows re-establishes the stack via a normal INDENT.
+    private static bool IsContinuationKeyword(TokType type) =>
+        type == TokType.Else || type == TokType.Elif
+        || type == TokType.Catch || type == TokType.Anyway;
+
+    /// <summary>
+    /// Operators that cannot begin a statement — a line starting with one of these
+    /// must be continuation of the previous expression. Matches Basics.md spec:
+    /// "When reading an expression, line breaks are ignored". Includes `+`/`-`/`*`/`/`
+    /// even though they have unary forms — the same line-break-ignore rule applies
+    /// in expression mode where `y = 5\n-3` parses as `y = 5-3`, not `y = 5; -3`.
+    /// </summary>
+    private static bool IsLeadingContinuationOperator(TokType type) =>
+        // Arithmetic
+        type == TokType.Plus || type == TokType.Minus
+        || type == TokType.Mult || type == TokType.Div
+        || type == TokType.DivInt || type == TokType.Rema || type == TokType.Pow
+        // Logical
+        || type == TokType.And || type == TokType.Or || type == TokType.Xor
+        // Comparison
+        || type == TokType.Equal || type == TokType.NotEqual
+        || type == TokType.Less || type == TokType.More
+        || type == TokType.LessOrEqual || type == TokType.MoreOrEqual
+        // Bitwise
+        || type == TokType.BitOr || type == TokType.BitAnd || type == TokType.BitXor
+        || type == TokType.BitShiftLeft || type == TokType.BitShiftRight
+        // Optional / coalesce / chain
+        || type == TokType.NullCoalesce || type == TokType.SafeAccess
+        || type == TokType.Dot
+        // Misc
+        || type == TokType.In
+        || type == TokType.TwoDots;
+
+    /// <summary>
+    /// True iff the previous emitted token is a binary operator awaiting its RHS.
+    /// In that case the next NewLine is not a statement separator — the expression
+    /// continues.
+    /// </summary>
+    private static bool IsTrailingContinuation(List<Tok> emitted) =>
+        IsBinaryTrailingOperator(FindPreviousRealToken(emitted));
+
+    /// <summary>
+    /// Find the previous real (non-NL / non-INDENT / non-DEDENT) token type in
+    /// the emitted stream, or NotAToken if none.
+    /// </summary>
+    private static TokType FindPreviousRealToken(List<Tok> emitted) {
+        for (int i = emitted.Count - 1; i >= 0; i--) {
+            var t = emitted[i].Type;
+            if (t == TokType.NewLine || t == TokType.Indent || t == TokType.Dedent)
+                continue;
+            return t;
+        }
+        return TokType.NotAToken;
+    }
+
+    /// <summary>
+    /// Operators that can legitimately end a line WITH the RHS on the next line.
+    /// Subset of binary operators — postfix-only forms (`!`, superscript) are
+    /// excluded because if they appear, the expression is already complete.
+    /// `Sep` (',') and openers are already handled by bracketDepth.
+    /// </summary>
+    private static bool IsBinaryTrailingOperator(TokType type) =>
+        type == TokType.Plus || type == TokType.Minus
+        || type == TokType.Mult || type == TokType.Div
+        || type == TokType.DivInt || type == TokType.Rema || type == TokType.Pow
+        || type == TokType.And || type == TokType.Or || type == TokType.Xor
+        || type == TokType.Equal || type == TokType.NotEqual
+        || type == TokType.Less || type == TokType.More
+        || type == TokType.LessOrEqual || type == TokType.MoreOrEqual
+        || type == TokType.BitOr || type == TokType.BitAnd || type == TokType.BitXor
+        || type == TokType.BitShiftLeft || type == TokType.BitShiftRight
+        || type == TokType.NullCoalesce
+        || type == TokType.In
+        || type == TokType.TwoDots
+        || type == TokType.Def
+        || type == TokType.Not
+        || type == TokType.Arrow;
 
     private static int FindNextNonNewline(Tok[] tokens, int startIndex) {
         for (int i = startIndex; i < tokens.Length; i++) {

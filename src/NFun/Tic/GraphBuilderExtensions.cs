@@ -353,8 +353,17 @@ public static class GraphBuilderExtensions {
     /// Supports optional right: int? ?? int? → int? (LCA(int, int?) = int?).
     /// </summary>
     public static void SetCoalesce(this GraphBuilder b, int leftId, int rightId, int resultId) {
-        // U — unwrapped element of left Optional
+        // U — unwrapped element of left Optional. Marked IsSignatureParam to
+        // block implicit Optional widening (Opt(U) ≤ U is invalid for U here
+        // since `??` is defined to RESULT IN unwrap, not produce a nested
+        // Optional). Without the flag, when `leftId` carries opt(opt(T)) — e.g.
+        // `?.field` over an already-Optional field — Pull's Apply(Optional,
+        // Optional) propagates the inner Optional through V→U cross-edges and
+        // U absorbs the extra layer (BugHunt-stmt #50). The flag forces TIC
+        // to resolve U at the inner shape, mirroring the rigidity used for
+        // function-signature composite params (StagesExtension WrapAncestorInOptional).
         var elemNode = b.CreateVarType();
+        elemNode.IsSignatureParam = true;
 
         // Left: opt(U)
         var leftType = StateOptional.Of(elemNode);
