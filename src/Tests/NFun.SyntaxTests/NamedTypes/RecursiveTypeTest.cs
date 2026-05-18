@@ -599,7 +599,6 @@ public class RecursiveTypeTest {
     // types. Each function infers its own F-bound. The bounds must be
     // co-recursively consistent: T_a <: {bs: T_b[]}, T_b <: {a: T_a?}.
     [Test]
-    [Ignore("Mutual recursion rejected at FindFunctionSolvingOrderOrThrow — needs SCC solver for function-level mutual recursion (separate feature, not TIC).")]
     public void Roadmap_MutualRecursion_TwoFunctions_TwoTypes() {
         var script =
             "type a = {bs: b[] = []}\r " +

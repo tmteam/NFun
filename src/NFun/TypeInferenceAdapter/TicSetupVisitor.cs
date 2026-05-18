@@ -92,6 +92,67 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return userFunctionNode.Accept(visitor);
     }
 
+    /// <summary>
+    /// Set up TIC for a group of mutually-recursive user functions in ONE
+    /// GraphBuilder. Each function's StateFun signature is registered up-front
+    /// (Phase 1) so cross-cycle calls resolve. Then each body is visited in
+    /// its own alias scope (Phase 2) — arg names are prefixed
+    /// per-function (e.g. <c>isEven'1::n</c>) to prevent collisions across
+    /// peers in the cycle.
+    ///
+    /// One <c>graph.Solve()</c> then resolves all functions' types together,
+    /// matching the Damas-Milner let-rec / SML/OCaml <c>let rec ... and ...</c>
+    /// semantics.
+    /// </summary>
+    internal static bool SetupTicForUserFunctionGroup(
+        UserFunctionDefinitionSyntaxNode[] group,
+        GraphBuilder ticGraph,
+        IFunctionRegistry functions,
+        IConstantList constants,
+        TypeInferenceResultsBuilder results,
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes,
+        INamedTypeFieldRegistry namedTypeFieldRegistry,
+        UserFunctionDefinitionSyntaxNode[] allUserFunctions) {
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results,
+            EmptyAprioriTypesMap.Instance, dialect, customTypes, namedTypeFieldRegistry);
+        if (allUserFunctions != null)
+            foreach (var ufn in allUserFunctions)
+                (visitor._userFunctions ??= new())[(ufn.Id, ufn.Args.Count)] = ufn;
+        foreach (var fn in group)
+            (visitor._userFunctions ??= new())[(fn.Id, fn.Args.Count)] = fn;
+        visitor._hasUserFunctions = true;
+
+        // Per-function arg-name prefixes to avoid collision on shared param names.
+        var prefixes = new string[group.Length];
+        for (int i = 0; i < group.Length; i++)
+            prefixes[i] = $"{group[i].Id}'{group[i].Args.Count}::";
+
+        // Phase 1: register every function's StateFun (so peer-calls resolve).
+        for (int i = 0; i < group.Length; i++)
+            visitor.RegisterUserFunctionHeader(group[i], prefixes[i]);
+
+        // Phase 2: visit each function's body in its own alias scope.
+        for (int i = 0; i < group.Length; i++) {
+            var fn = group[i];
+            visitor._aliasScope.EnterScope(fn.OrderNumber);
+            for (int a = 0; a < fn.Args.Count; a++)
+                visitor._aliasScope.AddVariableAlias(fn.Args[a].Id, prefixes[i] + fn.Args[a].Id);
+
+            if (!fn.Body.Accept(visitor)) { visitor._aliasScope.ExitScope(); return false; }
+
+            foreach (var arg in fn.Args) {
+                if (arg.HasDefault) {
+                    if (!arg.DefaultValue.Accept(visitor)) { visitor._aliasScope.ExitScope(); return false; }
+                    visitor._ticTypeGraph.SetDefaultValueConstraint(
+                        prefixes[i] + arg.Id, arg.DefaultValue.OrderNumber);
+                }
+            }
+            visitor._aliasScope.ExitScope();
+        }
+        return true;
+    }
+
     private readonly ICustomTypeRegistry _customTypes;
     private readonly INamedTypeFieldRegistry _namedTypeFieldRegistry;
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
@@ -251,14 +312,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     OrderNumber = _nextSyntheticId++,
                 };
             }
-            else if (userFun.Args[i].TypeSyntax is not TypeSyntax.EmptyType)
-            {
-                result[i] = new DefaultValueSyntaxNode(defaultExpr.Interval) {
-                    OrderNumber = _nextSyntheticId++,
-                };
-            }
             else
             {
+                // Self/mutual recursive call site: PrecomputeDefaultValues runs AFTER
+                // body solve, so we can't pre-compute here. The earlier "typed" branch
+                // inserted DefaultValueSyntaxNode which evaluates to the TYPE default
+                // (e.g. 0 for int) — losing the USER's declared default. Reuse the
+                // original default expression in both typed/untyped cases; TIC handles
+                // the shared-node case via OrderNumber dedup.
                 result[i] = defaultExpr;
             }
         }
@@ -394,17 +455,46 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     public bool Visit(UserFunctionDefinitionSyntaxNode node) {
-        var argNames = new string[node.Args.Count];
-        int i = 0;
+        // Single-function path. No arg name prefixing — own graph, no peers.
+        RegisterUserFunctionHeader(node, argNamePrefix: null);
+        var result = VisitChildren(node);
+
+        // Constrain default expressions: type must be assignable to parameter type.
+        // DefaultValue is already visited by Visit(TypedVarDefSyntaxNode) → VisitChildren.
         foreach (var arg in node.Args)
         {
-            argNames[i] = arg.Id;
-            i++;
+            if (arg.HasDefault)
+                _ticTypeGraph.SetDefaultValueConstraint(arg.Id, arg.DefaultValue.OrderNumber);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Register the function's TIC signature (arg type vars + StateFun) without
+    /// visiting body. Used by <see cref="Visit(UserFunctionDefinitionSyntaxNode)"/>
+    /// for single-function setup, and by SetupTicForUserFunctionGroup for
+    /// mutually-recursive groups (where all signatures must exist before any
+    /// body is visited so peer-calls resolve).
+    /// </summary>
+    /// <param name="argNamePrefix">
+    /// Optional namespace prefix for arg names. Used by group setup to avoid
+    /// collisions when multiple functions in one TIC graph share arg names
+    /// (e.g. both isEven and isOdd take an arg named "n"). Caller establishes
+    /// aliasing in the body's scope so <c>NamedIdSyntaxNode("n")</c> lookups
+    /// route through the prefix.
+    /// </param>
+    private void RegisterUserFunctionHeader(UserFunctionDefinitionSyntaxNode node, string argNamePrefix) {
+        var argNames = new string[node.Args.Count];
+        for (int i = 0; i < node.Args.Count; i++)
+        {
+            var arg = node.Args[i];
+            argNames[i] = argNamePrefix != null ? argNamePrefix + arg.Id : arg.Id;
             if (arg.TypeSyntax is not TypeSyntax.EmptyType)
             {
                 var resolvedType = ResolveType(arg.TypeSyntax);
                 ThrowIfOptionalTypeDisabled(resolvedType, arg.Id, arg.Interval);
-                _ticTypeGraph.SetVarType(arg.Id, ConvertType(resolvedType));
+                _ticTypeGraph.SetVarType(argNames[i], ConvertType(resolvedType));
             }
         }
 
@@ -423,18 +513,6 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             varNames: argNames);
         var ufRegistryName = GetRegistryKey(node.Id, node.IsExtension, _dialect.ExtensionFunctionsSeparation);
         _resultsBuilder.RememberUserFunctionSignature(ufRegistryName, fun);
-
-        var result = VisitChildren(node);
-
-        // Constrain default expressions: type must be assignable to parameter type.
-        // DefaultValue is already visited by Visit(TypedVarDefSyntaxNode) → VisitChildren.
-        foreach (var arg in node.Args)
-        {
-            if (arg.HasDefault)
-                _ticTypeGraph.SetDefaultValueConstraint(arg.Id, arg.DefaultValue.OrderNumber);
-        }
-
-        return result;
     }
 
     public bool Visit(ArraySyntaxNode node) {

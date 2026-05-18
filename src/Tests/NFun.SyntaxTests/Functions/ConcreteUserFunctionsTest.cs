@@ -92,8 +92,10 @@ public class ConcreteUserFunctionsTest {
     public void AnonymEquationAfterUserFunction(string expr, object value) => expr.AssertReturns(value);
 
 
-    [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
-    [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
+    // Mutual recursion `f → g → f` and `f → g → l → f` were previously rejected
+    // at parse time (FU822 'Complex recursion'). Since the SCC-grouped solver
+    // landed, mutual recursion is a first-class feature — those cases now parse
+    // successfully and run, bounded by the shared-depth guard.
     [TestCase("y(1)=1")]
     [TestCase("y(x,y=1")]
     [TestCase("y(x y)=1")]

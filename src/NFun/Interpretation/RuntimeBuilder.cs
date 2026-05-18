@@ -179,37 +179,69 @@ internal static class RuntimeBuilder {
         //functions that not references other functions have to be compiled firstly
         //Then those functions will be compiled
         //that refer to already compiled functions
-        var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow(dialect.ExtensionFunctionsSeparation);
+        var solveGroups = syntaxTree.FindFunctionSolvingOrderOrThrow(dialect.ExtensionFunctionsSeparation);
+
+        // Flatten groups for the existing single-function build path that needs all
+        // user functions (for cross-function name resolution in TIC setup).
+        int totalFunctions = 0;
+        foreach (var g in solveGroups) totalFunctions += g.Length;
+        var flatOrder = new UserFunctionDefinitionSyntaxNode[totalFunctions];
+        int flatIdx = 0;
+        foreach (var g in solveGroups)
+            foreach (var fn in g) flatOrder[flatIdx++] = fn;
+
         IUserFunction[] userFunctions;
         IFunctionRegistry functionRegistry;
-        if (functionSolveOrder.Length == 0)
+        if (totalFunctions == 0)
         {
             functionRegistry = functionsRegistry;
             userFunctions = Array.Empty<IUserFunction>();
         }
         else
         {
-            userFunctions = new IUserFunction[functionSolveOrder.Length];
+            userFunctions = new IUserFunction[totalFunctions];
 
-            var scopeFunctionDictionary = new ScopeFunctionRegistry(functionsRegistry, functionSolveOrder.Length);
+            var scopeFunctionDictionary = new ScopeFunctionRegistry(functionsRegistry, totalFunctions);
             functionRegistry = scopeFunctionDictionary;
-            //build user functions
-            for (var i = 0; i < functionSolveOrder.Length; i++)
+
+            int builtCount = 0;
+            foreach (var group in solveGroups)
             {
-                if (dialect.AllowUserFunctions == AllowUserFunctions.DenyUserFunctions)
-                    throw Errors.UserFunctionIsDenied(functionSolveOrder[i].Interval);
+                foreach (var fn in group)
+                {
+                    if (dialect.AllowUserFunctions == AllowUserFunctions.DenyUserFunctions)
+                        throw Errors.UserFunctionIsDenied(fn.Interval);
+                    if (dialect.AllowUserFunctions == AllowUserFunctions.DenyRecursive && fn.IsRecursive)
+                        throw Errors.RecursiveUserFunctionIsDenied(fn.Interval);
+                }
 
-                if(dialect.AllowUserFunctions == AllowUserFunctions.DenyRecursive && functionSolveOrder[i].IsRecursive)
-                    throw Errors.RecursiveUserFunctionIsDenied(functionSolveOrder[i].Interval);
-
-                userFunctions[i] = BuildFunctionAndPutItToDictionary(
-                    functionSolveOrder[i],
-                    constants,
-                    scopeFunctionDictionary,
-                    dialect,
-                    customTypes,
-                    namedTypeFieldRegistry,
-                    functionSolveOrder);
+                if (group.Length > 1)
+                {
+                    // Mutual recursion SCC: solve all functions in ONE TIC graph,
+                    // then build each runtime from the shared solve. Damas-Milner
+                    // let-rec / ML's `let rec ... and ...` semantics.
+                    var built = BuildMutualRecursiveGroup(
+                        group,
+                        constants,
+                        scopeFunctionDictionary,
+                        dialect,
+                        customTypes,
+                        namedTypeFieldRegistry,
+                        flatOrder);
+                    for (int k = 0; k < built.Length; k++)
+                        userFunctions[builtCount++] = built[k];
+                }
+                else
+                {
+                    userFunctions[builtCount++] = BuildFunctionAndPutItToDictionary(
+                        group[0],
+                        constants,
+                        scopeFunctionDictionary,
+                        dialect,
+                        customTypes,
+                        namedTypeFieldRegistry,
+                        flatOrder);
+                }
             }
         }
 
@@ -536,6 +568,119 @@ internal static class RuntimeBuilder {
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
             return function;
         }
+    }
+
+    /// <summary>
+    /// Build a mutually-recursive function group as ONE TIC solve, then produce
+    /// runtime functions for each member from the shared results.
+    ///
+    /// Phase A: register prototypes for every function so they can reference
+    /// each other in their bodies. Phase B: build each runtime body — peer
+    /// calls resolve through the prototype registry.
+    /// </summary>
+    private static IUserFunction[] BuildMutualRecursiveGroup(
+        UserFunctionDefinitionSyntaxNode[] group,
+        IConstantList constants,
+        ScopeFunctionRegistry functionsRegistry,
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes,
+        INamedTypeFieldRegistry namedTypeFieldRegistry,
+        UserFunctionDefinitionSyntaxNode[] allUserFunctions) {
+        if (TraceLog.IsEnabled)
+            TraceLog.WriteLine($"\r\n==== BUILD GROUP [{string.Join(",", System.Linq.Enumerable.Select(group, f => f.Id))}] ====");
+
+        var graph = new GraphBuilder { IsRecursion = true };
+        var resultsBuilder = new TypeInferenceResultsBuilder();
+        ITicResults types;
+
+        try
+        {
+            if (!TicSetupVisitor.SetupTicForUserFunctionGroup(
+                    group, graph, functionsRegistry, constants, resultsBuilder,
+                    dialect, customTypes, namedTypeFieldRegistry, allUserFunctions))
+                AssertChecks.Panic("Mutual recursion group not solved");
+            types = graph.Solve(ignorePrefered: true);
+        }
+        catch (TicException e)
+        {
+            // Attribute the error to the first function in the group — error
+            // reporter expects a representative function for position info.
+            throw Errors.TranslateTicError(e, group[0], graph, functionsRegistry);
+        }
+
+        resultsBuilder.SetResults(types);
+        var typeInferenceResults = resultsBuilder.Build();
+
+        // Phase A: apply types + register prototypes for the entire group.
+        var prototypes = new ConcreteUserFunctionPrototype[group.Length];
+        var protoArgTypes = new FunnyType[group.Length][];
+        var protoReturnType = new FunnyType[group.Length];
+
+        for (int k = 0; k < group.Length; k++)
+        {
+            var fn = group[k];
+            FreezeFunctionSignatureStructs(typeInferenceResults, fn);
+
+            fn.ComeOver(enterVisitor: new ApplyTiResultEnterVisitor(
+                solving: typeInferenceResults,
+                tiToLangTypeConverter: TicTypesConverter.Concrete));
+            PrecomputeDefaultValues(fn, typeInferenceResults, functionsRegistry, dialect);
+
+            var funType = TicTypesConverter.Concrete.Convert(
+                typeInferenceResults.GetVariableType(fn.Id + "'" + fn.Args.Count));
+            var retType = funType.FunTypeSpecification.Output;
+            var argTypes = funType.FunTypeSpecification.Inputs;
+
+            // Named struct override (mirror single-function path)
+            var pArgTypes = argTypes;
+            if (namedTypeFieldRegistry != null)
+            {
+                FunnyType[] overridden = null;
+                for (int i = 0; i < fn.Args.Count && i < argTypes.Length; i++)
+                {
+                    if (fn.Args[i].TypeSyntax is TypeSyntax.EmptyType) continue;
+                    var resolved = TypeSyntaxResolver.Resolve(fn.Args[i].TypeSyntax, customTypes);
+                    if (resolved.BaseType == BaseFunnyType.NamedStruct)
+                    {
+                        if (overridden == null)
+                        {
+                            overridden = new FunnyType[argTypes.Length];
+                            System.Array.Copy(argTypes, overridden, argTypes.Length);
+                        }
+                        overridden[i] = resolved;
+                    }
+                }
+                if (overridden != null) pArgTypes = overridden;
+            }
+
+            var prototype = new ConcreteUserFunctionPrototype(fn.Id, retType, pArgTypes, fn.IsExtension);
+            var registryKey = TicSetupVisitor.GetRegistryKey(fn.Id, fn.IsExtension, dialect.ExtensionFunctionsSeparation);
+            functionsRegistry.Add(registryKey, prototype);
+            prototypes[k] = prototype;
+            protoArgTypes[k] = argTypes;
+            protoReturnType[k] = retType;
+        }
+
+        // Phase B: build each body — now they see each other via prototypes.
+        // One shared depth counter across the whole SCC so combined
+        // f→g→f→g recursion is bounded.
+        var sharedDepth = new int[1];
+        var result = new IUserFunction[group.Length];
+        for (int k = 0; k < group.Length; k++)
+        {
+            var fn = group[k];
+            var concrete = fn.BuildConcrete(
+                argTypes: protoArgTypes[k],
+                returnType: protoReturnType[k],
+                functionsRegistry: functionsRegistry,
+                results: typeInferenceResults,
+                converter: TicTypesConverter.Concrete,
+                dialect: dialect,
+                sharedRecursionDepth: sharedDepth);
+            prototypes[k].SetActual(concrete);
+            result[k] = concrete;
+        }
+        return result;
     }
 
     /// <summary>

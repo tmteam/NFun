@@ -14,6 +14,15 @@ public class CycleTopologySorting {
     public static TopologySortResults Sort(int[][] graph)
         => new CycleTopologySorting(graph).Sort();
 
+    /// <summary>
+    /// Tarjan SCC on the dependency graph. Returns groups in topological order
+    /// (each group appears before any group that depends on it).
+    /// Single-node groups are acyclic; size&gt;1 (or size==1 with self-loop) groups
+    /// represent mutual/self recursion cycles.
+    /// </summary>
+    public static int[][] SortIntoGroups(int[][] graph)
+        => TarjanSccOnIntGraph.Compute(graph);
+
     private readonly int[][] _graph;
     private readonly NodeState[] _nodeStates;
     private readonly int[] _route;

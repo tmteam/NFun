@@ -236,9 +236,19 @@ public class NamedTypeStressTest {
     [TestCase("type a = {v: int, next: a? = none}\rsum_(x) = if(x==none) 0 else x!.v + sum_(x?.next)\ry = sum_(42)")]
     [TestCase("type a = {v: int, next: a? = none}\rsum_(x) = if(x==none) 0 else x!.v + sum_(x?.next)\ry = sum_('abc')")]
     [TestCase("type fnode = {f: rule(fnode):int}\rselfFunc(n) = n.f(n)\ry = selfFunc(fnode{f = rule it.f(it)})")]
-    [TestCase("isEven(n) = if (n == 0) true else isOdd(n - 1)\nisOdd(n)  = if (n == 0) false else isEven(n - 1)\ny = isEven(4)")]
     public void Section_K_ShouldThrow(string script) =>
         Assert.Throws<FunnyParseException>(() => Run(script));
+
+    // isEven/isOdd mutual recursion was previously listed under Section_K_ShouldThrow
+    // (which expected FU822 'Complex recursion'). The SCC-grouped function solver
+    // now accepts it — moved here as a positive test.
+    [Test]
+    public void Section_K_MutualRecursion_NowWorks() {
+        var script = "isEven(n) = if (n == 0) true else isOdd(n - 1)\n"
+                   + "isOdd(n)  = if (n == 0) false else isEven(n - 1)\n"
+                   + "y = isEven(4)";
+        Run(script).AssertReturns("y", true);
+    }
 
     // ========================================================================
     // SECTION L — More wild combos (~40 tests, mixed)

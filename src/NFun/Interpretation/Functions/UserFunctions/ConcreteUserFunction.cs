@@ -10,12 +10,13 @@ internal class ConcreteUserFunction : FunctionWithManyArguments, IUserFunction {
         string name,
         VariableSource[] variables,
         IExpressionNode expression,
-        bool isRecursive) {
+        bool isRecursive,
+        int[] sharedRecursionDepth = null) {
         var argTypes = new FunnyType[variables.Length];
         for (var i = 0; i < variables.Length; i++)
             argTypes[i] = variables[i].Type;
         if (isRecursive)
-            return new ConcreteRecursiveUserFunction(name, variables, expression, argTypes);
+            return new ConcreteRecursiveUserFunction(name, variables, expression, argTypes, sharedRecursionDepth);
         else
             return new ConcreteUserFunction(name, variables, expression, argTypes);
     }

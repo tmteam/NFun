@@ -6,15 +6,18 @@ namespace NFun.SyntaxParsing.Visitors;
 public class FindFunctionDependenciesVisitor : EnterVisitorBase {
     private readonly string _functionAlias;
     private readonly Dictionary<string, int> _userFunctionsNames;
+    private readonly UserFunctionDefinitionSyntaxNode[] _userFunctions;
     private readonly List<int> _dependencies;
     private readonly bool _extensionSeparation;
 
     public FindFunctionDependenciesVisitor(
         string functionAlias,
         Dictionary<string, int> userFunctionsNames,
+        UserFunctionDefinitionSyntaxNode[] userFunctions = null,
         bool extensionSeparation = false) {
         _functionAlias = functionAlias;
         _userFunctionsNames = userFunctionsNames;
+        _userFunctions = userFunctions;
         _dependencies = new List<int>(userFunctionsNames.Count);
         _extensionSeparation = extensionSeparation;
     }
@@ -34,6 +37,8 @@ public class FindFunctionDependenciesVisitor : EnterVisitorBase {
             HasSelfRecursion = true;
         else if (_userFunctionsNames.TryGetValue(nodeName, out int id))
             _dependencies.Add(id);
+        else
+            AddDependencyForDefaultExpandedCall(node);
 
         // When extension separation is enabled, also check the non-prefixed name
         // since piped calls can also call built-in functions (which aren't user functions,
@@ -52,5 +57,38 @@ public class FindFunctionDependenciesVisitor : EnterVisitorBase {
         }
 
         return DfsEnterResult.Continue;
+    }
+
+    /// <summary>
+    /// Catch calls that don't match exact arity but DO match a user function via
+    /// default-param expansion (e.g. <c>a(s)</c> calling <c>a(x, n=2)</c>). Without
+    /// this, the dep graph misses the edge and SCC analysis fails to group the
+    /// functions for mutual-recursive builds.
+    /// </summary>
+    private void AddDependencyForDefaultExpandedCall(FunCallSyntaxNode node) {
+        if (_userFunctions == null) return;
+        var callArgs = node.Args.Length;
+        for (int i = 0; i < _userFunctions.Length; i++)
+        {
+            var ufn = _userFunctions[i];
+            if (!string.Equals(ufn.Id, node.Id, System.StringComparison.OrdinalIgnoreCase))
+                continue;
+            int paramCount = ufn.Args.Count;
+            if (paramCount <= callArgs) continue;
+            int requiredCount = 0;
+            foreach (var arg in ufn.Args)
+                if (!arg.HasDefault && !arg.IsParams && !arg.IsKeywordOnly) requiredCount++;
+            if (callArgs < requiredCount || callArgs > paramCount) continue;
+
+            // Check self-recursion via default-expanded call too.
+            var expandedAlias = _extensionSeparation && node.IsPipeForward
+                ? "." + $"{ufn.Id}({paramCount})"
+                : $"{ufn.Id}({paramCount})";
+            if (expandedAlias == _functionAlias)
+                HasSelfRecursion = true;
+            else if (!_dependencies.Contains(i))
+                _dependencies.Add(i);
+            return;
+        }
     }
 }

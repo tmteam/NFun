@@ -12,4 +12,11 @@ public enum FunctionRecursionKind {
     NoRecursion,
     // Function call itself
     SelfRecursion,
+    /// <summary>
+    /// Function participates in a mutually-recursive cycle of two or more
+    /// user functions (e.g. <c>isEven</c> ↔ <c>isOdd</c>). Solved together
+    /// via SCC in one TIC graph; runtime depth bounded by a shared counter
+    /// across the group.
+    /// </summary>
+    MutualRecursion,
 }
