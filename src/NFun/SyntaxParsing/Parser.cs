@@ -111,9 +111,21 @@ public class Parser {
         if (_attributes.Length > 0)
             throw Errors.AttributeOnFunction(fun);
 
+        var functionNode = ParseUserFunctionFromCall(fun, _flow, _exprStartPosition);
+        _nodes.Add(functionNode);
+    }
+
+    /// <summary>
+    /// Build a <see cref="UserFunctionDefinitionSyntaxNode"/> given a FunCallSyntaxNode
+    /// in head position. Reads optional <c>:retType</c> / <c>-&gt;retType</c>, the
+    /// <c>=</c> token, and the body expression. Shared between expression-mode Parser
+    /// and lang-mode LangParser so both accept <c>f(x) = expr</c> form uniformly.
+    /// </summary>
+    internal static UserFunctionDefinitionSyntaxNode ParseUserFunctionFromCall(
+        FunCallSyntaxNode fun, TokFlow flow, int exprStartPosition) {
         var id = fun.Id;
         if (fun.ParenthesesCount != 0)
-            throw Errors.UnexpectedParenthesisOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
+            throw Errors.UnexpectedParenthesisOnFunDefinition(fun, exprStartPosition, flow.Previous.Finish);
 
         var arguments = new List<TypedVarDefSyntaxNode>();
         TypedVarDefSyntaxNode paramsArg = null;
@@ -206,26 +218,24 @@ public class Parser {
         }
 
         var outputType = TypeSyntax.Empty;
-        if (_flow.MoveIf(TokType.Colon, out _) || _flow.MoveIf(TokType.Arrow, out _))
-            outputType = _flow.ReadTypeSyntax();
+        if (flow.MoveIf(TokType.Colon, out _) || flow.MoveIf(TokType.Arrow, out _))
+            outputType = flow.ReadTypeSyntax();
 
-        _flow.SkipNewLines();
-        if (!_flow.MoveIf(TokType.Def, out var def))
-            throw Errors.FunDefTokenIsMissed(id, arguments, _flow.Current);
+        flow.SkipNewLines();
+        if (!flow.MoveIf(TokType.Def, out var def))
+            throw Errors.FunDefTokenIsMissed(id, arguments, flow.Current);
 
-        var expression = SyntaxNodeReader.ReadNodeOrNull(_flow);
+        var expression = SyntaxNodeReader.ReadNodeOrNull(flow);
         if (expression == null)
         {
-            int finish = _flow.Peek?.Finish ?? _flow.CurrentTokenFinishPosition;
+            int finish = flow.Peek?.Finish ?? flow.CurrentTokenFinishPosition;
 
             throw Errors.FunExpressionIsMissed(
                 id, arguments,
                 new Interval(def.Start, finish));
         }
 
-        var functionNode = SyntaxNodeFactory.UserFunctionDef(arguments, fun, expression, outputType);
-
-        _nodes.Add(functionNode);
+        return (UserFunctionDefinitionSyntaxNode)SyntaxNodeFactory.UserFunctionDef(arguments, fun, expression, outputType);
     }
 
     /// <summary>

@@ -221,9 +221,19 @@ internal static class LangParser {
             return ParseTryBlock(flow);
 
         // Read expression
+        var stmtStart = flow.Current.Start;
         var node = SyntaxNodeReader.ReadNodeOrNull(flow);
         if (node == null)
             throw new FunnyParseException(0, "Expected statement", flow.Current.Interval);
+
+        // Expression-style user function definition: `f(args) = body`
+        // (also accepts `f(args):retType = body` / `f(args) -> retType = body`).
+        // Delegates to the shared parser used by expression mode for full feature parity
+        // (typed args, defaults, params, keyword-only, return type annotation).
+        if (node is FunCallSyntaxNode funCall && !funCall.IsOperator
+            && (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon) || flow.IsCurrent(TokType.Arrow))) {
+            return Parser.ParseUserFunctionFromCall(funCall, flow, stmtStart);
+        }
 
         // Check if it's an assignment: expr followed by `=`
         if (flow.IsCurrent(TokType.Def)) {
