@@ -251,18 +251,24 @@ public class SafeMethodChainTest {
     //   element). Different symptom: here Optional is lost through
     //   `?.method() → method-result` step before the `[]` op.
     // ───────────────────────────────────────────────────────────────
+    // Post-rebase onto nfun-lang-v4: lang-mode's Optional propagation
+    // infrastructure (SetSafeMethodCall/SetSafeArrayAccess) propagates
+    // Optional through `?.method()[idx]` per Optionals.md "After ?., none
+    // propagates through entire chain". Earlier master-only fix rejected
+    // this at compile (FU780) as a conservative compromise; nfun-lang-v4
+    // does the spec-correct thing — result is `T?`, none when source is none.
     [Test]
-    public void MR7Bug3_SafeMethodChainThenIndex_NoneCrashes() {
-        Assert.Throws<FunnyParseException>(() =>
-            "arr:int[]? = none\ry = arr?.sort()[0]"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    public void MR7Bug3_SafeMethodChainThenIndex_PropagatesOptional() {
+        var rt = "arr:int[]? = none\ry = arr?.sort()[0]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.IsNull(rt.Get("y"));
     }
 
     [Test]
-    public void MR7Bug3_SafeMethodChainReverse_NoneCrashes() {
-        Assert.Throws<FunnyParseException>(() =>
-            "arr:int[]? = none\ry = arr?.reverse()[0]"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    public void MR7Bug3_SafeMethodChainReverse_PropagatesOptional() {
+        var rt = "arr:int[]? = none\ry = arr?.reverse()[0]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.IsNull(rt.Get("y"));
     }
 
     // 3c. Control: direct opt-array indexing IS rejected at compile.

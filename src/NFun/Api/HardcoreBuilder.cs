@@ -127,10 +127,28 @@ public class HardcoreBuilder {
 
     public FunnyRuntime BuildLang(string script) {
         var converter = Converter;
+        // Lang mode is spec-compliant — extension functions are callable only
+        // via piped syntax (Statements.md §Extension). If the user hasn't
+        // explicitly set ExtensionFunctionsSeparation, upgrade it to Enabled
+        // for this build so direct calls to extension defs are rejected.
+        var langDialect = _dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Disabled
+            ? new DialectSettings(
+                _dialect.IfExpressionSetup,
+                _dialect.IntegerPreferredType,
+                _dialect.Converter,
+                _dialect.AllowIntegerOverflow,
+                _dialect.AllowUserFunctions,
+                _dialect.OptionalTypesSupport,
+                _dialect.AllowNewlineInStrings,
+                _dialect.NamedTypesSupport,
+                _dialect.TryCatchSupport,
+                ExtensionFunctionsSeparation.Enabled,
+                _dialect.UseMutableStructs)
+            : _dialect;
         return RuntimeBuilder.BuildLang(
             script,
             BaseFunctions.GetFunctions(converter.TypeBehaviour).CloneWith(_customFunctions),
-            _dialect,
+            langDialect,
             _constants.Length > 0 ? new ConstantList(converter, _constants) : null,
             _mutableApriori,
             _customTypes);

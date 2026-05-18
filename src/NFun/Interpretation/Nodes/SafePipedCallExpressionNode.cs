@@ -92,8 +92,14 @@ internal class CoalesceExpressionNode : IExpressionNode {
 
     public object Calc() {
         var val = _left.Calc();
-        if (val is FunnyNone)
-            return _right.Calc();
+        // Propagate control-flow signals from either side instead of treating
+        // the sentinel object as a value (BugHunt-stmt #55: `return x ?? return Y`).
+        if (val is ReturnSignal or BreakSignal or ContinueSignal)
+            return val;
+        if (val is FunnyNone) {
+            var rval = _right.Calc();
+            return rval;
+        }
         return _leftConverter != null ? _leftConverter(val) : val;
     }
 

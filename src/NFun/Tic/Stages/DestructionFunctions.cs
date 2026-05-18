@@ -108,6 +108,18 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Rigidity for `??` element: when ancestor is marked IsSignatureParam
+        // (set by SetCoalesce on U) and descendant is Optional, redirect
+        // ancestor to the descendant's INNER element instead of the descendant
+        // itself. This implements the algebraic rule "?? unwraps Optional" at
+        // the destruction layer: U must not absorb the descendant's Optional
+        // outer (BugHunt-stmt #50). Pure Pull-time rigidity is insufficient
+        // because the descendant only becomes Optional during Destruction.
+        if (ancestorNode.IsSignatureParam && descendant is StateOptional descOpt) {
+            ancestorNode.State = new StateRefTo(descOpt.ElementNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
         if (descendant.FitsInto(ancestor))
         {
             if (ancestor.IsOptional) {
@@ -366,6 +378,31 @@ public class DestructionFunctions : IStateFunction {
 
             if (invariant)
             {
+                // Apply the same stale-None-vs-Optional lift that the covariant branch
+                // below honors. In a recursive named struct whose optional field defaults
+                // to `none` (`l: tree? = none`), Pull Phase 1 snapshots one literal's `l`
+                // as `None` while another literal's `l` (assigned via `t!.l`) reaches
+                // `opt(tree)`. The two MutableStruct literals then meet in invariant
+                // destruction (mut↔mut), and a raw MergeInplace asserts "Node is already
+                // solved" because None and opt(tree) are both solved but unequal
+                // (BugHunt-stmt #48). Redirecting the None side to RefTo the Optional
+                // side preserves the algebraic lift `None ≤ opt(T)`.
+                var ancNr = ancFieldNode.GetNonReference();
+                var descNr = descFieldNode.GetNonReference();
+                if (ancNr.State is StatePrimitive { Name: PrimitiveTypeName.None }
+                    && descNr.State is StateOptional)
+                {
+                    ancNr.State = new StateRefTo(descNr);
+                    sameFieldCount++;
+                    continue;
+                }
+                if (descNr.State is StatePrimitive { Name: PrimitiveTypeName.None }
+                    && ancNr.State is StateOptional)
+                {
+                    descNr.State = new StateRefTo(ancNr);
+                    sameFieldCount++;
+                    continue;
+                }
                 // Invariant: unify fields (must be same type)
                 SolvingFunctions.MergeInplace(descFieldNode, ancFieldNode);
                 sameFieldCount++;

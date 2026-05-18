@@ -552,25 +552,33 @@ public class GraphBuilder {
     }
 
     private static bool ReturnContainsContractiveCycle(TicNode retNode) {
-        var nr = retNode.GetNonReference();
-        if (nr.IsContractiveCycleHead) return true;
-        if (nr.State is StateOptional opt) return ContainsContractiveCycle(opt.ElementNode, new HashSet<TicNode>());
-        if (nr.State is ICompositeState composite) {
-            for (int i = 0; i < composite.MemberCount; i++)
-                if (ContainsContractiveCycle(composite.GetMember(i), new HashSet<TicNode>())) return true;
-        }
-        return false;
+        var visited = new HashSet<TicNode>();
+        return ContainsContractiveCycle(retNode, visited);
     }
 
+    /// <summary>
+    /// True iff <paramref name="n"/> reaches itself through a chain of composite members
+    /// (μ-recursive type), or sits on a cycle head marked by NodeToposort. Used by SetCall
+    /// to decide whether the function's return must route through RefTo (cycle preserved)
+    /// or can MergeInplace (no cycle to disturb).
+    /// At graph-build time NodeToposort hasn't run yet, so the flag is not enough — we walk
+    /// the composite graph and detect back-edges directly. visited is back-tracked so
+    /// shared sub-structure (DAG) is not misreported as a cycle.
+    /// </summary>
     private static bool ContainsContractiveCycle(TicNode n, HashSet<TicNode> visited) {
         var nr = n.GetNonReference();
-        if (!visited.Add(nr)) return false;
         if (nr.IsContractiveCycleHead) return true;
-        if (nr.State is ICompositeState composite) {
-            for (int i = 0; i < composite.MemberCount; i++)
-                if (ContainsContractiveCycle(composite.GetMember(i), visited)) return true;
+        if (nr.State is not ICompositeState composite) return false;
+        if (!visited.Add(nr)) return true; // back-edge through composites → cycle
+        bool result = false;
+        for (int i = 0; i < composite.MemberCount; i++) {
+            if (ContainsContractiveCycle(composite.GetMember(i), visited)) {
+                result = true;
+                break;
+            }
         }
-        return false;
+        visited.Remove(nr);
+        return result;
     }
 
     /// <summary>Binary pure generic call (T,T):T — zero array allocation.</summary>

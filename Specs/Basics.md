@@ -426,7 +426,7 @@ This value is equal to:
 - empty array for arrays
 - " (empty text) for `text`
 - `none` for any optional type `T?`
-- new object() for `any`
+- `none` for `any` (`any ≡ any?` — any-typed slots can hold `none`)
 - a structure with a 'default' value for each field in the structure type
 - a function that returns the `default` value for an anonymous function
 - 0.0.0.0 for `ip`

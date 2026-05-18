@@ -192,8 +192,10 @@ public static class SyntaxNodeReader {
             return SyntaxNodeFactory.UnarOperatorCall(CoreFunNames.Not, node, start, node.Interval.Finish);
         }
 
-        if (flow.MoveIf(TokType.Rule) || flow.MoveIf(TokType.Fun))
-            return ReadFunAnonymousFunction(flow);
+        if (flow.MoveIf(TokType.Fun))
+            return ReadFunAnonymousFunction(flow, isFunKeyword: true);
+        if (flow.MoveIf(TokType.Rule))
+            return ReadFunAnonymousFunction(flow, isFunKeyword: false);
 
         if (flow.MoveIf(TokType.FiObr))
             return ReadStruct(flow);
@@ -357,7 +359,10 @@ public static class SyntaxNodeReader {
         //building the syntax tree
         while (true)
         {
-            flow.SkipNewLines();
+            // Use the lang-aware skip: when RespectNewLines is set (lang
+            // statement context), a NL followed by `+`/`-` is a real
+            // statement terminator and stops the chain (BugHunt-stmt #66).
+            flow.SkipNewLinesInBinaryChain();
             // if flow is done than current node is everything we got
             // example:
             // 1*2+3 {return whole expression }
@@ -411,8 +416,11 @@ public static class SyntaxNodeReader {
             {
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
+                // Closers that legitimately precede a call-of-result `(args)`:
+                //   `)` — (expr)(args), `}` — struct{...}(args), `default` — default(args),
+                //   `]` — arr[idx](args) (indexed-call, BugHunt-stmt #38).
                 if (!flow.IsPrevious(TokType.ParenthCbr) && !flow.IsPrevious(TokType.FiCbr) &&
-                    !flow.IsPrevious(TokType.Default))
+                    !flow.IsPrevious(TokType.Default) && !flow.IsPrevious(TokType.ArrCBr))
                     return leftNode;
                 //call result of previous expression:
                 // (expr)(arg1, ... argN)
@@ -573,8 +581,35 @@ public static class SyntaxNodeReader {
                || currentToken.Type == TokType.ParenthObr;
     }
 
-    private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow) {
+    private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow, bool isFunKeyword) {
         var pos = flow.CurrentTokenFinishPosition;
+
+        // Spec §Lambdas: `fun: expr` — super-anonym with implicit `it`.
+        // (`fun expr` without the colon also still works as a looser form.)
+        // Only applies to `fun` — `rule` keeps its existing `rule expr` form.
+        if (isFunKeyword && flow.IsCurrent(TokType.Colon) && flow.Peek?.Type != TokType.NewLine)
+        {
+            flow.MoveNext(); // consume ':'
+            var implicitBody = ReadNodeOrNull(flow);
+            if (implicitBody == null)
+                throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
+            return SyntaxNodeFactory.SuperAnonymFunction(implicitBody);
+        }
+
+        // `fun:\n <block>` — super-anonym with implicit `it` and a block body.
+        // Per Statements.md §Lambdas L141 the body may itself be a block; the
+        // rule applies symmetrically to both `fun(args):` and the no-args
+        // implicit-`it` form. (StmtBug77.)
+        if (isFunKeyword && flow.IsCurrent(TokType.Colon) && flow.Peek?.Type == TokType.NewLine)
+        {
+            flow.MoveNext(); // consume ':'
+            flow.MoveNext(); // consume NewLine
+            flow.SkipNewLines(); // skip extra blank lines
+            ISyntaxNode blockBody = flow.IsCurrent(TokType.Indent)
+                ? LangParser.ParseBlock(flow)
+                : ReadBlockLambdaBody(flow);
+            return SyntaxNodeFactory.SuperAnonymFunction(blockBody);
+        }
 
         var bodyOrTypeNotation = ReadNodeOrNull(flow);
         if (bodyOrTypeNotation == null)
@@ -603,6 +638,22 @@ public static class SyntaxNodeReader {
             }
             var definition = bodyOrTypeNotation;
             return SyntaxNodeFactory.AnonymFunction(definition, TypeSyntax.Empty, blockBody);
+        }
+
+        // Inline named-args lambda: fun(args): expr   (Statements.md §Lambdas).
+        // Same shape as `fun(args) = expr` but with `:` instead of `=`. Only
+        // valid for the `fun` keyword and when bodyOrTypeNotation is a
+        // parenthesised argument list — `rule(args):type = expr` keeps its
+        // existing typed-return-with-`=` form and is handled below.
+        if (isFunKeyword && flow.IsCurrent(TokType.Colon) && bodyOrTypeNotation.ParenthesesCount == 1)
+        {
+            flow.MoveNext(); // consume ':'
+            flow.SkipNewLines();
+            var definition = bodyOrTypeNotation;
+            var inlineBody = ReadNodeOrNull(flow);
+            if (inlineBody == null)
+                throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
+            return SyntaxNodeFactory.AnonymFunction(definition, TypeSyntax.Empty, inlineBody);
         }
 
         var returnType = TryReadTypeDef(flow, allowArrow: true);
@@ -650,25 +701,19 @@ public static class SyntaxNodeReader {
                 continue;
             }
 
-            // Read expression
-            var node = ReadNodeOrNull(flow);
-            if (node == null)
+            // Delegate to the lang statement parser so block-form constructs
+            // (`if cond:`, `for x in xs:`, `while cond:`, `return`, …) inside
+            // an inline-argument lambda body work the same way as in a
+            // top-level lang block (BugHunt-stmt #62 — spec example from
+            // Statements.md L147-150 didn't parse: `fold(0, fun(acc, x):
+            //     if x > 0: return acc + x; return acc)`).
+            // Multi-line block forms still need Indent/Dedent which aren't
+            // emitted inside brackets — those will fall through the parser's
+            // existing single-line block branches.
+            var stmt = LangParser.ParseStatement(flow);
+            if (stmt == null)
                 break;
-
-            // Check if it's an assignment: id = expr
-            if (flow.IsCurrent(TokType.Def)) {
-                if (node is NamedIdSyntaxNode named) {
-                    flow.MoveNext(); // consume '='
-                    flow.SkipNewLines();
-                    var body = ReadNodeOrNull(flow);
-                    if (body == null)
-                        throw Errors.AnonymousFunBodyIsMissing(flow.Current.Interval);
-                    statements.Add(SyntaxNodeFactory.Equation(named.Id, body, named.Interval.Start, System.Array.Empty<FunnyAttribute>()));
-                    continue;
-                }
-            }
-
-            statements.Add(node);
+            statements.Add(stmt);
         }
 
         var finish = flow.CurrentTokenFinishPosition;
@@ -964,6 +1009,18 @@ public static class SyntaxNodeReader {
 
                 if (!flow.MoveIf(TokType.ArrCBr))
                     throw Errors.ArrayIndexCbrMissed(openBraket, flow.Current);
+
+                // Propagate `?.` safe-access semantics through `[idx]` indexing too —
+                // `e?.nums.sort()[0]` should yield `none` when `e` is none, not crash at
+                // runtime trying to cast none to array (BugHunt-stmt #37). Same chain
+                // detection used for `.method()` after `?.` (line ~417). The synthesized
+                // OperatorCall uses SafeGetElement; TIC's SetSafeArrayAccess produces an
+                // Optional result that flows into the surrounding `??`.
+                if (IsInSafeAccessChain(arrayNode))
+                    return SyntaxNodeFactory.OperatorCall(
+                        CoreFunNames.SafeGetElementName,
+                        new[] { arrayNode, index }, openBraket.Start,
+                        flow.CurrentTokenFinishPosition);
 
                 return SyntaxNodeFactory.OperatorCall(
                     CoreFunNames.GetElementName,
@@ -1379,6 +1436,12 @@ public static class SyntaxNodeReader {
     private static ISyntaxNode ReadTryCatchNode(TokFlow flow) {
         var start = flow.CurrentTokenPosition;
         flow.MoveNext(); // skip 'try'
+        // Optional colon for single-line block-style form: `try: V catch: W`.
+        // Per IndentRules.md/Statements.md the single-line block form works
+        // everywhere a block is expected. Without this both `try V catch W`
+        // and `try: V catch: W` produce identical TryCatchSyntaxNodes
+        // (BugHunt-stmt #60).
+        flow.MoveIf(TokType.Colon);
 
         var tryExpr = ReadNodeOrNull(flow);
         if (tryExpr == null)
@@ -1406,6 +1469,21 @@ public static class SyntaxNodeReader {
                 flow.Move(savedPos); // restore — not (id)
             }
         }
+
+        // Bare `catch id:` (no parens) — Statements.md spec form
+        if (errorVarName == null && flow.IsCurrent(TokType.Id)) {
+            var savedPos = flow.CurrentTokenPosition;
+            var idValue = flow.Current.Value;
+            flow.MoveNext(); // skip id
+            if (flow.IsCurrent(TokType.Colon)) {
+                errorVarName = idValue;
+            } else {
+                flow.Move(savedPos);
+            }
+        }
+
+        // Symmetric optional colon after `catch` / `catch id`.
+        flow.MoveIf(TokType.Colon);
 
         var catchExpr = ReadNodeOrNull(flow);
         if (catchExpr == null)

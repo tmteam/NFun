@@ -31,11 +31,15 @@ internal class FunOfTwoArgsExpressionNode : IExpressionNode {
 
     public object Calc() {
         try {
-            if (_lazy1 | _lazy2) // rare path: lazy evaluation
-                return _fun.Calc(
-                    _lazy1 ? (object)_arg1 : _arg1.Calc(),
-                    _lazy2 ? (object)_arg2 : _arg2.Calc());
-            return _fun.Calc(_arg1.Calc(), _arg2.Calc());
+            // Control-flow signals (return/break/continue) short-circuit the call:
+            // any arg that produces a sentinel propagates up without invoking the
+            // function (BugHunt-stmt #57: `5 + return 3` must not feed a sentinel
+            // into the binary op).
+            object a1 = _lazy1 ? (object)_arg1 : _arg1.Calc();
+            if (a1 is ReturnSignal or BreakSignal or ContinueSignal) return a1;
+            object a2 = _lazy2 ? (object)_arg2 : _arg2.Calc();
+            if (a2 is ReturnSignal or BreakSignal or ContinueSignal) return a2;
+            return _fun.Calc(a1, a2);
         }
         catch (FunnyRuntimeException) { throw; }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }

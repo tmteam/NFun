@@ -127,10 +127,15 @@ public class StructGenericFunctionTest {
          "d = f(123).dec").AssertResultHas("t", 84)
         .AssertResultHas("d", 122);
 
+    // Body literal `1` gives generic T preferred = Int32; with no caller-side type
+    // context, T resolves to Int32 (PreferredFromBody rule). To exercise Real-mode
+    // the caller must annotate the result type — see RecursiveUserFunctionsTest's
+    // FactorialGeneric_OutReal for the same pattern on a non-struct fact.
+
     [TestCase(1, 1)]
     [TestCase(3, 6)]
     [TestCase(6, 720)]
-    public void GenericFactorialReq_ReturnStruct(double x, double y) =>
+    public void GenericFactorialReq_ReturnStruct(int x, int y) =>
         @"fact(n) = if(n<=1) {res = 1} else {res = fact(n-1).res*n}
                   y = fact(x).res".Calc("x", x)
             .AssertReturns("y", y);
@@ -138,8 +143,9 @@ public class StructGenericFunctionTest {
     [TestCase(1, 1)]
     [TestCase(3, 6)]
     [TestCase(6, 720)]
-    public void GenericFactorialReq_ArgIsStruct(double x, double y) =>
+    public void GenericFactorialReq_ArgIsStruct(int x, int y) =>
         @"fact(n) = if(n.field<=1) 1 else fact({field=n.field-1})*n.field
+                  x:int
                   y = fact({field=x})".Calc("x", x)
             .AssertReturns("y", y);
 

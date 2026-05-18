@@ -38,8 +38,19 @@ internal class ReturnExpressionNode : IExpressionNode {
     public IEnumerable<IRuntimeNode> Children => _expression != null ? new IRuntimeNode[] { _expression } : Array.Empty<IRuntimeNode>();
 
     public object Calc() {
+        var inner = _expression != null ? _expression.Calc() : NFun.Types.FunnyNone.Instance;
+        // If the inner expression already produced a control-flow signal (e.g.
+        // `return return X`, or `return try-catch` where the catch body itself
+        // executed `return X`), propagate it as-is. Re-wrapping a sentinel inside
+        // another ReturnSignal would leak the inner sentinel to the caller as a
+        // value (BugHunt-stmt #54/#56).
+        if (inner is ReturnSignal or BreakSignal or ContinueSignal)
+            return inner;
         var signal = ReturnSignal.Instance;
-        signal.Value = _expression?.Calc();
+        // Bare `return` (no expression) yields `none` per Statements.md. Use the
+        // FunnyNone sentinel so callers that test for none (e.g. `??`) see it
+        // correctly; raw null would silently miss the check (BugHunt-stmt #29).
+        signal.Value = inner;
         return signal;
     }
 

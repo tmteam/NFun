@@ -289,4 +289,40 @@ public class LangBlockNarrowingTest {
         rt.Run();
         Assert.AreEqual("ab", rt["y"].Value.ToString());
     }
+
+    // ─── Narrowing via oops(...) ───
+    // oops always throws — bottom type. The narrowing contract holds: the
+    // statements after `if cond: oops(...)` are unreachable when the guard fires.
+
+    [Test]
+    public void Narrowing_AcrossOops_NonNoneInput() {
+        var rt = Funny.Hardcore.BuildLang(
+            "fun f(x: int?):\n" +
+            "    if x == none: oops('null')\n" +
+            "    return x + 1\n" +
+            "y = f(42)");
+        rt.Run();
+        Assert.AreEqual(43, Convert.ToInt32(rt["y"].Value));
+    }
+
+    [Test]
+    public void Narrowing_AcrossOops_WithData() {
+        var rt = Funny.Hardcore.BuildLang(
+            "fun f(x: int?):\n" +
+            "    if x == none: oops('null', -1)\n" +
+            "    return x * 2\n" +
+            "y = f(21)");
+        rt.Run();
+        Assert.AreEqual(42, Convert.ToInt32(rt["y"].Value));
+    }
+
+    [Test]
+    public void Narrowing_AcrossOops_TriggeredByNone() {
+        var rt = Funny.Hardcore.BuildLang(
+            "fun f(x: int?):\n" +
+            "    if x == none: oops('was none')\n" +
+            "    return x + 1\n" +
+            "y = f(none)");
+        Assert.Throws<NFun.Exceptions.FunnyRuntimeException>(() => rt.Run());
+    }
 }

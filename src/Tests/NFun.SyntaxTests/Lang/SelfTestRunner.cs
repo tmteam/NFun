@@ -28,12 +28,22 @@ namespace NFun.SyntaxTests.Lang;
 [TestFixture]
 public class SelfTestRunner {
 
-    private static string SelfTestDir =>
-        Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "Lang", "SelfTests");
+    // Scans every `.fun` file under Lang/ recursively. Currently picks up:
+    //   - Lang/SelfTests/        — language-feature self-tests
+    //   - Lang/LeetCode/         — algorithmic problem solutions
+    // New subdirectories are discovered automatically — drop `.fun` files in
+    // and they show up as test cases on the next run.
+    private static string LangRoot =>
+        Path.Combine(TestContext.CurrentContext.TestDirectory, "..", "..", "..", "Lang");
 
+    // Per-test timeout. Bug-hunt and leetcode problems occasionally hit TIC
+    // solver fixpoint loops that don't converge — without a cap, a single bad
+    // .fun file freezes the whole suite. 30s is well above the milliseconds a
+    // healthy compile+run takes (full suite finishes in ~1s).
     [TestCaseSource(nameof(GetTestCases))]
-    public void RunSelfTest(string fileName, string testName, object[] args) {
-        var filePath = Path.Combine(SelfTestDir, fileName);
+    [Timeout(30000)]
+    public void RunSelfTest(string relativePath, string testName, object[] args) {
+        var filePath = Path.Combine(LangRoot, relativePath);
         var script = File.ReadAllText(filePath);
 
         if (testName == "__toplevel__") {
@@ -47,7 +57,7 @@ public class SelfTestRunner {
                 rt.IO.Output = output;
                 rt.Run();
             } catch (Exception ex) {
-                Assert.Fail($"{fileName}: {ex.Message}\n{output}");
+                Assert.Fail($"{relativePath}: {ex.Message}\n{output}");
             }
         } else {
             // Build script with the test function call appended.
@@ -63,18 +73,26 @@ public class SelfTestRunner {
                 rt.Run();
             } catch (Exception ex) {
                 var label = args.Length > 0 ? $"{testName}({argStr})" : testName;
-                Assert.Fail($"{fileName} → {label}: {ex.Message}\n{output}");
+                Assert.Fail($"{relativePath} → {label}: {ex.Message}\n{output}");
             }
         }
     }
 
     public static IEnumerable<TestCaseData> GetTestCases() {
-        var dir = SelfTestDir;
-        if (!Directory.Exists(dir))
+        var root = LangRoot;
+        if (!Directory.Exists(root))
             yield break;
 
-        foreach (var filePath in Directory.GetFiles(dir, "*.fun").OrderBy(f => f)) {
-            var fileName = Path.GetFileName(filePath);
+        foreach (var filePath in Directory.GetFiles(root, "*.fun", SearchOption.AllDirectories).OrderBy(f => f)) {
+            // Use the path relative to Lang/ as the file identifier (e.g.
+            // `SelfTests/01_arithmetic.fun` or `LeetCode/0001_two_sum.fun`).
+            var relativePath = Path.GetRelativePath(root, filePath);
+            // Stable test-case label: directory + filename without extension.
+            var label = Path.Combine(
+                Path.GetDirectoryName(relativePath) ?? "",
+                Path.GetFileNameWithoutExtension(relativePath))
+                .Replace(Path.DirectorySeparatorChar, '/');
+
             var script = File.ReadAllText(filePath);
 
             // Parse to find @Test functions
@@ -82,25 +100,25 @@ public class SelfTestRunner {
 
             if (testFuncs.Count == 0) {
                 // No @Test functions — run as top-level assert file
-                yield return new TestCaseData(fileName, "__toplevel__", Array.Empty<object>())
-                    .SetName($"{Path.GetFileNameWithoutExtension(fileName)}");
+                yield return new TestCaseData(relativePath, "__toplevel__", Array.Empty<object>())
+                    .SetName(label);
             } else {
                 foreach (var (funcName, argSets) in testFuncs) {
                     if (argSets.Count == 0) {
-                        yield return new TestCaseData(fileName, funcName, Array.Empty<object>())
-                            .SetName($"{Path.GetFileNameWithoutExtension(fileName)}.{funcName}");
+                        yield return new TestCaseData(relativePath, funcName, Array.Empty<object>())
+                            .SetName($"{label}.{funcName}");
                     } else {
                         for (int i = 0; i < argSets.Count; i++) {
                             var a = argSets[i];
                             var argsLabel = string.Join(",", a.Select(x => x?.ToString() ?? "none"));
-                            yield return new TestCaseData(fileName, funcName, a)
-                                .SetName($"{Path.GetFileNameWithoutExtension(fileName)}.{funcName}({argsLabel})");
+                            yield return new TestCaseData(relativePath, funcName, a)
+                                .SetName($"{label}.{funcName}({argsLabel})");
                         }
                     }
                 }
                 // Also run top-level code (non-@Test asserts)
-                yield return new TestCaseData(fileName, "__toplevel__", Array.Empty<object>())
-                    .SetName($"{Path.GetFileNameWithoutExtension(fileName)}.__toplevel__");
+                yield return new TestCaseData(relativePath, "__toplevel__", Array.Empty<object>())
+                    .SetName($"{label}.__toplevel__");
             }
         }
     }
@@ -134,7 +152,7 @@ public class SelfTestRunner {
         long l => l.ToString(),
         double d => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
         bool b => b ? "true" : "false",
-        string s => $"'{s}'",
+        string s => $"'{s.Replace("\\", "\\\\").Replace("'", "\\'")}'",
         _ => arg?.ToString() ?? "none"
     };
 }

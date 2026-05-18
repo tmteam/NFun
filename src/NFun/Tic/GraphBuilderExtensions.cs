@@ -169,7 +169,15 @@ public static class GraphBuilderExtensions {
 
     public static void SetFieldAccess(this GraphBuilder b, int structNodeId, int opId, string fieldName,
         string sourceTypeNameHint = null) {
-        var node = b.GetOrCreateStructNode(structNodeId, new StateStruct(isOpen: true))
+        // Field-access constraint is "source has at least this field" — a row-polymorphic
+        // (open) struct shape. The probe's mutability must match the source's: StateStruct
+        // and StateMutableStruct are incomparable in GetMergedStateOrNull, so an immutable
+        // open probe against a closed mutable struct fails to merge. (StmtBug82.)
+        var existingNonRef = b.GetOrCreateNode(structNodeId).GetNonReference();
+        StateStruct openProbe = existingNonRef.State is StateMutableStruct
+            ? new StateMutableStruct(isOpen: true)
+            : new StateStruct(isOpen: true);
+        var node = b.GetOrCreateStructNode(structNodeId, openProbe)
             .GetNonReference();
 
         var state = (StateStruct)node.State;
@@ -353,8 +361,17 @@ public static class GraphBuilderExtensions {
     /// Supports optional right: int? ?? int? → int? (LCA(int, int?) = int?).
     /// </summary>
     public static void SetCoalesce(this GraphBuilder b, int leftId, int rightId, int resultId) {
-        // U — unwrapped element of left Optional
+        // U — unwrapped element of left Optional. Marked IsSignatureParam to
+        // block implicit Optional widening (Opt(U) ≤ U is invalid for U here
+        // since `??` is defined to RESULT IN unwrap, not produce a nested
+        // Optional). Without the flag, when `leftId` carries opt(opt(T)) — e.g.
+        // `?.field` over an already-Optional field — Pull's Apply(Optional,
+        // Optional) propagates the inner Optional through V→U cross-edges and
+        // U absorbs the extra layer (BugHunt-stmt #50). The flag forces TIC
+        // to resolve U at the inner shape, mirroring the rigidity used for
+        // function-signature composite params (StagesExtension WrapAncestorInOptional).
         var elemNode = b.CreateVarType();
+        elemNode.IsSignatureParam = true;
 
         // Left: opt(U)
         var leftType = StateOptional.Of(elemNode);

@@ -146,6 +146,9 @@ internal static partial class Errors {
     internal static FunnyParseException RequiredArgAfterDefault(FunCallSyntaxNode fun, ISyntaxNode arg) => new(
         422, $"Required parameter cannot appear after parameters with default values in function '{fun.Id}'", arg.Interval);
 
+    internal static FunnyParseException RequiredArgAfterDefault(string functionName, ISyntaxNode arg) => new(
+        422, $"Required parameter cannot appear after parameters with default values in function '{functionName}'", arg.Interval);
+
     internal static FunnyParseException MultipleParams(FunCallSyntaxNode fun) => new(
         424, $"Function '{fun.Id}' cannot have more than one params (...) parameter", fun.Interval);
 

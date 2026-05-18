@@ -26,7 +26,7 @@ public static class StagesExtension {
     internal static bool _isRecursion;
 
     public static bool Invoke<TFunction>(this TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
-        // Two fast paths to skip the visited-pair guard:
+        // Fast paths to skip the visited-pair guard:
         // (1) graph cannot contain cycles (`!_isRecursion`) — single bool check, the
         //     dominant case in non-recursive expressions. Set deterministically pre-TIC
         //     by GraphBuilder (no SafeFieldAccess, no named-type registry, no recursive
@@ -34,9 +34,17 @@ public static class StagesExtension {
         // (2) both states primitive — even in recursive graphs, primitive↔primitive pairs
         //     cannot re-enter Invoke (InvokeCore dispatches to a single Apply with no
         //     further recursion through this method).
-        // Order matters: (1) is one op and covers the bulk of calls; (2) is two type
-        // checks and only adds value when _isRecursion=true.
-        if (!_isRecursion || (nodeA.State is StatePrimitive && nodeB.State is StatePrimitive))
+        //
+        // Optional × non-Optional pairs are NOT a fast path even when not flagged
+        // recursive: WrapDescendantInOptional / WrapAncestorInOptional's
+        // unwrap-then-Invoke pattern can re-enter the same (nodeA, nodeB) pair
+        // when state mutations (e.g. opt-wrap of the descendant's CS during
+        // Destruction) re-establish the original Optional × non-Optional shape.
+        // The visited-pair guard is the only termination signal. (StmtBug80:
+        // `try: oops(...) catch e: return e.message` looped infinitely through
+        // WrapDescendantInOptional on (V0:opt(V2), arr(Ch)) without it.)
+        bool hasOptional = nodeA.State is StateOptional || nodeB.State is StateOptional;
+        if ((!_isRecursion && !hasOptional) || (nodeA.State is StatePrimitive && nodeB.State is StatePrimitive))
             return InvokeCore(function, nodeA, nodeB);
 
         // Coinductive visited-pair guard. Required for the cycle members

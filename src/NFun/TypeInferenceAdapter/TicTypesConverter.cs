@@ -216,8 +216,15 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyOptional(StateOptional opt) {
         // Cycle guard: generic functions with if..else none create cyclic Optionals
         var elem = opt.ElementNode;
-        if (elem.VisitMark == OptionalConvertMark)
+        if (elem.VisitMark == OptionalConvertMark) {
+            // Named struct cycle (#10 invert/sameTree composition): preserve TypeName instead
+            // of dropping to Any. Otherwise `fun f(t:tree?)->tree?` returns
+            // `{value, left:Any, right:Any}?` because the depth-1 cycle position
+            // triggers this guard before ConvertToFunnyStruct's NamedStructOf path.
+            if (elem.State is StateStruct { TypeName: { } tn })
+                return FunnyType.OptionalOf(FunnyType.NamedStructOf(tn));
             return FunnyType.Any; // break cycle
+        }
         var prev = elem.VisitMark;
         elem.VisitMark = OptionalConvertMark;
         var result = FunnyType.OptionalOf(Convert(opt.Element));
@@ -258,6 +265,25 @@ public abstract class TicTypesConverter {
                             return constrains.IsOptional
                                 ? FunnyType.OptionalOf(ToConcrete(abs.ConcreteAncestor.Name))
                                 : ToConcrete(abs.ConcreteAncestor.Name);
+                        // Concrete (non-abstract) descendant with no ancestor — typically a
+                        // failed-constraint recovery shape (e.g. element of `[1.5]` after the
+                        // outer `y:int[]` upper-bound was rejected). Render as the descendant
+                        // type instead of falling back to Any so FU740/diagnostics surface
+                        // the actual value type (`Real[]`, not `Any[]`). (MR10Bug1.)
+                        if (constrains.HasDescendant && constrains.Descendant is StatePrimitive concretePrim)
+                            return constrains.IsOptional
+                                ? FunnyType.OptionalOf(ToConcrete(concretePrim.Name))
+                                : ToConcrete(concretePrim.Name);
+                        // Composite descendant (Struct/Array/Optional/Fun) with no ancestor —
+                        // generic-resolution shape at the call site. E.g. for `f(p) = {a=p.a};
+                        // out = f({a=1})`, the outer-scope CS for f's result has descendant
+                        // = StateStruct{a:I32} but no ancestor (free generic). Without this,
+                        // call-site generic resolution yields Any and the body builder sees
+                        // p:Any → NRE on field access. (MR11Bug1.) Recurses on the composite.
+                        if (constrains.HasDescendant && constrains.Descendant is ICompositeState compositeDesc)
+                            return constrains.IsOptional
+                                ? FunnyType.OptionalOf(Convert(compositeDesc))
+                                : Convert(compositeDesc);
                         // Inside a named struct: Empty constraint = recursion boundary
                         if (_convertingNamedTypes is { Count: > 0 } && constrains.NoConstrains)
                             return FunnyType.NamedStructOf(_convertingNamedTypes.First());

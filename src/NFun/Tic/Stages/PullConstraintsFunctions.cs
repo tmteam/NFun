@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
@@ -399,6 +401,29 @@ public class PullConstraintsFunctions : IStateFunction {
             }
             else if (descField != ancField.Value)
             {
+                // Tautology guard: when descField and ancField resolve (via RefTo)
+                // to the same target node, they are ALREADY tied — adding an
+                // ancestor edge creates a self-loop that the cycle resolver
+                // collapses to Any. This occurs at recursive μ-positions of named
+                // types (#10): body literal's field is RefTo to function return,
+                // ancestor's field cycles back to same node.
+                if (descField.GetNonReference() == ancField.Value.GetNonReference())
+                {
+                    TraceLog.WriteLine($"    Field '{ancField.Key}': desc and anc share non-ref target → skip (μ-cycle tautology)");
+                    continue;
+                }
+                // Nominal μ-recursion (#10): when both sides are at a μ-position of
+                // the same named type, they are equal by nominal definition (named
+                // types are nominally identified by TypeName). Per-field reduction
+                // is not just unnecessary — it produces fresh anonymous nodes that
+                // drop the recursive identity and resolve to Any.
+                if (mergedName != null
+                    && FieldReachesNamedType(ancField.Value, mergedName)
+                    && FieldReachesNamedType(descField, mergedName))
+                {
+                    TraceLog.WriteLine($"    Field '{ancField.Key}': nominal μ-position of '{mergedName}' → skip per-field merge");
+                    continue;
+                }
                 // None field: skip connection. None ≤ opt(T) is valid for any T,
                 // but None cannot be directly connected to a bare struct/array/fun ancestor.
                 // The Optional compatibility is handled at the outer level.
@@ -437,10 +462,33 @@ public class PullConstraintsFunctions : IStateFunction {
 
 
     public bool Apply(StateOptional ancestor, StateOptional descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.ElementNode != ancestor.ElementNode)
+        // Compare through GetNonReference so RefTo chains pointing at the same
+        // node are recognised as tautology (#10 μ-cycle case).
+        if (descendant.ElementNode.GetNonReference() != ancestor.ElementNode.GetNonReference())
             descendant.ElementNode.AddAncestor(ancestor.ElementNode);
         descendantNode.RemoveAncestor(ancestorNode);
         return true;
+    }
+
+    /// <summary>
+    /// True iff <paramref name="field"/> reaches a struct with TypeName == <paramref name="typeName"/>
+    /// via Optional / Array unwrapping (μ-position of the named recursive type).
+    /// Used by Pull Struct←Struct to recognise that ancField and descField sit at the same
+    /// nominal recursion site, where per-field merge would lose recursive identity.
+    /// </summary>
+    private static bool FieldReachesNamedType(TicNode field, string typeName) {
+        if (string.IsNullOrEmpty(typeName)) return false;
+        return ReachesNamedTypeRec(field, typeName, new HashSet<TicNode>());
+    }
+
+    private static bool ReachesNamedTypeRec(TicNode n, string typeName, HashSet<TicNode> visited) {
+        var nr = n.GetNonReference();
+        if (!visited.Add(nr)) return false;
+        if (nr.State is StateStruct s && string.Equals(s.TypeName, typeName, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (nr.State is StateOptional opt) return ReachesNamedTypeRec(opt.ElementNode, typeName, visited);
+        if (nr.State is StateArray arr) return ReachesNamedTypeRec(arr.ElementNode, typeName, visited);
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

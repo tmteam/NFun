@@ -11,6 +11,12 @@ internal sealed class ForExpressionNode : IExpressionNode {
     private readonly IExpressionNode _body;
     private readonly VariableSource _iteratorVar;
 
+    /// <summary>
+    /// Iterator VariableSource — exposed so an enclosing lambda's capture
+    /// collector can exclude it from snapshotting (BugHunt-stmt #63).
+    /// </summary>
+    internal VariableSource IteratorVar => _iteratorVar;
+
     public ForExpressionNode(
         IExpressionNode collection, IExpressionNode body,
         VariableSource iteratorVar, FunnyType type, Interval interval) {
@@ -39,8 +45,16 @@ internal sealed class ForExpressionNode : IExpressionNode {
         return FunnyNone.Instance;
     }
 
-    public IExpressionNode Clone(ICloneContext context) =>
-        new ForExpressionNode(
-            _collection.Clone(context), _body.Clone(context),
+    public IExpressionNode Clone(ICloneContext context) {
+        // Body is cloned in a scope that exposes the iterator variable as-is
+        // (no snapshotting). Without this, an enclosing lambda's
+        // SnapshotCloneContext snapshots iteratorVar at lambda-emission time
+        // (default value 0); the for-loop then sets the ORIGINAL source on
+        // each iteration but the body reads the SNAPSHOT — silent wrong
+        // value (BugHunt-stmt #63).
+        var bodyContext = context.GetScopedContext(new[] { _iteratorVar });
+        return new ForExpressionNode(
+            _collection.Clone(context), _body.Clone(bodyContext),
             _iteratorVar, Type, Interval);
+    }
 }

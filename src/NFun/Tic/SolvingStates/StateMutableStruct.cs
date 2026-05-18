@@ -29,7 +29,16 @@ public class StateMutableStruct : StateStruct {
         var nodeCopy = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
         foreach (var (key, value) in Fields)
             nodeCopy.Add(key, value.GetNonReference());
-        return new StateMutableStruct(nodeCopy, IsFrozen, IsOpen);
+        // Preserve the named-type identity across non-reference flattening —
+        // see StateStruct.GetNonReferenced. Without this, a `result {...}`
+        // literal of named type `result` would lose its TypeName during the
+        // toposort flattening (`node.State = composite.GetNonReferenced()`),
+        // then fail to nominally short-circuit against the named-typed
+        // ancestor and trip the "Node is already solved" assert.
+        return new StateMutableStruct(nodeCopy, IsFrozen, IsOpen) {
+            TypeName = TypeName,
+            IsOptionalSourced = IsOptionalSourced,
+        };
     }
 
     public static new StateMutableStruct Of(params (string, ITicNodeState)[] fields)

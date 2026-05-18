@@ -18,6 +18,10 @@ internal static class LangParser {
     public static SyntaxTree Parse(TokFlow flow) {
         var nodes = new List<ISyntaxNode>();
         int stmtCounter = 0;
+        // In lang mode, NewLines outside brackets are statement terminators
+        // and must stop binary-operator chains (BugHunt-stmt #66). Set the
+        // flag for the whole parse so SyntaxNodeReader's chain readers honor it.
+        flow.RespectNewLines = true;
 
         while (true) {
             SkipNewLines(flow);
@@ -47,18 +51,73 @@ internal static class LangParser {
             else {
                 // Try to parse statement (equation or expression)
                 var stmt = ParseStatement(flow);
-                // Wrap bare expressions as synthetic equations for RuntimeBuilder compatibility
+                // Top-level `id:type` input declaration (Basics.md §Input variables
+                // L166-175): `i:int\n y = i+1`. Statement mode is an extension of
+                // expression mode (Statements.md L1-3) — wrap as VarDefinition
+                // (matching expression-mode shape) instead of auto-wrapping as an
+                // equation that would later trip ExpressionBuilderVisitor's
+                // "not an expression" guard (BugHunt-stmt #61).
+                if (stmt is TypedVarDefSyntaxNode typedDef) {
+                    nodes.Add(SyntaxNodeFactory.VarDefinition(typedDef, System.Array.Empty<FunnyAttribute>()));
+                    continue;
+                }
+                // Wrap bare expressions as synthetic equations for RuntimeBuilder compatibility.
+                // Value-bearing expressions get the canonical `out` name (matches
+                // expression mode, Basics.md §Outputs); pure statements (for/while/
+                // top-level if/when without else) get an internal `__stmt_N__` name
+                // that is later treated as non-output (BugHunt-stmt #23/#24).
                 if (stmt is not EquationSyntaxNode && stmt is not UserFunctionDefinitionSyntaxNode) {
-                    stmt = SyntaxNodeFactory.Equation(
-                        $"__stmt_{stmtCounter++}__", stmt, stmt.Interval.Start,
+                    bool isValueBearing = IsValueBearingStatement(stmt);
+                    var equationId = isValueBearing
+                        ? Parser.AnonymousEquationId
+                        : $"__stmt_{stmtCounter++}__";
+                    var eq = SyntaxNodeFactory.Equation(
+                        equationId, stmt, stmt.Interval.Start,
                         System.Array.Empty<FunnyAttribute>());
+                    eq.IsAutoWrapped = true;
+                    stmt = eq;
                 }
                 nodes.Add(stmt);
             }
+            RequireStatementTerminator(flow);
         }
 
-        return new SyntaxTree(nodes.ToArray());
+        var tree = new SyntaxTree(nodes.ToArray());
+        // Context-sensitive validation: `return` only inside functions,
+        // `break`/`continue` only inside loops.
+        LangContextValidator.Validate(tree);
+        return tree;
     }
+
+    // Statements that have no value at the top level — they're side-effect-only
+    // constructs and shouldn't surface as outputs. Anything else (literal, call,
+    // identifier, binary op, ternary if-expr, struct init, lambda, …) carries a
+    // value and gets bound to the canonical `out` name.
+    private static bool IsValueBearingStatement(ISyntaxNode node) => node switch {
+        ForSyntaxNode => false,
+        WhileSyntaxNode => false,
+        IfBlockSyntaxNode => false,
+        // Multi-line `if cond: ...` without an explicit `else` is parsed as
+        // IfThenElseSyntaxNode with an auto-inserted DefaultValueSyntaxNode
+        // else. It's the statement form (no value), so route it through
+        // __stmt_N__ instead of clobbering `out` (BugHunt-stmt #43).
+        // Check the IsAutoInsertedElse flag — a user-written `else default`
+        // is a real expression that DOES bear a value. (MR11Bug2.)
+        IfThenElseSyntaxNode ite
+            when ite.ElseExpr is DefaultValueSyntaxNode { IsAutoInsertedElse: true } => false,
+        WhenSyntaxNode w when w.ElseBody == null => false,
+        TryBlockSyntaxNode => false,
+        FieldAssignmentSyntaxNode => false,
+        PrintSyntaxNode => false,
+        // `print(args)` parses as a FunCallSyntaxNode because the lang-mode
+        // print-statement form only fires when print is NOT followed by '('.
+        // Either form is fire-and-forget — don't clobber `out` (BugHunt-stmt #72).
+        FunCallSyntaxNode fcn when fcn.Id == "print" => false,
+        ReturnSyntaxNode => false,
+        BreakSyntaxNode => false,
+        ContinueSyntaxNode => false,
+        _ => true,
+    };
 
     private static ISyntaxNode ParseFunctionDefinition(TokFlow flow) {
         var start = flow.Current.Start;
@@ -67,16 +126,26 @@ internal static class LangParser {
         if (!flow.MoveIf(TokType.Id, out var firstIdToken))
             throw new FunnyParseException(0, "Expected function name after 'fun'", flow.Current.Interval);
 
-        // Extension function syntax: fun receiver.name(args)
-        // Namespace separation controlled by dialect flag at TIC/dispatch level.
+        // Extension function syntax: `fun receiver.name(args)` or
+        // `fun receiver:Type.name(args)` (Statements.md §Extension). The
+        // typed-receiver form lets the user pin the receiver's type just like
+        // any other argument annotation. Namespace separation is controlled
+        // by a dialect flag at TIC/dispatch level.
         Tok nameToken;
         TypedVarDefSyntaxNode receiverArg = null;
+        var receiverType = TypeSyntax.Empty;
+        if (flow.IsCurrent(TokType.Colon)) {
+            flow.MoveNext(); // consume ':'
+            receiverType = flow.ReadTypeSyntax();
+        }
         if (flow.IsCurrent(TokType.Dot)) {
             flow.MoveNext(); // consume '.'
             if (!flow.MoveIf(TokType.Id, out nameToken))
                 throw new FunnyParseException(0, "Expected function name after '.'", flow.Current.Interval);
-            receiverArg = SyntaxNodeFactory.TypedVar(firstIdToken.Value, TypeSyntax.Empty, firstIdToken.Start, firstIdToken.Finish);
+            receiverArg = SyntaxNodeFactory.TypedVar(firstIdToken.Value, receiverType, firstIdToken.Start, firstIdToken.Finish);
         } else {
+            if (receiverType is not TypeSyntax.EmptyType)
+                throw new FunnyParseException(0, "Receiver type annotation requires '.method' — `fun x:T.method()`", flow.Current.Interval);
             nameToken = firstIdToken;
         }
 
@@ -99,6 +168,26 @@ internal static class LangParser {
         if (!flow.MoveIf(TokType.ParenthCbr))
             throw new FunnyParseException(0, "Expected ')' after function arguments", flow.Current.Interval);
 
+        // Normalize argument layout to match the classic-form's:
+        // [positionals..., paramsArg, keyword-only...].
+        // Args declared AFTER `...params` (must have defaults) become
+        // keyword-only. Without this, TicSetupVisitor's binding loop
+        // (line 241-end) computes paramsIndex at the params arg's declared
+        // position — for `fun f(...xs, b=10)` paramsIndex=0, b at index 1.
+        // A call `f(1,2,3)` then assigns result[0]=1, then overwrites it
+        // with extraArgs=[2,3] for the params slot. `1` is silently dropped.
+        // (StmtBug76.)
+        arguments = NormalizePostSpreadKeywordOnly(arguments, nameToken);
+
+        // Validate: no required positional after defaults (mirrors Parser.cs L198-209).
+        // Params and keyword-only legitimately follow defaults — stop at the first.
+        bool seenDefault = false;
+        foreach (var arg in arguments) {
+            if (arg.IsParams || arg.IsKeywordOnly) break;
+            if (arg.HasDefault) seenDefault = true;
+            else if (seenDefault) throw Errors.RequiredArgAfterDefault(nameToken.Value, arg);
+        }
+
         // Optionally read return type: -> type
         var outputType = TypeSyntax.Empty;
         if (flow.MoveIf(TokType.Arrow))
@@ -108,13 +197,22 @@ internal static class LangParser {
         if (!flow.MoveIf(TokType.Colon))
             throw new FunnyParseException(0, "Expected ':' after function signature", flow.Current.Interval);
 
-        // Expect NewLine then Indent
-        if (!flow.MoveIf(TokType.NewLine))
-            throw new FunnyParseException(0, "Expected newline after ':'", flow.Current.Interval);
-        SkipNewLines(flow); // allow extra blank lines
-
-        // Parse block body
-        var body = ParseBlock(flow);
+        // Single-line form: `fun f(): expr`  (Statements.md §Blocks — a block
+        // shape can be a single expression). Body is the expression directly,
+        // not a BlockExpressionNode — preserves implicit-return semantics and
+        // sidesteps the #11 "block-without-return ⇒ none" rule.
+        ISyntaxNode body;
+        if (!flow.IsCurrent(TokType.NewLine))
+        {
+            body = SyntaxNodeReader.ReadNodeOrNull(flow)
+                   ?? throw new FunnyParseException(0, "Expected function body after ':'", flow.Current.Interval);
+        }
+        else
+        {
+            flow.MoveNext(); // consume NewLine
+            SkipNewLines(flow); // allow extra blank lines
+            body = ParseBlock(flow);
+        }
 
         // Create a FunCallSyntaxNode as the "Head" (reusing existing UserFunctionDefinitionSyntaxNode pattern)
         // The Head is a FunCallSyntaxNode with the function name and arg nodes
@@ -123,7 +221,14 @@ internal static class LangParser {
             argNodes[i] = arguments[i];
 
         var headInterval = new Interval(start, nameToken.Finish);
-        var head = new FunCallSyntaxNode(nameToken.Value, argNodes, headInterval, false, false);
+        // Mark extension definitions as IsPipeForward so dispatch routes them
+        // through the extension namespace (Spec §Extension — callable only via
+        // piped syntax). receiverArg != null is the structural signal that this
+        // was the `fun x.method()` form.
+        var head = new FunCallSyntaxNode(
+            nameToken.Value, argNodes, headInterval,
+            isPipeForward: receiverArg != null,
+            isOperator: false);
 
         var funcNode = new UserFunctionDefinitionSyntaxNode(arguments, head, body, outputType);
         funcNode.Interval = new Interval(start, body.Interval.Finish);
@@ -136,7 +241,63 @@ internal static class LangParser {
     /// </summary>
     // Delegates to shared Parser.ParseTypeDeclaration
 
+    /// <summary>
+    /// Mirror of <c>Parser.cs</c> classic-form argument layout: regular positional
+    /// args first, then the params (`...xs`), then keyword-only args (anything
+    /// declared AFTER params with a default). Without this normalisation, the
+    /// fun-form parser left args in declaration order — the binding loop in
+    /// <c>TicSetupVisitor</c> then computed <c>paramsIndex</c> from the original
+    /// declaration position, which for <c>fun f(...xs, b=10)</c> is 0 — causing
+    /// the first positional argument of every call to be overwritten by the
+    /// params-array expansion. (StmtBug76.)
+    /// </summary>
+    private static List<TypedVarDefSyntaxNode> NormalizePostSpreadKeywordOnly(
+        List<TypedVarDefSyntaxNode> declared, Tok nameToken) {
+        TypedVarDefSyntaxNode paramsArg = null;
+        var regular = new List<TypedVarDefSyntaxNode>(declared.Count);
+        var keywordOnly = new List<TypedVarDefSyntaxNode>();
+        foreach (var arg in declared) {
+            if (arg.IsParams) {
+                if (paramsArg != null)
+                    throw new FunnyParseException(0,
+                        $"Multiple `...` params in '{nameToken.Value}'", arg.Interval);
+                paramsArg = arg;
+                continue;
+            }
+            if (paramsArg != null) {
+                // Args after `...params` must have defaults and become keyword-only.
+                if (!arg.HasDefault)
+                    throw new FunnyParseException(0,
+                        $"Argument '{arg.Id}' after `...` must have a default value (keyword-only)",
+                        arg.Interval);
+                keywordOnly.Add(new TypedVarDefSyntaxNode(
+                    arg.Id, arg.TypeSyntax, arg.Interval, arg.DefaultValue,
+                    isParams: false, isKeywordOnly: true));
+                continue;
+            }
+            regular.Add(arg);
+        }
+        if (paramsArg == null) return declared;
+        // Layout: [regular..., params, keyword-only...]
+        var result = new List<TypedVarDefSyntaxNode>(regular.Count + 1 + keywordOnly.Count);
+        result.AddRange(regular);
+        result.Add(paramsArg);
+        result.AddRange(keywordOnly);
+        return result;
+    }
+
     private static TypedVarDefSyntaxNode ReadFunArg(TokFlow flow) {
+        // `...xs` varargs prefix — symmetry with short-form `f(...xs) = …`
+        // (BugHunt-stmt #45). Same isParams flag is set; downstream
+        // FindFunctionDependenciesVisitor/Parser/TIC honor it as before.
+        int spreadStart = -1;
+        bool isParams = false;
+        if (flow.IsCurrent(TokType.Spread)) {
+            spreadStart = flow.Current.Start;
+            isParams = true;
+            flow.MoveNext();
+        }
+
         if (!flow.MoveIf(TokType.Id, out var argId))
             throw new FunnyParseException(0, "Expected argument name", flow.Current.Interval);
 
@@ -146,7 +307,22 @@ internal static class LangParser {
             typeSyntax = flow.ReadTypeSyntax();
         }
 
-        return SyntaxNodeFactory.TypedVar(argId.Value, typeSyntax, argId.Start, argId.Finish);
+        // Default value: `name = expr` or `name:type = expr`. Short-form `name(args) = expr`
+        // accepts defaults via named-arg parsing; lang-mode `fun name(args):` must accept
+        // the same shapes for symmetry (BugHunt-stmt #39).
+        ISyntaxNode defaultValue = null;
+        if (flow.IsCurrent(TokType.Def)) {
+            flow.MoveNext(); // consume '='
+            defaultValue = SyntaxNodeReader.ReadNodeOrNull(flow)
+                ?? throw new FunnyParseException(0,
+                    $"Expected default value expression after '=' for argument '{argId.Value}'",
+                    flow.Current.Interval);
+        }
+
+        return SyntaxNodeFactory.TypedVar(
+            argId.Value, typeSyntax,
+            spreadStart >= 0 ? spreadStart : argId.Start, argId.Finish,
+            defaultValue, isParams: isParams);
     }
 
     internal static BlockSyntaxNode ParseBlock(TokFlow flow) {
@@ -162,6 +338,9 @@ internal static class LangParser {
             var stmt = ParseStatement(flow);
             if (stmt != null)
                 statements.Add(stmt);
+            // Statement must be followed by a separator (newline / `;` / Dedent)
+            // before the next one. (StmtBug73.)
+            RequireStatementTerminator(flow, TokType.Dedent);
             // Consume trailing newlines after statement
             SkipNewLines(flow);
         }
@@ -175,7 +354,7 @@ internal static class LangParser {
         return SyntaxNodeFactory.Block(statements, new Interval(start, finish));
     }
 
-    private static ISyntaxNode ParseStatement(TokFlow flow) {
+    internal static ISyntaxNode ParseStatement(TokFlow flow) {
         SkipNewLines(flow);
 
         // For loop
@@ -455,12 +634,15 @@ internal static class LangParser {
                 throw Errors.ColonExpectedAfterStatement(flow.Current, "when arm");
 
             SkipNewLines(flow);
-            // Arm body: if next is Indent, it's a block; otherwise single expression
+            // Arm body: if next is Indent, it's a block; otherwise a single
+            // statement (assignment, expression, return, etc.) — same shape that
+            // single-line `if c: stmt` accepts. Earlier this used the expression-only
+            // reader and rejected `1: result = 100` (BugHunt-stmt #40).
             ISyntaxNode armBody;
             if (flow.IsCurrent(TokType.Indent))
                 armBody = ParseBlock(flow);
             else
-                armBody = SyntaxNodeReader.ReadNodeOrNull(flow);
+                armBody = ParseSingleLineBody(flow);
 
             if (armBody == null)
                 throw Errors.WhenArmBodyExpected(flow.Current);
@@ -473,6 +655,23 @@ internal static class LangParser {
         if (isIndented && !flow.MoveIf(TokType.Dedent)) {
             if (!flow.IsDoneOrEof())
                 throw Errors.DedentExpected(flow.Current);
+        }
+
+        // Spec layout: `else:` may appear AFTER the dedent when the when's
+        // arms sit on a deeper indent than the originating `when` keyword's
+        // continuation column (see IndentTokenizer continuation-keyword rule).
+        // Mirror the try/catch handling: after consuming the arm block's
+        // dedent, look one more time for the else continuation.
+        SkipNewLines(flow);
+        if (elseBody == null && flow.IsCurrent(TokType.Else)) {
+            flow.MoveNext(); // consume 'else'
+            if (!flow.MoveIf(TokType.Colon))
+                throw Errors.ColonExpectedAfterStatement(flow.Current, "else");
+            SkipNewLines(flow);
+            if (flow.IsCurrent(TokType.Indent))
+                elseBody = ParseBlock(flow);
+            else
+                elseBody = SyntaxNodeReader.ReadNodeOrNull(flow);
         }
 
         return SyntaxNodeFactory.When(
@@ -589,9 +788,20 @@ internal static class LangParser {
 
         cases.Add(ParseIfBranch(flow));
 
+        // Single-line first branch followed by elif/else on a deeper-indent line
+        // (`label = if c: a\n    elif d: b\n    else: c`) pushed an INDENT token
+        // after the branch body. Track it so we can match a balancing DEDENT
+        // before returning.
+        int continuationIndents = 0;
+
         // Parse elif chain
         while (true) {
             SkipNewLines(flow);
+            while (flow.IsCurrent(TokType.Indent)) {
+                flow.MoveNext();
+                continuationIndents++;
+                SkipNewLines(flow);
+            }
             if (!flow.IsCurrent(TokType.Elif))
                 break;
             flow.MoveNext(); // consume elif
@@ -614,10 +824,22 @@ internal static class LangParser {
             }
         }
 
+        // Balance any continuation-indent we consumed so the outer parser sees
+        // the same dedent depth it expects.
+        while (continuationIndents > 0) {
+            SkipNewLines(flow);
+            if (flow.IsCurrent(TokType.Dedent))
+                flow.MoveNext();
+            continuationIndents--;
+        }
+
         var finish = flow.CurrentTokenFinishPosition;
-        // If no else: use none/default as else expression for TIC compatibility
+        // If no else: use a sentinel DefaultValueSyntaxNode as else expression
+        // for TIC compatibility. Marked auto-inserted so validators can
+        // distinguish from a user-written `else default`.
         if (elseBody == null)
-            elseBody = SyntaxNodeFactory.DefaultValue(new Interval(finish, finish));
+            elseBody = new DefaultValueSyntaxNode(new Interval(finish, finish))
+                       { IsAutoInsertedElse = true };
         return SyntaxNodeFactory.IfElse(cases.ToArray(), elseBody, start, finish);
     }
 
@@ -834,5 +1056,34 @@ internal static class LangParser {
     private static void SkipNewLines(TokFlow flow) {
         while (flow.IsCurrent(TokType.NewLine))
             flow.MoveNext();
+    }
+
+    /// <summary>
+    /// Enforce per Basics.md §Nfun script (L52): "Each of these elements begins
+    /// with a new line. In this case, symbol `;` is the full equivalent of a
+    /// line break." After parsing a statement, the next token must be one of:
+    /// NewLine (covers `;` — both produce TokType.NewLine in the tokenizer),
+    /// EOF, or a block terminator (Dedent for indented blocks). Anything else
+    /// — typically a value token marking the start of an un-separated next
+    /// statement like `y = 5 z = 6` — is a parse error. (StmtBug73.)
+    /// </summary>
+    private static void RequireStatementTerminator(TokFlow flow, params TokType[] blockEnds) {
+        // The previous statement may have consumed its own trailing NewLine
+        // (e.g. equation body via SyntaxNodeReader leaves the cursor on the
+        // token AFTER the newline). So both forms count as "separator present":
+        //   • current token IS NewLine (separator not yet consumed), or
+        //   • PREVIOUS token was NewLine (statement-parser consumed it).
+        // EOF and explicit block terminators also OK.
+        if (flow.IsCurrent(TokType.NewLine) || flow.IsDoneOrEof())
+            return;
+        if (flow.CurrentTokenPosition > 0
+            && flow.GetTokenAt(flow.CurrentTokenPosition - 1).Type == TokType.NewLine)
+            return;
+        foreach (var blockEnd in blockEnds)
+            if (flow.IsCurrent(blockEnd)) return;
+        throw new FunnyParseException(
+            0,
+            $"Missing statement separator (newline or `;`) before '{flow.Current.Value}'",
+            flow.Current.Interval);
     }
 }

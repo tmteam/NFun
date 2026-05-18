@@ -15,6 +15,11 @@ public class EquationSyntaxNode : ISyntaxNode {
     public string Id { get; }
     public ISyntaxNode Expression { get; }
     public FunnyAttribute[] Attributes { get; }
+    // True for lang-mode equations auto-wrapped around bare statements
+    // (the user wrote `2+3` or `if x: …`, the parser supplied a synthetic
+    // name). Used to decide expression-vs-statement validation rules and to
+    // hide internal naming from output consumers.
+    public bool IsAutoWrapped { get; set; }
     public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; }
     public bool OutputTypeSpecified => TypeSpecificationOrNull != null;
     public FunnyType OutputType { get; set; }

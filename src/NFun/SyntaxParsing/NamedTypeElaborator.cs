@@ -103,6 +103,17 @@ internal static class NamedTypeElaborator {
                 return tree;
         }
 
+        // Phase 1.5: collect equation IDs that appear more than once (lang-mode
+        // reassignments). Auto-injecting a `:Type` annotation onto a re-bind
+        // would conflict with the first equation's already-declared type —
+        // particularly when the first eq is `r:node? = none` and the second is
+        // `r = node {...}`. The named-ctor RHS is liftable into the existing
+        // declared type by TIC; we shouldn't inject anything on top.
+        // Walk the whole tree (not just top-level) so re-assignments inside
+        // function/block bodies are caught too.
+        var reassignedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        CollectReassignedIds(tree.Nodes, new HashSet<string>(StringComparer.OrdinalIgnoreCase), reassignedIds);
+
         // Phase 2: remove type declarations, expand constructors
         var newNodes = new List<ISyntaxNode>(tree.Nodes.Length);
         foreach (var node in tree.Nodes)
@@ -110,30 +121,61 @@ internal static class NamedTypeElaborator {
             if (node is TypeDeclarationSyntaxNode)
                 continue; // remove from tree
 
-            newNodes.Add(ElaborateNode(node, typeRegistry));
+            newNodes.Add(ElaborateNode(node, typeRegistry, expanding: null, reassignedIds));
         }
 
         return new SyntaxTree(newNodes.ToArray());
     }
 
-    private static ISyntaxNode ElaborateNode(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding = null) {
+    /// <summary>
+    /// Walk the syntax tree collecting equation IDs that appear more than once.
+    /// Per-scope: top-level equations and equations inside a function/block body
+    /// share a separate "seen" set, since lang-mode allows shadowing across
+    /// scopes (a top-level `r = …` and a function-local `r = …` are different
+    /// variables). The current implementation treats all equations in one
+    /// global pool — fine in practice because parser-generated IDs collide
+    /// only on intentional reassignments anyway.
+    /// </summary>
+    private static void CollectReassignedIds(IEnumerable<ISyntaxNode> nodes, HashSet<string> seen, HashSet<string> reassigned) {
+        foreach (var node in nodes) {
+            if (node == null) continue;
+            if (node is EquationSyntaxNode eq && !seen.Add(eq.Id)) {
+                // Field-mutation equations (`p.v = x` parses as `Equation Id="p"` whose
+                // expression is FieldAssignmentSyntaxNode) are NOT whole-variable
+                // reassignments — they mutate a single field. Counting them as
+                // reassignments would suppress the auto-injected `:t` type spec on the
+                // ORIGINAL definition, which loses the named-type constraint that
+                // protects non-optional fields from `none` (BugHunt-stmt #33).
+                if (eq.Expression is not FieldAssignmentSyntaxNode)
+                    reassigned.Add(eq.Id);
+            }
+            CollectReassignedIds(node.Children, seen, reassigned);
+        }
+    }
+
+    private static ISyntaxNode ElaborateNode(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding = null, HashSet<string> reassignedIds = null) {
         return node switch {
-            NamedTypeConstructorSyntaxNode ctor => ExpandConstructor(ctor, types, expanding),
-            EquationSyntaxNode eq => ElaborateEquation(eq, types, expanding),
-            _ => ElaborateChildren(node, types, expanding)
+            NamedTypeConstructorSyntaxNode ctor => ExpandConstructor(ctor, types, expanding, reassignedIds),
+            EquationSyntaxNode eq => ElaborateEquation(eq, types, expanding, reassignedIds),
+            _ => ElaborateChildren(node, types, expanding, reassignedIds),
         };
     }
 
-    private static EquationSyntaxNode ElaborateEquation(EquationSyntaxNode eq, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding) {
-        var newExpr = ElaborateNode(eq.Expression, types, expanding);
+    private static EquationSyntaxNode ElaborateEquation(EquationSyntaxNode eq, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding, HashSet<string> reassignedIds) {
+        var newExpr = ElaborateNode(eq.Expression, types, expanding, reassignedIds);
         var typeSpec = eq.TypeSpecificationOrNull;
 
         // If the expression was a named type constructor AND the equation has no type annotation,
         // inject the named type as annotation so TIC propagates field type constraints.
         // NamedStruct references resolve lazily through the registry with cycle detection,
         // so this works for all recursive types (including array-based recursion).
+        //
+        // Skip the injection for reassignments: the FIRST equation defined the
+        // variable's type, subsequent rebinds must be liftable into that type
+        // (handled by TIC) but must not re-stamp the variable.
         if (typeSpec == null && eq.Expression is NamedTypeConstructorSyntaxNode ctor
-            && types.TryGetValue(ctor.TypeName, out var ctorTypeDef))
+            && types.TryGetValue(ctor.TypeName, out var ctorTypeDef)
+            && (reassignedIds == null || !reassignedIds.Contains(eq.Id)))
         {
             typeSpec = new TypedVarDefSyntaxNode(
                 eq.Id,
@@ -148,7 +190,7 @@ internal static class NamedTypeElaborator {
         };
     }
 
-    private static ISyntaxNode ElaborateChildren(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding) {
+    private static ISyntaxNode ElaborateChildren(ISyntaxNode node, Dictionary<string, NamedTypeDefinition> types, HashSet<string> expanding, HashSet<string> reassignedIds = null) {
         // For nodes that have children (arrays, function calls, if-else, etc.),
         // we need to recurse. Since the syntax nodes are mostly immutable,
         // we handle the common container types.
@@ -157,7 +199,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newElements = new List<ISyntaxNode>(arr.Expressions.Count);
                 foreach (var el in arr.Expressions) {
-                    var newEl = ElaborateNode(el, types, expanding);
+                    var newEl = ElaborateNode(el, types, expanding, reassignedIds);
                     if (!ReferenceEquals(newEl, el)) changed = true;
                     newElements.Add(newEl);
                 }
@@ -175,7 +217,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newElements = new List<ISyntaxNode>(lof.Expressions.Count);
                 foreach (var el in lof.Expressions) {
-                    var newEl = ElaborateNode(el, types, expanding);
+                    var newEl = ElaborateNode(el, types, expanding, reassignedIds);
                     if (!ReferenceEquals(newEl, el)) changed = true;
                     newElements.Add(newEl);
                 }
@@ -187,7 +229,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newArgs = new ISyntaxNode[fun.Args.Length];
                 for (int i = 0; i < fun.Args.Length; i++) {
-                    newArgs[i] = ElaborateNode(fun.Args[i], types, expanding);
+                    newArgs[i] = ElaborateNode(fun.Args[i], types, expanding, reassignedIds);
                     if (!ReferenceEquals(newArgs[i], fun.Args[i])) changed = true;
                 }
                 if (!changed) return node;
@@ -199,8 +241,8 @@ internal static class NamedTypeElaborator {
                 var newCases = new IfCaseSyntaxNode[ite.Ifs.Length];
                 for (int i = 0; i < ite.Ifs.Length; i++) {
                     var c = ite.Ifs[i];
-                    var newCond = ElaborateNode(c.Condition, types, expanding);
-                    var newExpr = ElaborateNode(c.Expression, types, expanding);
+                    var newCond = ElaborateNode(c.Condition, types, expanding, reassignedIds);
+                    var newExpr = ElaborateNode(c.Expression, types, expanding, reassignedIds);
                     if (!ReferenceEquals(newCond, c.Condition) || !ReferenceEquals(newExpr, c.Expression)) {
                         changed = true;
                         newCases[i] = SyntaxNodeFactory.IfCase(newCond, newExpr, c.Interval.Start, c.Interval.Finish);
@@ -208,7 +250,7 @@ internal static class NamedTypeElaborator {
                         newCases[i] = c;
                     }
                 }
-                var newElse = ElaborateNode(ite.ElseExpr, types, expanding);
+                var newElse = ElaborateNode(ite.ElseExpr, types, expanding, reassignedIds);
                 if (!ReferenceEquals(newElse, ite.ElseExpr)) changed = true;
                 if (!changed) return node;
                 return SyntaxNodeFactory.IfElse(newCases, newElse, ite.Interval.Start, ite.Interval.Finish);
@@ -218,7 +260,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newEquations = new List<EquationSyntaxNode>(si.Fields.Count);
                 foreach (var field in si.Fields) {
-                    var newBody = ElaborateNode(field.Node, types, expanding);
+                    var newBody = ElaborateNode(field.Node, types, expanding, reassignedIds);
                     if (!ReferenceEquals(newBody, field.Node)) {
                         changed = true;
                         newEquations.Add(new EquationSyntaxNode(field.Name, field.Node.Interval.Start, newBody, Array.Empty<FunnyAttribute>()));
@@ -231,7 +273,7 @@ internal static class NamedTypeElaborator {
             }
 
             case StructFieldAccessSyntaxNode sfa: {
-                var newSource = ElaborateNode(sfa.Source, types, expanding);
+                var newSource = ElaborateNode(sfa.Source, types, expanding, reassignedIds);
                 if (ReferenceEquals(newSource, sfa.Source)) return node;
                 return new StructFieldAccessSyntaxNode(newSource, sfa.FieldName,
                     new Interval(newSource.Interval.Start, sfa.Interval.Finish), sfa.IsSafeAccess);
@@ -239,11 +281,11 @@ internal static class NamedTypeElaborator {
 
             case ResultFunCallSyntaxNode rfc: {
                 bool changed = false;
-                var newResult = ElaborateNode(rfc.ResultExpression, types, expanding);
+                var newResult = ElaborateNode(rfc.ResultExpression, types, expanding, reassignedIds);
                 if (!ReferenceEquals(newResult, rfc.ResultExpression)) changed = true;
                 var newArgs = new ISyntaxNode[rfc.Args.Length];
                 for (int i = 0; i < rfc.Args.Length; i++) {
-                    newArgs[i] = ElaborateNode(rfc.Args[i], types, expanding);
+                    newArgs[i] = ElaborateNode(rfc.Args[i], types, expanding, reassignedIds);
                     if (!ReferenceEquals(newArgs[i], rfc.Args[i])) changed = true;
                 }
                 if (!changed) return node;
@@ -254,7 +296,7 @@ internal static class NamedTypeElaborator {
                 bool changed = false;
                 var newOperands = new List<ISyntaxNode>(cmp.Operands.Count);
                 foreach (var op in cmp.Operands) {
-                    var newOp = ElaborateNode(op, types, expanding);
+                    var newOp = ElaborateNode(op, types, expanding, reassignedIds);
                     if (!ReferenceEquals(newOp, op)) changed = true;
                     newOperands.Add(newOp);
                 }
@@ -263,49 +305,169 @@ internal static class NamedTypeElaborator {
             }
 
             case SuperAnonymFunctionSyntaxNode saf: {
-                var newBody = ElaborateNode(saf.Body, types, expanding);
+                var newBody = ElaborateNode(saf.Body, types, expanding, reassignedIds);
                 if (ReferenceEquals(newBody, saf.Body)) return node;
                 return new SuperAnonymFunctionSyntaxNode(newBody);
             }
 
             case BinOperatorSyntaxNode bin: {
-                var newLeft = ElaborateNode(bin.Left, types, expanding);
-                var newRight = ElaborateNode(bin.Right, types, expanding);
+                var newLeft = ElaborateNode(bin.Left, types, expanding, reassignedIds);
+                var newRight = ElaborateNode(bin.Right, types, expanding, reassignedIds);
                 if (ReferenceEquals(newLeft, bin.Left) && ReferenceEquals(newRight, bin.Right))
                     return node;
                 return new BinOperatorSyntaxNode(bin.Op, newLeft, newRight, bin.Interval);
             }
 
             case UnaryOperatorSyntaxNode un: {
-                var newOperand = ElaborateNode(un.Operand, types, expanding);
+                var newOperand = ElaborateNode(un.Operand, types, expanding, reassignedIds);
                 if (ReferenceEquals(newOperand, un.Operand)) return node;
                 return new UnaryOperatorSyntaxNode(un.Op, newOperand, un.Interval);
             }
 
             case TryCatchSyntaxNode tc: {
-                var newTry = ElaborateNode(tc.TryExpr, types, expanding);
-                var newCatch = ElaborateNode(tc.CatchExpr, types, expanding);
+                var newTry = ElaborateNode(tc.TryExpr, types, expanding, reassignedIds);
+                var newCatch = ElaborateNode(tc.CatchExpr, types, expanding, reassignedIds);
                 if (ReferenceEquals(newTry, tc.TryExpr) && ReferenceEquals(newCatch, tc.CatchExpr))
                     return node;
                 return new TryCatchSyntaxNode(newTry, newCatch, tc.ErrorVariableName, tc.Interval);
             }
 
             case UserFunctionDefinitionSyntaxNode func: {
-                var newBody = ElaborateNode(func.Body, types, expanding);
+                var newBody = ElaborateNode(func.Body, types, expanding, reassignedIds);
                 // Also elaborate default-value expressions for parameters — a default
                 // like `a: p = p{x=0, y=0}` carries a NamedTypeConstructorSyntaxNode
                 // that must be expanded here (BugHunt-stmt #52); otherwise it
                 // survives to ExpressionBuilderVisitor and throws "should be
                 // removed during elaboration".
-                var newArgs = ElaborateArgsDefaults(func.Args, types, expanding, out bool argsChanged);
+                var newArgs = ElaborateArgsDefaults(func.Args, types, expanding, reassignedIds, out bool argsChanged);
                 if (!argsChanged && ReferenceEquals(newBody, func.Body)) return node;
                 return new UserFunctionDefinitionSyntaxNode(newArgs, func.Head, newBody, func.ReturnTypeSyntax);
             }
 
             case AnonymFunctionSyntaxNode anon: {
-                var newBody = ElaborateNode(anon.Body, types, expanding);
+                var newBody = ElaborateNode(anon.Body, types, expanding, reassignedIds);
                 if (ReferenceEquals(newBody, anon.Body)) return node;
                 return SyntaxNodeFactory.AnonymFunction(anon.Definition, anon.ReturnTypeSyntax, newBody);
+            }
+
+            // ── Statement-mode (lang) containers ──
+            // Without these, a named-type ctor (`t{...}`) inside a multi-line
+            // `fun` body / `if`-block / `for`/`while`/`when`/`try` block is
+            // never elaborated and trips the "should be removed" assertion
+            // when ExpressionBuilder visits it. BugHuntStatementsResults #3.
+            case BlockSyntaxNode block: {
+                bool changed = false;
+                var newStmts = new List<ISyntaxNode>(block.Statements.Count);
+                foreach (var s in block.Statements) {
+                    var ns = ElaborateNode(s, types, expanding, reassignedIds);
+                    if (!ReferenceEquals(ns, s)) changed = true;
+                    newStmts.Add(ns);
+                }
+                if (!changed) return node;
+                return new BlockSyntaxNode(newStmts, block.Interval);
+            }
+
+            case ReturnSyntaxNode ret: {
+                if (ret.Expression == null) return node;
+                var newExpr = ElaborateNode(ret.Expression, types, expanding, reassignedIds);
+                if (ReferenceEquals(newExpr, ret.Expression)) return node;
+                return new ReturnSyntaxNode(newExpr, ret.Interval);
+            }
+
+            case IfBlockSyntaxNode ifBlock: {
+                bool changed = false;
+                var newCases = new IfCaseSyntaxNode[ifBlock.Ifs.Length];
+                for (int i = 0; i < ifBlock.Ifs.Length; i++) {
+                    var c = ifBlock.Ifs[i];
+                    var newCond = ElaborateNode(c.Condition, types, expanding, reassignedIds);
+                    var newExpr = ElaborateNode(c.Expression, types, expanding, reassignedIds);
+                    if (!ReferenceEquals(newCond, c.Condition) || !ReferenceEquals(newExpr, c.Expression)) {
+                        changed = true;
+                        newCases[i] = SyntaxNodeFactory.IfCase(newCond, newExpr, c.Interval.Start, c.Interval.Finish);
+                    } else {
+                        newCases[i] = c;
+                    }
+                }
+                ISyntaxNode newElse = ifBlock.ElseBody;
+                if (ifBlock.ElseBody != null) {
+                    newElse = ElaborateNode(ifBlock.ElseBody, types, expanding, reassignedIds);
+                    if (!ReferenceEquals(newElse, ifBlock.ElseBody)) changed = true;
+                }
+                if (!changed) return node;
+                return new IfBlockSyntaxNode(newCases, newElse, ifBlock.Interval);
+            }
+
+            case ForSyntaxNode forNode: {
+                var newColl = ElaborateNode(forNode.Collection, types, expanding, reassignedIds);
+                var newBody = ElaborateNode(forNode.Body, types, expanding, reassignedIds);
+                if (ReferenceEquals(newColl, forNode.Collection) && ReferenceEquals(newBody, forNode.Body))
+                    return node;
+                return new ForSyntaxNode(forNode.IteratorName, newColl, newBody, forNode.Interval);
+            }
+
+            case WhileSyntaxNode whileNode: {
+                var newCond = ElaborateNode(whileNode.Condition, types, expanding, reassignedIds);
+                var newBody = ElaborateNode(whileNode.Body, types, expanding, reassignedIds);
+                if (ReferenceEquals(newCond, whileNode.Condition) && ReferenceEquals(newBody, whileNode.Body))
+                    return node;
+                return new WhileSyntaxNode(newCond, newBody, whileNode.Interval);
+            }
+
+            case WhenSyntaxNode whenNode: {
+                bool changed = false;
+                ISyntaxNode newSubject = whenNode.Subject;
+                if (whenNode.Subject != null) {
+                    newSubject = ElaborateNode(whenNode.Subject, types, expanding, reassignedIds);
+                    if (!ReferenceEquals(newSubject, whenNode.Subject)) changed = true;
+                }
+                var newArms = new WhenArmSyntaxNode[whenNode.Arms.Length];
+                for (int i = 0; i < whenNode.Arms.Length; i++) {
+                    var arm = whenNode.Arms[i];
+                    var newPat = ElaborateNode(arm.Condition, types, expanding, reassignedIds);
+                    var newBody = ElaborateNode(arm.Body, types, expanding, reassignedIds);
+                    if (!ReferenceEquals(newPat, arm.Condition) || !ReferenceEquals(newBody, arm.Body)) {
+                        changed = true;
+                        newArms[i] = new WhenArmSyntaxNode(newPat, newBody, arm.Interval);
+                    } else {
+                        newArms[i] = arm;
+                    }
+                }
+                ISyntaxNode newElse = whenNode.ElseBody;
+                if (whenNode.ElseBody != null) {
+                    newElse = ElaborateNode(whenNode.ElseBody, types, expanding, reassignedIds);
+                    if (!ReferenceEquals(newElse, whenNode.ElseBody)) changed = true;
+                }
+                if (!changed) return node;
+                return new WhenSyntaxNode(newSubject, newArms, newElse, whenNode.Interval);
+            }
+
+            case TryBlockSyntaxNode tryBlock: {
+                var newTry = ElaborateNode(tryBlock.TryBody, types, expanding, reassignedIds);
+                ISyntaxNode newCatch = tryBlock.CatchBody;
+                if (tryBlock.CatchBody != null)
+                    newCatch = ElaborateNode(tryBlock.CatchBody, types, expanding, reassignedIds);
+                ISyntaxNode newAnyway = tryBlock.AnywayBody;
+                if (tryBlock.AnywayBody != null)
+                    newAnyway = ElaborateNode(tryBlock.AnywayBody, types, expanding, reassignedIds);
+                if (ReferenceEquals(newTry, tryBlock.TryBody)
+                    && ReferenceEquals(newCatch, tryBlock.CatchBody)
+                    && ReferenceEquals(newAnyway, tryBlock.AnywayBody))
+                    return node;
+                return new TryBlockSyntaxNode(newTry, newCatch, tryBlock.ErrorVariableName, newAnyway, tryBlock.Interval);
+            }
+
+            case FieldAssignmentSyntaxNode fa: {
+                var newSource = ElaborateNode(fa.Source, types, expanding, reassignedIds);
+                var newValue = ElaborateNode(fa.Value, types, expanding, reassignedIds);
+                if (ReferenceEquals(newSource, fa.Source) && ReferenceEquals(newValue, fa.Value))
+                    return node;
+                return new FieldAssignmentSyntaxNode(fa.VariableName, fa.FieldName, newSource, newValue, fa.Interval);
+            }
+
+            case PrintSyntaxNode print: {
+                var newExpr = ElaborateNode(print.Expression, types, expanding, reassignedIds);
+                if (ReferenceEquals(newExpr, print.Expression)) return node;
+                return new PrintSyntaxNode(newExpr, print.Interval);
             }
 
             default:
@@ -322,13 +484,14 @@ internal static class NamedTypeElaborator {
         System.Collections.Generic.IList<TypedVarDefSyntaxNode> args,
         Dictionary<string, NamedTypeDefinition> types,
         HashSet<string> expanding,
+        HashSet<string> reassignedIds,
         out bool changed) {
         changed = false;
         System.Collections.Generic.List<TypedVarDefSyntaxNode> result = null;
         for (int i = 0; i < args.Count; i++) {
             var a = args[i];
             if (a.HasDefault) {
-                var newDef = ElaborateNode(a.DefaultValue, types, expanding);
+                var newDef = ElaborateNode(a.DefaultValue, types, expanding, reassignedIds);
                 if (!ReferenceEquals(newDef, a.DefaultValue)) {
                     changed = true;
                     if (result == null) {
@@ -352,7 +515,8 @@ internal static class NamedTypeElaborator {
     private static ISyntaxNode ExpandConstructor(
         NamedTypeConstructorSyntaxNode ctor,
         Dictionary<string, NamedTypeDefinition> types,
-        HashSet<string> expanding) {
+        HashSet<string> expanding,
+        HashSet<string> reassignedIds = null) {
 
         if (!types.TryGetValue(ctor.TypeName, out var typeDef))
             throw Errors.NamedTypeNotDefined(ctor.TypeName, ctor.TypeNameInterval);
@@ -377,7 +541,7 @@ internal static class NamedTypeElaborator {
             if (providedFields.ContainsKey(eq.Id))
                 throw Errors.NamedTypeDuplicateField(ctor.TypeName, eq.Id, eq.Interval);
             // Elaborate the provided expression (it might contain nested constructors)
-            providedFields[eq.Id] = ElaborateNode(eq.Expression, types, expanding);
+            providedFields[eq.Id] = ElaborateNode(eq.Expression, types, expanding, reassignedIds);
         }
 
         // Build the full field list
@@ -395,7 +559,7 @@ internal static class NamedTypeElaborator {
                 if (!expanding.Add(resolvedName))
                     throw Errors.NamedTypeRecursiveDefault(resolvedName, ctor.Interval);
                 try {
-                    fieldExpr = ElaborateNode(fieldDef.DefaultValue, types, expanding);
+                    fieldExpr = ElaborateNode(fieldDef.DefaultValue, types, expanding, reassignedIds);
                 } finally {
                     expanding.Remove(resolvedName);
                 }

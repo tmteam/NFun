@@ -1,3 +1,4 @@
+using NFun;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
@@ -16,25 +17,32 @@ public class BugHuntResults {
     [TearDown]
     public void Deinitiazlize() => TraceLog.IsEnabled = false;
 
-    // Bug #1: convert(bool)->int crashes with unhandled InvalidOperationException
-    // instead of a graceful compile-time error. Spec does not list bool->int conversion.
-    [Test][Ignore("Bug hunt #1: convert(true) to int crashes with InvalidOperationException")]
-    public void Bug1_ConvertBoolToIntCrash() {
-        Assert.DoesNotThrow(() => "y:int = convert(true)".Calc());
+    // Bug #1: convert(bool)→numeric is now defined (true→1, false→0) instead
+    // of throwing an unhandled InvalidOperationException.
+    [Test]
+    public void Bug1_ConvertBoolToInt_True() {
+        "y:int = convert(true)".AssertReturns("y", 1);
     }
 
-    // Bug #2: 3-level nested inline optional struct expressions fail TIC.
-    // 2 levels work; 3 levels produce "Unable to cast from none to {z:Int32}".
-    [Test][Ignore("Bug hunt #2: 3-level nested optional struct inline fails TIC")]
-    public void Bug2_ThreeLevelNestedOptionalStructFails() {
+    [Test]
+    public void Bug1_ConvertBoolToInt_False() {
+        "y:int = convert(false)".AssertReturns("y", 0);
+    }
+
+    [Test]
+    public void Bug1_ConvertBoolToReal() {
+        "y:real = convert(true)".AssertReturns("y", 1.0);
+    }
+
+    // Bug #2: 3-level nested inline optional struct — fixed by master's
+    // recursive-types / cycle-rescue work. Kept as a regression sentinel.
+    [Test]
+    public void Bug2_ThreeLevelNestedOptionalStruct() {
         "s = {x = if(true) {y = if(true) {z = 42} else none} else none}\r out = s.x?.y?.z ?? 0"
-            .AssertReturns("out", 42);
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("out", 42);
     }
 
-    // Bug #3: compact() not implemented. Spec (Optionals.md line 489) says
-    // compact() is a synonym for filterNotNull(), but it's not in the codebase.
-    [Test][Ignore("Bug hunt #3: compact() synonym for filterNotNull() not implemented")]
-    public void Bug3_CompactNotImplemented() {
-        "y = [1, none, 3].compact()".AssertReturns("y", new[] { 1, 3 });
-    }
+    // (Bug #3 was `compact()` — withdrawn per user decision: filterNotNull()
+    // is the canonical name and we don't want an alias.)
 }

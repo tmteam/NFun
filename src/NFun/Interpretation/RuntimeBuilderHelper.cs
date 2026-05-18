@@ -53,11 +53,22 @@ internal static class RuntimeBuilderHelper {
             bodyExpression,
             functionSyntax.Args.Select(a => a.Id));
 
+        // Locals = block-introduced bindings inside the body (everything in
+        // `vars` that isn't an argument). For recursive functions these need
+        // per-call save/restore so an inner frame doesn't clobber an outer
+        // frame's local slot (see BugHuntStatementsResults #1/#2).
+        var argNames = new HashSet<string>(
+            functionSyntax.Args.Select(a => a.Id), StringComparer.OrdinalIgnoreCase);
+        var localSources = vars.GetAll()
+            .Where(v => !argNames.Contains(v.Name))
+            .ToArray();
+
         var function = ConcreteUserFunction.Create(
             isRecursive: functionSyntax.IsRecursive,
             name: functionSyntax.Id,
             variables: argumentSources,
             expression: bodyExpression,
+            localSources: localSources,
             sharedRecursionDepth: sharedRecursionDepth);
         return function;
     }
