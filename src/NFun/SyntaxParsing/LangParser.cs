@@ -682,7 +682,7 @@ internal static class LangParser {
             flow.MoveNext(); // consume 'catch'
 
             // Optional error variable. Two forms:
-            //   catch e:        (Lang.md spec form — no parens)
+            //   catch e:        (Statements.md spec form — no parens)
             //   catch (e):      (legacy form — with parens)
             if (flow.MoveIf(TokType.Id, out var errorIdTok)) {
                 errorVarName = errorIdTok.Value;
