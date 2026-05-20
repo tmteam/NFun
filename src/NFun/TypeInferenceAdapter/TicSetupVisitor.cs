@@ -1277,6 +1277,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _ticTypeGraph.SetConst(node.OrderNumber, p);
         else if (type is StateArray a && a.Element is StatePrimitive primitiveElement)
             _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
+        else if (type is StateOptional opt)
+            // Optional-typed constant — e.g. an `int? = 5` parameter default.
+            _ticTypeGraph.SetOptionalConst(node.OrderNumber, opt);
+        else if (type is StateStruct s && s.IsSolved)
+            // Constant-folded struct literal — e.g. `opts:{x:int}={x=0}` parameter
+            // default, or named-type ctor default `a: p = p{x=0,y=0}` (after
+            // NamedTypeElaborator expansion). Bind to the solved struct shape.
+            _ticTypeGraph.SetStructConst(node.OrderNumber, s);
         else
             throw new InvalidOperationException("Complex constant type is not supported");
         return true;

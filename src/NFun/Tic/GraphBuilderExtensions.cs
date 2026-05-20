@@ -89,6 +89,21 @@ public static class GraphBuilderExtensions {
         b.GetOrCreateStructNode(id, @struct);
     }
 
+    /// <summary>
+    /// Bind a TIC node to an Optional-typed constant. Used for ConstantSyntaxNode
+    /// whose OutputType is `T?` — e.g. a parameter default `x: int? = 5` produces
+    /// a ConstantSyntaxNode with value 5 but OutputType Int32?. Without this, the
+    /// caller throws "Complex constant type is not supported" (BugHunt-stmt #58).
+    /// </summary>
+    public static void SetOptionalConst(this GraphBuilder b, int id, StateOptional opt) {
+        var node = b.GetOrCreateNode(id);
+        if (node.State is ConstraintsState)
+            node.State = opt;
+        else if (!node.State.Equals(opt))
+            throw new InvalidOperationException(
+                $"Cannot set optional const at node {node.Name}: state already {node.State}");
+    }
+
     public static void CreateLambda(this GraphBuilder b, int returnId, int lambdaId, params string[] varNames) {
         var args = b.GetNamedNodes(varNames);
         var ret = b.GetOrCreateNode(returnId);

@@ -504,7 +504,7 @@ internal static class RuntimeBuilder {
                     tiToLangTypeConverter: TicTypesConverter.Concrete));
 
             // Precompute default values AFTER ApplyTiResults so expression nodes have OutputType
-            PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
+            PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect, customTypes);
 
             var funType = TicTypesConverter.Concrete.Convert(
                 typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
@@ -558,7 +558,7 @@ internal static class RuntimeBuilder {
         else
         {
             // For generic functions, precompute defaults with best-effort type resolution
-            PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect);
+            PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect, customTypes);
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsRegistry,
                 dialect, namedTypeFieldRegistry);
@@ -624,7 +624,7 @@ internal static class RuntimeBuilder {
             fn.ComeOver(enterVisitor: new ApplyTiResultEnterVisitor(
                 solving: typeInferenceResults,
                 tiToLangTypeConverter: TicTypesConverter.Concrete));
-            PrecomputeDefaultValues(fn, typeInferenceResults, functionsRegistry, dialect);
+            PrecomputeDefaultValues(fn, typeInferenceResults, functionsRegistry, dialect, customTypes);
 
             var funType = TicTypesConverter.Concrete.Convert(
                 typeInferenceResults.GetVariableType(fn.Id + "'" + fn.Args.Count));
@@ -773,7 +773,8 @@ internal static class RuntimeBuilder {
         UserFunctionDefinitionSyntaxNode functionSyntax,
         TypeInferenceResults results,
         IFunctionRegistry functions,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        ICustomTypeRegistry customTypes = null) {
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
             var arg = functionSyntax.Args[i];
@@ -787,7 +788,9 @@ internal static class RuntimeBuilder {
             FunnyType paramType;
             if (arg.TypeSyntax is not TypeSyntax.EmptyType)
             {
-                paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax);
+                // customTypes pass-through: without it, a user-defined named type
+                // (`a: p = p{...}`) fails TypeSyntaxResolver with FU406 (BugHunt-stmt #52).
+                paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax, customTypes);
             }
             else
             {

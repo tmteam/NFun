@@ -489,6 +489,13 @@ public class GraphBuilder {
         if (map.TryGetValue(nr, out var existing)) return existing;
         // Solved primitive states are monomorphic — share by reference.
         if (nr.State is StatePrimitive) return nr;
+        // Solved function shapes ((int)->int etc.) carry no polymorphic carrier:
+        // their ArgNodes/RetNode are concrete. Sharing is mandatory — without it,
+        // the placeholder would be a distinct TicNode wrapping a CloneState-returned
+        // StateFun whose inner nodes still alias the original's. Pull's
+        // Apply(StateFun, StateFun) then runs `retNode.AddAncestor(retNode)` on the
+        // shared primitive ret and panics "Circular ancestor 0" (BugHunt-stmt #49).
+        if (nr.State is StateFun fn && fn.IsSolved) return nr;
 
         // Placeholder pattern: register the clone BEFORE recursing into state.
         // Any cycle through this node (RefTo → DeepCloneNode → reach this nr again)
@@ -523,6 +530,15 @@ public class GraphBuilder {
                     TypeName = s.TypeName,
                     IsOptionalSourced = s.IsOptionalSourced,
                 };
+            case StateFun funState:
+                // Unsolved function shape (polymorphic in arg/ret): clone inner
+                // nodes through the map. Solved StateFun is short-circuited by
+                // the IsSolved share in DeepCloneNode and never reaches here.
+                var clonedArgs = new TicNode[funState.ArgNodes.Length];
+                for (int i = 0; i < funState.ArgNodes.Length; i++)
+                    clonedArgs[i] = DeepCloneNode(funState.ArgNodes[i], map);
+                var clonedRet = DeepCloneNode(funState.RetNode, map);
+                return StateFun.Of(clonedArgs, clonedRet);
             default:
                 return state;
         }

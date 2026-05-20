@@ -413,6 +413,37 @@ public class RecursiveTypeCombinationsTest {
     #endregion
 
     // ═══════════════════════════════════════════════════════════════
+    // RECURSIVE FN OVER RECURSIVE STRUCT + HOF PARAM
+    // ═══════════════════════════════════════════════════════════════
+
+    #region Recursive fn over recursive struct + HOF
+
+    [Test]
+    public void RecursiveFn_RecursiveStruct_HOFParam() {
+        // Per-call clone of a recursive-shape signature must NOT leave a solved-
+        // StateFun HOF param wrapped by a fresh placeholder TicNode while its
+        // inner ArgNodes/RetNode still alias the original. Previously hit
+        // "Circular ancestor 0" in Pull's Apply(StateFun, StateFun).
+        var r = Calc(
+            "type t = {v: int, kids: t[] = []}; " +
+            "walk(s: t, f: rule(int)->int) = f(s.v) + s.kids.fold(0, rule it1 + walk(it2, f)); " +
+            "out = walk(t{v=1, kids=[t{v=2}, t{v=3}]}, rule it * 10)");
+        Assert.AreEqual(60, r.Get("out"));
+    }
+
+    [Test]
+    public void RecursiveFn_RecursiveStruct_TwoHOFParams() {
+        var r = Calc(
+            "type t = {v: int, kids: t[] = []}; " +
+            "walk(s: t, f: rule(int)->int, g: rule(int)->int) = " +
+            "  g(f(s.v)) + s.kids.fold(0, rule it1 + walk(it2, f, g)); " +
+            "out = walk(t{v=1, kids=[t{v=2}]}, rule it+1, rule it*10)");
+        Assert.AreEqual(50, r.Get("out"));
+    }
+
+    #endregion
+
+    // ═══════════════════════════════════════════════════════════════
     // NON-OPTIONAL RECURSION — errors
     // ═══════════════════════════════════════════════════════════════
 

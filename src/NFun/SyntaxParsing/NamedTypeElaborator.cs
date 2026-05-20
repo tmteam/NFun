@@ -292,8 +292,14 @@ internal static class NamedTypeElaborator {
 
             case UserFunctionDefinitionSyntaxNode func: {
                 var newBody = ElaborateNode(func.Body, types, expanding);
-                if (ReferenceEquals(newBody, func.Body)) return node;
-                return new UserFunctionDefinitionSyntaxNode(func.Args, func.Head, newBody, func.ReturnTypeSyntax);
+                // Also elaborate default-value expressions for parameters — a default
+                // like `a: p = p{x=0, y=0}` carries a NamedTypeConstructorSyntaxNode
+                // that must be expanded here (BugHunt-stmt #52); otherwise it
+                // survives to ExpressionBuilderVisitor and throws "should be
+                // removed during elaboration".
+                var newArgs = ElaborateArgsDefaults(func.Args, types, expanding, out bool argsChanged);
+                if (!argsChanged && ReferenceEquals(newBody, func.Body)) return node;
+                return new UserFunctionDefinitionSyntaxNode(newArgs, func.Head, newBody, func.ReturnTypeSyntax);
             }
 
             case AnonymFunctionSyntaxNode anon: {
@@ -305,6 +311,38 @@ internal static class NamedTypeElaborator {
             default:
                 return node;
         }
+    }
+
+    /// <summary>
+    /// Walk an arg list and elaborate each DefaultValue. Returns the same list
+    /// instance when nothing changed. Preserves order, type spec, params/keyword
+    /// flags.
+    /// </summary>
+    private static System.Collections.Generic.IList<TypedVarDefSyntaxNode> ElaborateArgsDefaults(
+        System.Collections.Generic.IList<TypedVarDefSyntaxNode> args,
+        Dictionary<string, NamedTypeDefinition> types,
+        HashSet<string> expanding,
+        out bool changed) {
+        changed = false;
+        System.Collections.Generic.List<TypedVarDefSyntaxNode> result = null;
+        for (int i = 0; i < args.Count; i++) {
+            var a = args[i];
+            if (a.HasDefault) {
+                var newDef = ElaborateNode(a.DefaultValue, types, expanding);
+                if (!ReferenceEquals(newDef, a.DefaultValue)) {
+                    changed = true;
+                    if (result == null) {
+                        result = new System.Collections.Generic.List<TypedVarDefSyntaxNode>(args.Count);
+                        for (int j = 0; j < i; j++) result.Add(args[j]);
+                    }
+                    result.Add(new TypedVarDefSyntaxNode(a.Id, a.TypeSyntax, a.Interval, newDef,
+                        isParams: a.IsParams, isKeywordOnly: a.IsKeywordOnly));
+                    continue;
+                }
+            }
+            result?.Add(a);
+        }
+        return changed ? result : args;
     }
 
     /// <summary>
