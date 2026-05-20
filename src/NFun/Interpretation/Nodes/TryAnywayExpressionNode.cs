@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.Tokenization;
 
@@ -22,12 +23,27 @@ internal class TryAnywayExpressionNode : IExpressionNode {
     public IEnumerable<IRuntimeNode> Children => new IRuntimeNode[] { _body, _anyway };
 
     public object Calc() {
+        // C# try/finally lets the finally-exception replace the try-exception.
+        // Per Statements.md §Error handling: "If `anyway` throws, the original
+        // error propagates." (BugHunt-stmt #71). Capture the original; if
+        // anyway also throws, suppress the anyway error and rethrow original.
+        Exception original = null;
+        object result = null;
         try {
-            return _body.Calc();
+            result = _body.Calc();
         }
-        finally {
+        catch (Exception e) {
+            original = e;
+        }
+        try {
             _anyway.Calc();
         }
+        catch when (original != null) {
+            // swallow anyway's error so original propagates
+        }
+        if (original != null)
+            throw original;
+        return result;
     }
 
     public IExpressionNode Clone(ICloneContext context) =>

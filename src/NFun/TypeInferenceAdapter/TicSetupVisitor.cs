@@ -521,8 +521,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             case ContinueSyntaxNode:
                 return true;
             case BlockSyntaxNode block:
-                return block.Statements.Count > 0
-                       && AlwaysExits(block.Statements[block.Statements.Count - 1]);
+                // A block always-exits if ANY of its statements
+                // unconditionally always-exits — everything after that
+                // statement is unreachable and shouldn't influence the
+                // inferred return type (BugHunt-stmt #69).
+                for (int i = 0; i < block.Statements.Count; i++)
+                    if (AlwaysExits(block.Statements[i])) return true;
+                return false;
             case IfThenElseSyntaxNode ite:
                 // An auto-inserted DefaultValueSyntaxNode else (lang-mode if
                 // without explicit else) is the fall-off path itself.

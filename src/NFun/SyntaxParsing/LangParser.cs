@@ -18,6 +18,10 @@ internal static class LangParser {
     public static SyntaxTree Parse(TokFlow flow) {
         var nodes = new List<ISyntaxNode>();
         int stmtCounter = 0;
+        // In lang mode, NewLines outside brackets are statement terminators
+        // and must stop binary-operator chains (BugHunt-stmt #66). Set the
+        // flag for the whole parse so SyntaxNodeReader's chain readers honor it.
+        flow.RespectNewLines = true;
 
         while (true) {
             SkipNewLines(flow);
@@ -47,6 +51,16 @@ internal static class LangParser {
             else {
                 // Try to parse statement (equation or expression)
                 var stmt = ParseStatement(flow);
+                // Top-level `id:type` input declaration (Basics.md §Input variables
+                // L166-175): `i:int\n y = i+1`. Statement mode is an extension of
+                // expression mode (Statements.md L1-3) — wrap as VarDefinition
+                // (matching expression-mode shape) instead of auto-wrapping as an
+                // equation that would later trip ExpressionBuilderVisitor's
+                // "not an expression" guard (BugHunt-stmt #61).
+                if (stmt is TypedVarDefSyntaxNode typedDef) {
+                    nodes.Add(SyntaxNodeFactory.VarDefinition(typedDef, System.Array.Empty<FunnyAttribute>()));
+                    continue;
+                }
                 // Wrap bare expressions as synthetic equations for RuntimeBuilder compatibility.
                 // Value-bearing expressions get the canonical `out` name (matches
                 // expression mode, Basics.md §Outputs); pure statements (for/while/
@@ -91,6 +105,10 @@ internal static class LangParser {
         TryBlockSyntaxNode => false,
         FieldAssignmentSyntaxNode => false,
         PrintSyntaxNode => false,
+        // `print(args)` parses as a FunCallSyntaxNode because the lang-mode
+        // print-statement form only fires when print is NOT followed by '('.
+        // Either form is fire-and-forget — don't clobber `out` (BugHunt-stmt #72).
+        FunCallSyntaxNode fcn when fcn.Id == "print" => false,
         ReturnSyntaxNode => false,
         BreakSyntaxNode => false,
         ContinueSyntaxNode => false,
@@ -264,7 +282,7 @@ internal static class LangParser {
         return SyntaxNodeFactory.Block(statements, new Interval(start, finish));
     }
 
-    private static ISyntaxNode ParseStatement(TokFlow flow) {
+    internal static ISyntaxNode ParseStatement(TokFlow flow) {
         SkipNewLines(flow);
 
         // For loop

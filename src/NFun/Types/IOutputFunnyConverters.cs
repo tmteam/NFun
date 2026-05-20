@@ -98,7 +98,22 @@ public class ClrArrayOutputFunnyConverter : IOutputFunnyConverter {
         for (int i = 0; i < funArray.Count; i++)
         {
             var item = _elementConverter.ToClrObject(funArray.GetElementOrNull(i));
-            clrArray.SetValue(item, i);
+            try {
+                clrArray.SetValue(item, i);
+            }
+            catch (InvalidCastException ex) {
+                // Raw .NET InvalidCastException leaks an implementation detail.
+                // Happens when TIC inferred an array-of-T but the runtime produced
+                // an array-of-something-else — e.g. a recursive fn whose return-type
+                // LCA has no finite fixed point (`fun f(x): if x==0: return [0];
+                // return [f(x-1)]` — `T = [T]` has no solution; TIC collapses to
+                // `Int32[]` but values are nested arrays). Surface as a clean
+                // FunnyRuntimeException (BugHunt-stmt #68).
+                throw new Exceptions.FunnyRuntimeException(
+                    $"Cannot store value of type '{item?.GetType().Name ?? "null"}' in array of '{ClrType.GetElementType()?.Name}'. "
+                    + "This usually means the function's recursive return-type has no concrete solution — "
+                    + "annotate the return type explicitly or use a named recursive type.", ex);
+            }
         }
 
         return clrArray;

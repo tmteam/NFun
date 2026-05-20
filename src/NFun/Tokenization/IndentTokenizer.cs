@@ -66,12 +66,23 @@ internal static class IndentTokenizer {
                 // syntactically a leading operator like unary `-`.
                 var prevReal = FindPreviousRealToken(result);
                 bool atBlockOpener = prevReal == TokType.Colon;
+                var (indent, lineHasTabs, lineHasSpaces) = MeasureIndent(source, nextTok);
+                var currentTopIndent = indentStack.Peek();
+                // Trailing continuation is unambiguous: previous statement is
+                // syntactically incomplete (e.g. ends with binary `+`).
+                // Leading continuation is ambiguous: `-1` on the next line is
+                // VALID as both "previous expr - 1" AND "new unary-minus expr".
+                // Restrict leading continuation to lines indented MORE than the
+                // current block — at the same indent the next line is a separate
+                // statement (BugHunt-stmt #66: `return 300\n    -1` was fused
+                // into `return 299`).
+                bool leadingContinuation =
+                    IsLeadingContinuationOperator(nextTok.Type) && indent > currentTopIndent;
                 if (!atBlockOpener
-                    && (IsTrailingContinuation(result) || IsLeadingContinuationOperator(nextTok.Type))) {
+                    && (IsTrailingContinuation(result) || leadingContinuation)) {
                     i = nextIdx - 1;
                     continue;
                 }
-                var (indent, lineHasTabs, lineHasSpaces) = MeasureIndent(source, nextTok);
 
                 // Rule 1: Tabs vs spaces — detect and enforce consistency
                 if (indent > 0) {
@@ -96,7 +107,7 @@ internal static class IndentTokenizer {
                     }
                 }
 
-                var currentIndent = indentStack.Peek();
+                var currentIndent = currentTopIndent;
 
                 if (indent > currentIndent) {
                     result.Add(tok); // NewLine

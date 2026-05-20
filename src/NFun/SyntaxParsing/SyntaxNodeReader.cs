@@ -359,7 +359,10 @@ public static class SyntaxNodeReader {
         //building the syntax tree
         while (true)
         {
-            flow.SkipNewLines();
+            // Use the lang-aware skip: when RespectNewLines is set (lang
+            // statement context), a NL followed by `+`/`-` is a real
+            // statement terminator and stops the chain (BugHunt-stmt #66).
+            flow.SkipNewLinesInBinaryChain();
             // if flow is done than current node is everything we got
             // example:
             // 1*2+3 {return whole expression }
@@ -683,25 +686,19 @@ public static class SyntaxNodeReader {
                 continue;
             }
 
-            // Read expression
-            var node = ReadNodeOrNull(flow);
-            if (node == null)
+            // Delegate to the lang statement parser so block-form constructs
+            // (`if cond:`, `for x in xs:`, `while cond:`, `return`, …) inside
+            // an inline-argument lambda body work the same way as in a
+            // top-level lang block (BugHunt-stmt #62 — spec example from
+            // Statements.md L147-150 didn't parse: `fold(0, fun(acc, x):
+            //     if x > 0: return acc + x; return acc)`).
+            // Multi-line block forms still need Indent/Dedent which aren't
+            // emitted inside brackets — those will fall through the parser's
+            // existing single-line block branches.
+            var stmt = LangParser.ParseStatement(flow);
+            if (stmt == null)
                 break;
-
-            // Check if it's an assignment: id = expr
-            if (flow.IsCurrent(TokType.Def)) {
-                if (node is NamedIdSyntaxNode named) {
-                    flow.MoveNext(); // consume '='
-                    flow.SkipNewLines();
-                    var body = ReadNodeOrNull(flow);
-                    if (body == null)
-                        throw Errors.AnonymousFunBodyIsMissing(flow.Current.Interval);
-                    statements.Add(SyntaxNodeFactory.Equation(named.Id, body, named.Interval.Start, System.Array.Empty<FunnyAttribute>()));
-                    continue;
-                }
-            }
-
-            statements.Add(node);
+            statements.Add(stmt);
         }
 
         var finish = flow.CurrentTokenFinishPosition;

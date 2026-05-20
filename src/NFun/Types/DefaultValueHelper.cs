@@ -27,12 +27,12 @@ internal  static class DefaultValueHelper {
         { BaseFunnyType.UInt64, default(UInt64) }
     };
 
-    public static object GetDefaultFunnyValue(this FunnyType type) {
+    public static object GetDefaultFunnyValue(this FunnyType type, INamedTypeFieldRegistry namedTypes = null) {
         if (type.BaseType == BaseFunnyType.Custom)
             return type.CustomTypeDefinition.DefaultValue;
         if (type.IsPrimitive)
             return PrimitiveTypeMap[type.BaseType];
-        
+
         if (type.BaseType == BaseFunnyType.ArrayOf)
         {
             if (type.ArrayTypeSpecification.FunnyType.BaseType == BaseFunnyType.Char)
@@ -45,9 +45,25 @@ internal  static class DefaultValueHelper {
             var structValue = new FunnyStruct.FieldsDictionary(type.StructTypeSpecification.Count);
 
             foreach (var (fieldName, fieldType) in type.StructTypeSpecification)
-                structValue.Add(fieldName, fieldType.GetDefaultFunnyValue());
+                structValue.Add(fieldName, fieldType.GetDefaultFunnyValue(namedTypes));
 
             return new FunnyStruct(structValue);
+        }
+
+        // NamedStruct: look up its fields in the registry and build a FunnyStruct
+        // with each field defaulted recursively (BugHunt-stmt #70). TicTypesConverter
+        // preserves NamedStruct identity for fields of an enclosing named struct
+        // (b.p stays as NamedStructOf(p) instead of inlining p's shape) — that's
+        // semantically correct for runtime fit-checking, but means the default-value
+        // walk also has to know the named type's shape.
+        if (type.BaseType == BaseFunnyType.NamedStruct
+            && namedTypes != null
+            && namedTypes.TryGetFields(type.NamedStructTypeName, out var fields))
+        {
+            var sv = new FunnyStruct.FieldsDictionary(fields.Length);
+            foreach (var (fieldName, fieldType) in fields)
+                sv.Add(fieldName, fieldType.GetDefaultFunnyValue(namedTypes));
+            return new FunnyStruct(sv);
         }
 
         if (type.BaseType == BaseFunnyType.Fun)

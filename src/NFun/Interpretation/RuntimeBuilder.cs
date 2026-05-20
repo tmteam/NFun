@@ -348,7 +348,7 @@ internal static class RuntimeBuilder {
                 Equation equation;
                 if (allowReassignment)
                 {
-                    equation = BuildEquationForLang(node, functionRegistry, variables, bodyTypeSolving, dialect);
+                    equation = BuildEquationForLang(node, functionRegistry, variables, bodyTypeSolving, dialect, namedTypeFieldRegistry);
                     equations.Add(equation);
                     // Auto-wrapped statement-form nodes (for/while/print/etc.)
                     // run for side effects only and shouldn't surface as outputs
@@ -358,7 +358,7 @@ internal static class RuntimeBuilder {
                 }
                 else
                 {
-                    equation = BuildEquationAndPutItToVariables(node, functionRegistry, variables, bodyTypeSolving, dialect);
+                    equation = BuildEquationAndPutItToVariables(node, functionRegistry, variables, bodyTypeSolving, dialect, namedTypeFieldRegistry);
                     equations.Add(equation);
 
                     if (!variables.TryAdd(equation.OutputVariableSource))
@@ -478,7 +478,8 @@ internal static class RuntimeBuilder {
         IFunctionRegistry functionsRegistry,
         VariableDictionary mutableVariables,
         TypeInferenceResults typeInferenceResults,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        INamedTypeFieldRegistry namedTypes = null) {
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD EQUATION '{equation.Id}' ====");
 
@@ -489,7 +490,8 @@ internal static class RuntimeBuilder {
             variables: mutableVariables,
             typeInferenceResults: typeInferenceResults,
             typesConverter: TicTypesConverter.Concrete,
-            dialect: dialect);
+            dialect: dialect,
+            namedTypes: namedTypes);
 
         // Use expression.Type when the builder corrected the output type
         // (e.g., coalesce strips Optional when right operand is non-optional).
@@ -544,7 +546,8 @@ internal static class RuntimeBuilder {
         IFunctionRegistry functionsRegistry,
         VariableDictionary mutableVariables,
         TypeInferenceResults typeInferenceResults,
-        DialectSettings dialect) {
+        DialectSettings dialect,
+        INamedTypeFieldRegistry namedTypes = null) {
         if(TraceLog.IsEnabled)
             TraceLog.WriteLine($"\r\n==== BUILD EQUATION (lang) '{equation.Id}' ====");
 
@@ -555,7 +558,8 @@ internal static class RuntimeBuilder {
             variables: mutableVariables,
             typeInferenceResults: typeInferenceResults,
             typesConverter: TicTypesConverter.Concrete,
-            dialect: dialect);
+            dialect: dialect,
+            namedTypes: namedTypes);
 
         // Check if this is a reassignment
         var existing = mutableVariables.GetOrNull(equation.Id);
