@@ -87,6 +87,7 @@ internal static class RuntimeBuilder {
         // Shared with BuildLang via ElaborateNamedTypes.
         INamedTypeFieldRegistry namedTypeFieldRegistry = null;
         TypeRegistry typeRegistry = null;
+        if (dialect.NamedTypesSupport == NamedTypesSupport.Enabled)
             (syntaxTree, customTypes, namedTypeFieldRegistry, typeRegistry) =
                 ElaborateNamedTypes(syntaxTree, customTypes, dialect);
 
