@@ -36,8 +36,8 @@ Within an expression, higher precedence operators will be evaluated first.
 
 | Operators                                | Explanation                          |
 |------------------------------------------|--------------------------------------|
-| `()` `[]` `?[` `.` `?.` `!` (*unary*)`-` | *Various*                            |
-| `**` `~`                                 | Exponentiation, bitwise NOT          |
+| `()` `[]` `?[` `.` `?.` `!` `²` `³` …    | Member access, postfix, superscripts |
+| `**` `~` (*unary*)`-`                    | Exponentiation, bitwise NOT, negate  |
 | `*` `/` `//` `%`                         | Multiplication, divisions, remainder |
 | `+` `-`                                  | Addition, subtraction                |
 | `<<`  `>>`                               | Bitwise Shifts                       |
@@ -66,7 +66,7 @@ Assume variable A holds 6 and variable B holds 4 then:
 | +           | Arithmetics | Adds two operands.	                                                                                | `A + B` = 10   |
 | −           | Arithmetics | Subtracts second operand from the first.	                                                            | `B − A` = -2   |
 | *           | Arithmetics | Multiplies both operands.	                                                                        | `A * B` = 24   |
-| %           | Arithmetics | Modulus Operator - remainder of after an division.                                                   | `A % B` = 2    |
+| %           | Numbers     | Modulus Operator - remainder of after an division. Result type equals operand type (no widening).    | `A % B` = 2    |
 | /           | `real`      | Divides real numerator by de-numerator.	                                                            | `A / B` = 1.5  |
 | //          | Integers    | Divides integer numerator by de-numerator.	                                                        | `A // B` = 1   |
 | **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 |

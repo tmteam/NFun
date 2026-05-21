@@ -22,6 +22,12 @@ public static class SyntaxNodeReader {
     private const int MinPriority = 0;
     private const int OperatorBitInversePriority = 1;
     private const int OperatorNotPriority = 11;
+    // Unary minus must bind LESS tightly than `**` so `-2**2 = -(2**2) = -4`,
+    // matching school math (`-x² = -(x²)`), Python, and Ruby. Math-Sugar.md
+    // claims `²` is equivalent to `**` — that holds only when unary `-` lets
+    // `**` consume its operand first. Set to the same level as `**` so the
+    // unary's operand-read happily includes `**` chains.
+    private const int OperatorNegatePriority = 1;
 
     private static readonly int MaxPriority;
 
@@ -132,7 +138,7 @@ public static class SyntaxNodeReader {
                 throw Errors.MinusDuplicates(flow.Previous, flow.Current);
             flow.MoveNext();
 
-            var nextNode = ReadNodeOrNull(flow, MinPriority);
+            var nextNode = ReadNodeOrNull(flow, OperatorNegatePriority);
             if (nextNode == null)
                 throw Errors.UnaryArgumentIsMissing(flow.Current);
 
@@ -211,6 +217,15 @@ public static class SyntaxNodeReader {
                 _ => throw new NFunImpossibleException("Hex or bin constant has invalid format: " + val)
             };
             var substr = val.Replace("_", null)[2..];
+
+            // Empty body after the prefix (`0x_`, `0b_`, or even raw `0x`/`0b`
+            // if the tokenizer ever produces them) is not a valid number.
+            // Previously: `0b_` crashed with raw ArgumentOutOfRangeException
+            // from Convert.ToUInt64; `0x_` returned a misleading "UInt64
+            // overflow" via UInt64.TryParse(""). Surface a clean FU134
+            // "not valid hex/binary number" instead. (MBug3.)
+            if (substr.Length == 0)
+                throw Errors.NotAToken(binVal);
 
             if (dimensions == 16)
             {

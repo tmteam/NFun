@@ -148,5 +148,31 @@ public class ConstraintsSimplificationTest {
         var optimized = opt1Copy.SimplifyOrNull();
         Assert.AreEqual(optimized, ConstraintsState.Of(StateStruct.Of("a", I32)));
     }
+
+    // {desc=null, anc=primitive≠Any, IsOptional=true} is contradictory: opt(T) is composite,
+    // cannot satisfy a non-Any primitive ancestor (MR2Bug3 — none.toHexText() crash).
+    [Test]
+    public void OptionalWithPrimitiveAncestorNoDescendant_Rejects() {
+        var constrains = ConstraintsState.Of(null, I64);
+        constrains.AddDescendant(None);
+        Assert.IsTrue(constrains.IsOptional);
+        Assert.IsNull(constrains.SimplifyOrNull());
+    }
+
+    [Test]
+    public void OptionalWithAnyAncestorNoDescendant_DoesNotReject() {
+        var constrains = ConstraintsState.Of(null, Any);
+        constrains.AddDescendant(None);
+        Assert.IsTrue(constrains.IsOptional);
+        Assert.IsNotNull(constrains.SimplifyOrNull());
+    }
+
+    [Test]
+    public void OptionalWithoutAncestorNoDescendant_DoesNotReject() {
+        var constrains = ConstraintsState.Of();
+        constrains.AddDescendant(None);
+        Assert.IsTrue(constrains.IsOptional);
+        Assert.IsNotNull(constrains.SimplifyOrNull());
+    }
 }
 

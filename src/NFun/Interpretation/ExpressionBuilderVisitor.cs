@@ -46,12 +46,6 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
         if (result.Type == outputType)
             return result;
-        // When the coalesce expression builder resolved a more precise type than TIC
-        // (stripped Optional because right operand is non-optional), prefer the expression's type.
-        if (result is CoalesceExpressionNode
-            && outputType.BaseType == BaseFunnyType.Optional
-            && result.Type == outputType.OptionalTypeSpecification.ElementType)
-            return result;
         var converter =
             VarTypeConverter.GetConverterOrThrow(dialect.Converter.TypeBehaviour, result.Type, outputType,
                 node.Interval);
@@ -603,14 +597,25 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var type = node.OutputType.BaseType != BaseFunnyType.Empty
             ? node.OutputType
             : _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
-        return (value switch {
-            long l => ConstantExpressionNode.CreateConcrete(type, l, _dialect.Converter.TypeBehaviour, node.Interval),
-            ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.Converter.TypeBehaviour, node.Interval),
+        // When the literal sits in an Optional-element context (e.g. `1` inside
+        // `[1, none]` where TIC inferred element type Int32?), build the
+        // constant at the underlying primitive type; the surrounding context
+        // (ArraySyntaxNode visit) will apply the Optional cast via VarTypeConverter.
+        // Without unwrap, CreateConcrete hits the default ArgOOR branch (MBug1).
+        var primitive = type.BaseType == BaseFunnyType.Optional
+            ? type.OptionalTypeSpecification.ElementType
+            : type;
+        IExpressionNode enode = value switch {
+            long l => ConstantExpressionNode.CreateConcrete(primitive, l, _dialect.Converter.TypeBehaviour, node.Interval),
+            ulong u => ConstantExpressionNode.CreateConcrete(primitive, u, _dialect.Converter.TypeBehaviour, node.Interval),
             string d => new ConstantExpressionNode(
                 _dialect.Converter.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval),
-                type, node.Interval),
+                primitive, node.Interval),
             _ => null
-        }, type);
+        };
+        if (enode != null && type.BaseType == BaseFunnyType.Optional)
+            enode = CastExpressionNode.GetConvertedOrOriginOrThrow(enode, type, _dialect.Converter.TypeBehaviour);
+        return (enode, type);
     }
 
     public IExpressionNode Visit(NamedIdSyntaxNode node) {

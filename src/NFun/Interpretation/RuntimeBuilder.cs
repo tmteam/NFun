@@ -300,8 +300,19 @@ internal static class RuntimeBuilder {
                 if (!variables.TryAdd(variableSource))
                 {
                     var alreadyExisted = variables.GetOrNull(variableSource.Name);
-                    var usage = equations.FindFirstUsageOrThrow(alreadyExisted);
-                    throw Errors.VariableIsDeclaredAfterUsing(variableSource.Name, usage.Interval);
+                    // The variable already exists. Two distinct cases:
+                    //   - it was USED in a prior equation but never declared
+                    //     → "used before declared" with the usage's interval.
+                    //   - it was DEFINED in a prior equation (`y = 5`) and now
+                    //     gets a separate type-annotation (`y:int`) → clean
+                    //     "already declared" (BugHunt-stmt #74; previously
+                    //     crashed with raw InvalidOperationException "Sequence
+                    //     contains no matching element" because the find-usage
+                    //     fall-through assumed the prior reference was a use).
+                    var usage = equations.FindFirstUsageOrNull(alreadyExisted);
+                    if (usage != null)
+                        throw Errors.VariableIsDeclaredAfterUsing(variableSource.Name, usage.Interval);
+                    throw Errors.VariableIsAlreadyDeclared(variableSource.Name, varDef.Interval);
                 }
 
                 if (TraceLog.IsEnabled)

@@ -120,22 +120,34 @@ public abstract class TicTypesConverter {
     /// expansion: callers prefer the named form so the runtime call-site match
     /// uses identity rather than full structural compare.
     /// </summary>
-    public static FunnyType? BuildNamedTypeFromTicState(ITicNodeState state) {
+    public static FunnyType? BuildNamedTypeFromTicState(ITicNodeState state)
+        => BuildNamedTypeFromTicState(state, depth: 0);
+
+    private const int MaxNamedTypeBuildDepth = 128;
+
+    // Cycle/depth guard: identity-through-none patterns
+    // (`f(x) = if (x==none) none else x`) can synthesise a constraint state
+    // whose Descendant points back into the same chain via RefTo, producing
+    // unbounded recursion → stack overflow (Round 6 #84). Bounded depth
+    // returns null at the limit; null means "no named-type content" which
+    // is the correct fallback for these cycles.
+    private static FunnyType? BuildNamedTypeFromTicState(ITicNodeState state, int depth) {
+        if (depth > MaxNamedTypeBuildDepth) return null;
         switch (state) {
             case StateRefTo r:
-                return BuildNamedTypeFromTicState(r.Node.State);
+                return BuildNamedTypeFromTicState(r.Node.State, depth + 1);
             case StateOptional opt: {
-                var inner = BuildNamedTypeFromTicState(opt.ElementNode.State);
+                var inner = BuildNamedTypeFromTicState(opt.ElementNode.State, depth + 1);
                 return inner.HasValue ? FunnyType.OptionalOf(inner.Value) : null;
             }
             case StateArray arr: {
-                var inner = BuildNamedTypeFromTicState(arr.ElementNode.State);
+                var inner = BuildNamedTypeFromTicState(arr.ElementNode.State, depth + 1);
                 return inner.HasValue ? FunnyType.ArrayOf(inner.Value) : null;
             }
             case StateStruct str when str.TypeName != null:
                 return FunnyType.NamedStructOf(str.TypeName);
             case ConstraintsState cs when cs.HasDescendant: {
-                var inner = BuildNamedTypeFromTicState(cs.Descendant);
+                var inner = BuildNamedTypeFromTicState(cs.Descendant, depth + 1);
                 if (inner.HasValue)
                     return cs.IsOptional ? FunnyType.OptionalOf(inner.Value) : inner;
                 return null;

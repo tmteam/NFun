@@ -214,8 +214,12 @@ public class ArithmeticalOperatorsTest {
     public void ConstantPow(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
-    [TestCase("y = -2**x", 2.0, 4.0)]
-    [TestCase("y = -2**-x", 1.0, -0.5)]
+    // Unary `-` binds LESS tightly than `**` (math convention, Python/Ruby):
+    // `-2**x` parses as `-(2**x)`. Previously was `(-2)**x` per the older
+    // precedence table; spec corrected and behavior aligned. Math-Sugar's
+    // claim that `²` ≡ `**` now actually holds.
+    [TestCase("y = -2**x", 2.0, -4.0)]
+    [TestCase("y = -2**-x", 1.0, -0.5)]   // -(2**(-1)) = -(0.5) = -0.5 (same as before; (-2)**(-1) was also -0.5)
     [TestCase("y = x**2", (Int32)1, (Int32)1)]
     [TestCase("y = x**2", (Int32)0, (Int32)0)]
     [TestCase("y = x**2", (Int32)2, (Int32)4)]

@@ -302,6 +302,21 @@ public class DestructionFunctions : IStateFunction {
         else
         {
             TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
+            // Genuine incompatibility: ancestor composite (e.g. arr(Ch))
+            // cannot fit into descendant CS's interval, and no
+            // optional/struct/snapshot rescue branch matched. Per professor's
+            // analysis (BugHunt #75): silent `return true` here let TIC
+            // commit a bogus type (function inferred `(int)->arr(Ch)` from
+            // `f(x) = if(x==0) 'a' else x`) which then silently coerces
+            // values via `VarTypeConverter.ToText` at the call site.
+            // DestructionRec ignores the bool return — must throw explicitly.
+            // Reject only when the descendant CS has a concrete upper bound
+            // (`Ancestor`) that genuinely excludes the composite — that's the
+            // case where Destruction has no algebraic solution. Other cases
+            // (unconstrained descendant) stay silent-true for back-compat.
+            if (descendant.HasAncestor && descendant.Ancestor != null
+                && !ancestor.FitsInto(descendant.Ancestor))
+                throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
         }
 
         return true;

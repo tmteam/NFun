@@ -555,6 +555,14 @@ public class ConstraintsState : ITicNodeState {
             // IsOptional=true but no comparable descendant → None alone is not comparable → reject
             if (IsComparable && IsOptional)
                 return null;
+            // Symmetric clause of the line below (HasDescendant branch): opt(T) is a composite
+            // and cannot satisfy a non-Any primitive Ancestor. Holds independently of whether
+            // a Descendant has been added yet — no future Pull can rescue it (Pull only narrows
+            // Ancestor via Gcd, and Gcd on a non-Any primitive cannot yield Any). Without this
+            // clause, `none.toHexText()` (Ancestor=I64, Desc=null, IsOptional=true) resolves
+            // to opt(int) and the runtime impl throws NFunImpossibleException. (MR2Bug3.)
+            if (IsOptional && Ancestor is StatePrimitive pa && pa != StatePrimitive.Any)
+                return null;
             return this; // IsOptional=true but no descendant yet — keep collecting constraints
         }
 

@@ -297,6 +297,12 @@ public class GraphBuilder {
             case StatePrimitive primitive:
                 return node.TryBecomeConcrete(primitive);
             case ICompositeState composite:
+                // Composite re-annotation on an already-solved node would
+                // trip the TicNode state-setter assertion "Node is already
+                // solved" — surface it as a clean FU879
+                // "Variable is already declared" via the caller. (Round 6 #83.)
+                if (!node.IsMutable && !state.Equals(node.State))
+                    return false;
                 RegistrateCompositeType(composite);
                 node.State = state;
                 return true;
@@ -688,6 +694,16 @@ public class GraphBuilder {
             PrintTrace("2. PullConstraints (two-phase)", sorted);
         }
 
+        // Broadcast Preferred BEFORE Push. Push's Apply(StatePrimitive, ConstraintsState)
+        // collapses literal CS [U8..Re]I32! to bare U8 when its ancestor pins it to a single
+        // primitive (e.g., `y:byte = 5` → literal `5` is forced to U8 by z annotation, losing
+        // the I32 Preferred). With Preferred broadcast AFTER Push, no CS carries Preferred and
+        // CollectPreferred finds nothing — `byte+byte` and `int16+int16` with negative literals
+        // then default-resolve to Real instead of I32. Running PropagatePreferred between Pull
+        // and Push captures the literal's Preferred while it still lives on the CS (per
+        // TicPreferred.md P3 monotonicity — Preferred is metadata, doesn't affect Pull/Push).
+        // (MR2Bug4.)
+        SolvingFunctions.PropagatePreferred(sorted);
         SolvingFunctions.PushConstraints(sorted);
         // SCC closure via Kleene fixpoint for cyclic contractive components
         // (Amadio-Cardelli §4.2 / Pottier-Rémy '05 §10.6). Single-pass Push leaves degenerate
@@ -696,7 +712,6 @@ public class GraphBuilder {
         // the canonical regular tree. Acyclic singletons skip the SCC pass — zero overhead for
         // simple code. Skipped entirely when the graph cannot have μ-recursion.
         if (IsRecursion) ScCClosurePass(sorted);
-        SolvingFunctions.PropagatePreferred(sorted);
         PrintTrace("3. PushConstraints", sorted);
 
         // Pass NamedTypeRegistry through Destruction/Finalize so TryRepairOptSourcedCycle can

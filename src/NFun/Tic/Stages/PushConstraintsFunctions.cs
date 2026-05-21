@@ -303,6 +303,14 @@ public class PushConstraintsFunctions : IStateFunction {
             // None anc field: push to propagate None → descendant.
             if (ancNr.State == StatePrimitive.None)
                 SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
+            // Optional ancestor field × ConstraintsState descendant field (primitive range).
+            // MergeInplace(opt(T), [U8..Re]I32!) fails — opt is composite, CS is primitive
+            // range; they are NOT unifiable shapes. The right algebra is Push (subtyping
+            // with implicit lift T ≤ opt(T)): propagate the opt's inner element constraint
+            // to descField so descField's range narrows to fit opt(T)'s element. Mirrors
+            // the inline handling in Apply(StateStruct, StateStruct) lines 107-115. (MR2Bug1.)
+            else if (ancNr.State is StateOptional ancOpt && descNr.State is ConstraintsState)
+                SolvingFunctions.PushConstraints(ancOpt.ElementNode, descFieldNode);
             // Both solved primitives: Push (subtyping). Struct covariance: {x:I32} ≤ {x:Real}
             // is valid but MergeInplace(I32, Real) requires equality → throws.
             // Composites/CS: MergeInplace needed for node unification (Optional propagation).

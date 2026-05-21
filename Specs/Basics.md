@@ -35,7 +35,7 @@ myFunc(a,b) = 2*a+b #example of a custom function
 ```
 User functions can have default parameter values:
 ```py
-greet(name:text, greeting:text = 'Hello') = greeting + ' ' + name
+greet(name:text, greeting:text = 'Hello') = '{greeting} {name}'
 y = greet('Alice')               # 'Hello Alice'
 z = greet('Bob', 'Hi')           # 'Hi Bob'
 ```
