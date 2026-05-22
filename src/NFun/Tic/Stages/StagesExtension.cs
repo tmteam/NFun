@@ -188,14 +188,20 @@ public static class StagesExtension {
         // (synthetic cycle marker, not a syntax node literal), unwrap (Optional absorbed by μ).
         if (nodeB.IsContractiveCycleHead && nodeB.Type == TicNodeType.TypeVariable)
             return Invoke(function, optA.ElementNode, nodeB);
-        // When nodeB is a TypeVariable carrying a non-Optional composite state inherited
-        // from a structural binding (e.g., a generic param shared with another signature
-        // position via field access in a predicate body), wrapping it in opt() would change
-        // the shared identity downstream. Use implicit lift T ≤ opt(T) instead: connect
-        // descendant directly to the inner element of optA so its composite state flows up,
-        // leaving nodeB itself non-Optional. This preserves the lambda predicate's signature
-        // (T)->Bool across filter/first chains with T? return annotation (MBug4).
-        if (nodeB.Type == TicNodeType.TypeVariable && nodeB.State is ICompositeState && !nodeB.IsOptionalElement)
+        // When nodeB carries a non-Optional composite state, wrapping it in opt() would
+        // change its shared/external identity. Use implicit lift T ≤ opt(T) instead:
+        // connect descendant directly to the inner element of optA so its composite state
+        // flows up, leaving nodeB itself non-Optional.
+        //
+        // Applies to both:
+        //   - TypeVariable composite (e.g., generic param shared with another signature
+        //     position via field access in a predicate body) — preserves lambda predicate's
+        //     signature (T)->Bool across filter/first chains with T? annotation (MBug4)
+        //   - Named composite (user-declared variable with concrete struct/array state from
+        //     a literal binding) — `a = {b=1}; y = a?.b` must not silently widen `a` to
+        //     opt(struct) just because `?.b` happens to set up an opt-struct ancestor on it
+        //     (MR5Bug5). Mirrors WrapAncestorInOptional's pinned-Named protection (line ~162).
+        if (nodeB.Type != TicNodeType.SyntaxNode && nodeB.State is ICompositeState && !nodeB.IsOptionalElement)
             return Invoke(function, optA.ElementNode, nodeB);
         var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeB.Name, nodeB.State);
         innerNode.IsOptionalElement = true;

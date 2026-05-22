@@ -366,41 +366,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var innerType = left.Type.BaseType == BaseFunnyType.Optional
                 ? left.Type.OptionalTypeSpecification.ElementType
                 : left.Type;
-            // Reject coalesce of incompatible types: int? ?? 'hello' → error.
-            // The right operand of `??` may itself be Optional (int? ?? int? = int?), so
-            // unwrap before comparing to innerType. Then both sides reduce to the same
-            // family rule: same base type, both numeric, both text, or Struct↔NamedStruct
-            // (runtime-interchangeable per VarTypeConverter). Any/None is permissive.
-            //
-            // Previously the check had a "composite always allow" fallback
-            // (`!innerType.IsPrimitive && !innerType.IsText`) which silently allowed
-            // primitive↔composite mismatches like `int ?? struct{v:int}`. TIC then
-            // back-propagated the struct type to the left's unwrapped element, corrupting
-            // the variable's reference type, and the runtime generated a lossy
-            // int→struct converter that turned the integer value into the default
-            // empty struct `{}` — silent data loss.
-            if (innerType.BaseType is not (BaseFunnyType.Any or BaseFunnyType.None)
-                && right.Type.BaseType is not (BaseFunnyType.Any or BaseFunnyType.None))
-            {
-                var rightInner = right.Type.BaseType == BaseFunnyType.Optional
-                    ? right.Type.OptionalTypeSpecification.ElementType
-                    : right.Type;
-                if (rightInner.BaseType is BaseFunnyType.Any or BaseFunnyType.None)
-                {
-                    // permissive — Any/None on the right's element accepts any left
-                }
-                else
-                {
-                    bool compatible = innerType.BaseType == rightInner.BaseType
-                        || (innerType.IsNumeric() && rightInner.IsNumeric())
-                        || (innerType.IsText && rightInner.IsText)
-                        // Struct ↔ NamedStruct: runtime-interchangeable (both FunnyStruct).
-                        || ((innerType.BaseType == BaseFunnyType.Struct || innerType.BaseType == BaseFunnyType.NamedStruct)
-                            && (rightInner.BaseType == BaseFunnyType.Struct || rightInner.BaseType == BaseFunnyType.NamedStruct));
-                    if (!compatible)
-                        throw Errors.CoalesceTypeMismatch(innerType, right.Type, node.Interval);
-                }
-            }
+            // Per Optionals.md L106 & Algebra.md hierarchy axiom: `??` result = LCA(U, V).
+            // For cross-tree types (e.g., int ?? text) LCA = Any. The earlier compatibility
+            // check rejected such cases with FU887, but is now redundant: TIC's
+            // PullConstraintsFunctions.Apply(StateOptional, CS) eagerly propagates the
+            // lifted literal's state to the elemNode, so the LCA correctly widens to Any.
+            // Both branches identity-box to Any via GetConverterOrNull(srcType, Any)
+            // → NoConvertion. (MR3Bug1.)
             Func<object, object> leftConverter = innerType != outputType
                 ? VarTypeConverter.GetConverterOrNull(_dialect.Converter.TypeBehaviour, innerType, outputType)
                 : null;

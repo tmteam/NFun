@@ -24,7 +24,16 @@ public static partial class StateExtensions {
 
             if (a is ConstraintsState ac)
             {
-                if (ac.Ancestor == null) return b.Abstractest();
+                // Unconstrained ⊓ b: if a has no upper bound, its meet with b is determined
+                // entirely by b. Returning b.Abstractest() here was wrong — Abstractest
+                // gives the SUPREMUM (lattice top) which is the LCA direction, not GCD's
+                // meet/infimum. For two unconstrained CSs that produced Any here, the LCA
+                // of two unconstrained fn args (via LCA(Fun,Fun) → Gcd on args) widened
+                // to Any, which Push's contravariance later couldn't reconcile with a
+                // narrower annotation — surfaced as FU719 on `arr:s[]=[{f=rule it*N},...]`
+                // patterns. Returning `b` itself is the correct meet: b's own constraint
+                // set IS the intersection (since a accepts everything). (MR5Bug3.)
+                if (ac.Ancestor == null) return b;
                 a = ac.Ancestor;
                 continue;
 
@@ -32,7 +41,7 @@ public static partial class StateExtensions {
 
             if (b is ConstraintsState bc)
             {
-                if (bc.Ancestor == null) return a.Abstractest();
+                if (bc.Ancestor == null) return a;
                 b = bc.Ancestor;
                 continue;
 

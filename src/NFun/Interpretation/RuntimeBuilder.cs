@@ -100,9 +100,26 @@ internal static class RuntimeBuilder {
                     for (int i = 0; i < nt.Value.Fields.Count; i++)
                     {
                         var f = nt.Value.Fields[i];
-                        fields[i] = (f.Name, f.TypeSyntax is TypeSyntax.EmptyType
+                        var fieldType = f.TypeSyntax is TypeSyntax.EmptyType
                             ? InferTypeFromConstantOrAny(f.DefaultValue)
-                            : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes));
+                            : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes);
+                        // Eager-validate constant default against declared type. Per Basics.md
+                        // Construction stage: "checking the correctness of the script and
+                        // calculating the types of all expressions in the script". A bad default
+                        // (e.g. `type t = {x:int = 'hello'}`) must be rejected at declaration
+                        // time, not lazily when the default is finally triggered. Skip when the
+                        // default is a non-constant expression (Any fallback) — those still go
+                        // through TIC at use site. (MR4Bug4.)
+                        if (f.HasType && f.HasDefault) {
+                            var inferred = InferTypeFromConstantOrAny(f.DefaultValue);
+                            if (inferred.BaseType != BaseFunnyType.Any
+                                && VarTypeConverter.GetConverterOrNull(
+                                    dialect.Converter.TypeBehaviour, inferred, fieldType) == null) {
+                                throw Errors.TypeFieldDefaultMismatch(
+                                    nt.Key, f.Name, fieldType, inferred, f.DefaultValue.Interval);
+                            }
+                        }
+                        fields[i] = (f.Name, fieldType);
                     }
                     registry.Register(nt.Key, fields);
                 }

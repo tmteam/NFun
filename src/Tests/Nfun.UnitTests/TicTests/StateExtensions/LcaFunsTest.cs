@@ -4,6 +4,7 @@ using NUnit.Framework;
 using static LcaTestTools;
 using static SolvingStates;
 using NFun.Tic.SolvingStates;
+using NFun.Tic.Algebra;
 using static Tic.SolvingStates.StatePrimitive;
 
 public class LcaFunsTest {
@@ -170,9 +171,21 @@ public class LcaFunsTest {
     }
 
     [Test]
-    public void FunReturnsConstrain_ReturnsFunThatReturnsConstrains() =>
-        AssertLca(
-            Fun(EmptyConstraints, EmptyConstraints, EmptyConstraints),
-            Fun(EmptyConstraints, EmptyConstraints, EmptyConstraints),
-            Fun(Any, Any, EmptyConstraints));
+    public void FunReturnsConstrain_ReturnsFunThatReturnsConstrains() {
+        // LCA(Fun(α,β,γ), Fun(α',β',γ')) uses Gcd on args (contravariance) and Lca on ret.
+        // Gcd of two unconstrained CSs is unconstrained itself — not Any (lattice meet,
+        // not join). MR5Bug3 fix: previously Gcd fell back to Abstractest=Any here,
+        // causing FU719 downstream when annotation push hit Any contravariantly.
+        //
+        // StateFun.Equals does reference-compare on IsMutable arg nodes, so the standard
+        // AssertLca (which structurally constructs an expected Fun) wouldn't match — the
+        // LCA result's invisible nodes are different objects. Compare via state
+        // descriptions instead.
+        var a = Fun(EmptyConstraints, EmptyConstraints, EmptyConstraints);
+        var b = Fun(EmptyConstraints, EmptyConstraints, EmptyConstraints);
+        var lca = (NFun.Tic.SolvingStates.StateFun)a.Lca(b);
+        Assert.AreEqual("[..]", lca.ArgNodes[0].State.StateDescription);
+        Assert.AreEqual("[..]", lca.ArgNodes[1].State.StateDescription);
+        Assert.AreEqual("[..]", lca.ReturnType.StateDescription);
+    }
 }

@@ -222,14 +222,21 @@ public class PushConstraintsFunctions : IStateFunction {
                 if (result == null)
                 {
                     if (descendant.HasDescendant && descendant.Descendant is StateStruct descStruct
-                                                 && !descStruct.IsSolved)
+                                                 && descStruct.IsOpen)
                     {
-                        // Struct descendant with unsolved fields (from generic/inferred type, not literal).
-                        // Wrap descendant in Optional, carrying struct constraints into element.
-                        // This handles map lambda params on optional struct arrays where Pull
-                        // single-pass didn't propagate Optional to the lambda parameter.
-                        // Guard: only wrap unsolved structs — solved structs come from concrete values
-                        // and wrapping them would incorrectly make ?. work on non-optional structs.
+                        // Struct descendant is OPEN (row-poly source — came from another ?.field,
+                        // a generic lambda param, or similar inference site). Wrap descendant in
+                        // Optional, carrying struct constraints into element. This handles map
+                        // lambda params on optional struct arrays where Pull single-pass didn't
+                        // propagate Optional to the lambda parameter.
+                        //
+                        // Guard MUST be IsOpen, not !IsSolved: a literal `{b=1}` has field type
+                        // `[U8..Re]I32!` (constraint state, not concrete primitive), so !IsSolved
+                        // would falsely trigger wrap on closed concrete literals and infect the
+                        // receiver with Optional — symptom: `a={b=1}; y=a?.b; z=a.c` rejects
+                        // `a.c` because `a` was widened to `{b,c}?`. Closed (literal) structs
+                        // must use implicit lift T ≤ Opt(T) like primitives, not the wrap path.
+                        // (MR5Bug5.)
                         var innerNode = TicNode.CreateTypeVariableNode(
                             "e" + descendantNode.Name + "'", descendant.GetCopy());
                         innerNode.AddAncestor(ancOpt.ElementNode);

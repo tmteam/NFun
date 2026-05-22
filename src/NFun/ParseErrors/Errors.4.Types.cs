@@ -20,6 +20,13 @@ internal static partial class Errors {
     internal static FunnyParseException ImpossibleCast(FunnyType from, FunnyType to, Interval interval) => new(
         710, $"Unable to cast from {from} to {to}", interval);
 
+    internal static FunnyParseException TypeFieldDefaultMismatch(
+        string typeName, string fieldName, FunnyType declaredType, FunnyType defaultType, Interval interval) =>
+        new(708,
+            $"Type '{typeName}' field '{fieldName}' has default value of type '{defaultType}' " +
+            $"which cannot be converted to declared type '{declaredType}'",
+            interval);
+
     internal static FunnyParseException IncompatibleGenericResolution(
         IFunctionSignature function, int genericIndex, ISyntaxNode node) {
         var sig = TypeHelper.GetFunSignature(function.Name, function.ReturnType, function.ArgTypes);
@@ -184,6 +191,21 @@ internal static partial class Errors {
 
         if (descendantPath.Count > 1 && descendantPath.ElementAt(1) is FunCallSyntaxNode descFunc)
             return InvalidFunctionArgument(desc, descFunc, functions);
+
+        // When desc has no syntax-node mapping (e.g. anonymous TIC generic from an arithmetic
+        // operator's result, like `1 + 1`'s T), but the ancestor IS an EquationSyntaxNode,
+        // surface the clean FU740 anyway — use the equation's RHS expression text. Without
+        // this branch, `out:byte = 1 + 1` falls into the cryptic FU761 "expression ` + 1`
+        // cannot be used here" instead of the actionable "Variable 'out' cannot be
+        // initialized with type constrains 'Int32' by expression '1 + 1'". (MR4Bug3.)
+        if (desc == null && ancestor is EquationSyntaxNode eqOnly)
+        {
+            var start = Math.Min(eqOnly.Expression.Interval.Start, eqOnly.Interval.Start);
+            var finish = Math.Max(eqOnly.Expression.Interval.Start, eqOnly.Interval.Start);
+            return new(740,
+                $"Variable '{eqOnly.Id}' cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' by expression '{eqOnly.Expression.ToShortText()}'",
+                start, finish);
+        }
 
         return desc switch {
                    null => new(761, $"Seems like expression `{ancestor.ToShortText()}` cannot be used here", ancestor.Interval),

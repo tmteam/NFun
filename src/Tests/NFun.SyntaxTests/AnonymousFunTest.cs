@@ -401,10 +401,13 @@ public class AnonymousFunTest {
     [Test]
     public void Closure_ArrayOfClosures_IndependentCells() {
         // Before the fix, all three closures shared one (a,b) cell — [21,21,21].
+        // After MR4Bug2 fix, the rule-callee alias correctly resolves to the
+        // anonymous parameter, so `rule it(10)` properly types as Int32[]
+        // instead of Any[] (no more output-generic resolution loss).
         ("mk(a,b) = rule(c) = a+b+c\r" +
          "fs = [mk(1,2), mk(3,4), mk(5,6)]\r" +
          "out = fs.map(rule it(10))")
-            .AssertResultHas("out", new object[] { 13, 17, 21 });
+            .AssertResultHas("out", new[] { 13, 17, 21 });
     }
 
     [Test]

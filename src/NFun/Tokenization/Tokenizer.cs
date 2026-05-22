@@ -878,7 +878,12 @@ public class Tokenizer {
         }
         else
         {
-            if (closeQuoteSymbol != expectedClosingSymbol)
+            // Typographic quotes pair `‘…’` and `“…”` (matches text-editor auto-replace).
+            // Matching `‘…‘` and `“…“` also accepted for back-compat. (MR4Bug6.)
+            bool isMatchingClose = closeQuoteSymbol == expectedClosingSymbol
+                || (expectedClosingSymbol == '‘' && closeQuoteSymbol == '’')
+                || (expectedClosingSymbol == '“' && closeQuoteSymbol == '”');
+            if (!isMatchingClose)
                 throw Errors.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, endPosition);
             if (closeInterpolation)
                 return Tok.New(TokType.TextCloseInterpolation, result, startPosition, endPosition + 1);

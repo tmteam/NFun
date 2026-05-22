@@ -578,13 +578,26 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             node.Body.ComeOver(visiting => {
                 if (visiting is SuperAnonymFunctionSyntaxNode)
                     return DfsEnterResult.Skip;
-                if (visiting is NamedIdSyntaxNode named && Helper.DoesItLooksLikeSuperAnonymousVariable(named.Id, out int num))
+                // `it` / `itN` can appear either as a NamedId reference (e.g., `it + 1`)
+                // or as the callee of a higher-order call (e.g., `it()` — invoking it as a
+                // function value). Both forms count as implicit-parameter usage and must
+                // contribute to the inferred arity. (MR4Bug2.)
+                string idForLookup = null;
+                Interval intervalForError = default;
+                if (visiting is NamedIdSyntaxNode named) {
+                    idForLookup = named.Id;
+                    intervalForError = named.Interval;
+                } else if (visiting is FunCallSyntaxNode call) {
+                    idForLookup = call.Id;
+                    intervalForError = call.Interval;
+                }
+                if (idForLookup != null && Helper.DoesItLooksLikeSuperAnonymousVariable(idForLookup, out int num))
                 {
                     //we found variable!
                     if (num == -1)
                         hasSimpleIt = true;
                     else if (num == 0 || num > 3)
-                        throw Errors.InvalidSuperAnonymousVariableName(named.Interval, named.Id);
+                        throw Errors.InvalidSuperAnonymousVariableName(intervalForError, idForLookup);
                     else
                         maxNotSimpleItNum = Math.Max(maxNotSimpleItNum, num);
                 }
@@ -913,12 +926,41 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             ids[i] = allArgs[i].OrderNumber;
         ids[^1] = node.OrderNumber;
 
-        // ?.method() — safe piped call on Optional.
-        // Source is opt(T), function expects T. Unwrap for the call, wrap result in opt(R).
+        // ?.method() on a struct-field-function (no built-in / user fn matches the name):
+        // emit as a single TIC special form so Pull threads opt→struct→fun in one cascade.
+        // The legacy three-stage setup (unwrap + field-access + call below) created
+        // three disjoint subgraphs that only joined via stale Pull edges — the chain
+        // never resolved and the function's concrete return type was lost as Any?.
+        // Mirrors SetSafeFieldAccess / SetSafeArrayAccess / SetCoalesce pattern. (MR5Bug7.)
+        if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true } safePipedNode
+            && signature == null && allArgs.Length >= 1
+            && !_dictionary.ContainsName(node.Id))
+        {
+            var callArgIds = new int[ids.Length - 2]; // exclude source and result
+            for (int i = 1; i < ids.Length - 1; i++)
+                callArgIds[i - 1] = ids[i];
+#if DEBUG
+            Trace(node, $"SafeMethodCall {node.Id}({string.Join(",", callArgIds)}) on {ids[0]} -> {ids[^1]}");
+#endif
+            _ticTypeGraph.SetSafeMethodCall(ids[0], callArgIds, ids[^1], node.Id);
+            safePipedNode.IsFieldCall = true;
+            return true;
+        }
+
+        // ?.builtinMethod() — safe piped call on Optional where the method IS a known
+        // built-in or user function (e.g. `arr?.count()`). Source is opt(T), function
+        // expects T. Unwrap for the call, wrap result in opt(R).
         if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true })
         {
             var sourceId = ids[0];
             var resultId = ids[^1];
+
+            // ?.method() creates the same kind of opt-sourced constraint graph as
+            // SetSafeFieldAccess — mark recursion so cycle-aware passes (visited-pair
+            // guard in StagesExtension.Invoke, ScCClosurePass, etc.) are active.
+            // Without this, anonymous-struct + fn-field cycles loop forever in
+            // Destruction. (MR5Bug4.)
+            _ticTypeGraph.IsRecursion = true;
 
             // 1. Unwrap source: create synthetic node for T, constrain source = opt(T)
             var unwrappedId = _nextSyntheticId++;
@@ -1006,10 +1048,17 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             }
 
             //Functional variable
+            // Apply alias resolution symmetrically to NamedIdSyntaxNode (line 1480) — the
+            // callee may be a lambda's implicit parameter (e.g. `rule it()` where `it` is
+            // the rule's parameter and must resolve to the anonymous-scope alias
+            // `anonymous_N::it`). Without this, `it` resolves to a fresh free variable
+            // with arity matching the call site, bypassing the rule parameter's actual
+            // arity and silently producing wrong-arity invocations. (MR4Bug2.)
+            var calleeName = _aliasScope.GetVariableAlias(node.Id);
 #if DEBUG
-            Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
+            Trace(node, $"Call hi order {calleeName}({string.Join(",", ids)})");
 #endif
-            _ticTypeGraph.SetCall(node.Id, ids);
+            _ticTypeGraph.SetCall(calleeName, ids);
             return true;
         }
         //Normal function call
@@ -1351,7 +1400,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                                      >= Int32.MinValue => I32,
                                      _                 => I64
                                  };
-                    var preferred = GetPreferredIntConstantType();
+                    // Negative literals are at most I64.MinValue, always fit Int64; Preferred I32
+                    // is enough for values >= I32.MinValue, fall to I64 for larger negatives.
+                    var preferred = descendant == I64 ? I64 : GetPreferredIntConstantType();
                     _ticTypeGraph.SetGenericConst(node.OrderNumber, descendant, Real, preferred);
                     return true;
                 }
@@ -1362,16 +1413,24 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 throw new NFunImpossibleException("Generic token has to be ulong or long");
 
             //positive constant
-            if (actualValue <= byte.MaxValue) descendant = U8;
-            else if (actualValue <= (ulong)Int16.MaxValue) descendant = U12;
-            else if (actualValue <= (ulong)UInt16.MaxValue) descendant = U16;
-            else if (actualValue <= (ulong)Int32.MaxValue) descendant = U24;
-            else if (actualValue <= (ulong)UInt32.MaxValue) descendant = U32;
-            else if (actualValue <= (ulong)Int64.MaxValue) descendant = U48;
-            else descendant = U64;
-            _ticTypeGraph.SetGenericConst(
-                node.OrderNumber, descendant, Real,
-                GetPreferredIntConstantType());
+            // For values that exceed Int32.Max, the Preferred I32 cannot represent the value,
+            // and unconstrained resolution would fall through to the Ancestor (Real) — silently
+            // widening integer literals to Real (MR4Bug1: `out = 4294967295 → Real`).
+            // Mirror hex/bin's strategy: switch Preferred to I64 when the value > Int32.Max,
+            // so resolution picks Int64 instead of Real. Ancestor stays Real so generic
+            // contexts (user functions, Arithmetics operators) still accept Real operands.
+            StatePrimitive posPreferred;
+            if (actualValue <= byte.MaxValue) { descendant = U8; posPreferred = GetPreferredIntConstantType(); }
+            else if (actualValue <= (ulong)Int16.MaxValue) { descendant = U12; posPreferred = GetPreferredIntConstantType(); }
+            else if (actualValue <= (ulong)UInt16.MaxValue) { descendant = U16; posPreferred = GetPreferredIntConstantType(); }
+            else if (actualValue <= (ulong)Int32.MaxValue) { descendant = U24; posPreferred = GetPreferredIntConstantType(); }
+            else if (actualValue <= (ulong)UInt32.MaxValue) { descendant = U32; posPreferred = I64; }
+            else if (actualValue <= (ulong)Int64.MaxValue) { descendant = U48; posPreferred = I64; }
+            else {
+                _ticTypeGraph.SetConst(node.OrderNumber, U64);
+                return true;
+            }
+            _ticTypeGraph.SetGenericConst(node.OrderNumber, descendant, Real, posPreferred);
         }
 
         return true;

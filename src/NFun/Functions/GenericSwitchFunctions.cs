@@ -252,15 +252,21 @@ public class RangeFunction : GenericFunctionBase {
             short[] result;
             if (start < end)
             {
-                result = new short[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // Count-based loop avoids post-increment past MaxValue. When end is the
+                // type's MaxValue, `i += 1` after the final iteration overflows to MinValue,
+                // condition `i <= end` becomes true, and the array gets indexed at a
+                // huge negative offset → "Index out of bounds". (MR5Bug1.)
+                int len = end - start + 1;
+                result = new short[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (short)(start + c);
             }
             else
             {
-                result = new short[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                    result[start-i] = i;
+                int len = start - end + 1;
+                result = new short[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (short)(start - c);
             }
             return new ImmutableFunnyArray(result, FunnyType.Int16);
         }
@@ -279,15 +285,18 @@ public class RangeFunction : GenericFunctionBase {
             int[] result;
             if (start < end)
             {
-                result = new int[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // See Int16Function for the MaxValue overflow rationale.
+                int len = end - start + 1;
+                result = new int[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = start + c;
             }
             else
             {
-                result = new int[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                    result[start-i] = i;
+                int len = start - end + 1;
+                result = new int[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = start - c;
             }
             return new ImmutableFunnyArray(result);
         }
@@ -306,15 +315,18 @@ public class RangeFunction : GenericFunctionBase {
             long[] result;
             if (start < end)
             {
-                result = new long[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // See Int16Function for the MaxValue overflow rationale.
+                long len = end - start + 1;
+                result = new long[len];
+                for (long c = 0; c < len; c++)
+                    result[c] = start + c;
             }
             else
             {
-                result = new long[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                    result[start-i] = i;
+                long len = start - end + 1;
+                result = new long[len];
+                for (long c = 0; c < len; c++)
+                    result[c] = start - c;
             }
             return new ImmutableFunnyArray(result);
         }
@@ -334,18 +346,18 @@ public class RangeFunction : GenericFunctionBase {
             byte[] result;
             if (start < end)
             {
-                result = new byte[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // See Int16Function for the MaxValue overflow rationale.
+                int len = end - start + 1;
+                result = new byte[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (byte)(start + c);
             }
             else
             {
-                result = new byte[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                {
-                    result[start-i] = i;
-                    if(i==0) break;
-                }
+                int len = start - end + 1;
+                result = new byte[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (byte)(start - c);
             }
             return new ImmutableFunnyArray(result);
         }
@@ -364,18 +376,18 @@ public class RangeFunction : GenericFunctionBase {
             ushort[] result;
             if (start < end)
             {
-                result = new ushort[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // See Int16Function for the MaxValue overflow rationale.
+                int len = end - start + 1;
+                result = new ushort[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (ushort)(start + c);
             }
             else
             {
-                result = new ushort[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                {
-                    result[start-i] = i;
-                    if(i==0) break;
-                }
+                int len = start - end + 1;
+                result = new ushort[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (ushort)(start - c);
             }
             return new ImmutableFunnyArray(result);
         }
@@ -394,18 +406,18 @@ public class RangeFunction : GenericFunctionBase {
             uint[] result;
             if (start < end)
             {
-                result = new uint[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // See Int16Function for the MaxValue overflow rationale.
+                uint len = end - start + 1;
+                result = new uint[len];
+                for (uint c = 0; c < len; c++)
+                    result[c] = start + c;
             }
             else
             {
-                result = new uint[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                {
-                    result[start-i] = i;
-                    if(i==0) break;
-                }
+                uint len = start - end + 1;
+                result = new uint[len];
+                for (uint c = 0; c < len; c++)
+                    result[c] = start - c;
             }
             return new ImmutableFunnyArray(result);
         }
@@ -424,18 +436,18 @@ public class RangeFunction : GenericFunctionBase {
             ulong[] result;
             if (start < end)
             {
-                result = new ulong[end - start + 1];
-                for (var i = start; i <= end; i += 1)
-                    result[i - start] = i;
+                // See Int16Function for the MaxValue overflow rationale.
+                ulong len = end - start + 1;
+                result = new ulong[len];
+                for (ulong c = 0; c < len; c++)
+                    result[c] = start + c;
             }
             else
             {
-                result = new ulong[start - end + 1];
-                for (var i = start; i >= end; i -= 1)
-                {
-                    result[start-i] = i;
-                    if(i==0) break;
-                }
+                ulong len = start - end + 1;
+                result = new ulong[len];
+                for (ulong c = 0; c < len; c++)
+                    result[c] = start - c;
             }
             return new ImmutableFunnyArray(result);
         }

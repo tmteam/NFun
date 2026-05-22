@@ -556,14 +556,16 @@ public class NamedTypeStressTest {
             .AssertResultHas("out", 9); // f(3) = p(3)+p(2)+p(1)+0 = 4+3+2 = 9
     }
 
-    // Bug M FIXED: Coalesce `??` compatibility check tightened. Previously had a fallback
-    // "composite types: always allow" that let int?? struct slip through, causing TIC to
-    // widen the left's element type to struct and runtime generated a lossy int→struct
-    // converter that turned `1` into the default empty struct `{}` — silent data loss.
-    // Now `int ?? struct` is correctly rejected as FU887 (Incompatible types in '??').
+    // Bug M evolution: the silent int→struct corruption was first patched in
+    // ExpressionBuilderVisitor with an FU887 compatibility check. In MR3Bug1 the
+    // root cause was fixed at TIC level: the eager-lift propagation in
+    // PullConstraintsFunctions.Apply(StateOptional, CS) now properly LCA-widens
+    // cross-tree types to Any, so int ?? struct no longer corrupts to default {} —
+    // it correctly widens to Any preserving the int value. The compatibility check
+    // was removed; this test now asserts the new correct behaviour.
     [Test]
-    public void BugM_CoalesceIntOptVsNamedStruct_RejectedFU887() {
-        Assert.Throws<FunnyParseException>(() => BuildRec(
+    public void BugM_CoalesceIntOptVsNamedStruct_WidensToAny() {
+        Assert.DoesNotThrow(() => BuildRec(
             "type t = {v:int}\r" +
             "tree:t = t{v=1}\r" +
             "x = tree?.v\r" +

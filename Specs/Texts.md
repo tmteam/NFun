@@ -38,7 +38,9 @@ y = 'Kate said: "hi"!'
 z = "Kate said: 'hi'!"
 ```
 
-Left typographic quotes `’` and `”` are also supported as quote delimiters (same character for open and close)
+Typographic quotes are also supported as quote delimiters. Two forms accepted:
+- **Typographic pair** (matches text-editor auto-replace): `‘…’` and `“…”` (LEFT-open + RIGHT-close).
+- **Matching pair**: `‘…‘` and `“…“` (same LEFT character on both sides).
 
 ```
 y = ‘Kate said: “hi”!’

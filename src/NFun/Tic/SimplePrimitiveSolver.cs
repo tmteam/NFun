@@ -493,7 +493,10 @@ internal sealed class SimplePrimitiveSolver {
                 var desc = l >= short.MinValue ? s_ordI16
                          : l >= int.MinValue   ? s_ordI32
                          :                       s_ordI64;
-                SetInterval(gid, desc, s_ordReal, _preferredIntOrd);
+                // Negative literal smaller than Int32.MinValue won't fit Preferred I32 —
+                // promote Preferred to I64 so unconstrained resolution picks Int64 not Real.
+                var pref = desc == s_ordI64 ? s_ordI64 : _preferredIntOrd;
+                SetInterval(gid, desc, s_ordReal, pref);
                 return;
             }
             SetupDecimalPositive(gid, (ulong)l);
@@ -501,14 +504,23 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private void SetupDecimalPositive(int gid, ulong v) {
-        var desc = v <= byte.MaxValue          ? s_ordU8
-                 : v <= (ulong)short.MaxValue  ? s_ordU12
-                 : v <= ushort.MaxValue         ? s_ordU16
-                 : v <= int.MaxValue            ? s_ordU24
-                 : v <= uint.MaxValue           ? s_ordU32
-                 : v <= (ulong)long.MaxValue   ? s_ordU48
-                 :                               s_ordU64;
-        SetInterval(gid, desc, s_ordReal, _preferredIntOrd);
+        // > Int64.Max only fits in UInt64 — commit to concrete.
+        if (v > (ulong)long.MaxValue) {
+            SetConcrete(gid, s_ordU64);
+            return;
+        }
+        byte desc;
+        byte pref;
+        // Mirror hex/bin: when value > Int32.Max, switch Preferred to I64 so
+        // unconstrained resolution picks Int64 instead of falling through to Real.
+        // Ancestor stays Real so generic contexts still accept Real operands. (MR4Bug1.)
+        if (v <= byte.MaxValue) { desc = s_ordU8; pref = _preferredIntOrd; }
+        else if (v <= (ulong)short.MaxValue) { desc = s_ordU12; pref = _preferredIntOrd; }
+        else if (v <= ushort.MaxValue) { desc = s_ordU16; pref = _preferredIntOrd; }
+        else if (v <= int.MaxValue) { desc = s_ordU24; pref = _preferredIntOrd; }
+        else if (v <= uint.MaxValue) { desc = s_ordU32; pref = s_ordI64; }
+        else { desc = s_ordU48; pref = s_ordI64; }
+        SetInterval(gid, desc, s_ordReal, pref);
     }
 
     private void SetupNamedId(NamedIdSyntaxNode node) {

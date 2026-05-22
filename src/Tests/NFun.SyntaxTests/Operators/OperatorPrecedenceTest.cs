@@ -201,7 +201,8 @@ public class OperatorPrecedenceTest {
     [TestCase("x1 ** x2 * x3", "(x1 ** x2) * x3")]
     [TestCase("x1 ** x2 + x3", "(x1 ** x2) + x3")]
     [TestCase("x1 ** x2 - x3", "(x1 ** x2) - x3")]
-    [TestCase("x1 ** x2 ** x3", "(x1 ** x2) ** x3")]
+    // ** is right-associative (math/Python/Ruby/JS/Fortran/Haskell/Lua convention).
+    [TestCase("x1 ** x2 ** x3", "x1 ** (x2 ** x3)")]
     [TestCase("x1 ** x2 == x3", "(x1 ** x2) == x3")]
     [TestCase("x1 ** x2 != x3", "(x1 ** x2) != x3")]
     [TestCase("x1 ** x2 / x3", "(x1 ** x2) / x3")]

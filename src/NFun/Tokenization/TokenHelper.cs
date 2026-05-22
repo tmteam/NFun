@@ -172,7 +172,11 @@ public static class TokenHelper {
                 hasAnyDelimiter = true;
         }
 
-        return new TypeSyntax.StructOf(fields.ToArray());
+        // User-written struct annotations are strict-width: `b:{x:int, y:int} = a` where
+        // a:{x,y,z} must NOT widen b's static type to include z. The Pull Struct ancestor
+        // width-propagation only fires when ancStruct.IsFrozen=false, so marking user
+        // annotations as frozen here pins the declared shape. (MR5Bug6.)
+        return new TypeSyntax.StructOf(fields.ToArray(), isFrozen: true);
     }
 
     public static bool MoveIf(this TokFlow flow, TokType tokType) {

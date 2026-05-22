@@ -424,10 +424,19 @@ public static class SyntaxNodeReader {
             }
             else if (opToken.Type == TokType.Question)
             {
-                // ?[ safe array access: syntax is reserved but not yet supported
+                // Standalone `?` in the post-expression operator slot is only valid as
+                // `?[index]` (safe array access). `?.` and `??` are tokenized as their own
+                // TokTypes (SafeAccess / NullCoalesce) and handled in their own branches.
+                // Type annotations like `int?` are parsed by TokenHelper.ReadTypeSyntax in
+                // a separate context — they never reach this loop.
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
                 flow.MoveNext(); // consume ?
+                // Trailing `?` not followed by `[` was crashing with raw
+                // InvalidOperationException from Interval ctor when ReadSafeArrayAccess
+                // built an error span with start > finish at EOF. Validate up front. (MR3Bug2.)
+                if (!flow.IsCurrent(TokType.ArrOBr))
+                    throw Errors.SafeArrayAccessOpenBracketMissed(leftNode, opToken);
                 return ReadSafeArrayAccess(flow, leftNode);
             }
             else if (opToken.Type == TokType.ForceUnwrap)
@@ -453,8 +462,11 @@ public static class SyntaxNodeReader {
 
     private static ISyntaxNode ReadBinOperator(TokFlow flow, ISyntaxNode leftNode, Tok opToken, int priority) {
         flow.MoveNext();
-        // ?? is right-associative (like C#): a ?? b ?? c  →  a ?? (b ?? c)
-        var rightPriority = opToken.Type == TokType.NullCoalesce ? priority : priority - 1;
+        // Right-associative operators: ?? (like C#) and ** (math / Python / Ruby /
+        // JS / Fortran / Haskell / Lua convention — `2**3**2 = 2**(3**2) = 512`,
+        // not `(2**3)**2 = 64`). All other binary operators are left-associative.
+        var rightPriority = opToken.Type is TokType.NullCoalesce or TokType.Pow
+            ? priority : priority - 1;
         var rightNode = ReadNodeOrNull(flow, rightPriority)
                         ?? throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
 

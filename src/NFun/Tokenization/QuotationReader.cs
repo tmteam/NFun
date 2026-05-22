@@ -14,6 +14,16 @@ public static class QuotationReader {
         var sb = new StringBuilder();
         int lastNonEscaped = startPosition + 1;
 
+        // Typographic quotes pair LEFT-with-RIGHT (`‘…’`, `“…”`) — matches how
+        // text editors auto-replace ASCII quotes. Also accept matching open=close
+        // form (`‘…‘`) for back-compat. ASCII quotes (', ") keep same-char rule.
+        // (MR4Bug6.)
+        char typographicClose = quoteSymbol switch {
+            '‘' => '’',   // ‘ → ’
+            '“' => '”',   // “ → ”
+            _        => quoteSymbol ?? '\0'
+        };
+
         int i = lastNonEscaped;
         var closeQuotationPosition = 0;
         for (; i < rawString.Length; i++)
@@ -21,7 +31,7 @@ public static class QuotationReader {
             var current = rawString[i];
             if (denyNewlineInStrings && (current == '\n' || current == '\r'))
                 throw Errors.NewlineInString(startPosition, i + 1);
-            if (current == quoteSymbol)
+            if (current == quoteSymbol || current == typographicClose)
             {
                 closeQuotationPosition = i;
                 break;

@@ -61,16 +61,16 @@ The following table shows all the arithmetic operators supported by the NFun lan
 
 Assume variable A holds 6 and variable B holds 4 then:
 
-| Operator    | Types       | Description	                                                                                        | Example        |
-|-------------|-------------|------------------------------------------------------------------------------------------------------|----------------|
-| +           | Arithmetics | Adds two operands.	                                                                                | `A + B` = 10   |
-| −           | Arithmetics | Subtracts second operand from the first.	                                                            | `B − A` = -2   |
-| *           | Arithmetics | Multiplies both operands.	                                                                        | `A * B` = 24   |
-| %           | Numbers     | Modulus Operator - remainder of after an division. Result type equals operand type (no widening).    | `A % B` = 2    |
-| /           | `real`      | Divides real numerator by de-numerator.	                                                            | `A / B` = 1.5  |
-| //          | Integers    | Divides integer numerator by de-numerator.	                                                        | `A // B` = 1   |
-| **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 |
-| − *(unary)* | Numbers     | Multiply expression by -1. Works on signed integers and `real`                                       | `−A` = -6      |
+| Operator    | Types       | Description	                                                                                        | Example        | Associativity |
+|-------------|-------------|------------------------------------------------------------------------------------------------------|----------------|---------------|
+| +           | Arithmetics | Adds two operands.	                                                                                | `A + B` = 10   | left          |
+| −           | Arithmetics | Subtracts second operand from the first.	                                                            | `B − A` = -2   | left          |
+| *           | Arithmetics | Multiplies both operands.	                                                                        | `A * B` = 24   | left          |
+| %           | Numbers     | Modulus Operator - remainder of after an division. Result type equals operand type (no widening).    | `A % B` = 2    | left          |
+| /           | `real`      | Divides real numerator by de-numerator.	                                                            | `A / B` = 1.5  | left          |
+| //          | Integers    | Divides integer numerator by de-numerator.	                                                        | `A // B` = 1   | left          |
+| **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 | right         |
+| − *(unary)* | Numbers     | Multiply expression by -1. Works on signed integers and `real`                                       | `−A` = -6      | n/a (unary)   |
 
 ### Integer overflow
 
@@ -108,14 +108,14 @@ All of them returns true if condition is satisfied, and false otherwise
 
 Assume variable A holds 10 and variable B holds 20 then:
 
-| Operator | Types       | Description	                                                                                     | Example              |
-|----------|-------------|--------------------------------------------------------------------------------------------------|----------------------|
-| ==       | All         | Equals true if the values of two operands are equal.	                                            | `(A == B)` is false. |
-| !=       | All         | Equals true if the values of two operands are not equal.	                                        | `(A != B)` is true.  |
-| \>       | Comparables | Equals true if the value of left operand is greater than the value of right operand. 	           | `(A > B)` is false.  |
-| <        | Comparables | Equals true if the value of left operand is less than the value of right operand.                | `(A < B)` is true.   |
-| \>=      | Comparables | Equals true if the value of left operand is greater than or equal to the value of right operand. | `(A >= B)` is false. |
-| <=       | Comparables | Equals true if the value of left operand is less than or equal to the value of right operand. 	  | `(A <= B)` is true.  |
+| Operator | Types       | Description	                                                                                     | Example              | Associativity |
+|----------|-------------|--------------------------------------------------------------------------------------------------|----------------------|---------------|
+| ==       | All         | Equals true if the values of two operands are equal.	                                            | `(A == B)` is false. | left          |
+| !=       | All         | Equals true if the values of two operands are not equal.	                                        | `(A != B)` is true.  | left          |
+| \>       | Comparables | Equals true if the value of left operand is greater than the value of right operand. 	           | `(A > B)` is false.  | chain         |
+| <        | Comparables | Equals true if the value of left operand is less than the value of right operand.                | `(A < B)` is true.   | chain         |
+| \>=      | Comparables | Equals true if the value of left operand is greater than or equal to the value of right operand. | `(A >= B)` is false. | chain         |
+| <=       | Comparables | Equals true if the value of left operand is less than or equal to the value of right operand. 	  | `(A <= B)` is true.  | chain         |
 
 ### Сomparison chain
 
@@ -136,12 +136,12 @@ The Following table shows all the logical operators supported by NFun language.
 
 Assume variable A holds true and variable B holds false, then:
 
-| Operator       | Type   | 	  Description	                                                               | Example               |
-|----------------|--------|-------------------------------------------------------------------------------|-----------------------|
-| and	           | `bool` | If both the operands are true, then the condition becomes true.			            | `(A and B)` is false. |
-| or	            | `bool` | If any of the two operands is true, then the condition becomes true.	         | `(A or B)`  is true.  |
-| xor	           | `bool` | If two operands are not equal to each other, then the condition becomes true. | `(A xor B)` is true.  |
-| not *(unary)*	 | `bool` | Reverses the logical state of its operand.                                    | `(not A)`   is false. |
+| Operator       | Type   | 	  Description	                                                               | Example               | Associativity |
+|----------------|--------|-------------------------------------------------------------------------------|-----------------------|---------------|
+| and	           | `bool` | If both the operands are true, then the condition becomes true.			            | `(A and B)` is false. | left          |
+| or	            | `bool` | If any of the two operands is true, then the condition becomes true.	         | `(A or B)`  is true.  | left          |
+| xor	           | `bool` | If two operands are not equal to each other, then the condition becomes true. | `(A xor B)` is true.  | left          |
+| not *(unary)*	 | `bool` | Reverses the logical state of its operand.                                    | `(not A)`   is false. | n/a (unary)   |
 
 The truth tables for 'and', 'or', 'xor' and 'not' is as follows:
 
@@ -168,19 +168,19 @@ The following table lists the bitwise operators supported by NFun.
 Assume variable A has type of **byte** and holds 60 (0b0011_1100) 
 and variable B has type of **byte** holds 13 (0b0000_1101), then:
 
-| Operator     | Type     | Description	                                                                     | Example                     |
-|--------------|----------|----------------------------------------------------------------------------------|-----------------------------|
-| &	           | Integers | Binary AND Operator copies a bit to the result if it exists in both operands.	   | `A & B` = 12 = 0b0000_1100  |
-| &#124;	      | Integers | Binary OR Operator copies a bit if it exists in either operand.	                 | `A \| B` = 61 = 0b0011_1101 |
-| ^	           | Integers | Binary XOR Operator copies the bit if it is set in one operand but not both.	    | `A ^ B` = 49 = 0b0011_0001  |
-| ~ *(unary)*	 | Integers | Binary One's Complement Operator is unary and has the effect of 'flipping' bits. | 	`~A` = ~60 = 0b1100_0011   |
+| Operator     | Type     | Description	                                                                     | Example                     | Associativity |
+|--------------|----------|----------------------------------------------------------------------------------|-----------------------------|---------------|
+| &	           | Integers | Binary AND Operator copies a bit to the result if it exists in both operands.	   | `A & B` = 12 = 0b0000_1100  | left          |
+| &#124;	      | Integers | Binary OR Operator copies a bit if it exists in either operand.	                 | `A \| B` = 61 = 0b0011_1101 | left          |
+| ^	           | Integers | Binary XOR Operator copies the bit if it is set in one operand but not both.	    | `A ^ B` = 49 = 0b0011_0001  | left          |
+| ~ *(unary)*	 | Integers | Binary One's Complement Operator is unary and has the effect of 'flipping' bits. | 	`~A` = ~60 = 0b1100_0011   | n/a (unary)   |
 
 Bitshift operators takes **[Integers]** type as left operand and result. Right operand has type of byte.
 
-| Operator | Description	                                                                                                              | Example                       |
-|----------|---------------------------------------------------------------------------------------------------------------------------|-------------------------------|
-| <<	      | Binary Left Shift Operator. The left operands value is moved left by the number of bits specified by the right operand.	  | `A << 2` = 240 = 0b1111_0000  |
-| \>\>	    | Binary Right Shift Operator. The left operands value is moved right by the number of bits specified by the right operand. | 	`A >> 2` = 15  = 0b0000_1111 |
+| Operator | Description	                                                                                                              | Example                       | Associativity |
+|----------|---------------------------------------------------------------------------------------------------------------------------|-------------------------------|---------------|
+| <<	      | Binary Left Shift Operator. The left operands value is moved left by the number of bits specified by the right operand.	  | `A << 2` = 240 = 0b1111_0000  | left          |
+| \>\>	    | Binary Right Shift Operator. The left operands value is moved right by the number of bits specified by the right operand. | 	`A >> 2` = 15  = 0b0000_1111 | left          |
 
 **Overflow behavior:** Shift count is masked to the bit width of the operand type: `x << n` = `x << (n % bits)`. For example, `1:int32 << 33` = `1 << 1` = 2. This matches C#/Java/JavaScript behavior. Bitshift operators are **not affected** by the `IntegerOverflow` dialect setting — they always use wrapping (masking) semantics, even when `IntegerOverflow.Checked` is active. This follows the CLR specification where shift operators are never checked.
 
@@ -205,18 +205,18 @@ The following operators perform special actions and are described in detail in t
 
 Here we give only a superficial description of them
 
-| Operator       | Described in | Description                                                                                                                                                                                                       | Example                   |
-|----------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|
-| rule *(unary)* | Basics       | Returns an anonymous function with the body specified in the operand. The arguments of this function are called 'it' (for the case of a function with one argument) or it1, it2... for the case of many arguments | [1,2,3].filter(rule it>1) |
-| =              | Basics       | Initialization operator. Initializes left side variable with values from right side operand                                                                                                                       | a = 42; c = [a,2,3]       |
-| .              | Structures   | Field access operator                                                                                                                                                                                             | a = user.name             |
-| in             | Arrays       | Membership operator. Returns true if the element (left operand) is contained in the array (right operand)                                                                                                         | 1 in [1,2,3]              |
-| []             | Arrays       | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | [1,0,2][2]                |
-| [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          |
-| ??             | Optionals    | Null coalesce operator. Returns left operand if not `none`, otherwise right operand. Right-associative                                                                                                            | x ?? 0                    |
-| ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                |
-| ?[             | Optionals    | Safe array indexing operator. Indexes into an optional array, returning `none` if the array is `none`                                                                                                             | arr?[0]                   |
-| ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        |
+| Operator       | Described in | Description                                                                                                                                                                                                       | Example                   | Associativity |
+|----------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|---------------|
+| rule *(unary)* | Basics       | Returns an anonymous function with the body specified in the operand. The arguments of this function are called 'it' (for the case of a function with one argument) or it1, it2... for the case of many arguments | [1,2,3].filter(rule it>1) | n/a (unary)   |
+| =              | Basics       | Initialization operator. Initializes left side variable with values from right side operand                                                                                                                       | a = 42; c = [a,2,3]       | n/a           |
+| .              | Structures   | Field access operator                                                                                                                                                                                             | a = user.name             | left          |
+| in             | Arrays       | Membership operator. Returns true if the element (left operand) is contained in the array (right operand)                                                                                                         | 1 in [1,2,3]              | left          |
+| []             | Arrays       | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | [1,0,2][2]                | left          |
+| [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          | left          |
+| ??             | Optionals    | Null coalesce operator. Returns left operand if not `none`, otherwise right operand                                                                                                                               | x ?? 0                    | right         |
+| ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                | left          |
+| ?[             | Optionals    | Safe array indexing operator. Indexes into an optional array, returning `none` if the array is `none`                                                                                                             | arr?[0]                   | left          |
+| ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        | n/a (postfix) |
 
 ## Implicit Multiplication and Math Sugar
 

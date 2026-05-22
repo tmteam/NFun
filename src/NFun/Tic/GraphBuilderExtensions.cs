@@ -271,6 +271,66 @@ public static class GraphBuilderExtensions {
     }
 
     /// <summary>
+    /// x?.field(args) where x: opt(struct{field: (P1..Pn) → R}) → result: opt(R)
+    ///
+    /// Built as a single connected subgraph (one TIC special form) instead of three
+    /// independent constraint setups (unwrap, field-access, call). The three-stage
+    /// version relied on topological Pull threading a chain of edges (opt→struct→fun)
+    /// after the descendants were already finalized — those edges never re-pulled and
+    /// the function's concrete return type was lost, producing y:Any?. (MR5Bug7.)
+    ///
+    /// All nodes here are constructed as descendants of structNode in toposort
+    /// (structNode → funNode → params/return), so a single Pull cascade from the
+    /// source's concrete opt(struct{...}) state flows the field-function's actual
+    /// arg and return types into the call's argument and result slots.
+    /// </summary>
+    public static void SetSafeMethodCall(
+        this GraphBuilder b, int sourceNodeId, int[] callArgIds, int resultNodeId, string fieldName) {
+        // Same cycle-rescue marker as SetSafeFieldAccess — anonymous-struct + fn-field
+        // closures can produce μ-cycles through safe-method-call (MR5Bug4 family).
+        b.IsRecursion = true;
+
+        // Param nodes Pi for each call arg; return node R. The return node is shared
+        // between the function shape and the result Optional — that direct sharing is
+        // what makes Pull cleanly propagate the source's concrete function return type
+        // into the result during Destruction (mirrors SetSafeFieldAccess where the
+        // field node is shared between struct shape and result Optional).
+        var paramNodes = new TicNode[callArgIds.Length];
+        for (int i = 0; i < callArgIds.Length; i++)
+            paramNodes[i] = b.CreateVarType();
+        var returnNode = b.CreateVarType();
+
+        // Field shape: a function (P1..Pn) → R, carried as a single composite node.
+        var funNode = b.CreateVarType(StateFun.Of(paramNodes, returnNode));
+
+        // Struct shape: open row-poly {fieldName: funNode}, opt-sourced (a `?.` emission).
+        var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase) { { fieldName, funNode } };
+        var structState = new StateStruct(fields, isFrozen: false, isOpen: true) { IsOptionalSourced = true };
+        var structNode = b.CreateVarType(structState);
+
+        // source ≤ opt(struct{fieldName: (P1..Pn) → R}) — single subtype edge that
+        // Pull/Destruction threads from the source's concrete opt(struct{...}) all the
+        // way to (P1..Pn)→R, sharing field-function nodes with the result.
+        b.SetCallArgument(StateOptional.Of(structNode), sourceNodeId);
+
+        // Each call argᵢ ≤ Pᵢ — call args fit param types (covariant flow at the call site).
+        for (int i = 0; i < callArgIds.Length; i++)
+            b.SetCallArgument(new StateRefTo(paramNodes[i]), callArgIds[i]);
+
+        // Result state = opt(returnNode). The returnNode is shared with funNode's return
+        // slot, so once the source's actual function-typed field resolves through Pull,
+        // returnNode inherits the concrete return type (e.g. I32) and result = opt(I32).
+        // A None source contributes via the standard None ≤ opt(T) rule on the
+        // source-edge — no separate noneNode needed at the result. (Previous LCA-with-None
+        // attempt at the result site created a self-reference V2 ↔ result when V2 was
+        // unresolved, expanding during Destruction into opt(opt(opt(...))) → Any?.)
+        var resultNode = b.GetOrCreateNode(resultNodeId);
+        var resultType = StateOptional.Of(returnNode);
+        resultNode.State = SolvingFunctions.GetMergedStateOrNull(resultNode.State, resultType)
+                           ?? throw TicErrors.CannotSetState(resultNode, resultType);
+    }
+
+    /// <summary>
     /// left ?? right: (opt(U), V) → LCA(U, V)
     /// Unwraps left Optional element U, computes LCA(U, right) as result.
     /// Supports optional right: int? ?? int? → int? (LCA(int, int?) = int?).

@@ -253,7 +253,17 @@ public class PullConstraintsFunctions : IStateFunction {
                         descendantNode.RemoveAncestor(ancestorNode);
                         if (!descendant.HasDescendant
                             || descendant.Descendant != StatePrimitive.None)
+                        {
                             descendantNode.AddAncestor(ancOpt.ElementNode);
+                            // Eagerly propagate descendant's state to the lifted element
+                            // ancestor so it gets the LCA contribution. Without this,
+                            // Pull's single-pass toposort may have already processed
+                            // ancOpt.ElementNode's outgoing edges with empty state — the
+                            // literal's descendant would never reach the LCA target (e.g.,
+                            // `1 ?? 'hello'` would resolve result to arr(Ch) instead of
+                            // LCA(int, text)=Any). MR3Bug1.
+                            StagesExtension.Invoke(this, ancOpt.ElementNode, descendantNode);
+                        }
                     }
                     return true;
                 }

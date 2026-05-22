@@ -2482,11 +2482,14 @@ public class OptionalTypeTest {
     // Incompatible coalesce types — compile error
     // ═══════════════════════════════════════════════════════════════
 
+    // Per Optionals.md L106 and Algebra.md hierarchy axiom, `??` result = LCA(U, V).
+    // For cross-tree types, LCA = Any (consistent with if-else and array LCA).
+    // Previously rejected as FU887 — fixed in MR3Bug1 via TIC eager-lift propagation.
     [Test]
-    public void CoalesceIncompatibleTypes_ShouldError() {
-        Assert.Throws<FunnyParseException>(() =>
-            "a:int? = 42; out = a ?? 'hello'"
-                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    public void CoalesceCrossTreeTypes_WidensToAny() {
+        "a:int? = 42; out = a ?? 'hello'"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("out", 42);
     }
 
     // ═══════════════════════════════════════════════════════════════

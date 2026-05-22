@@ -41,10 +41,11 @@ y:text? = none
 z:bool? = none
 ```
 
-`none` cannot be assigned to a non-optional type
+`none` cannot be assigned to a non-optional type, with one exception: `any` is the top type and accepts every value, including `none`
 
 ```py
 x:int = none  # error. int is not optional
+y:any = none  # ok. any accepts everything (it is the top of the type hierarchy)
 ```
 
 `none` can appear in array literals. The resulting element type becomes optional

@@ -402,6 +402,10 @@ internal static partial class Errors {
     internal static FunnyParseException RightBinaryArgumentIsMissing(ISyntaxNode leftNode, Tok @operator) => new(
         609, $"`{leftNode.ToShortText()} {ToText(@operator)} ???` - Right expression is missed{Nl} Example: {leftNode.ToShortText()} {ToText(@operator)} e", leftNode.Interval.Start, @operator.Finish);
 
+    internal static FunnyParseException SafeArrayAccessOpenBracketMissed(ISyntaxNode leftNode, Tok question) => new(
+        612, $"`{leftNode.ToShortText()} ? ???` - Trailing `?`: expected `[index]` for safe array access, `.field` for safe field access, or `?` for null-coalesce{Nl} Example: {leftNode.ToShortText()}?[0]",
+        leftNode.Interval.Start, question.Finish);
+
     #endregion
 
 }

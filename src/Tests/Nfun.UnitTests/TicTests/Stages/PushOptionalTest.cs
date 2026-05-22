@@ -1,5 +1,6 @@
 namespace NFun.UnitTests.TicTests.Stages;
 
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
@@ -138,31 +139,61 @@ public class PushOptionalTest {
     }
 
     [Test]
-    public void Push_Optional_ConstraintsWithUnsolvedStructDesc_WrapsInOptional() {
-        // opt(struct{a:C[]}) → C[struct{a:C[I32..]}..]
-        // Map+?.a scenario: lambda param has unsolved struct desc from generic T
-        // and opt(struct) ancestor from safe field access.
-        // Only unsolved structs are wrapped (solved ones come from literals).
+    public void Push_Optional_ConstraintsWithOpenStructDesc_WrapsInOptional() {
+        // opt(struct{a:C[]}) ← C[OPEN-struct{a:C[I32..]}..]
+        // Map+?.a-in-lambda-body scenario: the lambda parameter inherits an OPEN struct desc
+        // from a downstream `?.field` (row-poly source). The opt-ancestor enters via the
+        // safe-access setup. Open-struct descendants ARE wrapped — the row-polymorphic
+        // identity merges with the Optional layer.
+        var openStructDesc = new StateStruct(
+            new Dictionary<string, TicNode> { { "a", TicNode.CreateInvisibleNode(Constrains(I32)) } },
+            isFrozen: false,
+            isOpen: true);
         var ancOpt = StateOptional.Of(Struct("a", ConstraintsState.Empty));
         var ancNode = Node("anc", ancOpt);
-        var desc = ConstraintsState.Of(Struct("a", Constrains(I32)));
+        var desc = ConstraintsState.Of(openStructDesc);
         var descNode = Node("desc", desc);
         descNode.AddAncestor(ancNode);
 
-        Assert.IsFalse(((StateStruct)desc.Descendant).IsSolved, "struct desc should NOT be solved");
+        Assert.IsTrue(((StateStruct)desc.Descendant).IsOpen, "struct desc should be OPEN");
 
         var result = Push.Apply(ancOpt, desc, ancNode, descNode);
 
         Assert.IsTrue(result);
         Assert.IsInstanceOf<StateOptional>(descNode.State,
-            $"Descendant with unsolved struct desc and Optional ancestor should be wrapped in Optional, got {descNode.State.GetType().Name}: {descNode.State}");
+            $"Descendant with OPEN struct desc and Optional ancestor should be wrapped in Optional, got {descNode.State.GetType().Name}: {descNode.State}");
+    }
+
+    [Test]
+    public void Push_Optional_ConstraintsWithClosedStructDesc_DoesNotWrap() {
+        // opt(struct{a:C[]}) ← C[CLOSED-struct{a:C[I32..]}..]
+        // MR5Bug5 case: `a = {b=1}; y = a?.b` — `a` binds to a closed-literal struct.
+        // Even though field types are still constraint-state (NOT IsSolved), the struct
+        // itself is closed → came from a concrete literal → must use implicit lift.
+        // Wrapping would silently widen the user-declared `a` to opt(struct), then infect
+        // subsequent regular `.field` access on `a` with type mismatch.
+        var ancOpt = StateOptional.Of(Struct("a", ConstraintsState.Empty));
+        var ancNode = Node("anc", ancOpt);
+        // Struct(...) helper creates a CLOSED struct (IsOpen=false default).
+        var desc = ConstraintsState.Of(Struct("a", Constrains(I32)));
+        var descNode = Node("desc", desc);
+        descNode.AddAncestor(ancNode);
+
+        Assert.IsFalse(((StateStruct)desc.Descendant).IsOpen, "struct desc should be CLOSED");
+        Assert.IsFalse(((StateStruct)desc.Descendant).IsSolved, "struct desc has unsolved fields");
+
+        var result = Push.Apply(ancOpt, desc, ancNode, descNode);
+
+        Assert.IsTrue(result);
+        Assert.IsNotInstanceOf<StateOptional>(descNode.State,
+            $"Closed struct desc must NOT be wrapped in Optional even when unsolved — implicit lift instead (MR5Bug5)");
     }
 
     [Test]
     public void Push_Optional_ConstraintsWithSolvedStructDesc_DoesNotWrap() {
-        // opt(struct{a:I32}) → C[struct{a:I32}..]  where struct has solved fields
-        // This is the x?.name case on a non-optional struct literal.
-        // Solved structs should NOT be wrapped — they come from concrete values.
+        // opt(struct{a:I32}) ← C[struct{a:I32}..]  where struct has solved fields
+        // This is the x?.name case on a non-optional struct literal — solved structs are
+        // always closed in practice. Implicit lift, not wrap.
         var ancOpt = StateOptional.Of(Struct("a", I32));
         var ancNode = Node("anc", ancOpt);
         var desc = ConstraintsState.Of(Struct("a", I32));
