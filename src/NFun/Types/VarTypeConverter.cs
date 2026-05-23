@@ -102,6 +102,14 @@ public static class VarTypeConverter {
 
         if (from.BaseType == BaseFunnyType.Char)
             return typeBehaviour.GetFromCharToNumberConverterOrNull(to.BaseType);
+        // real → integer per spec §1.1: truncate (toward zero), not banker's round.
+        // GetRealToIntConverterOrNull returns null for non-integer targets; we fall
+        // through to the general numeric converter (which handles real → real etc.).
+        if (from.BaseType == BaseFunnyType.Real)
+        {
+            var realToInt = TypeBehaviour.GetRealToIntConverterOrNull(to.BaseType);
+            if (realToInt != null) return realToInt;
+        }
         if (from.IsNumeric())
             return  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
         if (from.BaseType != to.BaseType)

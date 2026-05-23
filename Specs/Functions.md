@@ -47,53 +47,121 @@ Most functions may be applied for different types of operands. To simplify the d
 | abs(T):T       | Signed, `real` | the absolute value                                                                                                                         |
 | min(T,T):T     | Comparables    | first or second argument, whichever is smaller. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned |
 | max(T,T):T     | Comparables    | first or second argument, whichever is bigger. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned  |
-| convert(TA):TR | ----           | Converts argument of type TA to type TR if it is possible. For more information, see the conversion table                                  |
+| convert(TA):TR | ----           | Converts an argument of type `TA` to type `TR`. See the conversion specification below.                                  |
 
-### Convertion tables for `convert` function
+### `convert` specification
 
-#### Useless converions
+Every conversion `convert(value):T` is classified into one of five **classes** by the pair (source type, target type). The class determines static and runtime behavior:
 
-| Argument type | Result Type                | Description                                                                  |
-|---------------|----------------------------|------------------------------------------------------------------------------|
-| All           | Same type as argument type | Do nothing. Returns argument                                                 |
-| All           | Argument type descendant   | Returns converted argument. Equals to `result:TR = argument`                 |
-| All           | `text`                     | Returns text representation of an argument. Equals to `toText` function call |
+| Class | Symbol | Static (compile time) | Runtime |
+|-------|--------|-----------------------|---------|
+| Implicit | **I** | accepted | no-op (already free via subtyping) |
+| Total    | **✓** | accepted | always succeeds |
+| Lossy    | **⚠** | accepted | always succeeds; data silently lost (truncation, precision) |
+| Soft     | **🪂** | accepted | `convert(x):T` throws `Oops` on failure; `convert(x):T?` returns `none` on the same failure |
+| None     | **✗** | **compile error** (`FU`); `:T?` does NOT rescue | — |
 
-#### Serialization (Result type is `byte[]`)
-| Argument type | Returns                                                                                 |
-|---------------|-----------------------------------------------------------------------------------------|
-| `char`        | array with 2 elements - [lo,hi] bytes of unicode representation                         |
-| `byte`        | array with single element (given argument)                                              |
-| `bool`        | array with single element wich is `1` if argument is `true`, `0` if argument is `false` |
-| Integers      | array with N elements from Little-endian encoding                                       |
-| `real`        | array with 8 elements from Little-endian double floating number encoding                |
-| `text`        | Encodes a set of characters from the specified text with Unicode encoding               |
-| `char`        | Encodes single characters with Unicode encoding                                         |
-| `ip`          | Encodes ip address as sequence of bytes                                                 |
+The `?` on a target type **only** affects 🪂 conversions: it replaces the runtime throw with `none`. It does not create morphisms, so ✗ conversions stay rejected even with `:T?`.
 
-#### Serialization (Result type is `byte[]`)
-Same as Serialization to `byte[]`, but returns bit array
+#### Primitive matrix
 
-#### Deserialization (Argument type is `byte[]`)
+Rows = source. Columns = target. (Aliases: `byte ≡ uint8`, `int ≡ int32`, `uint ≡ uint32`, `text ≡ char[]`.)
 
-| Result type | Returns                                                                                                               |
-|-------------|-----------------------------------------------------------------------------------------------------------------------|
-| `Character` | if array size is 1, returns ascii decoded symbol. If array size is 2 returns Unicode encoded symbol. throws otherwise |
-| `bool`      | `false` if arguments first element is `0`, `true` if arguments first element is `1`                                   |
-| Integers    | Decodes integer number from litle endian array                                                                        |
-| `real`      | Decodes real double float number from litle endian array                                                              |
-| `text`      | Decodes input Unicode sequence of bytes into text                                                                     |
-| `char`      | Decodes single characters with Unicode encoding                                                                       |
-| `ip`        | Decodes ip address                                                                                                    |
+| from\to    | u8 | u16 | u32 | u64 | i16 | i32 | i64 | real | bool | char | text | ip |
+|------------|----|-----|-----|-----|-----|-----|-----|------|------|------|------|----|
+| **u8**     | I  | I   | I   | I   | I   | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
+| **u16**    | 🪂 | I   | I   | I   | 🪂  | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
+| **u32**    | 🪂 | 🪂  | I   | I   | 🪂  | 🪂  | I   | I    | ✓    | 🪂   | ✓    | ✓  |
+| **u64**    | 🪂 | 🪂  | 🪂  | I   | 🪂  | 🪂  | 🪂  | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
+| **i16**    | 🪂 | 🪂  | 🪂  | 🪂  | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
+| **i32**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | I   | I   | I    | ✓    | 🪂   | ✓    | 🪂 |
+| **i64**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | I   | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
+| **real**   | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | I    | ✓    | 🪂   | ✓    | ✗  |
+| **bool**   | ✓  | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓    | I    | ✗    | ✓    | ✗  |
+| **char**   | 🪂 | ✓   | ✓   | ✓   | 🪂  | ✓   | ✓   | ✓    | ✗    | I    | ✓    | ✗  |
+| **text**   | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | I    | 🪂 |
+| **ip**     | ✗  | ✗   | ✓   | I   | ✗   | **✗**| ✓  | ✗    | ✗    | ✗    | ✓    | I  |
+| **any**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | ✓    | 🪂 |
 
-#### Parsing (Argument type is `text`)
+Reading the cells:
+- **Widening** within the numeric subtype lattice (`u8 ≤ u16 ≤ u32 ≤ u64`, `u8 ≤ i16 ≤ i32 ≤ i64`, `u16 ≤ i32 ≤ i64`, `u32 ≤ i64`, any-numeric `≤ real`) → **I**.
+- **Narrowing** → **🪂** (throws on overflow; `:T?` gives `none`).
+- **`real → integer`** → **⚠🪂** — fractional part silently truncated (`1.5 → 1`); throws/`none` on overflow.
+- **`u64 → real`, `i64 → real`** → **⚠** — silent precision loss above 2⁵³.
+- **`bool ↔ numeric`** is **C-style**: `false ↔ 0`, `true ↔ 1` (back-direction); `int → bool`: `0 → false`, any non-zero → `true`. `real → bool`: `0.0/±0.0/NaN → false`, finite non-zero → `true`. All total.
+- **`char ↔ numeric`**: `char` is a UTF-16 code unit. `char → u16+/i32+/real` is **✓**; `char → u8/i16` is **🪂** (overflow). `u8/u16 → char` is **✓** (every u8/u16 is a valid code unit, including surrogates). Wider integer or signed → `char` is **🪂**.
+- **`bool ↔ char`** → **✗** (no canonical mapping).
+- **`X → text`** is **✓** universally (equivalent to `toText(X)`).
+- **`text → X`** (X ≠ text) is **🪂** (parse; `int.Parse(invariant)`, `bool` accepts `"true"`/`"false"`/`"1"`/`"0"` case-insensitive, `ip` via `IPAddress.Parse`, `char` only if `len == 1`).
+- **`ip ↔ integer`**: only into types preserving the non-negative natural representation. `ip → u32` ✓ (exact), `ip → u64/i64` ✓/I (widening), **`ip → i32` ✗** (compile error — would produce negative for high IPs; use `:uint` or `:long`). `ip → u8/u16/i16/real` ✗. Reverse: `u32 → ip` ✓, `u64/i32/i64 → ip` 🪂 (must fit `[0, 2³²-1]`), narrower or non-integer → ✗.
+- **`X → any`** is **I**; **`any → X`** (X ≠ text, ≠ any) is **🪂** (runtime tag dispatch).
 
-| Result type | Returns                                                                                             |
-|-------------|-----------------------------------------------------------------------------------------------------|
-| `bool`      | `true` if text equals 'true' or '1', `false` if text equals 'false' or '0'. Raises `Oops` otherwise |
-| Integers    | Parse integer number. Raises `Oops` otherwise if it is impossible                                   |
-| `real`      | Parse real number with invarant culture. Raises `Oops` otherwise if it is impossible                |
-| `ip`        | Parse Ip. Raises `Oops` otherwise if it is impossible                                               |
+#### Composite rules
+
+| Pair | Class |
+|---|---|
+| `T → T` (same type) | **I** |
+| `T → any` | **I** |
+| `T → text` | **✓** (= `toText(T)`) |
+| `T[] → U[]` | class of `T → U`, lifted element-wise. For 🪂: `:U[]` throws on first failing element, `:U?[]` returns `[some/none/...]`. |
+| `S{f₁:A₁, …} → T{f₁:B₁, …, fₙ:Bₙ}` | each target field `fᵢ` must exist on source; class is the worst (per ordering ✗ > 🪂 > ⚠ > ✓ > I) of `class(Aᵢ → Bᵢ)` |
+| Target field missing on source | **✗** |
+| `struct ↔ primitive`, `primitive ↔ struct` | **✗** |
+| `opt(A) → opt(B)` | class of `A → B` (applied through wrapper, `none` preserved) |
+| `opt(A) → B` (non-opt target) | **🪂** (throws/none if source is `none`) |
+| `A → opt(B)` | class of `A → B`, result lifted into `opt` |
+| `opt(A) → text/any` | inherits `✓` / `I` |
+| `opt(A) → byte[]` | **✗** (no canonical byte representation for `none`) |
+
+#### Serialization (`X → byte[]` and `byte[] → X`)
+
+`byte[]` is treated as a target/source like any other composite — classes apply per the matrix:
+
+| Pair | Class | Encoding |
+|---|---|---|
+| `text → byte[]` | **✓** | UTF-16 LE |
+| `byte[] → text` | **✓** | UTF-16 LE decode (invalid bytes → replacement char) |
+| numeric → `byte[]` | **✓** | little-endian, native width (u8=1, u16=2, u32=4, u64=8, i16=2, i32=4, i64=8, real=8) |
+| `byte[] → numeric` | **🪂** | requires exact length match for the target width |
+| `bool → byte[]` | **✓** | `[1]` / `[0]` |
+| `byte[] → bool` | **🪂** | length 1, value 0 or 1 |
+| `char → byte[]` | **✓** | 2 bytes UTF-16 LE |
+| `byte[] → char` | **🪂** | length 1 (ASCII) or 2 (UTF-16) |
+| `ip → byte[]` | **✓** | 4 bytes network order |
+| `byte[] → ip` | **🪂** | length 4 |
+| `T[] → byte[]` (non-byte T) | **✗** | use `arr.flat(map(...))` |
+| `struct/opt → byte[]` | **✗** | use `toJson` or similar |
+
+Conversion to bit array `bool[]` follows the same matrix as `byte[]` with bytes split into bits.
+
+#### Failure mode summary
+
+```
+convert(x):T          — runtime: throws Oops on 🪂 failure; compile error on ✗
+convert(x):T?         — runtime: returns none on 🪂 failure; compile error on ✗
+convert(x:opt(S)):T   — runtime: throws on none; compile error on ✗
+convert(x:opt(S)):T?  — runtime: none stays none; compile error on ✗
+convert(x!):T         — force-unwrap source first; then per (S, T) class
+```
+
+#### Implementation status
+
+The matrix above is the **specified** behavior. The current runtime implements
+all primitive ↔ primitive cells, plus `opt(A)` source/target propagation,
+`any → T` runtime tag dispatch, and `byte[]` (de)serialization (strict-length).
+
+**Not yet implemented** — falls back to a compile-time `FU887` reject:
+
+| Pair | Status |
+|---|---|
+| `T[] → U[]` element-wise when neither `T` nor `U` is `byte`/`bool` | deferred (e.g. `text[] → int[]`) |
+| `S{...} → T{...}` width-subtyping field-wise convert via `convert()` | deferred (assignment-level width subtyping at `:T = ...` boundary IS supported per `Specs/Types.md` §Type casting) |
+
+Width subtyping at assignment (`b:{x:int} = {x=1,y=2}`) is unaffected — it
+goes through the type-inference path, not `convert()`. Only the explicit
+`convert(value):T[]` / `convert(value):T{...}` forms are pending. The
+implementation gap is tracked in test cases marked
+`[Ignore("convert-deferred: complex composite conversions")]`.
 
 ## Generic Array Functions
 

@@ -38,6 +38,74 @@ public abstract class TypeBehaviour {
     protected static readonly Func<object, object> ToUInt16 = o => Convert.ToUInt16(o);
     protected static readonly Func<object, object> ToUInt32 = o => Convert.ToUInt32(o);
     protected static readonly Func<object, object> ToUInt64 = o => Convert.ToUInt64(o);
+
+    // real → integer per PRAGMATIC matrix §1.1: silent truncation (toward zero)
+    // — 1.5 → 1, -1.5 → -1, NOT banker's round. Convert.ToInt32(double) does
+    // banker's round (round-half-to-even), which is .NET's outlier — most
+    // languages (C/C++/Java/Go/Python int()/C# cast `(int)x`) truncate. NaN
+    // and out-of-range values throw OverflowException, which SoftFailureConverter
+    // catches as `none` for `:T?` targets.
+    private static long TruncateToInt64(object o) {
+        var d = o is decimal m ? (double)m : (double)o;
+        if (double.IsNaN(d) || double.IsInfinity(d) || d >= 9.2233720368547758E+18 || d < -9.2233720368547758E+18)
+            throw new OverflowException($"real {d} cannot be truncated to int64");
+        return (long)d;
+    }
+    protected static readonly Func<object, object> RealToInt8 = o => {
+        var v = TruncateToInt64(o);
+        if (v < sbyte.MinValue || v > sbyte.MaxValue) throw new OverflowException($"real truncates to {v}, out of int8 range");
+        return (sbyte)v;
+    };
+    protected static readonly Func<object, object> RealToInt16 = o => {
+        var v = TruncateToInt64(o);
+        if (v < short.MinValue || v > short.MaxValue) throw new OverflowException($"real truncates to {v}, out of int16 range");
+        return (short)v;
+    };
+    protected static readonly Func<object, object> RealToInt32 = o => {
+        var v = TruncateToInt64(o);
+        if (v < int.MinValue || v > int.MaxValue) throw new OverflowException($"real truncates to {v}, out of int32 range");
+        return (int)v;
+    };
+    protected static readonly Func<object, object> RealToInt64 = o => TruncateToInt64(o);
+    protected static readonly Func<object, object> RealToUInt8 = o => {
+        var v = TruncateToInt64(o);
+        if (v < 0 || v > byte.MaxValue) throw new OverflowException($"real truncates to {v}, out of uint8 range");
+        return (byte)v;
+    };
+    protected static readonly Func<object, object> RealToUInt16 = o => {
+        var v = TruncateToInt64(o);
+        if (v < 0 || v > ushort.MaxValue) throw new OverflowException($"real truncates to {v}, out of uint16 range");
+        return (ushort)v;
+    };
+    protected static readonly Func<object, object> RealToUInt32 = o => {
+        var v = TruncateToInt64(o);
+        if (v < 0 || v > uint.MaxValue) throw new OverflowException($"real truncates to {v}, out of uint32 range");
+        return (uint)v;
+    };
+    protected static readonly Func<object, object> RealToUInt64 = o => {
+        // uint64 range exceeds int64 — special-case via decimal/double check directly.
+        var d = o is decimal m ? (double)m : (double)o;
+        if (double.IsNaN(d) || double.IsInfinity(d) || d < 0 || d >= 1.8446744073709552E+19)
+            throw new OverflowException($"real {d} out of uint64 range");
+        return (ulong)d;
+    };
+
+    /// <summary>
+    /// Numeric converter selector for real source — uses truncating converters per spec
+    /// (versus banker's-rounding Convert.ToInt32). Returns null if the target is not an
+    /// integer type the caller should fall back to the regular `GetNumericConverterOrNull`.
+    /// </summary>
+    public static Func<object, object> GetRealToIntConverterOrNull(BaseFunnyType to) =>
+        to switch {
+            BaseFunnyType.UInt8  => RealToUInt8,
+            BaseFunnyType.UInt16 => RealToUInt16,
+            BaseFunnyType.UInt32 => RealToUInt32,
+            BaseFunnyType.UInt64 => RealToUInt64,
+            BaseFunnyType.Int16  => RealToInt16,
+            BaseFunnyType.Int32  => RealToInt32,
+            BaseFunnyType.Int64  => RealToInt64,
+            _ => null
+        };
     protected static readonly Func<object, object> ToBool = o => Convert.ToBoolean(o);
     protected static readonly Func<object, object> ToChar = o =>
         o switch {

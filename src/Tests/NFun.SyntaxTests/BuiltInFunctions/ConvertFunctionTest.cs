@@ -100,11 +100,13 @@ public class ConvertFunctionsTest {
     [TestCase("y:int= convert(-1.2)", -1)]
     [TestCase("y:int= convert('1')", 1)]
     [TestCase("y:int= convert('-123')", -123)]
-    [TestCase("x:byte[]=[0x21,0x33,0x12];  y:int= x.convert()", 1_192_737)]
+    // byte[] → integer deserialization is now strict-length per PRAGMATIC matrix §1.6.
+    // Previously short arrays were silently zero-padded via AsByteArray; that masked
+    // the strictness the spec promises. Test cases below use exact widths (4 for int32).
+    // Length mismatch tests live in ConvertSpecMatrixTest.ByteArrayToIntOpt_WrongLength_ReturnsNone.
     [TestCase("x:byte[]=[0x21,0x33,0x12,0x00]; y:int= convert(x)", 1_192_737)]
     [TestCase("x:byte[]=[0x21,0x00,0x00,0x00]; y:int= convert(x)", 0x21)]
     [TestCase("x:byte[]=[0x21,0x00,0x00,0x00]; y:int= convert(x)", 0x21)]
-    [TestCase("x:byte[]=[0x21]; y:int= convert(x)", 0x21)]
     [TestCase("y:real = convert('1')", 1.0)]
     [TestCase("y:real = convert('1.1')", 1.1)]
     [TestCase("y:real = convert('-0.123')", -0.123)]
@@ -250,28 +252,19 @@ public class ConvertFunctionsTest {
         Assert.AreEqual(new decimal(expected), resDec);
     }
 
-    [TestCase("x:real = 97;     out:char = x.convert()", 'a')]
-    [TestCase("x:real = 122;    out:char = x.convert()", 'z')]
-    [TestCase("x:real = 48;     out:char = x.convert()", '0')]
-    [TestCase("x:real = 65;     out:char = x.convert()", 'A')]
-    [TestCase("x:real = 32;     out:char = x.convert()", ' ')]
-    [TestCase("x:real = 1099;   out:char = x.convert()", 'ы')]
-    public void RealToCharConvert(string expr, char expected) {
-        var res = Funny.WithDialect(realClrType: RealClrType.IsDouble).Calc<char>(expr);
-        Assert.AreEqual(expected, res);
-
-        var resDec = Funny.WithDialect(realClrType: RealClrType.IsDecimal).Calc<char>(expr);
-        Assert.AreEqual(expected, resDec);
-    }
+    // real→char is now ✗ per PRAGMATIC matrix §1.3 — see
+    // ConvertSpecMatrixTest.RealToChar_StaticReject. Users must convert via an
+    // integer first: convert(convert(x):int):char. The previous RealToCharConvert
+    // test cases are removed.
 
     [TestCase("out:int64    = 127.3.2.1.convert()", (long)0x0102037f)]
     [TestCase("out:uint64   = 127.3.2.1.convert()", (ulong)0x0102037f)]
-    [TestCase("out:int      = 127.3.2.1.convert()", (int)0x0102037f)]
+    // ip→int32 is now ✗ per PRAGMATIC matrix §1.4 — see ConvertSpecMatrixTest.IpToInt32_StaticReject.
+    // Use :uint or :long instead. The previous test cases that exercised ip→int32 are removed.
     [TestCase("out:uint     = 127.3.2.1.convert()", (uint)0x0102037f)]
     [TestCase("out:int64    = 255.254.253.252.convert()", (long)0xfcfdfeff)]
     [TestCase("out:uint64   = 255.254.253.252.convert()", (ulong)0xfcfdfeff)]
     [TestCase("out:uint     = 255.254.253.252.convert()", (uint)0xfcfdfeff)]
-    [TestCase("out:int      = 255.254.253.252.convert()", (int)-50462977)]
     [TestCase("out:byte[]   = 127.3.2.1.convert()", new byte[] { 127, 3, 2, 1 })]
     [TestCase("out:uint16[] = 127.3.2.1.convert()", new ushort[] { 127, 3, 2, 1 })]
     [TestCase("out:uint32[] = 127.3.2.1.convert()", new uint[] { 127, 3, 2, 1 })]
@@ -293,7 +286,9 @@ public class ConvertFunctionsTest {
     [TestCase("x:uint   = 0x0102037f; out:ip = x.convert()", "127.3.2.1")]
     [TestCase("x:int64  = 0xfcfdfeff; out:ip = x.convert()", "255.254.253.252")]
     [TestCase("x:uint64 = 0xfcfdfeff; out:ip = x.convert()", "255.254.253.252")]
-    [TestCase("x:int    =  -50462977; out:ip = x.convert()", "255.254.253.252")]
+    // Negative i32 → ip is now 🪂 per PRAGMATIC matrix §1.4 (was: raw byte
+    // reinterpret → "255.254.253.252"). See ConvertSpecMatrixTest.Int32NegativeToIp_Throws
+    // and Int32NegativeToIpOpt_ReturnsNone for the new behavior.
     [TestCase("x:uint   = 0xfcfdfeff; out:ip = x.convert()", "255.254.253.252")]
     [TestCase("x:byte[]   = [127,3,2,1]; out:ip = x.convert()", "127.3.2.1")]
     [TestCase("x:uint16[] = [127,3,2,1]; out:ip = x.convert()", "127.3.2.1")]

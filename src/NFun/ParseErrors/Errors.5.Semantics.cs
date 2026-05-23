@@ -167,6 +167,17 @@ internal static partial class Errors {
     internal static FunnyParseException OptionalTypeNotSupported(string varId, Interval interval) =>
         new(885, $"Optional type declaration for '{varId}' requires optional types to be enabled", interval);
 
+    /// <summary>
+    /// Raised when convert() is invoked with a (source, target) pair that has no
+    /// algebraic morphism in the conversion matrix (Specs/Functions.md). The `:T?`
+    /// optional target does NOT rescue these — there is no morphism to be partial in.
+    /// </summary>
+    internal static FunnyParseException ConvertNotSupported(string fromType, string toType, string hint = null) {
+        var msg = $"convert from `{fromType}` to `{toType}` is not supported";
+        if (hint != null) msg += $". {hint}";
+        return new(887, msg, Interval.Empty);
+    }
+
     #endregion
 
     #region named arguments
