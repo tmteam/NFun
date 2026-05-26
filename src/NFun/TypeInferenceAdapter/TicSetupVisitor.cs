@@ -653,6 +653,24 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return originArgNames;
     }
 
+    /// <summary>
+    /// Returns true iff a function with the given name is visible AS A CALL at the
+    /// specified arity — either a built-in / user-defined function in the global
+    /// registry (`_dictionary`) OR a user function currently being defined
+    /// (`_resultsBuilder.UserFunctionSignatures`). The latter store holds in-progress
+    /// signatures so self-recursive call sites can resolve before the function's body
+    /// finishes TIC.
+    ///
+    /// Use this predicate in any dispatch site that decides between "treat `id` as
+    /// a function call" vs "fall through to field-call / hi-order / unknown-name".
+    /// Consulting only `_dictionary.ContainsName` (without `_resultsBuilder`) caused
+    /// MR6Bug1 — a self-recursive `?.foo()` inside `foo`'s body bypassed user-fn
+    /// dispatch because `foo` wasn't yet in the global dict.
+    /// </summary>
+    private bool IsCallableAtArity(string name, int arity) =>
+        _dictionary.GetOrNull(name, arity) != null
+        || _resultsBuilder.GetUserFunctionSignature(name, arity) != null;
+
     public bool Visit(StructFieldAccessSyntaxNode node) {
         if (!node.Source.Accept(this))
             return false;
@@ -926,15 +944,25 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             ids[i] = allArgs[i].OrderNumber;
         ids[^1] = node.OrderNumber;
 
-        // ?.method() on a struct-field-function (no built-in / user fn matches the name):
+        // ?.method() on a struct-field-function (no callable named `Id` at this arity
+        // anywhere — neither global registry nor currently-defining user functions):
         // emit as a single TIC special form so Pull threads opt→struct→fun in one cascade.
         // The legacy three-stage setup (unwrap + field-access + call below) created
         // three disjoint subgraphs that only joined via stale Pull edges — the chain
         // never resolved and the function's concrete return type was lost as Any?.
         // Mirrors SetSafeFieldAccess / SetSafeArrayAccess / SetCoalesce pattern. (MR5Bug7.)
+        //
+        // Function visibility must consult BOTH the global dictionary AND the
+        // in-progress user-function-signatures table — otherwise a self-recursive
+        // `?.foo()` inside `foo`'s body is mis-routed to SetSafeMethodCall (because
+        // `foo` is not yet in the global dict during its own definition), bypassing
+        // user-fn dispatch and crashing at runtime with "key 'foo' not in dict" when
+        // SafePipedCallExpressionNode tries to access `foo` as a struct field. The
+        // unified `IsCallableAtArity` predicate consolidates that visibility check.
+        // (MR6Bug1.)
         if (node is FunCallSyntaxNode { IsSafeAccess: true, IsPipeForward: true } safePipedNode
             && signature == null && allArgs.Length >= 1
-            && !_dictionary.ContainsName(node.Id))
+            && !IsCallableAtArity(node.Id, allArgs.Length))
         {
             var callArgIds = new int[ids.Length - 2]; // exclude source and result
             for (int i = 1; i < ids.Length - 1; i++)

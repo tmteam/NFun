@@ -79,9 +79,14 @@ public class DefaultValueTest {
     public void ConstantCalc(string expression, object expected) =>
         expression.AssertReturns("y", expected);
 
+    // `any ≡ any?` semantically in NFun — any-typed slots can hold none — so
+    // `default` without contextual type information resolves to none, mirroring
+    // the rule for Optional types. Previously the implementation produced a
+    // raw CLR System.Object instance, which was exposed to API consumers as a
+    // useless sentinel. (MR9Bug1.)
     [Test]
     public void DefaultOfAnyConstantTest() =>
-        Assert.IsInstanceOf<object>("default".Calc().Get("out"));
+        Assert.IsNull("default".Calc().Get("out"));
 
     [Test]
     public void ArrayOfIntConstantTest() =>

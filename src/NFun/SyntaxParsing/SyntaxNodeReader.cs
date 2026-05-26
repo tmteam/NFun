@@ -587,6 +587,7 @@ public static class SyntaxNodeReader {
         var begin = flow.CurrentTokenFinishPosition;
 
         var equations = new List<EquationSyntaxNode>();
+        var seenFieldNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         bool hasAnyDelimeter = true;
         flow.SkipNewLines();
 
@@ -600,6 +601,13 @@ public static class SyntaxNodeReader {
 
             if (!flow.MoveIfFieldName(out var idToken))
                 throw Errors.StructFieldIdIsMissed(flow.Current);
+
+            // Reject duplicate field names BEFORE TIC. Without this guard, the
+            // solver receives `{a:?, a:?}` and emits a cryptic FU798 referencing
+            // internal node indices instead of telling the user the field is
+            // duplicated. Case-insensitive — matches struct field lookup. (MR9Bug2.)
+            if (!seenFieldNames.Add(idToken.Value))
+                throw Errors.StructLiteralDuplicateField(idToken.Value, idToken.Interval);
 
             var type = TryReadTypeDef(flow);
             if (type is not TypeSyntax.EmptyType)

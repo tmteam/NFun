@@ -51,13 +51,25 @@ internal static class NarrowingAnalyzer {
             var set = new HashSet<string> { varName };
             return isEqual ? new Result(Empty, set) : new Result(set, Empty);
         }
-        // x == true / x == false / x != true / x != false → x is non-none (bool? → bool)
-        // Because none != true and none != false, comparing with a bool literal proves non-none.
+        // Compared to a bool literal — soundness rule:
+        //
+        //   `flag == true` is true ONLY when flag = true     → then-branch narrows
+        //   `flag == true` is false when flag ∈ {false,none} → else does NOT narrow
+        //   `flag != true` is true when flag ∈ {false,none}  → then does NOT narrow
+        //   `flag != true` is false ONLY when flag = true    → else-branch narrows
+        // (same for `== false` / `!= false`).
+        //
+        // Previously: returned Result(set, set), claiming both branches prove
+        // not-`none` because "none != true and none != false". That's wrong —
+        // `flag == true` being false doesn't tell you flag is not none, it
+        // tells you flag is not `true` (the literal). flag could still be
+        // none. The bug let `y = if(flag == true) flag else flag` infer
+        // `y:bool`, but at runtime the else delivered `none` → cast crash.
+        // (MR8Bug2.)
         varName = GetVariableIfOtherIsBoolLiteral(left, right);
         if (varName != null) {
             var set = new HashSet<string> { varName };
-            // Both == and != with a bool literal prove the variable is non-none
-            return new Result(set, set);
+            return isEqual ? new Result(set, Empty) : new Result(Empty, set);
         }
         return Result.None;
     }

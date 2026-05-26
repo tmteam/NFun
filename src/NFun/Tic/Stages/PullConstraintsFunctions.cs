@@ -111,18 +111,58 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor is StateOptional opt)
         {
-            descendantNode.RemoveAncestor(ancestorNode);
-            if (descendant.Name != PrimitiveTypeName.None)
+            if (descendant.Name == PrimitiveTypeName.None)
             {
-                descendantNode.AddAncestor(opt.ElementNode);
+                // None ≤ Opt(T) — None doesn't propagate to the element; the IsOptional
+                // flag is set by Apply(CS,None) elsewhere when None reaches a CS-typed
+                // result. Just remove the opt-edge.
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
             }
+            LiftDescendantToOptionalElement(opt, ancestorNode, descendantNode);
             return true;
         }
         return false;
     }
 
+    /// <summary>
+    /// Lifts a non-None descendant from `Opt(T)` ancestor down to the element node `T`.
+    /// Implements the implicit-lift rule `T ≤ Opt(T)` materialisation: when a descendant
+    /// edge `desc → Opt(T)` is processed during Pull, rewire it to `desc → T` so the
+    /// descendant's state flows into the element, and EAGERLY propagate state — Pull is
+    /// single-pass over toposort and won't revisit the rewired ancestor's outgoing edges.
+    ///
+    /// Used at both primitive-descendant (`Apply(ICompositeState, StatePrimitive)`) and
+    /// CS-descendant (`Apply(CS, ICompositeState)` for descendants resolving to primitive)
+    /// sites. Without the eager propagation, `true ?? 1.5` would resolve to `Real = true`
+    /// (Bool never reaches the LCA target — MR6Bug3 family) and `1 ?? 'hello'` would
+    /// resolve to `arr(Ch) = 1` (MR3Bug1, originally).
+    ///
+    /// WORKAROUND-of-debt: the rewire+propagate pattern violates Pull's single-pass
+    /// toposort invariant — new edges should not appear AFTER toposort fixes node order.
+    /// The principled fix is a worklist Pull that re-fires propagation on rewires
+    /// automatically. Tracked in Specs/Tic/TicTechnicalDebt.md. For now, both call
+    /// sites use THIS helper to ensure the eager-propagation step cannot be forgotten.
+    /// </summary>
+    private void LiftDescendantToOptionalElement(StateOptional opt, TicNode ancestorNode, TicNode descendantNode) {
+        descendantNode.RemoveAncestor(ancestorNode);
+        descendantNode.AddAncestor(opt.ElementNode);
+        StagesExtension.Invoke(this, opt.ElementNode, descendantNode);
+    }
+
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Symmetric to Apply(CS, StateOptional) below: an IsOptional CS descendant
+        // logically represents opt(desc_inner). Per Pull's documented invariant
+        // (StagesExtension.cs lines 40-62) `opt(T) ≤ T` is rejected — a bare
+        // composite ancestor cannot accept it. Without this guard, the per-shape
+        // cases below TransformToArray/Fun/Struct strip the IsOptional flag
+        // silently and the chain `arr?.method()[idx]` compiles into an unsound
+        // bare-index that crashes at runtime when the source is none. The
+        // StateOptional ancestor case below handles IsOptional descendants
+        // correctly via TransformToOptionalOrNull. (MR7Bug3.)
+        if (descendant.IsOptional && ancestor is not StateOptional)
+            return false;
         switch (ancestor)
         {
             case StateArray ancArray:
@@ -182,6 +222,15 @@ public class PullConstraintsFunctions : IStateFunction {
                     result = merged;
                 }
                 descendantNode.State = result;
+                // Field-identity unification for shared fields whose snapshot side
+                // is a solved primitive and ancestor side is an empty CS placeholder
+                // (typical SetFieldAccess setup). Without this step, the field-access
+                // result node stays disconnected from the source's concrete primitive
+                // and the cascade through `+`/arithmetic picks the wrong type at
+                // Destruction. Safe-merge predicate lives in
+                // <see cref="SolvingFunctions.UnifyStructFieldIdentities"/> — see
+                // its doc for the algebraic justification.
+                SolvingFunctions.UnifyStructFieldIdentities(result.Fields, ancStruct);
                 // Width propagation: descendant struct may have more fields than
                 // ancestor (e.g., generic T constrained to {a} via SetFieldAccess,
                 // but input provides {a,b}). Add extra fields to non-frozen ancestor
@@ -250,19 +299,18 @@ public class PullConstraintsFunctions : IStateFunction {
                     // Only redirect to element for primitive/empty constraints.
                     if (!descendant.HasDescendant || descendant.Descendant is StatePrimitive)
                     {
-                        descendantNode.RemoveAncestor(ancestorNode);
                         if (!descendant.HasDescendant
                             || descendant.Descendant != StatePrimitive.None)
                         {
-                            descendantNode.AddAncestor(ancOpt.ElementNode);
-                            // Eagerly propagate descendant's state to the lifted element
-                            // ancestor so it gets the LCA contribution. Without this,
-                            // Pull's single-pass toposort may have already processed
-                            // ancOpt.ElementNode's outgoing edges with empty state — the
-                            // literal's descendant would never reach the LCA target (e.g.,
-                            // `1 ?? 'hello'` would resolve result to arr(Ch) instead of
-                            // LCA(int, text)=Any). MR3Bug1.
-                            StagesExtension.Invoke(this, ancOpt.ElementNode, descendantNode);
+                            // Non-None descendant: shared rewire+propagate helper
+                            // (originally MR3Bug1's fix; now also fixes MR6Bug3).
+                            LiftDescendantToOptionalElement(ancOpt, ancestorNode, descendantNode);
+                        }
+                        else
+                        {
+                            // None descendant: detach edge, no propagation needed
+                            // (IsOptional is materialized elsewhere via Apply(CS,None)).
+                            descendantNode.RemoveAncestor(ancestorNode);
                         }
                     }
                     return true;

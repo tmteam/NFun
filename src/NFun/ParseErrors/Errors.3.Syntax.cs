@@ -242,6 +242,9 @@ internal static partial class Errors {
     internal static FunnyParseException StructFieldDelimiterIsMissed(Interval interval) => new(
         501, "There is no separator between the fields of structures. Use ',' or new line to separate fields", interval);
 
+    internal static FunnyParseException StructLiteralDuplicateField(string fieldName, Interval interval) => new(
+        502, $"Duplicate field '{fieldName}' in struct literal", interval);
+
     internal static FunnyParseException StructFieldIdIsMissed(Tok tok) => new(
         504, $"`{ToText(tok)}` found instead of the structure field name", tok.Interval);
 

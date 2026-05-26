@@ -24,6 +24,18 @@ public class ConvertFunction : GenericFunctionBase {
         var from = concreteTypes[1];
         var to = concreteTypes[0];
 
+        // Compile-time hard-reject diagnostics with directional hints. Matrix
+        // ✗ cells stay rejected and `:T?` does NOT rescue them. The inner
+        // helper (TryBuildConverterFn) is strictly Try-shaped; emitting the
+        // hint at this layer keeps the runtime any-dispatcher path free of
+        // parse-time exceptions. Unwrap opt for the check — `:T?` annotation
+        // must not silently lift a hard reject.
+        var fromCore = from.BaseType == BaseFunnyType.Optional
+            ? from.OptionalTypeSpecification.ElementType : from;
+        var toCore = to.BaseType == BaseFunnyType.Optional
+            ? to.OptionalTypeSpecification.ElementType : to;
+        ThrowIfHardReject(fromCore, toCore);
+
         // PRAGMATIC matrix §2.3: opt(A) source propagates through the wrapper.
         //   opt(A) → opt(B): apply class(A → B); none preserved
         //   opt(A) → B:      always 🪂 — throws on none, otherwise apply (A → B)
@@ -136,34 +148,46 @@ public class ConvertFunction : GenericFunctionBase {
     }
 
     /// <summary>
-    /// Resolves the raw conversion delegate for a (from → to) pair, or null if no
-    /// morphism exists. Both `to` and `from` are non-opt at this point — opt handling
-    /// is done by the caller. Centralised so the opt-target branch can build the
-    /// inner converter without duplicating the whole dispatch chain.
+    /// Hard-reject pairs per the PRAGMATIC matrix. Compile-time hints emitted
+    /// from <see cref="ThrowIfHardReject"/>; runtime any-dispatcher path just
+    /// sees no morphism.
     /// </summary>
-    private static Func<object, object> TryBuildConverterFn(
-        FunnyType from, FunnyType to, IFunctionSelectorContext context) {
+    private static bool IsHardReject(FunnyType from, FunnyType to) =>
+        // §1.4: ip → i32 ✗ — would yield negative for high IPs.
+        (from == FunnyType.Ip && to == FunnyType.Int32) ||
+        // §1.3: real → char ✗ — a real is not a codepoint.
+        (from == FunnyType.Real && to == FunnyType.Char);
 
-        // PRAGMATIC matrix §1.4 explicit reject with helpful hint: ip → i32 is ✗
-        // because it would produce negative values for high IPs (loses non-negative
-        // natural identity of an IPv4). The matrix has ip → u32 (natural) ✓ and
-        // ip → i64 (widening) ✓ as supported alternatives. The :T? annotation does
-        // NOT rescue ✗ cells — this reject fires regardless of opt-target.
+    /// <summary>
+    /// Compile-time hard-reject diagnostic with a directional hint. Called
+    /// from <see cref="CreateConcrete"/> before <see cref="TryBuildConverterFn"/>
+    /// so the user gets `:uint`/`:long`/intermediate-step suggestions instead
+    /// of a generic FU887.
+    /// </summary>
+    private static void ThrowIfHardReject(FunnyType from, FunnyType to) {
         if (from == FunnyType.Ip && to == FunnyType.Int32)
             throw Errors.ConvertNotSupported(
                 from.ToString(), to.ToString(),
                 "Use :uint (natural) or :long (widening) instead — :int would lose the non-negative property for high IPs.");
-
-        // PRAGMATIC matrix §1.3: real → char is ✗. A real value is not a codepoint;
-        // the meaningful path is real → integer → char, and the user should write
-        // that composition explicitly so the intermediate truncation is visible.
-        // Otherwise `VarTypeConverter` silently routes real→char via Convert.ToChar
-        // (which throws on overflow but succeeds for 65.0 → 'A', hiding the round-
-        // tripping that the explicit intermediate step would surface).
         if (from == FunnyType.Real && to == FunnyType.Char)
             throw Errors.ConvertNotSupported(
                 from.ToString(), to.ToString(),
                 "A real value is not a codepoint. Convert via an integer first, e.g. `convert(convert(x):int):char`.");
+    }
+
+    /// <summary>
+    /// Resolves the raw conversion delegate for a (from → to) pair, or null if no
+    /// morphism exists. Both `to` and `from` are non-opt at this point — opt handling
+    /// is done by the caller. Strictly Try-shaped: never throws.
+    /// </summary>
+    private static Func<object, object> TryBuildConverterFn(
+        FunnyType from, FunnyType to, IFunctionSelectorContext context) {
+
+        // Hard rejects (ip→i32, real→char) handled by ThrowIfHardReject at the
+        // compile-time call site; here they fall through to `return null` like
+        // any other "no morphism" pair.
+        if (IsHardReject(from, to))
+            return null;
 
         if (to == FunnyType.Any || from == to)
             return o => o;
@@ -244,36 +268,25 @@ public class ConvertFunction : GenericFunctionBase {
     /// Builds a runtime dispatcher for `convert(x:any):T`. At each call, looks at
     /// the actual CLR type of the value, maps it to a FunnyType, and applies the
     /// regular (actualSourceType → T) converter resolved via TryBuildConverterFn.
-    /// Throws FunnyRuntimeException if no morphism exists for the actual runtime
-    /// type. SoftFailureConverter (if wrapping) catches and yields `none`.
+    /// On no-morphism, throws ArgumentException — wrapped to FunnyRuntimeException
+    /// by ConcreteConverter for `:T` targets, caught by SoftFailureConverter for
+    /// `:T?` targets and yielding `none`.
     /// </summary>
     private static Func<object, object> BuildAnyDispatcher(FunnyType to, IFunctionSelectorContext context) =>
         value => {
             if (value is FunnyNone)
-                throw new FunnyRuntimeException($"Cannot convert `none` held in any to non-optional `{to}`");
+                throw new ArgumentException(
+                    $"Cannot convert `none` held in any to non-optional `{to}`");
             var actualFrom = InferFunnyTypeFromValueOrEmpty(value);
-            // Unknown CLR type — no morphism. Throw at runtime; SoftFailureConverter
-            // (for :T? targets) catches and yields `none`.
             if (actualFrom.Equals(FunnyType.Empty))
-                throw new FunnyRuntimeException(
+                throw new ArgumentException(
                     $"any holds {value?.GetType().Name ?? "null"}, no convert to {to} exists");
             // Same identity / lift fast-paths as the main CreateConcrete logic.
             if (actualFrom == to)
                 return value;
-            Func<object, object> fn;
-            try
-            {
-                fn = TryBuildConverterFn(actualFrom, to, context);
-            }
-            catch (Exceptions.FunnyParseException)
-            {
-                // ✗ at runtime: the actual source type has no morphism to T.
-                // (TryBuildConverterFn throws FU887 for some hard rejects like ip→i32.)
-                throw new FunnyRuntimeException(
-                    $"any holds {actualFrom}, no convert to {to} exists");
-            }
+            var fn = TryBuildConverterFn(actualFrom, to, context);
             if (fn == null)
-                throw new FunnyRuntimeException(
+                throw new ArgumentException(
                     $"any holds {actualFrom}, no convert to {to} exists");
             return fn(value);
         };
@@ -549,6 +562,16 @@ public class ConvertFunction : GenericFunctionBase {
                 if (string.Equals(str, "0", StringComparison.Ordinal)) return false;
                 throw new FormatException($"Cannot convert '{str}' to bool");
             },
+            // PRAGMATIC matrix §1.6: text → char is 🪂. Accept only single-character
+            // text; otherwise throw ArgumentException — SoftFailureConverter rescues
+            // it to `none` for `:char?` and ConcreteConverter rewraps as
+            // FunnyRuntimeException for `:char`.
+            BaseFunnyType.Char => o => {
+                var str = ((IFunnyArray)o).ToText();
+                if (str.Length == 1) return str[0];
+                throw new ArgumentException(
+                    $"Cannot convert text '{str}' to char: length must be exactly 1, got {str.Length}");
+            },
             BaseFunnyType.UInt8 =>  o => byte.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.UInt16 => o => ushort.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.UInt32 => o => UInt32.Parse(((IFunnyArray)o).ToText()),
@@ -624,17 +647,16 @@ public class ConvertFunction : GenericFunctionBase {
 
     /// <summary>
     /// PRAGMATIC matrix §3: when the user writes `:T?`, soft runtime failures
-    /// (parse, overflow, encoding shape mismatch) translate to `none` instead of
-    /// throwing. Hard failures (OOM, stack overflow, internal bugs) still
-    /// propagate — those are not recoverable.
+    /// (parse, overflow, shape mismatch) translate to `none` instead of throwing.
+    /// Hard failures (OOM, stack overflow, internal NFun bugs surfacing as
+    /// FunnyRuntimeException) still propagate — those are not recoverable.
     ///
-    /// "Soft" exceptions caught here:
+    /// "Soft" exceptions caught here (closed set — all converter throw-sites
+    /// route soft failures through one of these typed exceptions at the source):
     ///   • FormatException — text parsing failures (int.Parse, IPAddress.Parse, …)
     ///   • OverflowException — numeric narrowing, char codepoint overflow
-    ///   • ArgumentException / ArgumentOutOfRangeException — bad input shape
-    ///     (wrong-length byte[] for fixed-width primitive, etc.)
-    ///   • FunnyRuntimeException — converters that raise this directly for
-    ///     soft-classifiable causes (AsByteArray length checks).
+    ///   • ArgumentException / ArgumentOutOfRangeException — shape mismatch
+    ///     (wrong-length byte[], char-length, any-dispatcher no-morphism, …)
     /// </summary>
     private class SoftFailureConverter : FunctionWithSingleArg {
         private readonly Func<object, object> _converter;
@@ -649,27 +671,13 @@ public class ConvertFunction : GenericFunctionBase {
             {
                 return _converter(a);
             }
-            catch (FormatException) { return null; }
-            catch (OverflowException) { return null; }
-            catch (ArgumentException) { return null; }
-            catch (FunnyRuntimeException) { return null; }
+            // Return FunnyNone.Instance (the runtime `none` value), NOT CLR null —
+            // composite opt targets (T[]?, opt struct fields) read through deref
+            // paths that crash with NRE on null. (MR8Bug1.)
+            catch (FormatException) { return FunnyNone.Instance; }
+            catch (OverflowException) { return FunnyNone.Instance; }
+            catch (ArgumentException) { return FunnyNone.Instance; }
         }
     }
 
-    /// <summary>Converts an array to a 4-byte array for IP address construction.</summary>
-    private static byte[] AsByteArray(object array) {
-        var val = (IFunnyArray)array;
-        try
-        {
-            return val.Count switch {
-                > 4 => throw new FunnyRuntimeException("Array is too long"),
-                4 => val.SelectToArray(val.Count, Convert.ToByte),
-                _ => val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray()
-            };
-        }
-        catch (Exception e)
-        {
-            throw new FunnyRuntimeException($"Array '{val}' cannot be converted into int", e);
-        }
-    }
 }

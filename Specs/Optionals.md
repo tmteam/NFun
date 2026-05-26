@@ -262,14 +262,21 @@ y = if(x != none) x else none     # then:int, else:none → int?
 
 ### Compared to `true`/`false`
 
-Comparing a `bool?` with `true` or `false` proves not-`none` in **both** branches (since `none != true` and `none != false`)
+`flag == true` (or `== false`) narrows in the **then-branch only** — the equality holding proves `flag` is the literal value, so not `none`. The else-branch is `flag != true`, which is satisfied by both `false` AND `none`, so no narrowing applies. Symmetric for `!=`:
+
+| Operator         | Then-branch (T) | Else-branch (F) |
+|------------------|-----------------|-----------------|
+| `flag == true`   | {flag}          | ∅               |
+| `flag == false`  | {flag}          | ∅               |
+| `flag != true`   | ∅               | {flag}          |
+| `flag != false`  | ∅               | {flag}          |
 
 ```py
 flag:bool? = true
-y = if(flag == true) flag else false       # both branches: flag is bool
+y = if(flag == true) flag else false       # then:bool, else:bool literal → bool
 ```
 
-Three-way pattern match on `bool?`
+Three-way pattern match on `bool?` — each branch narrows the variable on the way in:
 
 ```py
 x:bool? = true

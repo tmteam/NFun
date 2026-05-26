@@ -244,12 +244,25 @@ public static class GraphBuilderExtensions {
     }
 
     /// <summary>
-    /// x?[i] where x: opt(arr(T)) → result: LCA(T, None)
-    /// Uses the if-else/LCA pattern: both T and None are subtypes of result.
-    /// This naturally flattens opt(opt(X)) → opt(X) when T is already optional,
-    /// unlike the SetCall approach which has pull-order issues for chained ?[]?[].
-    /// The runtime SafeArrayAccessExpressionNode handles element type conversion
-    /// when the array element type differs from the result element type.
+    /// x?[i] where x: opt(arr(T)) → result: opt(T)
+    ///
+    /// Built as a single connected subgraph mirroring SetSafeFieldAccess and
+    /// SetSafeMethodCall: result.State = StateOptional.Of(elemNode) is set
+    /// directly at graph-construction time, BEFORE any Pull/Push runs. This
+    /// ensures subsequent constraint edges (e.g. `.count()` adding a
+    /// `result →c arr(T')` ancestor) see the result as concretely Optional
+    /// from the start — no LCA-with-None pattern that loses IsOptional when
+    /// the inferred elem type is itself a composite. (MR6Bug2.)
+    ///
+    /// Previously: LCA-with-None pattern (`elemNode → result`, `None → result`)
+    /// produced bare composite state on result when elem type was an array,
+    /// silently dropping the Optional layer through `TransformToArrayOrNull`
+    /// during downstream Pull. The directly-built Optional avoids that path
+    /// entirely.
+    ///
+    /// Flattening of opt(opt(T)) when T is itself optional is handled by the
+    /// existing FlattenNestedOptional mechanism during Destruction — same as
+    /// SetSafeFieldAccess and SetSafeMethodCall.
     /// </summary>
     public static void SetSafeArrayAccess(this GraphBuilder b, int sourceNodeId, int indexNodeId, int resultNodeId) {
         // T — the array element type variable
@@ -263,11 +276,15 @@ public static class GraphBuilderExtensions {
         // Index: I32
         b.SetCallArgument(StatePrimitive.I32, indexNodeId);
 
-        // Result = LCA(T, None) — like if-else, both T and None are subtypes of result
+        // Result state = opt(elemNode). Setting concretely upfront — elemNode
+        // is shared with the source's array shape, so once Pull resolves the
+        // source's actual element type into elemNode, the result Optional
+        // covers it directly. None from the source flows in via the standard
+        // None ≤ Opt(T) rule on the source-edge, not via a separate noneNode.
         var resultNode = b.GetOrCreateNode(resultNodeId);
-        elemNode.AddAncestor(resultNode);
-        var noneNode = b.CreateVarType(StatePrimitive.None);
-        noneNode.AddAncestor(resultNode);
+        var resultType = StateOptional.Of(elemNode);
+        resultNode.State = SolvingFunctions.GetMergedStateOrNull(resultNode.State, resultType)
+                           ?? throw TicErrors.CannotSetState(resultNode, resultType);
     }
 
     /// <summary>

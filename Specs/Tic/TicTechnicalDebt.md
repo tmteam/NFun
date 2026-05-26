@@ -78,10 +78,29 @@
 
 ---
 
+## 10. Pull edge-rewires violate single-pass toposort invariant — WORKAROUND
+
+**Проблема**: Несколько `Apply` overload'ов в `PullConstraintsFunctions` делают edge rewire во время Pull: `desc → opt(T)` превращается в `desc → T` (implicit lift materialization). Новое ребро появляется ПОСЛЕ того, как toposort уже зафиксировал порядок узлов — `T` может быть уже обработан, и Pull single-pass не вернётся к нему чтобы получить descendant'а.
+
+**Текущее решение**: общий helper `LiftDescendantToOptionalElement` в `PullConstraintsFunctions.cs` делает три шага атомарно: RemoveAncestor + AddAncestor + `StagesExtension.Invoke` (eager propagation). Два call-site'а:
+1. `Apply(ICompositeState=opt, StatePrimitive)` — line 111. (MR6Bug3 family.)
+2. `Apply(ConstraintsState, ICompositeState)` для opt-descendant с primitive-only inner CS — line ~278. (MR3Bug1 family.)
+
+Без eager propagation `T` остаётся с пустой CS, и LCA-таргеты ниже по графу получают только одну сторону. Симптомы: `true ?? 1.5` → `out:Real = true` (soundness violation); `true ?? [1,2,3]` → NRE crash.
+
+**Почему это workaround**: Pull объявлен single-pass over toposort. Любое появление новых рёбер ВНУТРИ Pull нарушает инвариант. Helper лишь гарантирует что инвариант восстанавливается immediately. Это compensation, не cure.
+
+**Правильный fix**: Worklist-based Pull. Вместо foreach по toposort'у — очередь узлов "ready to pull". Когда rewire создаёт новое ребро, добавить target обратно в очередь. Инвариант "никакого узла не обработали с устаревшими descendants" достигается естественно. Несколько call-site'ов в PushConstraintsFunctions / DestructionFunctions также делают rewires — все ожидают такого же worklist-подхода.
+
+**Эстимейт**: medium effort, требует переработки `PullConstraintsTwoPhase` + `PullRec` + audit всех Apply overload'ов на rewire-paths. Имеет смысл совместить с #5 (stale snapshots — другая single-pass проблема).
+
+---
+
 ## Порядок устранения
 
 ```
 #5 (stale snapshots) — single-pass Pull refactoring, medium effort
+#10 (edge-rewire compensation) — combine with #5 — worklist Pull
 #6 (unconstrained generics) — SolveUselessGenerics fix, small effort but tricky
 #7 (PropagatePreferred) — edge-local rewrite, medium effort, not urgent
 ```

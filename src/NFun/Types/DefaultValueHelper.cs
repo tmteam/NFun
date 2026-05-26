@@ -9,7 +9,11 @@ namespace NFun.Types;
 
 internal  static class DefaultValueHelper {
     static readonly Dictionary<BaseFunnyType, object> PrimitiveTypeMap = new() {
-        { BaseFunnyType.Any,    new object() },
+        // `any` is semantically equivalent to `any?` in NFun — any-typed slots can
+        // hold none. `default(any)` returns FunnyNone.Instance, matching the rule
+        // for Optional types. Previously: `new object()`, exposing a raw CLR
+        // System.Object instance through the API. (MR9Bug1.)
+        { BaseFunnyType.Any,    FunnyNone.Instance },
         { BaseFunnyType.Bool,   default(bool) },
         { BaseFunnyType.Char,   default(char) },
         { BaseFunnyType.Ip,     new IPAddress(new byte[]{0,0,0,0}) },

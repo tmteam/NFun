@@ -1575,6 +1575,43 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
+    /// Pull-stage field-identity unification. For every shared field name between
+    /// two struct shapes that represent the same logical struct value, the field
+    /// nodes must denote the same TicNode — otherwise the field-access result
+    /// (e.g. <c>data[0].y</c>) is disconnected from the concrete primitive bound
+    /// carried by the snapshot side. (MR7Bug1.)
+    ///
+    /// Safe-merge predicate: snapshot's field is a solved <see cref="StatePrimitive"/>
+    /// AND ancestor's field is an empty <see cref="ConstraintsState"/>. Under those
+    /// conditions <see cref="MergeInplace"/> takes the solved-result fast path —
+    /// secondary becomes the same primitive, no ancestor-edge rewire happens, no
+    /// Optional/generic invariant is touched. Composite or partially-solved field
+    /// pairs are left to the regular Pull/Push field-pair edge mechanism (the
+    /// <see cref="Stages.PullConstraintsFunctions"/> Struct↔Struct case and
+    /// <see cref="Stages.PushConstraintsFunctions"/> TryMergeStructFields).
+    ///
+    /// Algebraic justification: this extends the NoConstrains branch of
+    /// <see cref="TransformToStructOrNull"/> (which returns <paramref name="ancStruct"/>
+    /// verbatim so all field identities are shared wholesale) to the snapshot
+    /// sub-branch, where shape comes from <paramref name="snapshotFields"/> but
+    /// field identities still must agree with <paramref name="ancStruct"/>.
+    /// </summary>
+    public static void UnifyStructFieldIdentities(
+        System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, TicNode>> snapshotFields,
+        StateStruct ancStruct) {
+        foreach (var (key, value) in snapshotFields)
+        {
+            var snapField = value.GetNonReference();
+            var ancField = ancStruct.GetFieldOrNull(key)?.GetNonReference();
+            if (ancField == null || ancField == snapField) continue;
+            if (snapField.State is not StatePrimitive) continue;
+            if (ancField.State is not ConstraintsState ancCs || !ancCs.NoConstrains) continue;
+            if (GetMergedStateOrNull(snapField.State, ancField.State) != null)
+                MergeInplace(snapField, ancField);
+        }
+    }
+
+    /// <summary>
     /// Transform constrains to struct state
     /// </summary>
     public static StateStruct TransformToStructOrNull(ConstraintsState descendant, StateStruct ancStruct) {

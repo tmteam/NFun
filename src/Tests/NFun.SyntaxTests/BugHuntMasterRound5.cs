@@ -55,15 +55,17 @@ public class BugHuntMasterRound5 {
     }
 
     // ───────────────────────────────────────────────────────────────
-    // MR5Bug2 — `convert()` to an unsupported destination type throws
-    //   raw `InvalidOperationException` ("Function convert cannot be
-    //   generated for types [...]") instead of clean FU-coded parse
-    //   error. Other generic functions correctly produce FU783.
+    // MR5Bug2 — `convert()` to an unsupported destination type used to
+    //   throw raw `InvalidOperationException`. After the convert redesign
+    //   (PRAGMATIC matrix) unsupported pairs throw FU887 via
+    //   `Errors.ConvertNotSupported`. The original test expression
+    //   `convert(true):int` is no longer unsupported (C-style bool→int
+    //   is now ✓ per matrix §1.2), so we target a pair that is still ✗:
+    //   composite → primitive (array → int).
     // ───────────────────────────────────────────────────────────────
     [Test]
-    [Ignore("MR5Bug2: convert(bool) to int throws raw InvalidOperationException")]
-    public void MR5Bug2_ConvertBoolToInt_RawInvalidOperationException() {
-        Assert.Throws<FunnyParseException>(() => "out:int = convert(true)".Calc());
+    public void MR5Bug2_ConvertUnsupportedDest_ThrowsFunnyParseException() {
+        Assert.Throws<FunnyParseException>(() => "out:int = convert([1,2,3])".Calc());
     }
 
     // ───────────────────────────────────────────────────────────────
