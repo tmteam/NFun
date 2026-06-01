@@ -96,4 +96,42 @@ public class OptionalStructFieldSpecTest {
                 namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", -1);
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR2Bug1 — 2D array literal of struct with optional field, mixed
+    //   asymmetric none/value across sub-arrays, FAILS when the outer
+    //   variable carries the matching type annotation. Without the
+    //   annotation the same expression infers exactly the declared type.
+    //
+    //   Works:  out = [[{v=none}], [{v=2}]]              → {v:Int32?}[][]
+    //   Works:  out:int?[][] = [[none], [2]]             → Int32?[][]
+    //   Fails:  out:{v:int?}[][] = [[{v=none}], [{v=2}]] → FU761 "Seems like expression `2` cannot be used here"
+    //
+    //   Symptom is TIC failing to push the annotated `int?` element
+    //   constraint through the 2-level array nesting onto a struct field
+    //   when one sub-array is none-only and another is value-only.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR2Bug1_AnnotatedNestedOptionalStructArray_ParseError() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("out:{v:int?}[][] = [[{v=none}], [{v=2}]]"));
+    }
+
+    [Test]
+    public void MR2Bug1_AnnotatedNestedOptionalStructArray_Variant3D() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("out:{v:int?}[][][] = [[[{v=none}]], [[{v=2}]]]"));
+    }
+
+    [Test]
+    public void MR2Bug1_AnnotatedNestedOptionalStructArray_MultipleFields() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("out:{v:int?,w:int?}[][] = [[{v=none,w=1}], [{v=2,w=none}]]"));
+    }
 }

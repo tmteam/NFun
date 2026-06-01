@@ -221,4 +221,42 @@ public class RecursiveUserFunctionsTest {
         "count(x:int):int = if(x > 0) 1 + count(x-1) else 0; out = count(5)".Calc()
             .AssertResultHas("out", 5);
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR6Bug1 — Recursive user function called through `?.` crashes at
+    //   runtime with "The given key 'foo' was not present in the
+    //   dictionary".
+    //
+    //     type n = {v:int, next:n?=none}
+    //     foo(node:n):int = (node.next?.foo() ?? 0) + 1
+    //     chain = n{v=1, next=n{v=2}}
+    //     out = foo(chain)                # crash
+    //
+    //   Same `foo` works via non-?. path: `if(node.next != none) foo(node.next!) else 0`.
+    //   Non-recursive user fn via `?.` works.
+    //   Specific combination: recursion + safe-field-access dispatch.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR6Bug1_RecursiveUserFnViaSafeAccess_2NodeChain() {
+        var rt = Funny.Hardcore
+            .WithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .Build("type n = {v:int, next:n?=none}\rfoo(node:n):int = (node.next?.foo() ?? 0) + 1\rchain = n{v=1, next=n{v=2}}\rout = foo(chain)");
+        rt.Run();
+        Assert.AreEqual(2, rt["out"].Value);
+    }
+
+    [Test]
+    public void MR6Bug1_RecursiveUserFnViaSafeAccess_4NodeChain() {
+        // Deeper chain — verifies the recursive call dispatches correctly through `?.`
+        // at every depth, not just the top frame.
+        var rt = Funny.Hardcore
+            .WithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .Build("type n = {v:int, next:n?=none}\rfoo(node:n):int = (node.next?.foo() ?? 0) + 1\rchain = n{v=1, next=n{v=2, next=n{v=3, next=n{v=4}}}}\rout = foo(chain)");
+        rt.Run();
+        Assert.AreEqual(4, rt["out"].Value);
+    }
 }

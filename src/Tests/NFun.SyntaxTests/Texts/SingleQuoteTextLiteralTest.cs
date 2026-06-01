@@ -393,4 +393,30 @@ public class SingleQuoteTextLiteralTest {
     [TestCase(@"y = $$'\q'")]
     public void DollarPrefix_UnknownEscape_IsError(string expr)
         => expr.AssertObviousFailsOnParse();
+
+    // ───────────────────────────────────────────────────────────────
+    // MR4Bug6 — Typographic quote pair `‘…’` (LEFT-open + RIGHT-close)
+    //   now supported alongside the matching `‘…‘` form, fixing the
+    //   spec-impl divergence. Matches how text editors auto-replace
+    //   ASCII quotes. Spec text + example aligned.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR4Bug6_TypographicPair_SingleQuotes() {
+        "y = ‘Hello’".AssertResultHas("y", "Hello");
+    }
+
+    [Test]
+    public void MR4Bug6_TypographicPair_DoubleQuotes() {
+        "y = “Hello”".AssertResultHas("y", "Hello");
+    }
+
+    [Test]
+    public void MR4Bug6_TypographicQuote_SpecExample_Works() {
+        "y = ‘Kate said: “hi”!’".AssertResultHas("y", "Kate said: “hi”!");
+    }
+
+    [Test]
+    public void MR4Bug6_MatchingPair_BackCompat_StillWorks() {
+        "y = ‘Hello‘".AssertResultHas("y", "Hello");
+    }
 }

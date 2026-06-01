@@ -1,5 +1,6 @@
 namespace NFun.SyntaxTests.OptionalTypes;
 
+using Exceptions;
 using TestTools;
 using NUnit.Framework;
 
@@ -235,6 +236,168 @@ public class SafeArrayAccessTest {
     public void ChainedSafeArrayAccess_NoError() {
         Assert.DoesNotThrow(() =>
             "a = [1]; b = [2]; y = a?[0] ?? b?[0] ?? 0"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR6Bug2 — Safe-array-access `?[` on an opt array of composite
+    //   element type loses the Optional propagation through subsequent
+    //   operations:
+    //
+    //     arr:int[][]? = none
+    //     out = arr?[0].count()
+    //
+    //   Compiles successfully (treating `arr?[0]` as non-opt `int[]`),
+    //   then crashes at runtime: "Unable to cast FunnyNone to IFunnyArray".
+    //
+    //   Direct equivalent IS rejected at compile time:
+    //     b:int[]? = none; out = b.count()        # FU783
+    //
+    //   Bug specific to `?[` on opt-array-of-composite (lost Optional
+    //   through nested composite). Doesn't manifest for primitive
+    //   element types (`int[]?` → `?[0]` correctly returns `int?`).
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR6Bug2_SafeArrayAccessLosesOptThroughComposite_Crash() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[][]? = none\rout = arr?[0].count()"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // ===============================================================
+    // MR6Bug2 BOUNDARY PROBES — `?[` on opt-array, behavior by element shape.
+    //
+    // Hypothesis (Professor preliminary): SetSafeArrayAccess (GraphBuilderExtensions:254)
+    // uses an LCA-with-None pattern (elemNode→result, None→result) instead of
+    // directly wrapping `result = StateOptional.Of(elemNode)` like SetSafeFieldAccess /
+    // SetSafeMethodCall do. For primitive elem the LCA resolves correctly (opt(int)),
+    // but for composite elem (arr/struct/inner-fn) the optional layer is lost — the
+    // result is treated as the bare composite, allowing later operations to crash on
+    // None at runtime. The expected fix is to drop the LCA pattern in favor of direct
+    // `result.State = StateOptional.Of(elemNode)` (mirroring the field/method paths).
+    //
+    // After the fix:
+    //   • Primitive-elem probes still pass (already correct).
+    //   • Composite-elem probes that today compile-then-crash should be rejected at
+    //     COMPILE time with FU783 — matching the directly-declared `b:int[]? = none;
+    //     out = b.count()` rejection.
+    //   • Workarounds (`?.`, `??`) continue to work.
+    //   • Struct-elem `arr?[0].v` is already FU761 today (stricter form of the same
+    //     check applied earlier in struct field path) — kept here as control.
+    // ===============================================================
+
+    // 2-1a. Primitive elem control: `arr?[0]` is correctly opt(int) — value is none. PASSES on master.
+    [Test]
+    public void MR6Bug2_Boundary_PrimitiveElem_Works() {
+        var rt = "arr:int[]? = none\rout = arr?[0]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.IsNull(rt.Get("out"));
+    }
+
+    // 2-1b. Primitive elem control: arithmetic on opt-result correctly rejected (FU767). PASSES on master.
+    [Test]
+    public void MR6Bug2_Boundary_PrimitiveElem_ArithmeticRejected_FU767() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[]? = none\rout = arr?[0] + 1"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-2a. Array-elem variation: `.sum()` (different fn than `.count()`).
+    //   Today: compiles → runtime FunnyNone → IFunnyArray cast crash.
+    //   After fix: should be FunnyParseException (FU783) at compile.
+    [Test]
+    public void MR6Bug2_Boundary_ArrayElem_Sum_ShouldCompileReject() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[][]? = none\rout = arr?[0].sum()"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-2b. Array-elem variation: `.first()`.
+    //   Today: compiles → runtime cast crash.
+    //   After fix: FU783 at compile.
+    [Test]
+    public void MR6Bug2_Boundary_ArrayElem_First_ShouldCompileReject() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[][]? = none\rout = arr?[0].first()"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-2c. Array-elem variation: nested indexing `arr?[0][0]`.
+    //   Today: compiles → runtime cast crash.
+    //   After fix: should be rejected at compile (treating outer `arr?[0]` as opt(int[]),
+    //   inner `[0]` cannot index an optional).
+    [Test]
+    public void MR6Bug2_Boundary_ArrayElem_ChainedIndex_ShouldCompileReject() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[][]? = none\rout = arr?[0][0]"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-2d. Array-elem variation: slicing `arr?[0][:2]`.
+    //   Today: compiles → runtime cast crash.
+    //   After fix: FU783 (slicing an optional is not legal).
+    [Test]
+    public void MR6Bug2_Boundary_ArrayElem_Slice_ShouldCompileReject() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[][]? = none\rout = arr?[0][:2]"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-3. 3-deep nested array: does the bug compound?
+    //   Today: `arr?[0]` returns int[][]? (bug shifts inward) but `.first()` proceeds —
+    //   we get the same kind of runtime cast crash.
+    //   After fix: still rejected at compile because the optional propagation should
+    //   keep `arr?[0]` as opt(int[][]) and `.first()` on opt(arr) is illegal.
+    [Test]
+    public void MR6Bug2_Boundary_3DeepArray_BugCompounds_ShouldCompileReject() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:int[][][]? = none\rout = arr?[0].first().count()"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-4a. Workaround: full `?.` chain — PASSES on master.
+    //   `arr?[0]?.count()` propagates optional via the `?.` operator,
+    //   producing opt(int) for the result. None input → none output.
+    [Test]
+    public void MR6Bug2_Boundary_Workaround_SafeMethodChain_Works() {
+        var rt = "arr:int[][]? = none\rout = arr?[0]?.count()"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.IsNull(rt.Get("out"));
+    }
+
+    // 2-4b. Workaround: `?.` chain + `??` default — PASSES on master.
+    [Test]
+    public void MR6Bug2_Boundary_Workaround_SafeMethodChainWithDefault_Works() {
+        "arr:int[][]? = none\rout = arr?[0]?.count() ?? -1"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("out", -1);
+    }
+
+    // 2-4c. Workaround: explicit-default via `?? []` — PASSES on master.
+    //   `arr?[0] ?? []` forces optional resolution to bare int[] (empty array).
+    [Test]
+    public void MR6Bug2_Boundary_Workaround_ExplicitDefaultArray_Works() {
+        "arr:int[][]? = none\rout = (arr?[0] ?? []).count()"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("out", 0);
+    }
+
+    // 2-5. Struct-elem control: already rejected at compile with FU761 today.
+    //   This is the "correct" baseline — opt-array of struct correctly fails
+    //   `arr?[0].v` because the struct field access can't traverse opt.
+    [Test]
+    public void MR6Bug2_Boundary_StructElem_AlreadyRejected() {
+        Assert.Throws<FunnyParseException>(() =>
+            "arr:{v:int}[]? = none\rout = arr?[0].v"
+                .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    }
+
+    // 2-6. Direct equivalent control: declared `int[]?` then call `.count()` is FU783.
+    //   This is the comparator — the `?[]` form should reach the same outcome.
+    [Test]
+    public void MR6Bug2_Boundary_DirectOptArray_FU783_Control() {
+        Assert.Throws<FunnyParseException>(() =>
+            "b:int[]? = none\rout = b.count()"
                 .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
     }
 }

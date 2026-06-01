@@ -686,4 +686,194 @@ public class OptionalChainingTest {
         var s = (System.Collections.Generic.IReadOnlyDictionary<string, object>)arr[0];
         Assert.IsTrue(s.ContainsKey("name"), "name field lost in ?. + filter chain");
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MBug4 — Filter-then-first on struct-typed array, with a
+    //   `T?` return-type annotation and an inferred-parameter lambda,
+    //   fails with FU710 "Unable to cast (T)->Bool to (T?)->Bool".
+    //   The implicit `T → T?` lift at the return position is incorrectly
+    //   back-propagating into the filter predicate's parameter type.
+    //   Workaround: annotate the lambda parameter, OR drop the `?` from
+    //   return type, OR use map/first without filter.
+    //   Specific to struct element types — primitive and array elements
+    //   work fine. Idiomatic findFirstMatching pattern broken.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MBug4_FilterFirstStructOptionalReturn_BackPropagatesOptional() {
+        var rt = Funny.Hardcore
+            .WithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .Build(
+                "type p = {v:int}\r" +
+                "f(arr:p[]):p? = arr.filter(rule it.v > 0).first()\r" +
+                "out = f([p{v=-1}, p{v=2}])?.v ?? -99");
+        rt.Run();
+        Assert.AreEqual(2, rt["out"].Value);
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR5Bug4 (CRITICAL) — Stack overflow in TIC Destruction when
+    //   `?.` is used on an anonymous-typed optional struct that has a
+    //   function-valued field:
+    //     a:{f:rule(int)->int}? = {f = rule it+1}
+    //     y = a?.f(5)   # CRASH — process exit code 134
+    //
+    //   Trace: alternating Destruction(StateStruct,StateStruct) →
+    //   Destruction(StateFun,StateFun) → repeat — cyclic constraint.
+    //   Works with NAMED type (`type p={f:rule(int)->int}; a:p? = ...`).
+    //   Works with `!.` instead of `?.`. Specific to ?. + anon struct
+    //   type + function field combination.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR5Bug4_SafeAccessAnonOptStructFnField_StackOverflow() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("a:{f:rule(int)->int}? = {f = rule it+1}\ry = a?.f(5)"));
+    }
+
+    [Test]
+    public void MR5Bug4_SafeAccessAnonNonOptStructFnField_StackOverflow() {
+        // The bug also reproduced WITHOUT Optional — `?.` on a non-opt anon struct with fn field.
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("a:{f:rule(int)->int} = {f = rule it+1}\ry = a?.f(5)"));
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR5Bug5 — `a = {b=1}; y = a?.b` widens `a`'s inferred type to
+    //   `{b:Int32}?` (Optional) instead of keeping the concrete
+    //   non-optional shape. Spec allows `?.` on non-optional receivers
+    //   as no-op; the receiver type should stay non-optional.
+    //
+    //   Asymmetric with `?[`: `a = [1,2,3]; y = a?[0]` keeps `a:Int32[]`
+    //   (non-optional). Practical impact: confusing typeof/printing.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR5Bug5_SafeAccessOnNonOptInferred_ReceiverStaysNonOpt() {
+        // Bug: `a = {b=1}; y = a?.b` widened `a`'s inferred type to {b:int}? (Optional),
+        // silently infecting subsequent regular `.field` access on `a`. The cascade
+        // assertion is the strongest signal: if `a` is widened to opt(struct), regular
+        // `.c` is rejected with FU755. The fix makes `a` stay {b:int,c:int} so all three
+        // succeed end-to-end.
+        "a = {b=1, c=2}\ry = a?.b\rz = a.c"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas(("y", (object)1), ("z", (object)2));
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR5Bug5 BOUNDARY PROBES — different contexts of `?.`. Hypothesis
+    // (per professor) is that PushConstraintsFunctions.cs:224-240 uses
+    // `!IsSolved` to discriminate "inferred abstract struct" vs
+    // "concrete literal struct" — but should use `IsOpen` instead.
+    //
+    //   Literal `{b=1}` → closed struct (IsOpen=false), already shape-rigid.
+    //   `?.field`-introduced shape → open struct (IsOpen=true).
+    //
+    // These probes lock down behavior across contexts so any future fix
+    // doesn't regress. All marked [Ignore] until fix lands.
+    // ───────────────────────────────────────────────────────────────
+
+    // Probe 1a: cascade ?. then regular . over 3 fields.
+    //   Pre-fix: FU755 at `z = a.c` — `a` widened to Opt, regular `.c` rejected.
+    //   Post-fix: a stays {b,c,d}; y:int?=1, z:int=2, w:int=3.
+    [Test]
+    public void MR5Bug5b_CascadeSafeThenRegular_ThreeFields() {
+        var rt = "a = {b=1, c=2, d=3}\ry = a?.b\rz = a.c\rw = a.d"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        rt.AssertResultHas(("y", 1), ("z", 2), ("w", 3));
+    }
+
+    // Probe 2: chained `?.` after another `?.` on inferred nested struct.
+    //   Pre-fix: outermost `a` widened to {b:{c:int}}? — regular `.b` fails FU755.
+    //   Post-fix: a stays {b:{c:int}} non-opt; both ?.-chain and regular `.b` work.
+    [Test]
+    public void MR5Bug5b_ChainedSafeAccess_OuterStaysNonOpt() {
+        "a = {b={c=1}}\ry = a?.b?.c\rz = a.b.c"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas(("y", 1), ("z", 1));
+    }
+
+    // Probe 3: ?. on annotated optional receiver. This is the canonical
+    // ?. usage and MUST KEEP WORKING after the fix.
+    [Test]
+    public void MR5Bug5b_SafeAccessOnAnnotatedOpt_StillWorks() {
+        var rt = "a:{b:int}? = {b=1}\ry = a?.b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        rt.AssertResultHas("y", 1);
+    }
+
+    // Probe 4: ?. on if-else-inferred opt receiver. This is the natural
+    // way to acquire an optional value without annotation; MUST KEEP WORKING.
+    [Test]
+    public void MR5Bug5b_SafeAccessOnIfElseInferredOpt_StillWorks() {
+        var rt = "a = if(true) {b=1} else none\ry = a?.b"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        rt.AssertResultHas("y", 1);
+    }
+
+    // Probe 5: `map(rule it?.b)` over array of inferred non-opt struct.
+    // Current: arr stays {b:int}[], y becomes int?[] (lambda param `it`
+    // is not widened to opt; ?. always wraps result in opt). This is the
+    // scenario PushConstraintsFunctions.cs:224 was originally written for.
+    // The fix must NOT regress this.
+    [Test]
+    public void MR5Bug5b_MapWithSafeAccess_LambdaParamNotWidened() {
+        var rt = "arr = [{b=1}, {b=2}]\ry = arr.map(rule it?.b)"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        rt.AssertResultHas("y", new int?[] { 1, 2 });
+    }
+
+    // Probe 5b: map with truly opt elements (annotated array). MUST KEEP WORKING.
+    // Asserting only via DoesNotThrow + type — AssertResultHas does not handle
+    // null-bearing arrays (test infra NRE in ToStringSmart).
+    [Test]
+    public void MR5Bug5b_MapWithSafeAccess_OptElements() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("arr:{b:int}?[] = [{b=1}, {b=2}, none]\ry = arr.map(rule it?.b)")
+                .Run());
+    }
+
+    // Probe 6: F-bounded recursive named type (GH126-style). Currently
+    // works on master. The fix MUST NOT regress this.
+    [Test]
+    public void MR5Bug5b_FBoundedRecursiveNamedType_StillWorks() {
+        var rt = Funny.Hardcore
+            .WithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .Build(
+                "type n = {v:int = 0, next:n? = none}\r" +
+                "loop(x, acc) = if(x==none) acc else loop(x?.next, n{next=acc})\r" +
+                "out = loop(n{}, n{})");
+        Assert.DoesNotThrow(() => rt.Run());
+    }
+
+    // Probe 7: user-defined function with `?.` on parameter. The parameter
+    // type and return type should be principled regardless of fix.
+    // Current: works — y:int?=42 with input of multi-field literal.
+    // Post-fix: must continue to work.
+    [Test]
+    public void MR5Bug5b_UserFnWithSafeAccess_StillWorks() {
+        var rt = "f(x) = x?.value\ry = f({value=42, other=1})"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        rt.AssertResultHas("y", 42);
+    }
+
+    // Probe 8 (control): NAMED-type cascade — already works because named
+    // type pins the receiver shape. The bug is specific to anon inferred
+    // structs. Provides "good half" of the discriminator for the fix.
+    [Test]
+    public void MR5Bug5b_CascadeOnNamedType_AlreadyWorks() {
+        var rt = Funny.Hardcore
+            .WithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .Build("type p={b:int,c:int}\ra:p = p{b=1,c=2}\ry = a?.b\rz = a.c");
+        Assert.DoesNotThrow(() => rt.Run());
+    }
 }

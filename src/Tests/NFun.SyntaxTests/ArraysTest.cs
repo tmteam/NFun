@@ -531,4 +531,40 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
         var ex = Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
         StringAssert.Contains(expectedMessageFragment, ex.Message);
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR5Bug1 — Range expression to MaxValue crashes at runtime with
+    //   "Index was outside the bounds of the array". Reproducible for
+    //   every integer type at its max value, and the symmetric descending
+    //   case to MinValue. Range generator likely off-by-one with overflow.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR5Bug1_RangeToMaxValue_Int32() {
+        "out = [2147483646..2147483647]".Calc()
+            .AssertResultHas("out", new[] { 2147483646, 2147483647 });
+    }
+
+    [Test]
+    public void MR5Bug1_RangeDescToMinValue_Int32() {
+        "out = [-2147483647..-2147483648]".Calc()
+            .AssertResultHas("out", new[] { -2147483647, -2147483648 });
+    }
+
+    [Test]
+    public void MR5Bug1_RangeToMaxValue_Int64() {
+        "out = [9223372036854775806..9223372036854775807]".Calc()
+            .AssertResultHas("out", new[] { 9223372036854775806L, 9223372036854775807L });
+    }
+
+    [Test]
+    public void MR5Bug1_RangeToMaxValue_Byte() {
+        "out:byte[] = [254..255]".Calc()
+            .AssertResultHas("out", new byte[] { 254, 255 });
+    }
+
+    [Test]
+    public void MR5Bug1_RangeToMaxValue_Int16() {
+        "out:int16[] = [32766..32767]".Calc()
+            .AssertResultHas("out", new short[] { 32766, 32767 });
+    }
 }

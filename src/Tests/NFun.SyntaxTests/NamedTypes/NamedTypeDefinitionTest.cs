@@ -639,4 +639,47 @@ public class NamedTypeDefinitionTest {
         Assert.DoesNotThrow(
             () => "y:{minVal:int, maxVal:int} = {minVal=1, maxVal=2}".Calc());
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR4Bug4 — Type default values are validated lazily (at first use).
+    //   `type t = {x:int = 'hello'}` declared but never instantiated
+    //   silently compiles. Violates Basics.md Construction-stage rule:
+    //   "checking the correctness of the script and calculating the
+    //   types of all expressions in the script."
+    //
+    //   The bad default leaks to production when t{} is eventually used.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR4Bug4_TypeDefault_BadValue_NotValidatedEagerly() {
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore
+                .WithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
+                .Build("type t = {x:int = 'hello'}"));
+    }
+
+    [Test]
+    public void MR4Bug4_TypeDefault_BadValue_CaughtEvenWhenOverridden() {
+        // Before the fix: the bad default was lazily checked only when triggered.
+        // `v = t{x=42}` overrode the default, hiding the broken declaration.
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore
+                .WithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
+                .Build("type t = {x:int = 'hello'}\rv = t{x=42}"));
+    }
+
+    [Test]
+    public void MR4Bug4_TypeDefault_BoolForInt_CaughtAtDeclaration() {
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore
+                .WithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
+                .Build("type t = {x:int = true}"));
+    }
+
+    [Test]
+    public void MR4Bug4_TypeDefault_ValidValue_AcceptedAtDeclaration() {
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(namedTypesSupport: NamedTypesSupport.Enabled)
+                .Build("type t = {x:int = 42}"));
+    }
 }

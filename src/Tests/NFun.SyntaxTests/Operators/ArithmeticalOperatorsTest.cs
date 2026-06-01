@@ -378,4 +378,127 @@ public class ArithmeticalOperatorsTest {
     public void ArithmeticOnBool_TypeError() {
         Assert.Throws<FunnyParseException>(() => "y = true + 1".Calc());
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR2Bug4 — Arithmetic operators (`+`, `-`, `*`) over-promote
+    //   sub-Arithmetics operands to Real in two corners; `%` does not
+    //   promote at all. All three are facets of the same gap in
+    //   TIC preferred-type resolution for operands below the
+    //   Arithmetics range (`int32 | uint32 ≤ T ≤ real`):
+    //
+    //   Over-promote → Real (should be Int32 / UInt32):
+    //     y:byte = 5, z:byte = 5; out = y + z       → out:Real     (uint16+uint16 → Int32, so byte should too)
+    //     y:int16 = -5, z:int16 = -5; out = y + z   → out:Real     (int16+int16 pos → Int32)
+    //
+    //   No promotion (operator definition says Arithmetics but accepts byte):
+    //     y:byte = 5, z:byte = 2; out = y % z       → out:UInt8    (% is Arithmetics per spec)
+    //
+    //   Filed as one bug since the underlying inference defect — TIC
+    //   defaulting to the top of Arithmetics (Real) for some preferred
+    //   chains while leaving others entirely unpromoted — is the same.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR2Bug4a_BytePlusByte_OverPromotesToReal() {
+        "y:byte = 5\rz:byte = 5\rout = y + z".AssertReturns(
+            ("y", (byte)5), ("z", (byte)5), ("out", 10));
+    }
+
+    [Test]
+    public void MR2Bug4b_NegInt16PlusNegInt16_OverPromotesToReal() {
+        "y:int16 = -5\rz:int16 = -5\rout = y + z".AssertReturns(
+            ("y", (short)-5), ("z", (short)-5), ("out", -10));
+    }
+
+    // (c) was filed as a bug but turned out to be a spec/impl mismatch: `%` uses
+    // GenericConstrains.Numbers in the implementation (any numeric type, no widening),
+    // so byte%byte → byte is correct. Spec table updated to say `%` is Numbers,
+    // not Arithmetics. Test asserts the correct byte-typed result.
+    [Test]
+    public void MR2Bug4c_ByteModuloByte_KeepsByteType() {
+        "y:byte = 5\rz:byte = 2\rout = y % z".AssertReturns(
+            ("y", (byte)5), ("z", (byte)2), ("out", (byte)1));
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR4Bug7 — `**` is now right-associative: `2**3**2 = 2**(3**2) = 512`,
+    // matching math/Python/Ruby/JS/Fortran/Haskell/Lua convention.
+    // Previously was left-associative (= 64).
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR4Bug7_PowerOperator_RightAssociative_PerMathConvention() {
+        "out = 2**3**2".AssertResultHas("out", 512.0);
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR7Bug1 — Struct-in-array field arithmetic loses real widening
+    //   (ORDER-DEPENDENT):
+    //
+    //     data:{x:int, y:real}[] = [{x=1, y=2.5}]
+    //     out = data[0].x + data[0].y    # Int32=3  ← BUG (should be Real=3.5)
+    //     out = data[0].y + data[0].x    # Real=3.5 ← correct, same operands swapped
+    //
+    //   Workarounds:
+    //     d = data[0]; out = d.x + d.y   # correct
+    //     direct struct (no [] indirection) works correctly
+    //
+    //   Likely the same Preferred-propagation issue as MR2Bug4 family —
+    //   when the int field is accessed FIRST through `[idx].x` chain, the
+    //   subsequent `+ data[0].y` doesn't widen to real correctly.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR7Bug1_StructArrayFieldArith_IntPlusReal_Truncates() {
+        "data:{x:int, y:real}[] = [{x=1, y=2.5}]\rout = data[0].x + data[0].y"
+            .Calc()
+            .AssertResultHas("out", 3.5);
+    }
+
+    [Test]
+    public void MR7Bug1_StructArrayFieldArith_MapIntPlusReal_Truncates() {
+        "data:{x:int, y:real}[] = [{x=1, y=2.5}]\rout = data.map(rule it.x + it.y)"
+            .Calc()
+            .AssertResultHas("out", new[] { 3.5 });
+    }
+
+    // 1c. Order-swap control: real+int works correctly. Locks the order-sensitivity.
+    [Test]
+    public void MR7Bug1_OrderSwap_RealPlusInt_StillCorrect() {
+        "data:{x:int, y:real}[] = [{x=1, y=2.5}]\rout = data[0].y + data[0].x"
+            .Calc()
+            .AssertResultHas("out", 3.5);
+    }
+
+    // 1d. Workaround: extract intermediate variable.
+    [Test]
+    public void MR7Bug1_Workaround_ExtractIntermediate() {
+        "data:{x:int, y:real}[] = [{x=1, y=2.5}]\rd = data[0]\rout = d.x + d.y"
+            .Calc()
+            .AssertResultHas("out", 3.5);
+    }
+
+    // 1e. Direct struct (no array indirection) is unaffected.
+    [Test]
+    public void MR7Bug1_Control_DirectStructWorks() {
+        "d:{x:int, y:real} = {x=1, y=2.5}\rout = d.x + d.y"
+            .Calc()
+            .AssertResultHas("out", 3.5);
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR7Bug2 — Same family as MR7Bug1, but int+int64 → runtime overflow
+    //   crash instead of silent truncation:
+    //
+    //     data:{x:int, y:int64}[] = [{x=1, y=4000000000}]
+    //     out = data[0].x + data[0].y
+    //     # Runtime: "Value was either too large or too small for an Int32"
+    //
+    //   The TIC infers Int32 for the result; runtime tries to fit the int64
+    //   value 4000000000 (> int32 max) into int32 → crash.
+    //   Same root cause as MR7Bug1.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR7Bug2_StructArrayFieldArith_IntPlusInt64_CrashesOnOverflow() {
+        "data:{x:int, y:int64}[] = [{x=1, y=4000000000}]\rout = data[0].x + data[0].y"
+            .Calc()
+            .AssertResultHas("out", 4000000001L);
+    }
 }

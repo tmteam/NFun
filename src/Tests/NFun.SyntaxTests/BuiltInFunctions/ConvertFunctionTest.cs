@@ -351,4 +351,97 @@ public class ConvertFunctionsTest {
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.AreEqual(false, r.Get("y"));
     }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR5Bug2 — `convert()` to an unsupported destination type used to
+    //   throw raw `InvalidOperationException`. After the convert redesign
+    //   (PRAGMATIC matrix) unsupported pairs throw FU887 via
+    //   `Errors.ConvertNotSupported`. The original test expression
+    //   `convert(true):int` is no longer unsupported (C-style bool→int
+    //   is now ✓ per matrix §1.2), so we target a pair that is still ✗:
+    //   composite → primitive (array → int).
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR5Bug2_ConvertUnsupportedDest_ThrowsFunnyParseException() {
+        Assert.Throws<Exceptions.FunnyParseException>(() => "out:int = convert([1,2,3])".Calc());
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR7Bug4 — `convert(text):char` and `convert(text):char?` are
+    //   compile-rejected with FU887, but per PRAGMATIC matrix (Specs/
+    //   Functions.md §convert) text→char is 🪂 (Soft): "char only if
+    //   len == 1, throws Oops on failure; :char? returns none on fail".
+    //
+    //   Other text→primitive conversions work correctly:
+    //     convert('42'):int       # ✓ 42
+    //     convert('true'):bool    # ✓ true
+    //     convert('127.0.0.1'):ip # ✓ Ip
+    //
+    //   Only text→char is missing from the implementation despite being
+    //   in the matrix.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR7Bug4_TextToChar_StrictReturnsFirstChar() {
+        "y:char = convert('A')".Calc().AssertResultHas("y", 'A');
+    }
+
+    [Test]
+    public void MR7Bug4_TextToCharOpt_GoodInput_ReturnsSome() {
+        var rt = "y:char? = convert('A')"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.AreEqual('A', rt.Get("y"));
+    }
+
+    [Test]
+    public void MR7Bug4_TextToCharOpt_MultiChar_ReturnsNone() {
+        var rt = "y:char? = convert('AB')"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.IsNull(rt.Get("y"));
+    }
+
+    // 4d. Control: convert(text):int works correctly.
+    [Test]
+    public void MR7Bug4_Control_TextToIntWorks() {
+        "y:int = convert('42')".AssertResultHas("y", 42);
+    }
+
+    // 4e. Control: convert(text):bool works correctly.
+    [Test]
+    public void MR7Bug4_Control_TextToBoolWorks() {
+        "y:bool = convert('true')".AssertResultHas("y", true);
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR8Bug1 — `convert(arr):T[]?` (optional-array target) crashes with
+    //   raw NullReferenceException on element-overflow / range failure,
+    //   instead of either the graceful FunnyRuntimeException (matching
+    //   the non-optional `T[]` path) or `none` (matching the documented
+    //   soft-fallible pattern for `convert():T?` on primitives).
+    //
+    //     y:byte[]? = convert([1, 500, 3])   # NullReferenceException
+    //     y:byte[]  = convert([1, 500, 3])   # FunnyRuntimeException ✓
+    //     y:byte?   = convert(1000)          # none ✓
+    //
+    //   The NRE escapes try/catch. Reproduces with byte[]?, int[]?,
+    //   byte?[]?, etc. Only the *optional-array* target path is bad —
+    //   the optional-primitive path is fine.
+    // ───────────────────────────────────────────────────────────────
+    // After fix: SoftFailureConverter returns FunnyNone.Instance (the runtime
+    // `none` value) instead of CLR null on overflow/parse failure. Composite
+    // opt targets (T[]?, opt structs) read through array/struct paths that
+    // dereference the result — null caused NRE; FunnyNone.Instance is safe.
+    [Test]
+    public void MR8Bug1_ConvertToOptArray_OverflowReturnsNone() {
+        var rt = "y:byte[]? = convert([1, 500, 3])"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.IsNull(rt.Get("y"));
+    }
+
+    // Control: byte[]? with all-in-range values still produces the array.
+    [Test]
+    public void MR8Bug1_ConvertToOptArray_GoodValues_ReturnsArray() {
+        "y:byte[]? = convert([1, 2, 3])"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .AssertResultHas("y", new byte[] { 1, 2, 3 });
+    }
 }

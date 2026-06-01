@@ -1,4 +1,5 @@
 using System;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -187,4 +188,36 @@ public class ConstantsTest {
     [TestCase("y:int64 = -9223372036854775809")]
     [TestCase("y:int64 = -19223372036854775809")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    // ───────────────────────────────────────────────────────────────
+    // MBug3 — `0b_` (binary prefix with only an underscore body)
+    //   crashes the tokenizer with raw ArgumentOutOfRangeException
+    //   "Index was out of range". `0b` alone produces clean FU134;
+    //   `0x_` produces FU136 "overflow" (misleading but caught).
+    //   `0b_` is the only path that escapes to a raw .NET exception.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MBug3_BinaryLiteralWithUnderscoreOnly_RawCrash() {
+        Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build("y = 0b_"));
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR4Bug1 — Integer literal type inference at the Int32 boundary
+    //   depends on the literal's base, not its value:
+    //     0xFFFF_FFFF       → Int64
+    //     4294967295        → Real (same value, decimal)
+    //     0x80000000        → Int64
+    //     2147483648        → Real (same value, decimal)
+    //   Types.md doesn't distinguish by base. Either all should fall to
+    //   Int64 first (most-specific that fits), or all to Real (most-abstract).
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR4Bug1_LiteralBaseAffectsType_AtInt32Boundary() {
+        "out = 4294967295".AssertResultHas("out", 4294967295L);
+    }
+
+    [Test]
+    public void MR4Bug1_NegativeLiteralBelowInt32Min_IsInt64() {
+        "out = -2147483649".AssertResultHas("out", -2147483649L);
+    }
 }

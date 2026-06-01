@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -148,4 +149,20 @@ public class ImplicitCastTest {
     [TestCase("0x1_0000_0000", "uint32")]
     public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         => $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})".AssertObviousFailsOnParse();
+
+    // ───────────────────────────────────────────────────────────────
+    // MR4Bug3 — `out:byte = 1 + 1` parses with cryptic FU761 "Seems like
+    //   expression ` + 1` cannot be used here" instead of a clear type
+    //   mismatch FU740 (which is what `out:byte = if(true) 1+1 else 5`
+    //   correctly produces). UX issue — the parse error misattributes
+    //   the failure to the `+1` token.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR4Bug3_ByteAnnotation_OnArithmetic_CrypticErrorCode() {
+        var ex = Assert.Throws<FunnyParseException>(() => "out:byte = 1 + 1".Calc());
+        // Now produces clean FU740 ("Variable 'out' cannot be initialized ...")
+        // instead of cryptic FU761. Assert the FU740 hallmarks.
+        StringAssert.Contains("'out'", ex.Message);
+        StringAssert.Contains("cannot be initialized", ex.Message);
+    }
 }

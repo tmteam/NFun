@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
@@ -421,5 +422,26 @@ public class AnonymousFunTest {
          "a1 = addOne(10)\r" +
          "a2 = addTwo(10)")
             .AssertResultHas(("a1", 11), ("a2", 110));
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // MR4Bug2 (CRITICAL) — Zero-arg call on a 1-arg lambda silently
+    //   succeeds when wrapped in `map(rule it())`. The missing argument
+    //   is filled with the type's default (0 for Int32). Top-level
+    //   `f = rule(x:int):int = x+10; f()` is correctly rejected.
+    //
+    //   `fns = [rule it+1, rule it+2, rule it+3]; fns.map(rule it())`
+    //   returns `Any[] = [1,2,3]` instead of FU arity-mismatch error.
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void MR4Bug2_ZeroArgCallOn1ArgLambda_InMapRule_SilentlyAccepted() {
+        Assert.Throws<FunnyParseException>(() => "fns = [rule it+1]\rout = fns.map(rule it())".Calc());
+    }
+
+    [Test]
+    public void MR4Bug2_CorrectArityCallOn1ArgLambda_TypedAsElementReturnType() {
+        // Bonus from MR4Bug2 fix: correct arity also no longer loses to Any[].
+        "fns = [rule it+1, rule it+2]\rout = fns.map(rule it(10))"
+            .AssertResultHas("out", new[] { 11, 12 });
     }
 }
