@@ -715,17 +715,43 @@ internal sealed class SimplePrimitiveSolver {
                 return null; // unsatisfiable
             if (p != OPEN && FitsOrd(d, p) && FitsOrd(p, a))
                 return s_ordToState[p];
-            return s_ordToState[a];
+            return RefineAncestor(a, d);
         }
         if (a != OPEN) {
             if (p != OPEN && FitsOrd(p, a))
                 return s_ordToState[p];
-            return s_ordToState[a];
+            return RefineAncestor(a, OPEN);
         }
         if (p != OPEN && (d == OPEN || FitsOrd(d, p))) return s_ordToState[p];
         if (d != OPEN) return s_ordToState[d];
         if (_groups[r].Comparable) return StatePrimitive.Real;
         return StatePrimitive.Any;
+    }
+
+    /// <summary>
+    /// Concretise an abstract ancestor produced by SPS resolution.
+    ///
+    /// I96 ("integer top") is the ONLY abstract that arises here in practice — it
+    /// comes from <see cref="GenericConstrains.Integers"/> = (Anc=I96, Desc=null),
+    /// the constraint used by `&`, `|`, `^`, `//`, `~`. The other abstract types
+    /// (I48, I24, U48, U24, U12) exist only as internal lattice nodes for U/I
+    /// intersection results — no built-in operator declares them as `Anc`, so
+    /// they cannot appear as the resolved type from <see cref="ResolveGroup"/>.
+    /// Should a future built-in adopt <see cref="GenericConstrains.Integers3264"/>
+    /// or <see cref="GenericConstrains.Integers32"/>, extend this method.
+    ///
+    /// Rule: I96 with desc ≤ I32 → I32, else I64. Mirrors NFun 1.0.x's
+    /// <c>TicTypesConverter</c> rule that was bypassed when SPS took over the
+    /// resolution path for primitive expressions (the rule applies only to
+    /// constraint-interval resolution; the table-driven mapping in
+    /// <c>s_ordToFunnyType</c> remains the right answer when an abstract type
+    /// arrives via MergeOrNull collapsing a constraint to a single point).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static StatePrimitive RefineAncestor(byte anc, byte desc) {
+        if (anc == s_ordI96)
+            return desc != OPEN && FitsOrd(desc, s_ordI32) ? StatePrimitive.I32 : StatePrimitive.I64;
+        return s_ordToState[anc];
     }
 
     private TypeInferenceResults BuildResults() {
