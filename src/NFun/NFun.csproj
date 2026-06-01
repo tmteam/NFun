@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>1.1.2</PackageVersion>
-    <Version>1.1.2</Version>
+    <PackageVersion>1.1.3</PackageVersion>
+    <Version>1.1.3</Version>
     <LangVersion>10</LangVersion>
     <Title>NFun</Title>
     <Authors>tmteam</Authors>
@@ -13,9 +13,9 @@
     <PackageIcon>Icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
     <PackageTags>expression-evaluator scripting type-inference optional-types named-types</PackageTags>
-    <PackageReleaseNotes>v1.1.2: minor bug fixes.</PackageReleaseNotes>
-    <AssemblyVersion>1.1.2</AssemblyVersion>
-    <FileVersion>1.1.2</FileVersion>
+    <PackageReleaseNotes>v1.1.3: fix integer-bitwise type inference under Real-preferred dialect (e.g. `1 &amp; 1` now resolves to Int32 instead of Int64 when IntegerPreferredType=Real). Restores 1.0.x behaviour that regressed when SimplePrimitiveSolver took over the primitive-only resolution path.</PackageReleaseNotes>
+    <AssemblyVersion>1.1.3</AssemblyVersion>
+    <FileVersion>1.1.3</FileVersion>
     <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
