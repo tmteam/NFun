@@ -11,6 +11,12 @@ public static partial class StateExtensions {
             return aref.Element.Lca(b);
         if (b is StateRefTo bref)
             return a.Lca(bref.Element);
+        // StateCompositeConstraints — Stage C.2. LCA is symmetric, so reverse-direction routes
+        // through LcaCompCs as well (handler dispatches by RHS type).
+        if (a is StateCompositeConstraints acompcs)
+            return acompcs.LcaCompCs(b);
+        if (b is StateCompositeConstraints bcompcs)
+            return bcompcs.LcaCompCs(a);
         if (a is ConstraintsState ac && b is ConstraintsState bc)
         {
             // Both are constraints — compute LCA of their concretest forms
@@ -81,9 +87,33 @@ public static partial class StateExtensions {
         if (b is StatePrimitive)
             return Any;
         return a switch {
-            StateArray aarr => b is StateArray barr ? StateArray.Of(aarr.Element.Lca(barr.Element)) : Any,
+            StateArray aarr => b switch {
+                StateArray barr => StateArray.Of(aarr.Element.Lca(barr.Element)),
+                // Stage 0 hierarchy: any Array-branch StateCollection (List /
+                // Array / FixedArray) widens to T[] with element LCA. Lets a
+                // variable holding both an array result and a lang-collection
+                // literal stay typed as T[] instead of widening to Any.
+                StateCollection bcoll
+                    when bcoll.Constructor == ConstructorKind.List
+                      || bcoll.Constructor == ConstructorKind.Array
+                      || bcoll.Constructor == ConstructorKind.FixedArray =>
+                    StateArray.Of(aarr.Element.Lca(bcoll.Element)),
+                _ => Any
+            },
             StateFun af => b is StateFun bf ? af.Lca(bf) : Any,
             StateStruct astruct => b is StateStruct bstruct ? astruct.Lca(bstruct) : Any,
+            // StateCollection: uniform invariance for cross-Constructor; cross-family
+            // edge to StateArray handled inside GetLastCommonAncestorOrNull.
+            // `LcaOrShareIdentity` adds the identity-sharing fallback (with
+            // explicit side-effect contract) for same-kind unresolved elements
+            // — needed for nested `list<list<T>>` literals so the outer-LCA
+            // doesn't widen to Any.
+            StateCollection acoll => acoll.LcaOrShareIdentity(b) ?? Any,
+            // StateMap: same identity-sharing pattern as StateCollection — needed
+            // for nested `__mkMap({k=…, v=__mkMap(…)})` so the outer factory's
+            // value-LCA doesn't widen to Any when both inner instances are still
+            // CS-typed.
+            StateMap amap => amap.LcaOrShareIdentity(b) ?? Any,
             _ => Any
         };
     }

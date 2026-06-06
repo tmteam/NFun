@@ -447,7 +447,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     private FunnyType ResolveType(TypeSyntax syntax) =>
-        TypeSyntaxResolver.Resolve(syntax, _customTypes);
+        TypeSyntaxResolver.Resolve(syntax, _customTypes, _dialect.IsLangMode);
 
     public bool Visit(SyntaxTree node) => VisitChildren(node);
 
@@ -634,7 +634,20 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             }
         }
 
-        if (elementHint != null)
+        // Decide once: stamp ArraySyntaxNode.Kind so both TIC constraint setup
+        // (this method) and ExpressionBuilderVisitor.Visit(ArraySyntaxNode)
+        // read from the same field. Lang-mode bare `[1,2,3]` resolves to
+        // list<T> (StateCollection.List); ee-mode stays the covariant
+        // immutable T[] (StateArray).
+        node.Kind = _dialect.IsLangMode ? ArrayLiteralKind.List : ArrayLiteralKind.Array;
+        if (node.Kind == ArrayLiteralKind.List)
+        {
+            if (elementHint != null)
+                _ticTypeGraph.SetSoftListInit(node.OrderNumber, elementIds, elementHint);
+            else
+                _ticTypeGraph.SetSoftListInit(node.OrderNumber, elementIds);
+        }
+        else if (elementHint != null)
             _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds, elementHint);
         else
             _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds);
@@ -1711,6 +1724,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         type.BaseType switch {
             BaseFunnyType.Optional => true,
             BaseFunnyType.ArrayOf  => ContainsOptional(type.ArrayTypeSpecification.FunnyType),
+            BaseFunnyType.List     => ContainsOptional(type.ListTypeSpecification.FunnyType),
             BaseFunnyType.None     => true,
             _                      => false
         };
@@ -1763,6 +1777,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             return type.GenericId == genericIndex;
         if (type.BaseType == BaseFunnyType.ArrayOf)
             return TypeContainsGeneric(type.ArrayTypeSpecification.FunnyType, genericIndex);
+        if (type.BaseType == BaseFunnyType.List)
+            return TypeContainsGeneric(type.ListTypeSpecification.FunnyType, genericIndex);
         if (type.BaseType == BaseFunnyType.Optional)
             return TypeContainsGeneric(type.OptionalTypeSpecification.ElementType, genericIndex);
         if (type.BaseType == BaseFunnyType.Fun) {
@@ -1792,6 +1808,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (constrains.HasStructBound)
         {
             return _ticTypeGraph.InitializeVarNode(null, null, false);
+        }
+        // Stage C.4a — composite-lattice constraint (Enumerable<T> / IndexedRead<T> / IndexedMutable<T>).
+        // Emit a StateCompositeConstraints node with the cap set; descendant unset (Pull from
+        // concrete args at call sites refines via §4.1.1).
+        if (constrains.HasCompositeAncestor)
+        {
+            return _ticTypeGraph.InitializeCompositeVarNode(constrains.CompositeAncestor);
         }
         // Do NOT propagate preferred into call-site TIC graph.
         // Preferred is used only in CreateSomeConcrete (fallback for uncalled functions).
@@ -2427,6 +2450,48 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         var resultNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
         var sourceNode = _ticTypeGraph.GetOrCreateNode(node.Source.OrderNumber);
         sourceNode.AddAncestor(resultNode);
+
+        return true;
+    }
+
+    public bool Visit(IndexedAssignmentSyntaxNode node) {
+        // a[i] = v shape — TIC enforces:
+        //   • index is Int32
+        //   • value's type ≤ target's element type
+        //   • result = target (so the Equation re-bind keeps the same identity)
+        // The "target must be a mutable kind" check is deferred to runtime —
+        // pinning a concrete container kind here would overwrite the value's
+        // own kind (e.g. `a = list(...); a[i] = v` would force `a` to be
+        // re-typed as the pinned kind, breaking `list`-specific methods like
+        // `add`). The runtime expression node checks `IFunnyMutableArray` and
+        // surfaces a clean exception otherwise.
+        if (!node.Target.Accept(this)) return false;
+        if (!node.Index.Accept(this)) return false;
+        if (!node.Value.Accept(this)) return false;
+
+        _ticTypeGraph.SetCallArgument(
+            new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.I32),
+            node.Index.OrderNumber);
+
+        // Add a SOFT upper-bound constraint (target ≤ mutArr<elementType>) via an
+        // invisible template node, instead of PINNING target's State to mutArr
+        // directly. The pin would override any earlier inferred kind
+        // (`a = list(...)` makes a's slot StateCollection(List)) and route
+        // through cross-kind conversion — runtime then materializes a fresh
+        // mutArr<int> on every alias step, losing reference identity. With only
+        // the upper bound, narrower-kind merge (`list ≤ array`) keeps the slot
+        // as list; the runtime IFunnyMutableArray check still catches misuse.
+        var elementType = _ticTypeGraph.CreateVarType();
+        var mutArrUpperBound = _ticTypeGraph.CreateVarType(
+            Tic.SolvingStates.StateCollection.OfMutableArray(elementType));
+        var targetRef = _ticTypeGraph.GetOrCreateNode(node.Target.OrderNumber);
+        targetRef.AddAncestor(mutArrUpperBound);
+
+        _ticTypeGraph.GetOrCreateNode(node.Value.OrderNumber).AddAncestor(elementType);
+        elementType.IsMemberOfAnything = true;
+
+        var resultNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
+        targetRef.AddAncestor(resultNode);
 
         return true;
     }

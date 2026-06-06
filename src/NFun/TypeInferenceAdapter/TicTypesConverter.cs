@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
+using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -212,6 +213,19 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
+    private FunnyType ConvertToFunnyCollection(StateCollection coll) =>
+        coll.Constructor switch {
+            ConstructorKind.List => FunnyType.ListOf(Convert(coll.Element)),
+            ConstructorKind.Array => FunnyType.MutableArrayOf(Convert(coll.Element)),
+            ConstructorKind.FixedArray => FunnyType.FixedArrayOf(Convert(coll.Element)),
+            ConstructorKind.Set => FunnyType.SetOf(Convert(coll.Element)),
+            _ => throw new NotSupportedException(
+                $"StateCollection({coll.Constructor}) has no FunnyType mapping yet."),
+        };
+
+    private FunnyType ConvertToFunnyMap(StateMap map)
+        => FunnyType.MapOf(Convert(map.KeyState), Convert(map.ValueState));
+
     private const int OptionalConvertMark = -58000;
     private FunnyType ConvertToFunnyOptional(StateOptional opt) {
         // Cycle guard: generic functions with if..else none create cyclic Optionals
@@ -325,12 +339,29 @@ public abstract class TicTypesConverter {
 
                     case StateArray array:
                         return ConvertToFunnyArray(array);
+                    case StateCollection coll:
+                        return ConvertToFunnyCollection(coll);
+                    case StateMap map:
+                        return ConvertToFunnyMap(map);
                     case StateOptional opt:
                         return ConvertToFunnyOptional(opt);
                     case StateFun fun:
                         return ConvertToFunnyFun(fun);
                     case StateStruct str:
                         return ConvertToFunnyStruct(str);
+                    case StateCompositeConstraints compcs:
+                    {
+                        // Stage C — typeclass constraint. Surface it as the
+                        // corresponding FunnyType (EnumerableOf / MutableOf) so
+                        // the call site implicit-casts any compatible runtime
+                        // collection into it. Concretest's Enumerable→List
+                        // default would lock the user function to a single
+                        // collection kind, which is wrong for polymorphic args.
+                        var elem = Convert(compcs.ElementNode.State);
+                        if (compcs.HasAncestor && compcs.Ancestor.Value == Tic.SolvingStates.ConstructorKind.Mutable)
+                            return FunnyType.MutableOf(elem);
+                        return FunnyType.EnumerableOf(elem);
+                    }
                     default:
                         throw new NFunImpossibleException($"Type {type?.ToString()??"<null>"} is not supported for convertion");
                 }
@@ -355,11 +386,26 @@ public abstract class TicTypesConverter {
                    StatePrimitive primitive   => ToConcrete(primitive.Name),
                    ConstraintsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
                    StateArray array           => ConvertToFunnyArray(array),
+                   StateCollection coll       => ConvertToFunnyCollection(coll),
+                   StateMap map               => ConvertToFunnyMap(map),
                    StateOptional opt          => ConvertToFunnyOptional(opt),
                    StateFun fun               => ConvertToFunnyFun(fun),
                    StateStruct str            => TryGetStructGenericIndex(str, out var idx) ? FunnyType.Generic(idx) : ConvertToFunnyStruct(str),
+                   StateCompositeConstraints compcs => ConvertToFunnyEnumerable(compcs),
                    _                          => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
                };
+
+        // CompCs with non-collapsed interval — appears in generic signatures bound
+        // by a typeclass constraint (e.g. `count(xs: Enumerable<T>)` /
+        // `clear(xs: Mutable<T>)`). The Funny surface type echoes which
+        // typeclass the ancestor marker encodes; element generic is recovered
+        // via ElementNode.State.
+        private FunnyType ConvertToFunnyEnumerable(StateCompositeConstraints compcs) {
+            var elem = Convert(compcs.ElementNode.State);
+            if (compcs.HasAncestor && compcs.Ancestor.Value == Tic.SolvingStates.ConstructorKind.Mutable)
+                return FunnyType.MutableOf(elem);
+            return FunnyType.EnumerableOf(elem);
+        }
 
         private int GetGenericIndexOrThrow(ConstraintsState constraints) {
             var index = _constrainsMap.IndexOf(constraints);
@@ -433,6 +479,10 @@ public abstract class TicTypesConverter {
                         return _argTypes[index];
                     case StateArray array:
                         return ConvertToFunnyArray(array);
+                    case StateCollection coll:
+                        return ConvertToFunnyCollection(coll);
+                    case StateMap map:
+                        return ConvertToFunnyMap(map);
                     case StateOptional opt:
                         return ConvertToFunnyOptional(opt);
                     case StateFun fun:
@@ -441,6 +491,13 @@ public abstract class TicTypesConverter {
                         if (TryGetStructGenericType(str, out var concreteType))
                             return concreteType;
                         return ConvertToFunnyStruct(str);
+                    case StateCompositeConstraints compcs:
+                    {
+                        var elem = Convert(compcs.ElementNode.State);
+                        if (compcs.HasAncestor && compcs.Ancestor.Value == Tic.SolvingStates.ConstructorKind.Mutable)
+                            return FunnyType.MutableOf(elem);
+                        return FunnyType.EnumerableOf(elem);
+                    }
                     default:
                         throw new NotSupportedException();
                 }

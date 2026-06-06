@@ -80,6 +80,179 @@ public class StringOutputFunnyConverter : IOutputFunnyConverter {
     public object ToClrObject(object funObject) => ((IFunnyArray)funObject).ToText();
 }
 
+/// <summary>
+/// CLR-output converter for lang-mode <c>fixedArray&lt;char&gt;</c> — the
+/// text shape produced by constructive LINQ on text (e.g. `s.reverse()`).
+/// Returns a <see cref="string"/>.
+/// </summary>
+public class FixedArrayCharToStringOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; }
+    public FunnyType FunnyType => FunnyType.FixedArrayOf(FunnyType.Char);
+    public FixedArrayCharToStringOutputFunnyConverter() => ClrType = typeof(string);
+    public object ToClrObject(object funObject) {
+        var enumerable = (NFun.Runtime.Lists.IFunnyEnumerable)funObject;
+        var sb = new System.Text.StringBuilder(enumerable.Count);
+        foreach (var c in enumerable) sb.Append((char)c);
+        return sb.ToString();
+    }
+}
+
+/// <summary>
+/// CLR-output converter for lang-mode <c>list&lt;T&gt;</c>.
+/// Takes an <see cref="NFun.Runtime.Lists.IFunnyList"/> produced by the runtime
+/// and returns a <c>System.Collections.Generic.List&lt;T&gt;</c>.
+/// </summary>
+public class ClrListOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; }
+    private readonly IOutputFunnyConverter _elementConverter;
+    private readonly Type _elementClrType;
+
+    public ClrListOutputFunnyConverter(Type clrType, IOutputFunnyConverter elementConverter) {
+        ClrType = clrType;
+        _elementConverter = elementConverter;
+        _elementClrType = elementConverter.ClrType;
+        FunnyType = FunnyType.ListOf(elementConverter.FunnyType);
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToClrObject(object funObject) {
+        var funList = (NFun.Runtime.Lists.IFunnyList)funObject;
+        // Build the closed System.Collections.Generic.List<T> via reflection so
+        // the converter is element-type-agnostic (mirrors ClrArrayOutputFunnyConverter).
+        var listType = typeof(System.Collections.Generic.List<>).MakeGenericType(_elementClrType);
+        var clrList = (System.Collections.IList)Activator.CreateInstance(listType, funList.Count);
+        for (int i = 0; i < funList.Count; i++) {
+            var item = _elementConverter.ToClrObject(funList.GetElementOrNull(i));
+            clrList.Add(item);
+        }
+        return clrList;
+    }
+}
+
+/// <summary>
+/// CLR-output converter for lang-mode <c>fixedArray&lt;T&gt;</c>. Takes an
+/// <see cref="NFun.Runtime.Lists.IFunnyFixedArray"/> and returns a CLR <c>T[]</c>.
+/// </summary>
+public class ClrFixedArrayOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; }
+    private readonly IOutputFunnyConverter _elementConverter;
+
+    public ClrFixedArrayOutputFunnyConverter(Type clrType, IOutputFunnyConverter elementConverter) {
+        ClrType = clrType;
+        _elementConverter = elementConverter;
+        FunnyType = FunnyType.FixedArrayOf(elementConverter.FunnyType);
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToClrObject(object funObject) {
+        var funArr = (NFun.Runtime.Lists.IFunnyFixedArray)funObject;
+        var clrArray = Array.CreateInstance(ClrType.GetElementType(), funArr.Count);
+        for (int i = 0; i < funArr.Count; i++) {
+            var item = _elementConverter.ToClrObject(funArr.GetElementOrNull(i));
+            clrArray.SetValue(item, i);
+        }
+        return clrArray;
+    }
+}
+
+/// <summary>
+/// CLR-output converter for lang-mode <c>array&lt;T&gt;</c>. Takes an
+/// <see cref="NFun.Runtime.Lists.IFunnyMutableArray"/> and returns a
+/// CLR <c>T[]</c>.
+/// </summary>
+public class ClrMutableArrayOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; }
+    private readonly IOutputFunnyConverter _elementConverter;
+
+    public ClrMutableArrayOutputFunnyConverter(Type clrType, IOutputFunnyConverter elementConverter) {
+        ClrType = clrType;
+        _elementConverter = elementConverter;
+        FunnyType = FunnyType.MutableArrayOf(elementConverter.FunnyType);
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToClrObject(object funObject) {
+        var funArr = (NFun.Runtime.Lists.IFunnyMutableArray)funObject;
+        var clrArray = Array.CreateInstance(ClrType.GetElementType(), funArr.Count);
+        for (int i = 0; i < funArr.Count; i++) {
+            var item = _elementConverter.ToClrObject(funArr.GetElementOrNull(i));
+            clrArray.SetValue(item, i);
+        }
+        return clrArray;
+    }
+}
+
+/// <summary>
+/// CLR-output converter for lang-mode <c>map&lt;K, V&gt;</c>. Takes an
+/// <see cref="NFun.Runtime.Lists.IFunnyMap"/> and returns a CLR
+/// <c>Dictionary&lt;K, V&gt;</c>.
+/// </summary>
+public class ClrDictionaryOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; }
+    private readonly IOutputFunnyConverter _keyConverter;
+    private readonly IOutputFunnyConverter _valueConverter;
+
+    public ClrDictionaryOutputFunnyConverter(Type clrType,
+        IOutputFunnyConverter keyConverter, IOutputFunnyConverter valueConverter) {
+        ClrType = clrType;
+        _keyConverter = keyConverter;
+        _valueConverter = valueConverter;
+        FunnyType = FunnyType.MapOf(keyConverter.FunnyType, valueConverter.FunnyType);
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToClrObject(object funObject) {
+        var funMap = (NFun.Runtime.Lists.IFunnyMap)funObject;
+        var clrDict = (System.Collections.IDictionary)Activator.CreateInstance(ClrType);
+        // Iterate via IFunnyMap directly through its underlying dictionary —
+        // GetEnumerator yields FunnyStruct pairs (Enumerable interop), which is
+        // not what we want here. Walk via Count + IFunnyMap-specific API would
+        // require an entries property; for now go through the enumerable
+        // pair-struct form and unpack each.
+        foreach (var pair in (System.Collections.Generic.IEnumerable<object>)funMap) {
+            var s = (NFun.Runtime.FunnyStruct)pair;
+            var k = _keyConverter.ToClrObject(s.GetValue("key"));
+            var v = _valueConverter.ToClrObject(s.GetValue("value"));
+            clrDict[k] = v;
+        }
+        return clrDict;
+    }
+}
+
+/// <summary>
+/// CLR-output converter for lang-mode <c>set&lt;T&gt;</c>. Takes an
+/// <see cref="NFun.Runtime.Lists.IFunnyMutableSet"/> and returns a CLR
+/// <c>HashSet&lt;T&gt;</c>.
+/// </summary>
+public class ClrHashSetOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; }
+    private readonly IOutputFunnyConverter _elementConverter;
+
+    public ClrHashSetOutputFunnyConverter(Type clrType, IOutputFunnyConverter elementConverter) {
+        ClrType = clrType;
+        _elementConverter = elementConverter;
+        FunnyType = FunnyType.SetOf(elementConverter.FunnyType);
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToClrObject(object funObject) {
+        var funSet = (NFun.Runtime.Lists.IFunnyMutableSet)funObject;
+        var clrSet = (System.Collections.IEnumerable)Activator.CreateInstance(ClrType);
+        var addMethod = ClrType.GetMethod("Add", new[] { _elementConverter.ClrType });
+        var addArgs = new object[1];
+        foreach (var item in funSet) {
+            addArgs[0] = _elementConverter.ToClrObject(item);
+            addMethod.Invoke(clrSet, addArgs);
+        }
+        return clrSet;
+    }
+}
+
 public class ClrArrayOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; }
     private readonly IOutputFunnyConverter _elementConverter;

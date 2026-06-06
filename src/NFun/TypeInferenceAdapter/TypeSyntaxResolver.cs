@@ -10,18 +10,27 @@ namespace NFun.TypeInferenceAdapter;
 /// This is where custom type names are looked up.
 /// </summary>
 public static class TypeSyntaxResolver {
-    public static FunnyType Resolve(TypeSyntax syntax, ICustomTypeRegistry customTypes = null) =>
+    /// <summary>
+    /// Resolves a syntactic type annotation into <see cref="FunnyType"/>.
+    /// <paramref name="isLangMode"/> shifts the <c>T[]</c> annotation to the
+    /// lang-mode mutable kind (<see cref="FunnyType.MutableArrayOf"/>) per
+    /// Stage 0 mode policy. ee-mode keeps the legacy immutable
+    /// <see cref="FunnyType.ArrayOf"/>.
+    /// </summary>
+    public static FunnyType Resolve(TypeSyntax syntax, ICustomTypeRegistry customTypes = null, bool isLangMode = false) =>
         syntax switch {
             TypeSyntax.EmptyType => FunnyType.Empty,
             TypeSyntax.Named n => ResolveNamed(n, customTypes),
-            TypeSyntax.ArrayOf a => FunnyType.ArrayOf(Resolve(a.Element, customTypes)),
-            TypeSyntax.OptionalOf o => FunnyType.OptionalOf(Resolve(o.Element, customTypes)),
+            TypeSyntax.ArrayOf a => isLangMode
+                ? FunnyType.MutableArrayOf(Resolve(a.Element, customTypes, isLangMode))
+                : FunnyType.ArrayOf(Resolve(a.Element, customTypes, isLangMode)),
+            TypeSyntax.OptionalOf o => FunnyType.OptionalOf(Resolve(o.Element, customTypes, isLangMode)),
             TypeSyntax.StructOf s => FunnyType.StructOf(
                 s.IsFrozen,
-                s.Fields.Select(f => (f.FieldName, Resolve(f.FieldType, customTypes))).ToArray()),
+                s.Fields.Select(f => (f.FieldName, Resolve(f.FieldType, customTypes, isLangMode))).ToArray()),
             TypeSyntax.FunOf f => FunnyType.FunOf(
-                Resolve(f.ReturnType, customTypes),
-                f.ArgTypes.Select(a => Resolve(a, customTypes)).ToArray()),
+                Resolve(f.ReturnType, customTypes, isLangMode),
+                f.ArgTypes.Select(a => Resolve(a, customTypes, isLangMode)).ToArray()),
             _ => throw new ArgumentException($"Unknown TypeSyntax: {syntax}")
         };
 

@@ -21,6 +21,10 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
                               ITypeState at   => TicNode.CreateTypeVariableNode(at),
                               StateRefTo aRef => aRef.Node,
                               ConstraintsState c => TicNode.CreateInvisibleNode(c),
+                              // Stage C — typeclass-bound generic (Enumerable<T> /
+                              // Mutable<T>) arrives as a CompCs in function
+                              // signatures. Treat it like a generic placeholder.
+                              StateCompositeConstraints cc => TicNode.CreateInvisibleNode(cc),
                               _               => throw new InvalidOperationException()
                           };
         }

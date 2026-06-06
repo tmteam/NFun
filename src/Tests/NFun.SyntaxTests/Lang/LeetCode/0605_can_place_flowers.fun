@@ -12,7 +12,7 @@ fun canPlaceFlowers(flowerbed, n):
             leftFree = i == 0 or bed[i - 1] == 0
             rightFree = i == bed.count() - 1 or bed[i + 1] == 0
             if leftFree and rightFree:
-                bed = bed.set(i, 1)
+                bed = bed.setAt(i, 1)
                 placed += 1
                 if placed >= n: return true
         i += 1

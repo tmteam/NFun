@@ -17,7 +17,7 @@ fun lengthOfLIS(nums):
         if lo == tails.count():
             tails = concat(tails, [x])
         else:
-            tails = tails.set(lo, x)
+            tails = tails.setAt(lo, x)
     return tails.count()
 
 @Test

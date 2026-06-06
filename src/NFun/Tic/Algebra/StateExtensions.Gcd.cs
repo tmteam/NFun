@@ -22,6 +22,12 @@ public static partial class StateExtensions {
                 continue;
             }
 
+            // StateCompositeConstraints — Stage C.2 (Layer-0 algebra).
+            if (a is StateCompositeConstraints acompcs)
+                return acompcs.GcdCompCs(b);
+            if (b is StateCompositeConstraints bcompcs)
+                return bcompcs.GcdCompCs(a); // GCD is symmetric
+
             if (a is ConstraintsState ac)
             {
                 // Unconstrained ⊓ b: if a has no upper bound, its meet with b is determined

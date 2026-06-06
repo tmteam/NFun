@@ -176,8 +176,8 @@ public class BuiltInFunctionsArgumentNamesTest {
 
     // ── Array: three-arg ────────────────────────────────────────────────────
 
-    [Test] public void Set_Named() =>
-        "y = set(value = 9, index = 1, arr = [1,2,3])".AssertReturns("y", new[] { 1, 9, 3 });
+    [Test] public void SetAt_Named() =>
+        "y = setAt(value = 9, index = 1, arr = [1,2,3])".AssertReturns("y", new[] { 1, 9, 3 });
 
     [Test] public void Slice3_Named() =>
         "y = slice(to = 2, from = 0, arr = [1,2,3,4,5])".AssertReturns("y", new[] { 1, 2, 3 });

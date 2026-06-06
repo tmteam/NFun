@@ -66,8 +66,34 @@ public static class SolvingFunctions {
         switch (stateA)
         {
             case StateArray arrayA when stateB is StateArray arrayB:
-                MergeInplace(arrayA.ElementNode, arrayB.ElementNode);
-                return arrayA;
+                return MergeCollectionsWithCycleGuard(stateA, stateB, arrayA.ElementNode, arrayB.ElementNode, arrayA);
+            // Stage 0 hierarchy: any Array-branch StateCollection (List / Array /
+            // FixedArray) fits into the legacy StateArray slot. The merge keeps
+            // the StateCollection identity (narrower-Constructor wins —
+            // `Specs/Tic/ConstructorLattice.md` §Cross-kind merge identity).
+            case StateArray arrayA2 when stateB is StateCollection collArrB
+                && (collArrB.Constructor == ConstructorKind.List
+                 || collArrB.Constructor == ConstructorKind.Array
+                 || collArrB.Constructor == ConstructorKind.FixedArray):
+                return MergeCollectionsWithCycleGuard(stateA, stateB, arrayA2.ElementNode, collArrB.ElementNode, collArrB);
+            case StateCollection collArrA when stateB is StateArray arrayB2
+                && (collArrA.Constructor == ConstructorKind.List
+                 || collArrA.Constructor == ConstructorKind.Array
+                 || collArrA.Constructor == ConstructorKind.FixedArray):
+                return MergeCollectionsWithCycleGuard(stateA, stateB, collArrA.ElementNode, arrayB2.ElementNode, collArrA);
+            // Same-kind / cross-Array-branch collection merge. Same-kind returns
+            // self. Cross-kind among the Array-branch (List ⊂ Array ⊂ FixedArray)
+            // returns the narrower identity per the lattice rule
+            // (`Specs/Tic/ConstructorLattice.md` §Cross-kind merge identity).
+            // Set is on a separate branch — cross-kind with it is rejected.
+            case StateCollection collA when stateB is StateCollection collB:
+            {
+                if (collA.Constructor == collB.Constructor)
+                    return MergeCollectionsWithCycleGuard(stateA, stateB, collA.ElementNode, collB.ElementNode, collA);
+                var narrower = NarrowerArrayBranchOrNull(collA, collB);
+                if (narrower == null) return null;
+                return MergeCollectionsWithCycleGuard(stateA, stateB, collA.ElementNode, collB.ElementNode, narrower);
+            }
             case StateFun funA when stateB is StateFun funB:
             {
                 if (funA.ArgsCount != funB.ArgsCount)
@@ -81,6 +107,16 @@ public static class SolvingFunctions {
             case StateOptional optA when stateB is StateOptional optB:
                 MergeInplace(optA.ElementNode, optB.ElementNode);
                 return optA;
+            // Stage 5 / Map.2 — merge two StateMap instances by unifying both
+            // KeyNode and ValueNode pairs in place. Mirrors StateCollection
+            // same-kind merge but for two arguments.
+            case StateMap mapA when stateB is StateMap mapB: {
+                if (mapA.KeyNode != mapB.KeyNode)
+                    MergeInplace(mapA.KeyNode, mapB.KeyNode);
+                if (mapA.ValueNode != mapB.ValueNode)
+                    MergeInplace(mapA.ValueNode, mapB.ValueNode);
+                return mapA;
+            }
             // MutStruct and Struct are different type constructors — cannot merge
             case StateMutableStruct when stateB is StateStruct and not StateMutableStruct:
                 return null;
@@ -224,6 +260,51 @@ public static class SolvingFunctions {
             result.TryAdd(key, value);
 
         return new StateMutableStruct(result, isFrozen: false, isOpen: strA.IsOpen || strB.IsOpen);
+    }
+
+    /// <summary>
+    /// For a cross-kind StateCollection × StateCollection merge among the
+    /// Array-branch (List ⊂ Array ⊂ FixedArray), return the narrower side.
+    /// Returns null when either side is outside the Array-branch (Set is on a
+    /// separate branch — cross-branch merges are rejected). Used by
+    /// `GetMergedStateOrNull` to enforce the Stage 0 identity rule.
+    /// </summary>
+    private static StateCollection NarrowerArrayBranchOrNull(StateCollection a, StateCollection b) {
+        int ra = ArrayBranchRank(a.Constructor);
+        int rb = ArrayBranchRank(b.Constructor);
+        if (ra < 0 || rb < 0) return null;
+        return ra <= rb ? a : b;
+    }
+
+    private static int ArrayBranchRank(ConstructorKind k) => k switch {
+        ConstructorKind.List => 0,
+        ConstructorKind.Array => 1,
+        ConstructorKind.FixedArray => 2,
+        _ => -1,
+    };
+
+    /// <summary>
+    /// Merge wrapper for single-arg collection states (Array × Array,
+    /// Array × Collection(List), Collection × Collection same-kind). Adds a
+    /// visited-pair guard to the shared `_mergeVisited` HashSet so recursive
+    /// list types — e.g. `t = list&lt;t&gt;` once named-recursive collections
+    /// are exposed — terminate coinductively (Amadio-Cardelli '93). Without
+    /// this guard the element-merge from `MergeInplace` re-entered the same
+    /// state pair and stack-overflowed.
+    /// </summary>
+    private static ITicNodeState MergeCollectionsWithCycleGuard(
+        ITicNodeState stateA, ITicNodeState stateB,
+        TicNode elemA, TicNode elemB, ITicNodeState result) {
+        var visited = _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
+        var key = (stateA, stateB);
+        if (!visited.Add(key))
+            return result; // cycle — coinductive merge to self
+        try {
+            MergeInplace(elemA, elemB);
+            return result;
+        } finally {
+            visited.Remove(key);
+        }
     }
 
     /// <summary>
@@ -1474,8 +1555,108 @@ public static class SolvingFunctions {
             var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
             return new StateArray(node);
         }
+        // Stage 0 hierarchy: any Array-branch StateCollection (List / Array /
+        // FixedArray) fits into the legacy StateArray slot. Reuse the
+        // descendant's element identity so the array ancestor's element shares
+        // the same node.
+        else if (descendant.HasDescendant
+                 && descendant.Descendant is StateCollection collDesc
+                 && (collDesc.Constructor == ConstructorKind.List
+                  || collDesc.Constructor == ConstructorKind.Array
+                  || collDesc.Constructor == ConstructorKind.FixedArray))
+        {
+            if (!collDesc.IsSolved)
+                return new StateArray(collDesc.ElementNode);
+            var constrains = ConstraintsState.Empty;
+            constrains.AddDescendant(collDesc.Element);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            return new StateArray(node);
+        }
         else
             return null;
+    }
+
+    /// <summary>
+    /// Stage 5 / Map.2 — transform a ConstraintsState into a
+    /// <see cref="StateMap"/>. Parallel to <see cref="TransformToCollectionOrNull"/>
+    /// but produces a two-arg shape (key + value). Returns null when the
+    /// descendant cannot become a map.
+    /// </summary>
+    public static StateMap TransformToMapOrNull(object descNodeName, ConstraintsState descendant) {
+        if (descendant.NoConstrains) {
+            var keyNode = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", ConstraintsState.Empty);
+            var valueNode = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", ConstraintsState.Empty);
+            return new StateMap(keyNode, valueNode);
+        }
+        if (descendant.HasDescendant && descendant.Descendant is StateMap existing) {
+            // Reuse identities so the ancestor's K/V share the same node.
+            if (!existing.IsSolved) return existing;
+            var kCs = ConstraintsState.Empty;
+            if (existing.KeyState is ITypeState kTs) kCs.AddDescendant(kTs);
+            var vCs = ConstraintsState.Empty;
+            if (existing.ValueState is ITypeState vTs) vCs.AddDescendant(vTs);
+            var kNode = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", kCs);
+            var vNode = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", vCs);
+            return new StateMap(kNode, vNode);
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Transform a ConstraintsState into a <see cref="StateCollection"/> of the
+    /// requested <paramref name="kind"/>. Parallel to <see cref="TransformToArrayOrNull"/>
+    /// but parameterised — same helper covers all single-arg collections (list,
+    /// fixedArray, array, set, …) thanks to the data-driven state class. Returns
+    /// null when the constraint cannot become a collection of this kind.
+    /// </summary>
+    public static StateCollection TransformToCollectionOrNull(
+        ConstructorKind kind, object descNodeName, ConstraintsState descendant) {
+        if (descendant.NoConstrains)
+        {
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", ConstraintsState.Empty);
+            return new StateCollection(kind, node);
+        }
+        if (descendant.HasDescendant
+            && descendant.Descendant is StateCollection existing
+            && existing.Constructor == kind)
+        {
+            if (!existing.IsSolved) return existing;
+            var c = ConstraintsState.Empty;
+            c.AddDescendant(existing.Element);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
+            return new StateCollection(kind, node);
+        }
+        // Stage C — accept subtype kinds in Array-branch (list ⊆ array ⊆ fixedArray).
+        // Lets a CS{Desc=array<int>} flow into a fixedArray<T> slot (count/all/etc).
+        if (descendant.HasDescendant
+            && descendant.Descendant is StateCollection existingSub
+            && ConstructorLattice.IsSubtypeOf(existingSub.Constructor, kind))
+        {
+            if (!existingSub.IsSolved) return existingSub;
+            var c = ConstraintsState.Empty;
+            c.AddDescendant(existingSub.Element);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
+            return new StateCollection(kind, node);
+        }
+        // Stage C — ee-mode T[] (StateArray) fits any Array-branch kind. T[] semantically
+        // IS fixedArray<T> in ee mode (single collection type).
+        if (descendant.HasDescendant
+            && descendant.Descendant is StateArray eeArr
+            && (kind == ConstructorKind.List || kind == ConstructorKind.Array
+                || kind == ConstructorKind.FixedArray))
+        {
+            // StateStruct elements (especially recursive named types like
+            // `forest = {kids: forest[]}`) carry μ-cycles. A fresh wrapper outside
+            // the cycle guard makes TIC report "Recursive type definition". Reuse
+            // eeArr.ElementNode in that case so cycle structure is preserved.
+            if (eeArr.Element is StateStruct)
+                return new StateCollection(kind, eeArr.ElementNode);
+            var c = ConstraintsState.Empty;
+            if (eeArr.Element is ITypeState elemTs) c.AddDescendant(elemTs);
+            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
+            return new StateCollection(kind, node);
+        }
+        return null;
     }
 
     /// <summary>
@@ -1687,6 +1868,11 @@ public static class SolvingFunctions {
                     // Standalone array chain — check for arr(arr(...self...))
                     ThrowIfNodeReq(arr.ElementNode, mark, fromStruct: false, optSeen);
                     break;
+                case StateCollection coll:
+                    if (fromStruct)
+                        break; // Valid: struct field → collection → struct (named recursive type)
+                    ThrowIfNodeReq(coll.ElementNode, mark, fromStruct: false, optSeen);
+                    break;
                 case ICompositeState composite:
                     var isStruct = state is StateStruct;
                     for (int mi = 0; mi < composite.MemberCount; mi++)
@@ -1729,6 +1915,8 @@ public static class SolvingFunctions {
                 // t = {v:int, kids:t[]} — `root.kids` traverses struct → kids field →
                 // arr_node and back, crossing arr_node twice via the array constructor.
                 if (fromStruct && node.GetNonReference().State is StateArray)
+                    return;
+                if (fromStruct && node.GetNonReference().State is StateCollection)
                     return;
 
                 // If any struct on the cycle path is opt-sourced, OR if the cycle's struct itself
@@ -2043,11 +2231,35 @@ public static class SolvingFunctions {
             {
                 // Non-StateFun input (e.g., user function arg).
                 // Mark as signature to preserve as generic — but only if it has
-                // actual constraints (desc/anc) or is a composite type (array, struct).
-                // Unconstrained [..] args should resolve normally (they become Any).
+                // actual constraints (desc/anc), is a composite type (array, struct),
+                // or has an unresolved ancestor edge to a typeclass constraint
+                // (StateCompositeConstraints from an Enumerable<T> / Hashable / …
+                // call inside the body). Unconstrained [..] args with no such edge
+                // resolve normally (they become Any).
                 var nr = inputNode.GetNonReference();
-                if (nr.State is ICompositeState
-                    || (nr.State is ConstraintsState ics && (ics.HasDescendant || ics.HasAncestor)))
+                bool isLeaf = nr.State is ICompositeState
+                    || (nr.State is ConstraintsState ics && (ics.HasDescendant || ics.HasAncestor));
+                if (!isLeaf)
+                {
+                    // Inspect ancestor edges: if any reaches a typeclass-constraint
+                    // node (StateCompositeConstraints) that hasn't collapsed yet,
+                    // ADOPT its type — x's signature type becomes that CompCs.
+                    // Without this, x is solved as Any and the connection between
+                    // x's element type and the body's return type (carried via
+                    // CompCs.ElementNode) is severed; call-site inference then
+                    // can't pull the literal's element type through to the result.
+                    for (int ai = 0; ai < nr.Ancestors.Count; ai++)
+                    {
+                        var ancNr = nr.Ancestors[ai].GetNonReference();
+                        if (ancNr.State is SolvingStates.StateCompositeConstraints compCs)
+                        {
+                            nr.State = compCs;
+                            isLeaf = true;
+                            break;
+                        }
+                    }
+                }
+                if (isLeaf)
                     MarkSignatureLeaves(inputNode, outputTypeMark);
             }
         }
@@ -2072,6 +2284,11 @@ public static class SolvingFunctions {
         if (nr.State is ICompositeState composite)
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 MarkSignatureLeaves(composite.GetMember(mi), mark);
+        // Stage C — StateCompositeConstraints encodes `Enumerable<T>` (typeclass
+        // dispatch). Its sole "member" is ElementNode (the T generic). Mark it
+        // too so Step 3's SolveCovariant doesn't collapse T to Any.
+        else if (nr.State is SolvingStates.StateCompositeConstraints compCs)
+            MarkSignatureLeaves(compCs.ElementNode, mark);
     }
 
     #endregion

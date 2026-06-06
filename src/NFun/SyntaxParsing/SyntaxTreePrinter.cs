@@ -87,4 +87,5 @@ class SyntaxNodePrinterVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(TryBlockSyntaxNode node) => "try-block";
     public string Visit(IfBlockSyntaxNode node) => "if-block";
     public string Visit(FieldAssignmentSyntaxNode node) => $"field-assign '{node.VariableName}.{node.FieldName}'";
+    public string Visit(IndexedAssignmentSyntaxNode node) => "indexed-assign";
 }

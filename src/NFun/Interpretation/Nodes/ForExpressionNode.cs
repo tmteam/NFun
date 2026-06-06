@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
+using NFun.Runtime.Lists;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -33,8 +33,12 @@ internal sealed class ForExpressionNode : IExpressionNode {
 
     public object Calc() {
         var collection = _collection.Calc();
-        if (collection is IFunnyArray arr) {
-            foreach (var item in arr) {
+        // Iterates anything implementing IFunnyEnumerable — `IFunnyArray` and
+        // `IFunnyList` are the current concrete shapes. Using the marker
+        // interface excludes stray CLR collections that bypassed NFun's input
+        // converters from being silently iterated as if they were funny values.
+        if (collection is IFunnyEnumerable items) {
+            foreach (var item in items) {
                 _iteratorVar.SetFunnyValueUnsafe(item);
                 var result = _body.Calc();
                 if (result is BreakSignal) break;

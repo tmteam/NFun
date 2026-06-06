@@ -64,6 +64,17 @@ public static class LangTiHelper {
             BaseFunnyType.Custom => new StatePrimitiveCustom(origin.CustomTypeDefinition.Name, origin),
             BaseFunnyType.Optional => StateOptional.Of(ConvertToTiType(origin.OptionalTypeSpecification.ElementType)),
             BaseFunnyType.ArrayOf => StateArray.Of(ConvertToTiType(origin.ArrayTypeSpecification.FunnyType)),
+            BaseFunnyType.List => StateCollection.OfList(ConvertToTiType(origin.ListTypeSpecification.FunnyType)),
+            BaseFunnyType.MutableArray => StateCollection.OfMutableArray(ConvertToTiType(origin.MutableArrayTypeSpecification.FunnyType)),
+            BaseFunnyType.FixedArray => StateCollection.OfFixedArray(ConvertToTiType(origin.FixedArrayTypeSpecification.FunnyType)),
+            BaseFunnyType.Set => StateCollection.OfSet(ConvertToTiType(origin.SetTypeSpecification.FunnyType)),
+            BaseFunnyType.Map => StateMap.Of(
+                ConvertToTiType(origin.MapTypeSpecification.KeyType),
+                ConvertToTiType(origin.MapTypeSpecification.ValueType)),
+            BaseFunnyType.Enumerable => MakeCompCsForEnumerable(
+                ConvertToTiType(origin.EnumerableTypeSpecification.FunnyType)),
+            BaseFunnyType.Mutable => MakeCompCsForMutable(
+                ConvertToTiType(origin.MutableTypeSpecification.FunnyType)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(ConvertToTiType),
                 returnType: ConvertToTiType(origin.FunTypeSpecification.Output)),
@@ -75,6 +86,40 @@ public static class LangTiHelper {
             _ => throw new ArgumentOutOfRangeException(
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
         };
+
+    /// <summary>
+    /// Stage C — convert <c>Enumerable&lt;V&gt;</c> FunnyType to a CompCS node whose
+    /// element TIC node carries the converted element state. Generic-substitution sites
+    /// (<see cref="ConvertToTiType(FunnyType, StateRefTo[])"/>) thread the genericMap
+    /// so the element shares identity with the function's V generic.
+    /// </summary>
+    private static ITicNodeState MakeCompCsForEnumerable(ITicNodeState elementState) {
+        var elemNode = elementState is StateRefTo r
+            ? r.Node
+            : TicNode.CreateInvisibleNode(elementState);
+        return StateCompositeConstraints.Create(
+            elementNode: elemNode,
+            ancestor: ConstructorKind.Enumerable,
+            descendant: null,
+            isOptional: false);
+    }
+
+    /// <summary>
+    /// Stage C — convert <c>Mutable&lt;V&gt;</c> FunnyType to a CompCS node with
+    /// ancestor cap = <c>Mutable</c>. Algebra cells let any mutable kind
+    /// (list / array / set / future queue) satisfy this constraint; fixedArray
+    /// and ee-mode T[] are rejected at TIC level.
+    /// </summary>
+    private static ITicNodeState MakeCompCsForMutable(ITicNodeState elementState) {
+        var elemNode = elementState is StateRefTo r
+            ? r.Node
+            : TicNode.CreateInvisibleNode(elementState);
+        return StateCompositeConstraints.Create(
+            elementNode: elemNode,
+            ancestor: ConstructorKind.Mutable,
+            descendant: null,
+            isOptional: false);
+    }
 
     /// <summary>
     /// Per-call state for recursive NamedStruct resolution. Created lazily on first nested
@@ -114,6 +159,21 @@ public static class LangTiHelper {
                 ConvertToTiTypeInner(origin.OptionalTypeSpecification.ElementType, registry, ctx)),
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiTypeInner(origin.ArrayTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.List => StateCollection.OfList(
+                ConvertToTiTypeInner(origin.ListTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.MutableArray => StateCollection.OfMutableArray(
+                ConvertToTiTypeInner(origin.MutableArrayTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.FixedArray => StateCollection.OfFixedArray(
+                ConvertToTiTypeInner(origin.FixedArrayTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.Set => StateCollection.OfSet(
+                ConvertToTiTypeInner(origin.SetTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.Map => StateMap.Of(
+                ConvertToTiTypeInner(origin.MapTypeSpecification.KeyType, registry, ctx),
+                ConvertToTiTypeInner(origin.MapTypeSpecification.ValueType, registry, ctx)),
+            BaseFunnyType.Enumerable => MakeCompCsForEnumerable(
+                ConvertToTiTypeInner(origin.EnumerableTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.Mutable => MakeCompCsForMutable(
+                ConvertToTiTypeInner(origin.MutableTypeSpecification.FunnyType, registry, ctx)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(t => ConvertToTiTypeInner(t, registry, ctx)),
                 returnType: ConvertToTiTypeInner(origin.FunTypeSpecification.Output, registry, ctx)),
@@ -181,6 +241,17 @@ public static class LangTiHelper {
                 WrapSolved(type.OptionalTypeSpecification.ElementType, expandingTypeName)),
             BaseFunnyType.ArrayOf => StateArray.Of(
                 WrapSolved(type.ArrayTypeSpecification.FunnyType, expandingTypeName)),
+            BaseFunnyType.List => StateCollection.OfList(
+                WrapSolved(type.ListTypeSpecification.FunnyType, expandingTypeName)),
+            BaseFunnyType.MutableArray => StateCollection.OfMutableArray(
+                WrapSolved(type.MutableArrayTypeSpecification.FunnyType, expandingTypeName)),
+            BaseFunnyType.FixedArray => StateCollection.OfFixedArray(
+                WrapSolved(type.FixedArrayTypeSpecification.FunnyType, expandingTypeName)),
+            BaseFunnyType.Set => StateCollection.OfSet(
+                WrapSolved(type.SetTypeSpecification.FunnyType, expandingTypeName)),
+            BaseFunnyType.Map => StateMap.Of(
+                WrapSolved(type.MapTypeSpecification.KeyType, expandingTypeName),
+                WrapSolved(type.MapTypeSpecification.ValueType, expandingTypeName)),
             _ => type.ConvertToTiType()
         };
 
@@ -200,6 +271,21 @@ public static class LangTiHelper {
                 ConvertToTiType(origin.OptionalTypeSpecification.ElementType, genericMap, registry)),
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiType(origin.ArrayTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.List => StateCollection.OfList(
+                ConvertToTiType(origin.ListTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.MutableArray => StateCollection.OfMutableArray(
+                ConvertToTiType(origin.MutableArrayTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.FixedArray => StateCollection.OfFixedArray(
+                ConvertToTiType(origin.FixedArrayTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.Set => StateCollection.OfSet(
+                ConvertToTiType(origin.SetTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.Map => StateMap.Of(
+                ConvertToTiType(origin.MapTypeSpecification.KeyType, genericMap, registry),
+                ConvertToTiType(origin.MapTypeSpecification.ValueType, genericMap, registry)),
+            BaseFunnyType.Enumerable => MakeCompCsForEnumerable(
+                ConvertToTiType(origin.EnumerableTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.Mutable => MakeCompCsForMutable(
+                ConvertToTiType(origin.MutableTypeSpecification.FunnyType, genericMap, registry)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(
                     type => ConvertToTiType(type, genericMap, registry)),

@@ -47,10 +47,12 @@ public class GenericFunctionBaseTest {
 
     [Test]
     public void Map_FunReturnsText_ResultTypesAreCorrect() {
+        // MapFunction is the ee-mode variant — FixedArray-strict signature.
+        // MapEnumerableFunction is the lang-mode counterpart with Enumerable input.
         var function = new MapFunction()
             .CreateConcreteOrNull(
-                FunnyType.ArrayOf(FunnyType.Text),
-                FunnyType.ArrayOf(FunnyType.Int32),
+                FunnyType.FixedArrayOf(FunnyType.Text),
+                FunnyType.FixedArrayOf(FunnyType.Int32),
                 FunnyType.FunOf(FunnyType.Text, FunnyType.Int32));
 
         Assert.IsNotNull(function);
@@ -58,11 +60,11 @@ public class GenericFunctionBaseTest {
         Assert.Multiple(
             () => {
                 Assert.AreEqual(
-                    expected: FunnyType.ArrayOf(FunnyType.Text),
+                    expected: FunnyType.FixedArrayOf(FunnyType.Text),
                     actual: function.ReturnType);
                 CollectionAssert.AreEqual(
                     expected: new[] {
-                        FunnyType.ArrayOf(FunnyType.Int32), FunnyType.FunOf(FunnyType.Text, FunnyType.Int32)
+                        FunnyType.FixedArrayOf(FunnyType.Int32), FunnyType.FunOf(FunnyType.Text, FunnyType.Int32)
                     },
                     actual: function.ArgTypes);
             });
@@ -70,10 +72,11 @@ public class GenericFunctionBaseTest {
 
     [Test]
     public void Take_PrimitiveType_ResultTypesAreCorrect() {
+        // Stage C — take's TIC signature is `enumerable<T> → array<T>`.
         var rpt = new TakeGenericFunctionDefinition();
         var function = rpt.CreateConcreteOrNull(
             FunnyType.ArrayOf(FunnyType.Bool),
-            FunnyType.ArrayOf(FunnyType.Bool),
+            FunnyType.EnumerableOf(FunnyType.Bool),
             FunnyType.Int32);
         Assert.IsNotNull(function);
 
@@ -81,7 +84,7 @@ public class GenericFunctionBaseTest {
             () => {
                 Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
                 CollectionAssert.AreEquivalent(
-                    new[] { FunnyType.ArrayOf(FunnyType.Bool), FunnyType.Int32 },
+                    new[] { FunnyType.EnumerableOf(FunnyType.Bool), FunnyType.Int32 },
                     function.ArgTypes);
             });
     }
@@ -92,14 +95,14 @@ public class GenericFunctionBaseTest {
         var arrayOfBool = FunnyType.ArrayOf(FunnyType.Bool);
         var function = rpt.CreateConcreteOrNull(
             FunnyType.ArrayOf(arrayOfBool),
-            FunnyType.ArrayOf(arrayOfBool),
+            FunnyType.EnumerableOf(arrayOfBool),
             FunnyType.Int32);
         Assert.IsNotNull(function);
         Assert.Multiple(
             () => {
                 Assert.AreEqual(FunnyType.ArrayOf(arrayOfBool), function.ReturnType);
                 CollectionAssert.AreEquivalent(
-                    new[] { FunnyType.ArrayOf(arrayOfBool), FunnyType.Int32 },
+                    new[] { FunnyType.EnumerableOf(arrayOfBool), FunnyType.Int32 },
                     function.ArgTypes);
             });
     }

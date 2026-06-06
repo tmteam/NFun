@@ -74,6 +74,7 @@ public static class StagesExtension {
         {
             return nodeB.State switch {
                 StatePrimitive bp => function.Apply(p, bp, nodeA, nodeB),
+                StateCompositeConstraints bcc => function.Apply(p, bcc, nodeA, nodeB),
                 ICompositeState bc => function.Apply(p, bc, nodeA, nodeB),
                 ConstraintsState bcon => function.Apply(p, bcon, nodeA, nodeB),
                 _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
@@ -83,8 +84,20 @@ public static class StagesExtension {
         {
             return nodeB.State switch {
                 StatePrimitive bp => function.Apply(con, bp, nodeA, nodeB),
+                StateCompositeConstraints bcc => function.Apply(con, bcc, nodeA, nodeB),
                 ICompositeState bc => function.Apply(con, bc, nodeA, nodeB),
                 ConstraintsState bcon => function.Apply(con, bcon, nodeA, nodeB),
+                _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
+            };
+        }
+        // Stage C.3: CompCS as ancestor — peer of ConstraintsState.
+        if (nodeA.State is StateCompositeConstraints acc)
+        {
+            return nodeB.State switch {
+                StatePrimitive bp => function.Apply(acc, bp, nodeA, nodeB),
+                ConstraintsState bcon => function.Apply(acc, bcon, nodeA, nodeB),
+                StateCompositeConstraints bcc => function.Apply(acc, bcc, nodeA, nodeB),
+                ICompositeState bc => function.Apply(acc, bc, nodeA, nodeB),
                 _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
             };
         }
@@ -92,11 +105,26 @@ public static class StagesExtension {
         {
             return nodeB.State switch {
                 StatePrimitive bp => function.Apply(c, bp, nodeA, nodeB),
+                StateCompositeConstraints bcc => function.Apply(c, bcc, nodeA, nodeB),
                 ConstraintsState bcon => function.Apply(c, bcon, nodeA, nodeB),
                 ICompositeState bc => c switch {
                     StateArray arrA => bc switch {
                         StateArray arrB => function.Apply(arrA, arrB, nodeA, nodeB),
+                        // Stage 0 hierarchy: list<T> ≤ T[]. ee-mode LINQ keyed on T[] can
+                        // accept lang-mode list<T> values via this cross-family edge.
+                        StateCollection collB => function.Apply(arrA, collB, nodeA, nodeB),
                         // LCA(F<...>, Opt(F<...>)) = Opt(F<...>): wrap ancestor.
+                        StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
+                        _ => false
+                    },
+                    // Unified single-arg invariant collections (Stage 2.1b).
+                    // Cross-kind pairs route here too — Apply rejects them internally.
+                    StateCollection collA => bc switch {
+                        StateCollection collB => function.Apply(collA, collB, nodeA, nodeB),
+                        // Reverse direction subtyping (ancestor=lang collection,
+                        // descendant=legacy ee-mode T[]). Lets `out:int[]` slots
+                        // in lang accept results from ee-mode LINQ built-ins.
+                        StateArray arrB => function.Apply(collA, arrB, nodeA, nodeB),
                         StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
@@ -108,6 +136,15 @@ public static class StagesExtension {
                     StateStruct strA => bc switch {
                         StateStruct strB => function.Apply(strA, strB, nodeA, nodeB),
                         StateOptional optB when nodeA.IsOptionalElement => Invoke(function, nodeA, optB.ElementNode),
+                        StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
+                        _ => false
+                    },
+                    // Stage 5 / Map.2 — map<K, V> dispatch. Same-class same-class:
+                    // route to the dedicated cell. Other combinations: reject
+                    // (Map is on its own structural branch, no cross-state
+                    // compatibility today).
+                    StateMap mapA => bc switch {
+                        StateMap mapB => function.Apply(mapA, mapB, nodeA, nodeB),
                         StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },

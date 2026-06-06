@@ -14,6 +14,7 @@ public static partial class StateExtensions {
         a switch {
             StatePrimitive => a,
             ConstraintsState cs => ConcretestConstraints(cs),
+            StateCompositeConstraints compcs => compcs.ConcretestCompCs(),
             StateRefTo aref => aref.Element.Concretest(),
             StateArray arr => StateArray.Of(ConcretestArrayElement(arr.Element)),
             StateOptional opt => ConcretestOptional(opt),

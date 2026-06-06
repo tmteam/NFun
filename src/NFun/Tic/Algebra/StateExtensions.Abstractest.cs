@@ -11,6 +11,7 @@ public static partial class StateExtensions {
         a switch {
             StateRefTo aref => aref.Element.Abstractest(),
             ConstraintsState cs => cs.IsComparable ? cs : cs.HasAncestor ? cs.Ancestor : Any,
+            StateCompositeConstraints compcs => compcs.AbstractestCompCs(),
             StatePrimitive => a,
             StateArray arr => StateArray.Of(arr.Element.Abstractest()),
             StateOptional opt => AbstractestOptional(opt),

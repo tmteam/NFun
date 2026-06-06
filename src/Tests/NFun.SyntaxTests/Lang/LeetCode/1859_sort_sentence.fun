@@ -15,7 +15,7 @@ fun sortSentence(s:text):
     placed:text[] = repeat('', words.count())
     for w in words:
         idx = lastDigit(w) - 1
-        placed = placed.set(idx, stripDigit(w))
+        placed = placed.setAt(idx, stripDigit(w))
     return placed.join(' ')
 
 @Test

@@ -34,6 +34,20 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     }
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) {
+        // Cross-family LCA: StateArray vs any Array-branch StateCollection
+        // widens to array per Stage 0 hierarchy. Symmetric arms in
+        // StateCollection.GetLastCommonAncestorOrNull (cross-kind) and
+        // LcaOrShareIdentity (same-kind unresolved elements).
+        if (otherType is StateCollection collOther
+            && (collOther.Constructor == ConstructorKind.List
+             || collOther.Constructor == ConstructorKind.Array
+             || collOther.Constructor == ConstructorKind.FixedArray))
+        {
+            if (Element is not ITypeState elemA || collOther.Element is not ITypeState elemB)
+                return null;
+            var elemLca = elemA.GetLastCommonAncestorOrNull(elemB);
+            return elemLca == null ? null : Of(elemLca);
+        }
         if (otherType is not StateArray arrayType)
             return StatePrimitive.Any;
         if (Element is not ITypeState elementTypeA)

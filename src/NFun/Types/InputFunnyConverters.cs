@@ -167,6 +167,79 @@ public class OptionalInputFunnyConverter : IInputFunnyConverter {
         clrObject == null ? FunnyNone.Instance : _elementConverter.ToFunObject(clrObject);
 }
 
+/// <summary>
+/// CLR-input converter for <c>System.Collections.Generic.List&lt;T&gt;</c> →
+/// lang-mode <c>list&lt;T&gt;</c>. Wraps the elements in a
+/// <see cref="NFun.Runtime.Lists.MutableFunnyList"/>.
+/// </summary>
+public class ClrListInputTypeFunnyConverter : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _elementConverter;
+
+    public ClrListInputTypeFunnyConverter(IInputFunnyConverter elementConverter) {
+        FunnyType = FunnyType.ListOf(elementConverter.FunnyType);
+        _elementConverter = elementConverter;
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToFunObject(object clrObject) {
+        if (clrObject is not System.Collections.IList list)
+            throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
+        var items = new object[list.Count];
+        for (int i = 0; i < list.Count; i++)
+            items[i] = _elementConverter.ToFunObject(list[i]);
+        return new NFun.Runtime.Lists.MutableFunnyList(
+            FunnyType.ListTypeSpecification.FunnyType, items);
+    }
+}
+
+public class ClrHashSetInputTypeFunnyConverter : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _elementConverter;
+
+    public ClrHashSetInputTypeFunnyConverter(IInputFunnyConverter elementConverter) {
+        FunnyType = FunnyType.SetOf(elementConverter.FunnyType);
+        _elementConverter = elementConverter;
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToFunObject(object clrObject) {
+        if (clrObject is not System.Collections.IEnumerable enumerable)
+            throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
+        var items = new System.Collections.Generic.List<object>();
+        foreach (var item in enumerable)
+            items.Add(_elementConverter.ToFunObject(item));
+        return new NFun.Runtime.Lists.MutableFunnySet(
+            FunnyType.SetTypeSpecification.FunnyType, items);
+    }
+}
+
+public class ClrDictionaryInputTypeFunnyConverter : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _keyConverter;
+    private readonly IInputFunnyConverter _valueConverter;
+
+    public ClrDictionaryInputTypeFunnyConverter(IInputFunnyConverter keyConverter, IInputFunnyConverter valueConverter) {
+        FunnyType = FunnyType.MapOf(keyConverter.FunnyType, valueConverter.FunnyType);
+        _keyConverter = keyConverter;
+        _valueConverter = valueConverter;
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToFunObject(object clrObject) {
+        if (clrObject is not System.Collections.IDictionary dict)
+            throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
+        var spec = FunnyType.MapTypeSpecification;
+        var map = new NFun.Runtime.Lists.MutableFunnyMap(spec.KeyType, spec.ValueType);
+        foreach (System.Collections.DictionaryEntry entry in dict) {
+            var k = _keyConverter.ToFunObject(entry.Key);
+            var v = _valueConverter.ToFunObject(entry.Value);
+            map.Set(k, v);
+        }
+        return map;
+    }
+}
+
 public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
     private readonly IInputFunnyConverter _elementConverter;
 
@@ -193,6 +266,42 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
             }
             case string str:
                 return new TextFunnyArray(str);
+            default:
+                throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
+        }
+    }
+}
+
+/// <summary>Stage C — wraps CLR <c>T[]</c> / <c>IList</c> into a lang-mode
+/// <see cref="NFun.Runtime.Lists.FixedFunnyArray"/>. Needed because Concretest(FixedArray)
+/// =FixedArray means variables originally typed as ee <c>T[]</c> now resolve to lang
+/// <c>fixedArray&lt;T&gt;</c> and require a fixedArray-aware input converter.</summary>
+public class ClrArrayInputForFixedArray : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _elementConverter;
+
+    public ClrArrayInputForFixedArray(IInputFunnyConverter elementConverter) {
+        FunnyType = FunnyType.FixedArrayOf(elementConverter.FunnyType);
+        _elementConverter = elementConverter;
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToFunObject(object clrObject) {
+        switch (clrObject) {
+            case Array array: {
+                var items = new object[array.Length];
+                for (int i = 0; i < array.Length; i++)
+                    items[i] = _elementConverter.ToFunObject(array.GetValue(i));
+                return new NFun.Runtime.Lists.FixedFunnyArray(
+                    FunnyType.FixedArrayTypeSpecification.FunnyType, items);
+            }
+            case System.Collections.IList list: {
+                var items = new object[list.Count];
+                for (int i = 0; i < list.Count; i++)
+                    items[i] = _elementConverter.ToFunObject(list[i]);
+                return new NFun.Runtime.Lists.FixedFunnyArray(
+                    FunnyType.FixedArrayTypeSpecification.FunnyType, items);
+            }
             default:
                 throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
         }

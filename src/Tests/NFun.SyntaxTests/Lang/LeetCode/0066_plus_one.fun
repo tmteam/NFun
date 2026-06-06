@@ -11,7 +11,7 @@ fun plusOne(digits):
     i = n - 1
     while i >= 0 and carry > 0:
         s = out[i] + carry
-        out = out.set(i, s % 10)
+        out = out.setAt(i, s % 10)
         carry = s // 10
         i -= 1
     if carry > 0: return concat([1], out)

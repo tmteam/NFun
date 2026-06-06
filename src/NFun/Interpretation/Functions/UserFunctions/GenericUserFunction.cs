@@ -389,6 +389,9 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             case BaseFunnyType.ArrayOf:
                 var elem = FoldStructToNamedRecursive(t.ArrayTypeSpecification.FunnyType, registry);
                 return elem.Equals(t.ArrayTypeSpecification.FunnyType) ? t : FunnyType.ArrayOf(elem);
+            case BaseFunnyType.List:
+                var lelem = FoldStructToNamedRecursive(t.ListTypeSpecification.FunnyType, registry);
+                return lelem.Equals(t.ListTypeSpecification.FunnyType) ? t : FunnyType.ListOf(lelem);
             default:
                 return t;
         }
@@ -446,6 +449,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
                 if (d.type.BaseType == BaseFunnyType.NamedStruct
                     || d.type.BaseType == BaseFunnyType.Optional
                     || d.type.BaseType == BaseFunnyType.ArrayOf
+                    || d.type.BaseType == BaseFunnyType.List
                     || d.type.BaseType == BaseFunnyType.Struct)
                     continue; // recursive/composite: skip
                 if (!cSpec.TryGetValue(d.name, out var cType)) { primitiveTypesMatch = false; break; }
@@ -464,6 +468,8 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
                 return TypeMentionsName(t.OptionalTypeSpecification.ElementType, name);
             case BaseFunnyType.ArrayOf:
                 return TypeMentionsName(t.ArrayTypeSpecification.FunnyType, name);
+            case BaseFunnyType.List:
+                return TypeMentionsName(t.ListTypeSpecification.FunnyType, name);
             default:
                 return false;
         }

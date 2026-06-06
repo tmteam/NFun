@@ -11,6 +11,14 @@ Arrays are immutable - this means that you cannot change the elements in the arr
 
 Arrays are covariant, which means that if type A is converted to type B, then an array of elements of type A is converted to an array of elements of type B
 
+## Mode note — lang vs expression
+
+In **lang-mode** the literal `[1, 2, 3]` produces a `list<int>` (mutable, invariant element). The `list(...)` factory is an alternative form: `list(1, 2, 3)` builds the same shape. In **expression-mode** the literal still produces an immutable `int[]` — backward-compatible with all existing scripts.
+
+Lists and arrays are interchangeable wherever existing array-typed functions appear (`count`, `map`, `filter`, `fold`, indexing, slicing, `in`, …). At call sites NFun applies the subtype rule `list<T> ≤ T[]`, so the array signature accepts a list transparently. Equality is by value across the two kinds: `[1,2,3] == list(1,2,3)` is `true`.
+
+Type annotations stay on `int[]` for now (no `list<T>` annotation syntax yet). See `Specs/Collections.md` for the full design and roadmap.
+
 ## Initialization
 
 ### Initializing an array by enumeration  

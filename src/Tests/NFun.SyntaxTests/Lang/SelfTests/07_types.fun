@@ -5,7 +5,7 @@ assertType(42, 'int')
 assertType(3.14, 'real')
 assertType(true, 'bool')
 assertType('hello', 'text')
-assertType([1, 2, 3], 'int[]')
+assertType([1, 2, 3], 'list<int>')
 
 fun identity(x):
     return x

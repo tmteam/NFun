@@ -167,6 +167,31 @@ public static class GraphBuilderExtensions {
         }
     }
 
+    /// <summary>
+    /// Lang-mode sibling of <see cref="SetSoftArrayInit(GraphBuilder, int, int[], ITicNodeState)"/>.
+    /// Registers an array-literal syntax node as a <see cref="StateCollection"/> with
+    /// <see cref="ConstructorKind.List"/>. Element node is invariant per uniform-invariance
+    /// rule; elements still flow in via <c>AddAncestor</c> exactly as for arrays so the
+    /// element's TIC state becomes the LCA of all literal-element states.
+    /// </summary>
+    public static void SetSoftListInit(this GraphBuilder b, int resultIds, params int[] elementIds) =>
+        SetSoftListInit(b, resultIds, elementIds, elementAncestorHint: null);
+
+    public static void SetSoftListInit(this GraphBuilder b, int resultIds, int[] elementIds,
+        ITicNodeState elementAncestorHint) {
+        TicNode elementType;
+        if (elementAncestorHint is ITypeState hintTypeState)
+            elementType = b.CreateVarType(hintTypeState);
+        else
+            elementType = b.CreateVarType();
+        b.GetOrCreateListNode(resultIds, elementType);
+        foreach (var id in elementIds)
+        {
+            b.GetOrCreateNode(id).AddAncestor(elementType);
+            elementType.IsMemberOfAnything = true;
+        }
+    }
+
     public static void SetFieldAccess(this GraphBuilder b, int structNodeId, int opId, string fieldName,
         string sourceTypeNameHint = null) {
         // Field-access constraint is "source has at least this field" — a row-polymorphic

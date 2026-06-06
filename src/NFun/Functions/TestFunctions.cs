@@ -156,6 +156,8 @@ public class AssertTypeFunction : GenericFunctionBase {
             => "text",
         BaseFunnyType.ArrayOf
             => FunnyTypeToShortName(type.ArrayTypeSpecification.FunnyType) + "[]",
+        BaseFunnyType.List
+            => "list<" + FunnyTypeToShortName(type.ListTypeSpecification.FunnyType) + ">",
         BaseFunnyType.Optional
             => FunnyTypeToShortName(type.OptionalTypeSpecification.ElementType) + "?",
         BaseFunnyType.Struct => "{" + string.Join(", ",

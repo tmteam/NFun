@@ -187,6 +187,10 @@ public class DestructionFunctions : IStateFunction {
                     Apply((StateStruct)ancestor.Descendant, @struct, destructTarget, descendantNode),
                 StateOptional opt =>
                     Apply((StateOptional)ancestor.Descendant, opt, destructTarget, descendantNode),
+                StateCollection coll =>
+                    Apply((StateCollection)ancestor.Descendant, coll, destructTarget, descendantNode),
+                StateMap map =>
+                    Apply((StateMap)ancestor.Descendant, map, destructTarget, descendantNode),
                 _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
             };
         }
@@ -339,6 +343,73 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) =>
         SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
+
+    /// <summary>
+    /// Destruction for the unified single-arg invariant collection (Stage 2.1b).
+    /// Cross-kind pairs reject (different ConstructorKind cannot share an instance).
+    /// Same-kind: MergeInplace on element nodes enforces invariance — unequal
+    /// concrete elements throw a TIC error here, which is the rejection channel
+    /// that Pull/Push (one-directional, covariant-style) cannot deliver alone.
+    /// Mirrors StateMutableStruct's invariant field merge.
+    /// </summary>
+    public bool Apply(StateCollection ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor.Constructor != descendant.Constructor)
+        {
+            if (!IsArrayBranchKind(ancestor.Constructor)
+                || !IsArrayBranchKind(descendant.Constructor)
+                || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
+                return false;
+        }
+        if (descendant.ElementNode != ancestor.ElementNode)
+            SolvingFunctions.MergeInplace(descendant.ElementNode, ancestor.ElementNode);
+        return true;
+    }
+
+    private static bool IsSubtypeOrEqual(ConstructorKind sub, ConstructorKind sup) {
+        if (sub == sup) return true;
+        if (sup == ConstructorKind.Array && sub == ConstructorKind.List) return true;
+        if (sup == ConstructorKind.FixedArray
+            && (sub == ConstructorKind.Array || sub == ConstructorKind.List))
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Cross-family Destruction: Array-branch StateCollection (List / Array /
+    /// FixedArray) ≤ legacy StateArray. Covariant element fit. Runtime gap
+    /// closed by <see cref="VarTypeConverter"/> at the call-site cast.
+    /// </summary>
+    public bool Apply(StateArray ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(descendant.Constructor))
+            return false;
+        return SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
+    }
+
+    public bool Apply(StateCollection ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(ancestor.Constructor))
+            return false;
+        return SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
+    }
+
+    private static bool IsArrayBranchKind(ConstructorKind kind) =>
+        kind == ConstructorKind.List
+        || kind == ConstructorKind.Array
+        || kind == ConstructorKind.FixedArray;
+
+    /// <summary>
+    /// Destruction for <see cref="StateMap"/> — two invariant arguments
+    /// (key + value). Cross-state instance: this fires when both sides are
+    /// concrete maps. Merge both pairs of nodes; unequal element types raise
+    /// a clean TIC error via MergeInplace (same rejection channel as
+    /// StateCollection same-kind invariance).
+    /// </summary>
+    public bool Apply(StateMap ancestor, StateMap descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.KeyNode != ancestor.KeyNode)
+            SolvingFunctions.MergeInplace(descendant.KeyNode, ancestor.KeyNode);
+        if (descendant.ValueNode != ancestor.ValueNode)
+            SolvingFunctions.MergeInplace(descendant.ValueNode, ancestor.ValueNode);
+        return true;
+    }
 
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
         // Variance: for `desc ≤ anc` on StateFun (function subtyping):
@@ -493,5 +564,79 @@ public class DestructionFunctions : IStateFunction {
                 return true;
         }
         return false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Stage C.3 — StateCompositeConstraints Destruction cells.
+    // Destruction Concretest's CompCS to a concrete StateCollection, then
+    // re-dispatches via the resolved state.
+
+    public bool Apply(StateCompositeConstraints ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => CompCsApply.ApplySameClass(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
+        // CompCS resolves to concrete; merge with primitive.
+        => descendant == StatePrimitive.Any
+           || ConcretiseAndRetryForward(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => ancestor == StatePrimitive.Any
+           || ConcretiseAndRetryReverse(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StateCompositeConstraints ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.HasDescendant && descendant.Descendant is StateCollection sc)
+            return CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode);
+        if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
+            return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true);
+        return false;
+    }
+
+    public bool Apply(ConstraintsState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Concretest descendant, then re-dispatch.
+        var concretest = descendant.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) {
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        descendantNode.State = concretest;
+        return true;
+    }
+
+    public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return descendant switch {
+            StateCollection sc => CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true),
+            StateMap sm => CompCsApply.ForwardPullCompCsStateMap(ancestor, sm, ancestorNode, descendantNode),
+            StateOptional _ => true,
+            StateFun _ => false,
+            StateStruct _ => false,
+            _ => false,
+        };
+    }
+
+    public bool Apply(ICompositeState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return ancestor switch {
+            StateCollection sc => CompCsApply.ReversePullScCompCs(sc, descendant, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: true),
+            StateMap sm => CompCsApply.ReversePullStateMapCompCs(sm, descendant, ancestorNode, descendantNode),
+            StateOptional _ => true,
+            StateFun _ => false,
+            StateStruct _ => false,
+            _ => false,
+        };
+    }
+
+    private bool ConcretiseAndRetryForward(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        var concretest = ancestor.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) return false;
+        ancestorNode.State = concretest;
+        return descendant == StatePrimitive.Any;
+    }
+
+    private bool ConcretiseAndRetryReverse(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        var concretest = descendant.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) return false;
+        descendantNode.State = concretest;
+        return ancestor == StatePrimitive.Any;
     }
 }

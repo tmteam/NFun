@@ -21,6 +21,12 @@ public static partial class StateExtensions {
         if (b== Any)
             return a;
 
+        // StateCompositeConstraints — Stage C.2 (Layer-0 algebra).
+        if (a is StateCompositeConstraints acompcs)
+            return acompcs.UnifyCompCs(b);
+        if (b is StateCompositeConstraints bcompcs)
+            return bcompcs.UnifyCompCs(a); // Unify is symmetric
+
         if (a is ConstraintsState ac)
         {
             if (b is ConstraintsState bc)

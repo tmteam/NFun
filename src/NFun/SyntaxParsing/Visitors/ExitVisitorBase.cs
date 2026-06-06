@@ -41,4 +41,5 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(TryBlockSyntaxNode node) => true;
     public virtual bool Visit(IfBlockSyntaxNode node) => true;
     public virtual bool Visit(FieldAssignmentSyntaxNode node) => true;
+    public virtual bool Visit(IndexedAssignmentSyntaxNode node) => true;
 }

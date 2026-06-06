@@ -322,8 +322,21 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(ArraySyntaxNode node) {
+        // `Kind` is set by `TicSetupVisitor` based on the dialect — the single
+        // source of truth. The shape of element casting is identical; only the
+        // resulting container differs.
+        var isList = node.Kind == ArrayLiteralKind.List;
+        // Stage C — OutputType can resolve to fixedArray<T> via
+        // Concretest(FixedArray)=FixedArray. Treat as ee-mode ArrayOf for the
+        // literal builder (lang-mode is still List as per node.Kind).
+        FunnyType expectedElementType;
+        if (isList)
+            expectedElementType = node.OutputType.ListTypeSpecification.FunnyType;
+        else if (node.OutputType.BaseType == BaseFunnyType.FixedArray)
+            expectedElementType = node.OutputType.FixedArrayTypeSpecification.FunnyType;
+        else
+            expectedElementType = node.OutputType.ArrayTypeSpecification.FunnyType;
         var elements = new IExpressionNode[node.Expressions.Count];
-        var expectedElementType = node.OutputType.ArrayTypeSpecification.FunnyType;
         for (int i = 0; i < node.Expressions.Count; i++)
         {
             var elementNode = ReadNode(node.Expressions[i]);
@@ -331,6 +344,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 _dialect.Converter.TypeBehaviour);
         }
 
+        if (isList)
+            return new ListExpressionNode(elements, node.Interval, node.OutputType);
         return new ArrayExpressionNode(elements, node.Interval, node.OutputType);
     }
 
@@ -1010,6 +1025,27 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         else if (type.BaseType == BaseFunnyType.Optional)
             CheckGenericDepths(type.OptionalTypeSpecification.ElementType, genericIndex, depth + 1,
                 ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.List)
+            CheckGenericDepths(type.ListTypeSpecification.FunnyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.MutableArray)
+            CheckGenericDepths(type.MutableArrayTypeSpecification.FunnyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.FixedArray)
+            CheckGenericDepths(type.FixedArrayTypeSpecification.FunnyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.Set)
+            CheckGenericDepths(type.SetTypeSpecification.FunnyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.Enumerable)
+            CheckGenericDepths(type.EnumerableTypeSpecification.FunnyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        else if (type.BaseType == BaseFunnyType.Map) {
+            CheckGenericDepths(type.MapTypeSpecification.KeyType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+            CheckGenericDepths(type.MapTypeSpecification.ValueType, genericIndex, depth + 1,
+                ref hasDepth0, ref hasNonZeroDepth);
+        }
     }
 
     public IExpressionNode Visit(TypeDeclarationSyntaxNode node) =>
@@ -1147,6 +1183,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         FunnyType elementType;
         if (collectionType.BaseType == BaseFunnyType.ArrayOf)
             elementType = collectionType.ArrayTypeSpecification.FunnyType;
+        else if (collectionType.BaseType == BaseFunnyType.List)
+            elementType = collectionType.ListTypeSpecification.FunnyType;
         else
             elementType = FunnyType.Any;
 
@@ -1361,6 +1399,27 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 Types.FunnyNone.Instance, FunnyType.None, node.Interval);
 
         return new Nodes.IfElseExpressionNode(bodies, conditions, elseExpr, node.Interval, node.OutputType);
+    }
+
+    public IExpressionNode Visit(IndexedAssignmentSyntaxNode node) {
+        var targetExpr = ReadNode(node.Target);
+        var indexExpr = ReadNode(node.Index);
+        var valueExpr = ReadNode(node.Value);
+
+        // Cast value to the container's element type so e.g. `a:array<real>;
+        // a[0] = 1` narrows int → real before storage. Both list<T> and
+        // array<T> need the same shape.
+        FunnyType elemType = targetExpr.Type.BaseType switch {
+            BaseFunnyType.List => targetExpr.Type.ListTypeSpecification.FunnyType,
+            BaseFunnyType.MutableArray => targetExpr.Type.MutableArrayTypeSpecification.FunnyType,
+            _ => default
+        };
+        if (elemType.BaseType != BaseFunnyType.Empty)
+            valueExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
+                valueExpr, elemType, _dialect.Converter.TypeBehaviour);
+
+        return new Nodes.IndexedAssignExpressionNode(
+            targetExpr, indexExpr, valueExpr, node.Interval, targetExpr.Type);
     }
 
     public IExpressionNode Visit(FieldAssignmentSyntaxNode node) {

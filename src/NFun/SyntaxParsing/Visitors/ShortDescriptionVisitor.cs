@@ -117,4 +117,5 @@ internal class ShortDescriptionVisitor : ISyntaxNodeVisitor<string> {
     public string Visit(TryBlockSyntaxNode node) => "try: ... catch: ...";
     public string Visit(IfBlockSyntaxNode node) => "if ...: ...";
     public string Visit(FieldAssignmentSyntaxNode node) => $"{node.VariableName}.{node.FieldName} = ...";
+    public string Visit(IndexedAssignmentSyntaxNode node) => "a[i] = ...";
 }

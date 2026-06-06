@@ -40,6 +40,26 @@ internal  static class DefaultValueHelper {
             return new ImmutableFunnyArray(type.ArrayTypeSpecification.FunnyType);
         }
 
+        // Stage C — Concretest(FixedArray)=FixedArray means types resolve to fixedArray<T>
+        // including ee-mode contexts. `default(fixedArray<T>)` is an empty FixedFunnyArray.
+        if (type.BaseType == BaseFunnyType.FixedArray)
+            return new NFun.Runtime.Lists.FixedFunnyArray(
+                type.FixedArrayTypeSpecification.FunnyType, Array.Empty<object>());
+
+        // Symmetric defaults for the other lang-mode collection kinds.
+        if (type.BaseType == BaseFunnyType.List)
+            return new NFun.Runtime.Lists.MutableFunnyList(
+                type.ListTypeSpecification.FunnyType, Array.Empty<object>());
+        if (type.BaseType == BaseFunnyType.MutableArray)
+            return new NFun.Runtime.Lists.MutableFunnyArray(
+                type.MutableArrayTypeSpecification.FunnyType, Array.Empty<object>());
+        if (type.BaseType == BaseFunnyType.Set)
+            return new NFun.Runtime.Lists.MutableFunnySet(type.SetTypeSpecification.FunnyType);
+        if (type.BaseType == BaseFunnyType.Map)
+            return new NFun.Runtime.Lists.MutableFunnyMap(
+                type.MapTypeSpecification.KeyType,
+                type.MapTypeSpecification.ValueType);
+
         if (type.BaseType == BaseFunnyType.Struct)
         {
             var structValue = new FunnyStruct.FieldsDictionary(type.StructTypeSpecification.Count);

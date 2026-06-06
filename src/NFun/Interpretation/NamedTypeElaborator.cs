@@ -464,6 +464,17 @@ internal static class NamedTypeElaborator {
                 return new FieldAssignmentSyntaxNode(fa.VariableName, fa.FieldName, newSource, newValue, fa.Interval);
             }
 
+            case IndexedAssignmentSyntaxNode ia: {
+                var newTarget = ElaborateNode(ia.Target, types, expanding, reassignedIds);
+                var newIndex = ElaborateNode(ia.Index, types, expanding, reassignedIds);
+                var newValue = ElaborateNode(ia.Value, types, expanding, reassignedIds);
+                if (ReferenceEquals(newTarget, ia.Target)
+                    && ReferenceEquals(newIndex, ia.Index)
+                    && ReferenceEquals(newValue, ia.Value))
+                    return node;
+                return new IndexedAssignmentSyntaxNode(newTarget, newIndex, newValue, ia.Interval);
+            }
+
             case PrintSyntaxNode print: {
                 var newExpr = ElaborateNode(print.Expression, types, expanding, reassignedIds);
                 if (ReferenceEquals(newExpr, print.Expression)) return node;

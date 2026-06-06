@@ -140,7 +140,7 @@ public class GenericUserFunctionsTest {
     [Test]
     public void GenericBubbleSort() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
+  	                        = arr.setAt(i,ival).setAt(j,jval)
 
                           swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])

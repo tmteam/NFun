@@ -57,7 +57,8 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
         ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
-        bool useMutableStructs = false) {
+        bool useMutableStructs = false,
+        bool isLangMode = false) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -69,6 +70,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         TryCatchSupport = tryCatchSupport;
         ExtensionFunctionsSeparation = extensionFunctionsSeparation;
         UseMutableStructs = useMutableStructs;
+        IsLangMode = isLangMode;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
@@ -82,6 +84,13 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
     public ExtensionFunctionsSeparation ExtensionFunctionsSeparation { get; }
     /// <summary>When true, struct literals produce StateMutableStruct (invariant field types). Used in lang mode.</summary>
     public bool UseMutableStructs { get; }
+    /// <summary>
+    /// True for lang-mode scripts (parsed via <c>BuildLang</c>). Drives lang-specific defaults:
+    /// <c>[1,2,3]</c> literal resolves to <c>list&lt;T&gt;</c> (StateCollection.List) instead of
+    /// the ee-mode covariant immutable array (StateArray). Future stages will hang more
+    /// lang-only behavior off this flag.
+    /// </summary>
+    public bool IsLangMode { get; }
 }
 
 /// <summary>

@@ -201,6 +201,33 @@ internal static class StatementParser {
                 Array.Empty<FunnyAttribute>());
         }
 
+        // Indexed assignment: a[i] = expr → a = IndexedAssignment(a, i, expr).
+        // The LHS arrived as a FunCallSyntaxNode with id "[]" (the operator
+        // parses identically read/write — only the assignment context
+        // distinguishes). Target arg must be a variable (mutation needs a
+        // named binding to write through); literal `[1,2,3][0] = v` is
+        // rejected as a parse error since there's no slot to mutate.
+        if (lhs is FunCallSyntaxNode getCall
+            && getCall.Id == CoreFunNames.GetElementName
+            && getCall.Args.Length == 2)
+        {
+            if (getCall.Args[0] is not NamedIdSyntaxNode targetVar)
+                throw new FunnyParseException(0,
+                    "Indexed assignment requires a variable on the left (e.g. `a[i] = v`).",
+                    lhs.Interval);
+            flow.MoveNext(); // consume '='
+            var valueExpr = ReadExpressionOrIfBlock(flow);
+            if (valueExpr == null)
+                throw new FunnyParseException(0,
+                    $"Expected expression after '=' in indexed assignment to '{targetVar.Id}[…]'",
+                    flow.Current.Interval);
+            var target = new NamedIdSyntaxNode(targetVar.Id, targetVar.Interval);
+            var indexed = SyntaxNodeFactory.IndexedAssignment(target, getCall.Args[1], valueExpr,
+                new Interval(lhs.Interval.Start, valueExpr.Interval.Finish));
+            return SyntaxNodeFactory.Equation(targetVar.Id, indexed, lhs.Interval.Start,
+                Array.Empty<FunnyAttribute>());
+        }
+
         if (lhs is NamedIdSyntaxNode named) {
             flow.MoveNext(); // consume '='
             var body = ReadExpressionOrIfBlock(flow);

@@ -96,6 +96,163 @@
 
 ---
 
+## 11. Lang-mode `list ↔ array` runtime cast is bidirectional but TIC subtyping is one-way — DESIGN TRADE-OFF
+
+**Где**: `VarTypeConverter.cs:127-164` (`list<T> → T[]`) and `:140-164` (`T[] → list<T>`).
+
+**Контекст**: Stage 2.5 (`950bc19f`) ввёл TIC subtyping `list<T> ≤ T[]` через `Apply(StateArray, StateCollection)` overload. Pull/Push/Destruction принимают list в arg-позиции `T[]`. Это **односторонне** — `array ≤ list` в lattice нет.
+
+Однако `VarTypeConverter` (commit `b5fab46d`) добавил **обратный** runtime cast `T[] → list<T>` для accumulator pattern `out:list<T> = []; out = concat(out, …)`. concat возвращает `T[]`, slot — list. Reassignment runtime-cast'ит результат обратно.
+
+**Почему workaround**: TIC не имеет edge для array→list, поэтому runtime cast — "тихая" компенсация. Unsound reassignment chains для `list<T>` slot не могут быть отвергнуты на этапе type-check — converter всегда материализует.
+
+**Правильный fix**: ввести **assignment-edge** в TIC, отличный от arg-passing edge. Assignment ≠ subtype, и `list<T> ↔ list<T>` (invariant), `array<T> ↔ array<T>` (invariant). Cross-kind на assignment-edge — требует explicit `.toList()` / `.toArray()`. Или: расширить TIC до symmetric invariant compatibility for invariant types при reassignment, что эквивалентно требованию явного coercion.
+
+**Эстимейт**: medium. Требует нового edge-type в TIC и parser-side tagging assignment-AST nodes как assignment (not arg-passing).
+
+---
+
+## 12. Default values для composite types — asymmetric across kinds
+
+**Где**: `Runtime/IFunnyVar.cs:175-200` (`VariableSource.GetDefaultValueOrNullFor`).
+
+**Состояние**:
+- `List` → empty `MutableFunnyList` (Stage 2.2).
+- `Optional`/`None` → `FunnyNone.Instance`.
+- `Custom` → `CustomTypeDefinition.DefaultValue`.
+- **`Struct` / `NamedStruct`** → `null`.
+- `ArrayOf` → `FunnyArrayTools.CreateEmptyArray`.
+
+**Почему workaround**: пользователь объявляющий `var x: MyStruct` (когда Stage 3 раскроет реальную мутабельность) получит `null`, тогда как `var x: list<int>` получит empty list. Этот asymmetry разочарует пользователей.
+
+**Правильный fix**: при пуске Stage 3 (мутабельные структуры с поле-инициализацией), решить — null-default или zero-valued-shell-default. Документировать в `Specs/Statements.md` §Variable declaration. Sync с поведением reassignment.
+
+**Эстимейт**: small but blocked on Stage 3 design decision.
+
+---
+
+## 13. `TestHelper.AreSame` cross-kind permissive comparison может маскировать regressions
+
+**Где**: `src/Tests/NFun.TestTools/TestHelper.cs:97-127`.
+
+**Контекст**: commit `b5fab46d` сделал `AreSame` сравнивающим обе стороны как `IEnumerable` element-wise если оба sequences. Это намеренно — нужно для cross-kind equality в tests (`AssertReturns("y", new[]{1,2,3})` где runtime может вернуть list).
+
+**Почему workaround**: future bug, который случайно поменяет container kind (например, lang-mode LINQ начнёт возвращать list вместо array), не будет пойман AssertReturns assertions — они всё ещё passing.
+
+**Правильный fix**: добавить отдельную strict variant `AreSame_StrictType` для тестов, где kind важен. Default tests могут оставаться permissive. Помечать container-kind-sensitive tests новым assertion.
+
+**Эстимейт**: small. Requires audit of which tests legitimately need strict comparison.
+
+---
+
+## 14. `a[i] = v` pins target to `array<T>` — breaks `list`-alias path — **RESOLVED**
+
+**Resolution** (commit `91328207`): replaced the hard pin
+(`GetOrCreateMutableArrayNode(target_ref, …)`) with a soft upper-bound
+constraint — an invisible `mutArr<elementType>` template node added as an
+ancestor of the target reference. The narrower-kind merge rule
+(`list ≤ array`) keeps the slot as `list` when a list flows in; the kind
+survives intact, alias reference identity is preserved, and the runtime
+`IFunnyMutableArray` check still rejects Set/Map/immutable shapes.
+
+Tests un-ignored: `Stage3_LangMode_ListIndexedWrite_AliasSeesChange`.
+
+---
+
+## 16. CompCs cross-Apply preferred propagation loss — DESIGN TRADE-OFF
+
+Stage 5 widened LINQ `map` first arg from `FixedArray<T0>` to `Enumerable<T0>`
+so `Map<K,V>` satisfies the input contract via the synthesized pair-struct
+element. The cross-cells `Apply(CompCs ancestor, StateArray descendant)` and
+`ForwardPullCompCsSc` (CompCs × StateCollection) use try-MergeInplace-fallback-
+to-AddAncestor on element nodes — strict identity merge for primitives
+(preserves back-prop precision), loose AddAncestor edge when the element shape
+isn't yet resolved (e.g. function shapes with contravariant arg slots that
+can't strictly unify up-front).
+
+**Affected (BOTH modes — initial documentation incorrectly claimed lang-mode unaffected)**:
+
+ee-mode tests marked `[Ignore]` in this repo:
+- `Closure_ArrayOfClosures_IndependentCells` — `[mk(1,2), mk(3,4), mk(5,6)]`
+  with `mk(a,b) = rule(c) = a+b+c` — unconstrained `a, b` default to Real preferred
+- `MR4Bug2_CorrectArityCallOn1ArgLambda_TypedAsElementReturnType` — `[rule it+1, rule it+2]`
+- `MR4Bug2_ZeroArgCallOn1ArgLambda_InMapRule_SilentlyAccepted` — arity check lost
+- `TwinArrayWithUpcast_lambdaConstCalculate` — `byte → real` upcast through
+  nested `.map(rule it.map(...).sum()).sum()`
+
+lang-mode mirror pinned in `MutableCollectionsContractTest.LangMirror_*`:
+- 3 of 4 mirrors pass (closure cases work in lang-mode because `list<T>`
+  invariant element pins back-prop tightly)
+- `LangMirror_NestedByteUpcastMap_RealResult` FAILS — same nested-map+byte
+  upcast regression hits lang-mode too. The numeric upcasting through
+  multiple LCA layers loses precision regardless of descendant collection
+  kind. Marked `[Ignore]` referencing this entry.
+
+TIC infers the correct output type (e.g. `fixedArray<Int32>`) but runtime
+materialises closure/upcast paths via Real-preferred resolution, producing
+`InvalidCastException` at result extraction.
+
+**Why some cases work and others fail**:
+- Lang-mode list-of-functions + map → works (invariant collection element
+  pins through MergeInplace path)
+- ee-mode array-of-functions + map → fails (covariant StateArray + lambda-
+  function-shape element falls through to AddAncestor → preferred-Real wins)
+- BOTH modes: nested map with mixed numeric element types (byte↔int) →
+  fails (multiple LCA layers introduce real-preferred default that runtime
+  materialisation respects but type-check elides)
+
+**Proper fix**: detect when the element is a function shape OR when nested
+map LCA chains exist, and use strict MergeInplace with deferred-resolution
+semantics (queue the element-merge to run after lambda body / nested map has
+resolved). Or: worklist Pull that re-fires propagation on rewires. Both
+require non-trivial TIC plumbing (TicTechnicalDebt.md #10 worklist-Pull is
+the broader fix).
+
+**Status**: 4 ee-mode + 1 lang-mode test marked `[Ignore]`. Trade-off accepted:
+LINQ-over-Map functionality (m.map, m.filter, m.count) works, at the cost of
+these niche numeric/closure precision losses in nested LINQ chains.
+
+---
+
+## 15. `TransformToArrayOrNull` / `TransformToCollectionOrNull` reuse descendant element node — WORKAROUND
+
+`SolvingFunctions.TransformToArrayOrNull` (line 1569) and
+`TransformToCollectionOrNull` (line 1623) reuse the descendant collection's
+`ElementNode` directly when the inner element isn't yet solved, as a perf
+optimisation (no fresh node allocation, no fresh CS, no fresh registration in
+`_typeVariables`). Cascades through `TransformToMapOrNull` for KeyNode/ValueNode.
+
+**Symptom**: chained `[]` over lang collections (`list(list(...))[i][j]`,
+`fixedArray(list(...))[i][j]`) panicked with `Circular ancestor 0` in
+`PullConstraintsFunctions.Apply(ICompositeState, ConstraintsState)`. The reused
+ElementNode aliased the ancestor's ElementNode after element-invariance merge,
+so `result.ElementNode.AddAncestor(ancestor.ElementNode)` added a self-edge.
+
+**Current workaround**: identity guards in `Apply(ICompositeState anc, CS desc)`
+for StateArray / StateCollection / StateMap branches. Mirrors the existing
+guard at line 430 in `Apply(StateArray ancestor, StateCollection descendant)`.
+
+```csharp
+if (result.ElementNode != ancArray.ElementNode)
+    result.ElementNode.AddAncestor(ancArray.ElementNode);
+```
+
+**Proper fix**: always allocate a fresh element node (or KeyNode/ValueNode for
+Map) in `TransformTo*OrNull`. The Pull/Push Apply cells then never need
+identity guards because the freshly-allocated node is never aliased with the
+ancestor. Cost: extra `CreateTypeVariableNode` + `_typeVariables.Add` per
+Transform call. Bench impact unknown — would need QuickBench A/B.
+
+**Triggering scenario**: only fires when chaining `[]` over a lang collection
+whose inner element type is also a lang collection AND the inner element isn't
+yet solved at the time of Pull. Tests: `New_NestedList_InnerElementAccess`
+covers the primary case.
+
+**Status**: leave guards in place. Revisit if (a) more guard-bypassing cells
+discover the aliasing or (b) a refactor centralises element-node allocation.
+
+---
+
 ## Порядок устранения
 
 ```
@@ -103,4 +260,8 @@
 #10 (edge-rewire compensation) — combine with #5 — worklist Pull
 #6 (unconstrained generics) — SolveUselessGenerics fix, small effort but tricky
 #7 (PropagatePreferred) — edge-local rewrite, medium effort, not urgent
+#11 (list↔array assignment edge) — design decision before Stage 3+
+#12 (composite defaults) — blocked on Stage 3 mutable-struct design
+#13 (AreSame permissive) — small audit
+#15 (Transform* element-node reuse) — centralise fresh-allocation, benchmark first
 ```

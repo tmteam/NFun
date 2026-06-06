@@ -50,6 +50,23 @@ public class GraphBuilder {
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
         => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
 
+    /// <summary>
+    /// Stage C.4a — emit a generic var node carrying a <see cref="StateCompositeConstraints"/>
+    /// instead of a plain <see cref="ConstraintsState"/>. Used by signatures with composite-shape
+    /// constraints (<c>Enumerable&lt;T&gt;</c>, <c>IndexedRead&lt;T&gt;</c>, etc.) so that Pull
+    /// from concrete <see cref="StateCollection"/> arguments refines the CompCS interval per
+    /// <c>Specs/Tic/Algebra_CompositeConstraints.md</c> §4.1.1.
+    /// </summary>
+    public StateRefTo InitializeCompositeVarNode(ConstructorKind? ancestor) {
+        var elementNode = TicNode.CreateInvisibleNode(ConstraintsState.Empty);
+        var compcs = StateCompositeConstraints.Create(
+            elementNode,
+            ancestor: ancestor,
+            descendant: null,
+            isOptional: false);
+        return new StateRefTo(CreateVarType(compcs));
+    }
+
     #region node management
 
     /// <summary>
@@ -150,6 +167,45 @@ public class GraphBuilder {
         _syntaxNodes[id] = res;
     }
 
+    /// <summary>
+    /// Lang-mode sibling of <see cref="GetOrCreateArrayNode"/>: registers a syntax node as
+    /// <see cref="StateCollection"/> with <see cref="ConstructorKind.List"/>.
+    /// </summary>
+    public void GetOrCreateListNode(int id, TicNode elementType) {
+        var newState = StateCollection.OfList(elementType);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State =
+                SolvingFunctions.GetMergedStateOrNull(newState, alreadyExists.State) ??
+                throw TicErrors.CannotSetState(elementType, newState);
+            return;
+        }
+
+        var res = TicNode.CreateSyntaxNode(id, newState, true);
+        _syntaxNodes[id] = res;
+    }
+
+    /// <summary>
+    /// Lang-mode mutable array — sibling of <see cref="GetOrCreateListNode"/>.
+    /// Registers a syntax node as <see cref="StateCollection"/> with
+    /// <see cref="ConstructorKind.Array"/>.
+    /// </summary>
+    public void GetOrCreateMutableArrayNode(int id, TicNode elementType) {
+        var newState = StateCollection.OfMutableArray(elementType);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State =
+                SolvingFunctions.GetMergedStateOrNull(newState, alreadyExists.State) ??
+                throw TicErrors.CannotSetState(elementType, newState);
+            return;
+        }
+
+        var res = TicNode.CreateSyntaxNode(id, newState, true);
+        _syntaxNodes[id] = res;
+    }
+
     public TicNode GetOrCreateStructNode(int id, StateStruct stateStruct) {
         var alreadyExists = GetSyntaxNodeOrEnlarge(id);
         if (alreadyExists != null)
@@ -238,6 +294,21 @@ public class GraphBuilder {
 
                 if (!node.TrySetAncestor(primitive))
                     throw TicErrors.CannotSetState(node, primitive);
+                break;
+            }
+            case StateCompositeConstraints compcs:
+            {
+                // Stage C.5: composite-shape generic signature param (e.g. Enumerable<T>).
+                // The CompCS carries its own ElementNode which must be registered alongside.
+                if (compcs.ElementNode.State is ICompositeState elemComp)
+                    RegistrateCompositeType(elemComp);
+                if (!compcs.ElementNode.Registered) {
+                    compcs.ElementNode.Registered = true;
+                    _typeVariables.Add(compcs.ElementNode);
+                }
+                var ancestor = CreateVarType(compcs);
+                ancestor.IsSignatureParam = true;
+                node.AddAncestor(ancestor);
                 break;
             }
             case ICompositeState composite:

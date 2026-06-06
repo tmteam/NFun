@@ -275,6 +275,7 @@ public class Parser {
         WhenSyntaxNode w when w.ElseBody == null => false,
         TryBlockSyntaxNode => false,
         FieldAssignmentSyntaxNode => false,
+        IndexedAssignmentSyntaxNode => false,
         PrintSyntaxNode => false,
         // `print(args)` parses as a FunCallSyntaxNode because the lang-mode
         // print-statement form only fires when print is NOT followed by '('.

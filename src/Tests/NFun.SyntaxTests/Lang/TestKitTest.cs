@@ -151,8 +151,9 @@ public class TestKitTest {
     }
 
     [Test]
-    public void AssertType_IntArray() {
-        var rt = BuildWithTestKit("assertType([1,2,3], 'int[]')\ny = 1");
+    public void AssertType_IntList() {
+        // In lang-mode `[1,2,3]` resolves to `list<int>` (Stage 2.3+).
+        var rt = BuildWithTestKit("assertType([1,2,3], 'list<int>')\ny = 1");
         rt.Run();
         Assert.AreEqual(1, rt["y"].Value);
     }

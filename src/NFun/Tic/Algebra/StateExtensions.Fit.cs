@@ -53,6 +53,18 @@ public static partial class StateExtensions {
             StateArray targetA => to is StateArray arrTo
                 ? targetA.Element.FitsInto(arrTo.Element)
                 : to== Any,
+            // StateCollection: fits into another StateCollection of the SAME kind
+            // with element fit, OR into a StateArray (per Stage 0 collections
+            // hierarchy `List ⊆ Array`) with element fit, OR into Any. Cross-kind
+            // collection / cross-family rejected.
+            StateCollection targetC => to switch {
+                StateCollection collTo =>
+                    collTo.Constructor == targetC.Constructor
+                    && targetC.Element.FitsInto(collTo.Element),
+                StateArray arrTo when IsArrayBranchKind(targetC.Constructor) =>
+                    targetC.Element.FitsInto(arrTo.Element),
+                _ => to == Any,
+            },
             StateFun targetF => to is StateFun funTo
                 ? targetF.FitsInto(funTo)
                 : to== Any,
@@ -111,6 +123,13 @@ public static partial class StateExtensions {
     /// <summary>
     /// For any 'to' value, there exist 'desc' value, that can be pessimisticly converted to 'to'
     /// </summary>
+    /// <summary>True for the Stage 0 lattice's `Array`-branch ConstructorKinds
+    /// (List ⊆ Array ⊆ FixedArray) — all flow into legacy StateArray slots.</summary>
+    private static bool IsArrayBranchKind(SolvingStates.ConstructorKind k) =>
+        k == SolvingStates.ConstructorKind.List
+        || k == SolvingStates.ConstructorKind.Array
+        || k == SolvingStates.ConstructorKind.FixedArray;
+
     private static bool CanBeFitConverted(ITicNodeState desc, ITicNodeState to) {
         while (true)
         {
@@ -152,9 +171,20 @@ public static partial class StateExtensions {
                 StateFun descF => CanBeFitConverted(descF, (StateFun)to),
                 StateStruct descS when to is StateStruct toS => CanBeFitConverted(descS, toS),
                 StateOptional descO => CanBeFitConverted(descO.Element, ((StateOptional)to).Element),
+                // StateCollection: same kind required (invariant constructor).
+                StateCollection descC when to is StateCollection toC =>
+                    descC.Constructor == toC.Constructor
+                    && CanBeFitConverted(descC.Element, toC.Element),
                 _ => false
             };
         }
+
+        // Stage 0 hierarchy: any Array-branch StateCollection (List / Array /
+        // FixedArray) fits into legacy StateArray. Element fit is required.
+        if (desc is StateCollection descColl
+            && to is StateArray toArr
+            && IsArrayBranchKind(descColl.Constructor))
+            return CanBeFitConverted(descColl.Element, toArr.Element);
 
         // Implicit lift: T fits into opt(T) — lower bound T is satisfied by opt(T)
         if (to is StateOptional toOpt)

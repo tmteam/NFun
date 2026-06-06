@@ -221,6 +221,21 @@ public static partial class StateExtensions {
         from switch {
             StateArray arrayDesc => to switch {
                 StateArray arrayAnc => arrayDesc.Element.CanBeConvertedPessimisticTo(arrayAnc.Element),
+                // Stage C — ee T[] flows into lang fixedArray-branch via subtype
+                StateCollection collAnc when collAnc.Constructor is ConstructorKind.List
+                                            or ConstructorKind.Array
+                                            or ConstructorKind.FixedArray
+                    => arrayDesc.Element.CanBeConvertedPessimisticTo(collAnc.Element),
+                _ => false
+            },
+            // Stage C — StateCollection: cross-kind via lattice subtype, element pessimistic check.
+            StateCollection collDesc => to switch {
+                StateCollection collAnc when ConstructorLattice.IsSubtypeOf(collDesc.Constructor, collAnc.Constructor)
+                    => collDesc.Element.CanBeConvertedPessimisticTo(collAnc.Element),
+                StateArray arrAnc when collDesc.Constructor is ConstructorKind.List
+                                       or ConstructorKind.Array
+                                       or ConstructorKind.FixedArray
+                    => collDesc.Element.CanBeConvertedPessimisticTo(arrAnc.Element),
                 _ => false
             },
             StateFun fromFun => to switch {

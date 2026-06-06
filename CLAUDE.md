@@ -19,7 +19,13 @@ If you can't state the rule — you don't understand the fix. Stop and think.
 - No flags that exist to patch one scenario (`IsOptionalElement` is a known debt — track it, don't add more)
 - No post-hoc fixups in expression builder for what TIC should have resolved
 - If a workaround is ever introduced, it MUST have a `// WORKAROUND:` comment explaining the root cause and the proper fix. Track in `Specs/Tic/TicTechnicalDebt.md`.
-- **Current workarounds**: 1 (DescendantHasOptionalLift — stale Pull snapshots). See TicTechnicalDebt.md #5.
+- **Current workarounds**:
+  1. **DescendantHasOptionalLift** — stale Pull snapshots. TicTechnicalDebt.md #5.
+  2. **`list ↔ array` asymmetric runtime cast** vs one-way TIC subtyping. TicTechnicalDebt.md #11.
+  3. **Composite-type default values asymmetric** across `List`/`Optional`/`Struct`/`Custom`. TicTechnicalDebt.md #12. Blocked on Stage 3 mutable-struct design.
+  4. **`TestHelper.AreSame` permissive cross-kind comparison** masks container-kind regressions. TicTechnicalDebt.md #13.
+  5. **`Transform*OrNull` element-node reuse + identity guards in `Apply(ICompositeState, CS)`** — descendant collection's element aliased ancestor's during chained `[]` over lang collections. Guards mirror existing line-430 pattern; proper fix is fresh-node allocation in Transform*. TicTechnicalDebt.md #15.
+  6. **Try-merge-fallback-to-AddAncestor in CompCs cross-Apply** — Stage 5 widened LINQ `map` to `Enumerable<T0>` so Map<K,V> can be passed directly. MergeInplace fails on unresolved composite element shapes (function types); fallback path loses preferred-type propagation precision. Affects 4 ee-mode tests (closure-in-array, all `[Ignore]`) AND 1 lang-mode test (nested byte→real upcast through `.map().sum()`). TicTechnicalDebt.md #16.
 
 ### 3. Performance Matters
 
@@ -65,7 +71,8 @@ dotnet run --project src/ConsoleAppExample/ConsoleAppExample.csproj -p:SignAssem
 
 Track here. Each item must have: what's wrong, why it exists, what the clean fix is.
 
-*(No current items — all resolved.)*
+- **Stage 2 dispatch path for `Enumerable<T>` typeclass.** Stage 1 added the `ConstructorLattice` but did not decide how `count<T>(xs: Enumerable<T>): int` is registered in `IFunctionRegistry` when multiple concrete impls (Array, List, Set, …) satisfy the constraint. Current registry keys by `(name, arity)`; no runtime-type dispatch exists. Stage 2 must pick: N concrete overloads with constraint-discriminator OR add a per-arg dispatch table. Pinned via `MutableCollectionsContractTest` ambiguity markers. Spec: `Specs/Collections.md` §LINQ via typeclasses.
+- **Liskov direction at parameter position for new collections.** With uniform invariance + lattice subtype (`List ⊆ Array ⊆ FixedArray ⊆ Enumerable`), passing `list<int>` where `array<int>` is expected is contested. Spec hierarchy says yes (Liskov upcast through subtype edges); invariance suggests no. Stage 2 decision required. Pinned via `Ambiguity_ListPassedWhereArrayExpected_Accepted` and `Ambiguity_ArrayPassedWhereListExpected_Rejected` in `MutableCollectionsContractTest.cs`.
 
 ### Accepted Design (not debt)
 
@@ -74,3 +81,4 @@ Track here. Each item must have: what's wrong, why it exists, what the clean fix
 - **`FlattenNestedOptional`** — reactive flatten of `opt(opt(T))` in State setter + Destruction + Finalize. Correct approach for deferred constraint resolution (element state changes asynchronously through propagation).
 - **`SetCoalesce` TIC special form** — `??` operator uses `SetCoalesce(left, right, result)` instead of a generic function. Creates fresh node U, constrains `left ≤ opt(U)`, `U →c result`, `right →c result`. Result = LCA(U, right). Supports optional right operand: `int? ?? int?` = `int?`. Same pattern as `?.` and `?[` — operators with Optional-specific semantics get TIC special forms rather than generic function signatures.
 - **FU711 `ValidateGenericResolution`** — in ExpressionBuilderVisitor, rejects generic T=Any when T appears at different structural depths in input args (e.g., `'h' in 'hello'` where T must be both `char[]` and `char`). Lives in ExpressionBuilder (not TIC) because TIC constraints don't carry structural depth info — the check requires function signature metadata. TIC-level fix attempted and rejected: breaks 21 legitimate tests (heterogeneous arrays, optional LCA).
+- **`ConstructorLattice` + unified `StateCollection`** — Stage 1 of mutable collections introduces `StateComposite` (abstract base) + `ConstructorLattice` (LCA/GCD on ConstructorKind). Single-arg collections (List, FixedArray, Array, Set, future Queue/Stack) all share the unified `StateCollection` class with `ConstructorKind` carried as DATA — not separate C# subclasses. Two-arg collections (Map) will get their own future class because their shape differs structurally. Legacy `StateArray` (ee-mode covariant immutable), `StateFun`, `StateStruct` deliberately stay outside the new infrastructure — their internals (covariant element / arg+ret split / named-field dict) don't benefit from the uniform single-arg invariant shape. Cross-kind LCA collapses to `Any` by uniform-invariance rule. See `Specs/Tic/ConstructorLattice.md` and `Specs/Collections.md` §Scope of the refactor.

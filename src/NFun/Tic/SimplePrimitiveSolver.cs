@@ -881,7 +881,7 @@ internal sealed class SimplePrimitiveSolver {
                         return null;
                     var defGid = solver.GetOrCreateVarGroup(eq.Id);
                     if (eq.OutputTypeSpecified) {
-                        var resolved = TypeSyntaxResolver.Resolve(eq.TypeSpecificationOrNull.TypeSyntax, customTypes);
+                        var resolved = TypeSyntaxResolver.Resolve(eq.TypeSpecificationOrNull.TypeSyntax, customTypes, dialect.IsLangMode);
                         solver.SetConcreteChecked(defGid, ToPrimitiveOrd(resolved));
                     }
                     var exprGid = solver.GetOrCreateNodeGroup(eq.Expression.OrderNumber);
@@ -897,7 +897,7 @@ internal sealed class SimplePrimitiveSolver {
                     // Gate: type annotation must be primitive
                     if (!IsSimpleTypeSyntax(vd.TypeSyntax))
                         return null;
-                    var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax, customTypes);
+                    var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax, customTypes, dialect.IsLangMode);
                     solver.SetConcreteChecked(solver.GetOrCreateVarGroup(vd.Id), ToPrimitiveOrd(resolved2));
                     break;
                 case UserFunctionDefinitionSyntaxNode:

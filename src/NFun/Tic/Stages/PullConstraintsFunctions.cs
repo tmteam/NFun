@@ -175,7 +175,46 @@ public class PullConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
                 if (result == null)
                     return false;
-                result.ElementNode.AddAncestor(ancArray.ElementNode);
+                // WORKAROUND: TransformToArrayOrNull/CollectionOrNull/MapOrNull
+                // reuse the descendant collection's element-node directly (perf
+                // optimisation — SolvingFunctions.cs line 1569 et al). When the
+                // descendant's element already aliases the ancestor's element
+                // (chained `[]` over lang collections), AddAncestor(self) panics
+                // "Circular ancestor 0". Mirrors the guard in
+                // Apply(StateArray, StateCollection) line 430. Proper fix:
+                // always allocate fresh element nodes in Transform*.
+                // See Specs/Tic/TicTechnicalDebt.md #15.
+                if (result.ElementNode != ancArray.ElementNode)
+                    result.ElementNode.AddAncestor(ancArray.ElementNode);
+                descendantNode.State = result;
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
+            }
+            // Unified single-arg invariant collection (Stage 2.1b). Same shape as
+            // the StateArray branch above; kind discriminator carried as data.
+            case StateCollection ancColl:
+            {
+                if (descendant.HasStructBound) return false;
+                var result = SolvingFunctions.TransformToCollectionOrNull(
+                    ancColl.Constructor, descendantNode.Name, descendant);
+                if (result == null) return false;
+                if (result.ElementNode != ancColl.ElementNode)
+                    result.ElementNode.AddAncestor(ancColl.ElementNode);
+                descendantNode.State = result;
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
+            }
+            // Stage 5 / Map.2 — two-arg invariant map. Mirror of StateCollection
+            // but propagate both KeyNode and ValueNode.
+            case StateMap ancMap:
+            {
+                if (descendant.HasStructBound) return false;
+                var result = SolvingFunctions.TransformToMapOrNull(descendantNode.Name, descendant);
+                if (result == null) return false;
+                if (result.KeyNode != ancMap.KeyNode)
+                    result.KeyNode.AddAncestor(ancMap.KeyNode);
+                if (result.ValueNode != ancMap.ValueNode)
+                    result.ValueNode.AddAncestor(ancMap.ValueNode);
                 descendantNode.State = result;
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
@@ -359,6 +398,85 @@ public class PullConstraintsFunctions : IStateFunction {
         return true;
     }
 
+    /// <summary>
+    /// Pull for the unified single-arg invariant collection (Stage 2.1b).
+    /// Cross-kind pairs reject (uniform invariance). Same-kind: propagate
+    /// element subtype edge — covariant-style. Invariance is enforced LATER
+    /// in Destruction via MergeInplace (mirrors StateMutableStruct's pattern).
+    /// </summary>
+    public bool Apply(StateCollection ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor.Constructor != descendant.Constructor)
+        {
+            // Cross-kind among the Array-branch: per Stage 0 lattice,
+            // descendant must be at-or-below ancestor (List ⊂ Array ⊂ FixedArray).
+            if (!IsArrayBranchKind(ancestor.Constructor)
+                || !IsArrayBranchKind(descendant.Constructor)
+                || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
+                return false;
+        }
+        if (descendant.ElementNode != ancestor.ElementNode)
+            descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
+
+    private static bool IsSubtypeOrEqual(ConstructorKind sub, ConstructorKind sup) {
+        if (sub == sup) return true;
+        // Lattice subtype: List ⊆ Array ⊆ FixedArray (Array-branch chain).
+        if (sup == ConstructorKind.Array && sub == ConstructorKind.List) return true;
+        if (sup == ConstructorKind.FixedArray
+            && (sub == ConstructorKind.Array || sub == ConstructorKind.List))
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Cross-family Pull: any Array-branch StateCollection (List / Array /
+    /// FixedArray) fits into the legacy StateArray slot per Stage 0 hierarchy
+    /// <c>List ⊆ Array ⊆ FixedArray</c>. Set is rejected — different branch.
+    /// Element propagation is covariant-style (same as
+    /// <c>Apply(StateArray, StateArray)</c>).
+    /// </summary>
+    public bool Apply(StateArray ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(descendant.Constructor))
+            return false;
+        if (descendant.ElementNode != ancestor.ElementNode)
+            descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
+
+    public bool Apply(StateCollection ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Reverse direction: legacy T[] flows into lang collection slot.
+        if (!IsArrayBranchKind(ancestor.Constructor))
+            return false;
+        if (descendant.ElementNode != ancestor.ElementNode)
+            descendant.ElementNode.AddAncestor(ancestor.ElementNode);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
+
+    private static bool IsArrayBranchKind(ConstructorKind kind) =>
+        kind == ConstructorKind.List
+        || kind == ConstructorKind.Array
+        || kind == ConstructorKind.FixedArray;
+
+    /// <summary>
+    /// Stage 5 / Map.2 — Pull for <c>map&lt;K, V&gt; ≤ map&lt;K, V&gt;</c>.
+    /// Both key and value invariant: route both pairs through Pull (each side
+    /// gets its descendant-node as an ancestor edge of the other). Cross-map
+    /// kind dispatch (Map vs Set, Map vs Collection) rejected at
+    /// <see cref="StagesExtension"/> dispatch table.
+    /// </summary>
+    public bool Apply(StateMap ancestor, StateMap descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.KeyNode != ancestor.KeyNode)
+            descendant.KeyNode.AddAncestor(ancestor.KeyNode);
+        if (descendant.ValueNode != ancestor.ValueNode)
+            descendant.ValueNode.AddAncestor(ancestor.ValueNode);
+        descendantNode.RemoveAncestor(ancestorNode);
+        return true;
+    }
+
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.ArgsCount != ancestor.ArgsCount)
             return false;
@@ -424,12 +542,28 @@ public class PullConstraintsFunctions : IStateFunction {
                     TraceLog.WriteLine($"    Field '{ancField.Key}': nominal μ-position of '{mergedName}' → skip per-field merge");
                     continue;
                 }
-                // None field: skip connection. None ≤ opt(T) is valid for any T,
-                // but None cannot be directly connected to a bare struct/array/fun ancestor.
-                // The Optional compatibility is handled at the outer level.
+                // None field: None ≤ opt(T) is valid for any T, but None cannot be
+                // directly connected to a bare struct/array/fun ancestor. When the
+                // ancestor field is a CS, lift it to Optional by setting the
+                // IsOptional flag (via AddDescendant(None)) — this handles the
+                // function-arg case where two signature args share the same generic
+                // and one push constrains the field while another carries `none`.
+                // Without this, e.g. `factory({v=1}, {v=none})` with shared V silently
+                // drops the None and resolves V to int instead of int?. When the
+                // ancestor field is a bare composite/primitive there's no slot to
+                // lift into — rely on the outer Optional layer (array LCA, etc).
                 if (descField.GetNonReference().State == StatePrimitive.None)
                 {
-                    TraceLog.WriteLine($"    Field '{ancField.Key}': None desc → skip (handled by outer Optional)");
+                    var ancFieldNr = ancField.Value.GetNonReference();
+                    if (ancFieldNr.State is ConstraintsState ancFieldCs)
+                    {
+                        ancFieldCs.AddDescendant(StatePrimitive.None);
+                        TraceLog.WriteLine($"    Field '{ancField.Key}': None desc → anc CS IsOptional lift");
+                    }
+                    else
+                    {
+                        TraceLog.WriteLine($"    Field '{ancField.Key}': None desc → skip (handled by outer Optional)");
+                    }
                     continue;
                 }
                 TraceLog.WriteLine($"    Field '{ancField.Key}': desc ≤ anc ({descField.State} ≤ {ancField.Value.State})");
@@ -499,6 +633,114 @@ public class PullConstraintsFunctions : IStateFunction {
         if (result == null)
             return false;
         ancestorNode.State = result;
+        return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Stage C.3 — StateCompositeConstraints Pull cells (Specs/Tic/Algebra_CompositeConstraints.md §4).
+
+    public bool Apply(StateCompositeConstraints ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => CompCsApply.ApplySameClass(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // §4.0.1: Any descendant → no-op; non-Any → reject (composite anc cannot accept prim).
+        // None descendant → set IsOptional flag, detach edge (mirrors CS pattern).
+        if (descendant.Name == PrimitiveTypeName.None) {
+            var newState = ancestor.WithIsOptional(true);
+            if (newState == null) return false;
+            ancestorNode.State = newState;
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        // Composite ancestor cannot accept a non-None primitive descendant.
+        return false;
+    }
+
+    public bool Apply(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // §4.0.2 reverse: Any anc → no-op; non-Any → reject.
+        return ancestor == StatePrimitive.Any;
+    }
+
+    public bool Apply(StateCompositeConstraints ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // §4.0.3 coerce: route through descendant's composite Descendant if any.
+        if (descendant.HasDescendant && descendant.Descendant is StateCollection sc)
+            return CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode);
+        if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
+            return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true);
+        // Empty / primitive-bound CS without composite Desc: the constraint hasn't materialised
+        // a shape yet. Reject only when CS positively forbids composites (IsComparable, primitive
+        // Ancestor cap). Otherwise accept — Pull will fire again when descendant later resolves
+        // to a collection (e.g. varargs binds x to StateArray after the count call sets the
+        // CompCS ancestor edge). Mirrors the Pull(CS, CS) defer-on-empty pattern.
+        if (descendant.IsComparable) return false;
+        if (descendant.HasAncestor && descendant.Ancestor is StatePrimitive prim && prim != StatePrimitive.Any)
+            return false;
+        return true;
+    }
+
+    public bool Apply(ConstraintsState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // §4.0.2 reverse with CS: if CS can accept composite (no IsComparable blocker),
+        // route as if CS were a CompCS-view. Pull semantics: CS.Desc widens to admit
+        // descendant's CompCS. Simplest sound move: install descendant's Concretest into CS.
+        if (ancestor.IsComparable) return false;
+        var concretest = descendant.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) {
+            // Still abstract — no concrete state to install; defer to later phases.
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        if (concretest is ITypeState concreteType)
+            return ApplyAncestorConstrains(ancestorNode, ancestor, concreteType);
+        return false;
+    }
+
+    public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return descendant switch {
+            StateCollection sc => CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true),
+            StateMap sm => CompCsApply.ForwardPullCompCsStateMap(ancestor, sm, ancestorNode, descendantNode),
+            StateOptional opt => ApplyForwardOptional(ancestor, opt, ancestorNode, descendantNode),
+            StateFun _ => false,    // §4.0.1 explicit reject
+            StateStruct _ => false, // §4.0.1 explicit reject
+            _ => false,
+        };
+    }
+
+    public bool Apply(ICompositeState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return ancestor switch {
+            StateCollection sc => CompCsApply.ReversePullScCompCs(sc, descendant, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: true),
+            StateMap sm => CompCsApply.ReversePullStateMapCompCs(sm, descendant, ancestorNode, descendantNode),
+            StateOptional opt => ApplyReverseOptional(opt, descendant, ancestorNode, descendantNode),
+            StateFun _ => false,    // §4.0.2 explicit reject
+            StateStruct _ => false, // §4.0.2 explicit reject
+            _ => false,
+        };
+    }
+
+    private bool ApplyForwardOptional(StateCompositeConstraints ancestor, StateOptional opt, TicNode ancestorNode, TicNode descendantNode) {
+        // §4.0.1: unwrap, recurse, set IsOptional=true on CompCS.
+        var optedState = ancestor.WithIsOptional(true);
+        if (optedState == null) return false;
+        // Pass-through to the inner element by setting IsOpt-true on the CompCS
+        // and treating the opt.Element as the actual descendant.
+        ancestorNode.State = optedState;
+        descendantNode.RemoveAncestor(ancestorNode);
+        opt.ElementNode.AddAncestor(ancestorNode);
+        return true;
+    }
+
+    private bool ApplyReverseOptional(StateOptional opt, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // §4.0.2: wrap or unwrap depending on descendant's IsOpt.
+        if (descendant.IsOptional) {
+            // Both Optional — recurse on inner element.
+            descendantNode.RemoveAncestor(ancestorNode);
+            descendantNode.AddAncestor(opt.ElementNode);
+            return true;
+        }
+        // Descendant non-Optional, ancestor Optional → implicit lift, route to inner.
+        descendantNode.RemoveAncestor(ancestorNode);
+        descendantNode.AddAncestor(opt.ElementNode);
         return true;
     }
 }

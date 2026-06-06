@@ -181,6 +181,42 @@ public class PushConstraintsFunctions : IStateFunction {
                 SolvingFunctions.PushConstraints(result.ElementNode, ancArray.ElementNode);
                 return true;
             }
+            // Unified single-arg invariant collection (Stage 2.1b).
+            case StateCollection ancColl:
+            {
+                var result = SolvingFunctions.TransformToCollectionOrNull(
+                    ancColl.Constructor, descendantNode.Name, descendant);
+                if (result == null) return false;
+                if (result.ElementNode == ancColl.ElementNode) {
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                result.ElementNode.AddAncestor(ancColl.ElementNode);
+                descendantNode.State = result;
+                descendantNode.RemoveAncestor(ancestorNode);
+                SolvingFunctions.PushConstraints(result.ElementNode, ancColl.ElementNode);
+                return true;
+            }
+            // Stage 5 / Map.2 — two-arg invariant map. Same logic as collection
+            // but propagate both KeyNode and ValueNode.
+            case StateMap ancMap:
+            {
+                var result = SolvingFunctions.TransformToMapOrNull(descendantNode.Name, descendant);
+                if (result == null) return false;
+                if (result.KeyNode == ancMap.KeyNode && result.ValueNode == ancMap.ValueNode) {
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                if (result.KeyNode != ancMap.KeyNode) result.KeyNode.AddAncestor(ancMap.KeyNode);
+                if (result.ValueNode != ancMap.ValueNode) result.ValueNode.AddAncestor(ancMap.ValueNode);
+                descendantNode.State = result;
+                descendantNode.RemoveAncestor(ancestorNode);
+                if (result.KeyNode != ancMap.KeyNode)
+                    SolvingFunctions.PushConstraints(result.KeyNode, ancMap.KeyNode);
+                if (result.ValueNode != ancMap.ValueNode)
+                    SolvingFunctions.PushConstraints(result.ValueNode, ancMap.ValueNode);
+                return true;
+            }
             // y:f(x) = a:[..]  # 'a' has to be a functional variable
             case StateFun ancFun:
             {
@@ -304,9 +340,15 @@ public class PushConstraintsFunctions : IStateFunction {
             var ancNr = ancField.Value.GetNonReference();
             if (descNr == ancNr)
                 continue;
-            // None desc field: skip — None ≤ opt(T) handled by outer Optional layer.
+            // None desc field: lift ancestor CS field to Optional via IsOptional
+            // flag. Mirror of Pull's struct-field handling — needed for shared
+            // generic args where one carries int and another carries none.
             if (descNr.State == StatePrimitive.None)
+            {
+                if (ancNr.State is ConstraintsState ancFieldCs)
+                    ancFieldCs.AddDescendant(StatePrimitive.None);
                 continue;
+            }
             // None anc field: push to propagate None → descendant.
             if (ancNr.State == StatePrimitive.None)
                 SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
@@ -337,6 +379,65 @@ public class PushConstraintsFunctions : IStateFunction {
 
     public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
         SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
+        return true;
+    }
+
+    /// <summary>
+    /// Push for the unified single-arg invariant collection (Stage 2.1b).
+    /// Cross-kind pairs reject. Same-kind: push element constraints down.
+    /// </summary>
+    public bool Apply(StateCollection ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor.Constructor != descendant.Constructor)
+        {
+            if (!IsArrayBranchKind(ancestor.Constructor)
+                || !IsArrayBranchKind(descendant.Constructor)
+                || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
+                return false;
+        }
+        SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
+        return true;
+    }
+
+    private static bool IsSubtypeOrEqual(ConstructorKind sub, ConstructorKind sup) {
+        if (sub == sup) return true;
+        if (sup == ConstructorKind.Array && sub == ConstructorKind.List) return true;
+        if (sup == ConstructorKind.FixedArray
+            && (sub == ConstructorKind.Array || sub == ConstructorKind.List))
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Cross-family Push: any Array-branch StateCollection (List / Array /
+    /// FixedArray) fits into the legacy StateArray slot per Stage 0 hierarchy.
+    /// Element is pushed down (covariant). Set is rejected.
+    /// </summary>
+    public bool Apply(StateArray ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(descendant.Constructor))
+            return false;
+        SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
+        return true;
+    }
+
+    public bool Apply(StateCollection ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(ancestor.Constructor))
+            return false;
+        SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
+        return true;
+    }
+
+    private static bool IsArrayBranchKind(ConstructorKind kind) =>
+        kind == ConstructorKind.List
+        || kind == ConstructorKind.Array
+        || kind == ConstructorKind.FixedArray;
+
+    /// <summary>
+    /// Stage 5 / Map.2 — Push for <c>map&lt;K, V&gt;</c>. Both key and value
+    /// invariant: push constraints both ways.
+    /// </summary>
+    public bool Apply(StateMap ancestor, StateMap descendant, TicNode ancestorNode, TicNode descendantNode) {
+        SolvingFunctions.PushConstraints(descendant.KeyNode, ancestor.KeyNode);
+        SolvingFunctions.PushConstraints(descendant.ValueNode, ancestor.ValueNode);
         return true;
     }
 
@@ -391,5 +492,59 @@ public class PushConstraintsFunctions : IStateFunction {
             SolvingFunctions.PushConstraints(descFun.ArgNodes[i], ancFun.ArgNodes[i]);
 
         SolvingFunctions.PushConstraints(descFun.RetNode, ancFun.RetNode);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Stage C.3 — StateCompositeConstraints Push cells.
+    // Per spec §4.1.2: Push is precondition-only on most CompCS cells; element
+    // unification is invariance discipline.
+
+    public bool Apply(StateCompositeConstraints ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => CompCsApply.ApplySameClass(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
+        => false; // composite shape ≠ primitive
+
+    public bool Apply(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => ancestor == StatePrimitive.Any;
+
+    public bool Apply(StateCompositeConstraints ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.HasDescendant && descendant.Descendant is StateCollection sc)
+            return CompCsApply.ForwardPushCompCsSc(ancestor, sc, ancestorNode, descendantNode);
+        if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
+            return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: false);
+        // Empty / primitive-bound CS: defer (mirrors Pull behaviour). Reject when CS positively
+        // forbids composites.
+        if (descendant.IsComparable) return false;
+        if (descendant.HasAncestor && descendant.Ancestor is StatePrimitive prim && prim != StatePrimitive.Any)
+            return false;
+        return true;
+    }
+
+    public bool Apply(ConstraintsState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => !ancestor.IsComparable;
+
+    public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return descendant switch {
+            StateCollection sc => CompCsApply.ForwardPushCompCsSc(ancestor, sc, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: false),
+            StateMap sm => CompCsApply.ForwardPushCompCsStateMap(ancestor, sm, ancestorNode, descendantNode),
+            StateOptional _ => true,
+            StateFun _ => false,
+            StateStruct _ => false,
+            _ => false,
+        };
+    }
+
+    public bool Apply(ICompositeState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return ancestor switch {
+            StateCollection sc => CompCsApply.ReversePushScCompCs(sc, descendant, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: false),
+            StateMap sm => CompCsApply.ReversePushStateMapCompCs(sm, descendant, ancestorNode, descendantNode),
+            StateOptional _ => true,
+            StateFun _ => false,
+            StateStruct _ => false,
+            _ => false,
+        };
     }
 }

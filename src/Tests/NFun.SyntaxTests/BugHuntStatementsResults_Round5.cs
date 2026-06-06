@@ -178,20 +178,20 @@ public class BugHuntStatementsResults_Round5 {
     //   `deepWrap(0)` works; any positive arg triggers the crash.
     // ───────────────────────────────────────────────────────────────
     [Test]
-    public void StmtBug68_RecursiveTypeConstruction_CleanBuildError() {
-        // TIC's return-type LCA has no finite fixed point for `T = [T]`. After
-        // StmtBug75b's fix (insert a return-boundary cast when expr type
-        // differs from the function's declared return type), this surfaces as
-        // a clean FunnyParseException at BUILD time (FU710 "Unable to cast
-        // from Int32[][] to Int32[]") — strictly better than the previous
-        // deferred FunnyRuntimeException at value-read time. A proper
-        // TIC-level fix (LCA-widen to Any[]) is still deeper work, but the
-        // diagnostic now fires before the user even runs the script.
-        Assert.Throws<FunnyParseException>(() => BuildLang(
+    public void StmtBug68_RecursiveTypeConstruction_NowResolvesToAny() {
+        // Originally this script failed at TIC because `T = [T]` had no finite
+        // fixed point and the return-boundary cast surfaced an FU710 build error.
+        // After the Stage 2.5 list-default + `list<T> ≤ T[]` subtyping work,
+        // TIC's element-LCA now widens cleanly through StateCollection and lands
+        // the outer result on `Any` — strictly better than the previous build
+        // error. Test pinned to the new behaviour.
+        var rt = BuildLang(
             "fun deepWrap(x):\n" +
             "    if x == 0: return [0]\n" +
             "    return [deepWrap(x - 1)]\n" +
-            "out = deepWrap(1)"));
+            "out = deepWrap(1)");
+        rt.Run();
+        Assert.IsNotNull(rt["out"].Value);
     }
 
     // ───────────────────────────────────────────────────────────────

@@ -25,22 +25,38 @@ internal static class RuntimeBuilder {
         IAprioriTypesMap aprioriTypesMap = null,
         ICustomTypeRegistry customTypes = null) {
 
-        // Lang mode enables optional types, named types, and mutable structs by default
-        if (dialect.OptionalTypesSupport == OptionalTypesSupport.Disabled
-            || dialect.NamedTypesSupport == NamedTypesSupport.Disabled
-            || !dialect.UseMutableStructs)
-            dialect = new DialectSettings(
-                dialect.IfExpressionSetup,
-                dialect.IntegerPreferredType,
-                dialect.Converter,
-                dialect.AllowIntegerOverflow,
-                dialect.AllowUserFunctions,
-                OptionalTypesSupport.Enabled,
-                dialect.AllowNewlineInStrings,
-                NamedTypesSupport.Enabled,
-                dialect.TryCatchSupport,
-                dialect.ExtensionFunctionsSeparation,
-                useMutableStructs: true);
+        // Lang mode requires optional types, named types, and mutable structs.
+        // Reject callers that explicitly disabled any of them — silently
+        // overriding the caller's intent (the pre-Stage-2.3 behaviour) hides
+        // configuration mistakes (e.g. building lang-mode but expecting the
+        // ee-mode struct semantics). The dialect is re-stamped to add the
+        // `IsLangMode` flag and to preserve the other fields verbatim.
+        if (dialect.OptionalTypesSupport == OptionalTypesSupport.Disabled)
+            throw new ArgumentException(
+                "BuildLang requires OptionalTypesSupport.Enabled; caller passed Disabled. "
+                + "Use Funny.Hardcore for the default lang dialect instead of constructing one with optionals off.",
+                nameof(dialect));
+        if (dialect.NamedTypesSupport == NamedTypesSupport.Disabled)
+            throw new ArgumentException(
+                "BuildLang requires NamedTypesSupport.Enabled; caller passed Disabled.",
+                nameof(dialect));
+        if (!dialect.UseMutableStructs)
+            throw new ArgumentException(
+                "BuildLang requires useMutableStructs: true; caller passed false.",
+                nameof(dialect));
+        dialect = new DialectSettings(
+            dialect.IfExpressionSetup,
+            dialect.IntegerPreferredType,
+            dialect.Converter,
+            dialect.AllowIntegerOverflow,
+            dialect.AllowUserFunctions,
+            dialect.OptionalTypesSupport,
+            dialect.AllowNewlineInStrings,
+            dialect.NamedTypesSupport,
+            dialect.TryCatchSupport,
+            dialect.ExtensionFunctionsSeparation,
+            useMutableStructs: dialect.UseMutableStructs,
+            isLangMode: true);
 
         var flow = Tokenizer.ToFlowWithIndents(script);
         var syntaxTree = Parser.ParseLang(flow);
@@ -165,7 +181,7 @@ internal static class RuntimeBuilder {
                 if (!isRecursionTouched && customTypes.TryResolve(alias.Key, out _))
                     continue; // already resolved (non-recursive forward-ref case)
                 try {
-                    var resolved = TypeSyntaxResolver.Resolve(alias.Value.AliasTypeSyntax, customTypes);
+                    var resolved = TypeSyntaxResolver.Resolve(alias.Value.AliasTypeSyntax, customTypes, dialect.IsLangMode);
                     customTypes = customTypes.CloneWith(alias.Key, resolved);
                 } catch {
                     anyUnresolved = true; // forward ref — try next pass
@@ -186,7 +202,7 @@ internal static class RuntimeBuilder {
                 var f = nt.Value.Fields[i];
                 var fieldType = f.TypeSyntax is TypeSyntax.EmptyType
                     ? InferTypeFromConstantOrAny(f.DefaultValue)
-                    : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes);
+                    : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes, dialect.IsLangMode);
                 // Eager-validate constant default against declared type. Per Basics.md
                 // Construction stage: "checking the correctness of the script and
                 // calculating the types of all expressions in the script". A bad default
@@ -221,7 +237,7 @@ internal static class RuntimeBuilder {
                     var f = nt.Value.Fields[i];
                     var ft = f.TypeSyntax is TypeSyntax.EmptyType
                         ? InferTypeFromConstantOrAny(f.DefaultValue)
-                        : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes);
+                        : TypeSyntaxResolver.Resolve(f.TypeSyntax, customTypes, dialect.IsLangMode);
                     fieldInfos[i] = new NamedTypeFieldInfo(f.Name, ft, f.HasDefault);
                 }
                 customTypes.TryResolve(nt.Key, out var structType);
@@ -386,7 +402,7 @@ internal static class RuntimeBuilder {
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(varDef.Id))
                     throw Errors.CannotUseSuperAnonymousVariableHere(varDef.Interval, varDef.Id);
 
-                var resolvedType = TypeSyntaxResolver.Resolve(varDef.TypeSyntax, customTypes);
+                var resolvedType = TypeSyntaxResolver.Resolve(varDef.TypeSyntax, customTypes, dialect.IsLangMode);
                 var variableSource = VariableSource.CreateWithStrictTypeLabel(
                     varDef.Id,
                     resolvedType,
@@ -690,7 +706,13 @@ internal static class RuntimeBuilder {
             functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count);
         bool signatureIsConcrete = SignatureIsFullyConcrete(ticSignature);
 
-        if (!types.HasGenerics || signatureIsConcrete)
+        // Stage C — drop the `!types.HasGenerics` short-circuit: it was a
+        // safety/fast path for "no generic placeholders in the body". With
+        // typeclass-bound generics (StateCompositeConstraints) a signature
+        // can carry an unresolved polymorphism even when `HasGenerics` is
+        // false — `SignatureIsFullyConcrete` now returns false in that case
+        // and is the authoritative source of truth.
+        if (signatureIsConcrete)
         {
             #region concreteFunction
 
@@ -720,7 +742,7 @@ internal static class RuntimeBuilder {
                     if (functionSyntaxNode.Args[i].TypeSyntax is TypeSyntax.EmptyType)
                         continue;
                     var resolved = TypeSyntaxResolver.Resolve(
-                        functionSyntaxNode.Args[i].TypeSyntax, customTypes);
+                        functionSyntaxNode.Args[i].TypeSyntax, customTypes, dialect.IsLangMode);
                     if (resolved.BaseType == BaseFunnyType.NamedStruct) {
                         if (overridden == null) {
                             overridden = new FunnyType[argTypes.Length];
@@ -861,7 +883,7 @@ internal static class RuntimeBuilder {
                 for (int i = 0; i < fn.Args.Count && i < argTypes.Length; i++)
                 {
                     if (fn.Args[i].TypeSyntax is TypeSyntax.EmptyType) continue;
-                    var resolved = TypeSyntaxResolver.Resolve(fn.Args[i].TypeSyntax, customTypes);
+                    var resolved = TypeSyntaxResolver.Resolve(fn.Args[i].TypeSyntax, customTypes, dialect.IsLangMode);
                     if (resolved.BaseType == BaseFunnyType.NamedStruct)
                     {
                         if (overridden == null)
@@ -979,6 +1001,13 @@ internal static class RuntimeBuilder {
         switch (state) {
             case Tic.SolvingStates.StateRefTo r: return StateIsSolved(r.Node.GetNonReference().State, visited);
             case Tic.SolvingStates.ConstraintsState: return false;
+            // Stage C — StateCompositeConstraints encodes a typeclass-bound
+            // generic (e.g. `xs: Enumerable<T>`). It is inherently polymorphic
+            // even when the element node is solved — multiple call sites with
+            // different concrete collections (list, set, fixedArray) must each
+            // pick their own instantiation, so the user function must take the
+            // generic path, not collapse to a concrete (list<T>) signature.
+            case Tic.SolvingStates.StateCompositeConstraints: return false;
             case Tic.SolvingStates.StateStruct s when s.TypeName != null: return true;
             case Tic.SolvingStates.ICompositeState c:
                 for (int i = 0; i < c.MemberCount; i++) {
@@ -1012,7 +1041,7 @@ internal static class RuntimeBuilder {
             {
                 // customTypes pass-through: without it, a user-defined named type
                 // (`a: p = p{...}`) fails TypeSyntaxResolver with FU406 (BugHunt-stmt #52).
-                paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax, customTypes);
+                paramType = TypeSyntaxResolver.Resolve(arg.TypeSyntax, customTypes, dialect.IsLangMode);
             }
             else
             {

@@ -41,4 +41,5 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(TryBlockSyntaxNode node);
     T Visit(IfBlockSyntaxNode node);
     T Visit(FieldAssignmentSyntaxNode node);
+    T Visit(IndexedAssignmentSyntaxNode node);
 }

@@ -97,6 +97,40 @@ public static class TestHelper {
     public static bool AreSame(object a, object b) {
         if (a == null || b == null)
             return false;
+
+        // Sequence-like containers compare by elements regardless of concrete
+        // CLR type: Array vs List<T>, MutableFunnyList vs Array, IFunnyArray vs
+        // List<int>, etc. Lets lang-mode list-returning expressions pass tests
+        // that assert against a CLR int[] expected value. Excludes strings and
+        // IDictionary (handled elsewhere as their own types).
+        bool aIsSeq = a is IEnumerable && a is not string && a is not IDictionary;
+        bool bIsSeq = b is IEnumerable && b is not string && b is not IDictionary;
+        if (aIsSeq && bIsSeq)
+        {
+            // Set semantics: iteration order is unspecified, so positional comparison
+            // is unsound. Compare as multisets (one-to-one element pairing).
+            bool aIsSet = a is NFun.Runtime.Lists.IFunnyMutableSet
+                          || a is System.Collections.Generic.HashSet<object>
+                          || IsClrHashSet(a);
+            bool bIsSet = b is NFun.Runtime.Lists.IFunnyMutableSet
+                          || b is System.Collections.Generic.HashSet<object>
+                          || IsClrHashSet(b);
+            if (aIsSet || bIsSet)
+                return SeqMultisetEqual(a, b);
+
+            var seqA = ((IEnumerable)a).Cast<object>().ToArray();
+            var seqB = ((IEnumerable)b).Cast<object>().ToArray();
+            if (seqA.Length != seqB.Length)
+                return false;
+            for (int i = 0; i < seqA.Length; i++)
+                if (!AreSame(seqA[i], seqB[i]))
+                    return false;
+            return true;
+        }
+        // One sequence and one scalar → not equal.
+        if (aIsSeq != bIsSeq)
+            return false;
+
         if (a.GetType() != b.GetType())
             return false;
         if (a is bool || a is byte || a is sbyte || a is short || a is ushort || a is int || a is uint || a is ulong ||
@@ -115,23 +149,6 @@ public static class TestHelper {
                 return resultDec.Equals((decimal)b);
             case IPAddress ipAddress:
                 return ipAddress.Equals((IPAddress)b);
-            case Array arra:
-            {
-                var arrb = (Array)b;
-                var arrayOfA = arra.Cast<object>().ToArray();
-                var arrayOfB = arrb.Cast<object>().ToArray();
-                if (arrayOfA.Length != arrayOfB.Length)
-                    return false;
-                for (int i = 0; i < arrayOfA.Length; i++)
-                {
-                    if (!AreSame(arrayOfA[i], arrayOfB[i]))
-                        return false;
-                }
-
-                return true;
-            }
-            case IEnumerable:
-                throw new NotSupportedException($"type {a.GetType().Name} is not supported");
             case Delegate:
                 throw new NotSupportedException($"type {a.GetType().Name} is not supported");
             default:
@@ -142,6 +159,66 @@ public static class TestHelper {
             }
         }
     }
+
+    private static bool IsClrHashSet(object o) {
+        var t = o.GetType();
+        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(System.Collections.Generic.HashSet<>);
+    }
+
+    private static bool SeqMultisetEqual(object a, object b) {
+        // O(n²) — fine for tests, simple and stable. For each element on side A,
+        // find a matching unconsumed element on side B (by AreSame).
+        var listA = ((IEnumerable)a).Cast<object>().ToList();
+        var listB = ((IEnumerable)b).Cast<object>().ToList();
+        if (listA.Count != listB.Count) return false;
+        var matched = new bool[listB.Count];
+        foreach (var itemA in listA)
+        {
+            bool found = false;
+            for (int j = 0; j < listB.Count; j++)
+            {
+                if (matched[j]) continue;
+                if (AreSame(itemA, listB[j]))
+                {
+                    matched[j] = true;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Strict variant of <see cref="AreSame"/>: requires same container kind
+    /// (list vs array vs fixedArray vs set vs CLR T[]). Use in tests that pin
+    /// container kind as part of the assertion — e.g. "this LINQ function
+    /// returns fixedArray, not list".
+    /// </summary>
+    public static bool AreSameStrict(object a, object b) {
+        if (a == null || b == null) return false;
+        if (!SameContainerKind(a, b)) return false;
+        return AreSame(a, b);
+    }
+
+    private static bool SameContainerKind(object a, object b) {
+        // Identical CLR type → trivially same kind.
+        if (a.GetType() == b.GetType()) return true;
+        // Collapse by NFun runtime container interface.
+        int kindA = ClassifyKind(a);
+        int kindB = ClassifyKind(b);
+        return kindA == kindB && kindA != 0;
+    }
+
+    private static int ClassifyKind(object o) => o switch {
+        NFun.Runtime.Lists.IFunnyMutableSet     => 1,
+        NFun.Runtime.Lists.IFunnyList           => 2,
+        NFun.Runtime.Lists.IFunnyMutableArray   => 3,
+        NFun.Runtime.Lists.IFunnyFixedArray     => 4,
+        Runtime.Arrays.IFunnyArray              => 5,
+        _ => 0
+    };
 }
 
 /// <summary>

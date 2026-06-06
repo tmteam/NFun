@@ -157,4 +157,8 @@ public static class SyntaxNodeFactory {
         string variableName, string fieldName,
         ISyntaxNode source, ISyntaxNode value, Interval interval) =>
         new(variableName, fieldName, source, value, interval);
+
+    public static IndexedAssignmentSyntaxNode IndexedAssignment(
+        ISyntaxNode target, ISyntaxNode index, ISyntaxNode value, Interval interval) =>
+        new(target, index, value, interval);
 }
