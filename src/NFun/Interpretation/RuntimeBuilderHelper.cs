@@ -16,6 +16,8 @@ using NFun.Types;
 
 namespace NFun.Interpretation;
 
+using Topology;
+
 internal static class RuntimeBuilderHelper {
     public static ConcreteUserFunction BuildConcrete(
         this UserFunctionDefinitionSyntaxNode functionSyntax,

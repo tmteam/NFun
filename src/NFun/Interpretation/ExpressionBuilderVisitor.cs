@@ -519,7 +519,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         for (int i = 0; i < functions.Length; i++)
         {
             var op = node.Operators[i];
-            var functionName = SyntaxNodeReader.GetOperatorFunctionName(op.Type)
+            var functionName = ExpressionParser.GetOperatorFunctionName(op.Type)
                                ?? throw new NFunImpossibleException("MJ987");
             var genericFunction = _functions.GetOrNull(functionName, 2) as IGenericFunction
                                   ?? throw new NFunImpossibleException("MJ989");

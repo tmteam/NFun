@@ -138,7 +138,7 @@ internal static partial class Errors {
                     new Interval(list.Last().Interval.Finish, flow.Current.Finish));
             }
 
-            var exp = SyntaxNodeReader.ReadNodeOrNull(flow);
+            var exp = ExpressionParser.ReadNodeOrNull(flow);
             if (exp != null)
                 list.Add(exp);
             if (exp == null && list.Any())
@@ -163,7 +163,7 @@ internal static partial class Errors {
                 new Interval(obrStart, obrStart + 1));
 
         var position = flow.CurrentTokenPosition;
-        var nextExpression = SyntaxNodeReader.ReadNodeOrNull(flow);
+        var nextExpression = ExpressionParser.ReadNodeOrNull(flow);
         flow.Move(position);
 
         if (nextExpression != null) //[x y] <- separator is missed

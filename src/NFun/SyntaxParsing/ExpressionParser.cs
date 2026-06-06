@@ -9,16 +9,24 @@ using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
-using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.SyntaxParsing;
 
 /// <summary>
-/// Reads concrete syntax nodes from token flow
+/// Expression-level parser. Reads NFun expressions from a token flow: binary chains
+/// (with priority-aware right-/left-associativity), unary operators, atoms (literals,
+/// identifiers, parenthesised groups), function calls, lambdas (`rule`, `fun`),
+/// struct/array literals, safe access (`?.`, `?[`), force-unwrap (`!`), coalesce (`??`),
+/// expression-form `if-then-else`, named-type constructors, text interpolation with
+/// format specifiers, and inline `try ... catch ...` (single-line form).
+///
+/// The expression layer is mode-agnostic — invoked identically by expression-mode and
+/// lang-mode parsers. Statement-level constructs (`for`, `while`, `when`, multi-line
+/// `if:` / `try:` blocks) live in <see cref="StatementParser"/>.
 /// </summary>
-public static class SyntaxNodeReader {
+public static class ExpressionParser {
     private const int MinPriority = 0;
     private const int OperatorBitInversePriority = 1;
     private const int OperatorNotPriority = 11;
@@ -33,7 +41,7 @@ public static class SyntaxNodeReader {
 
     private static readonly Dictionary<TokType, byte> BinaryPriorities = new();
 
-    static SyntaxNodeReader() {
+    static ExpressionParser() {
         var priorities = new List<TokType[]>(15) {
             new[] { TokType.ArrOBr, TokType.Dot, TokType.SafeAccess, TokType.Question, TokType.ForceUnwrap, TokType.Superscript, TokType.ParenthObr },
             new[] { TokType.Pow },
@@ -606,7 +614,7 @@ public static class SyntaxNodeReader {
             flow.MoveNext(); // consume NewLine
             flow.SkipNewLines(); // skip extra blank lines
             ISyntaxNode blockBody = flow.IsCurrent(TokType.Indent)
-                ? LangParser.ParseBlock(flow)
+                ? StatementParser.ParseBlock(flow)
                 : ReadBlockLambdaBody(flow);
             return SyntaxNodeFactory.SuperAnonymFunction(blockBody);
         }
@@ -628,7 +636,7 @@ public static class SyntaxNodeReader {
             if (flow.IsCurrent(TokType.Indent))
             {
                 // Indent tokens available (top-level or lang mode)
-                blockBody = LangParser.ParseBlock(flow);
+                blockBody = StatementParser.ParseBlock(flow);
             }
             else
             {
@@ -710,7 +718,7 @@ public static class SyntaxNodeReader {
             // Multi-line block forms still need Indent/Dedent which aren't
             // emitted inside brackets — those will fall through the parser's
             // existing single-line block branches.
-            var stmt = LangParser.ParseStatement(flow);
+            var stmt = StatementParser.ParseStatement(flow);
             if (stmt == null)
                 break;
             statements.Add(stmt);

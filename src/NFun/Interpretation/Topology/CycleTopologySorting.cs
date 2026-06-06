@@ -1,7 +1,7 @@
+namespace NFun.Interpretation.Topology;
+
 using System;
 using System.Collections.Generic;
-
-namespace NFun.SyntaxParsing;
 
 public class CycleTopologySorting {
     /// <summary>

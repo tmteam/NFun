@@ -7,80 +7,129 @@ using NFun.Tokenization;
 
 namespace NFun.SyntaxParsing;
 
+/// <summary>
+/// Top-level NFun parser. Reads a token flow and produces a <see cref="SyntaxTree"/>.
+///
+/// Two modes:
+///   • <see cref="Mode.Expression"/> — classic short-form: equations, anonymous
+///     output, `f(x) = expr` user functions, typed inputs.
+///   • <see cref="Mode.Lang"/> — indent-based statement mode (Statements.md): adds
+///     `fun … :` block definitions, control flow, mutable state, attributes.
+///
+/// Mode-specific top-level dispatch lives here. Reusable sub-grammars are extracted
+/// into helper classes — they know nothing about Parser state:
+///   • <see cref="TypeDeclarationParser"/>     — `type Name = …` (both modes)
+///   • <see cref="FunctionDefinitionParser"/>  — `f(x)=body` and `fun f(x): block`
+///   • <see cref="StatementParser"/>           — lang statement-level grammar: statements,
+///                                              blocks, assignments, control flow, attributes
+///   • <see cref="ExpressionParser"/>          — expression-level grammar (binary chains,
+///                                              atoms, lambdas, struct/array literals)
+/// </summary>
 public class Parser {
-    private readonly TokFlow _flow;
+    public enum Mode { Expression, Lang }
+
     public const string AnonymousEquationId = "out";
 
-    public static SyntaxTree Parse(TokFlow flow)
-        => new Parser(flow).ParseTree(flow);
+    public static SyntaxTree Parse(TokFlow flow)     => new Parser(flow, Mode.Expression).Run();
+    public static SyntaxTree ParseLang(TokFlow flow) => new Parser(flow, Mode.Lang).Run();
 
-    public static SyntaxTree ParseLang(TokFlow flow)
-        => LangParser.Parse(flow);
-
+    private readonly TokFlow _flow;
+    private readonly Mode _mode;
     private readonly List<ISyntaxNode> _nodes = new();
     private readonly List<string> _equationNames = new();
 
-    //current reader state
-    private bool _hasAnonymousEquation = false;
-    private bool _startOfTheLine = false;
-    private int _exprStartPosition = 0;
+    // Per-iteration state, set at the top of each top-level loop body.
+    private bool _hasAnonymousEquation;
+    private bool _startOfTheLine;
+    private int _exprStartPosition;
     private FunnyAttribute[] _attributes;
 
-    private Parser(TokFlow flow) => _flow = flow;
+    // Lang-mode only: synthetic id counter for side-effect-only top-level statements
+    // (for/while/print/top-level if without else). They are auto-wrapped as
+    // `__stmt_N__ = stmt` equations so downstream stages handle them uniformly.
+    private int _langStmtCounter;
 
-    private SyntaxTree ParseTree(TokFlow flow) {
+    private Parser(TokFlow flow, Mode mode) {
+        _flow = flow;
+        _mode = mode;
+    }
+
+    private SyntaxTree Run() {
+        // In lang mode, NewLines outside brackets are statement terminators
+        // and must stop binary-operator chains (BugHunt-stmt #66).
+        if (_mode == Mode.Lang)
+            _flow.RespectNewLines = true;
+
         while (true)
         {
-            flow.SkipNewLines();
-            if (flow.IsDoneOrEof()) break;
+            _flow.SkipNewLines();
+            if (_flow.IsDoneOrEof()) break;
 
-            _attributes = flow.ReadAttributes();
-            _startOfTheLine = flow.IsStartOfTheLine();
-            _exprStartPosition = flow.Current.Start;
-
-            // type keyword — parse named type declaration
-            if (flow.IsCurrent(TokType.TypeKeyword))
-            {
-                ReadTypeDeclaration(flow);
-                continue;
-            }
-
-            var e = SyntaxNodeReader.ReadNodeOrNull(flow) ??
-                    throw Errors.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
-
-            if (e is TypedVarDefSyntaxNode typed)
-            {
-                if (flow.IsCurrent(TokType.Def))
-                    ReadEquation(typed, typed.Id);
-                else
-                    ReadInputVariableSpecification(typed);
-            }
-            else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon) || flow.IsCurrent(TokType.Arrow))
-            {
-                if (e is NamedIdSyntaxNode variable)
-                    ReadEquation(variable, variable.Id);
-                //Fun call can be used as fun definition
-                else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
-                    ReadUserFunction(fun);
-                else
-                    throw Errors.ExpressionBeforeTheDefinition(_exprStartPosition, e, flow.Current);
-            }
+            if (_mode == Mode.Lang)
+                ReadLangTopLevel();
             else
-                ReadAnonymousEquation(e);
+                ReadExpressionTopLevel();
         }
 
-        return new SyntaxTree(_nodes.ToArray());
+        var tree = new SyntaxTree(_nodes.ToArray());
+
+        // Context-sensitive validation: `return` only inside functions,
+        // `break`/`continue` only inside loops.
+        if (_mode == Mode.Lang)
+            LangContextValidator.Validate(tree);
+
+        return tree;
+    }
+
+    // ───────────────────────────────────────────────────────────────
+    // Expression-mode top-level
+    // ───────────────────────────────────────────────────────────────
+
+    private void ReadExpressionTopLevel() {
+        _attributes = _flow.ReadAttributes();
+        _startOfTheLine = _flow.IsStartOfTheLine();
+        _exprStartPosition = _flow.Current.Start;
+
+        // type keyword — parse named type declaration
+        if (_flow.IsCurrent(TokType.TypeKeyword))
+        {
+            _nodes.Add(TypeDeclarationParser.Parse(_flow));
+            return;
+        }
+
+        var e = ExpressionParser.ReadNodeOrNull(_flow) ??
+                throw Errors.UnknownValueAtStartOfExpression(_exprStartPosition, _flow.Current);
+
+        if (e is TypedVarDefSyntaxNode typed)
+        {
+            if (_flow.IsCurrent(TokType.Def))
+                ReadEquation(typed, typed.Id);
+            else
+                ReadInputVariableSpecification(typed);
+        }
+        else if (_flow.IsCurrent(TokType.Def) || _flow.IsCurrent(TokType.Colon) || _flow.IsCurrent(TokType.Arrow))
+        {
+            if (e is NamedIdSyntaxNode variable)
+                ReadEquation(variable, variable.Id);
+            //Fun call can be used as fun definition
+            else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
+                ReadUserFunction(fun);
+            else
+                throw Errors.ExpressionBeforeTheDefinition(_exprStartPosition, e, _flow.Current);
+        }
+        else
+            ReadAnonymousEquation(e);
     }
 
     /// <summary>
     /// Read input type specification.
-    /// Like i:int
+    /// Like `i:int`.
     /// </summary>
     private void ReadInputVariableSpecification(TypedVarDefSyntaxNode typed)
         => _nodes.Add(SyntaxNodeFactory.VarDefinition(typed, _attributes));
 
     /// <summary>
-    /// Read anonymous equation. Throws if at least one other equation exists
+    /// Read anonymous equation. Throws if at least one other equation exists.
     /// </summary>
     private void ReadAnonymousEquation(ISyntaxNode e) {
         if (_equationNames.Any())
@@ -94,7 +143,6 @@ public class Parser {
         if (!_startOfTheLine)
             throw Errors.AnonymousExpressionHasToStartFromNewLine(_exprStartPosition, e, _flow.Current);
 
-        //anonymous
         var equation = SyntaxNodeFactory.Equation(AnonymousEquationId, e, _exprStartPosition, _attributes);
         _hasAnonymousEquation = true;
         _equationNames.Add(equation.Id);
@@ -102,8 +150,8 @@ public class Parser {
     }
 
     /// <summary>
-    /// Read user function
-    /// like y(a,b,c:int):real = ...
+    /// Read user function (expression-mode short form): `y(a,b,c:int):real = ...`.
+    /// Delegates the actual signature/body building to <see cref="FunctionDefinitionParser"/>.
     /// </summary>
     private void ReadUserFunction(FunCallSyntaxNode fun) {
         if (!_startOfTheLine)
@@ -111,136 +159,11 @@ public class Parser {
         if (_attributes.Length > 0)
             throw Errors.AttributeOnFunction(fun);
 
-        var functionNode = ParseUserFunctionFromCall(fun, _flow, _exprStartPosition);
-        _nodes.Add(functionNode);
+        _nodes.Add(FunctionDefinitionParser.FromCall(fun, _flow, _exprStartPosition));
     }
 
     /// <summary>
-    /// Build a <see cref="UserFunctionDefinitionSyntaxNode"/> given a FunCallSyntaxNode
-    /// in head position. Reads optional <c>:retType</c> / <c>-&gt;retType</c>, the
-    /// <c>=</c> token, and the body expression. Shared between expression-mode Parser
-    /// and lang-mode LangParser so both accept <c>f(x) = expr</c> form uniformly.
-    /// </summary>
-    internal static UserFunctionDefinitionSyntaxNode ParseUserFunctionFromCall(
-        FunCallSyntaxNode fun, TokFlow flow, int exprStartPosition) {
-        var id = fun.Id;
-        if (fun.ParenthesesCount != 0)
-            throw Errors.UnexpectedParenthesisOnFunDefinition(fun, exprStartPosition, flow.Previous.Finish);
-
-        var arguments = new List<TypedVarDefSyntaxNode>();
-        TypedVarDefSyntaxNode paramsArg = null;
-
-        var keywordOnlyFromPositional = new List<TypedVarDefSyntaxNode>();
-
-        // Positional args from fun.Args (required params + varargs)
-        foreach (var headNodeChild in fun.Args)
-        {
-            TypedVarDefSyntaxNode arg;
-            if (headNodeChild is TypedVarDefSyntaxNode varDef)
-                arg = varDef;
-            else if (headNodeChild is NamedIdSyntaxNode varSyntax)
-                arg = SyntaxNodeFactory.TypedVar(
-                    varSyntax.Id, TypeSyntax.Empty,
-                    headNodeChild.Interval.Start, headNodeChild.Interval.Finish);
-            else
-                throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
-
-            if (headNodeChild.ParenthesesCount != 0)
-                throw Errors.FunctionArgumentDefinitionIsInParenthesis(fun, headNodeChild);
-
-            // Defer params arg — it must be last, after defaults
-            if (arg.IsParams)
-            {
-                if (paramsArg != null)
-                    throw Errors.MultipleParams(fun);
-                paramsArg = arg;
-            }
-            else if (paramsArg != null)
-            {
-                // Arg after ... → keyword-only (must have default)
-                if (!arg.HasDefault)
-                    throw Errors.KeywordOnlyWithoutDefault(fun, arg.Id, arg.Interval);
-                keywordOnlyFromPositional.Add(new TypedVarDefSyntaxNode(
-                    arg.Id, arg.TypeSyntax, arg.Interval, arg.DefaultValue, isKeywordOnly: true));
-            }
-            else
-                arguments.Add(arg);
-        }
-
-        // Named args BEFORE spread → regular defaults
-        var kwStart = fun.KeywordOnlyNamedStartIndex;
-        for (int i = 0; i < Math.Min(kwStart, fun.NamedArgs.Length); i++)
-        {
-            var named = fun.NamedArgs[i];
-            arguments.Add(new TypedVarDefSyntaxNode(
-                named.Name, TypeSyntax.Empty, named.NameInterval,
-                defaultValue: named.Value));
-        }
-
-        // Append params
-        if (paramsArg != null)
-            arguments.Add(paramsArg);
-
-        // Named args AFTER spread → keyword-only (must have defaults)
-        for (int i = kwStart; i < fun.NamedArgs.Length; i++)
-        {
-            var named = fun.NamedArgs[i];
-            if (named.Value == null)
-                throw Errors.KeywordOnlyWithoutDefault(fun, named.Name, named.NameInterval);
-            arguments.Add(new TypedVarDefSyntaxNode(
-                named.Name, TypeSyntax.Empty, named.NameInterval,
-                defaultValue: named.Value, isKeywordOnly: true));
-        }
-
-        // Typed keyword-only args from positional list (e.g., f(...items, sep:text='-'))
-        arguments.AddRange(keywordOnlyFromPositional);
-
-        // Validate: no required args after defaults (params/keyword-only excluded)
-        bool seenDefault = false;
-        for (int argIdx = 0; argIdx < arguments.Count; argIdx++)
-        {
-            var arg = arguments[argIdx];
-            if (arg.HasDefault)
-                seenDefault = true;
-            else if (arg.IsParams || arg.IsKeywordOnly)
-                break;
-            else if (seenDefault)
-                throw Errors.RequiredArgAfterDefault(fun, arg);
-        }
-
-        // Validate: no duplicate keyword-only names (only check keyword-only against all)
-        for (int i = 0; i < arguments.Count; i++)
-        {
-            if (!arguments[i].IsKeywordOnly) continue;
-            for (int j = 0; j < i; j++)
-                if (string.Equals(arguments[i].Id, arguments[j].Id, StringComparison.OrdinalIgnoreCase))
-                    throw Errors.DuplicateKeywordOnlyArg(fun, arguments[i].Id, arguments[i].Interval);
-        }
-
-        var outputType = TypeSyntax.Empty;
-        if (flow.MoveIf(TokType.Colon, out _) || flow.MoveIf(TokType.Arrow, out _))
-            outputType = flow.ReadTypeSyntax();
-
-        flow.SkipNewLines();
-        if (!flow.MoveIf(TokType.Def, out var def))
-            throw Errors.FunDefTokenIsMissed(id, arguments, flow.Current);
-
-        var expression = SyntaxNodeReader.ReadNodeOrNull(flow);
-        if (expression == null)
-        {
-            int finish = flow.Peek?.Finish ?? flow.CurrentTokenFinishPosition;
-
-            throw Errors.FunExpressionIsMissed(
-                id, arguments,
-                new Interval(def.Start, finish));
-        }
-
-        return (UserFunctionDefinitionSyntaxNode)SyntaxNodeFactory.UserFunctionDef(arguments, fun, expression, outputType);
-    }
-
-    /// <summary>
-    /// Read named equation
-    /// like: y = 1 + x
+    /// Read named equation: `y = 1 + x`.
     /// </summary>
     private void ReadEquation(ISyntaxNode equationHeader, string id) {
         if (_hasAnonymousEquation)
@@ -252,9 +175,7 @@ public class Parser {
         var equation = ReadEquationBody(id);
 
         if (equationHeader is TypedVarDefSyntaxNode typed)
-        {
             equation.TypeSpecificationOrNull = typed;
-        }
 
         _nodes.Add(equation);
         _equationNames.Add(equation.Id);
@@ -263,99 +184,105 @@ public class Parser {
     private EquationSyntaxNode ReadEquationBody(string id) {
         _flow.SkipNewLines();
         var start = _flow.CurrentTokenFinishPosition;
-        var exNode = SyntaxNodeReader.ReadNodeOrNull(_flow);
+        var exNode = ExpressionParser.ReadNodeOrNull(_flow);
         if (exNode == null)
             throw Errors.VarExpressionIsMissed(start, id, _flow.Current);
         return SyntaxNodeFactory.Equation(id, exNode, start, _attributes);
     }
 
-    /// <summary>
-    /// Parse: type name = {field defs}
-    /// Fields can be: name:type, name:type = default_expr, name = default_expr
-    /// </summary>
-    private void ReadTypeDeclaration(TokFlow flow)
-        => _nodes.Add(ParseTypeDeclaration(flow));
+    // ───────────────────────────────────────────────────────────────
+    // Lang-mode top-level
+    // ───────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Parses a type declaration: type name = {...} or type name = alias.
-    /// Shared between expression-mode Parser and LangParser.
-    /// </summary>
-    internal static TypeDeclarationSyntaxNode ParseTypeDeclaration(TokFlow flow) {
-        var start = flow.Current.Start;
-        flow.MoveNext(); // skip 'type'
-
-        if (!flow.MoveIf(TokType.Id, out var nameToken))
-            throw Errors.TypeNameExpected(flow.Current);
-
-        if (!flow.MoveIf(TokType.Def, out _))
-            throw Errors.TypeDefTokenIsMissed(nameToken.Value, flow.Current);
-
-        // type name = {...}  → struct type
-        // type name = type   → type alias (int, int[], text?, other_name, etc.)
-        if (!flow.IsCurrent(TokType.FiObr))
-        {
-            var aliasType = flow.ReadTypeSyntax();
-            if (aliasType is TypeSyntax.EmptyType)
-                throw Errors.TypeBodyExpected(nameToken.Value, flow.Current);
-            return new TypeDeclarationSyntaxNode(nameToken.Value, aliasType,
-                new Interval(start, flow.CurrentTokenFinishPosition));
-        }
-
-        flow.MoveNext(); // skip '{'
-
-        var fields = new List<TypeFieldDefinition>();
-        bool hasAnyDelimiter = true;
-        flow.SkipNewLines();
-
-        while (true)
-        {
-            if (flow.MoveIf(TokType.FiCbr))
-                break;
-
-            if (!hasAnyDelimiter)
-                throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.CurrentTokenStartPosition - 1,
-                    flow.CurrentTokenFinishPosition));
-
-            if (!flow.MoveIfFieldName(out var fieldId))
-                throw Errors.StructFieldIdIsMissed(flow.Current);
-
-            var fieldStart = fieldId.Start;
-
-            var typeSyntax = TypeSyntax.Empty;
-            if (flow.IsCurrent(TokType.Colon))
-            {
-                flow.MoveNext();
-                typeSyntax = flow.ReadTypeSyntax();
-                if (typeSyntax is TypeSyntax.EmptyType)
-                    throw Errors.TypeExpectedButWas(flow.Current);
+    private void ReadLangTopLevel() {
+        // Optional @Annotations before `fun` definitions
+        if (_flow.IsCurrent(TokType.MetaInfo)) {
+            var attrs = StatementParser.ParseAttributes(_flow);
+            _flow.SkipNewLines();
+            if (_flow.IsCurrent(TokType.Fun)) {
+                var funcNode = FunctionDefinitionParser.FromFunKeyword(_flow);
+                if (funcNode is UserFunctionDefinitionSyntaxNode ufd)
+                    ufd.Attributes = attrs.ToArray();
+                _nodes.Add(funcNode);
+            } else {
+                // Attributes before non-function — accept but discard for now
+                var stmt = StatementParser.ParseStatement(_flow);
+                _nodes.Add(WrapLangTopLevelStatement(stmt));
             }
-
-            ISyntaxNode defaultValue = null;
-            if (flow.MoveIf(TokType.Def))
-            {
-                flow.SkipNewLines();
-                defaultValue = SyntaxNodeReader.ReadNodeOrNull(flow);
-                if (defaultValue == null)
-                    throw Errors.StructFieldBodyIsMissed(fieldId);
-            }
-
-            if (fields.Any(f => string.Equals(f.Name, fieldId.Value, StringComparison.OrdinalIgnoreCase)))
-                throw Errors.NamedTypeDuplicateField(nameToken.Value, fieldId.Value, fieldId.Interval);
-
-            var fieldFinish = defaultValue?.Interval.Finish ?? flow.CurrentTokenFinishPosition;
-            fields.Add(new TypeFieldDefinition(
-                fieldId.Value, typeSyntax, defaultValue, new Interval(fieldStart, fieldFinish)));
-
-            hasAnyDelimiter = flow.Previous.Type == TokType.NewLine;
-            if (flow.MoveIf(TokType.Sep))
-                hasAnyDelimiter = true;
-            if (flow.SkipNewLines())
-                hasAnyDelimiter = true;
-            if (flow.IsDoneOrEof())
-                throw Errors.StructIsUndone(flow.CurrentTokenFinishPosition);
         }
-
-        return new TypeDeclarationSyntaxNode(nameToken.Value, fields,
-            new Interval(start, flow.CurrentTokenFinishPosition));
+        else if (_flow.IsCurrent(TokType.Fun)) {
+            _nodes.Add(FunctionDefinitionParser.FromFunKeyword(_flow));
+        }
+        else if (_flow.IsCurrent(TokType.TypeKeyword)) {
+            _nodes.Add(TypeDeclarationParser.Parse(_flow));
+        }
+        else {
+            var stmt = StatementParser.ParseStatement(_flow);
+            // Top-level `id:type` input declaration (Basics.md §Input variables L166-175):
+            // `i:int\n y = i+1`. Statement mode is an extension of expression mode
+            // (Statements.md L1-3) — wrap as VarDefinition (matching expression-mode shape)
+            // instead of auto-wrapping as an equation that would later trip
+            // ExpressionBuilderVisitor's "not an expression" guard. (BugHunt-stmt #61.)
+            if (stmt is TypedVarDefSyntaxNode typedDef) {
+                _nodes.Add(SyntaxNodeFactory.VarDefinition(typedDef, Array.Empty<FunnyAttribute>()));
+            } else {
+                _nodes.Add(WrapLangTopLevelStatement(stmt));
+            }
+        }
+        StatementParser.RequireStatementTerminator(_flow);
     }
+
+    /// <summary>
+    /// Wrap a bare top-level statement as a synthetic equation for RuntimeBuilder compatibility.
+    /// Value-bearing expressions get the canonical `out` name (matches expression mode,
+    /// Basics.md §Outputs); pure statements (for/while, top-level if/when without else,
+    /// print, return, break/continue) get an internal `__stmt_N__` name that is later
+    /// treated as non-output (BugHunt-stmt #23/#24).
+    /// </summary>
+    private ISyntaxNode WrapLangTopLevelStatement(ISyntaxNode stmt) {
+        if (stmt is EquationSyntaxNode || stmt is UserFunctionDefinitionSyntaxNode)
+            return stmt;
+
+        bool isValueBearing = IsValueBearingStatement(stmt);
+        var equationId = isValueBearing
+            ? AnonymousEquationId
+            : $"__stmt_{_langStmtCounter++}__";
+        var eq = SyntaxNodeFactory.Equation(
+            equationId, stmt, stmt.Interval.Start,
+            Array.Empty<FunnyAttribute>());
+        eq.IsAutoWrapped = true;
+        return eq;
+    }
+
+    /// <summary>
+    /// Statements that have no value at the top level — side-effect-only constructs
+    /// shouldn't surface as outputs. Anything else (literal, call, identifier, binary op,
+    /// ternary if-expr, struct init, lambda, …) carries a value and gets bound to the
+    /// canonical `out` name.
+    /// </summary>
+    private static bool IsValueBearingStatement(ISyntaxNode node) => node switch {
+        ForSyntaxNode => false,
+        WhileSyntaxNode => false,
+        IfBlockSyntaxNode => false,
+        // Multi-line `if cond: ...` without an explicit `else` is parsed as
+        // IfThenElseSyntaxNode with an auto-inserted DefaultValueSyntaxNode else.
+        // It's the statement form (no value), so route through __stmt_N__ instead
+        // of clobbering `out` (BugHunt-stmt #43). Check the IsAutoInsertedElse flag —
+        // a user-written `else default` is a real expression that DOES bear a value.
+        // (MR11Bug2.)
+        IfThenElseSyntaxNode ite
+            when ite.ElseExpr is DefaultValueSyntaxNode { IsAutoInsertedElse: true } => false,
+        WhenSyntaxNode w when w.ElseBody == null => false,
+        TryBlockSyntaxNode => false,
+        FieldAssignmentSyntaxNode => false,
+        PrintSyntaxNode => false,
+        // `print(args)` parses as a FunCallSyntaxNode because the lang-mode
+        // print-statement form only fires when print is NOT followed by '('.
+        // Either form is fire-and-forget — don't clobber `out` (BugHunt-stmt #72).
+        FunCallSyntaxNode fcn when fcn.Id == "print" => false,
+        ReturnSyntaxNode => false,
+        BreakSyntaxNode => false,
+        ContinueSyntaxNode => false,
+        _ => true,
+    };
 }

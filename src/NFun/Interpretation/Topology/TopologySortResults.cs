@@ -1,4 +1,4 @@
-namespace NFun.SyntaxParsing;
+namespace NFun.Interpretation.Topology;
 
 public struct TopologySortResults {
     /// <summary>

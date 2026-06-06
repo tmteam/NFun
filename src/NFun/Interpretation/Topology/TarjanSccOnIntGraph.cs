@@ -1,7 +1,7 @@
+namespace NFun.Interpretation.Topology;
+
 using System;
 using System.Collections.Generic;
-
-namespace NFun.SyntaxParsing;
 
 /// <summary>
 /// Tarjan '72 strongly-connected components on an adjacency-list graph indexed
