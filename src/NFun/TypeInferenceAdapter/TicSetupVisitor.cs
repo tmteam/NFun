@@ -2038,18 +2038,36 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         for (int i = 0; i < narrowingScopesOpened; i++)
             _aliasScope.ExitScope();
 
-        // The block's type = last statement's type.
+        // The block's type = last statement's type. Indexed/Field assignments
+        // are side-effecting STATEMENTS (NFun has no expression-position
+        // assignment — the parser rejects `b = (a[i]=v)`). Binding them as
+        // block ancestors would graft V0's IsOptional (from implicit-None
+        // body return) onto the assignment's target via the back-edge in
+        // Visit(IndexedAssignmentSyntaxNode) line 2515-2516, producing a
+        // self-Optional cycle in Destruction. The NFun parser wraps
+        // top-level `xs[i]=v` in an EquationSyntaxNode (id=xs, expression
+        // = IndexedAssignmentSyntaxNode) — peek through that wrap.
         if (statements.Count > 0) {
             var lastStatement = statements[statements.Count - 1];
             int lastExprId;
-            if (lastStatement is EquationSyntaxNode eq)
-                lastExprId = eq.Expression.OrderNumber;
+            if (lastStatement is EquationSyntaxNode eq) {
+                if (eq.Expression is IndexedAssignmentSyntaxNode
+                 || eq.Expression is FieldAssignmentSyntaxNode)
+                    lastExprId = -1; // void statement — no block contribution
+                else
+                    lastExprId = eq.Expression.OrderNumber;
+            }
+            else if (lastStatement is IndexedAssignmentSyntaxNode
+                  || lastStatement is FieldAssignmentSyntaxNode)
+                lastExprId = -1;
             else
                 lastExprId = lastStatement.OrderNumber;
 
-            var blockNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
-            var lastNode = _ticTypeGraph.GetOrCreateNode(lastExprId);
-            lastNode.AddAncestor(blockNode);
+            if (lastExprId >= 0) {
+                var blockNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
+                var lastNode = _ticTypeGraph.GetOrCreateNode(lastExprId);
+                lastNode.AddAncestor(blockNode);
+            }
         }
 
         // For equations inside the block, set up variable definitions
@@ -2167,9 +2185,25 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (!node.Collection.Accept(this))
             return false;
 
-        // Create element type variable T, constrain collection = arr(T)
+        // Create element type variable T. In ee-mode the collection must be
+        // StateArray(T); in lang-mode anything Enumerable<T> is acceptable
+        // (List, Array, FixedArray, Set, …). Using CompCs{Anc=Enumerable, e=T}
+        // as a soft upper bound lets lang-mode lists/sets flow through without
+        // being forced into StateArray (which would error on `a = list(...);
+        // for x in a`).
         var elementType = _ticTypeGraph.CreateVarType();
-        _ticTypeGraph.GetOrCreateArrayNode(node.Collection.OrderNumber, elementType);
+        if (_dialect.IsLangMode) {
+            var enumerableUpperBound = _ticTypeGraph.CreateVarType(
+                Tic.SolvingStates.StateCompositeConstraints.Create(
+                    elementType,
+                    ancestor: ConstructorKind.Enumerable,
+                    descendant: null,
+                    isOptional: false));
+            var collectionRef = _ticTypeGraph.GetOrCreateNode(node.Collection.OrderNumber);
+            collectionRef.AddAncestor(enumerableUpperBound);
+        } else {
+            _ticTypeGraph.GetOrCreateArrayNode(node.Collection.OrderNumber, elementType);
+        }
         // Create a synthetic node for the iterator, wired to element type T
         var iteratorSyntheticId = _nextSyntheticId++;
         _ticTypeGraph.GetOrCreateNode(iteratorSyntheticId); // fresh unconstrained node
@@ -2473,17 +2507,23 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.I32),
             node.Index.OrderNumber);
 
-        // Add a SOFT upper-bound constraint (target ≤ mutArr<elementType>) via an
-        // invisible template node, instead of PINNING target's State to mutArr
-        // directly. The pin would override any earlier inferred kind
-        // (`a = list(...)` makes a's slot StateCollection(List)) and route
-        // through cross-kind conversion — runtime then materializes a fresh
-        // mutArr<int> on every alias step, losing reference identity. With only
-        // the upper bound, narrower-kind merge (`list ≤ array`) keeps the slot
-        // as list; the runtime IFunnyMutableArray check still catches misuse.
+        // Add a SOFT upper-bound constraint (target ≤ Array<elementType>) via a
+        // typeclass CAP (StateCompositeConstraints with Anc=Array), NOT a
+        // concrete StateCollection point. Cap form is essential for typeclass
+        // intersection — when xs is also constrained by clear() (CompCs Anc=
+        // Enumerable, IsClearable=true), ApplySameClass unifies the two caps
+        // into CompCs{Anc=Array, IsClearable=true}, then Concretest narrows to
+        // List. A concrete StateCollection(Array) descendant would be rejected
+        // by SimplifyOrNull (Array isn't Clearable) — which is correct ONLY
+        // for declared `a:int[]`, not for inferred-via-write xs.
         var elementType = _ticTypeGraph.CreateVarType();
         var mutArrUpperBound = _ticTypeGraph.CreateVarType(
-            Tic.SolvingStates.StateCollection.OfMutableArray(elementType));
+            Tic.SolvingStates.StateCompositeConstraints.Create(
+                elementNode: elementType,
+                ancestor: Tic.SolvingStates.ConstructorKind.Array,
+                descendant: null,
+                isOptional: false,
+                isClearable: false));
         var targetRef = _ticTypeGraph.GetOrCreateNode(node.Target.OrderNumber);
         targetRef.AddAncestor(mutArrUpperBound);
 

@@ -23,16 +23,13 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public TicNode ElementNode { get; }
 
-    /// <summary>Sentinel for cycle detection (generic functions with if..else none create cyclic Optional).</summary>
-    private const int OptionalCycleGuard = -55001;
-
     public bool IsSolved {
         get {
             var elem = ElementNode;
-            if (elem.VisitMark == OptionalCycleGuard)
+            if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle)
                 return false; // cycle → not resolved yet
             var prev = elem.VisitMark;
-            elem.VisitMark = OptionalCycleGuard;
+            elem.VisitMark = Tic.TicVisitMarks.StateOptionalIsSolvedCycle;
             var result = elem.State.IsSolved;
             elem.VisitMark = prev;
             return result;
@@ -63,9 +60,9 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public override bool Equals(object obj) {
         if (obj is not StateOptional opt) return false;
         var elem = ElementNode;
-        if (elem.VisitMark == OptionalCycleGuard) return true; // cycle → treat as equal
+        if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle) return true; // cycle → treat as equal
         var prev = elem.VisitMark;
-        elem.VisitMark = OptionalCycleGuard;
+        elem.VisitMark = Tic.TicVisitMarks.StateOptionalIsSolvedCycle;
         var result = opt.Element.Equals(Element);
         elem.VisitMark = prev;
         return result;
@@ -82,16 +79,14 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
-    private const int LeafMark = -56000;
-
     public IEnumerable<TicNode> AllLeafTypes
     {
         get
         {
             if (ElementNode.State is ICompositeState composite) {
-                if (ElementNode.VisitMark == LeafMark) yield break;
+                if (ElementNode.VisitMark == Tic.TicVisitMarks.StateLeaf) yield break;
                 var prev = ElementNode.VisitMark;
-                ElementNode.VisitMark = LeafMark;
+                ElementNode.VisitMark = Tic.TicVisitMarks.StateLeaf;
                 foreach (var leaf in composite.AllLeafTypes)
                     yield return leaf;
                 ElementNode.VisitMark = prev;

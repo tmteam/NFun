@@ -68,13 +68,13 @@ public static class LangTiHelper {
             BaseFunnyType.MutableArray => StateCollection.OfMutableArray(ConvertToTiType(origin.MutableArrayTypeSpecification.FunnyType)),
             BaseFunnyType.FixedArray => StateCollection.OfFixedArray(ConvertToTiType(origin.FixedArrayTypeSpecification.FunnyType)),
             BaseFunnyType.Set => StateCollection.OfSet(ConvertToTiType(origin.SetTypeSpecification.FunnyType)),
-            BaseFunnyType.Map => StateMap.Of(
+            BaseFunnyType.Map => StateCollection.OfMap(
                 ConvertToTiType(origin.MapTypeSpecification.KeyType),
                 ConvertToTiType(origin.MapTypeSpecification.ValueType)),
             BaseFunnyType.Enumerable => MakeCompCsForEnumerable(
                 ConvertToTiType(origin.EnumerableTypeSpecification.FunnyType)),
-            BaseFunnyType.Mutable => MakeCompCsForMutable(
-                ConvertToTiType(origin.MutableTypeSpecification.FunnyType)),
+            BaseFunnyType.Clearable => MakeCompCsForClearable(
+                ConvertToTiType(origin.ClearableTypeSpecification.FunnyType)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(ConvertToTiType),
                 returnType: ConvertToTiType(origin.FunTypeSpecification.Output)),
@@ -105,20 +105,23 @@ public static class LangTiHelper {
     }
 
     /// <summary>
-    /// Stage C — convert <c>Mutable&lt;V&gt;</c> FunnyType to a CompCS node with
-    /// ancestor cap = <c>Mutable</c>. Algebra cells let any mutable kind
-    /// (list / array / set / future queue) satisfy this constraint; fixedArray
-    /// and ee-mode T[] are rejected at TIC level.
+    /// Stage C — convert <c>Clearable&lt;V&gt;</c> FunnyType to a CompCS node with
+    /// ancestor cap = <c>Enumerable</c> + <see cref="StateCompositeConstraints.IsClearable"/>
+    /// typeclass marker. The cap permits all enumerable kinds; the marker further
+    /// restricts to kinds where <see cref="ConstructorLattice.IsClearable"/> holds
+    /// (List, Set, Map). This separation lets typeclass constraints intersect
+    /// cleanly (e.g. `clear(xs); xs[i]=v` intersects to List).
     /// </summary>
-    private static ITicNodeState MakeCompCsForMutable(ITicNodeState elementState) {
+    private static ITicNodeState MakeCompCsForClearable(ITicNodeState elementState) {
         var elemNode = elementState is StateRefTo r
             ? r.Node
             : TicNode.CreateInvisibleNode(elementState);
         return StateCompositeConstraints.Create(
             elementNode: elemNode,
-            ancestor: ConstructorKind.Mutable,
+            ancestor: ConstructorKind.Enumerable,
             descendant: null,
-            isOptional: false);
+            isOptional: false,
+            isClearable: true);
     }
 
     /// <summary>
@@ -167,13 +170,13 @@ public static class LangTiHelper {
                 ConvertToTiTypeInner(origin.FixedArrayTypeSpecification.FunnyType, registry, ctx)),
             BaseFunnyType.Set => StateCollection.OfSet(
                 ConvertToTiTypeInner(origin.SetTypeSpecification.FunnyType, registry, ctx)),
-            BaseFunnyType.Map => StateMap.Of(
+            BaseFunnyType.Map => StateCollection.OfMap(
                 ConvertToTiTypeInner(origin.MapTypeSpecification.KeyType, registry, ctx),
                 ConvertToTiTypeInner(origin.MapTypeSpecification.ValueType, registry, ctx)),
             BaseFunnyType.Enumerable => MakeCompCsForEnumerable(
                 ConvertToTiTypeInner(origin.EnumerableTypeSpecification.FunnyType, registry, ctx)),
-            BaseFunnyType.Mutable => MakeCompCsForMutable(
-                ConvertToTiTypeInner(origin.MutableTypeSpecification.FunnyType, registry, ctx)),
+            BaseFunnyType.Clearable => MakeCompCsForClearable(
+                ConvertToTiTypeInner(origin.ClearableTypeSpecification.FunnyType, registry, ctx)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(t => ConvertToTiTypeInner(t, registry, ctx)),
                 returnType: ConvertToTiTypeInner(origin.FunTypeSpecification.Output, registry, ctx)),
@@ -249,7 +252,7 @@ public static class LangTiHelper {
                 WrapSolved(type.FixedArrayTypeSpecification.FunnyType, expandingTypeName)),
             BaseFunnyType.Set => StateCollection.OfSet(
                 WrapSolved(type.SetTypeSpecification.FunnyType, expandingTypeName)),
-            BaseFunnyType.Map => StateMap.Of(
+            BaseFunnyType.Map => StateCollection.OfMap(
                 WrapSolved(type.MapTypeSpecification.KeyType, expandingTypeName),
                 WrapSolved(type.MapTypeSpecification.ValueType, expandingTypeName)),
             _ => type.ConvertToTiType()
@@ -279,13 +282,13 @@ public static class LangTiHelper {
                 ConvertToTiType(origin.FixedArrayTypeSpecification.FunnyType, genericMap, registry)),
             BaseFunnyType.Set => StateCollection.OfSet(
                 ConvertToTiType(origin.SetTypeSpecification.FunnyType, genericMap, registry)),
-            BaseFunnyType.Map => StateMap.Of(
+            BaseFunnyType.Map => StateCollection.OfMap(
                 ConvertToTiType(origin.MapTypeSpecification.KeyType, genericMap, registry),
                 ConvertToTiType(origin.MapTypeSpecification.ValueType, genericMap, registry)),
             BaseFunnyType.Enumerable => MakeCompCsForEnumerable(
                 ConvertToTiType(origin.EnumerableTypeSpecification.FunnyType, genericMap, registry)),
-            BaseFunnyType.Mutable => MakeCompCsForMutable(
-                ConvertToTiType(origin.MutableTypeSpecification.FunnyType, genericMap, registry)),
+            BaseFunnyType.Clearable => MakeCompCsForClearable(
+                ConvertToTiType(origin.ClearableTypeSpecification.FunnyType, genericMap, registry)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(
                     type => ConvertToTiType(type, genericMap, registry)),

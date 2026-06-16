@@ -139,15 +139,7 @@ public static class StagesExtension {
                         StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
-                    // Stage 5 / Map.2 — map<K, V> dispatch. Same-class same-class:
-                    // route to the dedicated cell. Other combinations: reject
-                    // (Map is on its own structural branch, no cross-state
-                    // compatibility today).
-                    StateMap mapA => bc switch {
-                        StateMap mapB => function.Apply(mapA, mapB, nodeA, nodeB),
-                        StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
-                        _ => false
-                    },
+                    // StateMap deleted — Map dispatches as StateCollection(Map, …).
                     StateOptional optA when bc is StateOptional optB => function.Apply(optA, optB, nodeA, nodeB),
                     // LCA(Opt(T), T) = Opt(T): wrap descendant in Optional.
                     StateOptional optA => WrapDescendantInOptional(function, nodeA, nodeB, optA),

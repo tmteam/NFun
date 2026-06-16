@@ -57,23 +57,17 @@ public abstract class StateComposite : ICompositeState {
     /// Mark used by <see cref="AllLeafTypes"/> as a coinductive cycle guard.
     /// Mirrors the same pattern in <see cref="StateArray"/> / <see cref="StateOptional"/>.
     ///
-    /// Numerically separated from cycle-guard series of equality checks
-    /// (StateArray: -57500, StateCollection: -57600, IsMutable: -58600,
-    /// IsSolved: -58700). This mark serves a different purpose (leaf-traversal,
-    /// not structural equality) and lives in the -585xx range to make the
-    /// intent obvious at a glance.
+    /// All cycle-guard mark constants live in <see cref="Tic.TicVisitMarks"/>.
     /// </summary>
-    private const int CompositeLeafMark = -58500;
-
     public virtual IEnumerable<TicNode> AllLeafTypes {
         get {
             foreach (var arg in Arguments) {
                 if (arg.Node.State is ICompositeState composite) {
                     // Cycle guard: recursive named types embedding a list (forest = {kids:list<forest>})
                     // would otherwise recurse forever.
-                    if (arg.Node.VisitMark == CompositeLeafMark) continue;
+                    if (arg.Node.VisitMark == Tic.TicVisitMarks.CompositeLeaf) continue;
                     var prev = arg.Node.VisitMark;
-                    arg.Node.VisitMark = CompositeLeafMark;
+                    arg.Node.VisitMark = Tic.TicVisitMarks.CompositeLeaf;
                     foreach (var leaf in composite.AllLeafTypes) yield return leaf;
                     arg.Node.VisitMark = prev;
                 } else {
@@ -89,12 +83,6 @@ public abstract class StateComposite : ICompositeState {
 
     // ─── ITicNodeState ──────────────────────────────────────────────
 
-    /// <summary>Cycle-guard mark for <see cref="IsMutable"/> recursion.</summary>
-    private const int IsMutableCycleMark = -58600;
-
-    /// <summary>Cycle-guard mark for <see cref="IsSolved"/> recursion.</summary>
-    private const int IsSolvedCycleMark = -58700;
-
     /// <summary>
     /// True if any argument is mutable. Cycle-guarded for recursive composite
     /// types (e.g. <c>list&lt;list&lt;list&lt;…&gt;&gt;&gt;</c>) — coinductive
@@ -106,9 +94,9 @@ public abstract class StateComposite : ICompositeState {
             for (int i = 0; i < args.Length; i++)
             {
                 var node = args[i].Node;
-                if (node.VisitMark == IsMutableCycleMark) continue;
+                if (node.VisitMark == Tic.TicVisitMarks.CompositeIsMutableCycle) continue;
                 var prev = node.VisitMark;
-                node.VisitMark = IsMutableCycleMark;
+                node.VisitMark = Tic.TicVisitMarks.CompositeIsMutableCycle;
                 try {
                     if (node.State.IsMutable) return true;
                 } finally {
@@ -130,9 +118,9 @@ public abstract class StateComposite : ICompositeState {
             for (int i = 0; i < args.Length; i++)
             {
                 var node = args[i].Node;
-                if (node.VisitMark == IsSolvedCycleMark) continue;
+                if (node.VisitMark == Tic.TicVisitMarks.CompositeIsSolvedCycle) continue;
                 var prev = node.VisitMark;
-                node.VisitMark = IsSolvedCycleMark;
+                node.VisitMark = Tic.TicVisitMarks.CompositeIsSolvedCycle;
                 try {
                     if (!node.State.IsSolved) return false;
                 } finally {

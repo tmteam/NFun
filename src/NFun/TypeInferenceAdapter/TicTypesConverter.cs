@@ -213,18 +213,28 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
-    private FunnyType ConvertToFunnyCollection(StateCollection coll) =>
-        coll.Constructor switch {
-            ConstructorKind.List => FunnyType.ListOf(Convert(coll.Element)),
-            ConstructorKind.Array => FunnyType.MutableArrayOf(Convert(coll.Element)),
+    private FunnyType ConvertToFunnyCollection(StateCollection coll) {
+        // Map's element is a frozen {key:K, value:V} pair-struct — read K and V
+        // off the inner struct's field nodes via pattern match instead of
+        // dedicated accessors on StateCollection. Keeps StateCollection
+        // data-driven (no Map-specific API) per its design intent.
+        if (coll.Constructor == ConstructorKind.Map
+            && coll.ElementNode.GetNonReference().State is StateStruct ss
+            && ss.GetFieldOrNull("key") is { } k
+            && ss.GetFieldOrNull("value") is { } v) {
+            return FunnyType.MapOf(Convert(k.State), Convert(v.State));
+        }
+        return coll.Constructor switch {
+            ConstructorKind.List       => FunnyType.ListOf(Convert(coll.Element)),
+            ConstructorKind.Array      => FunnyType.MutableArrayOf(Convert(coll.Element)),
             ConstructorKind.FixedArray => FunnyType.FixedArrayOf(Convert(coll.Element)),
-            ConstructorKind.Set => FunnyType.SetOf(Convert(coll.Element)),
+            ConstructorKind.Set        => FunnyType.SetOf(Convert(coll.Element)),
             _ => throw new NotSupportedException(
                 $"StateCollection({coll.Constructor}) has no FunnyType mapping yet."),
         };
+    }
 
-    private FunnyType ConvertToFunnyMap(StateMap map)
-        => FunnyType.MapOf(Convert(map.KeyState), Convert(map.ValueState));
+    // StateMap deleted — Map is now StateCollection(Map, pair-struct).
 
     private const int OptionalConvertMark = -58000;
     private FunnyType ConvertToFunnyOptional(StateOptional opt) {
@@ -341,8 +351,7 @@ public abstract class TicTypesConverter {
                         return ConvertToFunnyArray(array);
                     case StateCollection coll:
                         return ConvertToFunnyCollection(coll);
-                    case StateMap map:
-                        return ConvertToFunnyMap(map);
+                    // StateMap deleted — Map handled in ConvertToFunnyCollection above.
                     case StateOptional opt:
                         return ConvertToFunnyOptional(opt);
                     case StateFun fun:
@@ -352,14 +361,14 @@ public abstract class TicTypesConverter {
                     case StateCompositeConstraints compcs:
                     {
                         // Stage C — typeclass constraint. Surface it as the
-                        // corresponding FunnyType (EnumerableOf / MutableOf) so
+                        // corresponding FunnyType (EnumerableOf / ClearableOf) so
                         // the call site implicit-casts any compatible runtime
                         // collection into it. Concretest's Enumerable→List
                         // default would lock the user function to a single
                         // collection kind, which is wrong for polymorphic args.
                         var elem = Convert(compcs.ElementNode.State);
-                        if (compcs.HasAncestor && compcs.Ancestor.Value == Tic.SolvingStates.ConstructorKind.Mutable)
-                            return FunnyType.MutableOf(elem);
+                        if (compcs.IsClearable)
+                            return FunnyType.ClearableOf(elem);
                         return FunnyType.EnumerableOf(elem);
                     }
                     default:
@@ -387,7 +396,6 @@ public abstract class TicTypesConverter {
                    ConstraintsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
                    StateArray array           => ConvertToFunnyArray(array),
                    StateCollection coll       => ConvertToFunnyCollection(coll),
-                   StateMap map               => ConvertToFunnyMap(map),
                    StateOptional opt          => ConvertToFunnyOptional(opt),
                    StateFun fun               => ConvertToFunnyFun(fun),
                    StateStruct str            => TryGetStructGenericIndex(str, out var idx) ? FunnyType.Generic(idx) : ConvertToFunnyStruct(str),
@@ -402,8 +410,8 @@ public abstract class TicTypesConverter {
         // via ElementNode.State.
         private FunnyType ConvertToFunnyEnumerable(StateCompositeConstraints compcs) {
             var elem = Convert(compcs.ElementNode.State);
-            if (compcs.HasAncestor && compcs.Ancestor.Value == Tic.SolvingStates.ConstructorKind.Mutable)
-                return FunnyType.MutableOf(elem);
+            if (compcs.IsClearable)
+                return FunnyType.ClearableOf(elem);
             return FunnyType.EnumerableOf(elem);
         }
 
@@ -481,8 +489,7 @@ public abstract class TicTypesConverter {
                         return ConvertToFunnyArray(array);
                     case StateCollection coll:
                         return ConvertToFunnyCollection(coll);
-                    case StateMap map:
-                        return ConvertToFunnyMap(map);
+                    // StateMap deleted — Map handled in ConvertToFunnyCollection above.
                     case StateOptional opt:
                         return ConvertToFunnyOptional(opt);
                     case StateFun fun:
@@ -494,8 +501,8 @@ public abstract class TicTypesConverter {
                     case StateCompositeConstraints compcs:
                     {
                         var elem = Convert(compcs.ElementNode.State);
-                        if (compcs.HasAncestor && compcs.Ancestor.Value == Tic.SolvingStates.ConstructorKind.Mutable)
-                            return FunnyType.MutableOf(elem);
+                        if (compcs.IsClearable)
+                            return FunnyType.ClearableOf(elem);
                         return FunnyType.EnumerableOf(elem);
                     }
                     default:

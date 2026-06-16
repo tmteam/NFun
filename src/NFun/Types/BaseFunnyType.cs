@@ -81,16 +81,23 @@ public enum BaseFunnyType {
     Set = 25,
 
     /// <summary>
-    /// Stage C — constraint-only typeclass for mutable containers. Accepts
-    /// <see cref="List"/>, <see cref="MutableArray"/>, <see cref="Set"/>, and
-    /// future queue/stack kinds. Rejects <see cref="FixedArray"/> (immutable),
-    /// the legacy ee-mode <see cref="ArrayOf"/>, and <see cref="Enumerable"/>
-    /// (abstract). Never instantiated as a value — used in generic constraints
-    /// only (e.g. <c>fun clear&lt;T&gt;(xs: Mutable&lt;T&gt;)</c>). Concretest
-    /// resolves <c>Mutable</c> to <see cref="List"/> per
+    /// Constraint-only typeclass for containers that support `.clear()` —
+    /// dropping ALL elements (length must change). Accepts <see cref="List"/>,
+    /// <see cref="Set"/>, <see cref="Map"/>. **Rejects <see cref="MutableArray"/>**
+    /// (lang-mode `int[]` — element-mutable but fixed length, so clear doesn't
+    /// apply), <see cref="FixedArray"/> (immutable), legacy ee-mode
+    /// <see cref="ArrayOf"/>, and <see cref="Enumerable"/> (abstract).
+    /// Never instantiated as a value — used in generic constraints only
+    /// (e.g. <c>fun clear&lt;T&gt;(xs: Clearable&lt;T&gt;)</c>). Concretest
+    /// resolves <c>Clearable</c> to <see cref="List"/> per
     /// <c>ConstructorLattice.Concretest</c>.
+    ///
+    /// <para>Conceptually distinct from "Mutable" (which would include
+    /// MutableArray, mutable struct, …). NFun has Clearable but no separate
+    /// Mutable typeclass yet — if one is needed, it would be a strict
+    /// superset of Clearable.</para>
     /// </summary>
-    Mutable = 26,
+    Clearable = 26,
 
     /// <summary>
     /// Lang-mode hash <c>map&lt;K, V&gt;</c> — unordered key→value mapping.

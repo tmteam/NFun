@@ -114,6 +114,14 @@ public class Parser {
             //Fun call can be used as fun definition
             else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
                 ReadUserFunction(fun);
+            // Indexed-write `arr[i] = v` is a lang-mode statement form. In
+            // expression-mode the parser doesn't have a statement layer, so it
+            // falls through to here as `[](arr, i)` followed by `=` — give a
+            // routed error rather than the generic "expression before definition".
+            else if (e is FunCallSyntaxNode opCall
+                     && opCall.IsOperator
+                     && opCall.Id == Functions.CoreFunNames.GetElementName)
+                throw Errors.IndexedWriteRequiresLangMode(_exprStartPosition, e, _flow.Current);
             else
                 throw Errors.ExpressionBeforeTheDefinition(_exprStartPosition, e, _flow.Current);
         }

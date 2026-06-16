@@ -50,9 +50,14 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState LcaCompCsSameClass(StateCompositeConstraints a, StateCompositeConstraints b) {
-        var guard = StateCompositeConstraints._compCsLcaInProgress ??= new();
-        if (!guard.Add((a, b)) && !guard.Add((b, a)))
+        // Mark-based cycle guard on ElementNode (mirrors StateComposite:74-78).
+        const int mark = TicVisitMarks.CompCsLcaSame;
+        if (a.ElementNode.VisitMark == mark || b.ElementNode.VisitMark == mark)
             return a; // coinductive: cycle hit
+        var prevA = a.ElementNode.VisitMark;
+        var prevB = b.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
+        b.ElementNode.VisitMark = mark;
         try {
             // null-as-identity convention (v6.1 §3.1 — mirror StateExtensions.Lca.cs:19-24).
             var newDesc = (a.Descendant, b.Descendant) switch {
@@ -74,20 +79,26 @@ public static partial class StateExtensions {
                 elementNode: a.ElementNode,
                 ancestor: newAnc,
                 descendant: newDesc,
-                isOptional: a.IsOptional || b.IsOptional);
+                isOptional: a.IsOptional || b.IsOptional,
+                // LCA widens — Clearable holds only if BOTH sides require it.
+                isClearable: a.IsClearable && b.IsClearable);
             // LCA widens — should never produce an empty interval if both inputs were valid.
             // Defensive: fall through to Any if Create rejected (shouldn't happen).
             return result ?? (ITicNodeState)Any;
         } finally {
-            guard.Remove((a, b));
-            guard.Remove((b, a));
+            a.ElementNode.VisitMark = prevA;
+            b.ElementNode.VisitMark = prevB;
         }
     }
 
     private static ITicNodeState LcaCompCsXColl(StateCompositeConstraints a, StateCollection sc) {
-        var guard = StateCompositeConstraints._compCsXCollLcaInProgress ??= new();
-        if (!guard.Add((a, sc)))
+        const int mark = TicVisitMarks.CompCsXCollLca;
+        if (a.ElementNode.VisitMark == mark || sc.ElementNode.VisitMark == mark)
             return a;
+        var prevA = a.ElementNode.VisitMark;
+        var prevSc = sc.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
+        sc.ElementNode.VisitMark = mark;
         try {
             var K = sc.Constructor;
             // null-as-identity: point K becomes the floor/cap when CompCS side is null.
@@ -103,17 +114,24 @@ public static partial class StateExtensions {
                 elementNode: a.ElementNode,
                 ancestor: newAnc,
                 descendant: newDesc,
-                isOptional: a.IsOptional);
+                isOptional: a.IsOptional,
+                // LCA widens — Clearable holds only if BOTH sides satisfy it.
+                isClearable: a.IsClearable && ConstructorLattice.IsClearable(K));
             return result ?? (ITicNodeState)Any;
         } finally {
-            guard.Remove((a, sc));
+            a.ElementNode.VisitMark = prevA;
+            sc.ElementNode.VisitMark = prevSc;
         }
     }
 
     private static ITicNodeState LcaCompCsXArray(StateCompositeConstraints a, StateArray sa) {
-        var guard = StateCompositeConstraints._compCsXArrayLcaInProgress ??= new();
-        if (!guard.Add((a, sa)))
+        const int mark = TicVisitMarks.CompCsXArrayLca;
+        if (a.ElementNode.VisitMark == mark || sa.ElementNode.VisitMark == mark)
             return a;
+        var prevA = a.ElementNode.VisitMark;
+        var prevSa = sa.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
+        sa.ElementNode.VisitMark = mark;
         try {
             // Element merge under invariance/covariance — StateArray is covariant
             // but cross-family with invariant CompCS uses identity unification.
@@ -123,7 +141,8 @@ public static partial class StateExtensions {
             // (matches existing StateExtensions.Lca behavior at :84-95).
             return StateArray.Of(a.ElementNode.State);
         } finally {
-            guard.Remove((a, sa));
+            a.ElementNode.VisitMark = prevA;
+            sa.ElementNode.VisitMark = prevSa;
         }
     }
 
@@ -170,15 +189,22 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState GcdCompCsXColl(StateCompositeConstraints a, StateCollection sc) {
-        var guard = StateCompositeConstraints._compCsXCollGcdInProgress ??= new();
-        if (!guard.Add((a, sc)))
+        const int mark = TicVisitMarks.CompCsXCollGcd;
+        if (a.ElementNode.VisitMark == mark || sc.ElementNode.VisitMark == mark)
             return a;
+        var prevA = a.ElementNode.VisitMark;
+        var prevSc = sc.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
+        sc.ElementNode.VisitMark = mark;
         try {
             var K = sc.Constructor;
             // K must fit inside CompCS's interval.
             if (a.HasDescendant && !ConstructorLattice.IsSubtypeOf(a.Descendant.Value, K))
                 return null;
             if (a.HasAncestor && !ConstructorLattice.IsSubtypeOf(K, a.Ancestor.Value))
+                return null;
+            // K must satisfy Clearable typeclass when CompCS requires it.
+            if (a.IsClearable && !ConstructorLattice.IsClearable(K))
                 return null;
             if (!ReferenceEquals(a.ElementNode, sc.ElementNode))
                 SolvingFunctions.MergeInplace(a.ElementNode, sc.ElementNode);
@@ -187,14 +213,19 @@ public static partial class StateExtensions {
             if (a.IsOptional) result = StateOptional.Of(result);
             return result;
         } finally {
-            guard.Remove((a, sc));
+            a.ElementNode.VisitMark = prevA;
+            sc.ElementNode.VisitMark = prevSc;
         }
     }
 
     private static ITicNodeState GcdCompCsXArray(StateCompositeConstraints a, StateArray sa) {
-        var guard = StateCompositeConstraints._compCsXArrayGcdInProgress ??= new();
-        if (!guard.Add((a, sa)))
+        const int mark = TicVisitMarks.CompCsXArrayGcd;
+        if (a.ElementNode.VisitMark == mark || sa.ElementNode.VisitMark == mark)
             return a;
+        var prevA = a.ElementNode.VisitMark;
+        var prevSa = sa.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
+        sa.ElementNode.VisitMark = mark;
         try {
             // Narrower-wins (v6.1 R1 fix — mirror SolvingFunctions.cs:74-78):
             // If CompCS has a lattice cap (Anc non-null), it represents a NARROWER
@@ -206,7 +237,8 @@ public static partial class StateExtensions {
             // Otherwise unconstrained — fall back to StateArray.
             return StateArray.Of(a.ElementNode.State);
         } finally {
-            guard.Remove((a, sa));
+            a.ElementNode.VisitMark = prevA;
+            sa.ElementNode.VisitMark = prevSa;
         }
     }
 
@@ -237,9 +269,13 @@ public static partial class StateExtensions {
     }
 
     private static ITicNodeState UnifyCompCsSameClass(StateCompositeConstraints a, StateCompositeConstraints b) {
-        var guard = StateCompositeConstraints._compCsUnifyInProgress ??= new();
-        if (!guard.Add((a, b)) && !guard.Add((b, a)))
-            return a; // coinductive
+        const int mark = TicVisitMarks.CompCsUnify;
+        if (a.ElementNode.VisitMark == mark || b.ElementNode.VisitMark == mark)
+            return a; // coinductive: cycle hit
+        var prevA = a.ElementNode.VisitMark;
+        var prevB = b.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
+        b.ElementNode.VisitMark = mark;
         try {
             // Per Algebra.md identity: Desc = LCA(D₁,D₂), Anc = GCD(A₁,A₂).
             // null-as-identity convention.
@@ -269,12 +305,14 @@ public static partial class StateExtensions {
                 elementNode: a.ElementNode,
                 ancestor: newAnc,
                 descendant: newDesc,
-                isOptional: a.IsOptional || b.IsOptional);
+                isOptional: a.IsOptional || b.IsOptional,
+                // Unify narrows — Clearable holds if EITHER side requires it.
+                isClearable: a.IsClearable || b.IsClearable);
             if (result == null) return null;
             return result.TryCollapseToPoint() ?? (ITicNodeState)result;
         } finally {
-            guard.Remove((a, b));
-            guard.Remove((b, a));
+            a.ElementNode.VisitMark = prevA;
+            b.ElementNode.VisitMark = prevB;
         }
     }
 
@@ -282,15 +320,29 @@ public static partial class StateExtensions {
     // §3.4 Concretest — resolve to concrete StateCollection.
 
     internal static ITicNodeState ConcretestCompCs(this StateCompositeConstraints a) {
-        var guard = StateCompositeConstraints._compCsConcretestInProgress ??= new();
-        if (!guard.Add(a.ElementNode))
+        const int mark = TicVisitMarks.CompCsConcretest;
+        if (a.ElementNode.VisitMark == mark)
             return a; // coinductive: same node already being concretised
+        var prev = a.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
         try {
             ConstructorKind? pickedKind = null;
             if (a.HasDescendant) {
+                // Descendant is guaranteed Clearable-compatible if IsClearable
+                // (SimplifyOrNull rejects the mismatch).
                 pickedKind = a.Descendant;
             } else if (a.HasAncestor && a.Ancestor.Value != ConstructorKind.Any) {
-                pickedKind = ConstructorLattice.Concretest(a.Ancestor.Value);
+                var concretest = ConstructorLattice.Concretest(a.Ancestor.Value);
+                // IsClearable narrows the type-set to {List, Set, Map}.
+                // If the lattice Concretest of the cap falls outside that set,
+                // default to List (preferred Clearable concrete).
+                pickedKind = (a.IsClearable && !ConstructorLattice.IsClearable(concretest))
+                    ? ConstructorKind.List
+                    : concretest;
+            } else if (a.IsClearable) {
+                // No interval guidance but Clearable typeclass active —
+                // default to List (the preferred Clearable concrete).
+                pickedKind = ConstructorKind.List;
             }
             if (!pickedKind.HasValue)
                 return a; // abstract residual — dialect default handles (§5)
@@ -299,7 +351,7 @@ public static partial class StateExtensions {
             if (a.IsOptional) result = StateOptional.Of(result);
             return result;
         } finally {
-            guard.Remove(a.ElementNode);
+            a.ElementNode.VisitMark = prev;
         }
     }
 
@@ -307,19 +359,24 @@ public static partial class StateExtensions {
     // §3.5 Abstractest — drop floor, keep cap.
 
     internal static ITicNodeState AbstractestCompCs(this StateCompositeConstraints a) {
-        var guard = StateCompositeConstraints._compCsAbstractestInProgress ??= new();
-        if (!guard.Add(a.ElementNode))
+        const int mark = TicVisitMarks.CompCsAbstractest;
+        if (a.ElementNode.VisitMark == mark)
             return a;
+        var prev = a.ElementNode.VisitMark;
+        a.ElementNode.VisitMark = mark;
         try {
             var widened = StateCompositeConstraints.Create(
                 elementNode: a.ElementNode,
                 ancestor: a.Ancestor,
                 descendant: null, // drop floor
-                isOptional: a.IsOptional);
+                isOptional: a.IsOptional,
+                // Keep the typeclass marker — it restricts the type-set,
+                // not the floor/cap relationship.
+                isClearable: a.IsClearable);
             // Widening always succeeds when input was valid (asserted at C.2 unit-test).
             return widened ?? (ITicNodeState)a;
         } finally {
-            guard.Remove(a.ElementNode);
+            a.ElementNode.VisitMark = prev;
         }
     }
 }

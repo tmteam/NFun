@@ -91,16 +91,8 @@ public interface IStateFunction {
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>
-    /// Stage 5 / Map.2 — Apply for <c>map&lt;K, V&gt; ≤ map&lt;K, V&gt;</c>.
-    /// Both arguments invariant. Cross-map dispatch (Map vs Set, Map vs
-    /// Collection) rejects at <see cref="StagesExtension"/> dispatch.
-    /// </summary>
-    bool Apply(
-        StateMap ancestor,
-        StateMap descendant,
-        TicNode ancestorNode,
-        TicNode descendantNode);
+    // StateMap deleted — map dispatch flows through the single-arg
+    // StateCollection cell below (Constructor = ConstructorKind.Map).
 
     /// <summary>
     /// Unified Apply for all single-arg invariant collections (list, fixedArray,

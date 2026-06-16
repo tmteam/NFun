@@ -33,7 +33,7 @@ public static class ConstructorLattice {
     private static readonly ConstructorKind[] Parent = BuildParentMap();
 
     private static ConstructorKind[] BuildParentMap() {
-        var p = new ConstructorKind[8];
+        var p = new ConstructorKind[7];
         p[(int)ConstructorKind.Any]        = ConstructorKind.Any;
         p[(int)ConstructorKind.Enumerable] = ConstructorKind.Any;
         p[(int)ConstructorKind.FixedArray] = ConstructorKind.Enumerable;
@@ -41,10 +41,6 @@ public static class ConstructorLattice {
         p[(int)ConstructorKind.List]       = ConstructorKind.Array;
         p[(int)ConstructorKind.Set]        = ConstructorKind.Enumerable;
         p[(int)ConstructorKind.Map]        = ConstructorKind.Enumerable;
-        // Mutable is a typeclass marker, not a lattice node — its place in the
-        // parent map is technically Enumerable (any mutable kind is also
-        // Enumerable). Direct subtype checks use `IsSubtypeOf` overridden below.
-        p[(int)ConstructorKind.Mutable]    = ConstructorKind.Enumerable;
         return p;
     }
 
@@ -58,13 +54,6 @@ public static class ConstructorLattice {
     public static ConstructorKind Lca(ConstructorKind a, ConstructorKind b) {
         if (a == b) return a;
         if (a == ConstructorKind.Any || b == ConstructorKind.Any) return ConstructorKind.Any;
-        // Mutable as a typeclass marker: LCA(Mutable, K) follows the typeclass
-        // membership, not the lattice parent chain. `Mutable < Enumerable` is
-        // recorded in Parent for the chain walk's benefit but the Lca call
-        // would otherwise wrongly collapse `Mutable ⊓ List` to Enumerable.
-        if (a == ConstructorKind.Mutable) return IsMutable(b) ? ConstructorKind.Mutable : ConstructorKind.Enumerable;
-        if (b == ConstructorKind.Mutable) return IsMutable(a) ? ConstructorKind.Mutable : ConstructorKind.Enumerable;
-
         // Walk a's chain to root, mark each node. Then walk b's chain, returning the first match.
         // Lattice depth is bounded by 4; use a stackalloc-free bitset.
         // Bitset is `int` (32 bits) — adding more than 32 ConstructorKind members would
@@ -115,13 +104,6 @@ public static class ConstructorLattice {
     /// </summary>
     public static bool IsSubtypeOf(ConstructorKind child, ConstructorKind parent) {
         if (parent == ConstructorKind.Any) return true;
-        // Mutable typeclass — predicate-based, not lattice-based.
-        if (parent == ConstructorKind.Mutable) return IsMutable(child);
-        // A Mutable-bound child fits any Enumerable parent (Mutable < Enumerable
-        // by construction); other parents reject it (we don't have concrete
-        // values of kind Mutable — only constraints on it).
-        if (child == ConstructorKind.Mutable)
-            return parent == ConstructorKind.Enumerable || parent == ConstructorKind.Mutable;
         var cur = child;
         while (cur != ConstructorKind.Any) {
             if (cur == parent) return true;
@@ -131,16 +113,28 @@ public static class ConstructorLattice {
     }
 
     /// <summary>
-    /// True iff the constructor admits write operations (`clear`, `add`,
-    /// `remove`, …). Read-only kinds (FixedArray, ee-mode legacy) return false.
+    /// True iff the constructor supports `.clear()` — dropping ALL elements
+    /// (which changes the length). Satisfied by <see cref="ConstructorKind.List"/>,
+    /// <see cref="ConstructorKind.Set"/>, <see cref="ConstructorKind.Map"/>.
+    /// **Excludes <see cref="ConstructorKind.Array"/>** — Array IS mutable
+    /// element-wise (`a[i] = v`) but its length is fixed, so `clear` doesn't
+    /// apply (would surface as a runtime error if accepted at TIC). Also
+    /// excludes <see cref="ConstructorKind.FixedArray"/> (immutable), the
+    /// legacy ee-mode <c>StateArray</c>, and abstract caps.
+    ///
+    /// <para>Conceptual note: Clearable ⊂ "anything mutable". Array is
+    /// mutable but not clearable. NFun's only collection-level typeclass is
+    /// Clearable; a broader "Mutable" typeclass isn't currently used.</para>
     /// </summary>
-    public static bool IsMutable(ConstructorKind kind) => kind switch {
-        ConstructorKind.List       => true,
-        ConstructorKind.Array      => true,
-        ConstructorKind.Set        => true,
-        // FixedArray is immutable, Enumerable is abstract, Map is read-only via
-        // this surface (key/value mutation comes through a separate API), Any is
-        // not a concrete kind. Mutable itself is also "not a concrete kind".
+    public static bool IsClearable(ConstructorKind kind) => kind switch {
+        ConstructorKind.List => true,
+        ConstructorKind.Set  => true,
+        ConstructorKind.Map  => true,
+        // Array: NOT clearable — length is fixed (Array is the "indexed
+        // mutable, fixed length" cap). Caller should use a different cap
+        // (e.g. ConstructorKind.Array via IndexedMutable) for indexed write.
+        // FixedArray / ee-mode StateArray: immutable, no clear at all.
+        // Enumerable / Any: abstract caps, not concrete kinds.
         _ => false,
     };
 
@@ -157,7 +151,6 @@ public static class ConstructorLattice {
     public static ConstructorKind Concretest(ConstructorKind kind) => kind switch {
         ConstructorKind.Enumerable => ConstructorKind.List,
         ConstructorKind.FixedArray => ConstructorKind.FixedArray,
-        ConstructorKind.Mutable    => ConstructorKind.List,
         _ => kind,
     };
 
@@ -171,7 +164,7 @@ public static class ConstructorLattice {
     /// for the related but distinct "must descend during resolution" check.
     /// </summary>
     public static bool IsConstraintOnly(ConstructorKind kind) =>
-        kind == ConstructorKind.Enumerable || kind == ConstructorKind.Mutable;
+        kind == ConstructorKind.Enumerable;
 
     /// <summary>
     /// True iff the <c>Concretest</c> rule must descend further when the type
@@ -182,8 +175,7 @@ public static class ConstructorLattice {
     /// </summary>
     public static bool RequiresConcretestDescent(ConstructorKind kind) =>
         kind == ConstructorKind.Enumerable
-        || kind == ConstructorKind.FixedArray
-        || kind == ConstructorKind.Mutable;
+        || kind == ConstructorKind.FixedArray;
 
     /// <summary>
     /// Variance of the (single) element argument for each concrete constructor.
@@ -197,7 +189,6 @@ public static class ConstructorLattice {
         ConstructorKind.Set        => Variance.Invariant,
         ConstructorKind.Map        => Variance.Invariant,
         ConstructorKind.Enumerable => Variance.Invariant,
-        ConstructorKind.Mutable    => Variance.Invariant,
         _ => throw new ArgumentOutOfRangeException(nameof(kind),
             $"{kind} is not a parameterised constructor"),
     };

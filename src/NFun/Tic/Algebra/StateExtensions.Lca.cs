@@ -108,12 +108,9 @@ public static partial class StateExtensions {
             // explicit side-effect contract) for same-kind unresolved elements
             // — needed for nested `list<list<T>>` literals so the outer-LCA
             // doesn't widen to Any.
+            // StateMap deleted — Map flows as StateCollection(Map, pair-struct);
+            // the SC arm above covers it uniformly.
             StateCollection acoll => acoll.LcaOrShareIdentity(b) ?? Any,
-            // StateMap: same identity-sharing pattern as StateCollection — needed
-            // for nested `__mkMap({k=…, v=__mkMap(…)})` so the outer factory's
-            // value-LCA doesn't widen to Any when both inner instances are still
-            // CS-typed.
-            StateMap amap => amap.LcaOrShareIdentity(b) ?? Any,
             _ => Any
         };
     }

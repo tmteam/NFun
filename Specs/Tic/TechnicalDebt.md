@@ -138,7 +138,7 @@ The indexed-write operation was pinned to `array<T>` (mutable array kind), break
 
 **What remains conjectured open (P3b)**: the Descendant axis at the AddAncestor fallback. The streaming-toposort gap (eager re-Pull walks ancestors of `anc.elem`, not the new incoming edge from `desc.elem`) is a plausible mechanism, but no test exhibits a TIC-level (Finalize-time) violation post-PropagatePreferredAcrossFallback. See [`Proofs.md`](Proofs.md) §3.6.
 
-**Suspected-but-classified-elsewhere**: `LangMirror_NestedByteUpcastMap_RealResult` was previously cited as a P3b counterexample. Trace analysis shows TIC infers the correct outer-map element with the Preferred fix; the residual failure is **runtime materialization** of a generic lambda over heterogeneous rows, not a TIC violation. Tracked separately.
+**Closed-runtime side-effect**: `LangMirror_NestedByteUpcastMap_RealResult` was previously cited as a P3b counterexample. Trace analysis showed TIC infers the correct outer-map element with the Preferred fix; the residual failure was **runtime materialization** of the inner `.map()`'s lambda — TIC widens the inner element type along the outer chain (e.g. `byte → Real` or `Int32 → Real`), but the concrete collection still stores narrower values, so each element arrived at the lambda call site at its original CLR type. Closed by per-element coercion in `MapFunction.ConcreteMap.Calc` / `MapEnumerableFunction.ConcreteMap.Calc`, mirroring the existing pattern in `SumIter.As<T>`.
 
 **Path to closure**: worklist Pull (debt #10) — the principled fix, spec'd in [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md) — routes `desc.elem.D` through the standard CS×CS path with all safety guarantees of Lemma 3.1.
 

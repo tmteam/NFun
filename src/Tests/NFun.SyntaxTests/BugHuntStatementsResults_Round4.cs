@@ -143,7 +143,7 @@ public class BugHuntStatementsResults_Round4 {
     //   takes a higher-order `rule(int)->int` arg crashes with
     //   `Circular ancestor 0`. Either ingredient alone is fine.
     // ───────────────────────────────────────────────────────────────
-    [Test, Ignore("Stage B.3.3 — `t[]` in struct field now resolves to lang-mode `array<t>`; the recursive-named-type TIC path needs an audit for the new state kind. Tracking via TicTechnicalDebt.")]
+    [Test]
     public void StmtBug49_RecFn_RecStruct_HOFArg_CircularAncestor() {
         Assert.DoesNotThrow(() => BuildLang(
             "type t = {v: int, kids: t[] = []}\n" +

@@ -80,13 +80,15 @@ public class ListRemoveFunction : GenericFunctionWithTwoArguments {
 }
 
 /// <summary>
-/// <c>removeAt(list&lt;T&gt;, int): T?</c> — removes the element at index,
-/// returns it as <c>T?</c> (<c>none</c> when out of range).
+/// <c>removeAt(list&lt;T&gt;, int): T</c> — removes the element at index and
+/// returns it. Throws <see cref="FunnyRuntimeException"/> when the index is
+/// out of range (mirrors <c>a[i]</c> array semantics — out-of-range is a
+/// programming error, not a normal control-flow case).
 /// </summary>
 public class ListRemoveAtFunction : GenericFunctionWithTwoArguments {
     public ListRemoveAtFunction() : base(
         "removeAt",
-        FunnyType.OptionalOf(FunnyType.Generic(0)),
+        FunnyType.Generic(0),
         FunnyType.ListOf(FunnyType.Generic(0)),
         FunnyType.Int32) {
         ArgProperties = FunArgProperty.FromNames("list", "index");
@@ -97,7 +99,10 @@ public class ListRemoveAtFunction : GenericFunctionWithTwoArguments {
             throw new FunnyRuntimeException("removeAt() requires a mutable list");
         var idx = (int)b;
         var removed = list.RemoveAt(idx);
-        return removed ?? (object)FunnyNone.Instance;
+        if (removed == null)
+            throw new FunnyRuntimeException(
+                $"removeAt(): index {idx} out of range (list count = {list.Count})");
+        return removed;
     }
 }
 
@@ -131,14 +136,15 @@ public class ListClearFunction : GenericFunctionWithSingleArgument {
     public ListClearFunction() : base(
         "clear",
         FunnyType.None,
-        FunnyType.MutableOf(FunnyType.Generic(0))) {
+        FunnyType.ClearableOf(FunnyType.Generic(0))) {
         ArgProperties = FunArgProperty.FromNames("xs");
     }
 
     protected override object Calc(object a) {
         switch (a) {
             case MutableFunnyList list: list.Clear(); return FunnyNone.Instance;
-            case IFunnyMutableSet set: set.Clear(); return FunnyNone.Instance;
+            case IFunnyMutableSet set:  set.Clear();  return FunnyNone.Instance;
+            case NFun.Runtime.Lists.IFunnyMap map: map.Clear(); return FunnyNone.Instance;
             case NFun.Runtime.Lists.IFunnyMutableArray:
                 // Element-mutable but length-fixed — silent no-op would be
                 // wrong; we should never get here when TIC accepts the call
@@ -147,7 +153,7 @@ public class ListClearFunction : GenericFunctionWithSingleArgument {
                     "clear() on `array<T>` is not supported — array length is fixed");
             default:
                 throw new FunnyRuntimeException(
-                    $"clear() requires a mutable collection (list or set); got {a?.GetType().Name ?? "null"}");
+                    $"clear() requires a mutable collection (list / set / map); got {a?.GetType().Name ?? "null"}");
         }
     }
 }

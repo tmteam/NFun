@@ -78,6 +78,7 @@ public class PullConstraintsFunctions : IStateFunction {
             // the Optional wrapper consumes the IsOptional flag.
             var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
             innerCs.Preferred = ancestor.Preferred;
+            innerCs.IsClearable = ancestor.IsClearable;
             var innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
             // F-bound migrates to inner CS on Optional wrap. The bound lives on the recursive
             // variable (the inner element); self-RefTos in the bound that pointed at ancestorNode
@@ -204,21 +205,11 @@ public class PullConstraintsFunctions : IStateFunction {
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
             }
-            // Stage 5 / Map.2 — two-arg invariant map. Mirror of StateCollection
-            // but propagate both KeyNode and ValueNode.
-            case StateMap ancMap:
-            {
-                if (descendant.HasStructBound) return false;
-                var result = SolvingFunctions.TransformToMapOrNull(descendantNode.Name, descendant);
-                if (result == null) return false;
-                if (result.KeyNode != ancMap.KeyNode)
-                    result.KeyNode.AddAncestor(ancMap.KeyNode);
-                if (result.ValueNode != ancMap.ValueNode)
-                    result.ValueNode.AddAncestor(ancMap.ValueNode);
-                descendantNode.State = result;
-                descendantNode.RemoveAncestor(ancestorNode);
-                return true;
-            }
+            // StateMap deleted — Map flows through `case StateCollection ancColl`
+            // above with kind = ConstructorKind.Map. TransformToCollectionOrNull
+            // delegates to TransformToMapOrNull which builds the pair-struct
+            // element; SC's element-merge then naturally propagates both K
+            // and V via the inner struct's field nodes.
             case StateFun ancFun:
             {
                 // F-bound vs Fun is a structural conflict.
@@ -461,21 +452,8 @@ public class PullConstraintsFunctions : IStateFunction {
         || kind == ConstructorKind.Array
         || kind == ConstructorKind.FixedArray;
 
-    /// <summary>
-    /// Stage 5 / Map.2 — Pull for <c>map&lt;K, V&gt; ≤ map&lt;K, V&gt;</c>.
-    /// Both key and value invariant: route both pairs through Pull (each side
-    /// gets its descendant-node as an ancestor edge of the other). Cross-map
-    /// kind dispatch (Map vs Set, Map vs Collection) rejected at
-    /// <see cref="StagesExtension"/> dispatch table.
-    /// </summary>
-    public bool Apply(StateMap ancestor, StateMap descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.KeyNode != ancestor.KeyNode)
-            descendant.KeyNode.AddAncestor(ancestor.KeyNode);
-        if (descendant.ValueNode != ancestor.ValueNode)
-            descendant.ValueNode.AddAncestor(ancestor.ValueNode);
-        descendantNode.RemoveAncestor(ancestorNode);
-        return true;
-    }
+    // StateMap deleted — Map flows as StateCollection(Map, pair-struct) and
+    // map-vs-map Pull is handled by the StateCollection same-kind cell above.
 
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.ArgsCount != ancestor.ArgsCount)
@@ -667,6 +645,13 @@ public class PullConstraintsFunctions : IStateFunction {
             return CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode);
         if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
             return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true);
+        // Typeclass propagation: mirror the Push CompCs→CS rule so IsClearable
+        // flows downward in Pull too. Needed because Pull on the same edge
+        // fires before Push and downstream Pull cells (StateArray ancestor on
+        // the same descendant) consult IsClearable to decide whether to
+        // collapse to StateArray or narrow to StateCollection(List).
+        if (ancestor.IsClearable && !descendant.IsClearable)
+            descendant.IsClearable = true;
         // Empty / primitive-bound CS without composite Desc: the constraint hasn't materialised
         // a shape yet. Reject only when CS positively forbids composites (IsComparable, primitive
         // Ancestor cap). Otherwise accept — Pull will fire again when descendant later resolves
@@ -696,9 +681,9 @@ public class PullConstraintsFunctions : IStateFunction {
 
     public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         return descendant switch {
+            // StateMap was deleted — Map is StateCollection(Map, pair-struct).
             StateCollection sc => CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true),
-            StateMap sm => CompCsApply.ForwardPullCompCsStateMap(ancestor, sm, ancestorNode, descendantNode),
             StateOptional opt => ApplyForwardOptional(ancestor, opt, ancestorNode, descendantNode),
             StateFun _ => false,    // §4.0.1 explicit reject
             StateStruct _ => false, // §4.0.1 explicit reject
@@ -710,7 +695,6 @@ public class PullConstraintsFunctions : IStateFunction {
         return ancestor switch {
             StateCollection sc => CompCsApply.ReversePullScCompCs(sc, descendant, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: true),
-            StateMap sm => CompCsApply.ReversePullStateMapCompCs(sm, descendant, ancestorNode, descendantNode),
             StateOptional opt => ApplyReverseOptional(opt, descendant, ancestorNode, descendantNode),
             StateFun _ => false,    // §4.0.2 explicit reject
             StateStruct _ => false, // §4.0.2 explicit reject

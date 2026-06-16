@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using NFun.Tic.Algebra;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Stages;
@@ -107,16 +108,10 @@ public static class SolvingFunctions {
             case StateOptional optA when stateB is StateOptional optB:
                 MergeInplace(optA.ElementNode, optB.ElementNode);
                 return optA;
-            // Stage 5 / Map.2 — merge two StateMap instances by unifying both
-            // KeyNode and ValueNode pairs in place. Mirrors StateCollection
-            // same-kind merge but for two arguments.
-            case StateMap mapA when stateB is StateMap mapB: {
-                if (mapA.KeyNode != mapB.KeyNode)
-                    MergeInplace(mapA.KeyNode, mapB.KeyNode);
-                if (mapA.ValueNode != mapB.ValueNode)
-                    MergeInplace(mapA.ValueNode, mapB.ValueNode);
-                return mapA;
-            }
+            // StateMap deleted — Map flows as StateCollection(Map, pair-struct).
+            // Merge of two SC(Map) goes through the standard SC same-kind merge
+            // case (line ~90) which already MergeInplaces the element struct
+            // nodes pointwise via MergeStructs.
             // MutStruct and Struct are different type constructors — cannot merge
             case StateMutableStruct when stateB is StateStruct and not StateMutableStruct:
                 return null;
@@ -163,6 +158,12 @@ public static class SolvingFunctions {
                 return constrainsB.MergeOrNull(constrainsA);
             case ConstraintsState:
                 return GetMergedStateOrNull(stateB, stateA);
+            // CompCs + CompCs: Unify (interval narrows, IsOptional/IsClearable OR).
+            // Used when two signature param nodes carrying CompCs constraints
+            // collide via MergeInplace (e.g. xs has two ancestor edges feeding
+            // CompCs from xs.clear() and xs.count()).
+            case StateCompositeConstraints compCsA when stateB is StateCompositeConstraints compCsB:
+                return compCsA.UnifyCompCs(compCsB);
             case StateRefTo refA:
             {
                 // See method-level xmldoc: mutates refA.Node.State, returns the ORIGINAL
@@ -1577,50 +1578,48 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
-    /// Stage 5 / Map.2 — transform a ConstraintsState into a
-    /// <see cref="StateMap"/>. Parallel to <see cref="TransformToCollectionOrNull"/>
-    /// but produces a two-arg shape (key + value). Returns null when the
-    /// descendant cannot become a map.
-    /// </summary>
-    public static StateMap TransformToMapOrNull(object descNodeName, ConstraintsState descendant) {
-        if (descendant.NoConstrains) {
-            var keyNode = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", ConstraintsState.Empty);
-            var valueNode = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", ConstraintsState.Empty);
-            return new StateMap(keyNode, valueNode);
-        }
-        if (descendant.HasDescendant && descendant.Descendant is StateMap existing) {
-            // Reuse identities so the ancestor's K/V share the same node.
-            if (!existing.IsSolved) return existing;
-            var kCs = ConstraintsState.Empty;
-            if (existing.KeyState is ITypeState kTs) kCs.AddDescendant(kTs);
-            var vCs = ConstraintsState.Empty;
-            if (existing.ValueState is ITypeState vTs) vCs.AddDescendant(vTs);
-            var kNode = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", kCs);
-            var vNode = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", vCs);
-            return new StateMap(kNode, vNode);
-        }
-        return null;
-    }
-
-    /// <summary>
     /// Transform a ConstraintsState into a <see cref="StateCollection"/> of the
     /// requested <paramref name="kind"/>. Parallel to <see cref="TransformToArrayOrNull"/>
-    /// but parameterised — same helper covers all single-arg collections (list,
-    /// fixedArray, array, set, …) thanks to the data-driven state class. Returns
-    /// null when the constraint cannot become a collection of this kind.
+    /// but parameterised — covers all collection kinds via the data-driven
+    /// <see cref="StateCollection"/> class. The Map kind's pair-struct element
+    /// is constructed inline (no separate transform helper).
+    /// Returns null when the constraint cannot become a collection of this kind.
     /// </summary>
     public static StateCollection TransformToCollectionOrNull(
         ConstructorKind kind, object descNodeName, ConstraintsState descendant) {
-        if (descendant.NoConstrains)
+        // CS{IsClearable=true} alone is shape-compatible: any Clearable kind satisfies it.
+        // Reject early if target kind isn't Clearable. (Other flag dimensions —
+        // IsComparable, HasStructBound, primitive Ancestor cap — still reject as before
+        // because they aren't shape-compatible with a collection.)
+        bool noShapeConstraints = !descendant.HasDescendant && !descendant.HasAncestor
+            && !descendant.IsComparable && !descendant.HasStructBound;
+        if (noShapeConstraints && descendant.IsClearable && !ConstructorLattice.IsClearable(kind))
+            return null;
+        if (descendant.NoConstrains || (noShapeConstraints && descendant.IsClearable))
         {
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", ConstraintsState.Empty);
-            return new StateCollection(kind, node);
+            return BuildFreshCollection(kind, descNodeName);
         }
         if (descendant.HasDescendant
             && descendant.Descendant is StateCollection existing
             && existing.Constructor == kind)
         {
             if (!existing.IsSolved) return existing;
+            // Map's element is a frozen pair-struct; copy K/V types into fresh
+            // field nodes to break shared identity (caller wants a NEW SC).
+            // Other kinds: copy element type into a single fresh node.
+            if (kind == ConstructorKind.Map
+                && existing.ElementNode.GetNonReference().State is StateStruct ss
+                && ss.GetFieldOrNull("key") is { } kExist
+                && ss.GetFieldOrNull("value") is { } vExist)
+            {
+                var kCs = ConstraintsState.Empty;
+                if (kExist.State is ITypeState kTs) kCs.AddDescendant(kTs);
+                var vCs = ConstraintsState.Empty;
+                if (vExist.State is ITypeState vTs) vCs.AddDescendant(vTs);
+                var kNode = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", kCs);
+                var vNode = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", vCs);
+                return StateCollection.OfMap(kNode, vNode);
+            }
             var c = ConstraintsState.Empty;
             c.AddDescendant(existing.Element);
             var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
@@ -1657,6 +1656,22 @@ public static class SolvingFunctions {
             return new StateCollection(kind, node);
         }
         return null;
+    }
+
+    /// <summary>
+    /// Build a fresh <see cref="StateCollection"/> of the given kind with
+    /// fresh element node(s). The element shape follows the kind: Map gets a
+    /// frozen <c>{key, value}</c> pair-struct, all other single-arg kinds get
+    /// a single CS-empty element node.
+    /// </summary>
+    private static StateCollection BuildFreshCollection(ConstructorKind kind, object descNodeName) {
+        if (kind == ConstructorKind.Map) {
+            var k = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", ConstraintsState.Empty);
+            var v = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", ConstraintsState.Empty);
+            return StateCollection.OfMap(k, v);
+        }
+        var elem = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", ConstraintsState.Empty);
+        return new StateCollection(kind, elem);
     }
 
     /// <summary>
@@ -2125,13 +2140,12 @@ public static class SolvingFunctions {
         var typeVariables = new List<TicNode>();
 
         int genericNodesCount = 0;
-        const int typeVariableVisitedMark = -123;
         for (int i = toposortedNodes.Length - 1; i >= 0; i--)
         {
             var node = toposortedNodes[i];
             FinalizeRecursive(node, namedTypeRegistry, NextMark(), isRecursion);
 
-            CollectLeafTypeVariables(node, typeVariables, typeVariableVisitedMark);
+            CollectLeafTypeVariables(node, typeVariables, TicVisitMarks.TypeVariableVisited);
 
             if (!node.IsSolved)
                 genericNodesCount++;
@@ -2206,7 +2220,7 @@ public static class SolvingFunctions {
         IEnumerable<TicNode> inputNodes,
         bool ignorePreferred) {
 
-        const int outputTypeMark = -77;
+        const int outputTypeMark = TicVisitMarks.OutputType;
         // Step 1: Mark output types (return type leaves)
         foreach (var outputNode in outputNodes)
             foreach (var outputType in outputNode.GetAllOutputTypes())
@@ -2248,12 +2262,22 @@ public static class SolvingFunctions {
                     // x's element type and the body's return type (carried via
                     // CompCs.ElementNode) is severed; call-site inference then
                     // can't pull the literal's element type through to the result.
+                    // CS.IsClearable (propagated downward by Push CompCs→CS rule)
+                    // is folded into the adopted CompCs so the typeclass survives
+                    // adoption from any single CompCs ancestor — even when only
+                    // one of multiple ancestors carries IsClearable=true.
+                    var carriedIsClearable = nr.State is ConstraintsState carryCs && carryCs.IsClearable;
                     for (int ai = 0; ai < nr.Ancestors.Count; ai++)
                     {
                         var ancNr = nr.Ancestors[ai].GetNonReference();
                         if (ancNr.State is SolvingStates.StateCompositeConstraints compCs)
                         {
-                            nr.State = compCs;
+                            if (carriedIsClearable && !compCs.IsClearable) {
+                                var lifted = compCs.WithIsClearable(true);
+                                nr.State = lifted ?? (ITicNodeState)compCs;
+                            } else {
+                                nr.State = compCs;
+                            }
                             isLeaf = true;
                             break;
                         }
@@ -2299,7 +2323,7 @@ public static class SolvingFunctions {
             CollectLeafConstraints(argNode, result);
     }
 
-    private const int LeafCollectMark = -1569;
+    private const int LeafCollectMark = TicVisitMarks.LeafCollect;
 
     private static void CollectLeafConstraints(TicNode node, List<TicNode> result) {
         var state = node.State;

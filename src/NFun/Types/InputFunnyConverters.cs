@@ -272,6 +272,44 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
     }
 }
 
+/// <summary>Wraps CLR <c>T[]</c> / <c>IList</c> into a lang-mode
+/// <see cref="NFun.Runtime.Lists.MutableFunnyArray"/>. Mirror of
+/// <see cref="ClrArrayInputForFixedArray"/> for lang-mode <c>array&lt;T&gt;</c>
+/// (mutable fixed-length). Without this, external inputs declared as
+/// lang-mode <c>x:int[]</c> arrive as raw <c>int[]</c> and downstream
+/// IFunnyEnumerable casts fail.</summary>
+public class ClrArrayInputForMutableArray : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _elementConverter;
+
+    public ClrArrayInputForMutableArray(IInputFunnyConverter elementConverter) {
+        FunnyType = FunnyType.MutableArrayOf(elementConverter.FunnyType);
+        _elementConverter = elementConverter;
+    }
+
+    public FunnyType FunnyType { get; }
+
+    public object ToFunObject(object clrObject) {
+        switch (clrObject) {
+            case Array array: {
+                var items = new object[array.Length];
+                for (int i = 0; i < array.Length; i++)
+                    items[i] = _elementConverter.ToFunObject(array.GetValue(i));
+                return new NFun.Runtime.Lists.MutableFunnyArray(
+                    FunnyType.MutableArrayTypeSpecification.FunnyType, items);
+            }
+            case System.Collections.IList list: {
+                var items = new object[list.Count];
+                for (int i = 0; i < list.Count; i++)
+                    items[i] = _elementConverter.ToFunObject(list[i]);
+                return new NFun.Runtime.Lists.MutableFunnyArray(
+                    FunnyType.MutableArrayTypeSpecification.FunnyType, items);
+            }
+            default:
+                throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
+        }
+    }
+}
+
 /// <summary>Stage C — wraps CLR <c>T[]</c> / <c>IList</c> into a lang-mode
 /// <see cref="NFun.Runtime.Lists.FixedFunnyArray"/>. Needed because Concretest(FixedArray)
 /// =FixedArray means variables originally typed as ee <c>T[]</c> now resolve to lang

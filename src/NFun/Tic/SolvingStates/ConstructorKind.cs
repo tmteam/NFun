@@ -12,9 +12,11 @@ namespace NFun.Tic.SolvingStates;
 ///
 /// Concrete single-arg members (List/FixedArray/Array/Set, future Queue/Stack)
 /// are carried as data on the unified <see cref="StateCollection"/> class — they
-/// no longer have per-class C# subtypes. <see cref="Map"/> remains reserved for
-/// a future two-arg <c>StateMap</c> class because its shape (key + value) differs
-/// structurally from single-arg collections.
+/// no longer have per-class C# subtypes. <see cref="Map"/> ALSO uses
+/// <see cref="StateCollection"/>: Map's element node holds a frozen
+/// <c>{key: K, value: V}</c> pair-struct, so map is uniformly an
+/// <c>Enumerable&lt;{key, value}&gt;</c> at the algebra level and shares all
+/// Apply cells / merge / LCA paths with the other single-arg collections.
 ///
 /// <see cref="Any"/> is the universal top — returned by
 /// <see cref="ConstructorLattice"/> when two unrelated constructors meet.
@@ -46,16 +48,6 @@ public enum ConstructorKind : byte {
 
     /// <summary>Concrete: hash-based key→value mapping.</summary>
     Map        = 6,
-
-    /// <summary>
-    /// Abstract: container with write API (clear, add/remove etc). Not a real
-    /// lattice node — used as a constraint upper bound only. Satisfied by
-    /// <see cref="List"/>, <see cref="Array"/>, <see cref="Set"/>, and future
-    /// queue/stack kinds. Excludes <see cref="FixedArray"/> (immutable) and the
-    /// legacy ee-mode <c>StateArray</c>. <c>Concretest(Mutable)</c> descends to
-    /// <see cref="List"/>.
-    /// </summary>
-    Mutable    = 7,
 }
 
 /// <summary>

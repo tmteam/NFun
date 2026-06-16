@@ -57,7 +57,13 @@ public class ConstraintsState : ITicNodeState {
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
     public bool IsComparable { get; set; }
-    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsOptional && !HasStructBound;
+    /// <summary>Clearable typeclass marker, peer to <see cref="IsComparable"/>.
+    /// True iff this CS must resolve to a Clearable container kind (List, Set,
+    /// Map). Propagated downward by Push from CompCs ancestors carrying
+    /// <see cref="StateCompositeConstraints.IsClearable"/> and from CS ancestors
+    /// via the OR rule mirroring IsComparable.</summary>
+    public bool IsClearable { get; set; }
+    public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsClearable && !IsOptional && !HasStructBound;
 
     public static ConstraintsState Empty => new(null, null, false);
 
@@ -75,6 +81,7 @@ public class ConstraintsState : ITicNodeState {
         new(_descendant, Ancestor, IsComparable) {
             Preferred = Preferred,
             IsOptional = IsOptional,
+            IsClearable = IsClearable,
             // StructBound copied by reference: defensive deep-copy is only needed when the
             // copy participates in a merge that could mutate either side. Read-after-lift is
             // correct with reference-copy.
@@ -319,6 +326,7 @@ public class ConstraintsState : ITicNodeState {
     public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other) {
         var result = new ConstraintsState(Descendant, Ancestor, IsComparable || other.IsComparable) {
             IsOptional = IsOptional || other.IsOptional,
+            IsClearable = IsClearable || other.IsClearable,
         };
         result.AddDescendant(other.Descendant);
         if (!result.TryAddAncestor(other.Ancestor))
@@ -362,6 +370,27 @@ public class ConstraintsState : ITicNodeState {
         var result = IntersectIntervalsOrNull(constraintsState);
         if (result == null)
             return null;
+
+        // Three-axis non-emptiness. IntersectIntervalsOrNull only validates the
+        // primitive [D..A] interval; trans-axis typeclass consistency
+        // (IsComparable × composite Desc, IsClearable × primitive Desc,
+        // StructBound × {non-Any Anc, primitive Desc}) lives in SimplifyOrNull.
+        // Without this step a Merge that combines IsComparable=true with a
+        // composite Descendant returns an algebraically inconsistent CS that
+        // downstream MergeInplace accepts silently — surfaced as runtime cast
+        // failures on `list<{struct}>.sort()`.
+        //
+        // Gated: SimplifyOrNull is called only when result carries at least one
+        // trans-axis flag AND there is something for it to conflict with
+        // (Descendant or non-empty StructBound). The common no-typeclass path
+        // pays only the flag-AND check, not the SimplifyOrNull body.
+        if ((result.IsComparable || result.IsClearable || result.HasStructBound)
+            && (result.HasDescendant || result.HasAncestor)) {
+            var simplified = result.SimplifyOrNull();
+            if (simplified == null) return null;
+            if (simplified is not ConstraintsState csResult) return simplified;
+            result = csResult;
+        }
 
         if (result.HasAncestor && result.HasDescendant)
         {
@@ -550,6 +579,14 @@ public class ConstraintsState : ITicNodeState {
                     return null;
             }
         }
+        // Clearable typeclass on CS: reject only on primitive descendants (never
+        // Clearable). Composite narrowing (StateArray/StateCollection → List)
+        // is handled by the Push apply cells, not here — narrowing inside
+        // SimplifyOrNull caused an Optional-cycle in `xs.clear(); xs[i]=v` (no
+        // explicit return) because the result composite became the inner
+        // element of an Optional that wrapped the same descendant chain.
+        if (IsClearable && Descendant is StatePrimitive csp && csp != StatePrimitive.None)
+            return null;
 
         if (!HasDescendant) {
             // IsOptional=true but no comparable descendant → None alone is not comparable → reject
@@ -747,6 +784,8 @@ public class ConstraintsState : ITicNodeState {
             : $"[{Descendant?.PrintState(depth)}..{Ancestor?.PrintState(depth)}]";
         if (IsComparable)
             res += "<>";
+        if (IsClearable)
+            res += "@clr";
         if (Preferred != null)
             res += Preferred + "!";
         if (HasStructBound)

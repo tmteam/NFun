@@ -29,6 +29,7 @@ public class SetFactoryFunction : GenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var elementType = concreteTypesMap[0];
+        ImmutableTypePredicate.RequireImmutable(elementType, "set", "element");
         var concreteArgs = Enumerable.Repeat(elementType, _arity).ToArray();
         return new ConcreteSetFactory(FunnyType.SetOf(elementType), concreteArgs, ArgProperties);
     }

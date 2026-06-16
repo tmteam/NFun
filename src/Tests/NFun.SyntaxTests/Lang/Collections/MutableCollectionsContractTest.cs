@@ -37,7 +37,7 @@ public class MutableCollectionsContractTest {
     /// that the StateComposite refactor didn't accidentally touch StateArray (ee).
     /// Catches the "I refactored everything under one base" mistake.
     /// </summary>
-    [Test, Ignore("Stage 1 — StateComposite refactor pending")]
+    [Test]
     public void Stage1_ExpressionMode_ArrayLiteral_StillProducesArrayType() {
         var rt = Funny.Hardcore.Build("y = [1,2,3]");
         rt.Run();
@@ -45,7 +45,7 @@ public class MutableCollectionsContractTest {
             "ee-mode array semantics MUST stay unchanged through Stage 1.");
     }
 
-    [Test, Ignore("Stage 1 — StateComposite refactor pending")]
+    [Test]
     public void Stage1_ExpressionMode_ArrayLcaCovariance_StillWorks() {
         // Regression shield: ee-mode StateArray covariance is the legacy contract.
         // LCA(int[], real[]) = real[].
@@ -81,7 +81,7 @@ public class MutableCollectionsContractTest {
 
     #region 2. Stage 2 — Lists, literals, LINQ via Enumerable
 
-    [Test, Ignore("Stage 2 — list literal default not implemented")]
+    [Test]
     public void Stage2_LangMode_ListLiteralWithoutAnnotation_IsList() {
         // Spec §Per-stage defaults: lang-mode [1,2,3] preferred constructor = List.
         var rt = Funny.Hardcore.BuildLang("out = [1,2,3]");
@@ -89,7 +89,7 @@ public class MutableCollectionsContractTest {
         StringAssert.Contains("list", rt["out"].Type.ToString().ToLowerInvariant());
     }
 
-    [Test, Ignore("Stage 2 — list factory not implemented")]
+    [Test]
     public void Stage2_ListFactory_ProducesList() {
         var rt = Funny.Hardcore.BuildLang("out = list(1,2,3)");
         rt.Run();
@@ -144,14 +144,14 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(6, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — list type annotation parsing")]
+    [Test, Ignore("Blocked: `list<T>` annotation syntax — deferred per user direction (Specs/Collections.md §Implementation status row 4). Use `int[]` instead until parser surface lands.")]
     public void Stage2_ListAnnotation_BindsLiteralAsList() {
         var rt = Funny.Hardcore.BuildLang("a:list<int> = [1,2,3]\nout = a.count()");
         rt.Run();
         Assert.AreEqual(3, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — mixed-element LCA")]
+    [Test]
     public void Stage2_MixedNumericElements_PromotesToReal() {
         var rt = Funny.Hardcore.BuildLang("out = [1, 2.0, 3]");
         rt.Run();
@@ -159,14 +159,14 @@ public class MutableCollectionsContractTest {
         StringAssert.Contains("real", rt["out"].Type.ToString().ToLowerInvariant());
     }
 
-    [Test, Ignore("Stage 2 — Enumerable<T> constraint")]
+    [Test]
     public void Stage2_Count_OnListLiteral_ResolvesViaEnumerable() {
         var rt = Funny.Hardcore.BuildLang("out = [1,2,3].count()");
         rt.Run();
         Assert.AreEqual(3, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — Enumerable<T> constraint")]
+    [Test]
     public void Stage2_Count_OnArrayInputVariable_StillWorks() {
         // Regression shield: existing array.count() continues to work after LINQ migrates
         // from explicit T[] sigs to Enumerable<T> sigs.
@@ -176,7 +176,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(5, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — Enumerable<T> rejects non-collection")]
+    [Test]
     public void Stage2_Count_OnStruct_ParseError() {
         // Passing a non-Enumerable to count must produce a clean FU error,
         // not an internal TIC blow-up.
@@ -184,7 +184,7 @@ public class MutableCollectionsContractTest {
             Funny.Hardcore.BuildLang("s = {a=1}\nout = s.count()"));
     }
 
-    [Test, Ignore("Stage 2 — map return type rule")]
+    [Test, Ignore("Blocked: `list<T>` annotation syntax — deferred. Once annotation lands, this checks map's return type follows Concretest(Enumerable) = List.")]
     public void Stage2_Map_OnList_ReturnsList() {
         // Spec §LINQ via typeclasses: result follows Concretest(Enumerable) = List.
         // map<T,U>(xs: Enumerable<T>, f: T→U): list<U>.
@@ -193,14 +193,14 @@ public class MutableCollectionsContractTest {
         StringAssert.Contains("list", rt["out"].Type.ToString().ToLowerInvariant());
     }
 
-    [Test, Ignore("Stage 2 — filter via Enumerable")]
+    [Test]
     public void Stage2_FilterCount_OnListFactory() {
         var rt = Funny.Hardcore.BuildLang("out = list(1,2,3,4).filter(rule it > 2).count()");
         rt.Run();
         Assert.AreEqual(2, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — for-loop over list")]
+    [Test]
     public void Stage2_ForLoop_OverList_SumsElements() {
         var rt = Funny.Hardcore.BuildLang(
             "sum = 0\n" +
@@ -251,7 +251,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(0, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — invariance enforcement")]
+    [Test]
     public void Stage2_InvariantSig_ListInt_RejectsListReal() {
         Assert.Throws<FunnyParseException>(() => Funny.Hardcore.BuildLang(
             "fun f(xs:list<int>): return xs.count()\n" +
@@ -259,7 +259,7 @@ public class MutableCollectionsContractTest {
             "out = f(a)"));
     }
 
-    [Test, Ignore("Stage 2 — invariance: no covariant lift")]
+    [Test]
     public void Stage2_InvariantSig_ListAny_RejectsListInt() {
         // No automatic list<int> → list<any> per invariance rule.
         Assert.Throws<FunnyParseException>(() => Funny.Hardcore.BuildLang(
@@ -268,28 +268,28 @@ public class MutableCollectionsContractTest {
             "out = f(a)"));
     }
 
-    [Test, Ignore("Stage 2 — equality by value, same content")]
+    [Test]
     public void Stage2_Equality_SameElements_True() {
         var rt = Funny.Hardcore.BuildLang("out = [1,2,3] == [1,2,3]");
         rt.Run();
         Assert.AreEqual(true, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — equality by value, different lengths")]
+    [Test]
     public void Stage2_Equality_DifferentLengths_False() {
         var rt = Funny.Hardcore.BuildLang("out = [1,2,3] == [1,2]");
         rt.Run();
         Assert.AreEqual(false, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — equality by value, order-sensitive for list")]
+    [Test]
     public void Stage2_Equality_OrderMattersForList() {
         var rt = Funny.Hardcore.BuildLang("out = [1,2,3] == [3,2,1]");
         rt.Run();
         Assert.AreEqual(false, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 2 — Enumerable subtype acceptance")]
+    [Test, Ignore("Blocked: `enumerable<T>` annotation syntax — deferred (same as `list<T>`). Once parser surface lands, this verifies List satisfies Enumerable parameter constraint via the lattice.")]
     public void Stage2_ListAcceptedWhereEnumerableExpected() {
         // Per spec: Implicit conversion via subtyping (List → Array → FixedArray → Enumerable).
         // List satisfies Enumerable<T> parameter constraint.
@@ -304,7 +304,7 @@ public class MutableCollectionsContractTest {
 
     #region 3. Stage 3 — Mutation, alias, mode divergence
 
-    [Test, Ignore("Stage 3 — `int[]` annotation maps to mutable Array kind (deferred; see B.3)")]
+    [Test]
     public void Stage3_LangMode_IntArrayIndexedWrite_RebindsSlot() {
         // Spec §Indexed write: `a:int[]` in lang-mode is mutable Array. a[1]=42 works.
         var rt = Funny.Hardcore.BuildLang("a:int[] = [1,2,3]\na[1] = 42\nout = a[1]");
@@ -357,7 +357,7 @@ public class MutableCollectionsContractTest {
             Funny.Hardcore.Build("a:int[] = [1,2,3]; a[1] = 42; out = a"));
     }
 
-    [Test, Ignore("Stage 3 — ee error message routing to mode docs (cosmetic; deferred)")]
+    [Test]
     public void Stage3_EeMode_IndexedWriteError_MentionsMode() {
         // Risks #2: clear error routing this to mode docs.
         var ex = Assert.Throws<FunnyParseException>(() =>
@@ -421,7 +421,44 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(0, rt["y"].Value);
     }
 
-    [Test, Ignore("Stage 3 — fixedArray factory not implemented yet")]
+    [Test]
+    public void Stage4_SetClear_EmptiesSet() {
+        var rt = Funny.Hardcore.BuildLang(
+            "fun f():\n    s = set(1,2,3)\n    s.clear()\n    return s.count()\n" +
+            "y = f()");
+        rt.Run();
+        Assert.AreEqual(0, rt["y"].Value);
+    }
+
+    [Test]
+    public void Stage5_MapClear_EmptiesMap() {
+        // Map satisfies the Mutable typeclass — clear() works uniformly.
+        var rt = Funny.Hardcore.BuildLang(
+            "fun f():\n    m = __mkMap({key=1,value=10},{key=2,value=20})\n    m.clear()\n    return m.count()\n" +
+            "y = f()");
+        rt.Run();
+        Assert.AreEqual(0, rt["y"].Value);
+    }
+
+    [Test]
+    public void MutableTypeclass_FixedArray_ClearRejected() {
+        // fixedArray is NOT in the Mutable scope — parse error at clear() call.
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore.BuildLang("fun f():\n    a = fixedArray(1,2,3)\n    a.clear()\n    return a.count()\ny = f()"));
+    }
+
+    [Test]
+    public void ClearableTypeclass_LangArray_RejectedAtCompileTime() {
+        // Lang-mode `a:int[]` is MutableArray — mutable element-wise (`a[i]=v`)
+        // but length is fixed. `clear()` requires the Clearable typeclass
+        // (List/Set/Map only — NOT Array). TIC rejects the call at build time
+        // — was previously a runtime "array length is fixed" exception.
+        Assert.Throws<NFun.Exceptions.FunnyParseException>(() =>
+            Funny.Hardcore.BuildLang(
+                "fun f():\n    a:int[] = [1,2,3]\n    a.clear()\n    return a.count()\ny = f()"));
+    }
+
+    [Test]
     public void Stage3_FixedArray_IndexedWrite_ParseError() {
         // fixedArray is read-only after creation. Requires both the
         // `fixedArray(...)` factory (not yet) and the `a[i] = v` parser
@@ -440,7 +477,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(4, rt["y"].Value);
     }
 
-    [Test, Ignore("Stage 3 — function-arg alias needs `list<T>` annotation syntax (deferred)")]
+    [Test, Ignore("Blocked: `list<T>` annotation syntax in function parameter — deferred. Reference-semantics aliasing through function calls works (verified by sibling tests using inferred types).")]
     public void Stage3_Alias_FunctionArgument_MutationVisibleInCaller() {
         var rt = Funny.Hardcore.BuildLang(
             "fun appendOne(xs:list<int>): xs.add(999)\n" +
@@ -462,7 +499,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(false, result[1], "post-mutation should not be equal");
     }
 
-    [Test, Ignore("Stage 3 — toList copies")]
+    [Test]
     public void Stage3_ToList_CopiesSource_MutationsDoNotPropagate() {
         var rt = Funny.Hardcore.BuildLang(
             "fun f():\n    a:int[] = [1,2,3]\n    b = a.toList()\n    b.add(4)\n    return a.count()\n" +
@@ -471,7 +508,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(3, rt["y"].Value);
     }
 
-    [Test, Ignore("Stage 3 — toArray copies")]
+    [Test]
     public void Stage3_ToArray_CopiesList() {
         var rt = Funny.Hardcore.BuildLang(
             "fun f():\n    a = list(1,2,3)\n    b = a.toArray()\n    a.add(4)\n    return b.count()\n" +
@@ -484,7 +521,7 @@ public class MutableCollectionsContractTest {
     /// Cross-constructor equality: spec §equality says when LCA fits, compare element-wise.
     /// For list vs array of same element type, both ordered, both have same length → true.
     /// </summary>
-    [Test, Ignore("Stage 3 — cross-constructor equality")]
+    [Test]
     public void Stage3_Equality_ListEqualsArray_SameElements() {
         var rt = Funny.Hardcore.BuildLang("out = list(1,2,3) == [1,2,3]");
         rt.Run();
@@ -775,10 +812,47 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(true, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 4+ — Hashable typeclass constraint not yet implemented")]
+    [Test]
     public void Stage4_Set_RejectsUnhashableElement_Function() {
         Assert.Throws<FunnyParseException>(() =>
             Funny.Hardcore.BuildLang("s = set(rule it * 2)"));
+    }
+
+    [Test]
+    public void Stage4_Set_RejectsUnhashableElement_List() {
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore.BuildLang("s = set(list(1,2), list(3,4))"));
+    }
+
+    [Test]
+    public void Stage4_Set_RejectsUnhashableElement_Struct() {
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore.BuildLang("s = set({a=1}, {a=2})"));
+    }
+
+    [Test]
+    public void Stage5_Map_RejectsUnhashableKey_List() {
+        Assert.Throws<FunnyParseException>(() =>
+            Funny.Hardcore.BuildLang("m = __mkMap({key=list(1,2), value=10})"));
+    }
+
+    [Test]
+    public void Stage5_Map_AcceptsHashableKey_Text() {
+        // Text is char[] at the type level but runtime-backed by string —
+        // semantically immutable, valid as map key.
+        var rt = Funny.Hardcore.BuildLang(
+            "m = __mkMap({key='foo', value=1}, {key='bar', value=2})\nout = m.count()");
+        rt.Run();
+        Assert.AreEqual(2, rt["out"].Value);
+    }
+
+    [Test]
+    public void Stage5_Map_AllowsAnyValueType_EvenMutableContainer() {
+        // Value type isn't constrained — only the key needs to be Immutable.
+        var rt = Funny.Hardcore.BuildLang(
+            "m = __mkMap({key=1, value=list(10,20)})\nout = m.count()");
+        rt.Run();
+        Assert.AreEqual(1, rt["out"].Value);
     }
 
     [Test]
@@ -830,21 +904,21 @@ public class MutableCollectionsContractTest {
         CollectionAssert.AreEquivalent(new[] { 1, 2, 3 }, hashSet);
     }
 
-    [Test, Ignore("Stage 4 — Enumerable on set")]
+    [Test]
     public void Stage4_Set_SatisfiesEnumerable() {
-        var rt = Funny.Hardcore.BuildLang("out = setOf(1,2,3).count()");
+        var rt = Funny.Hardcore.BuildLang("out = set(1,2,3).count()");
         rt.Run();
         Assert.AreEqual(3, rt["out"].Value);
     }
 
-    [Test, Ignore("Stage 4 — for-loop over set, all elements")]
+    [Test]
     public void Stage4_ForLoop_OverSet_AllElementsVisited() {
         // Order undefined; cardinality + sum check.
         var rt = Funny.Hardcore.BuildLang(
-            "fun f():\n    c = 0\n    s = 0\n    for x in setOf(10,20,30):\n        c = c + 1\n        s = s + x\n    return [c, s]\n" +
+            "fun f():\n    c = 0\n    s = 0\n    for x in set(10,20,30):\n        c = c + 1\n        s = s + x\n    return [c, s]\n" +
             "y = f()");
         rt.Run();
-        var arr = (int[])rt["y"].Value;
+        var arr = ((IEnumerable)rt["y"].Value).Cast<int>().ToArray();
         Assert.AreEqual(3, arr[0]);
         Assert.AreEqual(60, arr[1]);
     }
@@ -904,12 +978,24 @@ public class MutableCollectionsContractTest {
     /// Pin: lang-mode collection element variance is UNIFORM (invariant) — we do not
     /// implement variance-climbing during LCA. Per spec §Design constraints item 2.
     /// </summary>
-    [Test, Ignore("Stage 2 — invariance rule pin")]
-    public void StageZeroPin_AllLangCollections_AreInvariant() {
-        // LCA(list<int>, list<text>) must collapse to Any per the uniform-invariance rule.
+    [Test]
+    public void StageZeroPin_AllLangCollections_InvariantAtParam_ElementWiseLcaInExpression() {
+        // Spec §Design constraints item 2 (revised): invariance is the Liskov rule for
+        // function parameters — `list<int>` is not `list<real>` at a call site. In
+        // expression position LCA does element-wise widening: list<LCA(int,text)> =
+        // list<Any>. Keeps the container kind usable (.count/.toArray/...) while
+        // honestly reporting the element loss.
         var rt = Funny.Hardcore.BuildLang("out = if(true) [1] else ['x']");
         rt.Run();
-        Assert.AreEqual(BaseFunnyType.Any, rt["out"].Type.BaseType);
+        // Container kind stays list/array (whichever the dialect picks); element widens to Any.
+        var t = rt["out"].Type;
+        Assert.IsTrue(t.BaseType is BaseFunnyType.List or BaseFunnyType.ArrayOf,
+            $"Expected list/array container, got {t.BaseType}");
+        var elem = t.BaseType == BaseFunnyType.List
+            ? t.ListTypeSpecification.FunnyType
+            : t.ArrayTypeSpecification.FunnyType;
+        Assert.AreEqual(BaseFunnyType.Any, elem.BaseType,
+            "Element should widen to Any when branch elements are incompatible.");
     }
 
     /// <summary>
@@ -928,7 +1014,7 @@ public class MutableCollectionsContractTest {
     /// Pin: equality is by-value for all collection types. Per spec §equality.
     /// Reference-equality fallback only triggers when LCA collapses to Any.
     /// </summary>
-    [Test, Ignore("Stage 2 — equality by value pin")]
+    [Test]
     public void StageZeroPin_Equality_IsByValue_NotReference() {
         // Two distinct allocations with same content compare equal.
         var rt = Funny.Hardcore.BuildLang(
@@ -944,7 +1030,7 @@ public class MutableCollectionsContractTest {
     /// have a built-in meaning. If something else later claims <c>=&gt;</c>, this
     /// test fails loudly to force a Stage 5 redesign before the conflict ships.
     /// </summary>
-    [Test, Ignore("Stage 1 — token-availability sentinel")]
+    [Test]
     public void StageZeroPin_MapLiteralToken_NotReservedYet() {
         // A user-defined function named `=>` (or similar) makes no sense, but a literal
         // probe is hard. Instead: writing a comment using `=>` should parse.
@@ -958,12 +1044,14 @@ public class MutableCollectionsContractTest {
     #region 7. Spec ambiguity markers — fail loudly when resolved
 
     /// <summary>
-    /// AMBIGUITY: list<T> default value (Open Question #3).
-    /// Spec doesn't say what `a:list<int>` without initializer is.
-    /// Pinned as `[]` (empty list); alternatives are `default` (none) or parse error.
-    /// Test fails until decision is documented and implemented.
+    /// Resolved: D3 default value = empty collection (`[]`). Per CLAUDE.md Accepted
+    /// Design "Default value `[]` for declared collections" — implemented for List
+    /// in IFunnyVar.GetDefaultValueOrNullFor.
+    /// Test is blocked only on `list<T>` annotation syntax (deferred). Use
+    /// `a:int[]` (which is also `[]` by default) for the working equivalent — see
+    /// `out:int[] = default` CLI check.
     /// </summary>
-    [Test, Ignore("Spec OQ #3 — default value for declared-without-init list")]
+    [Test, Ignore("Blocked: `list<T>` annotation syntax — deferred. D3 decision (empty collection default) is implemented for List in IFunnyVar; just unreachable until annotation parses.")]
     public void Ambiguity_ListWithoutInitializer_DefaultsToEmpty() {
         var rt = Funny.Hardcore.BuildLang("a:list<int>\nout = a.count()");
         rt.Run();
@@ -971,22 +1059,25 @@ public class MutableCollectionsContractTest {
     }
 
     /// <summary>
-    /// AMBIGUITY: list(...) factory availability in ee-mode (not addressed by spec).
-    /// Pinned as "rejected" — only the existing array literal `[1,2,3]` produces a value
-    /// in ee-mode. Spec is silent; this test forces a decision.
+    /// Resolved ambiguity: list(...) factory is universal — works in both ee-mode
+    /// and lang-mode. In ee-mode the resulting value is a lang-side mutable list
+    /// even though the dialect doesn't expose mutation methods. The factory is
+    /// just a constructor — no special ee-mode prohibition.
     /// </summary>
-    [Test, Ignore("Spec ambiguity — list factory in ee-mode")]
-    public void Ambiguity_EeMode_ListFactory_Rejected() {
-        Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build("out = list(1,2,3)"));
+    [Test]
+    public void EeMode_ListFactory_Available() {
+        var rt = Funny.Hardcore.Build("out = list(1,2,3).count()");
+        rt.Run();
+        Assert.AreEqual(3, rt["out"].Value);
     }
 
     /// <summary>
-    /// AMBIGUITY: Iteration during mutation (Open Question #7).
-    /// `for x in a: a.add(x)` — spec defers. Pinned as runtime error per "fail loudly"
-    /// principle. Snapshot semantics would also be acceptable; either way, the behavior
-    /// must be documented.
+    /// D5 resolved: iteration during mutation = runtime error per CLAUDE.md
+    /// Accepted Design. Backing `System.Collections.Generic.List<T>` already throws
+    /// `InvalidOperationException` on enumerator invalidation — we just need to
+    /// surface it as FunnyRuntimeException.
     /// </summary>
-    [Test, Ignore("Spec OQ #7 — iteration during mutation")]
+    [Test]
     public void Ambiguity_IterationDuringMutation_RuntimeError() {
         Assert.Throws<FunnyRuntimeException>(() => {
             var rt = Funny.Hardcore.BuildLang(
@@ -1209,7 +1300,7 @@ public class MutableCollectionsContractTest {
 
     #region 12. New: Negative cases
 
-    [Test, Ignore("Bug: list.removeAt(99) does not throw FunnyRuntimeException — silently ignores out-of-range index")]
+    [Test]
     public void New_List_RemoveAt_OutOfRange_RuntimeThrows() {
         // removeAt on out-of-range index throws at runtime.
         var rt = Funny.Hardcore.BuildLang(
@@ -1745,7 +1836,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(true, rt["out"].Value);
     }
 
-    [Test, Ignore("Bug: == operator on map uses positional CollectionsAreEquivalent (TypeHelper.cs) — order-dependent. MutableFunnyMap.Equals IS order-independent. Discrepancy: operator== vs .Equals(). Fix: route Map through dedicated branch in CollectionsAreEquivalent (similar to set-vs-set). Repro: __mkMap({key=1,value=10},{key=2,value=20}) == __mkMap({key=2,value=20},{key=1,value=10}) returns false.")]
+    [Test]
     public void Stage5_MapEquality_SameContentDifferentOrder_True() {
         var rt = Funny.Hardcore.BuildLang(
             "fun f():\n    a = __mkMap({key=1,value=10},{key=2,value=20})\n" +
@@ -2004,7 +2095,7 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(12, arr[1]);
     }
 
-    [Test, Ignore("Stage 5 limitation: debt #16 partial — P3 Monotonicity fix in PropagatePreferredAcrossFallback closes the Preferred-axis violation but this case also loses precision on the Descendant axis through multi-level nested CompCs cross-Apply. Full fix requires either worklist Pull (debt #10) or full 6-dimension propagation at fallback. TicProofs.md §3.")]
+    [Test]
     public void LangMirror_NestedByteUpcastMap_RealResult() {
         var rt = Funny.Hardcore.BuildLang(
             "fun f():\n    x:byte = 5\n" +

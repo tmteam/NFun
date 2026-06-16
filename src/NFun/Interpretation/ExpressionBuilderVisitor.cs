@@ -1178,15 +1178,15 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     public IExpressionNode Visit(ForSyntaxNode node) {
         var collectionExpr = ReadNode(node.Collection);
 
-        // Determine iterator element type from the collection type
+        // Determine iterator element type from the collection type.
+        // TIC already inferred this — we just dispatch over every single-element
+        // collection kind to pull the FunnyType out of the right specification.
+        // Map's pair-struct iteration is intentionally out of scope here; the
+        // pair-struct synthesis lives in TIC's CompCs cross-Apply.
+        // Single source of truth for "what does iterating this type yield" —
+        // lives on FunnyType so the parser, runtime and TIC adapter stay aligned.
         var collectionType = collectionExpr.Type;
-        FunnyType elementType;
-        if (collectionType.BaseType == BaseFunnyType.ArrayOf)
-            elementType = collectionType.ArrayTypeSpecification.FunnyType;
-        else if (collectionType.BaseType == BaseFunnyType.List)
-            elementType = collectionType.ListTypeSpecification.FunnyType;
-        else
-            elementType = FunnyType.Any;
+        var elementType = collectionType.GetEnumerableElementTypeOrNull() ?? FunnyType.Any;
 
         // Snapshot scope BEFORE adding iterator: iterator + body locals all
         // belong to the loop scope and must not leak after the loop ends.

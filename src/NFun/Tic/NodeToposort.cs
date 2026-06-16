@@ -107,7 +107,7 @@ public class NodeToposort {
         }
     }
 
-    private const int NodeInListMark = -33753;
+    private const int NodeInListMark = TicVisitMarks.NodeInList;
 
     public void AddToTopology(TicNode node) {
         if (node == null)

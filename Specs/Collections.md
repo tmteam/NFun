@@ -14,7 +14,7 @@
 | CLR ↔ list converter (`System.Collections.Generic.List<T>` ↔ `MutableFunnyList`) | yes (Stage 2.2) | Both directions |
 | `list(...)` factory function | yes (Stage 2.3) | Arities 1..8 registered as overloads |
 | Lang-mode `[1,2,3]` literal → `list<T>` | yes (Stage 2.3) | ee-mode literal stays `T[]` |
-| `[]` empty literal in lang-mode | partial | Resolves only with annotation context or first usage; bare `out = []` fails clean. **Deferred-inference still pending.** |
+| `[]` empty literal in lang-mode | yes | Bare `out = []` resolves to `list<Any>` (Stage 2 default). With annotation (`out:int[] = []`) or first-usage context (`a = []; a.concat([1,2,3])`) infers the element type. For other empty collections use `default` (`out:set<int> = default`). |
 | LINQ on lists (`count`, `map`, `filter`, `fold`, `reverse`, `slice`, `concat`, indexing, …) | yes — via subtyping | TIC rule `list<T> ≤ T[]` lets existing array-typed LINQ accept lists. No per-function overloads, no `Enumerable<T>` typeclass yet. |
 | For-loop `for x in <list>` | yes | `ForExpressionNode` iterates `IFunnyArray`/`IFunnyList`/`IEnumerable` |
 | Cross-kind equality `list == array` | yes | `TypeHelper.AreEqual` treats both as one equivalence class, element-wise |
@@ -29,7 +29,7 @@
 
 1. **LINQ migration is via TIC subtyping, not via `Enumerable<T>` typeclass.** The plan was to migrate every LINQ signature to `Enumerable<T>` (D1 in `Specs/Stage2Plan.md`). Instead Stage 2.5 added a single algebraic rule `list<T> ≤ T[]` in Pull/Push/Destruction (`Apply(StateArray, StateCollection)`), and lang-mode lists flow into existing `T[]`-keyed LINQ functions transparently. Pros: no per-function rewrite, no `ConstraintsState.EnumerableArgNode` field. Cons: LINQ results still come back as `T[]` (not `list<T>`); `Set`/`Map` will need the proper typeclass when they arrive.
 2. **Asymmetric runtime cast.** TIC subtyping is one-way (`list ≤ array`), but `VarTypeConverter` also handles `array → list` for the lang-mode mutable-variable accumulator pattern (`out:list<T> = [] ; out = concat(out, …)`).
-3. **Empty literal `[]` is not yet generic.** The plan's `GenericArrayLiteralSyntaxNode` was not introduced; `[]` resolves with annotation context only. Without it, the literal binds to ee-mode `StateArray` or lang-mode `StateCollection(List)` based purely on the `IsLangMode` dialect flag.
+3. **Empty literal `[]` defaults to `list<Any>` (lang-mode) without context.** Bare `out = []` resolves cleanly. With annotation or first-usage context the element type narrows: `out:int[] = []` → `int[]`; `a = []; b = a.concat([1,2,3])` → `a:list<Int32>`. For non-list empty collections use `default`: `out:int[] = default` → `[]`, future `out:set<int> = default` → empty set. `[]` itself binds to ee-mode `StateArray` or lang-mode `StateCollection(List)` based on the `IsLangMode` dialect flag.
 4. **`list<T>` type-annotation syntax skipped.** User direction — annotations stay on `int[]` for now. The TIC state and runtime container both work; only the parser surface for `list<T>` / `array<T>` / `fixedArray<T>` / `enumerable<T>` is deferred.
 
 ---
@@ -37,7 +37,7 @@
 ## Design constraints (taken as given)
 
 1. **Lang-mode `int[]` is mutable Array** — `a:int[] = [1,2,3]; a[1] = 42` must work.
-2. **All lang-mode collections are invariant** in their element type. We do NOT implement variance-climbing during LCA. If the elements differ, LCA collapses to `Any`. Conceptually `Enumerable` and `FixedArray` could be covariant (read-only) — we trade theoretical purity for implementation simplicity.
+2. **All lang-mode collections are invariant** in their element type for **function-parameter Liskov substitution** (a `list<int>` is not a `list<real>` at a call site, even though `int ≤ real`). For **LCA in expression position**, the implementation does element-wise widening: `LCA(list<A>, list<B>) = list<LCA(A, B)>`, which collapses the element to `Any` when A and B are incompatible (e.g. `int` vs `text`) — the container kind itself stays. This is a deliberate trade-off: strict invariance would collapse the whole container to `Any` and lose the ability to iterate the result; element-wise widening keeps the container shape (you can still `.count()` / `.toArray()` etc.) at the cost of an `Any`-typed element.
 3. **Expression-mode is unchanged.** `int[]` stays read-only and covariant there. The 13 983 existing tests must continue to pass.
 
 ## Type hierarchy
@@ -65,7 +65,7 @@ Set<T>          + contains O(1)           (mutable, no duplicates, no order)
 ```
 Enumerable<{key:K, value:V}>
    ↑
-Map<K,V>        + get(key), set(k,v)      (mutable, hashed)
+Map<K,V>        + getKey, setKey methods  (mutable, hashed; no [k] syntax)
 ```
 
 `queue`, `stack` — postponed to Stage 5+. Possibly thin wrappers over `List<T>` with restricted API.
@@ -137,11 +137,12 @@ ee-mode literal default never changes — it stays `Array<T>` (the existing immu
 
 ### Empty literal
 
-`[]` — Constructor unresolved, Element unresolved. Cases:
+`[]` — generic empty collection literal, binds to the dialect's preferred constructor:
 - With context `a:list<int> = []` → `List<int>`. Works.
-- Without context → defer to first usage that constrains it (e.g. `[].add(5)` constrains Element=int, Constructor=List). If still unresolved at finalize → require annotation, clean parse error.
+- With context `a:int[] = []` → `Array<int>` in lang-mode, `Int32[]` in ee-mode.
+- Without context — use the **`default` keyword** instead: `out:int[] = default` resolves to `[]`. `default` follows the declared type and avoids the TIC eager-resolution problem.
 
-Empty-literal deferred resolution requires a new TIC mechanism (currently TIC resolves eagerly). **Defer to Stage 4 or 5.** Stage 2/3 will require annotation on empty literals.
+`[]` itself never gets deferred-inference machinery — the `default` keyword covers the no-context case cleanly without changes to TIC's resolution model.
 
 ### Indexed write
 
@@ -167,10 +168,16 @@ On `Set<T>`:
 - `s.add(x)→bool`, `s.remove(x)→bool`, `s.contains(x)→bool`.
 - No indexed access.
 
-On `Map<K,V>`:
-- `m[k]`, `m[k] = v`.
-- `m.get(k)→V?`, `m.getOrOops(k)→V`, `m.remove(k)→V?`.
-- `m.keys()→Enumerable<K>`, `m.values()→Enumerable<V>`, iteration yields `{key:K, value:V}`.
+On `Map<K,V>` — **method-only**, no `[...]` syntax (neither read nor write):
+- `m.get(k) → V?`, `m.tryGet(k) → {value:V, success:bool}` — read.
+- `m.setKey(k, v)`, `m.tryAddKey(k, v) → bool` — write.
+- `m.removeKey(k) → V?`, `m.tryRemoveKey(k) → {value, success}` — remove.
+- `m.containsKey(k) → bool` — membership.
+- `m.keys() → Enumerable<K>`, `m.values() → Enumerable<V>`, iteration yields `{key:K, value:V}`.
+
+The `Key` suffix on mutating methods is deliberate: avoids the `(name, arity)` registry collision with `set.tryRemove(item) → bool` (Set has the same arity but operates on element, not key). Uniform `Key` suffix across `setKey / tryAddKey / removeKey / containsKey / tryRemoveKey` keeps the surface predictable.
+
+Rationale for no `[...]` syntax: `a[i] = v` keeps its strict TIC signature `target ≤ mutArr<T>`, `i : Int32` — only mutable Array/List satisfy. Extending to Map<K,V> would require relaxing the index type and adding a Map branch to the upper bound, which conflicts with the project's "no special cases" rule without the full typeclass-dispatch infrastructure. Map's keys can be any Hashable type (text, named-struct, …) — they don't read as "index". Symmetry: if write is out then read is out too — asymmetry is worse than method verbosity.
 
 ### LINQ via typeclasses (constraint predicates)
 
@@ -289,7 +296,7 @@ Each constraint becomes a predicate on `StateComposite.Constructor`. No vtable, 
 
 ## Open questions (decide before Stage 1)
 
-1. **Mutable struct alignment.** Lang-mode already has mutable structs. Their mutability is on field-assignment level. Should `s.field = v` and `a[i] = v` go through a unified `IndexedMutable`-like mechanism, or stay separate? Currently separate.
+1. **Mutable struct alignment.** **Decided: stay separate.** `s.field = v` (`FieldAssignExpressionNode`) and `a[i] = v` (`IndexedAssignExpressionNode`) keep their dedicated parser+runtime paths. Rationale: (a) field name is a compile-time string statically resolved by TIC; indexed key is a generic `int` validated only at runtime — different layers of the type system; (b) error messages need to be specific ("struct not initialized" vs "index out of range"); (c) only 2 cases — premature abstraction. The TIC-level `IndexedMutable<K,V>` typeclass (when introduced in Stage 4+) is **collection-only**; structs do not participate.
 
 2. **`a == b` for collections.** **By value.** Two collections are equal iff their constructor matches and their elements pairwise equal (using element's own `==`). Concretely:
    - `Array<T>` / `List<T>` / `FixedArray<T>` — same length AND same elements in same order.
@@ -298,15 +305,15 @@ Each constraint becomes a predicate on `StateComposite.Constructor`. No vtable, 
    - Cross-constructor `==` is allowed when LCA fits (e.g. `list<int> == array<int>` compares element-wise). When LCA collapses to `Any`, `==` falls back to reference equality.
    - **Mutation invalidates prior equality.** `a = [1,2,3]; b = [1,2,3]; a == b → true; a.add(4); a == b → false`. This matches user intuition for mutable value comparison.
 
-3. **Default values for `a:list<int>` (no initializer).** `[]`? `default`? Need explicit answer.
+3. **Default values for `a:list<int>` (no initializer).** **Decided: `[]` (empty collection).** Applies uniformly: `list` → empty `MutableFunnyList`; `array` → empty mutable array (Stage 3); `set` → empty `HashSet` (Stage 4); `map` → empty `Dictionary` (Stage 5). Already implemented for `List` (`IFunnyVar.GetDefaultValueOrNullFor`); future composites follow the same rule. Pairs with debt #12 — when the unified default-value protocol lands, the rule is "empty collection per constructor".
 
-4. **Hash/equality for element types of Set/Map.** Per Hashable typeclass. Bool, all numeric, char, text, named-struct-with-Hashable-fields. Tuple types? Not yet.
+4. **Hash/equality for element types of Set/Map.** **Decided: Immutable typeclass** (renamed from Hashable to capture the fundamental property — hashing follows from immutability). **Initial scope: primitives only** — `bool`, all numeric primitives (`U8..I64`, `Real`), `char`, `text` (runtime-immutable string backing), `IPAddress`. Everything else is rejected at the call site of `set(...)` / `__mkMap(...)` with FU580. **Recursive extension** to `FixedArray<T>`, `Fun(...)` (identity hash), `Optional<T>`, future frozen-struct — tracked in [issue #129](https://github.com/tmteam/NFun/issues/129). Rationale: deep immutability is the correct invariant for hash-based containers (mutation of any inner part breaks the hash); the recursive predicate is a focused follow-up that doesn't block the primitive use case.
 
 5. **CLR interop.** External users (Sonica) consume `IFunnyVar` via converters. `BaseFunnyType.List`, `.Set`, `.Map` — new enum values. Migration: existing switches throw on unknown; document the upgrade procedure.
 
 6. **`for k, v in map:` destructuring.** Stage 5+. Until then `for kv in map: kv.key … kv.value`.
 
-7. **Iteration mutation.** `for x in a: a.add(y)` — what happens? Define explicit error or snapshot semantics.
+7. **Iteration mutation.** **Decided: runtime error.** `for x in a: a.add(y)` throws `FunnyRuntimeException("collection modified during iteration")`. Rationale: (a) backing `System.Collections.Generic.List<T>` already throws `InvalidOperationException` on enumerator invalidation — don't mask it; (b) snapshot semantics hide bugs (the obvious intent `for x in a: a.add(x)` would otherwise terminate silently and produce surprising results); (c) "fail loudly" is the project default. When the user genuinely wants to mutate during iteration they write `for x in a.toList(): a.add(x)` explicitly.
 
 8. **Performance budget.** Named types added 8-16% Build regression per memory. Each new BaseFunnyType + each new state class adds dispatch cost. Set a budget: ≤5% Simple-Build regression per stage, measured via QuickBench.
 

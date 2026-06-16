@@ -132,19 +132,21 @@ public static class VarTypeConverter {
                 || from.BaseType == BaseFunnyType.ArrayOf
                 || from.BaseType == BaseFunnyType.Set
                 || from.BaseType == BaseFunnyType.Enumerable
-                || from.BaseType == BaseFunnyType.Mutable
+                || from.BaseType == BaseFunnyType.Clearable
                 || from.BaseType == BaseFunnyType.Map))
             return NoConvertion;
 
-        // Mutable<T> is satisfied by list / array / set runtime values — and by
-        // another Mutable (no-op). FixedArray and ee-mode T[] are rejected here
-        // because they're immutable; that rejection is what makes clear() etc.
-        // emit a parse error instead of a runtime exception.
-        if (to.BaseType == BaseFunnyType.Mutable
+        // Mutable<T> is satisfied by list / array / set / map runtime values —
+        // and by another Mutable (no-op). Every concrete kind for which
+        // ConstructorLattice.IsMutable is true. FixedArray and ee-mode T[] are
+        // rejected here because they're immutable; that rejection is what makes
+        // clear() etc. emit a parse error instead of a runtime exception.
+        if (to.BaseType == BaseFunnyType.Clearable
             && (from.BaseType == BaseFunnyType.List
                 || from.BaseType == BaseFunnyType.MutableArray
                 || from.BaseType == BaseFunnyType.Set
-                || from.BaseType == BaseFunnyType.Mutable))
+                || from.BaseType == BaseFunnyType.Map
+                || from.BaseType == BaseFunnyType.Clearable))
             return NoConvertion;
 
         // Lang-mode list<T> ≤ T[] per Stage 0 collections hierarchy
@@ -527,19 +529,19 @@ public static class VarTypeConverter {
                         return CanBeConverted(from.ArrayTypeSpecification.FunnyType, toElem);
                     case BaseFunnyType.Set:
                         return CanBeConverted(from.SetTypeSpecification.FunnyType, toElem);
-                    case BaseFunnyType.Mutable:
-                        return CanBeConverted(from.MutableTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Clearable:
+                        return CanBeConverted(from.ClearableTypeSpecification.FunnyType, toElem);
                 }
             }
 
             // Stage C — Mutable<T> typeclass. Satisfied only by mutable kinds
             // (list / array / set). FixedArray and ee-mode T[] reject here so
             // `clear(fixedArray(...))` fails at parse time.
-            if (to.BaseType == BaseFunnyType.Mutable) {
-                var toElem = to.MutableTypeSpecification.FunnyType;
+            if (to.BaseType == BaseFunnyType.Clearable) {
+                var toElem = to.ClearableTypeSpecification.FunnyType;
                 switch (from.BaseType) {
-                    case BaseFunnyType.Mutable:
-                        return CanBeConverted(from.MutableTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Clearable:
+                        return CanBeConverted(from.ClearableTypeSpecification.FunnyType, toElem);
                     case BaseFunnyType.List:
                         return CanBeConverted(from.ListTypeSpecification.FunnyType, toElem);
                     case BaseFunnyType.MutableArray:
@@ -577,10 +579,10 @@ public static class VarTypeConverter {
                         // set<T> is INVARIANT — element must match exactly.
                         return @from.SetTypeSpecification.FunnyType
                             .Equals(to.SetTypeSpecification.FunnyType);
-                    case BaseFunnyType.Mutable:
+                    case BaseFunnyType.Clearable:
                         // Mutable<T> is INVARIANT — element must match exactly.
-                        return @from.MutableTypeSpecification.FunnyType
-                            .Equals(to.MutableTypeSpecification.FunnyType);
+                        return @from.ClearableTypeSpecification.FunnyType
+                            .Equals(to.ClearableTypeSpecification.FunnyType);
                 }
             }
 

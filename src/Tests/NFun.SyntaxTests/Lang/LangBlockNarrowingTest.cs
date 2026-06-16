@@ -261,7 +261,7 @@ public class LangBlockNarrowingTest {
         Assert.AreEqual(3, Convert.ToInt32(rt["y"].Value));
     }
 
-    [Test, Ignore("Stage B.3.3 — `p?[]` fn parameter now maps to lang-mode `array<p?>`; narrowing-across-continue with the new invariant kind needs an audit.")]
+    [Test]
     public void Narrowing_AcrossContinue_StructDirectFieldAccess() {
         var rt = Funny.Hardcore.BuildLang(
             "type p = {v: int}\n" +

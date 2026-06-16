@@ -319,6 +319,17 @@ public class FunnyConverter {
                 return new ClrArrayInputForFixedArray(elementConverter);
             }
 
+            // Lang-mode `x:int[]` resolves to MutableArray. External inputs
+            // arriving as raw CLR T[] must be wrapped into MutableFunnyArray so
+            // that LINQ functions (count, map, etc.) can iterate via IFunnyEnumerable.
+            if (funnyType.BaseType == BaseFunnyType.MutableArray)
+            {
+                var elementType = clrTypeOrNull?.GetElementType();
+                var elementConverter = GetInputConverterReq(
+                    elementType, funnyType.MutableArrayTypeSpecification.FunnyType, reqDeepthCheck++);
+                return new ClrArrayInputForMutableArray(elementConverter);
+            }
+
             if (funnyType.BaseType == BaseFunnyType.List)
             {
                 Type elementClrType = null;

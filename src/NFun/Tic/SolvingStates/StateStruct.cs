@@ -110,17 +110,14 @@ public class StateStruct : ICompositeState {
     /// </summary>
     public bool IsOptionalSourced { get; set; }
 
-    // IsSolvedMark must be a CONSTANT shared across all recursive IsSolved calls
-    // so that cycles are detected. Negative value avoids collision with incrementing _nextMark.
-    private const int IsSolvedMark = -55000;
     public bool IsSolved {
         get {
             if (TypeName != null) return true; // Named types are always solved
             foreach (var n in _nodes) {
                 var node = n.Value;
-                if (node.VisitMark == IsSolvedMark) continue;
+                if (node.VisitMark == Tic.TicVisitMarks.StructIsSolved) continue;
                 var prev = node.VisitMark;
-                node.VisitMark = IsSolvedMark;
+                node.VisitMark = Tic.TicVisitMarks.StructIsSolved;
                 bool solved = node.IsSolved;
                 node.VisitMark = prev;
                 if (!solved) return false;
@@ -204,15 +201,13 @@ public class StateStruct : ICompositeState {
         }
     }
 
-    private const int LeafMark = -56000;
-
     public IEnumerable<TicNode> AllLeafTypes {
         get {
             foreach (var member in Members) {
                 if (member.State is ICompositeState composite) {
-                    if (member.VisitMark == LeafMark) continue; // cycle guard
+                    if (member.VisitMark == Tic.TicVisitMarks.StateLeaf) continue; // cycle guard
                     var prev = member.VisitMark;
-                    member.VisitMark = LeafMark;
+                    member.VisitMark = Tic.TicVisitMarks.StateLeaf;
                     foreach (var leaf in composite.AllLeafTypes)
                         yield return leaf;
                     member.VisitMark = prev;
@@ -230,7 +225,6 @@ public class StateStruct : ICompositeState {
         // via UnifyOrNull (unlike the old inline logic which skipped ConstraintsState fields)
         this.Lca(otherType) as ITypeState;
 
-    private const int PrintMark = -57000;
     public virtual string PrintState(int depth) {
         if (depth > 16)
             return "{...REQ...}";
@@ -239,12 +233,12 @@ public class StateStruct : ICompositeState {
         var parts = new List<string>(_nodes.Count);
         foreach (var n in _nodes) {
             var node = n.Value;
-            if (node.VisitMark == PrintMark) {
+            if (node.VisitMark == Tic.TicVisitMarks.StructPrint) {
                 parts.Add($"{n.Key}:...");
                 continue;
             }
             var prev = node.VisitMark;
-            node.VisitMark = PrintMark;
+            node.VisitMark = Tic.TicVisitMarks.StructPrint;
             try {
                 parts.Add($"{n.Key}:{node.State.PrintState(depth + 1)}");
             } finally {

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace NFun.Tic.SolvingStates;
 
@@ -31,44 +30,29 @@ namespace NFun.Tic.SolvingStates;
 /// </summary>
 public sealed class StateCompositeConstraints : ITicNodeState {
 
-    // ── Cycle-guard mark constants (Specs/Tic/Algebra_CompositeConstraints.md §3.8.1)
-    // Range -59000..-59600 reserved for StateCompositeConstraints (Stage C.0).
-    // Same-class GCD shares range with cross-class because §3.2 same-class delegates to §3.3 Unify.
-    public const int CompCsLcaMark         = -59000;
-    public const int CompCsGcdMark         = -59100;
-    public const int CompCsUnifyMark       = -59200;
-    public const int CompCsConcretestMark  = -59300;
-    public const int CompCsAbstractestMark = -59400;
-    public const int CompCsXCollMark       = -59500;
-    public const int CompCsXArrayMark      = -59600;
-
-    // ── Cycle-guard HashSet harnesses (lazy ThreadStatic init; established pattern in TIC).
-    // Existing precedent: ConstraintsState._fitStructBoundInProgress at :142, similar usage in
-    // StateExtensions.{Lca,Gcd}.cs.
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateCompositeConstraints)> _compCsLcaInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateCompositeConstraints)> _compCsUnifyInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateCollection)> _compCsXCollLcaInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateCollection)> _compCsXCollGcdInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateCollection)> _compCsXCollUnifyInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateArray)> _compCsXArrayLcaInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateArray)> _compCsXArrayGcdInProgress;
-    [ThreadStatic] internal static HashSet<(StateCompositeConstraints, StateArray)> _compCsXArrayUnifyInProgress;
-    [ThreadStatic] internal static HashSet<TicNode> _compCsConcretestInProgress;
-    [ThreadStatic] internal static HashSet<TicNode> _compCsAbstractestInProgress;
+    // Cycle-guard marks are centralized in TicVisitMarks.cs. The algebra
+    // operators in StateExtensions.CompCs.cs reference them via
+    // TicVisitMarks.CompCs* and apply the StateComposite.cs:74-78 pattern
+    // (save prev, set mark, do work in try/finally, restore prev).
+    // No ThreadStatic HashSets: marks are O(1) per check, in-place on the
+    // node, and inherently thread-isolated via the per-solver TicNode graph.
 
     private readonly ConstructorKind? _ancestor;
     private readonly ConstructorKind? _descendant;
     private readonly bool _isOptional;
+    private readonly bool _isClearable;
 
     private StateCompositeConstraints(
         TicNode elementNode,
         ConstructorKind? ancestor,
         ConstructorKind? descendant,
-        bool isOptional) {
+        bool isOptional,
+        bool isClearable) {
         ElementNode = elementNode ?? throw new ArgumentNullException(nameof(elementNode));
         _ancestor = ancestor;
         _descendant = descendant;
         _isOptional = isOptional;
+        _isClearable = isClearable;
     }
 
     /// <summary>Lattice upper bound. <c>null</c> ≡ "no cap". Symmetric to
@@ -88,9 +72,16 @@ public sealed class StateCompositeConstraints : ITicNodeState {
     /// <summary>Optional-wrapping flag. LCA: OR. Unify: OR. (CS precedent.)</summary>
     public bool IsOptional => _isOptional;
 
-    /// <summary>True when interval is fully unconstrained — no floor, no cap, no IsOpt.
+    /// <summary>Clearable typeclass marker. Orthogonal to the interval —
+    /// signals that the container must support `.clear()` (List, Set, Map).
+    /// LCA: AND. Unify: OR. Parallel to <see cref="ConstraintsState.IsComparable"/>
+    /// on the element axis. Resolution narrows the type-set to kinds where
+    /// <see cref="ConstructorLattice.IsClearable"/> returns true.</summary>
+    public bool IsClearable => _isClearable;
+
+    /// <summary>True when interval is fully unconstrained — no floor, no cap, no flags.
     /// Mirrors <see cref="ConstraintsState.NoConstrains"/>.</summary>
-    public bool NoConstraints => !HasAncestor && !HasDescendant && !_isOptional;
+    public bool NoConstraints => !HasAncestor && !HasDescendant && !_isOptional && !_isClearable;
 
     // ── Factory: single entry point. SimplifyOrNull-enforced.
 
@@ -102,14 +93,15 @@ public sealed class StateCompositeConstraints : ITicNodeState {
         TicNode elementNode,
         ConstructorKind? ancestor = null,
         ConstructorKind? descendant = null,
-        bool isOptional = false) {
-        var candidate = new StateCompositeConstraints(elementNode, ancestor, descendant, isOptional);
+        bool isOptional = false,
+        bool isClearable = false) {
+        var candidate = new StateCompositeConstraints(elementNode, ancestor, descendant, isOptional, isClearable);
         return SimplifyOrNull(candidate);
     }
 
     /// <summary>Convenience factory: empty interval (no constraints, fresh element).</summary>
     public static StateCompositeConstraints Empty(TicNode elementNode) =>
-        new(elementNode, ancestor: null, descendant: null, isOptional: false);
+        new(elementNode, ancestor: null, descendant: null, isOptional: false, isClearable: false);
 
     // ── Copy-on-write transformers. Return:
     //    - same instance when no change (no allocation).
@@ -120,23 +112,29 @@ public sealed class StateCompositeConstraints : ITicNodeState {
     /// <summary>Returns a state with the new ancestor cap. May collapse to <see cref="StateCollection"/>
     /// when the interval becomes a point. Returns <c>null</c> on contradiction.</summary>
     public ITicNodeState WithAncestor(ConstructorKind value) =>
-        With(ancestor: value, descendant: _descendant, isOptional: _isOptional);
+        With(ancestor: value, descendant: _descendant, isOptional: _isOptional, isClearable: _isClearable);
 
     /// <summary>Returns a state with the new descendant floor. May collapse.
     /// Returns <c>null</c> on contradiction.</summary>
     public ITicNodeState WithDescendant(ConstructorKind value) =>
-        With(ancestor: _ancestor, descendant: value, isOptional: _isOptional);
+        With(ancestor: _ancestor, descendant: value, isOptional: _isOptional, isClearable: _isClearable);
 
     /// <summary>Returns a state with the new IsOptional flag. Cannot reject (IsOptional doesn't
     /// affect interval validity). May still collapse if the underlying interval is already a point.</summary>
     public ITicNodeState WithIsOptional(bool value) =>
-        With(ancestor: _ancestor, descendant: _descendant, isOptional: value);
+        With(ancestor: _ancestor, descendant: _descendant, isOptional: value, isClearable: _isClearable);
 
-    private ITicNodeState With(ConstructorKind? ancestor, ConstructorKind? descendant, bool isOptional) {
+    /// <summary>Returns a state with the new IsClearable flag. Cannot reject (it's an
+    /// orthogonal typeclass marker — narrowing the type-set is done at resolution time,
+    /// not interval simplification).</summary>
+    public ITicNodeState WithIsClearable(bool value) =>
+        With(ancestor: _ancestor, descendant: _descendant, isOptional: _isOptional, isClearable: value);
+
+    private ITicNodeState With(ConstructorKind? ancestor, ConstructorKind? descendant, bool isOptional, bool isClearable) {
         // Identity shortcut: no field changed → return self (no allocation).
-        if (_ancestor == ancestor && _descendant == descendant && _isOptional == isOptional)
+        if (_ancestor == ancestor && _descendant == descendant && _isOptional == isOptional && _isClearable == isClearable)
             return this;
-        var candidate = new StateCompositeConstraints(ElementNode, ancestor, descendant, isOptional);
+        var candidate = new StateCompositeConstraints(ElementNode, ancestor, descendant, isOptional, isClearable);
         var simplified = SimplifyOrNull(candidate);
         if (simplified == null) return null;
         return simplified.TryCollapseToPoint() ?? (ITicNodeState)simplified;
@@ -150,6 +148,13 @@ public sealed class StateCompositeConstraints : ITicNodeState {
     public ITicNodeState TryCollapseToPoint() {
         if (!_descendant.HasValue || !_ancestor.HasValue) return null;
         if (_descendant.Value != _ancestor.Value) return null;
+        // IsClearable holds at collapse only if the concrete kind satisfies it.
+        // If user wrote `clear(xs); xs[i] = v` the intersection is List (only
+        // kind that satisfies both Array bound + IsClearable). When the
+        // interval collapses to a concrete K and IsClearable=true, K must
+        // already be Clearable — otherwise SimplifyOrNull should have
+        // rejected this interval earlier.
+        if (_isClearable && !ConstructorLattice.IsClearable(_descendant.Value)) return null;
         var sc = new StateCollection(_descendant.Value, ElementNode);
         return _isOptional ? (ITicNodeState)StateOptional.Of(sc) : sc;
     }
@@ -168,6 +173,11 @@ public sealed class StateCompositeConstraints : ITicNodeState {
         if (s._descendant.HasValue && s._ancestor.HasValue
             && !ConstructorLattice.IsSubtypeOf(s._descendant.Value, s._ancestor.Value))
             return null; // empty interval — `Desc > Anc` in the lattice
+        // IsClearable narrows the type-set. If Descendant is pinned to a kind
+        // that violates IsClearable, the interval is empty.
+        if (s._isClearable && s._descendant.HasValue
+            && !ConstructorLattice.IsClearable(s._descendant.Value))
+            return null;
         return s;
     }
 
@@ -191,7 +201,8 @@ public sealed class StateCompositeConstraints : ITicNodeState {
             ? ElementNode.State.PrintState(depth + 1)
             : ElementNode.Name?.ToString() ?? "?";
         var opt = _isOptional ? "?" : "";
-        return $"compCs[{desc}..{anc}, e={elem}]{opt}";
+        var clr = _isClearable ? "@clearable" : "";
+        return $"compCs[{desc}..{anc}, e={elem}]{opt}{clr}";
     }
 
     public override string ToString() => PrintState(0);

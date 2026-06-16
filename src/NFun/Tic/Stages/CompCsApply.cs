@@ -160,98 +160,15 @@ internal static class CompCsApply {
     }
 
     /// <summary>
-    /// Stage 5 / Map.3 — Forward <c>Apply(CompCS anc, StateMap desc)</c>. Map
-    /// satisfies <c>Enumerable&lt;{key, value}&gt;</c>. Synthesize a frozen
-    /// struct with key→KeyNode and value→ValueNode (identity shared with the
-    /// map), then merge that struct state into CompCS.ElementNode.
+    /// Stage 5 / Map.3 — DELETED. Map now flows as <c>StateCollection(Map,
+    /// structNode)</c> where structNode IS the frozen <c>{key, value}</c>
+    /// pair-struct. The CompCS×StateCollection cells (ForwardPullCompCsSc,
+    /// ForwardPushCompCsSc, ReversePullScCompCs, ReversePushScCompCs) handle
+    /// Map uniformly via the SC dispatch — the pair-struct synthesis is now
+    /// built ONCE at <c>StateCollection.OfMap</c> factory time (identity-stable
+    /// across all paths) instead of being re-synthesised per cell with fresh
+    /// nodes. Closes the dual-representation bug class.
     /// </summary>
-    public static bool ForwardPullCompCsStateMap(
-        StateCompositeConstraints ancestor, StateMap sm,
-        TicNode ancestorNode, TicNode descendantNode) {
-        var K = ConstructorKind.Map;
-        if (ancestor.HasAncestor && !ConstructorLattice.IsSubtypeOf(K, ancestor.Ancestor.Value))
-            return false;
-        var newDescKind = ancestor.HasDescendant
-            ? ConstructorLattice.Lca(ancestor.Descendant.Value, K)
-            : K;
-        var newState = ancestor.WithDescendant(newDescKind);
-        if (newState == null) return false;
-        var synth = new System.Collections.Generic.Dictionary<string, TicNode> {
-            { "key", sm.KeyNode },
-            { "value", sm.ValueNode },
-        };
-        var structNode = TicNode.CreateTypeVariableNode(new StateStruct(synth, isFrozen: true));
-        if (!System.Object.ReferenceEquals(ancestor.ElementNode, structNode))
-            SolvingFunctions.MergeInplace(ancestor.ElementNode, structNode);
-        ancestorNode.State = newState;
-        descendantNode.RemoveAncestor(ancestorNode);
-        SolvingFunctions.PullConstraintsForNode(ancestor.ElementNode);
-        return true;
-    }
-
-    /// <summary>Stage 5 / Map.3 — Forward Push. Precondition check.</summary>
-    public static bool ForwardPushCompCsStateMap(
-        StateCompositeConstraints ancestor, StateMap sm,
-        TicNode ancestorNode, TicNode descendantNode) {
-        var K = ConstructorKind.Map;
-        if (ancestor.HasAncestor && !ConstructorLattice.IsSubtypeOf(K, ancestor.Ancestor.Value))
-            return false;
-        return true;
-    }
-
-    /// <summary>Stage 5 / Map.3 — Reverse Pull. Collapse CompCS to StateMap.</summary>
-    public static bool ReversePullStateMapCompCs(
-        StateMap sm, StateCompositeConstraints descendant,
-        TicNode ancestorNode, TicNode descendantNode) {
-        var K = ConstructorKind.Map;
-        if (descendant.HasAncestor && !ConstructorLattice.IsSubtypeOf(K, descendant.Ancestor.Value))
-            return false;
-        if (descendant.HasDescendant && !ConstructorLattice.IsSubtypeOf(descendant.Descendant.Value, K))
-            return false;
-        // Synthesize struct, merge with CompCs.ElementNode.
-        var synth = new System.Collections.Generic.Dictionary<string, TicNode> {
-            { "key", sm.KeyNode },
-            { "value", sm.ValueNode },
-        };
-        var structNode = TicNode.CreateTypeVariableNode(new StateStruct(synth, isFrozen: true));
-        if (!System.Object.ReferenceEquals(descendant.ElementNode, structNode))
-            SolvingFunctions.MergeInplace(descendant.ElementNode, structNode);
-        // Collapse descendant CompCs to a concrete StateMap with the same key/value
-        // identities.
-        ITicNodeState collapsed = new StateMap(sm.KeyNode, sm.ValueNode);
-        if (descendant.IsOptional) collapsed = StateOptional.Of(collapsed);
-        descendantNode.State = collapsed;
-        descendantNode.RemoveAncestor(ancestorNode);
-        return true;
-    }
-
-    /// <summary>Stage 5 / Map.3 — Reverse Push. GCD on CompCs.Anc with Map.</summary>
-    public static bool ReversePushStateMapCompCs(
-        StateMap sm, StateCompositeConstraints descendant,
-        TicNode ancestorNode, TicNode descendantNode) {
-        var K = ConstructorKind.Map;
-        if (descendant.HasDescendant && !ConstructorLattice.IsSubtypeOf(descendant.Descendant.Value, K))
-            return false;
-        ConstructorKind newAnc;
-        if (descendant.HasAncestor) {
-            var narrowed = ConstructorLattice.Gcd(descendant.Ancestor.Value, K);
-            if (narrowed == null) return false;
-            newAnc = narrowed.Value;
-        } else {
-            newAnc = K;
-        }
-        var newState = descendant.WithAncestor(newAnc);
-        if (newState == null) return false;
-        var synth = new System.Collections.Generic.Dictionary<string, TicNode> {
-            { "key", sm.KeyNode },
-            { "value", sm.ValueNode },
-        };
-        var structNode = TicNode.CreateTypeVariableNode(new StateStruct(synth, isFrozen: true));
-        if (!System.Object.ReferenceEquals(descendant.ElementNode, structNode))
-            SolvingFunctions.MergeInplace(descendant.ElementNode, structNode);
-        descendantNode.State = newState;
-        return true;
-    }
 
     /// <summary>Cross with StateArray, forward direction — Layer-0 cross-rule §3.10.
     /// Try strict MergeInplace first (preserves element-node identity for
@@ -263,6 +180,32 @@ internal static class CompCsApply {
     public static bool ForwardCompCsStateArray(
         StateCompositeConstraints ancestor, StateArray sa,
         TicNode ancestorNode, TicNode descendantNode, bool isPull) {
+        // Cross-kind narrowing: CompCs imposes a stricter shape than ee-mode
+        // StateArray (which conceptually sits at FixedArray). When the CompCs
+        // cap (Anc) is in the lattice and narrower than/at FixedArray (Array,
+        // List, FixedArray, or any Clearable kind), narrow the descendant
+        // StateArray to a concrete StateCollection of the right kind. Mirror
+        // of `MergeOrNull` cross-kind rule (StateArray + StateCollection =
+        // StateCollection). With IsClearable=true, pick List (the unique
+        // Clearable kind in the Array branch).
+        if (ancestor.HasAncestor && ancestor.Ancestor.Value != ConstructorKind.Any
+            && ancestor.Ancestor.Value != ConstructorKind.Enumerable) {
+            var kind = ancestor.IsClearable
+                ? ConstructorKind.List
+                : ConstructorLattice.Concretest(ancestor.Ancestor.Value);
+            ITicNodeState narrowed = new StateCollection(kind, sa.ElementNode);
+            if (ancestor.IsOptional) narrowed = StateOptional.Of(narrowed);
+            descendantNode.State = narrowed;
+            if (isPull) descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
+        if (ancestor.IsClearable) {
+            ITicNodeState narrowed = new StateCollection(ConstructorKind.List, sa.ElementNode);
+            if (ancestor.IsOptional) narrowed = StateOptional.Of(narrowed);
+            descendantNode.State = narrowed;
+            if (isPull) descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
         if (isPull && sa.ElementNode != ancestor.ElementNode) {
             if (CanMergeStates(ancestor.ElementNode, sa.ElementNode)) {
                 SolvingFunctions.MergeInplace(ancestor.ElementNode, sa.ElementNode);

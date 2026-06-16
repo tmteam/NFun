@@ -75,6 +75,18 @@ public class DestructionFunctions : IStateFunction {
         // ConstraintsState to None, losing the Optional semantic.
         if (ancestor.IsOptional && !descendant.IsOptional)
         {
+            // Amadio-Cardelli '93 §3 contractivity: the lift `T ≤ opt(T)` is
+            // trivially satisfied when descendant.GetNonReference() is the
+            // same node we're about to wrap (or RefTo's onto it). Wrapping
+            // would produce `μX. opt(X)` — non-productive iso-recursive
+            // type that expands to opt(opt(opt(...))) and crashes printing/
+            // finalize. Mirrors the existing Pull/Push guard in
+            // StagesExtension.WrapAncestorInOptional line 185-186.
+            if (ReferenceEquals(descendantNode.GetNonReference(), ancestorNode))
+            {
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
+            }
             ancestorNode.State = new StateOptional(descendantNode);
             descendantNode.RemoveAncestor(ancestorNode);
             return true;
@@ -189,8 +201,7 @@ public class DestructionFunctions : IStateFunction {
                     Apply((StateOptional)ancestor.Descendant, opt, destructTarget, descendantNode),
                 StateCollection coll =>
                     Apply((StateCollection)ancestor.Descendant, coll, destructTarget, descendantNode),
-                StateMap map =>
-                    Apply((StateMap)ancestor.Descendant, map, destructTarget, descendantNode),
+                // StateMap deleted — Map flows as StateCollection(Map, …).
                 _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
             };
         }
@@ -396,20 +407,8 @@ public class DestructionFunctions : IStateFunction {
         || kind == ConstructorKind.Array
         || kind == ConstructorKind.FixedArray;
 
-    /// <summary>
-    /// Destruction for <see cref="StateMap"/> — two invariant arguments
-    /// (key + value). Cross-state instance: this fires when both sides are
-    /// concrete maps. Merge both pairs of nodes; unequal element types raise
-    /// a clean TIC error via MergeInplace (same rejection channel as
-    /// StateCollection same-kind invariance).
-    /// </summary>
-    public bool Apply(StateMap ancestor, StateMap descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.KeyNode != ancestor.KeyNode)
-            SolvingFunctions.MergeInplace(descendant.KeyNode, ancestor.KeyNode);
-        if (descendant.ValueNode != ancestor.ValueNode)
-            SolvingFunctions.MergeInplace(descendant.ValueNode, ancestor.ValueNode);
-        return true;
-    }
+    // StateMap deleted — map-vs-map Destruction handled by StateCollection
+    // same-kind cell via pointwise MergeInplace on the inner pair-struct.
 
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
         // Variance: for `desc ≤ anc` on StateFun (function subtyping):
@@ -604,9 +603,9 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         return descendant switch {
+            // StateMap was deleted — Map flows as StateCollection(Map, pair-struct).
             StateCollection sc => CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true),
-            StateMap sm => CompCsApply.ForwardPullCompCsStateMap(ancestor, sm, ancestorNode, descendantNode),
             StateOptional _ => true,
             StateFun _ => false,
             StateStruct _ => false,
@@ -618,7 +617,6 @@ public class DestructionFunctions : IStateFunction {
         return ancestor switch {
             StateCollection sc => CompCsApply.ReversePullScCompCs(sc, descendant, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: true),
-            StateMap sm => CompCsApply.ReversePullStateMapCompCs(sm, descendant, ancestorNode, descendantNode),
             StateOptional _ => true,
             StateFun _ => false,
             StateStruct _ => false,

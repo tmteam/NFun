@@ -46,6 +46,7 @@ public class MapFactoryFunction : GenericFunctionBase {
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var keyType = concreteTypesMap[0];
         var valueType = concreteTypesMap[1];
+        ImmutableTypePredicate.RequireImmutable(keyType, "map", "key");
         var concretePair = FunnyType.StructOf(("key", keyType), ("value", valueType));
         var concreteArgs = Enumerable.Repeat(concretePair, _arity).ToArray();
         return new ConcreteMapFactory(

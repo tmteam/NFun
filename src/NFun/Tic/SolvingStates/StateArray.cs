@@ -93,16 +93,14 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
-    private const int LeafMark = -56000;
-
     public IEnumerable<TicNode> AllLeafTypes
     {
         get
         {
             if (ElementNode.State is ICompositeState composite) {
-                if (ElementNode.VisitMark == LeafMark) yield break;
+                if (ElementNode.VisitMark == Tic.TicVisitMarks.StateLeaf) yield break;
                 var prev = ElementNode.VisitMark;
-                ElementNode.VisitMark = LeafMark;
+                ElementNode.VisitMark = Tic.TicVisitMarks.StateLeaf;
                 foreach (var leaf in composite.AllLeafTypes)
                     yield return leaf;
                 ElementNode.VisitMark = prev;

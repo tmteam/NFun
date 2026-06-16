@@ -33,8 +33,16 @@ public class PushConstraintsFunctions : IStateFunction {
         TicNode descendantNode) {
         // Propagate IsComparable downward: if ancestor requires comparability,
         // descendant must also be comparable. Rule: D.cmp := D.cmp ∨ A.cmp
-        if (ancestor.IsComparable && !descendant.IsComparable)
+        bool flagChanged = false;
+        if (ancestor.IsComparable && !descendant.IsComparable) {
             descendant.IsComparable = true;
+            flagChanged = true;
+        }
+        // Same rule for Clearable typeclass: D.clr := D.clr ∨ A.clr
+        if (ancestor.IsClearable && !descendant.IsClearable) {
+            descendant.IsClearable = true;
+            flagChanged = true;
+        }
 
         // F-bound StructBound merges via Gcd (meet of upper bounds). Symmetric to Pull's
         // Apply(CS,CS). Runs independently of HasAncestor — StructBound is a third dimension,
@@ -45,6 +53,18 @@ public class PushConstraintsFunctions : IStateFunction {
                 : SolvingFunctions.GcdBound(descendant.StructBound, ancestor.StructBound,
                                             descendantNode, ancestorNode);
             if (!descendant.HasStructBound) return false; // conflict
+            flagChanged = true;
+        }
+
+        // Trans-axis consistency check after typeclass-flag propagation. Without
+        // this, an IsComparable-only ancestor can stamp IsComparable onto a
+        // descendant whose Descendant is a composite (struct/array/fun) — the
+        // resulting CS is algebraically inconsistent and Finalize emits a type
+        // that crashes at runtime cast. Gated: only validates when a flag
+        // actually changed AND the descendant carries something for it to
+        // conflict with.
+        if (flagChanged && descendant.HasDescendant) {
+            if (descendant.SimplifyOrNull() == null) return false;
         }
 
         if (!ancestor.HasAncestor)
@@ -62,6 +82,23 @@ public class PushConstraintsFunctions : IStateFunction {
     public bool Apply(ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.HasAncestor && ancestor.Ancestor != StatePrimitive.Any)
             return false;
+        // Clearable typeclass narrowing: when ancestor CS requires IsClearable
+        // and descendant is non-Clearable composite, narrow descendant to
+        // StateCollection(List) — symmetric to the IsComparable+composite
+        // rule in CS.SimplifyOrNull.
+        // Only fire when ancestor is NOT IsOptional. With IsOptional, the
+        // wrap interacts with the existing Optional-lift cell below (line
+        // 154) creating a self-Optional cycle in implicit-None-return bodies.
+        if (ancestor.IsClearable && !ancestor.IsOptional) {
+            if (descendant is StateArray narrSa) {
+                descendantNode.State = new StateCollection(ConstructorKind.List, narrSa.ElementNode);
+                return true;
+            }
+            if (descendant is StateCollection narrSc && !ConstructorLattice.IsClearable(narrSc.Constructor)) {
+                descendantNode.State = new StateCollection(ConstructorKind.List, narrSc.ElementNode);
+                return true;
+            }
+        }
 
         // F-bound on ancestor projects fields down onto descendant struct (covariant width
         // subtype). When ancestor has S and descendant is a StateStruct, treat S like an
@@ -149,9 +186,11 @@ public class PushConstraintsFunctions : IStateFunction {
         // Transform to Optional first, then push the composite constraint into the element.
         // This is uniform for Array, Fun, Struct — not a special case per composite type.
         if (descendant.IsOptional && ancestor is not StateOptional) {
+            var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+            innerCs.IsClearable = descendant.IsClearable;
             var innerNode = TicNode.CreateTypeVariableNode(
                 "e" + descendantNode.Name + "'",
-                ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable));
+                innerCs);
             innerNode.IsOptionalElement = true;
             descendantNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
@@ -166,6 +205,27 @@ public class PushConstraintsFunctions : IStateFunction {
             // y:int[] = a:[..]  # 'a' has to be an array
             case StateArray ancArray:
             {
+                // Clearable-typeclass intersection: when descendant CS carries
+                // IsClearable=true, the only kind in the Array-branch that
+                // satisfies Clearable is List. Route through the unified
+                // StateCollection(List) path so the descendant collapses to a
+                // List which simultaneously satisfies the StateArray ancestor
+                // edge (List ⊆ Array-branch in the cross-kind merge rule).
+                if (descendant.IsClearable
+                    && !descendant.HasDescendant
+                    && !descendant.IsComparable
+                    && !descendant.HasStructBound) {
+                    var listResult = SolvingFunctions.TransformToCollectionOrNull(
+                        ConstructorKind.List, descendantNode.Name, descendant);
+                    if (listResult == null) return false;
+                    if (listResult.ElementNode != ancArray.ElementNode)
+                        listResult.ElementNode.AddAncestor(ancArray.ElementNode);
+                    descendantNode.State = listResult;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    if (listResult.ElementNode != ancArray.ElementNode)
+                        SolvingFunctions.PushConstraints(listResult.ElementNode, ancArray.ElementNode);
+                    return true;
+                }
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
                 if (result == null)
                     return false;
@@ -197,26 +257,8 @@ public class PushConstraintsFunctions : IStateFunction {
                 SolvingFunctions.PushConstraints(result.ElementNode, ancColl.ElementNode);
                 return true;
             }
-            // Stage 5 / Map.2 — two-arg invariant map. Same logic as collection
-            // but propagate both KeyNode and ValueNode.
-            case StateMap ancMap:
-            {
-                var result = SolvingFunctions.TransformToMapOrNull(descendantNode.Name, descendant);
-                if (result == null) return false;
-                if (result.KeyNode == ancMap.KeyNode && result.ValueNode == ancMap.ValueNode) {
-                    descendantNode.RemoveAncestor(ancestorNode);
-                    return true;
-                }
-                if (result.KeyNode != ancMap.KeyNode) result.KeyNode.AddAncestor(ancMap.KeyNode);
-                if (result.ValueNode != ancMap.ValueNode) result.ValueNode.AddAncestor(ancMap.ValueNode);
-                descendantNode.State = result;
-                descendantNode.RemoveAncestor(ancestorNode);
-                if (result.KeyNode != ancMap.KeyNode)
-                    SolvingFunctions.PushConstraints(result.KeyNode, ancMap.KeyNode);
-                if (result.ValueNode != ancMap.ValueNode)
-                    SolvingFunctions.PushConstraints(result.ValueNode, ancMap.ValueNode);
-                return true;
-            }
+            // StateMap deleted — Map flows through `case StateCollection ancColl`
+            // above (with kind = ConstructorKind.Map) via the same path.
             // y:f(x) = a:[..]  # 'a' has to be a functional variable
             case StateFun ancFun:
             {
@@ -390,9 +432,20 @@ public class PushConstraintsFunctions : IStateFunction {
         if (ancestor.Constructor != descendant.Constructor)
         {
             if (!IsArrayBranchKind(ancestor.Constructor)
-                || !IsArrayBranchKind(descendant.Constructor)
-                || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
+                || !IsArrayBranchKind(descendant.Constructor))
                 return false;
+            if (IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor)) {
+                // descendant already narrower-or-equal — element push only.
+            } else if (IsSubtypeOrEqual(ancestor.Constructor, descendant.Constructor)) {
+                // ancestor is narrower (e.g. anc=List vs desc=Array). Narrow
+                // the descendant to the ancestor's kind — both Array-branch
+                // constraints must hold simultaneously, intersection is the
+                // narrower kind. Required for Clearable + indexed-write where
+                // ancestor edge converged to List and descendant carries Array.
+                descendantNode.State = new StateCollection(ancestor.Constructor, descendant.ElementNode);
+            } else {
+                return false;
+            }
         }
         SolvingFunctions.PushConstraints(descendant.ElementNode, ancestor.ElementNode);
         return true;
@@ -431,15 +484,7 @@ public class PushConstraintsFunctions : IStateFunction {
         || kind == ConstructorKind.Array
         || kind == ConstructorKind.FixedArray;
 
-    /// <summary>
-    /// Stage 5 / Map.2 — Push for <c>map&lt;K, V&gt;</c>. Both key and value
-    /// invariant: push constraints both ways.
-    /// </summary>
-    public bool Apply(StateMap ancestor, StateMap descendant, TicNode ancestorNode, TicNode descendantNode) {
-        SolvingFunctions.PushConstraints(descendant.KeyNode, ancestor.KeyNode);
-        SolvingFunctions.PushConstraints(descendant.ValueNode, ancestor.ValueNode);
-        return true;
-    }
+    // StateMap deleted — map-vs-map Push handled by StateCollection same-kind cell.
 
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.ArgsCount != ancestor.ArgsCount)
@@ -513,6 +558,13 @@ public class PushConstraintsFunctions : IStateFunction {
             return CompCsApply.ForwardPushCompCsSc(ancestor, sc, ancestorNode, descendantNode);
         if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
             return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: false);
+        // Typeclass propagation analogue of IsComparable rule `D.cmp := D.cmp ∨ A.cmp`
+        // (Push CS→CS line 36): if the ancestor's CompCs carries IsClearable=true,
+        // mark the descendant CS too. This avoids replacing the CS state (which
+        // freezes its shape too early) while still propagating the typeclass
+        // requirement so it eventually surfaces at FunnyType conversion.
+        if (ancestor.IsClearable && !descendant.IsClearable)
+            descendant.IsClearable = true;
         // Empty / primitive-bound CS: defer (mirrors Pull behaviour). Reject when CS positively
         // forbids composites.
         if (descendant.IsComparable) return false;
@@ -526,9 +578,9 @@ public class PushConstraintsFunctions : IStateFunction {
 
     public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         return descendant switch {
+            // StateMap was deleted — Map flows as StateCollection(Map, pair-struct).
             StateCollection sc => CompCsApply.ForwardPushCompCsSc(ancestor, sc, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: false),
-            StateMap sm => CompCsApply.ForwardPushCompCsStateMap(ancestor, sm, ancestorNode, descendantNode),
             StateOptional _ => true,
             StateFun _ => false,
             StateStruct _ => false,
@@ -540,7 +592,6 @@ public class PushConstraintsFunctions : IStateFunction {
         return ancestor switch {
             StateCollection sc => CompCsApply.ReversePushScCompCs(sc, descendant, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: false),
-            StateMap sm => CompCsApply.ReversePushStateMapCompCs(sm, descendant, ancestorNode, descendantNode),
             StateOptional _ => true,
             StateFun _ => false,
             StateStruct _ => false,

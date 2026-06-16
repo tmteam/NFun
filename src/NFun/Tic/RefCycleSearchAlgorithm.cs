@@ -7,9 +7,9 @@ namespace NFun.Tic;
 class RefCycleSearchAlgorithm {
     private readonly int _nodeInListMark;
 
-    private const int RefVisitingMark = 6782341;
+    private const int RefVisitingMark = TicVisitMarks.RefVisiting;
 
-    private const int RefVisitedMark = 672901236;
+    private const int RefVisitedMark = TicVisitMarks.RefVisited;
 
     public TicNode GetNonReferenceMergedOrNull(TicNode node) {
         if (node.VisitMark == RefVisitedMark)

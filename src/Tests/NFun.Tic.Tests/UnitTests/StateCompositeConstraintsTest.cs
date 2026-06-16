@@ -304,42 +304,82 @@ public class StateCompositeConstraintsTest {
     #region Cycle-guard mark constants — collision check
 
     [Test]
-    public void MarkConstants_NoCollisionWithStateCollection() {
-        // StateCollection.CycleGuard = -57600 (private — checked via spec).
-        // CompCS range is -59000..-59600.
-        Assert.Less(StateCompositeConstraints.CompCsXArrayMark, -57600);
+    public void MarkConstants_AllCentralized() {
+        // Sanity check that the CompCs-related marks live in the central
+        // TicVisitMarks registry (see TicVisitMarks.cs comment for the
+        // single-source-of-truth invariant). Anyone adding a new TIC mark
+        // must add it there to keep the AllDistinct/Range checks below
+        // load-bearing.
+        var marks = new[] {
+            NFun.Tic.TicVisitMarks.CompCsLcaSame,
+            NFun.Tic.TicVisitMarks.CompCsUnify,
+            NFun.Tic.TicVisitMarks.CompCsConcretest,
+            NFun.Tic.TicVisitMarks.CompCsAbstractest,
+            NFun.Tic.TicVisitMarks.CompCsXCollLca,
+            NFun.Tic.TicVisitMarks.CompCsXCollGcd,
+            NFun.Tic.TicVisitMarks.CompCsXCollUnify,
+            NFun.Tic.TicVisitMarks.CompCsXArrayLca,
+            NFun.Tic.TicVisitMarks.CompCsXArrayGcd,
+            NFun.Tic.TicVisitMarks.CompCsXArrayUnify,
+        };
+        Assert.AreEqual(10, marks.Length);
     }
 
     [Test]
     public void MarkConstants_AllDistinct() {
+        // Distinctness across ALL TIC mark constants, not just CompCs — the
+        // central TicVisitMarks file is the single source of truth, so the
+        // distinctness check must cover everything declared there. The shared
+        // `StateLeaf = -56000` (used by StateArray / StateOptional / StateStruct
+        // in disjoint contexts) is intentional and excluded from the set.
         var marks = new[] {
-            StateCompositeConstraints.CompCsLcaMark,
-            StateCompositeConstraints.CompCsGcdMark,
-            StateCompositeConstraints.CompCsUnifyMark,
-            StateCompositeConstraints.CompCsConcretestMark,
-            StateCompositeConstraints.CompCsAbstractestMark,
-            StateCompositeConstraints.CompCsXCollMark,
-            StateCompositeConstraints.CompCsXArrayMark,
+            NFun.Tic.TicVisitMarks.OutputType,
+            NFun.Tic.TicVisitMarks.TypeVariableVisited,
+            NFun.Tic.TicVisitMarks.LeafCollect,
+            NFun.Tic.TicVisitMarks.NodeInList,
+            NFun.Tic.TicVisitMarks.StateOptionalIsSolvedCycle,
+            NFun.Tic.TicVisitMarks.StructIsSolved,
+            NFun.Tic.TicVisitMarks.StateLeaf, // shared, but unique numeric value
+            NFun.Tic.TicVisitMarks.StructPrint,
+            NFun.Tic.TicVisitMarks.CompositeLeaf,
+            NFun.Tic.TicVisitMarks.CompositeIsMutableCycle,
+            NFun.Tic.TicVisitMarks.CompositeIsSolvedCycle,
+            NFun.Tic.TicVisitMarks.CompCsLcaSame,
+            NFun.Tic.TicVisitMarks.CompCsUnify,
+            NFun.Tic.TicVisitMarks.CompCsConcretest,
+            NFun.Tic.TicVisitMarks.CompCsAbstractest,
+            NFun.Tic.TicVisitMarks.CompCsXCollLca,
+            NFun.Tic.TicVisitMarks.CompCsXCollGcd,
+            NFun.Tic.TicVisitMarks.CompCsXCollUnify,
+            NFun.Tic.TicVisitMarks.CompCsXArrayLca,
+            NFun.Tic.TicVisitMarks.CompCsXArrayGcd,
+            NFun.Tic.TicVisitMarks.CompCsXArrayUnify,
+            NFun.Tic.TicVisitMarks.RefVisiting,
+            NFun.Tic.TicVisitMarks.RefVisited,
         };
         var set = new System.Collections.Generic.HashSet<int>(marks);
-        Assert.AreEqual(marks.Length, set.Count, "Cycle-guard mark constants must be unique.");
+        Assert.AreEqual(marks.Length, set.Count,
+            "TicVisitMarks constants must be unique. Check TicVisitMarks.cs for collisions.");
     }
 
     [Test]
-    public void MarkConstants_InReservedRange() {
-        // Spec §3.8.1: -59000..-59600.
+    public void MarkConstants_CompCsInReservedRange() {
+        // Spec §3.8.1: -59000..-59700 reserved for StateCompositeConstraints.
         var marks = new[] {
-            StateCompositeConstraints.CompCsLcaMark,
-            StateCompositeConstraints.CompCsGcdMark,
-            StateCompositeConstraints.CompCsUnifyMark,
-            StateCompositeConstraints.CompCsConcretestMark,
-            StateCompositeConstraints.CompCsAbstractestMark,
-            StateCompositeConstraints.CompCsXCollMark,
-            StateCompositeConstraints.CompCsXArrayMark,
+            NFun.Tic.TicVisitMarks.CompCsLcaSame,
+            NFun.Tic.TicVisitMarks.CompCsUnify,
+            NFun.Tic.TicVisitMarks.CompCsConcretest,
+            NFun.Tic.TicVisitMarks.CompCsAbstractest,
+            NFun.Tic.TicVisitMarks.CompCsXCollLca,
+            NFun.Tic.TicVisitMarks.CompCsXCollGcd,
+            NFun.Tic.TicVisitMarks.CompCsXCollUnify,
+            NFun.Tic.TicVisitMarks.CompCsXArrayLca,
+            NFun.Tic.TicVisitMarks.CompCsXArrayGcd,
+            NFun.Tic.TicVisitMarks.CompCsXArrayUnify,
         };
         foreach (var m in marks) {
             Assert.LessOrEqual(m, -59000);
-            Assert.GreaterOrEqual(m, -59600);
+            Assert.GreaterOrEqual(m, -59700);
         }
     }
 

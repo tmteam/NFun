@@ -43,10 +43,9 @@ public sealed class StateCollection : StateComposite {
 
     public StateCollection(ConstructorKind constructor, TicNode elementNode) {
         if (constructor == ConstructorKind.Any
-            || constructor == ConstructorKind.Enumerable
-            || constructor == ConstructorKind.Map)
+            || constructor == ConstructorKind.Enumerable)
             throw new ArgumentException(
-                $"StateCollection cannot represent {constructor} — not a single-arg concrete collection",
+                $"StateCollection cannot represent {constructor} — abstract constraint-only kind",
                 nameof(constructor));
         Constructor = constructor;
         ElementNode = elementNode;
@@ -77,6 +76,39 @@ public sealed class StateCollection : StateComposite {
     public static StateCollection OfFixedArray(TicNode node)   => new(ConstructorKind.FixedArray, node);
     public static StateCollection OfMutableArray(TicNode node) => new(ConstructorKind.Array, node);
     public static StateCollection OfSet(TicNode node)          => new(ConstructorKind.Set, node);
+
+    /// <summary>
+    /// Map factory — builds a frozen pair-struct <c>{key:K, value:V}</c> element
+    /// node and wraps it as <c>StateCollection(Map, structNode)</c>. The struct's
+    /// field nodes ARE the passed keyNode and valueNode — preserves positional
+    /// generic identity from the caller's genericMap, so signature-level K and V
+    /// continue to bind correctly through field-node identity even though the
+    /// shape now goes through a single element slot.
+    ///
+    /// <para>Identity stability: the structNode is built ONCE per <c>OfMap</c>
+    /// call; downstream Apply cells reuse the SAME node so K/V identities stay
+    /// stable across merges. Clients that need access to K/V should pattern
+    /// match on the element struct (no dedicated accessors — keeps the class
+    /// data-driven by <see cref="Constructor"/>).</para>
+    /// </summary>
+    public static StateCollection OfMap(TicNode keyNode, TicNode valueNode) {
+        var fields = new System.Collections.Generic.Dictionary<string, TicNode>(2, System.StringComparer.OrdinalIgnoreCase) {
+            { "key",   keyNode   },
+            { "value", valueNode },
+        };
+        var structNode = TicNode.CreateTypeVariableNode(new StateStruct(fields, isFrozen: true));
+        return new StateCollection(ConstructorKind.Map, structNode);
+    }
+
+    public static StateCollection OfMap(ITicNodeState keyState, ITicNodeState valueState)
+        => OfMap(WrapMapArg(keyState), WrapMapArg(valueState));
+
+    private static TicNode WrapMapArg(ITicNodeState state) => state switch {
+        ITypeState t        => TicNode.CreateTypeVariableNode(t),
+        StateRefTo refTo    => refTo.Node,
+        ConstraintsState c  => TicNode.CreateInvisibleNode(c),
+        _ => throw new InvalidOperationException($"Map K/V cannot be {state}")
+    };
 
     public TicNode ElementNode { get; }
     public ITicNodeState Element => ElementNode.State;
@@ -115,7 +147,27 @@ public sealed class StateCollection : StateComposite {
             return StatePrimitive.Any;
         if (Element is not ITypeState a || other.Element is not ITypeState b)
             return null;
-        return a.Equals(b) ? (ITypeState)this : StatePrimitive.Any;
+        if (a.Equals(b)) return this;
+        // Element-wise LCA recursion — ONLY for composite elements (StateStruct,
+        // nested StateCollection, etc.). Composite LCA naturally recurses into
+        // sub-elements, where soft CS-typed fields (integer literals with
+        // Preferred=I32) can be widened by their own LCA. This matches the
+        // list-of-struct / struct-of-int+real precedent: without annotations
+        // the inferred widening cascades through structural layers.
+        //
+        // Primitive elements keep strict invariance (return Any). Rationale:
+        // when user writes `a:list<int>; b:list<real>`, those are two distinct
+        // types — silently widening would break Stage 0 invariance and is
+        // pinned by unit tests (PullPushTest.IfElse_DifferentLists_*). The
+        // script case `[1,2,3] + [1.0]` doesn't hit this path: list element
+        // stays CS (not ITypeState), the early `Element is not ITypeState`
+        // bail-out falls through to LcaOrShareIdentity + MergeInplace.
+        if (a is ICompositeState && b is ICompositeState) {
+            var sameKindElemLca = a.GetLastCommonAncestorOrNull(b);
+            if (sameKindElemLca == null || sameKindElemLca == StatePrimitive.Any) return StatePrimitive.Any;
+            return Of(Constructor, sameKindElemLca);
+        }
+        return StatePrimitive.Any;
     }
 
     /// <summary>
@@ -150,6 +202,14 @@ public sealed class StateCollection : StateComposite {
 
     public override string PrintState(int depth) {
         if (depth > 100) return $"{KindName}(...REQ...)";
+        // Map prints as map(K, V) — extract from the inner pair-struct's fields
+        // so the surface output stays the same as the legacy StateMap printer.
+        if (Constructor == ConstructorKind.Map
+            && ElementNode.GetNonReference().State is StateStruct ss
+            && ss.GetFieldOrNull("key") is { } k
+            && ss.GetFieldOrNull("value") is { } v) {
+            return $"map({k.State.PrintState(depth + 1)},{v.State.PrintState(depth + 1)})";
+        }
         return $"{KindName}({Element.PrintState(depth + 1)})";
     }
 
@@ -163,6 +223,7 @@ public sealed class StateCollection : StateComposite {
         ConstructorKind.FixedArray => "fixedArray",
         ConstructorKind.Array      => "mutArr",
         ConstructorKind.Set        => "set",
+        ConstructorKind.Map        => "map",
         _ => Constructor.ToString(),
     };
 }
