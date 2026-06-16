@@ -47,6 +47,14 @@ internal static class CompCsApply {
                 SolvingFunctions.MergeInplace(ancestor.ElementNode, sc.ElementNode);
             } else {
                 sc.ElementNode.AddAncestor(ancestor.ElementNode);
+                // Restore P3 Monotonicity (TicProofs.md §3): the AddAncestor
+                // fallback edge is one-way (sc.elem → ancestor.elem) but the
+                // bidirectional Preferred-copy rule (TicPreferred.md §3) is only
+                // applied by Apply(CS, CS) at edge processing time. Streaming
+                // Pull may have processed sc.elem before this edge existed —
+                // its Preferred metadata never reaches ancestor.elem via the
+                // standard path. Explicit copy here closes the gap. Debt #16.
+                PropagatePreferredAcrossFallback(sc.ElementNode, ancestor.ElementNode);
             }
             // Eager re-Pull: streaming toposort already processed the element
             // before this Apply changed its constraints/ancestors.
@@ -64,6 +72,21 @@ internal static class CompCsApply {
         var sa = a.GetNonReference().State;
         var sb = b.GetNonReference().State;
         return SolvingFunctions.GetMergedStateOrNull(sa, sb) != null;
+    }
+
+    /// <summary>
+    /// Restore P3 Monotonicity of Pull (TicProofs.md §3) at the CompCs cross-Apply
+    /// AddAncestor-fallback boundary: when MergeInplace can't fire, the descendant's
+    /// Preferred metadata would otherwise be lost. Mirror the bidirectional
+    /// Preferred-copy rule from Apply(CS, CS) (PullConstraintsFunctions line 33-36 /
+    /// TicPreferred.md §3) so it holds at this cross-cell too. Closes debt #16.
+    /// </summary>
+    private static void PropagatePreferredAcrossFallback(TicNode source, TicNode target) {
+        if (target.GetNonReference().State is ConstraintsState targetCs
+            && source.GetNonReference().State is ConstraintsState sourceCs
+            && targetCs.Preferred == null && sourceCs.Preferred != null) {
+            targetCs.Preferred = sourceCs.Preferred;
+        }
     }
 
     /// <summary>§4.1.2 Forward Push `Apply(CompCS anc, StateCollection desc)`.
@@ -241,10 +264,13 @@ internal static class CompCsApply {
         StateCompositeConstraints ancestor, StateArray sa,
         TicNode ancestorNode, TicNode descendantNode, bool isPull) {
         if (isPull && sa.ElementNode != ancestor.ElementNode) {
-            if (CanMergeStates(ancestor.ElementNode, sa.ElementNode))
+            if (CanMergeStates(ancestor.ElementNode, sa.ElementNode)) {
                 SolvingFunctions.MergeInplace(ancestor.ElementNode, sa.ElementNode);
-            else
+            } else {
                 sa.ElementNode.AddAncestor(ancestor.ElementNode);
+                // P3 Monotonicity restore — see PropagatePreferredAcrossFallback. Debt #16.
+                PropagatePreferredAcrossFallback(sa.ElementNode, ancestor.ElementNode);
+            }
             SolvingFunctions.PullConstraintsForNode(ancestor.ElementNode);
         }
         if (isPull)
@@ -257,10 +283,13 @@ internal static class CompCsApply {
         StateArray sa, StateCompositeConstraints descendant,
         TicNode ancestorNode, TicNode descendantNode, bool isPull) {
         if (isPull && descendant.ElementNode != sa.ElementNode) {
-            if (CanMergeStates(descendant.ElementNode, sa.ElementNode))
+            if (CanMergeStates(descendant.ElementNode, sa.ElementNode)) {
                 SolvingFunctions.MergeInplace(descendant.ElementNode, sa.ElementNode);
-            else
+            } else {
                 descendant.ElementNode.AddAncestor(sa.ElementNode);
+                // P3 Monotonicity restore — see PropagatePreferredAcrossFallback. Debt #16.
+                PropagatePreferredAcrossFallback(descendant.ElementNode, sa.ElementNode);
+            }
             SolvingFunctions.PullConstraintsForNode(descendant.ElementNode);
         }
         if (isPull)

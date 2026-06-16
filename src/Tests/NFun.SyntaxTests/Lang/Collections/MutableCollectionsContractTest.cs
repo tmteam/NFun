@@ -2004,11 +2004,8 @@ public class MutableCollectionsContractTest {
         Assert.AreEqual(12, arr[1]);
     }
 
-    [Test, Ignore("Stage 5 limitation: lang-mode also affected — byte→real upcast through nested map loses precision via the Enumerable cross-Apply (not ee-mode-specific as initially documented). TicTechnicalDebt.md #16.")]
+    [Test, Ignore("Stage 5 limitation: debt #16 partial — P3 Monotonicity fix in PropagatePreferredAcrossFallback closes the Preferred-axis violation but this case also loses precision on the Descendant axis through multi-level nested CompCs cross-Apply. Full fix requires either worklist Pull (debt #10) or full 6-dimension propagation at fallback. TicProofs.md §3.")]
     public void LangMirror_NestedByteUpcastMap_RealResult() {
-        // Mirror of TwinArrayWithUpcast_lambdaConstCalculate. Pins that this
-        // regression spans BOTH ee-mode and lang-mode — the cross-Apply with
-        // CompCs affects any descendant collection (StateArray or StateCollection).
         var rt = Funny.Hardcore.BuildLang(
             "fun f():\n    x:byte = 5\n" +
             "    return [[0,1],[2,3],[x]].map(rule it.map(rule it+1).sum()).sum()\n" +

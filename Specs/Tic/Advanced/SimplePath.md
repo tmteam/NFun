@@ -1,4 +1,6 @@
-# TIC Simple Path (SimplePrimitiveSolver)
+# Simple Path (Primitive-Only Fast-Path)
+
+> **Scope**: a performance optimization that short-circuits the full TIC pipeline when an expression contains only primitive types (no composites). Falls back to full TIC otherwise. Orthogonal to the core algebra — composite expressions skip this fast-path entirely.
 
 Fast-path type inference for primitive-only expressions. Replaces full TIC with monotone dataflow on a finite lattice when no composite types are present.
 

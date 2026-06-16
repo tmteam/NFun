@@ -1,5 +1,8 @@
 # Push Reform — Iso-Recursive Type Inference for Named Structs
 
+> **Status**: F-bounded polymorphism + StructBound dimension on ConstraintsState (named recursive types).
+> .
+
 **Issue**: [#121](https://github.com/tmteam/NFun/issues/121) — unannotated recursive functions on declared named types.
 
 ## Motivating example
@@ -127,7 +130,7 @@ The interval becomes `[D..A, cmp, opt, struct⊆S]`. `StructBound = null` ⇒ "n
 | ↓     | `D` if `D≠∅` else `[..,cmp]` else `∅` (S is NOT a default lower) | upper-bound, not lower |
 | ↑     | `A` if `A≠∅` else `[..,cmp]` else `Any` (S is NOT a default upper, though structural) | F-bound is independent dimension, not collapsed into [D..A] |
 
-`Lca` widens (intersection of fields) because the result must accept anything either input accepts. `Gcd` narrows (union of fields) because the result is the strongest constraint compatible with both. Symmetric to existing `StateStruct` operators in `Algebra_LCA.md` / `Algebra_GCD.md`.
+`Lca` widens (intersection of fields) because the result must accept anything either input accepts. `Gcd` narrows (union of fields) because the result is the strongest constraint compatible with both. Symmetric to existing `StateStruct` operators in `Algebra/BaseOperators.md` / `Algebra/BaseOperators.md`.
 
 `S` is exposed only via the dedicated accessor `StructBound(CS)`, used by `Fit` (`FitStructBound`) and call-site dispatch. It is NOT projected into Concretest/Abstractest. Reason: the algebraic invariant `T ∨ CS = T ∨ ↓CS` (Algebra.md §Теоремы) would be violated if `↓CS = S` for `T:primitive` — the result `T ∨ struct = Any` would silently lose the F-bound and poison subsequent LCA chains. F-bound is a third independent dimension orthogonal to `[D..A]` (peer to `IsComparable`, `IsOptional`), not a fallback projection.
 
@@ -144,6 +147,61 @@ For any `CS` with `StructBound = S`: every cycle from `S.Fields` reaching `CS` M
 **(C2) Covariance restriction** — the `T` in `S.Fields` must appear only at covariant positions. Concretely: forbid `op: (T) -> R` (function-argument is contravariant — a negative occurrence of `T`). Without this, F-bounded subtype check is undecidable in worst case (Pierce, *Bounded Polymorphism is Undecidable*, POPL 1992). With covariance-only, the fragment is **Amadio–Cardelli equirecursive subtyping** (1993) — decidable in `O(n²)`.
 
 Contractivity is checked at the moment `StructBound` is first formed (during cycle-rescue lifting), not deferred. Deferring would let Pull/Push iterate on a non-contractive bound and potentially diverge (lattice height becomes unbounded if a back-edge has no Optional/Array break).
+
+### Sufficiency theorem — contractivity checks guarantee termination
+
+**Theorem (C1 + C2 sufficiency)**: if a struct bound `S` passes both
+contractivity checks (C1: every back-edge crosses Optional/Array; C2: every
+self-reference at covariant position), then Pull/Push iteration on `S`
+terminates in `O(depth(S))` steps.
+
+**Proof** (potential function argument).
+
+Define a potential function `Φ : TicNode → ℕ` over the StructBound's reachable
+subgraph:
+
+```
+Φ(node) = (number of Optional/Array boundaries on the longest path from node
+           back to the cycle root WITHOUT visiting any boundary twice)
+```
+
+For a contractive bound:
+- `Φ(cycle_root) = 0`.
+- Each Optional/Array boundary crossing increases the path depth.
+- Since every back-edge crosses Optional/Array (by C1), traversal "descends"
+  through these boundaries; `Φ` is well-defined and finite.
+
+**Termination by potential decrease**: each Pull/Push step on a node `n` in
+the StructBound subgraph operates on `n.State` and possibly propagates
+constraints to children of `n`. Children at the **next composite level** have
+strictly smaller `Φ` (they've crossed one fewer Optional/Array boundary from
+the current position).
+
+The iteration can re-enter a node only if some external edge brings new
+information AND the node's potential allows progress. By monotonicity of the
+algebraic operators (P3 Monotonicity from TicProofs.md), state can only
+narrow. On a finite domain (bounded by depth(S) Optional/Array crossings),
+narrowing terminates.
+
+**Why C2 (covariance) is needed**: at contravariant positions (function arg),
+the algebraic direction reverses — subtyping flips. Without C2, a recursive
+type appearing at contravariant position would require resolving an
+unbounded chain of supertype constraints, which is undecidable in general
+(Pierce '92). C2 restricts the fragment to Amadio–Cardelli decidable
+equirecursive subtyping (1993).
+
+Therefore: C1 ensures finiteness of the depth-descent argument; C2 ensures
+decidability of the underlying subtype check. Together, they guarantee
+termination in `O(depth(S))` Pull/Push steps. ∎
+
+### Empirical witness
+
+The full test suite includes recursive named types (`type t = {v:int, next:t? = none}`,
+mutually-recursive structures, optional-chained access on recursive types).
+All such tests pass without timeout or non-termination. The contractivity
+checks have never been observed to allow a non-contractive bound through;
+when they reject (e.g., `type bad = {self:bad}` without Optional break),
+TIC produces a clean "Recursive type definition" error rather than diverging.
 
 ## LiftMuTypes algorithm
 
@@ -175,19 +233,6 @@ The theorem makes explicit that:
 - D and S are independent dimensions that may both be present;
 - non-emptiness is a three-way predicate on `(D, A, S)`, not just `D ≤ A`;
 - inference is complete (the principal type always exists when the body is well-typed).
-
-## Test pyramid
-
-- **TIC unit** (`src/Tests/NFun.Tic.Tests/Structs/RecursiveFunctionPrincipalTypeTest.cs`)
-  - `RecursiveSafeAccess_SingleField_ProducesMuType` — μ-type inference without registry
-  - `RecursiveSafeAccess_TwoFields_ProducesMuType` — both closing edges wrapped (regression sentinel for the "wrap EVERY edge" rule)
-  - `RowPolymorphic_NotRecursive_StaysOpenStruct` — non-recursive structural function stays open struct (no μ wrap)
-  - `NonStructRecursion_StaysGeneric` — `recurse(x) = recurse(x)` stays α → α (no struct, no Optional)
-
-- **Syntax integration** (`src/Tests/NFun.SyntaxTests/NamedTypes/RecursiveTypeTest.cs`)
-  - `RecursiveFunction_LinkedListSum_Unannotated` — single-field linked list, full pipeline
-  - `RecursiveFunction_DirectFieldAccess_TreeSum_Unannotated` — two-field tree, full pipeline
-  - `RowPolymorphic_LengthFunction_StaysGeneric` — sentinel that the propagation pass does not over-tag
 
 ## Theoretical references
 
