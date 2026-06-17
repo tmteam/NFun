@@ -1,0 +1,239 @@
+# NFun Operators
+
+Nfun provides the following types of operators:
+* Arithmetic Operators
+* Relational Operators
+* Logical Operators
+* Bitwise Operators
+* Misc Operators
+
+Most operators may be applied for different types of operands. To simplify the description, we will give names to some sets of types:
+
+| Name          | Types                                                           | Formal constrains                                   |
+|---------------|-----------------------------------------------------------------|-----------------------------------------------------|
+| All           | All types                                                       | T => any                                            |
+| Integers      | `int64`, `int32`,`int16`,  `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
+| Numbers       | `real`, **[Integers]**                                          | T => real                                           |
+| Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
+| Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
+| Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
+
+## Operators Precedence in NFun
+
+Operator precedence determines the grouping of terms in an expression and decides how an expression is evaluated.
+Certain operators have higher precedence than others.
+For example, the multiplication operator has a higher precedence than the addition operator.
+
+For example:
+```
+x = 7 + 3 * 2 
+```
+here, x is assigned 13, not 20 because operator `*` has a higher precedence than `+`, so it first gets multiplied with 3*2 and then adds into 7.
+
+Following list shows operators precedence:
+operators with the highest precedence appear at the top of the list, those with the lowest appear at the bottom.
+Within an expression, higher precedence operators will be evaluated first.
+
+| Operators                                | Explanation                          |
+|------------------------------------------|--------------------------------------|
+| `()` `[]` `?[` `.` `?.` `!` `²` `³` …    | Member access, postfix, superscripts |
+| `**` `~` (*unary*)`-`                    | Exponentiation, bitwise NOT, negate  |
+| `*` `/` `//` `%`                         | Multiplication, divisions, remainder |
+| `+` `-`                                  | Addition, subtraction                |
+| `<<`  `>>`                               | Bitwise Shifts                       |
+| `&`                                      | Bitwise AND                          |
+| `^`                                      | Bitwise XOR                          |
+| `&#124;`                                 | Bitwise OR                           |
+| `>` `<` `>=` `<=`                        | Comparisons                          |
+| `==` `!=` `in`                           | Equality, membership                 |
+| `??`                                     | Null coalesce (short-circuit)        |
+| `not`                                    | Logical NOT                          |
+| `and`                                    | Logical AND (short-circuit)          |
+| `xor`                                    | Logical XOR                          |
+| `or`                                     | Logical OR (short-circuit)           |
+| `rule`                                   | Anonymous function                   |
+| `=` `+=` `-=` `*=` `/=` `%=` `//=`       | Assignment and compound assignment   |
+
+
+## Arithmetic Operators
+
+The following table shows all the arithmetic operators supported by the NFun language. 
+
+Assume variable A holds 6 and variable B holds 4 then:
+
+| Operator    | Types       | Description	                                                                                        | Example        | Associativity |
+|-------------|-------------|------------------------------------------------------------------------------------------------------|----------------|---------------|
+| +           | Arithmetics | Adds two operands.	                                                                                | `A + B` = 10   | left          |
+| −           | Arithmetics | Subtracts second operand from the first.	                                                            | `B − A` = -2   | left          |
+| *           | Arithmetics | Multiplies both operands.	                                                                        | `A * B` = 24   | left          |
+| %           | Numbers     | Modulus Operator - remainder of after an division. Result type equals operand type (no widening).    | `A % B` = 2    | left          |
+| /           | `real`      | Divides real numerator by de-numerator.	                                                            | `A / B` = 1.5  | left          |
+| //          | Integers    | Divides integer numerator by de-numerator.	                                                        | `A // B` = 1   | left          |
+| **          | Arithmetics | Raising the base A to the power of B. Generic when exponent is a constant int >= 0, otherwise `real` | `A**B`  = 1296 | right         |
+| − *(unary)* | Numbers     | Multiply expression by -1. Works on signed integers and `real`                                       | `−A` = -6      | n/a (unary)   |
+
+### Integer overflow
+
+By default, integer arithmetic is **checked** — overflow throws a runtime error:
+
+```py
+y:uint32 = 0xFFFF_FFFF + 1   # runtime error: overflow
+y:int32 = 2_147_483_647 + 1  # runtime error: overflow
+```
+
+The `AllowIntegerOverflow` dialect setting switches to unchecked arithmetic (silent wrap).
+
+### Division by zero
+
+Integer division `//` by zero throws a runtime error:
+
+```py
+y = 4 // 0   # runtime error: division by zero
+```
+
+Real division `/` follows IEEE 754: dividing by zero produces infinity or NaN:
+
+```py
+y = 2.0 / 0.0   # ∞ (positive infinity)
+y = -2.0 / 0.0  # -∞ (negative infinity)
+y = 0.0 / 0.0   # NaN (not a number)
+```
+
+NaN propagates through arithmetic: any operation with NaN produces NaN.
+`min` and `max` return NaN if any argument is NaN.
+
+## Relational Operators
+The following table shows all the relational operators supported by NFun. 
+All of them returns true if condition is satisfied, and false otherwise
+
+Assume variable A holds 10 and variable B holds 20 then:
+
+| Operator | Types       | Description	                                                                                     | Example              | Associativity |
+|----------|-------------|--------------------------------------------------------------------------------------------------|----------------------|---------------|
+| ==       | All         | Equals true if the values of two operands are equal.	                                            | `(A == B)` is false. | left          |
+| !=       | All         | Equals true if the values of two operands are not equal.	                                        | `(A != B)` is true.  | left          |
+| \>       | Comparables | Equals true if the value of left operand is greater than the value of right operand. 	           | `(A > B)` is false.  | chain         |
+| <        | Comparables | Equals true if the value of left operand is less than the value of right operand.                | `(A < B)` is true.   | chain         |
+| \>=      | Comparables | Equals true if the value of left operand is greater than or equal to the value of right operand. | `(A >= B)` is false. | chain         |
+| <=       | Comparables | Equals true if the value of left operand is less than or equal to the value of right operand. 	  | `(A <= B)` is true.  | chain         |
+
+### Сomparison chain
+
+Operators `>` `<` `>=` `<=` can be used in comparison chain. 
+This means that the right operand of the comparison can simultaneously be the left operand for the next comparison
+
+So expression 
+
+`a > b >= c < d <= e` 
+
+is equivalent to expression
+
+` (a>b) and (b>=c) and (c<d) and (d<=e)`
+
+
+## Logical Operators
+The Following table shows all the logical operators supported by NFun language. 
+
+Assume variable A holds true and variable B holds false, then:
+
+| Operator       | Type   | 	  Description	                                                               | Example               | Associativity |
+|----------------|--------|-------------------------------------------------------------------------------|-----------------------|---------------|
+| and	           | `bool` | If both the operands are true, then the condition becomes true.			            | `(A and B)` is false. | left          |
+| or	            | `bool` | If any of the two operands is true, then the condition becomes true.	         | `(A or B)`  is true.  | left          |
+| xor	           | `bool` | If two operands are not equal to each other, then the condition becomes true. | `(A xor B)` is true.  | left          |
+| not *(unary)*	 | `bool` | Reverses the logical state of its operand.                                    | `(not A)`   is false. | n/a (unary)   |
+
+The truth tables for 'and', 'or', 'xor' and 'not' is as follows:
+
+| p     | q      | p and q | p or q	 | p xor q | not p |
+|-------|--------|---------|---------|---------|-------|
+| false | 	false | false	  | false	  | false   | true  |
+| false | 	true  | false	  | true	   | true    | true  |
+| true  | 	true  | true	   | true	   | false   | false |
+| true  | 	false | false	  | true	   | true    | false |
+
+`and` and `or` are short-circuit: the right operand is only evaluated if needed
+
+```py
+false and ___throwError()  # false — right side never evaluated
+true or ___throwError()    # true  — right side never evaluated
+true and ___throwError()   # throws — right side evaluated
+```
+
+## Bitwise Operators
+
+Bitwise operator works on bits and perform bit-by-bit operation.
+The following table lists the bitwise operators supported by NFun. 
+
+Assume variable A has type of **byte** and holds 60 (0b0011_1100) 
+and variable B has type of **byte** holds 13 (0b0000_1101), then:
+
+| Operator     | Type     | Description	                                                                     | Example                     | Associativity |
+|--------------|----------|----------------------------------------------------------------------------------|-----------------------------|---------------|
+| &	           | Integers | Binary AND Operator copies a bit to the result if it exists in both operands.	   | `A & B` = 12 = 0b0000_1100  | left          |
+| &#124;	      | Integers | Binary OR Operator copies a bit if it exists in either operand.	                 | `A \| B` = 61 = 0b0011_1101 | left          |
+| ^	           | Integers | Binary XOR Operator copies the bit if it is set in one operand but not both.	    | `A ^ B` = 49 = 0b0011_0001  | left          |
+| ~ *(unary)*	 | Integers | Binary One's Complement Operator is unary and has the effect of 'flipping' bits. | 	`~A` = ~60 = 0b1100_0011   | n/a (unary)   |
+
+Bitshift operators takes **[Integers]** type as left operand and result. Right operand has type of byte.
+
+| Operator | Description	                                                                                                              | Example                       | Associativity |
+|----------|---------------------------------------------------------------------------------------------------------------------------|-------------------------------|---------------|
+| <<	      | Binary Left Shift Operator. The left operands value is moved left by the number of bits specified by the right operand.	  | `A << 2` = 240 = 0b1111_0000  | left          |
+| \>\>	    | Binary Right Shift Operator. The left operands value is moved right by the number of bits specified by the right operand. | 	`A >> 2` = 15  = 0b0000_1111 | left          |
+
+**Overflow behavior:** Shift count is masked to the bit width of the operand type: `x << n` = `x << (n % bits)`. For example, `1:int32 << 33` = `1 << 1` = 2. This matches C#/Java/JavaScript behavior. Bitshift operators are **not affected** by the `IntegerOverflow` dialect setting — they always use wrapping (masking) semantics, even when `IntegerOverflow.Checked` is active. This follows the CLR specification where shift operators are never checked.
+
+Assume A = 60 and B = 13 in binary format, they will be as follows:
+```
+A      = 0b0011_1100
+B      = 0b0000_1101
+--------------------
+~A     = 0b1100_0011
+A << 2 = 0b1111_0000
+A >> 2 = 0b0000_1111
+--------------------
+A & B  = 0b0000_1100
+A | B  = 0b0011_1101
+A ^ B  = 0b0011_0001
+```
+
+
+## Misc Operators
+
+The following operators perform special actions and are described in detail in the relevant sections of the specification
+
+Here we give only a superficial description of them
+
+| Operator       | Described in | Description                                                                                                                                                                                                       | Example                   | Associativity |
+|----------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|---------------|
+| rule *(unary)* | Basics       | Returns an anonymous function with the body specified in the operand. The arguments of this function are called 'it' (for the case of a function with one argument) or it1, it2... for the case of many arguments | [1,2,3].filter(rule it>1) | n/a (unary)   |
+| .              | Structures   | Field access operator                                                                                                                                                                                             | a = user.name             | left          |
+| in             | Collections  | Membership operator. Returns true if the element (left operand) is contained in the array (right operand)                                                                                                         | 1 in [1,2,3]              | left          |
+| []             | Collections  | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | [1,0,2][2]                | left          |
+| [:] , [::]     | Collections  | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          | left          |
+| ??             | Optionals    | Null coalesce operator. Returns left operand if not `none`, otherwise right operand                                                                                                                               | x ?? 0                    | right         |
+| ?.             | Optionals    | Safe field access operator. Accesses a struct field, returning `none` if the struct is `none`                                                                                                                     | user?.name                | left          |
+| ?[             | Optionals    | Safe array indexing operator. Indexes into an optional array, returning `none` if the array is `none`                                                                                                             | arr?[0]                   | left          |
+| ! *(postfix)*  | Optionals    | Force unwrap operator. Extracts the value from an optional, throws a runtime error if `none`                                                                                                                      | x!                        | n/a (postfix) |
+
+## Assignment Operators
+
+Assignment is a statement form (not an expression). The left-hand side selects a slot; the right-hand side is evaluated and written to it.
+
+| Operator                          | LHS form        | Description                                          | Example     |
+|-----------------------------------|-----------------|------------------------------------------------------|-------------|
+| `=`                               | `name`          | Reassignment. Rebinds an existing variable           | `x = 42`    |
+| `=`                               | `name.field`    | Field write. Mutates the struct in place             | `p.x = 10`  |
+| `=`                               | `name[i]`       | Element write on `array<T>` or `list<T>`             | `a[0] = 42` |
+| `+=` `-=` `*=` `/=` `%=` `//=`    | `name`, `name.field` | Compound assignment — sugar for `LHS = LHS op RHS`     | `p.x += 5`  |
+
+See `Statements.md` §Variables and `Collections.md` §Mutation.
+
+## Implicit Multiplication and Math Sugar
+
+NFun supports implicit multiplication (`2x` = `2 * x`), Unicode operator aliases (`≤` `≥` `≠`),
+superscript powers (`x²`), and built-in math constants (`π`, `∞`).
+
+See [Math-Sugar](Math-Sugar.md) for details.
+

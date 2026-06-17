@@ -85,7 +85,7 @@ result = p.x + p.y          # 30
 
 Field assignment requires a direct name on the left (`name.field = ...`). Chained mutation through a literal or call expression is not supported.
 
-Expression mode keeps structs immutable — this is the only semantic difference between modes.
+Element write `a[i] = v` works on `array<T>` and `list<T>`; full collection mutation is available on `list<T>` / `set<T>` / `map<K,V>`. See `Collections.md` §Mutation.
 
 ## Functions
 
@@ -172,7 +172,7 @@ As an expression `if` requires `else`. Branch values unify by LCA.
 
 ### for
 
-Iterates over an array. As a statement returns `none`.
+Iterates over any `enumerable<T>` (array, list, set, map). As a statement returns `none`.
 
 ```
 for item in [1,2,3]:
@@ -182,6 +182,15 @@ sum = 0
 for item in xs:
     sum += item
 ```
+
+Iterating a `map<K,V>` yields a `{key, value}` pair per entry:
+
+```
+for kv in m:
+    print(kv.key, kv.value)
+```
+
+Mutating the iterated collection inside the loop raises a runtime exception (`InvalidOperationException: Collection was modified`). Use `xs.toList()` for an explicit snapshot.
 
 ### while
 

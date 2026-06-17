@@ -170,8 +170,7 @@ implementation gap is tracked in test cases marked
 |------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | first(arr:T[]):T                   | first element of array. Throws if array is empty                                                                                                                         |
 | last(arr:T[]):T                    | last element of array. Throws if array is empty                                                                                                                          |
-| setAt(arr:T[],index:int,value:T):T[] | copy of array with element at index replaced (formerly `set`)                                                                                                          |
-| set(x0,x1,...xN):set\<T\>          | construct a `set<T>` with the given elements (duplicates collapse)                                                                                                       |
+| set(arr:T[],index:int,value:T):T[] | copy of array with element at index replaced                                                                                                                             |
 | count(T[]):int                     | array size                                                                                                                                                               |
 | count(T[], rule(T)->bool):int       | the number of array elements for which the rule is satisfied                                                                                                             |
 | find(T[], T):int                   | index of the first element equal to the specified, -1 if no such element found                                                                                           |
