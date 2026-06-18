@@ -55,7 +55,24 @@ public class NodeToposort {
             {
                 var ancestor = node.Ancestors[i];
                 if (ancestor.State is StateRefTo ancrRefTo)
-                    node.SetAncestor(i, ancrRefTo.Node.GetNonReference());
+                {
+                    var deref = ancrRefTo.Node.GetNonReference();
+                    // Bug hunt round 10 #52. Identity-share through Bug #46's
+                    // IsLiveSnapshotableFun (a StateFun's RetNode aliased into
+                    // a CS's Descendant snapshot) can leave a RefTo ancestor
+                    // whose deref-target is `node` itself. SetAncestor would
+                    // panic "Circular ancestor 2"; AddAncestor sibling on
+                    // line 70 already skips this same shape. Drop the stale
+                    // self-edge ancestor — `T ≤ T` is the identity ordering
+                    // element and must be elided structurally.
+                    if (deref == node)
+                    {
+                        node.RemoveAncestor(ancestor);
+                        i--;
+                        continue;
+                    }
+                    node.SetAncestor(i, deref);
+                }
             }
 
             if (node.State is StateRefTo refTo)

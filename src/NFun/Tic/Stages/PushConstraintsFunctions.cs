@@ -131,6 +131,27 @@ public class PushConstraintsFunctions : IStateFunction {
             }
         }
 
+        // Cross-Constructor StateCollection: ancestor.Desc carries a Lower-bound SC
+        // constraint, descendant is a concrete SC of a wider-or-equal Constructor
+        // (per ConstructorLattice). Accept and propagate element constraints
+        // covariantly. Without this case, Push falls through to "return true" with
+        // no action — the descendant's incompatible state is then re-checked at
+        // Destruction and rejected as IncompatibleNodes (0832 LeetCode regression
+        // when LCA at AddDescendant time produced a mixed graph). Bug hunt round 6 #32.
+        if (ancestor.HasDescendant
+            && ancestor.Descendant is StateCollection ancSc
+            && descendant is StateCollection descSc
+            && ancSc.Constructor != descSc.Constructor
+            && IsArrayBranchKind(ancSc.Constructor)
+            && IsArrayBranchKind(descSc.Constructor)
+            && IsSubtypeOrEqual(ancSc.Constructor, descSc.Constructor))
+        {
+            // descSc.Constructor ≥ ancSc.Constructor per lattice — propagate
+            // element constraints; descendant Constructor stays as-is (wider).
+            SolvingFunctions.PushConstraints(descSc.ElementNode, ancSc.ElementNode);
+            return true;
+        }
+
         // If ancestor constrains has a struct descendant, propagate field constraints down.
         // Struct fields are covariant (immutable struct).
         if (ancestor.HasDescendant && ancestor.Descendant is StateStruct ancDescStruct
@@ -515,20 +536,14 @@ public class PushConstraintsFunctions : IStateFunction {
                 SolvingFunctions.PushConstraints(descField, ancField.Value);
             }
         }
-        // Width propagation (Push): descendant struct may have extra fields.
-        // Propagate to OPEN ancestors only (row polymorphism: "at least these fields").
-        // Closed ancestors from array LCA or struct literals are NOT widened.
-        if (ancestor.IsOpen)
-        {
-            foreach (var descField in descendant.Fields)
-            {
-                if (ancestor.GetFieldOrNull(descField.Key) == null)
-                {
-                    ancestor.AddField(descField.Key, descField.Value);
-                    ancestorNode.State = ancestor;
-                }
-            }
-        }
+        // No width propagation in Push: an open-row ancestor `{x:.. | ρ}` is
+        // already row-polymorphic — descendant fields not present in the
+        // ancestor are absorbed by the row variable `ρ` for free (Wand '87,
+        // Rémy '89). Copying them into the ancestor was over-eager and turned
+        // the polymorphic row into a concrete requirement that other
+        // descendants couldn't satisfy. Bug hunt round 5 #28:
+        // `[{x=1,y=2},{x=3}].first().x` failed because Push widened the
+        // lambda's element-type to `{x,y}`, then `{x=3}` couldn't satisfy it.
         return true;
     }
 
@@ -569,6 +584,9 @@ public class PushConstraintsFunctions : IStateFunction {
         // forbids composites.
         if (descendant.IsComparable) return false;
         if (descendant.HasAncestor && descendant.Ancestor is StatePrimitive prim && prim != StatePrimitive.Any)
+            return false;
+        // Mirror of the Pull non-None-primitive-Descendant reject. Bug #40.
+        if (descendant.HasDescendant && descendant.Descendant is StatePrimitive primDesc && primDesc != StatePrimitive.None)
             return false;
         return true;
     }

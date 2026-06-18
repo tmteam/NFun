@@ -2057,63 +2057,11 @@ public class MutableCollectionsContractTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // Stage 5 / map widening — lang-mode mirrors of the ee-mode tests marked
-    // [Ignore] for TicTechnicalDebt.md #16. These pin that lang-mode does NOT
-    // suffer the same precision loss: ee-mode StateArray covariance + CompCs
-    // cross-Apply is the affected combination; lang-mode StateCollection.List
-    // is invariant in element, so back-prop stays tight.
-    //
-    // If any of these starts failing, the regression has spread from ee-mode
-    // into lang-mode and the [Ignore]'d ee-mode tests need re-evaluation.
+    // Stage 5 / map widening — LangMirror_* tests were moved to
+    // TicDebt10_WorklistPullTests.cs, where they live alongside the
+    // [Ignore]'d P3b counterexamples (Bug #47, #49 family) that worklist
+    // Pull will close.
     // ─────────────────────────────────────────────────────────────────────
-
-    [Test]
-    public void LangMirror_ClosureArrayMap_IntsPinned() {
-        // Mirror of Closure_ArrayOfClosures_IndependentCells (ee-mode failing).
-        var rt = Funny.Hardcore.BuildLang(
-            "fun mk(a, b): return rule(c) = a + b + c\n" +
-            "fun f(): return list(mk(1, 2), mk(3, 4), mk(5, 6)).map(rule it(10))\n" +
-            "out = f()");
-        rt.Run();
-        var arr = (System.Collections.IList)rt["out"].Value;
-        Assert.AreEqual(3, arr.Count);
-        Assert.AreEqual(13, arr[0]);
-        Assert.AreEqual(17, arr[1]);
-        Assert.AreEqual(21, arr[2]);
-    }
-
-    [Test]
-    public void LangMirror_RuleArrayMap_IntsPinned() {
-        // Mirror of MR4Bug2_CorrectArityCallOn1ArgLambda_TypedAsElementReturnType.
-        var rt = Funny.Hardcore.BuildLang(
-            "fun f(): return list(rule it + 1, rule it + 2).map(rule it(10))\n" +
-            "out = f()");
-        rt.Run();
-        var arr = (System.Collections.IList)rt["out"].Value;
-        Assert.AreEqual(2, arr.Count);
-        Assert.AreEqual(11, arr[0]);
-        Assert.AreEqual(12, arr[1]);
-    }
-
-    [Test]
-    public void LangMirror_NestedByteUpcastMap_RealResult() {
-        var rt = Funny.Hardcore.BuildLang(
-            "fun f():\n    x:byte = 5\n" +
-            "    return [[0,1],[2,3],[x]].map(rule it.map(rule it+1).sum()).sum()\n" +
-            "out:real = f()");
-        rt.Run();
-        Assert.AreEqual(16.0, rt["out"].Value);
-    }
-
-    [Test]
-    public void LangMirror_ZeroArgCallOn1ArgLambda_StillRejected() {
-        // Mirror of MR4Bug2_ZeroArgCallOn1ArgLambda_InMapRule_SilentlyAccepted.
-        // Should still reject arity-mismatch in lang-mode.
-        Assert.Throws<FunnyParseException>(() =>
-            Funny.Hardcore.BuildLang(
-                "fun f(): return list(rule it + 1).map(rule it())\n" +
-                "out = f()"));
-    }
 
     #endregion
 }

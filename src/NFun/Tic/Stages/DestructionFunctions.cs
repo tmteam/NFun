@@ -92,7 +92,10 @@ public class DestructionFunctions : IStateFunction {
             return true;
         }
 
-        var result = ancestor.MergeOrNull(descendant);
+        // Pass ancestorNode so IntersectIntervalsOrNull's IsOptional OR-gate fires when
+        // ancestor is a negative skolem (IsForcedNonOptional) or sits inside an outer
+        // StateOptional shell (IsOptionalElement). Bug hunt round 5 #10.
+        var result = ancestor.MergeOrNull(descendant, ancestorNode);
         if (result == null)
             return false;
 
@@ -102,11 +105,28 @@ public class DestructionFunctions : IStateFunction {
             return true;
         }
 
+        // Split RefTo aliasing when the OR-gate suppressed descendant's legitimate
+        // Optional. A normal `descendantNode.State = StateRefTo(ancestorNode)` would
+        // erase descendant's Optional (descendant chases ancestor's now-non-Optional
+        // result). Instead, wrap descendant in StateOptional(ancestor): the inner type
+        // lives in ancestor (e.g. `int`), descendant retains its outer Optional shell
+        // (`opt(int)`). Mirrors the algebraic split T_inner = int, T_outer = opt(int)
+        // that preserves both axes — see TicTechnicalDebt §17. Bug hunt round 5 #10.
+        // Detect "Optional was suppressed" either through the flag (descendant.IsOptional)
+        // or structurally (descendant.Descendant is StateOptional that the unwrap peeled).
+        bool descendantHadSuppressedOpt =
+            ancestorNode.IsForcedNonOptional
+            && (descendant.IsOptional || descendant.Descendant is StateOptional)
+            && result is ConstraintsState rcs
+            && !rcs.IsOptional;
+
         if (ancestorNode.Type == TicNodeType.TypeVariable ||
             descendantNode.Type != TicNodeType.TypeVariable)
         {
             ancestorNode.State = result;
-            descendantNode.State = new StateRefTo(ancestorNode);
+            descendantNode.State = descendantHadSuppressedOpt
+                ? (ITicNodeState)new StateOptional(ancestorNode)
+                : new StateRefTo(ancestorNode);
         }
         else
         {
@@ -370,6 +390,18 @@ public class DestructionFunctions : IStateFunction {
                 || !IsArrayBranchKind(descendant.Constructor)
                 || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
                 return false;
+            // Bug hunt round 11 #54. Cross-kind StateCollection at Destruction
+            // (e.g. `a:int[][]? = [[1,2,3]]` — outer list ≤ array, inner list ≤
+            // array via the lattice). MergeInplace requires invariance and
+            // crashes when the two ElementNodes hold cross-kind solved
+            // collections (the strict-Equals shortcut at SolvingFunctions.cs:59
+            // returns null; the proper switch case at :91-98 produces the
+            // narrower kind which violates the IsSolved invariant on the
+            // ancestor's element). Recursive Destruction (mirroring StateArray's
+            // Apply at line 376) propagates element compatibility through the
+            // existing Apply cell dispatch — same-kind merges via MergeInplace,
+            // cross-kind recurses.
+            return SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
         }
         if (descendant.ElementNode != ancestor.ElementNode)
             SolvingFunctions.MergeInplace(descendant.ElementNode, ancestor.ElementNode);
@@ -432,11 +464,12 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
         // MutStruct x MutStruct: invariant fields — use MergeInplace (enforces equality).
+        // MutStruct x Struct: Mut ≤ Frozen (Liskov: read-only view). Field-by-field
+        // covariant destruction below handles it — no special pre-check needed.
+        // The mirror Frozen x MutStruct direction is still rejected by Merge/Lca
+        // algebra (Bug #6 round 2). Bug hunt round 4 #23 removed the throw that
+        // was here.
         bool invariant = ancestor is StateMutableStruct && descendant is StateMutableStruct;
-
-        // Struct cannot fit into MutStruct (immutable cannot be upgraded to mutable)
-        if (ancestor is StateMutableStruct && descendant is not StateMutableStruct)
-            throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
 
         // Destruct field-by-field: for each ancestor field, find matching descendant field.
         var sameFieldCount = 0;

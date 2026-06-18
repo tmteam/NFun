@@ -108,6 +108,15 @@ public class GraphBuilder {
         return ans;
     }
 
+    /// <summary>
+    /// Lookup-only variant of <see cref="GetNamedNode"/>. Returns the existing
+    /// variable node if present, or null. Does NOT create or register a new
+    /// node — used for pre-Solve introspection where the absence of a known
+    /// variable is meaningful (e.g. annotation-check before adding constraints).
+    /// </summary>
+    public TicNode GetNamedNodeOrNull(string name)
+        => _variables.TryGetValue(name, out var varnode) ? varnode : null;
+
     public TicNode[] GetNamedNodes(string[] names) {
         var ans = new TicNode[names.Length];
         for (int i = 0; i < names.Length; i++)
@@ -402,6 +411,32 @@ public class GraphBuilder {
 
         if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
             constrains.Preferred = primitive;
+
+        // Bug hunt round 9 #50. Identity-share when binding a rule literal
+        // (StateFun) to an unannotated, unconstrained variable. Without this,
+        // SetCall on `defNode` later hits the ELSE branch at line 721-733,
+        // synthesizing a FRESH StateFun whose generic arg nodes lack the
+        // rule's declared rigidity. Call-site contravariant Pull then narrows
+        // them to the call literal's type (e.g. `array<I32>` declared at rule,
+        // but call passes `list<I32>` → f's slot widens to `(list<I32>)->R`).
+        // After identity-share, SetCall("f", …) finds StateFun directly and
+        // routes via line 714 → 463-469, which sets IsSignatureParam on the
+        // composite arg nodes carried from the rule's declared annotation,
+        // preserving the declared signature through the call.
+        // The Pull edge `exprNode → defNode` must be SKIPPED here because
+        // Pull's Apply(StateFun, StateFun) on identity-shared StateFun would
+        // call `lambdaFun.RetNode.AddAncestor(lambdaFun.RetNode)` — a self-
+        // loop the AddAncestor guard rejects. The shared state already
+        // realizes the binding equivalence; no additional edge is needed.
+        // Scoped: rule-literal binding only — primitives, collections, and
+        // user-fn dispatch flows go through unrelated paths.
+        if (exprNode.State is StateFun lambdaFun
+            && defNode.State is ConstraintsState defCs && defCs.NoConstrains
+            && defNode.Ancestors.Count == 0)
+        {
+            defNode.State = lambdaFun;
+            return;
+        }
 
         exprNode.AddAncestor(defNode);
     }

@@ -262,8 +262,25 @@ public class ConstraintsState : ITicNodeState {
 
         if (!HasDescendant)
         {
-            _descendant = type.Concretest();
-            TraceLog.WriteLine($"    Constrains.AddDescendant: first={type} => concretest={_descendant}");
+            // Bug hunt round 8 #46 (Probe 5). StateFun.Concretest fabricates fresh arg/ret
+            // nodes via ConcretestFun (StateExtensions.Concretest.cs:66-72): arg becomes
+            // Abstractest (Any for empty CS), ret becomes Concretest. That severs the
+            // identity link between the CS's snapshot and the lambda's actual binder/body
+            // nodes, so later Push of the LCA result back into the lambda over-widens its
+            // binder to Any — incompatible with the body's arithmetic constraint.
+            // Skip the snapshot when type is a live StateFun whose component nodes are
+            // unresolved (CS-typed) and NOT signature-rigid (IsSignatureParam guard
+            // protects function signatures from being mutated by snapshot identity-sharing).
+            if (type is StateFun fn && IsLiveSnapshotableFun(fn))
+            {
+                _descendant = type;
+                TraceLog.WriteLine($"    Constrains.AddDescendant: first={type} => preserve identity (live StateFun)");
+            }
+            else
+            {
+                _descendant = type.Concretest();
+                TraceLog.WriteLine($"    Constrains.AddDescendant: first={type} => concretest={_descendant}");
+            }
         }
         else
         {
@@ -295,6 +312,24 @@ public class ConstraintsState : ITicNodeState {
     }
 
     /// <summary>
+    /// A StateFun is "live-snapshotable" when preserving its identity (instead of taking
+    /// a Concretest copy with fresh nodes) is safe at the AddDescendant snapshot site:
+    /// at least one component node is still unresolved (CS-typed), AND no component is
+    /// a signature-param (snapshotting a signature-rigid node would let downstream
+    /// constraints mutate the user function's contract).
+    /// </summary>
+    private static bool IsLiveSnapshotableFun(StateFun fn) {
+        if (fn.RetNode.IsSignatureParam) return false;
+        bool anyUnresolved = fn.RetNode.State is ConstraintsState;
+        foreach (var arg in fn.ArgNodes)
+        {
+            if (arg.IsSignatureParam) return false;
+            if (arg.State is ConstraintsState) anyUnresolved = true;
+        }
+        return anyUnresolved;
+    }
+
+    /// <summary>
     /// Union two struct field sets (row polymorphism).
     /// Creates a NEW struct with all fields from both. For shared fields, keep the existing node.
     /// Result is open only if BOTH are open; closed absorbs open.
@@ -323,12 +358,44 @@ public class ConstraintsState : ITicNodeState {
     /// Returns null if ancestors are incompatible (GCD fails).
     /// Does NOT merge Preferred or collapse composites.
     /// </summary>
-    public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other) {
-        var result = new ConstraintsState(Descendant, Ancestor, IsComparable || other.IsComparable) {
-            IsOptional = IsOptional || other.IsOptional,
+    public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other,
+        TicNode resultOwnerNode = null) {
+        // Gate IsOptional OR-fusion on negative-skolem carriers (Pottier-Rémy ATTAPL §10.7).
+        // Bug hunt round 5 #10 family — `m.get(k)!`, `arr?[i]!`, `s?.f!`, `list.removeLast()!`.
+        //
+        // The IsOptional flag is a semilattice OR: normally `result = a || b` is correct
+        // for symmetric Merge. But at Destruction CS×CS the result subsequently aliases
+        // descendant via StateRefTo — propagating the flag across the equivalence class
+        // boundary. When the merge owner is a *rigid negative skolem*
+        // (IsForcedNonOptional, set only at `??`/`!`'s U-node) — i.e. signature
+        // says "this position rejects the implicit lift T ≤ opt(T)" — suppress the OR.
+        // The outer shell already carries the Optional layer; absorbing it here yields
+        // opt(opt(T)) — forbidden by TIC-OPTIONAL-FORMAL §4 INV-1.
+        //
+        // Note: we do NOT gate on IsOptionalElement — that flag is set on EVERY inner
+        // element of any StateOptional in the graph, including legitimate generic params
+        // like `wrap: T → opt(T)`'s T (which SHOULD absorb None descendants' IsOptional).
+        // The narrower IsForcedNonOptional flag distinguishes the two cases.
+        bool suppressOptionalOr = resultOwnerNode != null
+            && resultOwnerNode.IsForcedNonOptional;
+        // Symmetric structural unwrap: when suppressing the OR-of-IsOptional, also peel
+        // a StateOptional layer from either side's Descendant if present (the carrier
+        // already provides the Optional shell). Without this, the descendant's
+        // `Desc = StateOptional(X)` propagates into the merged result and MergeOrNull
+        // returns the wrapped StateOptional at line 452 — re-introducing nesting at the
+        // resultOwner. Algebraically: opt(X) absorbed by a negative-skolem position
+        // is `X`, not `opt(X)`. Bug hunt round 5 #10 (lang-mode `arr?[0]!` family).
+        var selfDesc = Descendant;
+        var otherDesc = other.Descendant;
+        if (suppressOptionalOr) {
+            if (selfDesc is StateOptional selfOpt) selfDesc = selfOpt.Element;
+            if (otherDesc is StateOptional otherOpt) otherDesc = otherOpt.Element;
+        }
+        var result = new ConstraintsState(selfDesc, Ancestor, IsComparable || other.IsComparable) {
+            IsOptional = !suppressOptionalOr && (IsOptional || other.IsOptional),
             IsClearable = IsClearable || other.IsClearable,
         };
-        result.AddDescendant(other.Descendant);
+        result.AddDescendant(otherDesc);
         if (!result.TryAddAncestor(other.Ancestor))
             return null;
         // Satisfiability check: if the merged interval [Desc..Anc] is empty (Desc wider
@@ -366,8 +433,8 @@ public class ConstraintsState : ITicNodeState {
         return true;
     }
 
-    public ITicNodeState MergeOrNull(ConstraintsState constraintsState) {
-        var result = IntersectIntervalsOrNull(constraintsState);
+    public ITicNodeState MergeOrNull(ConstraintsState constraintsState, TicNode resultOwnerNode = null) {
+        var result = IntersectIntervalsOrNull(constraintsState, resultOwnerNode);
         if (result == null)
             return null;
 

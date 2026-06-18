@@ -219,19 +219,25 @@ public class MutableStructTests {
 
     #endregion
 
-    #region Struct cannot fit into MutStruct
+    #region Mut ≤ Frozen upcast
 
     [Test]
-    public void Struct_CannotFitIntoMutStruct_MergeReturnsNull() {
-        // Verify at algebra level: Struct and MutStruct cannot merge
+    public void Struct_MergeWithMutStruct_UpcastsToFrozen() {
+        // Mut ≤ Frozen — Liskov upcast. Same algebra as LcaStructFields
+        // (StateExtensions.Lca.cs §LcaStructFields): mixed mutability collapses
+        // to immutable Struct with covariant per-field merge. Result is plain
+        // StateStruct (frozen view), never StateMutableStruct — the reverse
+        // direction would be unsound (Frozen ≰ Mut).
         var structState = StateStruct.Of(("a", I32));
         var mutStructState = StateMutableStruct.Of(("a", I32));
 
         var merged = SolvingFunctions.GetMergedStateOrNull(structState, mutStructState);
-        Assert.IsNull(merged, "Struct should not merge with MutStruct");
+        Assert.IsInstanceOf<StateStruct>(merged);
+        Assert.IsNotInstanceOf<StateMutableStruct>(merged);
 
         merged = SolvingFunctions.GetMergedStateOrNull(mutStructState, structState);
-        Assert.IsNull(merged, "MutStruct should not merge with Struct");
+        Assert.IsInstanceOf<StateStruct>(merged);
+        Assert.IsNotInstanceOf<StateMutableStruct>(merged);
     }
 
     #endregion

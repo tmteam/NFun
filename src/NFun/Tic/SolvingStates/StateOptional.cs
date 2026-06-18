@@ -9,6 +9,9 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public static StateOptional Of(ITicNodeState state) =>
         state switch {
+            // Idempotent: opt(opt(T)) ≡ opt(T). Avoid nested at construction time.
+            // Bug hunt round 5 #10/#29 family.
+            StateOptional already => already,
             ITypeState type => Of(type),
             StateRefTo refTo => Of(refTo.Node),
             ConstraintsState c => Of(c),
@@ -19,7 +22,8 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public static StateOptional Of(TicNode node) => new(node);
 
-    public static StateOptional Of(ITypeState type) => new(TicNode.CreateTypeVariableNode(type));
+    public static StateOptional Of(ITypeState type) =>
+        type is StateOptional already ? already : new(TicNode.CreateTypeVariableNode(type));
 
     public TicNode ElementNode { get; }
 

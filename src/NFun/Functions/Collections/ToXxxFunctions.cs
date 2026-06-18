@@ -114,6 +114,11 @@ public class ToSetFunction : GenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) {
         var elem = concrete[0];
+        // Set element type must be Immutable (per Collections.md typeclass table).
+        // The factory `set(...)` already enforces this; `.toSet()` conversion must
+        // too, otherwise users sneak past with `[{a=1}].toSet()` → `set<{a:Int32}>`
+        // which violates the Immutable contract. Bug hunt round 6 #31.
+        ImmutableTypePredicate.RequireImmutable(elem, "toSet", "element");
         return new Impl(elem);
     }
 

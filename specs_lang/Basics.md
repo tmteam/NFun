@@ -117,7 +117,7 @@ y = X+1 # Error. it is not possible to create an input X,
         # since the variable x has already been declared
 ```
 
-Input variables are read-only inside the script (only the host application supplies their values). Output variables can be initialised and reassigned freely — see `Statements.md` §Reassignment and §Compound assignment. Struct and collection mutation is available per type — see `Structs.md` §Mutation and `Collections.md` §Mutation.
+In lang-mode an input variable carries an initial value supplied by the host. The script may rebind it like any other variable — see `Statements.md` §Reassignment and §Compound assignment — and subsequent reads observe the new value. The host's supplied value is only what the slot holds at the start of `Run`; nothing prevents the script from overwriting it. Output variables can be initialised and reassigned freely. Struct and collection mutation is available per type — see `Structs.md` §Mutation and `Collections.md` §Mutation.
 
 ### Output variables
 
@@ -157,15 +157,18 @@ x.reverse() # is equivalent to 'out = x.reverse()'
 
 ### Input variables
 
-Any uninitialized variable in the script is considered an input. 
+Any uninitialized variable in the script is considered an input.
 ```py
 x = i +1 # 'i' is the input.
 ```
-So the input cannot be initialized
+
+A subsequent `i = 2` is a reassignment statement (lang-mode supports reassignment — see `Statements.md` §Reassignment). It updates the slot just like any other variable; reads after the assignment observe the new value:
 ```py
-x = i +1 
-i = 2 # Error. The input cannot be initialized
+x = i + 1   # reads the host-supplied i
+i = 2       # rebinds i; subsequent reads see 2
+y = i       # y = 2
 ```
+The host's supplied value is only what `i` holds at the start of `Run`; the script is free to overwrite it. Same applies to compound forms (`i += 5`).
 The input variable may have explicit type declaration
 ```py
 inputName:type #input type declaration 'inputName' with type 'type'
@@ -334,38 +337,28 @@ result =
 	                    # then the result is elseExpression
 ```
 
-For the case of multiple branches, - Nfun offers a compact if-if-else syntax.
-To do this, you can simply replace `else if` with `if`:
+For the case of multiple branches, NFun offers a compact `if-if-else` syntax. To do this, you can simply replace `else if` with `if`. **Each chained `if` must start at column 0 (no leading whitespace).** Indented continuations would conflict with the statement-mode `if` block — use `else if` instead when you need indentation.
 
 ```py
-result = 
-    if(c1) e1 # if c1 is true, the result will be e1
-    if(c2) e2 # otherwise, if c2 is true, the result will be e2
-    if(c3) e3 # otherwise, if c3 is true, the result will be e3
-    # there can be as many branches as you like
-    else elseExpression # otherwise (if all conditions are false), 
-                        # then the result will be elseExpression
+result =
+if(c1) e1            # if c1 is true, the result will be e1
+if(c2) e2            # otherwise, if c2 is true, the result will be e2
+if(c3) e3            # otherwise, if c3 is true, the result will be e3
+                     # there can be as many branches as you like
+else elseExpression  # otherwise (if all conditions are false),
+                     # then the result will be elseExpression
 ```
 
 Examples:
+
 ```py
 a =
-    if(x>0) 'positive'
-    if(x<0) 'negative'
-    else 'zero'
-
-b =
-    if(a == 'positive' and flag)
-        if(day == 1) 'mon'
-        if(day == 2) 'tue'
-        if(day == 3) 'wed'
-        if(day == 4) 'thu'
-        if(day == 5) 'fri'
-        if(day == 6) 'sat'
-        if(day == 7) 'sun'
-        else '???'
-    else 'some day'
+if(x>0) 'positive'
+if(x<0) 'negative'
+else 'zero'
 ```
+
+When the body itself is indented (inside a struct literal, a function body, etc.) use the explicit `else if` form shown above — the column-0 chain doesn't apply there.
 
 If one branch is `none` and the other is a value, the result type becomes optional
 

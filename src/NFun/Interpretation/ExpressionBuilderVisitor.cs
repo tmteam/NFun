@@ -353,6 +353,26 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var id = node.Id;
         var args = _typeInferenceResults.GetResolvedCallArgsOrNull(node.OrderNumber) ?? node.Args;
 
+        // ! (force unwrap) — TIC special form: (opt(T)) → T.
+        // Runtime: throw if source is None, else return source value (possibly cast to outputType).
+        // Mirrors SafeGetElement / NullCoalesce TIC-special-form runtime handling.
+        // Bug hunt round 5 #10 family.
+        if (id == CoreFunNames.ForceUnwrap && args.Length == 1)
+        {
+            if (_dialect.OptionalTypesSupport != OptionalTypesSupport.Enabled)
+                throw Errors.OptionalTypesNotSupported(id, node.Interval);
+            var source = ReadNode(args[0]);
+            var outputType = node.OutputType;
+            Func<object, object> converter = null;
+            var srcInnerType = source.Type.BaseType == BaseFunnyType.Optional
+                ? source.Type.OptionalTypeSpecification.ElementType
+                : source.Type;
+            if (srcInnerType != outputType)
+                converter = VarTypeConverter.GetConverterOrNull(
+                    _dialect.Converter.TypeBehaviour, srcInnerType, outputType);
+            return new ForceUnwrapExpressionNode(source, outputType, converter, node.Interval);
+        }
+
         // Safe array access (?[]) — handled as special expression node (TIC graph op, not generic func)
         if (id == CoreFunNames.SafeGetElementName)
         {
@@ -518,7 +538,23 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 && id is CoreFunNames.ForceUnwrap or CoreFunNames.NullCoalesce)
                 throw Errors.OptionalTypesNotSupported(id, node.Interval);
 
-            var function = genericFunction.CreateConcrete(genericArgs, _dialect);
+            IConcreteFunction function;
+            try {
+                function = genericFunction.CreateConcrete(genericArgs, _dialect);
+            }
+            catch (NFunImpossibleException e) when (e.Message == "Unsupported type for this function") {
+                // CreateConcrete's default-case panic fires when TIC resolved a
+                // generic param to a type the function's typeclass constraint
+                // never accepts — e.g. `[1,none,3].sum()` resolves T=int?
+                // (the Arithmetical constraint should reject Optional but
+                // doesn't always at TIC-level). Surface as a typed parse error.
+                // Bug hunt round 3 #14.
+                throw new NFun.Exceptions.FunnyParseException(
+                    783,
+                    $"'{id}' is not defined for argument type{(genericArgs.Length == 1 ? "" : "s")}: " +
+                    string.Join(", ", genericArgs.Select(g => g.ToString())),
+                    node.Interval);
+            }
 
             return CreateFunctionCall(node, function);
         }
@@ -1406,17 +1442,41 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var indexExpr = ReadNode(node.Index);
         var valueExpr = ReadNode(node.Value);
 
+        // Bug hunt round 10 #53. The ee-mode legacy `T[]` (BaseFunnyType.ArrayOf)
+        // is immutable. `text` is aliased to ArrayOf(Char) (FunnyType.cs:25), so
+        // `t:text = 'hello'; t[0] = /'H'` would route through this builder with a
+        // solved StateArray target — and TIC's CompCsApply later asserts
+        // "Node is already solved" because the indexed-write tries to rebind
+        // the element of a fully-resolved immutable composite. Reject at the
+        // expression-builder boundary with a typed error matching what `.add()`
+        // already produces on `:text`. Per `specs_lang/Texts.md` §5: "Text is
+        // immutable - this means that after creating the text, it cannot be
+        // changed - only create a new one based on the previous one." Lang-mode
+        // mutable kinds (list<T>, array<T>) continue to support indexed write.
+        if (targetExpr.Type.BaseType == BaseFunnyType.ArrayOf)
+            throw Errors.IndexedWriteOnImmutableArray(targetExpr.Type, node.Interval);
+
         // Cast value to the container's element type so e.g. `a:array<real>;
-        // a[0] = 1` narrows int → real before storage. Both list<T> and
+        // a[0] = 1` widens int → real before storage. Both list<T> and
         // array<T> need the same shape.
+        //
+        // Strictness must match variable initialization: `y:int = 1.5` is FU740
+        // (Real ≰ Int), so `x:int[]; x[0] = 1.5` must also reject. TIC skips
+        // binding indexed-write (workaround #7), so the check lives here.
+        // VarTypeConverter.CanBeConverted is the strict implicit-conversion
+        // table (no Real→Int truncation, no Int32→UInt8 narrowing) — matches
+        // what TIC would enforce if the assignment were bound. (Bug hunt #35+#36.)
         FunnyType elemType = targetExpr.Type.BaseType switch {
             BaseFunnyType.List => targetExpr.Type.ListTypeSpecification.FunnyType,
             BaseFunnyType.MutableArray => targetExpr.Type.MutableArrayTypeSpecification.FunnyType,
             _ => default
         };
-        if (elemType.BaseType != BaseFunnyType.Empty)
+        if (elemType.BaseType != BaseFunnyType.Empty) {
+            if (!VarTypeConverter.CanBeConverted(valueExpr.Type, elemType))
+                throw Errors.ImpossibleCast(valueExpr.Type, elemType, node.Value.Interval);
             valueExpr = Nodes.CastExpressionNode.GetConvertedOrOriginOrThrow(
                 valueExpr, elemType, _dialect.Converter.TypeBehaviour);
+        }
 
         return new Nodes.IndexedAssignExpressionNode(
             targetExpr, indexExpr, valueExpr, node.Interval, targetExpr.Type);

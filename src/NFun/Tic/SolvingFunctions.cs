@@ -32,7 +32,8 @@ public static class SolvingFunctions {
     /// coinductive bisimulation). A re-entered pair is treated as "already merged" — the merge
     /// is idempotent under cycle, returning the first state.</para>
     /// </summary>
-    public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB) {
+    public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB,
+        TicNode resultOwnerNode = null) {
         // Cycle guard for true graph cycles (Pottier-Rémy '05): RefTo→root→RefTo… recursion would
         // overflow on cyclic types. Coinductive bisimulation: assume already-visited pair
         // "merges" to the first state (idempotent merge under cycle).
@@ -108,15 +109,41 @@ public static class SolvingFunctions {
             case StateOptional optA when stateB is StateOptional optB:
                 MergeInplace(optA.ElementNode, optB.ElementNode);
                 return optA;
+            // StateOptional × CS{IsOptional}: CS represents Optional<Desc>, structurally
+            // equivalent to optA's Optional<Element>. Merge the inner types: optA.Element
+            // (carried by optA.ElementNode) with csB's effective inner state. If csB has
+            // no Descendant, the inner is "any T" — no constraint to push down. If csB has
+            // a primitive/composite Descendant, AddDescendant it to optA's element node's
+            // constraint. Bug hunt round 5 #27.
+            case StateOptional optA2 when stateB is ConstraintsState csB && csB.IsOptional:
+            {
+                if (csB.HasDescendant && optA2.ElementNode.GetNonReference().State is ConstraintsState innerCs)
+                    innerCs.AddDescendant(csB.Descendant);
+                else if (csB.HasDescendant) {
+                    var merged = GetMergedStateOrNull(optA2.ElementNode.GetNonReference().State, csB.Descendant);
+                    if (merged == null) return null;
+                    optA2.ElementNode.State = merged;
+                }
+                return optA2;
+            }
             // StateMap deleted — Map flows as StateCollection(Map, pair-struct).
             // Merge of two SC(Map) goes through the standard SC same-kind merge
             // case (line ~90) which already MergeInplaces the element struct
             // nodes pointwise via MergeStructs.
-            // MutStruct and Struct are different type constructors — cannot merge
-            case StateMutableStruct when stateB is StateStruct and not StateMutableStruct:
-                return null;
-            case StateStruct and not StateMutableStruct when stateB is StateMutableStruct:
-                return null;
+            // Mut ≤ Frozen — asymmetric upcast (Liskov: read-only view is safe).
+            // Same algebra as `LcaStructFields` (StateExtensions.Lca.cs:181):
+            // mixed-mutability collapses to immutable Struct with covariant
+            // per-field merge. Without this, `[{a={b=1}}].map(rule it.a.b)`
+            // fires FU773 because the lambda's open-row frozen probe meets the
+            // list literal's `mut{a:mut{b:..}}` at an inner field where
+            // GetMergedStateOrNull (called recursively via MergeInplace) refused
+            // to merge. Bug hunt round 2 #6. MergeStructs always returns a
+            // non-frozen StateStruct, never StateMutableStruct, so the result
+            // type is the safe Liskov upcast.
+            case StateMutableStruct mutA when stateB is StateStruct frozenB and not StateMutableStruct:
+                return MergeStructs(mutA, frozenB);
+            case StateStruct frozenA and not StateMutableStruct when stateB is StateMutableStruct mutB:
+                return MergeStructs(frozenA, mutB);
             case StateMutableStruct mutA when stateB is StateMutableStruct mutB:
                 return MergeMutableStructs(mutA, mutB);
             case StateStruct strA when stateB is StateStruct strB:
@@ -154,8 +181,47 @@ public static class SolvingFunctions {
                     return constrainsB2.IsOptional ? StateOptional.Of(strA2) : strA2;
                 return null;
             }
+            // Bug hunt round 8 #46. Mirrors the StateStruct + CS case above for the
+            // StateCollection composite. Without this, the switch falls through to
+            // `case ConstraintsState:` below (line 186), swaps args, recurses as
+            // (StateCollection, CS) — no case matches → null → MergeInplace throws
+            // CannotMerge. Surfaces when struct-field LCA returns a concrete
+            // StateCollection verbatim (UnifyOrNull short-circuit at
+            // StateExtensions.Unify.cs:30-38) while the other branch's field stays
+            // CS{Desc=StateCollection}; Push later joins them via MergeInplace.
+            case StateCollection collA2 when stateB is ConstraintsState constrainsBColl:
+            {
+                if (constrainsBColl.HasDescendant && constrainsBColl.Descendant is StateCollection descColl)
+                {
+                    var merged = GetMergedStateOrNull(collA2, descColl);
+                    return merged != null && constrainsBColl.IsOptional
+                        ? StateOptional.Of(merged) : merged;
+                }
+                if (!constrainsBColl.HasDescendant && !constrainsBColl.IsComparable)
+                    return constrainsBColl.IsOptional ? StateOptional.Of(collA2) : collA2;
+                return null;
+            }
+            // Bug hunt round 8 #46 (StateFun extension). Mirrors the StateCollection
+            // case above for StateFun, NARROWED to fire only when CS carries a
+            // StateFun in its Descendant. The empty / Desc-less / Comparable CS
+            // paths fall through to the swap+recurse below — eager merge there
+            // regresses `list(rule …, rule …).map(…)` factory inference (multi-
+            // deposit at signature-T0 needs Lca, not pointwise MergeInplace).
+            //
+            // Sibling fix lives at ConstraintsState.AddDescendant: live StateFun
+            // descendants are stored verbatim (no Concretest widening), so the
+            // CS.Descendant reaching this cell is the actual lambda's StateFun
+            // — pointwise MergeInplace correctly fuses binder/body node identities
+            // across the two lambdas joined by struct-field LCA.
+            case StateFun funA2 when stateB is ConstraintsState constrainsBFun
+                && constrainsBFun.HasDescendant && constrainsBFun.Descendant is StateFun descFun:
+            {
+                var merged = GetMergedStateOrNull(funA2, descFun);
+                return merged != null && constrainsBFun.IsOptional
+                    ? StateOptional.Of(merged) : merged;
+            }
             case ConstraintsState constrainsA when stateB is ConstraintsState constrainsB:
-                return constrainsB.MergeOrNull(constrainsA);
+                return constrainsB.MergeOrNull(constrainsA, resultOwnerNode);
             case ConstraintsState:
                 return GetMergedStateOrNull(stateB, stateA);
             // CompCs + CompCs: Unify (interval narrows, IsOptional/IsClearable OR).
@@ -326,7 +392,7 @@ public static class SolvingFunctions {
 
         if (secondary.GetNonReference() == main)
             return;
-        var res = GetMergedStateOrNull(main.State, secondary.State);
+        var res = GetMergedStateOrNull(main.State, secondary.State, main);
         // Implicit lift: T ≤ opt(T). When one side is composite T and the other is opt(T'),
         // the non-Optional side can be lifted. Merge the inner types.
         // Syntax nodes (concrete expressions) keep their type — the Optional side "wins".

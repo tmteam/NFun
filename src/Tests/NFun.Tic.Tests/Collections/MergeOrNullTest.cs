@@ -238,15 +238,43 @@ public class MergeOrNullTest {
         Assert.AreSame(Any, lca);
     }
 
+    // Cross-Constructor LCA within Array-branch widens per ConstructorLattice
+    // when elements are concrete-equal. Mirrors Stage 2 Liskov decision pinned
+    // by `Ambiguity_ListPassedWhereArrayExpected_Accepted`. Bug hunt round 6 #32.
     [Test]
-    public void Lca_List_vs_MutableArray_ReturnsAny() {
+    public void Lca_List_vs_MutableArray_SameElement_WidensToArray() {
         var lca = StateCollection.OfList(I32).GetLastCommonAncestorOrNull(StateCollection.OfMutableArray(I32));
-        Assert.AreSame(Any, lca);
+        Assert.IsInstanceOf<StateCollection>(lca);
+        var sc = (StateCollection)lca;
+        Assert.AreEqual(ConstructorKind.Array, sc.Constructor);
+        Assert.AreSame(I32, sc.Element);
     }
 
     [Test]
-    public void Lca_FixedArray_vs_MutableArray_ReturnsAny() {
+    public void Lca_FixedArray_vs_MutableArray_SameElement_WidensToFixedArray() {
         var lca = StateCollection.OfFixedArray(I32).GetLastCommonAncestorOrNull(StateCollection.OfMutableArray(I32));
+        Assert.IsInstanceOf<StateCollection>(lca);
+        var sc = (StateCollection)lca;
+        Assert.AreEqual(ConstructorKind.FixedArray, sc.Constructor);
+        Assert.AreSame(I32, sc.Element);
+    }
+
+    [Test]
+    public void Lca_List_vs_MutableArray_DifferentElement_WidensViaElementLca() {
+        // I32 ⊆ Real per primitive lattice — element LCA widens to Real,
+        // outer kind widens to Array (List ⊆ Array). Bug hunt round 6 #32.
+        var lca = StateCollection.OfList(I32).GetLastCommonAncestorOrNull(StateCollection.OfMutableArray(Real));
+        Assert.IsInstanceOf<StateCollection>(lca);
+        var sc = (StateCollection)lca;
+        Assert.AreEqual(ConstructorKind.Array, sc.Constructor);
+        Assert.AreSame(Real, sc.Element);
+    }
+
+    [Test]
+    public void Lca_List_vs_MutableArray_TrulyIncompatibleElement_StaysAny() {
+        // Bool and Int have no common ancestor below Any — element LCA collapses,
+        // outer LCA collapses too.
+        var lca = StateCollection.OfList(I32).GetLastCommonAncestorOrNull(StateCollection.OfMutableArray(Bool));
         Assert.AreSame(Any, lca);
     }
 

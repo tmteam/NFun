@@ -26,7 +26,15 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
-        ancestorCopy.AddDescendant(descendant.Descendant);
+        // Structural unwrap of `Descendant is StateOptional` when ancestor is a negative
+        // skolem (IsForcedNonOptional — `??`/`!`'s rigid U-node). The carrier already
+        // provides the Optional shell; absorbing it as Desc=opt(X) yields the algebraic
+        // `opt(opt(X))` nesting. Mirrors the gate in IntersectIntervalsOrNull.
+        // Bug hunt round 6 #33.
+        var descDesc = descendant.Descendant;
+        if (ancestorNode.IsForcedNonOptional && descDesc is StateOptional descOpt)
+            descDesc = descOpt.Element;
+        ancestorCopy.AddDescendant(descDesc);
         // Propagate Preferred bidirectionally:
         // Upward (desc→anc): integer constants push I32 to array element types.
         // Downward (anc→desc): struct field chains push I32 to generic function results.
@@ -36,7 +44,17 @@ public class PullConstraintsFunctions : IStateFunction {
             descendant.Preferred = ancestor.Preferred;
         // Propagate IsOptional flag (OR semantics): if descendant is optional,
         // the ancestor must be optional too. Uses AddDescendant(None) which sets the flag.
-        if (descendant.IsOptional)
+        // SKIP when ancestorNode is:
+        //   - the inner element of a StateOptional (IsOptionalElement=true) — the outer
+        //     Optional layer already captures the optional-ness, so propagating IsOptional
+        //     here would create the algebraic `opt(opt(T))` nesting forbidden by
+        //     TIC-OPTIONAL-FORMAL §4 (INV-1).
+        //   - a negative-skolem rigid carrier (IsForcedNonOptional=true) — the `??`/`!`
+        //     U-node that REJECTS the implicit lift `T ≤ opt(T)`. Without this guard,
+        //     `??`'s U absorbs the left operand's Optional via Pull, then the result
+        //     stays Optional (Bug hunt round 6 #33 — `data.map(rule it.x ?? 99)` →
+        //     `fixedArray<UInt8?>` instead of `fixedArray<UInt8>`).
+        if (descendant.IsOptional && !ancestorNode.IsOptionalElement && !ancestorNode.IsForcedNonOptional)
             ancestorCopy.AddDescendant(StatePrimitive.None);
         // F-bound StructBound is a third independent constraint dimension. Combining two upper
         // bounds is meet (Gcd = field union, narrower predicate). Both Pull and Push merge S via
@@ -458,9 +476,20 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.ArgsCount != ancestor.ArgsCount)
             return false;
-        descendant.RetNode.AddAncestor(ancestor.RetNode);
+        // Bug hunt round 10 #52. Identity-share between ancestor and descendant
+        // StateFun (e.g. through Bug #46's IsLiveSnapshotableFun preserving the
+        // exact StateFun instance in a CS Descendant, then a downstream edge
+        // re-meeting it) reaches this cell with `descendant.RetNode ==
+        // ancestor.RetNode` and/or `descendant.ArgNodes[i] == ancestor.ArgNodes[i]`.
+        // AddAncestor(self) panics "Circular ancestor 0" — `T ≤ T` is the identity
+        // ordering element and must be elided structurally, not emitted as an edge.
+        // Mirrors the existing guards in Apply(StateArray,…) :206 / :220 /
+        // Apply(StateArray, StateCollection) :378, :426.
+        if (descendant.RetNode != ancestor.RetNode)
+            descendant.RetNode.AddAncestor(ancestor.RetNode);
         for (int i = 0; i < descendant.ArgsCount; i++)
-            ancestor.ArgNodes[i].AddAncestor(descendant.ArgNodes[i]);
+            if (ancestor.ArgNodes[i] != descendant.ArgNodes[i])
+                ancestor.ArgNodes[i].AddAncestor(descendant.ArgNodes[i]);
         descendantNode.RemoveAncestor(ancestorNode);
         return true;
     }
@@ -659,6 +688,14 @@ public class PullConstraintsFunctions : IStateFunction {
         // CompCS ancestor edge). Mirrors the Pull(CS, CS) defer-on-empty pattern.
         if (descendant.IsComparable) return false;
         if (descendant.HasAncestor && descendant.Ancestor is StatePrimitive prim && prim != StatePrimitive.Any)
+            return false;
+        // Symmetric to the HasAncestor reject: a non-None primitive Descendant
+        // (lower bound) also forbids a composite ancestor — a primitive cannot
+        // satisfy an Enumerable/Clearable typeclass. Without this, an early
+        // toposort visit that installed a primitive bound from a literal
+        // (e.g. `[1,2,3]` puts U8 into the element's CS) slips past the
+        // deferred-accept and only surfaces later as a runtime cast. Bug #40.
+        if (descendant.HasDescendant && descendant.Descendant is StatePrimitive primDesc && primDesc != StatePrimitive.None)
             return false;
         return true;
     }

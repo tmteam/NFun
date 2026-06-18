@@ -6,7 +6,7 @@
 
 - **OPEN**: violation present in production code.
 - **PARTIALLY CLOSED**: some dimensions / cases fixed, others remain.
-- **CLOSED**: resolved; entry retained for historical context until next cleanup pass.
+- **ARCHITECTURAL TRADE-OFF / DESIGN TRADE-OFF**: accepted; no further fix planned.
 
 ---
 
@@ -76,7 +76,13 @@ See [`Advanced/Preferred.md`](Advanced/Preferred.md) §6.
 
 **Proper fix**: worklist Pull architecture spec'd in [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md). Implementation pending.
 
-This also closes debt #5 (stale snapshots), debt #15 (identity guards), and debt #16's Descendant axis.
+This also closes debt #5 (stale snapshots), debt #15 (identity guards), debt #16's Descendant axis, and the 3D+ residual of debt #17 (cross-kind nested-composite LCA): worklist re-firing lets `LcaOrShareIdentity` recompute after deep CS nodes resolve to concrete shape, removing the 1-level depth bound on path (b).
+
+**Surface pinned for the cross-kind nested-composite residual** (closes-via-#10):
+- `Bug55_Family_3D_Coalesce_WidensToAny` (`Stage1InvariancePinTests.cs`, `[Ignore]`'d)
+- `Lca_CrossKind_NestedComposite_BothResolved_ShouldWiden` and `_3D_ShouldWiden` (`Stage1InvariancePinAlgebraTests.cs`, both `[Ignore]`'d)
+
+Formally diagnosed in [`Proofs.md`](Proofs.md) P3 Monotonicity: same-identity short-circuit alone closes an artificially-constructed sub-family (where prior calls pre-merged element identities) but does not converge at first-time 3D/4D entries because the recursive descent through `LcaOrShareIdentity` sees physically distinct ElementNodes at each layer until the innermost primitive. Cross-kind `MergeInplace` of composite elements is precluded by the 0832 LeetCode narrowing trap (routes through `NarrowerArrayBranchOrNull`). Worklist re-fire is the only mechanism that lets the outer LCA recompute after the inner CS resolves.
 
 ---
 
@@ -110,12 +116,6 @@ This also closes debt #5 (stale snapshots), debt #15 (identity guards), and debt
 
 ---
 
-## 14. `a[i] = v` pin to `array<T>` — RESOLVED
-
-The indexed-write operation was pinned to `array<T>` (mutable array kind), breaking the list-alias path. Resolved by routing through the proper StateCollection slot.
-
----
-
 ## 15. `Transform*OrNull` element-node reuse + identity guards — OPEN (closes via worklist Pull)
 
 **What's wrong**: `TransformToArrayOrNull`, `TransformToCollectionOrNull`, `TransformToMapOrNull` reuse the descendant collection's `ElementNode` directly (perf optimization). When the descendant's element identity aliases the ancestor's element (chained `[]` over lang collections), `AddAncestor(self)` panics.
@@ -128,7 +128,7 @@ The indexed-write operation was pinned to `array<T>` (mutable array kind), break
 
 ## 16. CompCs cross-Apply Preferred propagation loss — PARTIALLY CLOSED
 
-> **Preferred axis CLOSED**. **Descendant axis CONJECTURED OPEN** (no proven TIC-level counterexample post-fix).
+> **Preferred axis CLOSED**. **Descendant axis CONFIRMED OPEN** — Finalize-time counterexample reproduced (Bug hunt #47).
 >
 > Formal identification: [`Proofs.md`](Proofs.md) §3 (P3 Monotonicity, axes P3a / P3b).
 
@@ -136,18 +136,36 @@ The indexed-write operation was pinned to `array<T>` (mutable array kind), break
 
 **What's closed (P3a)**: `PropagatePreferredAcrossFallback` helper restores P3 on the Preferred axis at the AddAncestor fallback boundary.
 
-**What remains conjectured open (P3b)**: the Descendant axis at the AddAncestor fallback. The streaming-toposort gap (eager re-Pull walks ancestors of `anc.elem`, not the new incoming edge from `desc.elem`) is a plausible mechanism, but no test exhibits a TIC-level (Finalize-time) violation post-PropagatePreferredAcrossFallback. See [`Proofs.md`](Proofs.md) §3.6.
+**What remains OPEN (P3b — confirmed counterexample)**: the Descendant axis at the AddAncestor fallback AND at the empty-CS deferred-accept (`PullConstraintsFunctions.cs:660-690`, the no-positively-forbidding-bound branch). Bug hunt #47 (`data:list<list<int>>; data.map(rule it.first())` widens output element to `Any`) is a clean Finalize-time TIC counterexample: `first`'s generic `T₀` carries no Preferred (no Arithmetical constraint, unlike `sum`), and its CS stays empty until the lambda's `it` resolves via map's outer binding — by which time streaming Pull has already moved past the relevant edge and never re-fires the element unification. Two narrow heuristic fixes (RefTo-promote with and without single-ancestor guard) regressed 41 and 8 working tests respectively because they could not distinguish "must re-fire on tightening" from "already resolved, no re-fire needed" — exactly the discrimination worklist Pull encodes for free.
 
 **Closed-runtime side-effect**: `LangMirror_NestedByteUpcastMap_RealResult` was previously cited as a P3b counterexample. Trace analysis showed TIC infers the correct outer-map element with the Preferred fix; the residual failure was **runtime materialization** of the inner `.map()`'s lambda — TIC widens the inner element type along the outer chain (e.g. `byte → Real` or `Int32 → Real`), but the concrete collection still stores narrower values, so each element arrived at the lambda call site at its original CLR type. Closed by per-element coercion in `MapFunction.ConcreteMap.Calc` / `MapEnumerableFunction.ConcreteMap.Calc`, mirroring the existing pattern in `SumIter.As<T>`.
 
-**Path to closure**: worklist Pull (debt #10) — the principled fix, spec'd in [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md) — routes `desc.elem.D` through the standard CS×CS path with all safety guarantees of Lemma 3.1.
+**Path to closure**: worklist Pull (debt #10) — the principled fix, spec'd in [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md) — routes `desc.elem.D` through the standard CS×CS path with all safety guarantees of Lemma 3.1. Pinned by `Bug47_MapItFirstOnNestedList_WidensToAny` (`[Ignore]`'d) and `Bug47_Workaround_MapFunctionReference_Works` (passes — function-reference path resolves correctly via StateFun unification).
+
+---
+
+## 17. `LcaOrShareIdentity` widens to `Any` for cross-kind nested-composite elements — CLOSED (2D depth); 3D+ residual rolled into debt #10
+
+> **CLOSED for the 2D-depth surface family** via path (b) in `LcaOrShareIdentity`. 3D+ residual is a worklist-Pull manifestation — pinned under debt #10.
+
+**What was wrong**: `StateCollection.LcaOrShareIdentity` historically gated its cross-kind identity-share branch on `Element is not ICompositeState && xKindOther.Element is not ICompositeState`. When both elements were themselves composite (e.g. `list<list<I32>>` vs `array<array<I32>>`), the guard fired and the caller widened to `Any` — even though the algebraic answer is well-defined per spec `BaseOperators.md:27` ("climb lattice via ConstructorLattice.Lca") extended by recursive element LCA per LUB-proof Case 4 induction.
+
+**What's closed (2D depth — landed)**: New path (b) in `LcaOrShareIdentity` (`StateCollection.cs:240-280`):
+1. Recursively computes `elemLca = elemA.Lca(elemB)` via standard dispatch (no MergeInplace at the composite — sidesteps the 0832 LeetCode narrowing trap).
+2. Couples the literal's CS element node with the LCA result via `AddDescendant` — uses the CS-side as the canonical so Push propagation finds matching identity.
+
+Pinned by 4 syntax surfaces in `Stage1InvariancePinTests.cs` and 1 algebra-level pin (`Lca_SameKindOuter_CrossKindInner_AlreadyWorks`) in `Stage1InvariancePinAlgebraTests.cs`.
+
+**3D+ residual — rolled into debt #10**: Path (b) is bounded to 1-level depth via a guard (`xKindOther.Element is StateCollection deeperOther && deeperOther.Element is ICompositeState`). Professorial review (commit aftermath) traced the root cause to first-time-entry recursion seeing physically distinct ElementNodes at each layer until the innermost primitive — a same-identity short-circuit closes only an artificial sub-family (prior calls pre-merged identities) and re-introduces FU758 / Confluence-P3 violation risk. Principled closure requires re-firing LCA after deep CS resolution, which IS debt #10's worklist Pull mechanism. The 3D residual surfaces now live under debt #10's "also closes" list above.
+
+**Instrumentation retained**: `StateCollection.cs:310` emits a `TraceLog` marker at every widening-to-null event in `LcaOrShareIdentity`. Enables measurement of real-world hit-rate via `-t` flag — useful when worklist Pull lands to verify the residual surfaces close.
 
 ---
 
 ## Cleanup priority
 
 ```
-#10 (worklist Pull)            ← also closes #5, #15, #16's Descendant axis
+#10 (worklist Pull)            ← also closes #5, #15, #16's Descendant axis, #17 3D+ residual
 #7  (PropagatePreferred local) ← edge-local rewrite, not urgent
 #6  (TwoVariableEquality)      ← SolveUselessGenerics refinement
 #9  (IsMutable cascade)        ← unify immutable-merge logic

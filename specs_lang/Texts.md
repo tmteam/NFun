@@ -178,8 +178,7 @@ y = '{0.5:0}'               # '1'          — rounding
 
 | Name  | Meaning     | Example              |
 |-------|-------------|----------------------|
-| `hex` | hexadecimal | `{255:hex}` → `FF`   |
-| `HEX` | hexadecimal | `{255:HEX}` → `FF`   |
+| `hex` / `HEX` | hexadecimal (always uppercase digits) | `{255:hex}` → `FF`, `{255:HEX}` → `FF` |
 | `bin` | binary      | `{42:bin}` → `101010` |
 | `sci` | scientific (lowercase e) | `{3.14:sci}` → `3.140000e+000` |
 | `SCI` | scientific (uppercase E) | `{3.14:SCI}` → `3.140000E+000` |

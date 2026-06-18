@@ -68,6 +68,20 @@ res1 = a == b # true
 res2 = c == b # false
 ```
 
+The "list of fields" is the *stored* shape of the value, not the declared type's
+field list. A type annotation acts like a C# interface or Go interface: it
+narrows the static slot via width subtyping (see Types.md §Struct), but the
+runtime value retains every field of the literal it was initialized from.
+Equality, hashing, `in`, and `intersect` all read the stored shape — so an
+extra field on one side rules out equality even when both sides share the
+same declared type:
+
+```py
+a:{x:int} = {x = 1, y = 2}
+b:{x:int} = {x = 1}
+res = a == b   # false — a still stores y, b does not
+```
+
 ## Default value
 
 Default value for struct of some type - is a structure in which all fields are initialized with the default value

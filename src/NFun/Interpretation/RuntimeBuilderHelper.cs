@@ -120,6 +120,16 @@ internal static class RuntimeBuilderHelper {
         {
             throw Errors.TranslateTicError(e, syntaxTree, graph, functions);
         }
+        catch (NFunImpossibleException e) when (e.Message.StartsWith("Circular ancestor"))
+        {
+            // Self-referential rule literal (`f = rule f(it)`) and similar shapes
+            // hit `TicNode.AddAncestor`'s self-loop guard at build time. Surface
+            // as a typed parse error instead of leaking the internal sanity-check
+            // panic. Bug hunt round 3 #15.
+            throw new NFun.Exceptions.FunnyParseException(
+                870, "Self-referential definition is not allowed",
+                syntaxTree.Interval);
+        }
     }
 
     private static void ThrowIfSomeVariablesNotExistsInTheList(

@@ -1,6 +1,7 @@
 using System.Linq;
 using NFun.Functions;
 using NFun.Functions.Collections;
+using NFun.Functions.Lang;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.Types;
@@ -257,10 +258,39 @@ internal static class BaseFunctions {
             ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray(),
             GenericFunctions);
 
-        // Lang-mode swap: MapFunction → MapEnumerableFunction. All other
-        // generics shared by reference (no array sync risk).
+        // Lang-mode swap: ee-mode LINQ functions that take/return `T[]`
+        // (legacy StateArray) are replaced with their lang-mode counterparts
+        // that take `Enumerable<T>` and return `FixedArray<T>`. This makes
+        // chains like `arr?.sort().reverse() ?? [0]` produce StateCollection
+        // results which the round-6 cross-Constructor LCA fix can combine
+        // properly (instead of collapsing to Any via the legacy StateArray
+        // path). See `NFun.Functions.Lang/`. Bug hunt round 6 #32 closure.
         var genericFunctionsLang = GenericFunctions
-            .Select(f => f is MapFunction ? (GenericFunctionBase)new MapEnumerableFunction() : f)
+            .Select(f => f switch {
+                MapFunction                          => (GenericFunctionBase)new MapEnumerableFunction(),
+                SortFunction                         => new SortEnumerableFunction(),
+                SortDescendingFunction               => new SortDescendingEnumerableFunction(),
+                SortMapFunction                      => new SortMapEnumerableFunction(),
+                SortMapDescendingFunction            => new SortMapDescendingEnumerableFunction(),
+                ReverseGenericFunctionDefinition     => new ReverseEnumerableFunction(),
+                FilterGenericFunctionDefinition      => new FilterEnumerableFunction(),
+                ConcatArraysGenericFunctionDefinition => new ConcatEnumerableFunction(),
+                TakeGenericFunctionDefinition         => new TakeEnumerableFunction(),
+                SkipGenericFunctionDefinition         => new SkipEnumerableFunction(),
+                FlatGenericFunctionDefinition         => new FlatEnumerableFunction(),
+                UniteGenericFunctionDefinition        => new UniteEnumerableFunction(),
+                UniqueGenericFunctionDefinition       => new UniqueEnumerableFunction(),
+                IntersectGenericFunctionDefinition    => new IntersectEnumerableFunction(),
+                SubstractArraysGenericFunctionDefinition => new ExceptEnumerableFunction(),
+                AppendGenericFunctionDefinition       => new AppendEnumerableFunction(),
+                RepeatGenericFunctionDefinition       => new RepeatEnumerableFunction(),
+                SliceGenericFunctionDefinition        => new SliceEnumerableFunction(),
+                SliceWithStepGenericFunctionDefinition => new SliceWithStepEnumerableFunction(),
+                ChunkGenericFunctionDefinition        => new ChunkEnumerableFunction(),
+                FoldGenericFunctionDefinition         => new FoldEnumerableFunction(),
+                FoldWithDefaultsGenericFunctionDefinition => new FoldWithDefaultEnumerableFunction(),
+                _ => f,
+            })
             .ToArray();
         DefaultDoubleFunctionsLang = new ImmutableFunctionRegistry(
             ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray(),

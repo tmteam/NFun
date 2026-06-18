@@ -2,6 +2,7 @@ using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
+using NFun.Runtime.Lists;
 using NFun.Types;
 
 namespace NFun.Functions;
@@ -90,10 +91,20 @@ public class SafeGetElementFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         if (args[0] is FunnyNone)
             return FunnyNone.Instance;
-        var arr = (IFunnyArray)args[0];
         var index = (int)args[1];
-        if (index < 0 || index >= arr.Count)
-            return FunnyNone.Instance;
-        return arr.GetElementOrNull(index) ?? throw new FunnyRuntimeException("Argument out of range");
+        switch (args[0]) {
+            case IFunnyArray arr:
+                if (index < 0 || index >= arr.Count) return FunnyNone.Instance;
+                return arr.GetElementOrNull(index) ?? throw new FunnyRuntimeException("Argument out of range");
+            case IFunnyMutableArray mutArr:
+                // Lang-mode array<T> / list<T>: TIC widens `int[]?` through
+                // the same SafeGetElement signature, so the runtime sees the
+                // mutable shape here too.
+                if (index < 0 || index >= mutArr.Count) return FunnyNone.Instance;
+                return mutArr.GetElementOrNull(index) ?? FunnyNone.Instance;
+            default:
+                throw new FunnyRuntimeException(
+                    $"?[: expected indexed collection, got {args[0]?.GetType().Name ?? "null"}");
+        }
     }
 }

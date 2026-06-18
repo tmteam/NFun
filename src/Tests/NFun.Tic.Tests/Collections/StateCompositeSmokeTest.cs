@@ -86,10 +86,13 @@ public class StateCompositeSmokeTest {
     }
 
     [Test]
-    public void StateCollection_Lca_DifferentKind_CollapsesToAny() {
-        // Per Stage 0 design: invariant + cross-class collapses to Any.
+    public void StateCollection_Lca_DifferentKind_SameElement_WidensPerLattice() {
+        // Cross-Constructor (Array-branch) LCA widens to lattice join. Mirrors
+        // Stage 2 Liskov decision pinned by
+        // `Ambiguity_ListPassedWhereArrayExpected_Accepted`. Bug hunt round 6 #32.
         var lca = StateCollection.OfList(I32).GetLastCommonAncestorOrNull(StateCollection.OfFixedArray(I32));
-        Assert.AreSame(Any, lca);
+        Assert.IsInstanceOf<StateCollection>(lca);
+        Assert.AreEqual(ConstructorKind.FixedArray, ((StateCollection)lca!).Constructor);
     }
 
     [Test]

@@ -548,12 +548,6 @@ internal static class RuntimeBuilder {
         return new Equation(equation.Id, expression, outputVariableSource);
     }
 
-    /// <summary>
-    /// Builds an equation for lang mode, supporting variable reassignment.
-    /// For the first definition, creates a VariableSource with TIC-inferred variable type.
-    /// For reassignment, reuses the existing VariableSource.
-    /// Inserts casts when expression type differs from variable type.
-    /// </summary>
     private static bool IsHiddenAutoWrapped(EquationSyntaxNode node)
         => node.IsAutoWrapped
            && node.Id.StartsWith("__stmt_", System.StringComparison.Ordinal);

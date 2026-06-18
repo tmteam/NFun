@@ -75,6 +75,15 @@ public static partial class StateExtensions {
             ConstraintsState { HasDescendant: true } fc => fc.Descendant.FitsInto(to),
             ConstraintsState => true,
             StateRefTo targetR=> targetR.GetNonReference().FitsInto(to),
+            // CompCs target into Any / CompCs / ConstraintsState. Same family of
+            // gap as CanBeFitConverted below — without this case, two CompCs's
+            // meeting at the top level throw NotImplementedException. Bug #44.
+            StateCompositeConstraints targetCc => to switch {
+                StatePrimitive p => p.Name == PrimitiveTypeName.Any,
+                StateCompositeConstraints toCc =>
+                    ReferenceEquals(targetCc.ElementNode.GetNonReference(), toCc.ElementNode.GetNonReference()),
+                _ => false
+            },
             _ => throw new NotImplementedException($"Type {target} :> {to} is not supported in FIT")
         };
     }
@@ -152,6 +161,19 @@ public static partial class StateExtensions {
                 ICompositeState comp => to switch {
                     ConstraintsState constrAnc => constrAnc.Descendant is ICompositeState toComposite && CanBeFitConverted(comp, toComposite),
                     ICompositeState composite => CanBeFitConverted(comp, composite),
+                    _ => false
+                },
+                // StateCompositeConstraints is a peer of ICompositeState (typeclass
+                // shape, not a concrete container). Two CompCs's with the same
+                // ElementNode identity are trivially compatible — that's what the
+                // nested `.flat().flat()` chain produces when its intermediate
+                // generic T resolves to a yet-unresolved Enumerable<X> and Fit
+                // is asked whether one CompCs view of X fits another. Without
+                // this case the switch threw NotSupportedException, leaking
+                // raw TIC text to the user (Bug hunt #44).
+                StateCompositeConstraints fromCc => to switch {
+                    StateCompositeConstraints toCc =>
+                        ReferenceEquals(fromCc.ElementNode.GetNonReference(), toCc.ElementNode.GetNonReference()),
                     _ => false
                 },
                 _ => throw new NotSupportedException($"CBFC does not support {desc} to {to}")

@@ -228,6 +228,8 @@ Assignment is a statement form (not an expression). The left-hand side selects a
 | `=`                               | `name[i]`       | Element write on `array<T>` or `list<T>`             | `a[0] = 42` |
 | `+=` `-=` `*=` `/=` `%=` `//=`    | `name`, `name.field` | Compound assignment — sugar for `LHS = LHS op RHS`     | `p.x += 5`  |
 
+Indexed LHS is not supported for compound forms — `a[i] += v` is rejected. Use `a[i] = a[i] + v` instead.
+
 See `Statements.md` §Variables and `Collections.md` §Mutation.
 
 ## Implicit Multiplication and Math Sugar

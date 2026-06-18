@@ -7,8 +7,10 @@ using System.Text;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
+using NFun.Runtime.Lists;
 using NFun.Tic;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.ConsoleApp;
 
@@ -833,7 +835,7 @@ class Program {
             var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
 
             foreach (var output in outputs)
-                Console.WriteLine($"{output.Name}:{output.Type} = {FormatValue(output.Value)}");
+                Console.WriteLine($"{output.Name}:{output.Type} = {FormatValue(output.FunnyValue, output.Type)}");
 
             return 0;
         }
@@ -873,7 +875,7 @@ class Program {
 
             var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
             foreach (var output in outputs)
-                Console.WriteLine($"{output.Name}:{output.Type} = {FormatValue(output.Value)}");
+                Console.WriteLine($"{output.Name}:{output.Type} = {FormatValue(output.FunnyValue, output.Type)}");
 
             return 0;
         }
@@ -982,7 +984,7 @@ class Program {
                 Write($"  {output.Name}", ConsoleColor.White);
                 WriteDim($" : {output.Type}");
                 Write("    = ", ConsoleColor.DarkGray);
-                WriteLineColor(FormatValue(output.Value), ConsoleColor.Green);
+                WriteLineColor(FormatValue(output.FunnyValue), ConsoleColor.Green);
             }
 
             Console.WriteLine();
@@ -1029,17 +1031,31 @@ class Program {
 
     // ── Formatting ─────────────────────────────────────────────────────────────
     static string FormatValue(object value) =>
+        FormatValue(value, null);
+
+    static string FormatValue(object value, FunnyType? declaredType) =>
         value switch {
             null => "none",
             bool b => b ? "true" : "false",
             string s => $"'{s}'",
             IFunnyArray arr => arr.ToText(),
-            IReadOnlyDictionary<string, object> dict => FormatStruct(dict),
+            IReadOnlyDictionary<string, object> dict => FormatStruct(dict, declaredType),
+            IFunnyMap map => FormatMap(map),
+            IFunnyEnumerable enumerable => FormatEnumerable(enumerable),
             Array arr => FormatArray(arr),
             _ => value.ToString()
         };
 
-    static string FormatStruct(IReadOnlyDictionary<string, object> dict) {
+    static string FormatStruct(IReadOnlyDictionary<string, object> dict, FunnyType? declaredType) {
+        // Show every field actually stored in the runtime struct, not just
+        // those listed by the declared type. Width subtyping is a subsumption
+        // witness (Cardelli 1984): the static label narrows, the value stays
+        // whole. Equality, hashing, intersect/distinct, and CLR Dynamic output
+        // all already iterate the stored shape; only the CLI displayed a
+        // declared-type projection, which misled bug hunt #37 into thinking
+        // `a:{x:int}={x=1,y=2}; b:{x:int}={x=1}; a==b` should be true. It's
+        // false (extras are stored), and the display now shows that truthfully.
+        _ = declaredType; // kept for API symmetry with FormatValue overload
         var fields = dict.Select(kv => $"{kv.Key} = {FormatValue(kv.Value)}");
         return "{ " + string.Join(", ", fields) + " }";
     }
@@ -1049,6 +1065,21 @@ class Program {
         foreach (var item in arr)
             items.Add(FormatValue(item));
         return "[" + string.Join(", ", items) + "]";
+    }
+
+    static string FormatEnumerable(IFunnyEnumerable enumerable) {
+        var items = new List<string>();
+        foreach (var item in enumerable)
+            items.Add(FormatValue(item));
+        return "[" + string.Join(", ", items) + "]";
+    }
+
+    static string FormatMap(IFunnyMap map) {
+        var items = new List<string>();
+        foreach (var entry in map)
+            if (entry is FunnyStruct fs)
+                items.Add($"{FormatValue(fs.GetValue("key"))} → {FormatValue(fs.GetValue("value"))}");
+        return "{ " + string.Join(", ", items) + " }";
     }
 
     // ── Console helpers ────────────────────────────────────────────────────────

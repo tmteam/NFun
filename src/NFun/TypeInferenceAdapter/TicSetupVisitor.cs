@@ -1030,6 +1030,19 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             return true;
         }
 
+        // ! (force unwrap) — TIC special form: (opt(T)) → T
+        // Routes through SetForceUnwrap so its rigid U-node carries
+        // IsForcedNonOptional and the CS×CS IsOptional OR-gate suppresses nested
+        // when the input is internally nested Optional. Bug hunt round 5 #10.
+        if (node.Id == CoreFunNames.ForceUnwrap && allArgs.Length == 1)
+        {
+#if DEBUG
+            Trace(node, $"ForceUnwrap({allArgs[0].OrderNumber},{node.OrderNumber})");
+#endif
+            _ticTypeGraph.SetForceUnwrap(allArgs[0].OrderNumber, node.OrderNumber);
+            return true;
+        }
+
         // Safe array access (?[]) — handled as TIC graph operation (like ?.)
         // to properly flatten opt(opt(T)) via LCA instead of generic function wrapping
         if (node.Id == CoreFunNames.SafeGetElementName)
@@ -2502,6 +2515,28 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (!node.Target.Accept(this)) return false;
         if (!node.Index.Accept(this)) return false;
         if (!node.Value.Accept(this)) return false;
+
+        // Bug hunt round 10 #53. Reject indexed-write on a target whose TIC
+        // state is already a solved-immutable ee-mode `StateArray<T>` (which
+        // is what `:text` / `:char[]` style annotation routed through
+        // FunnyType.Text or any other ArrayOf — but NOT the lang-mode
+        // MutableArrayOf / ListOf — produces via TrySetVarType in the prior
+        // Visit(EquationSyntaxNode)). Without this early reject, the CompCs
+        // cap added below would later trigger CompCsApply.ForwardCompCsStateArray
+        // to set State on the already-solved node — Debug.Assert fails with
+        // "Node is already solved". Per `specs_lang/Texts.md` §5 "text is
+        // immutable"; the lang-mode mutable kinds (`list<T>`, `array<T>`)
+        // continue to support indexed-write through their own targetRef.State.
+        if (node.Target is NFun.SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode targetId)
+        {
+            var targetVarNode = _ticTypeGraph.GetNamedNodeOrNull(targetId.Id);
+            if (targetVarNode != null
+                && targetVarNode.GetNonReference().State is Tic.SolvingStates.StateArray solvedArr
+                && solvedArr.IsSolved)
+                throw NFun.ParseErrors.Errors.IndexedWriteOnImmutableArray(
+                    FunnyType.ArrayOf(TicTypesConverter.Concrete.Convert(solvedArr.Element)),
+                    node.Interval);
+        }
 
         _ticTypeGraph.SetCallArgument(
             new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.I32),

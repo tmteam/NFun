@@ -67,6 +67,12 @@ public static partial class StateExtensions {
             return aFun.UnifyOrNull(b as StateFun);
         if (a is StateStruct aStr)
             return aStr.UnifyOrNull(b as StateStruct);
+        // Lang-mode single-arg invariant collections (list/array/fixedArray/set/map).
+        // Same constructor → unify element-wise; different constructor → null.
+        // Bug hunt #5: `[{xs=[1,2,3]},{xs=[]}]` reached here as
+        // Unify(list(V1), list(V0)) and crashed without this arm.
+        if (a is StateCollection aColl && b is StateCollection bColl)
+            return aColl.UnifyOrNull(bColl);
         throw new NotSupportedException($"Unitype({a}, {b})");
     }
 
@@ -98,6 +104,12 @@ public static partial class StateExtensions {
     private static ITicNodeState UnifyOrNull(this StateArray a, StateArray b) {
         var uniElement = a.Element.UnifyOrNull(b.Element);
         return uniElement == null ? null : StateArray.Of(uniElement);
+    }
+
+    private static ITicNodeState UnifyOrNull(this StateCollection a, StateCollection b) {
+        if (a.Constructor != b.Constructor) return null;
+        var uniElement = a.Element.UnifyOrNull(b.Element);
+        return uniElement == null ? null : StateCollection.Of(a.Constructor, uniElement);
     }
 
     private static ITicNodeState UnifyOrNull(this StateFun a, StateFun b) {

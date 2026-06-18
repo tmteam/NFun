@@ -89,7 +89,7 @@ c = [1.0..3.0 step 0.5]  # [1.0, 1.5, 2.0, 2.5, 3.0]
 
 | Function                     | Returns                                                    |
 |------------------------------|------------------------------------------------------------|
-| `list(x0,...,xN)`            | growable list. Arity 1..16. Alias for `[x0,...,xN]`        |
+| `list(x0,...,xN)`            | growable list of arity 1..16. The bracket literal `[x0,...,xN]` has no arity cap                                          |
 | `array(x0,...,xN)`           | fixed-length mutable array. Arity 1..16                    |
 | `fixedArray(x0,...,xN)`      | immutable result-shape array. Arity 1..16                  |
 | `set(x0,...,xN)`             | unique elements; T Immutable. Arity 1..16                  |
@@ -268,7 +268,15 @@ m.map(rule it.value).sum()              # sum of all values
 m.filter(rule it.key > 0).count()
 ```
 
-LINQ results materialise as an immutable array shape (typically `fixedArray<T>` or `T[]`). Convert with `.toList()` / `.toArray()` / `.toSet()` for a mutable result.
+LINQ results materialise as an immutable array shape. Most ops (`.filter`, `.sort`, `.reverse`, `.concat`, `.sum`, …) return `T[]` (the legacy ee-mode immutable array, which flows into `T[]` parameter slots transparently). `.map` is the exception — it returns `fixedArray<T>`, which is a strict subtype of `T[]` and cannot flow into a `T[]` slot without `.toArray()`:
+
+```py
+fun even(xs:int[]):int[] = xs.filter(rule it % 2 == 0)        # OK — returns int[]
+fun double(xs:int[]):int[] = xs.map(rule it * 2).toArray()
+                                              # ^^ required — .map returns fixedArray<T>
+```
+
+Convert with `.toArray()` / `.toList()` / `.toSet()` to feed a mutable slot.
 
 ## Iteration
 

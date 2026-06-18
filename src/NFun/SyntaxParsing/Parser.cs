@@ -71,6 +71,21 @@ public class Parser {
                 ReadExpressionTopLevel();
         }
 
+        // In lang mode, when multiple top-level value-bearing expressions auto-wrapped
+        // to `out`, only the LAST one should keep the `out` name — earlier ones are
+        // statements (their value is discarded). Without this, a sequence like
+        //
+        //   a = list(1,2,3)
+        //   a.add(4)            # value-bearing → was: `out = a.add(4)` (none)
+        //   out = a             # explicit out
+        //
+        // produces two `out` equations whose types LCA to `list<int>?` (the mutator's
+        // none leaks Optional onto the real out). Bug hunt round 3 #12 / #13.
+        // Earlier auto-wrapped `out` bindings are renamed to `__stmt_N__` (the same
+        // sink used by IsValueBearingStatement=false statements).
+        if (_mode == Mode.Lang)
+            DemoteEarlierAutoWrappedOutBindings();
+
         var tree = new SyntaxTree(_nodes.ToArray());
 
         // Context-sensitive validation: `return` only inside functions,
@@ -79,6 +94,32 @@ public class Parser {
             LangContextValidator.Validate(tree);
 
         return tree;
+    }
+
+    private void DemoteEarlierAutoWrappedOutBindings() {
+        // Find the LAST out equation (auto-wrapped or explicit) — that's the
+        // real `out`. Any auto-wrapped `out` before it is a discarded statement.
+        int lastOutIndex = -1;
+        for (int i = _nodes.Count - 1; i >= 0; i--) {
+            if (_nodes[i] is EquationSyntaxNode eq && eq.Id == AnonymousEquationId) {
+                lastOutIndex = i;
+                break;
+            }
+        }
+        if (lastOutIndex < 0) return;
+        for (int i = 0; i < lastOutIndex; i++) {
+            if (_nodes[i] is EquationSyntaxNode eq
+                && eq.IsAutoWrapped
+                && eq.Id == AnonymousEquationId) {
+                var renamed = SyntaxNodeFactory.Equation(
+                    $"__stmt_{_langStmtCounter++}__",
+                    eq.Expression,
+                    eq.Interval.Start,
+                    Array.Empty<FunnyAttribute>());
+                renamed.IsAutoWrapped = true;
+                _nodes[i] = renamed;
+            }
+        }
     }
 
     // ───────────────────────────────────────────────────────────────

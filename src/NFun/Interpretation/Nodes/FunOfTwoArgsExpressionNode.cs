@@ -42,6 +42,12 @@ internal class FunOfTwoArgsExpressionNode : IExpressionNode {
             return _fun.Calc(a1, a2);
         }
         catch (FunnyRuntimeException) { throw; }
+        catch (OverflowException e) {
+            throw new FunnyRuntimeException($"{_fun.Name}: integer overflow", e);
+        }
+        catch (DivideByZeroException e) {
+            throw new FunnyRuntimeException($"{_fun.Name}: division by zero", e);
+        }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }
     }
 

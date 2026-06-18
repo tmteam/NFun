@@ -610,13 +610,15 @@ public class RangeStepFunction : GenericFunctionBase {
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
+            // Loop counter widened to long so step-overshoot near int.max doesn't
+            // wrap into an infinite loop (bug hunt #8: `[2147483640..2147483646 step 3]`).
             var result = new List<int>();
             if (start < end)
-                for (int i = start; i <= end; i += step)
-                    result.Add(i);
+                for (long i = start; i <= end; i += step)
+                    result.Add((int)i);
             else
-                for (int i = start; i >= end; i -= step)
-                    result.Add(i);
+                for (long i = start; i >= end; i -= step)
+                    result.Add((int)i);
             return new ImmutableFunnyArray(result.ToArray());
         }
     }

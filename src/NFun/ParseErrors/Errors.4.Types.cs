@@ -88,7 +88,12 @@ internal static partial class Errors {
             }
         }
 
-        return GeneralTypeError(798, ticException, rootToSearch);
+        // Path lookup failed — use a cleaned-up message instead of leaking the raw
+        // "Node X:ref(V0) cannot has state U8" TIC-internal text. Bug hunt round 3 #20.
+        var targetType = ToNFunString(stateException.State);
+        return new(798,
+            $"Types cannot be solved: required type `{targetType}` cannot fit the inferred shape",
+            rootToSearch.Interval);
     }
 
     private static FunnyParseException TranslateRecursiveTypeDefinitionError(ISyntaxNode rootToSearch, TicRecursiveTypeDefinitionException e, TicNode[] allTicNodes) {
@@ -210,7 +215,7 @@ internal static partial class Errors {
         return desc switch {
                    null => new(761, $"Seems like expression `{ancestor.ToShortText()}` cannot be used here", ancestor.Interval),
                    NamedIdSyntaxNode id => new(
-                       763, $"'the type '{GetDescription(ticDescendantOrNull)}' of '{id}' is not suitable for use here. Do something about it! ",
+                       763, $"Type '{GetDescription(ticDescendantOrNull)}' of '{id.Id}' is not suitable for use here",
                        id.Interval),
                    AnonymFunctionSyntaxNode => new(765, $"Rule signature `{desc.ToShortText()}` cannot be used here", desc.Interval),
                    FunCallSyntaxNode        => new(767, $"Seems like function `{desc.ToShortText()}` cannot be used here as its return type does not fit", desc.Interval),
@@ -218,9 +223,68 @@ internal static partial class Errors {
                    GenericIntSyntaxNode     => new(771, $"Seems like integer constant `{desc.ToShortText()}` cannot be used here", desc.Interval),
                    StructInitSyntaxNode     => new(773, $"Seems like struct `{desc.ToShortText()}` cannot be used here", desc.Interval),
                    ArraySyntaxNode          => new(775, $"Seems like array `{desc.ToShortText()}` cannot be used here", desc.Interval),
+                   // When the descendant resolves to a variable's declaration but the
+                   // type clash actually happens at a later USAGE (e.g. `x:int?[]=[1,2,3];
+                   // out=x.sum()` — declaration is fine, sum() is the offender), point
+                   // at the offending function call instead of the whole declaration.
+                   // Bug hunt #41.
+                   EquationSyntaxNode eqDecl when FindUsageCallOrNull(rootToSearch, eqDecl.Id, eqDecl) is { } useCall
+                       => new(767, $"Seems like function `{useCall.ToShortText()}` cannot be used here as its return type does not fit", useCall.Interval),
+                   // Descendant is an if-else: the algebra rejected the merged
+                   // branch type against the outer slot, but pointing at the
+                   // whole if-else is opaque ("Seems like expression `if (...)`
+                   // cannot be used here"). Surface the offending branch — the
+                   // one whose result type drove the LCA — by redirecting to a
+                   // branch that's a function call (most common shape for
+                   // LINQ-result-vs-slot mismatch like `:int[] = ...else
+                   // x.append(y)`). Falls through to FU777 when no branch
+                   // matches the heuristic. Bug hunt #45.
+                   IfThenElseSyntaxNode ife when FindMismatchedBranchOrNull(ife) is { } branch
+                       => new(767, $"Seems like function `{branch.ToShortText()}` cannot be used here as its return type does not fit", branch.Interval),
                    _                        => new(777, $"Seems like expression `{desc.ToShortText()}` cannot be used here", desc.Interval),
                };
 
+    }
+
+    /// <summary>
+    /// Walk an if-else's branches looking for a function call result — the
+    /// likely culprit when the if-else's merged type clashes with an outer
+    /// slot (e.g. `if(c) [literal] else f().g()` where `g()` is `fixedArray`
+    /// and the slot expects `array`). Heuristic: first branch whose
+    /// outermost expression is a `FunCallSyntaxNode`. Bug hunt #45.
+    /// </summary>
+    private static ISyntaxNode FindMismatchedBranchOrNull(IfThenElseSyntaxNode ife) {
+        foreach (var ifCase in ife.Ifs)
+            if (ifCase.Expression is FunCallSyntaxNode call)
+                return call;
+        if (ife.ElseExpr is FunCallSyntaxNode elseCall)
+            return elseCall;
+        return null;
+    }
+
+    /// <summary>
+    /// Search the syntax tree for a function call whose argument references the
+    /// given variable name. Used by FU767/FU777 error attribution to redirect
+    /// from a "declaration is the desc" trace to the actual offending usage —
+    /// e.g. `x:int?[]=[1,2,3]; out=x.sum()` where the declaration is fine but
+    /// sum() is the offender. Returns null when there's no usage in a call
+    /// (the bare-equation path stays as the catch-all FU777). Bug hunt #41.
+    /// </summary>
+    private static ISyntaxNode FindUsageCallOrNull(ISyntaxNode root, string varName, ISyntaxNode skip) {
+        ISyntaxNode result = null;
+        root.ComeOver(node => {
+            if (ReferenceEquals(node, skip)) return SyntaxParsing.Visitors.DfsEnterResult.Skip;
+            if (node is FunCallSyntaxNode call) {
+                foreach (var arg in call.Children) {
+                    if (arg is NamedIdSyntaxNode nid && nid.Id == varName) {
+                        result = call;
+                        return SyntaxParsing.Visitors.DfsEnterResult.Stop;
+                    }
+                }
+            }
+            return SyntaxParsing.Visitors.DfsEnterResult.Continue;
+        });
+        return result;
     }
 
     private static TicNode FindConcreteTicNodeForGenericOrNull(TicNode node, TicNode[] allTicNodes) {
@@ -252,6 +316,16 @@ internal static partial class Errors {
         var signature = functions?.GetOrNull(functionCall.Id, functionCall.Args.Length);
         if (signature == null)
         {
+            // No signature at this (name, arity). Distinguish "function name
+            // doesn't exist at all" (FU870 — not found) from "function exists
+            // but argument types don't fit" (FU783). For reverse-call form
+            // `x.foo(...)` of an unregistered function name, FU783 with
+            // "Invalid argument" was misleading. Bug hunt round 3 SC-1.
+            if (!functionCall.IsOperator && functions != null && !functions.ContainsName(functionCall.Id))
+                return new(870,
+                    $"Function '{functionCall.Id}({string.Join(",", functionCall.Args.Select(_ => "_"))})' is not found.",
+                    failed.Interval);
+
             // Fallback when signature is unavailable
             var msg = functionCall.IsOperator
                 ? $"Invalid operator call argument for '{functionCall.Id}'"
@@ -281,9 +355,33 @@ internal static partial class Errors {
 
     private static string GetDescription(TicNode node) {
         var concrete = node.GetNonReferenceSafeOrNull();
-        return concrete == null
-            ? "recursive type"
-            : TicTypesConverter.Concrete.Convert(concrete.State).ToString();
+        if (concrete == null) return "recursive type";
+        // Pre-PropagatePreferred CS with abstract Descendant + concrete
+        // Ancestor would otherwise format as the Ancestor cap alone
+        // (`Real` for `[U24..Re]I32!` — misleading: integer arithmetic
+        // appears to widen to Real). Surface the narrowest concrete that
+        // could satisfy the Descendant so the user sees the actual lower
+        // bound of the constraint range. Bug hunt #42.
+        if (concrete.State is ConstraintsState cs
+            && cs.Preferred == null
+            && cs.HasAncestor
+            && !cs.Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract)
+            && cs.HasDescendant
+            && cs.Descendant is StatePrimitive { IsAbstract: true } abstractDesc)
+        {
+            var narrow = abstractDesc.Name switch {
+                PrimitiveTypeName.U12 => FunnyType.UInt8,
+                PrimitiveTypeName.U24 => FunnyType.UInt16,
+                PrimitiveTypeName.U48 => FunnyType.UInt32,
+                PrimitiveTypeName.I24 => FunnyType.Int16,
+                PrimitiveTypeName.I48 => FunnyType.Int32,
+                PrimitiveTypeName.I96 => FunnyType.Int64,
+                _                     => (FunnyType?)null,
+            };
+            if (narrow.HasValue)
+                return $"{narrow}..{TicTypesConverter.ToConcrete(cs.Ancestor.Name)}";
+        }
+        return TicTypesConverter.Concrete.Convert(concrete.State).ToString();
     }
 
     private static string ToNFunString(ITicNodeState state)

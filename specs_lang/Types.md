@@ -70,9 +70,11 @@ The full set of shapes:
 |-----------------|-----------------------|--------------------------------------------------------------------------|
 | `list<T>`       | grow + write          | growable sequence. `[1,2,3]` literal default                             |
 | `array<T>`      | element write         | fixed length, `a[i] = v`. `int[]` annotation                             |
-| `fixedArray<T>` | none                  | LINQ result shape (`.map`, `.filter`, `.sort`)                           |
+| `fixedArray<T>` | none                  | LINQ result shape for `.map` only; `.filter`, `.sort`, `.reverse`, etc. return `T[]` |
 | `set<T>`        | grow + remove         | unordered, unique elements. T must be Immutable                          |
 | `map<K,V>`      | grow + remove + write | key→value lookup. K must be Immutable. Element is `{key:K, value:V}`     |
+
+**Annotation syntax**: only the array form `T[]` (giving `array<T>`) parses today. The identifiers `list<T>` / `fixedArray<T>` / `set<T>` / `map<K,V>` / `enumerable<T>` are shape labels for documentation and inference — dedicated parser support is deferred. Use `T[]` annotation and rely on inference for the other shapes.
 
 See `Collections.md` for empty-literal rules, LCA semantics, and full design.
 

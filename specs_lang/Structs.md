@@ -35,7 +35,7 @@ z =  user.stats.coasts # Nested access
 
 ## Field names
 
-Any identifier can be a field name, including primitive-type keywords (`int`, `real`, `bool`, `text`, `char`, etc.) — context disambiguates
+Any identifier — including primitive-type keywords (`int`, `real`, `bool`, `text`, `char`, etc.) — can be a field name; context disambiguates. **Reserved keywords** (`type`, `fun`, `if`, `else`, `for`, `while`, `return`, `break`, `continue`, `when`, `try`, `catch`, etc.) cannot be used as field names — the parser reserves them for the language grammar.
 
 ```py
 c = {real = 1.0, imag = 2.0}     # field named 'real' of type real
@@ -68,6 +68,20 @@ c = { name = 'Kate'}
 
 res1 = a == b # true
 res2 = c == b # false
+```
+
+The "list of fields" is the *stored* shape of the value, not the declared
+type's field list. A type annotation acts like a C# interface or Go interface:
+it narrows the static slot via width subtyping (see Types.md §Struct), but the
+runtime value retains every field of the literal it was initialized from.
+Equality, hashing, `in`, and `intersect` all read the stored shape — so an
+extra field on one side rules out equality even when both sides share the
+same declared type:
+
+```py
+a:{x:int} = {x = 1, y = 2}
+b:{x:int} = {x = 1}
+res = a == b   # false — a still stores y, b does not
 ```
 
 ## Default value

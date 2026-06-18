@@ -1,4 +1,6 @@
 using System;
+using NFun.Tic;
+using NFun.Tic.Algebra;
 
 namespace NFun.Tic.SolvingStates;
 
@@ -143,6 +145,25 @@ public sealed class StateCollection : StateComposite {
             var elemLca = myElem.GetLastCommonAncestorOrNull(arrElem);
             return elemLca == null ? StatePrimitive.Any : StateArray.Of(elemLca);
         }
+        // Cross-Constructor within Array-branch (List ⊆ Array ⊆ FixedArray):
+        // mirrors Stage 2 Liskov decision (Pull/Push at PullConstraintsFunctions.cs:416-430
+        // already accept `IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor)`;
+        // pinned by `Ambiguity_ListPassedWhereArrayExpected_Accepted`). LCA widens kind per
+        // ConstructorLattice; element LCA recursive. Bug hunt round 6 #32.
+        if (otherType is StateCollection xKindOther
+            && xKindOther.Constructor != Constructor
+            && IsArrayBranchKind(Constructor)
+            && IsArrayBranchKind(xKindOther.Constructor))
+        {
+            if (Element is not ITypeState xElemA || xKindOther.Element is not ITypeState xElemB)
+                return null;
+            ITypeState elemLca = xElemA.Equals(xElemB)
+                ? xElemA
+                : xElemA.GetLastCommonAncestorOrNull(xElemB);
+            if (elemLca == null || elemLca == StatePrimitive.Any) return StatePrimitive.Any;
+            var widerKind = ConstructorLattice.Lca(Constructor, xKindOther.Constructor);
+            return Of(widerKind, elemLca);
+        }
         if (otherType is not StateCollection other || other.Constructor != Constructor)
             return StatePrimitive.Any;
         if (Element is not ITypeState a || other.Element is not ITypeState b)
@@ -190,6 +211,105 @@ public sealed class StateCollection : StateComposite {
                 Tic.SolvingFunctions.MergeInplace(ElementNode, other.ElementNode);
             return this;
         }
+        // Cross-Constructor (Array-branch) with unresolved elements: identity-share
+        // via MergeInplace + widen kind per ConstructorLattice. Bug hunt round 6 #32.
+        //
+        // ONLY when neither side's element is itself a StateCollection / StateArray /
+        // StateStruct / StateOptional. If they were, MergeInplace would route through
+        // `NarrowerArrayBranchOrNull` (intersection / unification semantics) which
+        // returns the NARROWER constructor — opposite of LCA. Mixing widen-outer +
+        // narrow-inner produces inconsistent types (0832 LeetCode regression).
+        // Nested composite cases fall through to Any here; the resolved-element path
+        // in GetLastCommonAncestorOrNull handles them recursively when both elements
+        // are concrete.
+        if (otherType is StateCollection xKindOther
+            && xKindOther.Constructor != Constructor
+            && IsArrayBranchKind(Constructor)
+            && IsArrayBranchKind(xKindOther.Constructor))
+        {
+            var widerKind = ConstructorLattice.Lca(Constructor, xKindOther.Constructor);
+            // Path (a) — both elements non-composite (primitive / RefTo to primitive
+            // / CS). Identity-share via MergeInplace. Safe because MergeInplace on
+            // primitive elements has no narrowing to invert. Bug hunt round 6 #32.
+            if (Element is not ICompositeState && xKindOther.Element is not ICompositeState)
+            {
+                if (!ReferenceEquals(ElementNode, xKindOther.ElementNode))
+                    Tic.SolvingFunctions.MergeInplace(ElementNode, xKindOther.ElementNode);
+                return Of(widerKind, ElementNode.State);
+            }
+            // Path (b) — Bug hunt round 11 #55 / closes 2D depth of historical
+            // debt #17. At least one side's element is a composite
+            // (StateCollection / StateStruct / etc.). Bounded to 1-level depth
+            // (the 2D surface): xKindOther's element must be a StateCollection
+            // whose own element is non-composite. Deeper nesting (3D+) is
+            // rejected here so the caller widens to Any. Unbounded path-(b)
+            // recursion produces malformed CS shapes downstream (FU758 at the
+            // literal). 3D+ residual is a worklist-Pull (debt #10) manifestation
+            // per professorial review — first-time-entry recursion sees
+            // physically distinct ElementNodes at each layer, so the principled
+            // closure requires re-firing LCA after deep CS resolution.
+            if (xKindOther.Element is StateCollection deeperOther
+                && deeperOther.Element is ICompositeState)
+                return null;
+            var elemA = ElementNode.GetNonReference().State;
+            var elemB = xKindOther.ElementNode.GetNonReference().State;
+            var elemLca = elemA.Lca(elemB);
+            if (elemLca is StatePrimitive { Name: PrimitiveTypeName.Any })
+                return null;
+            if (elemLca is not ITypeState elemTypeState)
+                return null;
+            // Identity coupling: when one side's element is CS, use that node as
+            // canonical and seed it with the wider element type via AddDescendant.
+            // This couples the literal's element node (V1) with the LCA result,
+            // so downstream Push propagation finds matching identity.
+            //
+            // When neither side has a CS (both already-resolved composites), we
+            // would need to invisibly synthesize a fresh canonical node — but
+            // tests show this loses identity for downstream Push and causes
+            // FU758 at deeper nesting (3D+). Fall through to null so the caller
+            // widens to Any — preserves master's behavior for 3D+ instead of
+            // regressing to a rejection. Closure tracked under debt #10.
+            if (ElementNode.State is ConstraintsState csA)
+            {
+                csA.AddDescendant(elemTypeState);
+                return Of(widerKind, ElementNode);
+            }
+            if (xKindOther.ElementNode.State is ConstraintsState csB)
+            {
+                csB.AddDescendant(elemTypeState);
+                return Of(widerKind, xKindOther.ElementNode);
+            }
+            return null;
+        }
+        // Cross-family with legacy StateArray (receiver-side StateCollection direction).
+        // Mirrors the StateArray receiver path at `StateExtensions.Lca.cs:96-100`.
+        // Returns StateArray with merged-element identity so downstream Pull/Push
+        // converge. Same Bug hunt round 6 #32 family; needed for text-concat narrowing
+        // tests where `result = ''` (StateArray<char>) gets re-assigned with
+        // `concat(...)` (StateCollection.FixedArray<char>) and the LCA dispatch
+        // happens with StateCollection as receiver.
+        if (otherType is StateArray legacyArr && IsArrayBranchKind(Constructor)
+            && Element is not ICompositeState
+            && legacyArr.Element is not ICompositeState)
+        {
+            if (!ReferenceEquals(ElementNode, legacyArr.ElementNode))
+                Tic.SolvingFunctions.MergeInplace(ElementNode, legacyArr.ElementNode);
+            return StateArray.Of(ElementNode.State);
+        }
+        // Bug hunt round 11 #55 / TechnicalDebt #17 — falling through to null
+        // (caller widens to Any) for cross-kind StateCollection with nested
+        // composite elements. Algebraically the correct answer is
+        // `SC(Lca_L(K₁,K₂), e₁ ∨ e₂)` via recursive Lca; the implementation
+        // can't materialize it because (a) MergeInplace cross-kind composite
+        // routes through NarrowerArrayBranchOrNull (intersection — opposite
+        // of LCA, the 0832 LeetCode protective trap), and (b) at LCA-time
+        // the literal-side element is typically still CS, so fresh-node
+        // results don't propagate to the literal's element identity.
+        // Workaround for users: bind the literal to an unannotated var first
+        // (`tmp = [[…]]; x ?? tmp`). Pinned: Stage1InvariancePinTests.cs.
+        // Proper fix: split LCA from identity-share, requires worklist Pull
+        // (debt #10) for late-CS resolution.
+        TraceLog.WriteLine($"    LCA widened to Any (Stage 1 invariance pin / debt #17): {PrintState(0)} ∨ {otherType}");
         return null;
     }
 

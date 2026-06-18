@@ -125,6 +125,21 @@ public class TicNode {
     internal bool IsSignatureParam { get; set; }
 
     /// <summary>
+    /// True if this node is a *negative skolem* (Pottier-Rémy ATTAPL §10.7): a rigid
+    /// signature element that REJECTS the implicit lift `T ≤ opt(T)`. Set only at
+    /// <c>SetCoalesce</c>'s and <c>SetForceUnwrap</c>'s rigid U-node, where the outer
+    /// Optional shell in the signature (`opt(U) → U` for `!`, `(opt(U), V) → LCA(U, V)`
+    /// for `??`) sits at the input/argument position and U must NEVER absorb an Optional
+    /// layer. Distinct from <see cref="IsSignatureParam"/>, which is set on legitimate
+    /// generic params (e.g. `wrap: T → opt(T)`'s T) that SHOULD receive IsOptional
+    /// when their descendants are None. Used by <c>IntersectIntervalsOrNull</c> to gate
+    /// the IsOptional OR-fusion, and by <c>DestructionFunctions.Apply(CS, CS)</c> to
+    /// strip the flag from CS descendants (analog of the StateOptional → ElementNode
+    /// redirect at line 130-134). Bug hunt round 5 #10.
+    /// </summary>
+    internal bool IsForcedNonOptional { get; set; }
+
+    /// <summary>
     /// Witness flag certifying that this node is the head of a contractive μ-cycle
     /// (Cardelli–Mitchell '89 §3 contractivity: every back-edge crosses a type constructor).
     /// Set by the SCC driver after a cyclic SCC has been verified contractive. Downstream cycle

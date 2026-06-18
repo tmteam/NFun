@@ -90,7 +90,9 @@ public readonly struct FunnyType {
         => new(new MapTypeSpecification(keyType, valueType));
 
     public static FunnyType OptionalOf(FunnyType type) =>
-        type.BaseType == BaseFunnyType.Optional ? type : new(type, isOptional: true);
+        // Idempotent for already-optional and for None (which renders as `any?` —
+        // already an optional shape). Bug hunt round 5 #29.
+        type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None ? type : new(type, isOptional: true);
 
     /// <summary>
     /// Element type yielded by iterating this type as an Enumerable. For
@@ -687,7 +689,10 @@ public readonly struct FunnyType {
             BaseFunnyType.Clearable  => "clearable<" + ((ClearableTypeSpecification)_payload).FunnyType + ">",
             BaseFunnyType.Map      => "map<" + ((MapTypeSpecification)_payload).KeyType + "," + ((MapTypeSpecification)_payload).ValueType + ">",
             BaseFunnyType.Optional => ((OptionalTypeSpecification)_payload).ElementType + "?",
-            BaseFunnyType.None     => "none",
+            // Internal "None" type — surfaced when a slot holds only `none`
+            // (e.g. `x = none`). User-facing convention: render as `any?` so
+            // it matches the user-facing Optional surface. Bug hunt round 3 SC-4.
+            BaseFunnyType.None     => "any?",
             BaseFunnyType.Fun      => $"({string.Join(",", ((FunTypeSpecification)_payload).Inputs)})->{((FunTypeSpecification)_payload).Output}",
             BaseFunnyType.Struct =>
                 $"{{{string.Join(";", ((IStructTypeSpecification)_payload).Select(s => s.Key + ":" + s.Value))}}}",

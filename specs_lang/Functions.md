@@ -47,21 +47,29 @@ Most functions may be applied for different types of operands. To simplify the d
 | abs(T):T       | Signed, `real` | the absolute value                                                                                                                         |
 | min(T,T):T     | Comparables    | first or second argument, whichever is smaller. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned |
 | max(T,T):T     | Comparables    | first or second argument, whichever is bigger. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned  |
-| convert(TA):TR | ----           | Converts an argument of type `TA` to type `TR`. See the conversion specification below.                                  |
+| convert(TA):TR | ----           | Converts an argument to the target type. Target type comes from the receiver — see the conversion specification below.    |
 
 ### `convert` specification
 
-Every conversion `convert(value):T` is classified into one of five **classes** by the pair (source type, target type). The class determines static and runtime behavior:
+The target type for `convert(value)` comes from the **receiving slot** (variable annotation, function return type, etc.) — there is no postfix-type syntax on the call itself:
+
+```py
+x:int  = convert(123)        # target int — comes from the slot
+x:int? = convert('text')     # target int? — 🪂 returns none on parse failure
+fun toInt(s:text):int = convert(s)
+```
+
+Every `(source type, target type)` pair is classified into one of five **classes**:
 
 | Class | Symbol | Static (compile time) | Runtime |
 |-------|--------|-----------------------|---------|
 | Implicit | **I** | accepted | no-op (already free via subtyping) |
 | Total    | **✓** | accepted | always succeeds |
 | Lossy    | **⚠** | accepted | always succeeds; data silently lost (truncation, precision) |
-| Soft     | **🪂** | accepted | `convert(x):T` throws `Oops` on failure; `convert(x):T?` returns `none` on the same failure |
+| Soft     | **🪂** | accepted | with `:T` target — throws `Oops` on failure; with `:T?` target — returns `none` on the same failure |
 | None     | **✗** | **compile error** (`FU`); `:T?` does NOT rescue | — |
 
-The `?` on a target type **only** affects 🪂 conversions: it replaces the runtime throw with `none`. It does not create morphisms, so ✗ conversions stay rejected even with `:T?`.
+The `?` on the target type **only** affects 🪂 conversions: it replaces the runtime throw with `none`. It does not create morphisms, so ✗ conversions stay rejected even with `:T?`.
 
 #### Primitive matrix
 
@@ -93,7 +101,7 @@ Reading the cells:
 - **`bool ↔ char`** → **✗** (no canonical mapping).
 - **`X → text`** is **✓** universally (equivalent to `toText(X)`).
 - **`text → X`** (X ≠ text) is **🪂** (parse; `int.Parse(invariant)`, `bool` accepts `"true"`/`"false"`/`"1"`/`"0"` case-insensitive, `ip` via `IPAddress.Parse`, `char` only if `len == 1`).
-- **`ip ↔ integer`**: only into types preserving the non-negative natural representation. `ip → u32` ✓ (exact), `ip → u64/i64` ✓/I (widening), **`ip → i32` ✗** (compile error — would produce negative for high IPs; use `:uint` or `:long`). `ip → u8/u16/i16/real` ✗. Reverse: `u32 → ip` ✓, `u64/i32/i64 → ip` 🪂 (must fit `[0, 2³²-1]`), narrower or non-integer → ✗.
+- **`ip ↔ integer`**: only into types preserving the non-negative natural representation. **Network (big-endian) byte order** — `127.0.0.1 → 0x7F000001 = 2130706433`. `ip → u32` ✓ (exact), `ip → u64/i64` ✓/I (widening), **`ip → i32` ✗** (compile error — would produce negative for high IPs; use `:uint` or `:long`). `ip → u8/u16/i16/real` ✗. Reverse: `u32 → ip` ✓, `u64/i32/i64 → ip` 🪂 (must fit `[0, 2³²-1]`), narrower or non-integer → ✗.
 - **`X → any`** is **I**; **`any → X`** (X ≠ text, ≠ any) is **🪂** (runtime tag dispatch).
 
 #### Composite rules
@@ -119,8 +127,8 @@ Reading the cells:
 
 | Pair | Class | Encoding |
 |---|---|---|
-| `text → byte[]` | **✓** | UTF-16 LE |
-| `byte[] → text` | **✓** | UTF-16 LE decode (invalid bytes → replacement char) |
+| `text → byte[]` | **✓** | low-byte-only (one byte per char — UTF-16 BMP truncated to byte; non-Latin chars lose the high byte) |
+| `byte[] → text` | **✓** | `toText` of the array — produces the literal `'[b0,b1,...]'`. **Known divergence**: does not currently decode the byte sequence as text. Use `bytes.map(rule convert(it):char).toText()` if you need a per-byte decode. |
 | numeric → `byte[]` | **✓** | little-endian, native width (u8=1, u16=2, u32=4, u64=8, i16=2, i32=4, i64=8, real=8) |
 | `byte[] → numeric` | **🪂** | requires exact length match for the target width |
 | `bool → byte[]` | **✓** | `[1]` / `[0]` |
@@ -137,11 +145,11 @@ Conversion to bit array `bool[]` follows the same matrix as `byte[]` with bytes 
 #### Failure mode summary
 
 ```
-convert(x):T          — runtime: throws Oops on 🪂 failure; compile error on ✗
-convert(x):T?         — runtime: returns none on 🪂 failure; compile error on ✗
-convert(x:opt(S)):T   — runtime: throws on none; compile error on ✗
-convert(x:opt(S)):T?  — runtime: none stays none; compile error on ✗
-convert(x!):T         — force-unwrap source first; then per (S, T) class
+y:T  = convert(x)        — runtime: throws Oops on 🪂 failure; compile error on ✗
+y:T? = convert(x)        — runtime: returns none on 🪂 failure; compile error on ✗
+y:T  = convert(x)        with x:opt(S)  — runtime: throws on none; compile error on ✗
+y:T? = convert(x)        with x:opt(S)  — runtime: none stays none; compile error on ✗
+y:T  = convert(x!)       — force-unwrap source first; then per (S, T) class
 ```
 
 #### Implementation status
@@ -159,7 +167,7 @@ all primitive ↔ primitive cells, plus `opt(A)` source/target propagation,
 
 Width subtyping at assignment (`b:{x:int} = {x=1,y=2}`) is unaffected — it
 goes through the type-inference path, not `convert()`. Only the explicit
-`convert(value):T[]` / `convert(value):T{...}` forms are pending. The
+`y:T[] = convert(value)` / `y:T{...} = convert(value)` forms are pending. The
 implementation gap is tracked in test cases marked
 `[Ignore("convert-deferred: complex composite conversions")]`.
 
@@ -279,8 +287,8 @@ A map is `Enumerable<{key:K, value:V}>`; LINQ functions apply: `m.count()`, `m.m
 | Function | Returns |
 |----------|---------|
 | toNumText(real, decimals:int=2, minDigits:int=0, thousands:bool=false, forceZeros:bool=true):text | formatted number. `toNumText(3.14, decimals=4)` → `'3.1416'` |
-| toHexText(int64):text | hexadecimal representation. `toHexText(255)` → `'FF'` |
-| toBinText(int64):text | binary representation. `toBinText(42)` → `'101010'` |
+| toHexText(T):text     | hexadecimal representation; width matches T's byte width (`int32 -1` → `'FFFFFFFF'`, `int64 -1` → `'FFFFFFFFFFFFFFFF'`). T ∈ Integers. `toHexText(255)` → `'FF'` |
+| toBinText(T):text     | binary representation. T ∈ Integers. `toBinText(42)` → `'101010'` |
 | toSciText(real, uppercase:bool=true):text | scientific notation. `toSciText(3.14)` → `'3.140000E+000'` |
 | padLeftText(text, width:int):text | pads with spaces on the left. `padLeftText('hi', 10)` → `'        hi'` |
 | padRightText(text, width:int):text | pads with spaces on the right. `padRightText('hi', 10)` → `'hi        '` |

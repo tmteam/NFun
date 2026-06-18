@@ -46,6 +46,9 @@ internal class FunOfManyArgsExpressionNode : IExpressionNode {
             }
         try { return _fun.Calc(args); }
         catch (FunnyRuntimeException) { throw; }
+        catch (OverflowException e) {
+            throw new FunnyRuntimeException($"{_fun.Name}: integer overflow", e);
+        }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }
     }
 

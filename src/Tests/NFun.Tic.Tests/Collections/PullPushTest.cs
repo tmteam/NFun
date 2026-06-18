@@ -248,8 +248,11 @@ public class PullPushTest {
         result.AssertNamed(Any, "y");
     }
 
-    [Test(Description = "a:list<int>; b:array<int>; y = if(c) a else b — cross-kind LCA to Any")]
-    public void IfElse_ListAndMutableArray_CollapsesToAny() {
+    [Test(Description = "a:list<int>; b:array<int>; y = if(c) a else b — cross-kind LCA widens per lattice (Stage 2 Liskov)")]
+    public void IfElse_ListAndMutableArray_WidensToArray() {
+        // Bug hunt round 6 #32: cross-Constructor LCA within Array-branch widens
+        // per ConstructorLattice. Mirrors Stage 2 Liskov decision pinned by
+        // `Ambiguity_ListPassedWhereArrayExpected_Accepted`.
         var graph = new GraphBuilder();
         graph.SetVarType("a", StateCollection.OfList(I32));
         graph.SetVarType("b", StateCollection.OfMutableArray(I32));
@@ -258,7 +261,7 @@ public class PullPushTest {
         graph.SetIfElse(new[] { 2 }, new[] { 0, 1 }, 3);
         graph.SetDef("y", 3);
         var result = graph.Solve();
-        result.AssertNamed(Any, "y");
+        result.AssertNamed(StateCollection.OfMutableArray(I32), "y");
     }
 
     [Test(Description = "REGRESSION SHIELD: legacy array covariance still widens")]

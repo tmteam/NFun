@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Lists;
 using NFun.Tokenization;
@@ -38,12 +40,20 @@ internal sealed class ForExpressionNode : IExpressionNode {
         // interface excludes stray CLR collections that bypassed NFun's input
         // converters from being silently iterated as if they were funny values.
         if (collection is IFunnyEnumerable items) {
-            foreach (var item in items) {
-                _iteratorVar.SetFunnyValueUnsafe(item);
-                var result = _body.Calc();
-                if (result is BreakSignal) break;
-                if (result is ContinueSignal) continue;
-                if (result is ReturnSignal) return result; // propagate return up
+            try {
+                foreach (var item in items) {
+                    _iteratorVar.SetFunnyValueUnsafe(item);
+                    var result = _body.Calc();
+                    if (result is BreakSignal) break;
+                    if (result is ContinueSignal) continue;
+                    if (result is ReturnSignal) return result; // propagate return up
+                }
+            }
+            catch (InvalidOperationException ioe) when (ioe.Message.Contains("Collection was modified")) {
+                // Bug hunt round 3 #16. CLR's IEnumerator throws when the
+                // backing storage mutates mid-iteration. Surface as a typed
+                // NFun runtime exception so user code can `try/catch` it.
+                throw new FunnyRuntimeException("collection modified during iteration");
             }
         }
         return FunnyNone.Instance;

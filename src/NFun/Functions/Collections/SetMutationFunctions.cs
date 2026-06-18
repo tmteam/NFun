@@ -1,3 +1,4 @@
+using NFun;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Lists;
@@ -24,6 +25,17 @@ public class SetTryAddFunction : GenericFunctionWithTwoArguments {
         ArgProperties = FunArgProperty.FromNames("set", "item");
     }
 
+    public override NFun.Interpretation.Functions.IConcreteFunction CreateConcrete(
+        FunnyType[] concreteTypes,
+        IFunctionSelectorContext context) {
+        // Enforce Immutable on the inferred element type. The set(...) factory
+        // already enforces this, but `[].toSet().tryAdd(x)` (element type
+        // inferred as Any) used to silently accept mutable composites. Bug
+        // hunt round 3 #18.
+        ImmutableTypePredicate.RequireImmutable(concreteTypes[0], "tryAdd", "element");
+        return base.CreateConcrete(concreteTypes, context);
+    }
+
     protected override object Calc(object a, object b) {
         if (a is not IFunnyMutableSet set)
             throw new FunnyRuntimeException("tryAdd() requires a mutable set");
@@ -42,6 +54,13 @@ public class SetTryRemoveFunction : GenericFunctionWithTwoArguments {
         FunnyType.SetOf(FunnyType.Generic(0)),
         FunnyType.Generic(0)) {
         ArgProperties = FunArgProperty.FromNames("set", "item");
+    }
+
+    public override NFun.Interpretation.Functions.IConcreteFunction CreateConcrete(
+        FunnyType[] concreteTypes,
+        IFunctionSelectorContext context) {
+        ImmutableTypePredicate.RequireImmutable(concreteTypes[0], "tryRemove", "element");
+        return base.CreateConcrete(concreteTypes, context);
     }
 
     protected override object Calc(object a, object b) {

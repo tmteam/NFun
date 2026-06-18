@@ -191,7 +191,7 @@ d = n{v=1, next=n{v=2, next=n{v=3}}}
 y = d?.next?.next!.v                   # 3
 ```
 
-`?.` on non-struct receivers (Int, Real, Text, Array, …) is rejected
+`?.` field access on non-struct receivers (Int, Real, Text, Array, …) is rejected — primitives have no fields. Method-call form `?.method()` IS allowed on primitive optionals — `x:int? = 5; x?.toText()` returns `text?` (`'5'?` or `none`).
 
 After `?.`, `none` propagates through the entire chain — both field accesses and method calls. You only need one `?.` at the beginning (TypeScript-style)
 
@@ -206,7 +206,7 @@ Method calls also propagate:
 ```py
 arr:int[]? = if(hasData) [3,1,2] else none
 
-arr?.sort().reverse() ?? []        # int[] — [3,2,1] or []
+arr?.sort().reverse() ?? [0]       # int[] — [3,2,1] or [0]   (non-empty default pins the element type)
 arr?.sort().reverse().count() ?? 0 # int   — 3 or 0
 arr?.count() ?? 0                  # int   — 3 or 0
 ```

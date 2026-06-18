@@ -395,8 +395,11 @@ public static class GraphBuilderExtensions {
         // U absorbs the extra layer (BugHunt-stmt #50). The flag forces TIC
         // to resolve U at the inner shape, mirroring the rigidity used for
         // function-signature composite params (StagesExtension WrapAncestorInOptional).
+        // Additionally IsForcedNonOptional — negative-skolem flag — blocks the
+        // CS×CS IsOptional OR-fusion at IntersectIntervalsOrNull (Bug hunt round 5 #10).
         var elemNode = b.CreateVarType();
         elemNode.IsSignatureParam = true;
+        elemNode.IsForcedNonOptional = true;
 
         // Left: opt(U)
         var leftType = StateOptional.Of(elemNode);
@@ -407,6 +410,28 @@ public static class GraphBuilderExtensions {
         elemNode.AddAncestor(resultNode);
         var rightNode = b.GetOrCreateNode(rightId);
         rightNode.AddAncestor(resultNode);
+    }
+
+    /// <summary>
+    /// `!` (force unwrap) — TIC special form: (opt(T)) → T.
+    /// Mirrors <see cref="SetCoalesce"/>: builds a fresh U marked IsSignatureParam +
+    /// IsForcedNonOptional so that the CS×CS IsOptional OR-fusion at
+    /// <c>IntersectIntervalsOrNull</c> (and the optional-aware RefTo split in
+    /// <c>DestructionFunctions.Apply(CS, CS)</c>) keep U at the inner shape, even when
+    /// the input carries nested Optional (e.g. `m.get(k)!` on `map&lt;K, V?&gt;`).
+    /// Without this special form the generic signature `(T?) → T` resolved T against
+    /// the OUTER Optional only, leaving one layer in the result. Bug hunt round 5 #10.
+    /// </summary>
+    public static void SetForceUnwrap(this GraphBuilder b, int argId, int resultId) {
+        var elemNode = b.CreateVarType();
+        elemNode.IsSignatureParam = true;
+        elemNode.IsForcedNonOptional = true;
+        // Argument: opt(U). SetCallArgument creates the outer signature wrapper.
+        var argType = StateOptional.Of(elemNode);
+        b.SetCallArgument(argType, argId);
+        // Result = U via single AddAncestor edge — same pattern as SetCoalesce.
+        var resultNode = b.GetOrCreateNode(resultId);
+        elemNode.AddAncestor(resultNode);
     }
 
     public static void SetMutableStructInit(this GraphBuilder b, string[] fieldNames, int[] fieldExpressionIds, int id) {
