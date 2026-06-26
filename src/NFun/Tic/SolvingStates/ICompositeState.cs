@@ -8,9 +8,6 @@ public interface ITypeState : ITicNodeState {
 
 public interface ICompositeState : ITypeState {
     public ICompositeState GetNonReferenced();
-    /// <summary>
-    /// State of any Member node is 'RefTo'
-    /// </summary>
     public bool HasAnyReferenceMember { get; }
 
     public int MemberCount { get; }
@@ -20,14 +17,7 @@ public interface ICompositeState : ITypeState {
 }
 
 public interface ITicNodeState {
-    /// <summary>
-    /// This type is not solved or can be changed
-    /// </summary>
     public bool IsMutable { get; }
-
-    /// <summary>
-    /// This type and all dependent type are solved.
-    /// </summary>
     public bool IsSolved { get; }
 
     public string Description { get; }

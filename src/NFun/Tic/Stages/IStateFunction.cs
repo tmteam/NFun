@@ -91,98 +91,76 @@ public interface IStateFunction {
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    // StateMap deleted — map dispatch flows through the single-arg
-    // StateCollection cell below (Constructor = ConstructorKind.Map).
-
-    /// <summary>
-    /// Unified Apply for all single-arg invariant collections (list, fixedArray,
-    /// array, set, future queue/stack). Discriminated by <see cref="StateCollection.Constructor"/>
-    /// — cross-kind pairs reject (uniform invariance).
-    /// </summary>
+    /// <summary>Apply for unified single-arg invariant collections.
+    /// Cross-kind pairs reject.</summary>
     bool Apply(
         StateCollection ancestor,
         StateCollection descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>
-    /// Cross-family subtyping <c>StateCollection(List) ≤ StateArray</c> per Stage 0
-    /// collections hierarchy. Lets lang-mode <c>list&lt;T&gt;</c> values flow into
-    /// the ee-mode <c>T[]</c> argument positions used by existing LINQ generic
-    /// functions without per-function overloads. Other ConstructorKinds reject.
-    /// </summary>
+    /// <summary>Cross-family subtyping: Array-branch StateCollection ≤ StateArray.
+    /// Other ConstructorKinds reject.</summary>
     bool Apply(
         StateArray ancestor,
         StateCollection descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>
-    /// Reverse cross-family direction: legacy ee-mode <c>StateArray</c> values
-    /// flow into a lang-mode <c>StateCollection</c> slot (e.g. existing LINQ
-    /// returns <c>T[]</c>, assigned into a <c>placed:int[]</c> = <c>array&lt;int&gt;</c>
-    /// slot in lang). Conversion is via <c>VarTypeConverter</c> at the call
-    /// site. Other ConstructorKinds reject.
-    /// </summary>
+    /// <summary>Reverse cross-family direction: StateArray ≤ Array-branch StateCollection.
+    /// Conversion via <c>VarTypeConverter</c>. Other ConstructorKinds reject.</summary>
     bool Apply(
         StateCollection ancestor,
         StateArray descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // Stage C.3 — StateCompositeConstraints Apply cells.
-    // CompCS is an interval state over ConstructorLattice (peer of ConstraintsState).
-    // Per Specs/Tic/Algebra_CompositeConstraints.md §4: Layer-2 directional commit.
+    // StateCompositeConstraints cells.
+    // See specs_tic/Algebra/CompositeConstraints.md §4.
 
-    /// <summary>§4 same-class: delegate to UnifyOrNull (symmetric).</summary>
+    /// <summary>Same-class: delegate to UnifyOrNull.</summary>
     bool Apply(
         StateCompositeConstraints ancestor,
         StateCompositeConstraints descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>§4 CompCS as ancestor, primitive as descendant. Any = no-op; non-Any reject.</summary>
+    /// <summary>CompCS anc × primitive desc. Any = no-op; non-Any reject.</summary>
     bool Apply(
         StateCompositeConstraints ancestor,
         StatePrimitive descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>§4 reverse: primitive as ancestor, CompCS as descendant. Any = no-op; non-Any reject.</summary>
+    /// <summary>Primitive anc × CompCS desc. Any = no-op; non-Any reject.</summary>
     bool Apply(
         StatePrimitive ancestor,
         StateCompositeConstraints descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>§4 CompCS anc, ConstraintsState desc. Coerce CS to CompCS-view if CS.Desc is composite.</summary>
+    /// <summary>CompCS anc × CS desc. Coerce CS to CompCS-view if CS.Desc is composite.</summary>
     bool Apply(
         StateCompositeConstraints ancestor,
         ConstraintsState descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>§4 reverse: CS anc, CompCS desc.</summary>
+    /// <summary>CS anc × CompCS desc.</summary>
     bool Apply(
         ConstraintsState ancestor,
         StateCompositeConstraints descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>
-    /// §4.1 Forward Pull/Push/Destruction with StateCollection / StateArray / StateOptional descendant.
-    /// StateFun / StateStruct descendants reject explicitly.
-    /// </summary>
+    /// <summary>CompCS anc × ICompositeState desc. StateFun/StateStruct reject.</summary>
     bool Apply(
         StateCompositeConstraints ancestor,
         ICompositeState descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
 
-    /// <summary>
-    /// §4.1 Reverse: composite ancestor, CompCS descendant.
-    /// </summary>
+    /// <summary>ICompositeState anc × CompCS desc.</summary>
     bool Apply(
         ICompositeState ancestor,
         StateCompositeConstraints descendant,

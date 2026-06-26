@@ -14,64 +14,50 @@ using NFun.Types;
 namespace NFun.Tic;
 
 /// <summary>
-/// Lightweight type solver for primitive-only expressions.
-/// When the body has no composite types (arrays, structs, optionals, functions),
-/// TIC degenerates to interval arithmetic on the primitive lattice.
-///
-/// Single-pass architecture: gate check + constraint building are fused into one AST walk.
-/// If any non-primitive node is encountered, returns null immediately.
-///
-/// All interval operations (LCA, GCD, Fits) are O(1) table lookups on ordinals.
-/// Total complexity: O(N) where N = AST node count.
+/// Lightweight type solver for primitive-only expressions: TIC degenerates to interval
+/// arithmetic on the primitive lattice. Fused gate+build AST walk; returns null on the first
+/// non-primitive node. LCA/GCD/Fits are O(1) ordinal-table lookups, total O(N).
 /// </summary>
 internal sealed class SimplePrimitiveSolver {
 
     private const byte OPEN = 0xFF;
-    private const int PRIM_COUNT = 19; // must match StatePrimitive type count (0..18)
+    private const int PRIM_COUNT = 19; // must equal StatePrimitive ordinal cardinality
 
     private struct Group {
-        public byte Desc;       // ordinal lower bound, OPEN = unconstrained
-        public byte Anc;        // ordinal upper bound, OPEN = unconstrained
-        public byte Pref;       // preferred resolution ordinal, OPEN = none
-        public int Parent;      // union-find parent (int, not byte — safe for any count)
-        public byte Rank;       // union-find rank
-        public bool Comparable; // comparable type required
+        public byte Desc;       // OPEN = unconstrained
+        public byte Anc;        // OPEN = unconstrained
+        public byte Pref;       // OPEN = none
+        public int Parent;
+        public byte Rank;
+        public bool Comparable;
     }
 
     private Group[] _groups;
 
-    private static readonly byte[] s_lcaTable;   // [PRIM_COUNT * PRIM_COUNT], flattened
+    private static readonly byte[] s_lcaTable;   // PRIM_COUNT × PRIM_COUNT row-major
     private static readonly byte[] s_gcdTable;   // OPEN = no GCD
-    private static readonly bool[] s_fitsTable;  // desc fits into anc?
+    private static readonly bool[] s_fitsTable;  // [desc * N + anc]
     private static readonly StatePrimitive[] s_ordToState;
 
-    // Set to true when conflicting constraints are detected (e.g. Real ∩ Bool = ∅)
     private bool _failed;
-
     private int _groupCount;
 
-    // Syntax node id → group id (-1 = not allocated)
+    // Syntax node id → group id, -1 = unallocated
     private readonly int[] _nodeGroup;
 
-    // Variable name → group id
     private readonly Dictionary<string, int> _varGroup;
 
-    // Directed edges: expr ≤ var
     private (int fromGroup, int toGroup)[] _edges;
     private int _edgeCount;
 
-    // Generic call tracking: call OrderNumber → generic group id (array, not dict)
-    private int[] _callGenericGroup; // -1 = no generic
+    // Call OrderNumber → generic group id, -1 = no generic
+    private int[] _callGenericGroup;
 
-    // Dependencies
     private readonly IConstantList _constants;
-    // Cached preferred int type ordinal (computed once)
     private readonly byte _preferredIntOrd;
 
     private static readonly TicNode[] s_syntaxNodeSingletons;
-    // Cached single-element arrays for RememberGenericCallArguments (avoids per-call allocation)
     private static readonly StateRefTo[][] s_singleRefToArrays;
-    // Ordinal → FunnyType mapping (mirrors TicTypesConverter.ToConcrete but indexed by ordinal)
     private static readonly FunnyType[] s_ordToFunnyType;
 
     private static readonly PrimitiveTypeName[] s_allPrimitives = {
@@ -85,8 +71,7 @@ internal sealed class SimplePrimitiveSolver {
     };
 
     static SimplePrimitiveSolver() {
-        // Build ordinal lookup tables by iterating all StatePrimitive pairs
-        // and calling their authoritative LCA/GCD/Fits methods.
+        // Precompute ordinal LCA/GCD/Fits tables from StatePrimitive (authoritative source).
         s_ordToState = new StatePrimitive[PRIM_COUNT];
         for (int i = 0; i < s_allPrimitives.Length; i++) {
             var p = new StatePrimitive(s_allPrimitives[i]);
@@ -103,20 +88,14 @@ internal sealed class SimplePrimitiveSolver {
                 var pb = s_ordToState[b];
                 int idx = a * PRIM_COUNT + b;
 
-                // LCA
                 var lca = pa.GetLastCommonPrimitiveAncestor(pb);
                 s_lcaTable[idx] = lca != null ? (byte)lca.Order : OPEN;
-
-                // GCD
                 var gcd = pa.GetFirstCommonDescendantOrNull(pb);
                 s_gcdTable[idx] = gcd != null ? (byte)gcd.Order : OPEN;
-
-                // Fits (desc can be converted to anc)
                 s_fitsTable[idx] = pa.CanBePessimisticConvertedTo(pb);
             }
         }
 
-        // Flyweight singletons
         s_syntaxNodeSingletons = new TicNode[PRIM_COUNT];
         var refToSingletons = new StateRefTo[PRIM_COUNT];
         s_singleRefToArrays = new StateRefTo[PRIM_COUNT][];
@@ -158,7 +137,6 @@ internal sealed class SimplePrimitiveSolver {
 
         _nodeGroup = new int[maxNodeId];
         _callGenericGroup = new int[maxNodeId];
-        // Fill both with -1 in one pass
         Array.Fill(_nodeGroup, -1);
         Array.Fill(_callGenericGroup, -1);
 
@@ -184,7 +162,6 @@ internal sealed class SimplePrimitiveSolver {
     private int NewGroup() {
         var id = _groupCount++;
         if (id >= _groups.Length) Grow();
-        // _groups[id].Parent = id already set by constructor/Grow
         return id;
     }
 
@@ -208,10 +185,10 @@ internal sealed class SimplePrimitiveSolver {
             else {
                 var gcd = GcdOrd(_groups[root].Anc, _groups[other].Anc);
                 if (gcd != OPEN) _groups[root].Anc = gcd;
-                else _failed = true; // incompatible ancestor constraints (e.g. I96 vs Bool)
+                else _failed = true; // incompatible ancestor constraints
             }
         }
-        // After merge, check that the interval [desc..anc] is satisfiable
+        // Verify [desc..anc] still satisfiable after merge
         if (_groups[root].Desc != OPEN && _groups[root].Anc != OPEN
             && !FitsOrd(_groups[root].Desc, _groups[root].Anc))
             _failed = true;
@@ -252,7 +229,7 @@ internal sealed class SimplePrimitiveSolver {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SetConcrete(int gid, byte ord) {
         var r = Find(gid);
-        // Detect conflicting concrete constraints (e.g. Real vs Bool)
+        // Detect conflicting concrete constraints
         if (_groups[r].Desc != OPEN && !FitsOrd(_groups[r].Desc, ord))
             _failed = true;
         if (_groups[r].Anc != OPEN && !FitsOrd(ord, _groups[r].Anc))
@@ -273,7 +250,6 @@ internal sealed class SimplePrimitiveSolver {
         _edges[_edgeCount++] = (exprGid, varGid);
     }
 
-    /// <summary>Apply generic constraint bounds to the result group's root.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ApplyGenericConstraint(int resultGid, GenericConstrains c) {
         var r = Find(resultGid);
@@ -290,10 +266,9 @@ internal sealed class SimplePrimitiveSolver {
         if (c.IsComparable) _groups[r].Comparable = true;
     }
 
-    /// <summary>Apply generic constraint to group and unite with args. No array allocation.</summary>
+    /// <summary>Apply generic constraint to group and unite with args.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SetupPureGenericBinOp(int leftId, int rightId, int resultId, GenericConstrains c) {
-        // Use result group as the generic group — no extra NewGroup needed
         var rGid = GetOrCreateNodeGroup(resultId);
         ApplyGenericConstraint(rGid, c);
         Unite(GetOrCreateNodeGroup(leftId), rGid);
@@ -352,10 +327,8 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     /// <summary>
-    /// Check if a resolved signature is simple (primitive-only).
-    /// For PureGenericFunctionBase: must have exactly 1 constraint.
-    /// For IConcreteFunction: all arg/return types must be primitive.
-    /// Returns false for null or any other signature type.
+    /// True iff <paramref name="sig"/> is SPS-eligible: PureGeneric with one constraint,
+    /// or IConcreteFunction with primitive args/return.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsSimpleSignature(IFunctionSignature sig) {
@@ -364,9 +337,8 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     /// <summary>
-    /// Walks the AST, performing gate check and constraint building simultaneously.
-    /// Returns false on the first non-primitive-compatible node, allowing immediate bail-out.
-    /// Side effect: resolves and caches function signatures on syntax nodes.
+    /// Fused AST walk: gate check + constraint build. Returns false on first non-primitive node.
+    /// Side effect: caches resolved signatures on syntax nodes.
     /// </summary>
     private bool WalkAndCheck(ISyntaxNode node, IFunctionRegistry functions) {
         switch (node) {
@@ -434,7 +406,7 @@ internal sealed class SimplePrimitiveSolver {
             }
 
             default:
-                return false; // unknown node = bail out
+                return false; // non-SPS-eligible node
         }
     }
 
@@ -447,7 +419,6 @@ internal sealed class SimplePrimitiveSolver {
         else SetupDecimal(gid, node.Value);
     }
 
-    // Cached ordinals for frequently used primitives in interval setup
     private static readonly byte s_ordI16 = OrdOf(StatePrimitive.I16);
     private static readonly byte s_ordI32 = OrdOf(StatePrimitive.I32);
     private static readonly byte s_ordI64 = OrdOf(StatePrimitive.I64);
@@ -493,8 +464,8 @@ internal sealed class SimplePrimitiveSolver {
                 var desc = l >= short.MinValue ? s_ordI16
                          : l >= int.MinValue   ? s_ordI32
                          :                       s_ordI64;
-                // Negative literal smaller than Int32.MinValue won't fit Preferred I32 —
-                // promote Preferred to I64 so unconstrained resolution picks Int64 not Real.
+                // Negative literal below Int32.MinValue: promote Preferred to I64 so
+                // unconstrained resolution picks Int64, not Real.
                 var pref = desc == s_ordI64 ? s_ordI64 : _preferredIntOrd;
                 SetInterval(gid, desc, s_ordReal, pref);
                 return;
@@ -511,9 +482,8 @@ internal sealed class SimplePrimitiveSolver {
         }
         byte desc;
         byte pref;
-        // Mirror hex/bin: when value > Int32.Max, switch Preferred to I64 so
-        // unconstrained resolution picks Int64 instead of falling through to Real.
-        // Ancestor stays Real so generic contexts still accept Real operands. (MR4Bug1.)
+        // Value > Int32.Max: switch Preferred to I64 so unconstrained resolution lands on Int64.
+        // Ancestor stays Real so generic contexts still accept Real operands.
         if (v <= byte.MaxValue) { desc = s_ordU8; pref = _preferredIntOrd; }
         else if (v <= (ulong)short.MaxValue) { desc = s_ordU12; pref = _preferredIntOrd; }
         else if (v <= ushort.MaxValue) { desc = s_ordU16; pref = _preferredIntOrd; }
@@ -525,7 +495,7 @@ internal sealed class SimplePrimitiveSolver {
 
     private void SetupNamedId(NamedIdSyntaxNode node) {
         var gid = GetOrCreateNodeGroup(node.OrderNumber);
-        // Check constants only if this name is NOT already known as a variable
+        // Variables shadow constants.
         if (_varGroup.TryGetValue(node.Id, out var existingVarGid)) {
             node.IdType = NamedIdNodeType.Variable;
             Unite(existingVarGid, gid);
@@ -542,15 +512,13 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     /// <summary>
-    /// Pow special case: non-const or negative exponent → force all args and result to Real.
-    /// Returns true if the exponent requires Real (handled), false if normal generic path should be used.
+    /// Pow special case: non-const or negative exponent ⇒ force args and result to Real.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsPowForcedReal(ISyntaxNode exponentNode) =>
         !(exponentNode is GenericIntSyntaxNode intN && !(intN.Value is long lv && lv < 0));
 
     private void SetupBinOp(BinOperatorSyntaxNode node) {
-        // ResolvedSignature already populated by WalkAndCheck
         var sig = node.ResolvedSignature;
         if (sig is PureGenericFunctionBase pure) {
             if (node.Op == BinOp.Pow && IsPowForcedReal(node.Right)) {
@@ -571,7 +539,6 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private void SetupUnaryOp(UnaryOperatorSyntaxNode node) {
-        // ResolvedSignature already populated by WalkAndCheck
         var sig = node.ResolvedSignature;
         if (sig is PureGenericFunctionBase pure)
             SetupPureGenericUnOp(node.Operand.OrderNumber, node.OrderNumber, pure.Constrains[0]);
@@ -582,10 +549,9 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private void SetupFunCall(FunCallSyntaxNode call) {
-        // ResolvedSignature already populated by WalkAndCheck
         var sig = call.ResolvedSignature;
         if (sig is PureGenericFunctionBase pure) {
-            // Pow special case for function calls
+            // Pow special case — see IsPowForcedReal.
             if (call.Id == CoreFunNames.Pow
                 && !(call.Args.Length > 1 && !IsPowForcedReal(call.Args[1]))) {
                 var rGid = GetOrCreateNodeGroup(call.OrderNumber);
@@ -595,7 +561,6 @@ internal sealed class SimplePrimitiveSolver {
                 _callGenericGroup[call.OrderNumber] = rGid;
                 return;
             }
-            // General PureGeneric: unite all args + result
             var resultGid = GetOrCreateNodeGroup(call.OrderNumber);
             ApplyGenericConstraint(resultGid, pure.Constrains[0]);
             for (int i = 0; i < call.Args.Length; i++)
@@ -609,7 +574,6 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private void SetupIfElse(IfThenElseSyntaxNode node) {
-        // Children already walked by WalkAndCheck
         var rGid = GetOrCreateNodeGroup(node.OrderNumber);
         foreach (var c in node.Ifs)
             SetConcrete(GetOrCreateNodeGroup(c.Condition.OrderNumber), s_ordBool);
@@ -619,11 +583,9 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private void SetupCompareChain(ComparisonChainSyntaxNode node) {
-        // Children already walked by WalkAndCheck
         for (int i = 0; i < node.Operators.Count; i++) {
             bool isEquality = node.Operators[i].Type is TokType.Equal or TokType.NotEqual;
             var c = isEquality ? GenericConstrains.Any : GenericConstrains.Comparable;
-            // Use first operand's group as the generic group — no extra allocation
             var gGid = GetOrCreateNodeGroup(node.Operands[i].OrderNumber);
             var r = Find(gGid);
             if (c.IsComparable) _groups[r].Comparable = true;
@@ -670,30 +632,27 @@ internal sealed class SimplePrimitiveSolver {
                 var vr = Find(_edges[e].toGroup);
                 if (er == vr) continue;
 
-                // Push desc up: to.desc = LCA(to.desc, from.desc)
+                // Pull: to.desc ≥ LCA(to.desc, from.desc); from.anc ≤ GCD(from.anc, to.anc).
                 if (_groups[er].Desc != OPEN) {
                     if (NarrowDesc(vr, _groups[er].Desc)) changed = true;
                     if (_failed) return;
                 }
-                // Pull anc down: from.anc = GCD(from.anc, to.anc)
                 if (_groups[vr].Anc != OPEN) {
                     if (NarrowAnc(er, _groups[vr].Anc)) changed = true;
                     if (_failed) return;
                 }
-                // Pull concrete desc: when to is concrete, from must be ≥ to
+                // When to is concrete, from must be ≥ to.
                 if (_groups[vr].Desc != OPEN && _groups[vr].Anc != OPEN && _groups[vr].Desc == _groups[vr].Anc) {
                     if (NarrowDesc(er, _groups[vr].Desc)) changed = true;
                     if (_failed) return;
                 }
-                // Propagate anc: to.anc = GCD(to.anc, from.anc)
                 if (_groups[er].Anc != OPEN) {
                     if (NarrowAnc(vr, _groups[er].Anc)) changed = true;
                     if (_failed) return;
                 }
-                // Comparable propagation (bidirectional — constraint must reach variables)
+                // Comparable and Preferred propagate bidirectionally (Preferred is metadata).
                 if (_groups[er].Comparable && !_groups[vr].Comparable) { _groups[vr].Comparable = true; changed = true; }
                 if (_groups[vr].Comparable && !_groups[er].Comparable) { _groups[er].Comparable = true; changed = true; }
-                // Preferred propagation (bidirectional — pref is a hint, not a constraint)
                 if (_groups[er].Pref != OPEN && _groups[vr].Pref == OPEN) { _groups[vr].Pref = _groups[er].Pref; changed = true; }
                 if (_groups[vr].Pref != OPEN && _groups[er].Pref == OPEN) { _groups[er].Pref = _groups[vr].Pref; changed = true; }
             }
@@ -707,12 +666,11 @@ internal sealed class SimplePrimitiveSolver {
         var a = _groups[r].Anc;
         var p = _groups[r].Pref;
 
-        // Check preferred first — it takes priority when it fits in [desc..anc].
-        // This matches TIC's SolveCovariant which prefers Preferred over Ancestor.
+        // Preferred has priority over Ancestor when it fits in [desc..anc] (matches SolveCovariant).
         if (d != OPEN && a != OPEN) {
             if (d == a) return s_ordToState[d];
             if (!FitsOrd(d, a))
-                return null; // unsatisfiable
+                return null;
             if (p != OPEN && FitsOrd(d, p) && FitsOrd(p, a))
                 return s_ordToState[p];
             return RefineAncestor(a, d);
@@ -729,23 +687,11 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     /// <summary>
-    /// Concretise an abstract ancestor produced by SPS resolution.
-    ///
-    /// I96 ("integer top") is the ONLY abstract that arises here in practice — it
-    /// comes from <see cref="GenericConstrains.Integers"/> = (Anc=I96, Desc=null),
-    /// the constraint used by `&`, `|`, `^`, `//`, `~`. The other abstract types
-    /// (I48, I24, U48, U24, U12) exist only as internal lattice nodes for U/I
-    /// intersection results — no built-in operator declares them as `Anc`, so
-    /// they cannot appear as the resolved type from <see cref="ResolveGroup"/>.
-    /// Should a future built-in adopt <see cref="GenericConstrains.Integers3264"/>
-    /// or <see cref="GenericConstrains.Integers32"/>, extend this method.
-    ///
-    /// Rule: I96 with desc ≤ I32 → I32, else I64. Mirrors NFun 1.0.x's
-    /// <c>TicTypesConverter</c> rule that was bypassed when SPS took over the
-    /// resolution path for primitive expressions (the rule applies only to
-    /// constraint-interval resolution; the table-driven mapping in
-    /// <c>s_ordToFunnyType</c> remains the right answer when an abstract type
-    /// arrives via MergeOrNull collapsing a constraint to a single point).
+    /// Concretise an abstract ancestor. Rule: I96 ("integer top") with desc ≤ I32 → I32, else I64.
+    /// I96 is the only abstract that can reach here — it's the Anc of
+    /// <see cref="GenericConstrains.Integers"/> (operators `&`, `|`, `^`, `//`, `~`).
+    /// Extend if a future built-in adopts <see cref="GenericConstrains.Integers3264"/> or
+    /// <see cref="GenericConstrains.Integers32"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static StatePrimitive RefineAncestor(byte anc, byte desc) {
@@ -773,33 +719,29 @@ internal sealed class SimplePrimitiveSolver {
             resultBuilder.RememberGenericCallArguments(i, s_singleRefToArrays[resolved.Order]);
         }
 
-        // SpsTicResults: no namedNodes dict — SPS applies variable types directly.
-        // GetVariableNodeOrNull returns null; GetVariableNode throws (never called when typesApplied).
+        // SPS writes variable types directly via OutputType/VariableType — no namedNodes dict.
         resultBuilder.SetResults(new SpsTicResults(syntaxNodes));
         return resultBuilder.Build();
     }
 
     /// <summary>
-    /// Walk the syntax tree and set OutputType (and VariableType for NamedIdSyntaxNode)
-    /// directly from SPS resolved groups. Returns false if any node can't resolve.
+    /// Set <c>OutputType</c> (and <c>VariableType</c> on NamedId) from SPS groups; false on unresolved.
     /// </summary>
     private bool ApplyTypesToSyntaxTree(SyntaxTree tree) {
         foreach (var child in tree.Children) {
             switch (child) {
                 case EquationSyntaxNode eq:
-                    // EquationSyntaxNode.OutputType = variable type (mirrors ApplyTiResultEnterVisitor.Visit(Equation))
+                    // OutputType on the equation node carries the variable's type.
                     if (!_varGroup.TryGetValue(eq.Id, out var eqVarGid))
                         return false;
                     var eqResolved = ResolveGroup(eqVarGid);
                     if (eqResolved == null) return false;
                     eq.OutputType = s_ordToFunnyType[eqResolved.Order];
-                    // Recurse into the expression subtree
                     if (!ApplyTypesRecursive(eq.Expression))
                         return false;
                     break;
                 case VarDefinitionSyntaxNode:
-                    // VarDefinitionSyntaxNode has no expression children to type — skip
-                    break;
+                    break; // no expression children
                 default:
                     return false;
             }
@@ -808,12 +750,9 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     /// <summary>
-    /// Recursively set OutputType on a syntax node and its children from SPS groups.
-    /// For NamedIdSyntaxNode, also sets VariableType.
-    /// Returns false if any node can't be resolved.
+    /// Recursively set OutputType (and VariableType on NamedId) from SPS groups; false on unresolved.
     /// </summary>
     private bool ApplyTypesRecursive(ISyntaxNode node) {
-        // Set OutputType from node's group
         var nodeId = node.OrderNumber;
         if (nodeId >= 0 && nodeId < _nodeGroup.Length && _nodeGroup[nodeId] >= 0) {
             var resolved = ResolveGroup(_nodeGroup[nodeId]);
@@ -823,7 +762,7 @@ internal sealed class SimplePrimitiveSolver {
             node.OutputType = FunnyType.Empty;
         }
 
-        // NamedIdSyntaxNode: also set VariableType (mirrors ApplyTiResultEnterVisitor.Visit(NamedId))
+        // NamedId nodes also carry a VariableType.
         if (node is NamedIdSyntaxNode named) {
             if (_varGroup.TryGetValue(named.Id, out var varGid)) {
                 var varResolved = ResolveGroup(varGid);
@@ -832,7 +771,6 @@ internal sealed class SimplePrimitiveSolver {
             }
         }
 
-        // Recurse into children
         foreach (var child in node.Children) {
             if (!ApplyTypesRecursive(child))
                 return false;
@@ -841,11 +779,8 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     /// <summary>
-    /// Single-pass fused gate+solver. Returns null if:
-    /// - The expression contains non-primitive types (arrays, structs, optionals, lambdas)
-    /// - Constraint propagation detects a conflict
-    /// - Any apriori types are non-primitive
-    /// In all these cases, the caller should fall through to full TIC.
+    /// Fused gate+solve. Returns null on: non-primitive nodes, propagation conflict, or
+    /// non-primitive apriori types — caller falls through to full TIC.
     /// </summary>
     internal static TypeInferenceResults SolveOrNull(
         SyntaxTree tree,
@@ -857,7 +792,7 @@ internal sealed class SimplePrimitiveSolver {
         ICustomTypeRegistry customTypes = null) {
 
         typesApplied = false;
-        // Gate: apriori types must all be primitive
+        // Apriori gate.
         if (!AllAprioriTypesArePrimitive(aprioriTypes))
             return null;
 
@@ -872,11 +807,11 @@ internal sealed class SimplePrimitiveSolver {
         foreach (var child in tree.Children) {
             switch (child) {
                 case EquationSyntaxNode eq:
-                    // Gate: type annotation must be primitive
+                    // Annotation gate.
                     if (eq.TypeSpecificationOrNull != null
                         && !IsSimpleTypeSyntax(eq.TypeSpecificationOrNull.TypeSyntax))
                         return null;
-                    // Fused walk: gate + constraint building
+                    // Fused gate + build.
                     if (!solver.WalkAndCheck(eq.Expression, functions))
                         return null;
                     var defGid = solver.GetOrCreateVarGroup(eq.Id);
@@ -885,7 +820,7 @@ internal sealed class SimplePrimitiveSolver {
                         solver.SetConcreteChecked(defGid, ToPrimitiveOrd(resolved));
                     }
                     var exprGid = solver.GetOrCreateNodeGroup(eq.Expression.OrderNumber);
-                    // SetDef: preferred propagation (like GraphBuilder.SetDef)
+                    // Preferred propagation (mirrors GraphBuilder.SetDef).
                     var er = solver.Find(exprGid);
                     if (solver._groups[er].Desc != OPEN && solver._groups[er].Desc == solver._groups[er].Anc) {
                         var dr = solver.Find(defGid);
@@ -894,16 +829,15 @@ internal sealed class SimplePrimitiveSolver {
                     solver.AddEdge(exprGid, defGid);
                     break;
                 case VarDefinitionSyntaxNode vd:
-                    // Gate: type annotation must be primitive
+                    // Annotation gate.
                     if (!IsSimpleTypeSyntax(vd.TypeSyntax))
                         return null;
                     var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax, customTypes, dialect.IsLangMode);
                     solver.SetConcreteChecked(solver.GetOrCreateVarGroup(vd.Id), ToPrimitiveOrd(resolved2));
                     break;
                 case UserFunctionDefinitionSyntaxNode:
-                    return null; // user functions → full TIC
                 case TypeDeclarationSyntaxNode:
-                    return null; // type declarations → full TIC
+                    return null; // out of SPS scope
             }
         }
 

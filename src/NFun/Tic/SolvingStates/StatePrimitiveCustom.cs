@@ -2,11 +2,8 @@ using System;
 
 namespace NFun.Tic.SolvingStates;
 
-/// <summary>
-/// Custom type as a TIC primitive. Inherits StatePrimitive so all existing
-/// `is StatePrimitive` checks work transparently. Overrides LCA/GCD/Convert
-/// to behave as an isolated type: unifies only with itself, converts only to Any.
-/// </summary>
+/// <summary>User-defined primitive: unifies only with itself, converts only to Any.
+/// Inherits <see cref="StatePrimitive"/> so existing <c>is StatePrimitive</c> checks pass.</summary>
 public class StatePrimitiveCustom : StatePrimitive {
     private static readonly PrimitiveTypeName DummyName = (PrimitiveTypeName)(-1 << 6);
 

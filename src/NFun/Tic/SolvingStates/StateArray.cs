@@ -34,10 +34,8 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     }
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) {
-        // Cross-family LCA: StateArray vs any Array-branch StateCollection
-        // widens to array per Stage 0 hierarchy. Symmetric arms in
-        // StateCollection.GetLastCommonAncestorOrNull (cross-kind) and
-        // LcaOrShareIdentity (same-kind unresolved elements).
+        // Cross-family: StateArray vs Array-branch StateCollection widens to T[]
+        // per the lattice (specs_tic/TicTypeSystem.md §ConstructorLattice).
         if (otherType is StateCollection collOther
             && (collOther.Constructor == ConstructorKind.List
              || collOther.Constructor == ConstructorKind.Array
@@ -73,8 +71,7 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
 
     public override bool Equals(object obj) {
         if (obj is not StateArray arr) return false;
-        // Cycle guard for true graph cycles in named recursive types (e.g. forest = {kids: forest[]}).
-        // Amadio-Cardelli '93 §4.2 coinductive bisimulation: assume equal under recursive subgoal.
+        // Coinductive cycle guard for recursive types (Amadio–Cardelli '93).
         var elem = ElementNode;
         if (elem.VisitMark == ArrayCycleGuard) return true;
         var prev = elem.VisitMark;

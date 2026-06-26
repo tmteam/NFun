@@ -6,51 +6,29 @@ using SolvingStates;
 
 public static class StagesExtension {
 
-    /// <summary>
-    /// Coinductive visited-pair guard for Pull/Push Apply over cyclic constraint graphs.
-    /// When (nodeA, nodeB) is re-encountered during a recursive Invoke, we assume compatibility
-    /// (return true) per Amadio-Cardelli '93 §3 coinductive subtyping: μ-recursive types are
-    /// equal/sub iff their unfoldings are equal/sub up to the visited-pair fixpoint.
-    /// </summary>
+    /// <summary>Coinductive visited-pair guard (Amadio-Cardelli '93 §3) for Apply
+    /// over cyclic constraint graphs: re-encountered (nodeA, nodeB) ⇒ assume compatibility.</summary>
     [ThreadStatic]
     private static HashSet<(TicNode, TicNode)> _invokeVisitedPairs;
 
-    /// <summary>
-    /// Set by GraphBuilder.SolveCore: when false, the graph cannot contain
-    /// μ-recursive types (no SafeFieldAccess, no named-type registry, no
-    /// recursive user function — checked deterministically pre-TIC). The
-    /// visited-pair guard exists ONLY for cycle re-entry; with no cycles
-    /// possible, skip it entirely.
-    /// </summary>
+    /// <summary>Set by GraphBuilder.SolveCore. False ⇒ no μ-recursive types possible
+    /// ⇒ skip visited-pair guard entirely.</summary>
     [ThreadStatic]
     internal static bool _isRecursion;
 
     public static bool Invoke<TFunction>(this TFunction function, TicNode nodeA, TicNode nodeB) where TFunction : IStateFunction {
-        // Fast paths to skip the visited-pair guard:
-        // (1) graph cannot contain cycles (`!_isRecursion`) — single bool check, the
-        //     dominant case in non-recursive expressions. Set deterministically pre-TIC
-        //     by GraphBuilder (no SafeFieldAccess, no named-type registry, no recursive
-        //     user fn).
-        // (2) both states primitive — even in recursive graphs, primitive↔primitive pairs
-        //     cannot re-enter Invoke (InvokeCore dispatches to a single Apply with no
-        //     further recursion through this method).
-        //
-        // Optional × non-Optional pairs are NOT a fast path even when not flagged
-        // recursive: WrapDescendantInOptional / WrapAncestorInOptional's
-        // unwrap-then-Invoke pattern can re-enter the same (nodeA, nodeB) pair
-        // when state mutations (e.g. opt-wrap of the descendant's CS during
-        // Destruction) re-establish the original Optional × non-Optional shape.
-        // The visited-pair guard is the only termination signal. (StmtBug80:
-        // `try: oops(...) catch e: return e.message` looped infinitely through
-        // WrapDescendantInOptional on (V0:opt(V2), arr(Ch)) without it.)
+        // Fast paths skipping the visited-pair guard:
+        //   (1) !_isRecursion — graph cycle-free (set pre-TIC by GraphBuilder).
+        //   (2) primitive × primitive — InvokeCore can't recurse through Invoke.
+        // Optional × non-Optional is NOT fast-path even when !_isRecursion: the
+        // Wrap*InOptional unwrap-then-Invoke can re-enter the same pair after a
+        // state mutation re-establishes the original shape. The guard is the only
+        // termination signal there.
         bool hasOptional = nodeA.State is StateOptional || nodeB.State is StateOptional;
         if ((!_isRecursion && !hasOptional) || (nodeA.State is StatePrimitive && nodeB.State is StatePrimitive))
             return InvokeCore(function, nodeA, nodeB);
 
-        // Coinductive visited-pair guard. Required for the cycle members
-        // (not just the cycle head) during Apply recursion through composite
-        // elements. Per Amadio-Cardelli '93 §3 coinductive subtyping: when
-        // (nodeA, nodeB) is re-encountered, assume compatibility (return true).
+        // Coinductive visited-pair guard — required for cycle members, not just heads.
         var pairs = _invokeVisitedPairs;
         if (pairs == null) {
             pairs = new HashSet<(TicNode, TicNode)>();
@@ -58,7 +36,7 @@ public static class StagesExtension {
         }
         var pair = (nodeA, nodeB);
         if (!pairs.Add(pair))
-            return true; // coinductive assumption: cycle re-entered
+            return true; // cycle re-entered — coinductive assumption
         try {
             return InvokeCore(function, nodeA, nodeB);
         }
@@ -90,7 +68,6 @@ public static class StagesExtension {
                 _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
             };
         }
-        // Stage C.3: CompCS as ancestor — peer of ConstraintsState.
         if (nodeA.State is StateCompositeConstraints acc)
         {
             return nodeB.State switch {
@@ -110,20 +87,16 @@ public static class StagesExtension {
                 ICompositeState bc => c switch {
                     StateArray arrA => bc switch {
                         StateArray arrB => function.Apply(arrA, arrB, nodeA, nodeB),
-                        // Stage 0 hierarchy: list<T> ≤ T[]. ee-mode LINQ keyed on T[] can
-                        // accept lang-mode list<T> values via this cross-family edge.
+                        // Cross-family Array-branch StateCollection ≤ StateArray.
                         StateCollection collB => function.Apply(arrA, collB, nodeA, nodeB),
-                        // LCA(F<...>, Opt(F<...>)) = Opt(F<...>): wrap ancestor.
+                        // LCA(F, Opt(F)) = Opt(F): wrap ancestor.
                         StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
-                    // Unified single-arg invariant collections (Stage 2.1b).
-                    // Cross-kind pairs route here too — Apply rejects them internally.
+                    // Unified single-arg invariant collections; cross-kind rejected by Apply.
                     StateCollection collA => bc switch {
                         StateCollection collB => function.Apply(collA, collB, nodeA, nodeB),
-                        // Reverse direction subtyping (ancestor=lang collection,
-                        // descendant=legacy ee-mode T[]). Lets `out:int[]` slots
-                        // in lang accept results from ee-mode LINQ built-ins.
+                        // Reverse direction: StateArray ≤ Array-branch StateCollection.
                         StateArray arrB => function.Apply(collA, arrB, nodeA, nodeB),
                         StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
@@ -139,9 +112,8 @@ public static class StagesExtension {
                         StateOptional optB => WrapAncestorInOptional(function, nodeA, nodeB, optB),
                         _ => false
                     },
-                    // StateMap deleted — Map dispatches as StateCollection(Map, …).
                     StateOptional optA when bc is StateOptional optB => function.Apply(optA, optB, nodeA, nodeB),
-                    // LCA(Opt(T), T) = Opt(T): wrap descendant in Optional.
+                    // LCA(Opt(T), T) = Opt(T): wrap descendant.
                     StateOptional optA => WrapDescendantInOptional(function, nodeA, nodeB, optA),
                     _ => throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported")
                 },
@@ -154,53 +126,26 @@ public static class StagesExtension {
             throw new NotSupportedException($"State {nodeA.State.GetType()} is not supported");
     }
 
-    /// <summary>
-    /// LCA(F&lt;...&gt;, Opt(F&lt;...&gt;)) = Opt(F&lt;...&gt;): wrap ancestor in Optional.
-    /// This is a standard LCA operation — ancestor widens to accommodate Optional descendant.
-    /// Only wraps TypeVariable composite-state nodes — SyntaxNodes (literals), function-signature
-    /// params, and pinned primitive types reject the lift.
-    /// </summary>
+    /// <summary>LCA(F, Opt(F)) = Opt(F): wrap ancestor in Optional.
+    /// Pinned nodes (SyntaxNode literals, signature params, solved primitives) reject.</summary>
     private static bool WrapAncestorInOptional<TFunction>(
         TFunction function, TicNode nodeA, TicNode nodeB, StateOptional optB) where TFunction : IStateFunction {
         TraceLog.WriteLine($"  WrapAncestorInOptional: nodeA={nodeA.Name}({nodeA.Type}):{nodeA.State} nodeB={nodeB.Name}:{nodeB.State}");
 
-        // Wrapping nodeA in
-        // StateOptional(innerNode) immediately makes nodeB.State (which references nodeA
-        // via opt(nodeA)) point to opt(opt(innerNode))-equivalent. The next Apply(opt,opt)
-        // calls PushConstraints(optB.ElementNode = nodeA, innerNode) which re-enters
-        // WrapAncestorInOptional on (innerNode, nodeA) since nodeA is now opt-stated.
-        // Unbounded re-wrap chain: arr(Ch) → opt(owarr) → opt(owowarr) → … (stack overflow).
-        //
-        // Algebraically: the lift `T ≤ opt(T)` is trivially satisfied when T's identity is
-        // the same as opt's element — wrapping is unnecessary, the inclusion already holds.
-        // Return true coinductively (Amadio-Cardelli '93 §3): the constraint is consistent.
+        // Contractivity: T ≤ opt(T) is trivial when T aliases opt's element —
+        // wrapping would unfold to opt(opt(...)) and stack-overflow.
         if (ReferenceEquals(optB.ElementNode.GetNonReference(), nodeA))
             return true;
-        // WORKAROUND (TicTechnicalDebt #5 — stale Pull snapshots): the algebraic postulate
-        // T ≤ opt(T) is universal — wrapping a TypeVariable's composite state in
-        // StateOptional(innerNode) preserves all structural identity (including TypeName for
-        // named structs, since the StateStruct moves verbatim into innerNode). The
-        // previous `nodeA.IsSolved` guard rejected legal lifts on named-struct returns from
-        // F-bound recursive functions (GH #126 followup: `loop(x, acc) = if(x==none) acc
-        // else loop(x?.next, n{next=acc})` — V0 inherits the bare-struct snapshot from
-        // Phase 1 before Phase 2 None propagation lifts acc; the late lift then needs to
-        // widen V0 to opt(n)).
-        //
-        // Pinned-identity rule: widening is rejected only when the node has an external
-        // identity commitment:
-        //   - SyntaxNode literals (the value has a fixed apparent type)
-        //   - Named nodes (user-declared variables — `y:text = x` must not silently widen
-        //     y to opt(text); same for function I/O vars after SetVarType)
-        //   - IsSignatureParam (function-signature shape is rigid by contract)
-        //   - IsSolved primitive (covers anonymous primitive-typed TypeVariables — e.g.
-        //     intermediate nodes pinned to I32 by ConvertType)
-        // TypeVariable + composite state (struct/array/fun) is NOT pinned — identity
-        // travels with the inner state via innerNode.
-        bool isPinned = nodeA.Type != TicNodeType.TypeVariable  // SyntaxNode literal OR Named user variable
+        // WORKAROUND (specs_tic/TicTechnicalDebt.md #5 — stale Pull snapshots):
+        // Pinned nodes reject the lift; TypeVariable+composite-state is NOT pinned
+        // (identity travels via innerNode).
+        // Pinned = SyntaxNode literal | Named user variable | IsSignatureParam |
+        //          IsSolved primitive.
+        bool isPinned = nodeA.Type != TicNodeType.TypeVariable
                      || nodeA.IsSignatureParam
                      || (nodeA.IsSolved && nodeA.State is StatePrimitive);
         if (isPinned)
-            throw Errors.TicErrors.IncompatibleNodes(nodeA, nodeB); // opt(T) ≤ T is invalid
+            throw Errors.TicErrors.IncompatibleNodes(nodeA, nodeB);
         var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeA.Name, nodeA.State);
         innerNode.IsOptionalElement = true;
         nodeA.State = new StateOptional(innerNode);
@@ -208,36 +153,20 @@ public static class StagesExtension {
         return function.Apply((StateOptional)nodeA.State, optB, nodeA, nodeB);
     }
 
-    /// <summary>
-    /// LCA(Opt(T), T) = Opt(T): wrap descendant in Optional.
-    /// Only wraps TypeVariable/Named nodes — SyntaxNodes (literals) use fallback unwrap.
-    /// </summary>
+    /// <summary>LCA(Opt(T), T) = Opt(T): wrap descendant.
+    /// SyntaxNode literals fall back to unwrap.</summary>
     private static bool WrapDescendantInOptional<TFunction>(
         TFunction function, TicNode nodeA, TicNode nodeB, StateOptional optA) where TFunction : IStateFunction {
         TraceLog.WriteLine($"  WrapDescendantInOptional: nodeA={nodeA.Name}:{nodeA.State} nodeB={nodeB.Name}({nodeB.Type}):{nodeB.State}");
         if (nodeB.Type == TicNodeType.SyntaxNode || nodeB.IsSolved)
-            return Invoke(function, optA.ElementNode, nodeB); // fallback: unwrap
-        // Do not wrap in Optional if nodeB is on a certified contractive μ-cycle. The cycle
-        // already represents the fixed-point μX. opt(...); each additional wrap would extend the
-        // chain unnecessarily, leading to exponential opt(opt(...)) explosion before the
-        // visited-pair guard catches the recursion. Per Pierce TAPL §20.2: μX. F(X) is a SINGLE
-        // fixed-point, not a tower of unfoldings. When descendant is also a TypeVariable
-        // (synthetic cycle marker, not a syntax node literal), unwrap (Optional absorbed by μ).
+            return Invoke(function, optA.ElementNode, nodeB);
+        // Contractive μ-cycle head: μX.F(X) is a single fixed-point (Pierce TAPL §20.2).
+        // Don't wrap — Optional already absorbed by μ.
         if (nodeB.IsContractiveCycleHead && nodeB.Type == TicNodeType.TypeVariable)
             return Invoke(function, optA.ElementNode, nodeB);
-        // When nodeB carries a non-Optional composite state, wrapping it in opt() would
-        // change its shared/external identity. Use implicit lift T ≤ opt(T) instead:
-        // connect descendant directly to the inner element of optA so its composite state
-        // flows up, leaving nodeB itself non-Optional.
-        //
-        // Applies to both:
-        //   - TypeVariable composite (e.g., generic param shared with another signature
-        //     position via field access in a predicate body) — preserves lambda predicate's
-        //     signature (T)->Bool across filter/first chains with T? annotation (MBug4)
-        //   - Named composite (user-declared variable with concrete struct/array state from
-        //     a literal binding) — `a = {b=1}; y = a?.b` must not silently widen `a` to
-        //     opt(struct) just because `?.b` happens to set up an opt-struct ancestor on it
-        //     (MR5Bug5). Mirrors WrapAncestorInOptional's pinned-Named protection (line ~162).
+        // Non-Optional composite desc: wrapping would change shared/external identity.
+        // Use implicit lift T ≤ opt(T) — connect desc to optA's inner element instead.
+        // Mirrors WrapAncestorInOptional's pinned-Named protection.
         if (nodeB.Type != TicNodeType.SyntaxNode && nodeB.State is ICompositeState && !nodeB.IsOptionalElement)
             return Invoke(function, optA.ElementNode, nodeB);
         var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeB.Name, nodeB.State);

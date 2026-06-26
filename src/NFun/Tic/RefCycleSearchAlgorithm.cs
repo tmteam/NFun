@@ -15,13 +15,12 @@ class RefCycleSearchAlgorithm {
         if (node.VisitMark == RefVisitedMark)
             return null;
 
-        _refRoute = null; // lazy — only allocated if cycle found
+        _refRoute = null; // allocated lazily on cycle detection
         var nonReference = GetNonReferenceNodeOrNull(node);
         if (nonReference != null)
             return nonReference;
 
-        // ref cycle found!
-        // the node becomes one non reference node with no constrains
+        // Ref-cycle resolution: collapse the cycle into one unconstrained non-ref node.
         node.State = ConstraintsState.Empty;
         foreach (var refNode in _refRoute)
         {
@@ -57,7 +56,7 @@ class RefCycleSearchAlgorithm {
         else
         {
             node.VisitMark = -1;
-            //merge
+            // Transfer ancestors to the resolved non-ref.
             if (node.Ancestors.Count > 0)
             {
                 res.AddAncestors(node.Ancestors);

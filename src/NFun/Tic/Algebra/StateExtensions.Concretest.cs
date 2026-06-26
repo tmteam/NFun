@@ -6,9 +6,7 @@ using SolvingStates;
 public static partial class StateExtensions {
     /// <summary>
     /// Returns most concrete type representable by current state.
-    /// Preferred is metadata — Concretest preserves it when the result
-    /// is a ConstraintsState (keeps Preferred for Destruction snapshots).
-    /// For concrete types (Primitive, Composite), Preferred is not applicable.
+    /// Preferred is preserved on ConstraintsState results for Destruction snapshots.
     /// </summary>
     public static ITicNodeState Concretest(this ITicNodeState a) =>
         a switch {
@@ -24,9 +22,8 @@ public static partial class StateExtensions {
         };
 
     /// <summary>
-    /// Concretest for array element: if element is CS with Preferred that differs from Desc,
-    /// preserve the CS (with Preferred) instead of collapsing to bare Primitive.
-    /// This ensures array Desc snapshots carry Preferred through Destruction.
+    /// Preserves CS-with-Preferred on array elements so Desc snapshots carry the
+    /// resolution hint through Destruction instead of collapsing to bare Primitive.
     /// </summary>
     private static ITicNodeState ConcretestArrayElement(ITicNodeState element) {
         if (element is ConstraintsState cs
@@ -47,7 +44,6 @@ public static partial class StateExtensions {
             ? cs.Descendant.Concretest()
             : ConstraintsState.Of(isComparable: cs.IsComparable);
         if (cs.IsOptional) {
-            // For Optional: use Preferred when narrower Desc available.
             if (cs.Preferred != null && inner is StatePrimitive ip
                 && ip.CanBePessimisticConvertedTo(cs.Preferred))
                 inner = cs.Preferred;
@@ -82,8 +78,7 @@ public static partial class StateExtensions {
         if (!changed) return s;
         if (s is StateMutableStruct)
             return new StateMutableStruct(nodes, s.IsFrozen, s.IsOpen);
-        // Preserve TypeName/IsOptionalSourced through the path-compression copy so the named
-        // identity follows the struct.
+        // Preserve TypeName/IsOptionalSourced — they belong to the struct's named identity, not its node graph.
         return new StateStruct(nodes, s.IsFrozen, s.IsOpen) {
             IsOptionalSourced = s.IsOptionalSourced,
             TypeName = s.TypeName,

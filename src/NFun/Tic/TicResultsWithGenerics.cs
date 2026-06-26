@@ -33,17 +33,12 @@ public class TicResultsWithGenerics : ITicResults {
         return _syntaxNodes[syntaxNode];
     }
 
-    /// <summary>
-    /// Gap for tests
-    /// </summary>
     public IEnumerable<TicNode> GenericNodes =>
         _typeVariables
             .Union(_namedNodes.Values)
             .Union(_syntaxNodes)
             .Where(t => t?.State is ConstraintsState);
-    /// <summary>
-    /// GAP for tests
-    /// </summary>
+
     public int GenericsCount => GenericsStates.Count;
 
     public bool HasGenerics => GenericsStates.Count > 0;

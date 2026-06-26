@@ -15,17 +15,15 @@ public static partial class StateExtensions {
         if (b is StateRefTo br)
             return a.UnifyOrNull(br.GetNonReference());
 
-        // Any is top of ALL types: None ≤ Any, Opt(T) ≤ Any
         if (a== Any)
             return b;
         if (b== Any)
             return a;
 
-        // StateCompositeConstraints — Stage C.2 (Layer-0 algebra).
         if (a is StateCompositeConstraints acompcs)
             return acompcs.UnifyCompCs(b);
         if (b is StateCompositeConstraints bcompcs)
-            return bcompcs.UnifyCompCs(a); // Unify is symmetric
+            return bcompcs.UnifyCompCs(a);
 
         if (a is ConstraintsState ac)
         {
@@ -39,7 +37,6 @@ public static partial class StateExtensions {
 
         if (b is ConstraintsState)
             return b.UnifyOrNull(a);
-        // Optional: Unify(Opt(A), Opt(B)) = Opt(Unify(A,B)), Unify(Opt, None) = None
         if (a is StateOptional aOpt)
         {
             if (b is StateOptional bOpt)
@@ -48,7 +45,7 @@ public static partial class StateExtensions {
                 return elem == null ? null : StateOptional.Of(elem);
             }
             if (b == None)
-                return b; // None ≤ Opt(T), intersection = None
+                return b; // None is the bottom of Opt(T)'s downward closure
             return null;
         }
         if (b is StateOptional)
@@ -56,7 +53,6 @@ public static partial class StateExtensions {
 
         if (a.GetType() != b.GetType())
             return null;
-        // Same-type but not equal: different primitives or different custom types → incompatible
         if (a is StatePrimitive)
             return null;
         if (b is StatePrimitive)
@@ -67,10 +63,7 @@ public static partial class StateExtensions {
             return aFun.UnifyOrNull(b as StateFun);
         if (a is StateStruct aStr)
             return aStr.UnifyOrNull(b as StateStruct);
-        // Lang-mode single-arg invariant collections (list/array/fixedArray/set/map).
-        // Same constructor → unify element-wise; different constructor → null.
-        // Bug hunt #5: `[{xs=[1,2,3]},{xs=[]}]` reached here as
-        // Unify(list(V1), list(V0)) and crashed without this arm.
+        // Single-arg invariant SC: same Constructor → element-wise unify; otherwise null.
         if (a is StateCollection aColl && b is StateCollection bColl)
             return aColl.UnifyOrNull(bColl);
         throw new NotSupportedException($"Unitype({a}, {b})");

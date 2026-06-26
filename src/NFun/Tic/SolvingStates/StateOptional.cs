@@ -9,8 +9,7 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public static StateOptional Of(ITicNodeState state) =>
         state switch {
-            // Idempotent: opt(opt(T)) ≡ opt(T). Avoid nested at construction time.
-            // Bug hunt round 5 #10/#29 family.
+            // opt(opt(T)) ≡ opt(T) — idempotent at construction.
             StateOptional already => already,
             ITypeState type => Of(type),
             StateRefTo refTo => Of(refTo.Node),
@@ -31,7 +30,7 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
         get {
             var elem = ElementNode;
             if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle)
-                return false; // cycle → not resolved yet
+                return false; // cycle
             var prev = elem.VisitMark;
             elem.VisitMark = Tic.TicVisitMarks.StateOptionalIsSolvedCycle;
             var result = elem.State.IsSolved;
@@ -64,7 +63,7 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public override bool Equals(object obj) {
         if (obj is not StateOptional opt) return false;
         var elem = ElementNode;
-        if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle) return true; // cycle → treat as equal
+        if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle) return true; // coinductive cycle break
         var prev = elem.VisitMark;
         elem.VisitMark = Tic.TicVisitMarks.StateOptionalIsSolvedCycle;
         var result = opt.Element.Equals(Element);

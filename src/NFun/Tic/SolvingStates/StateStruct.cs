@@ -15,18 +15,11 @@ public class StateStruct : ICompositeState {
     public TicNode GetFieldOrNull(string fieldName) =>
         _nodes.GetValueOrNull(fieldName);
 
-    /// <summary>
-    /// Adds a field in-place.
-    /// </summary>
     public void AddField(string name, TicNode memberNode) {
         _nodes.Add(name, memberNode);
     }
 
-    /// <summary>
-    /// Replace an existing field's TicNode in-place. Used by SetStructInitType to insert
-    /// Optional-wrapper intermediaries between a struct literal and its declared-Optional
-    /// ancestor field. Caller's responsibility to ensure the field exists.
-    /// </summary>
+    /// <summary>Replace an existing field's TicNode in-place. Caller must ensure existence.</summary>
     public void ReplaceField(string name, TicNode memberNode) {
         _nodes[name] = memberNode;
     }
@@ -66,7 +59,6 @@ public class StateStruct : ICompositeState {
         return new StateStruct(nodeFields, isFrozen);
     }
 
-    /// <summary>Migration constructor: wraps existing Dictionary in FieldMap.</summary>
     public StateStruct(Dictionary<string, TicNode> fields, bool isFrozen, bool isOpen = false) {
         _nodes = new FieldMap(fields);
         IsFrozen = isFrozen;
@@ -87,27 +79,12 @@ public class StateStruct : ICompositeState {
         IsOpen = isOpen;
     }
 
-    /// <summary>
-    /// Open struct (row polymorphism): has at least these fields, may have more.
-    /// Created by SetFieldAccess/SetSafeFieldAccess. When combined with another struct
-    /// in AddDescendant, uses field UNION instead of LCA (field intersection).
-    /// Closed struct (IsOpen=false): has exactly these fields.
-    /// </summary>
+    /// <summary>Row polymorphism: open ≡ "at least these fields", closed ≡ "exactly these".</summary>
     public bool IsOpen { get; }
 
-    /// <summary>
-    /// True iff this struct was introduced via an Optional-typed constraint —
-    /// i.e. it traces back to a SetSafeFieldAccess (`?.`) emission of
-    /// `opt(struct{field:T})`. Carried on the struct state so every TicNode
-    /// that shares the state observes the marker, including after merges that
-    /// alias multiple nodes to the same StateStruct instance.
-    ///
-    /// Push width-propagation reads this flag to decide whether a self-closing
-    /// struct cycle should be repaired by restoring an Optional break around
-    /// the closure (yielding the contractive μX. opt(struct{…X…})), or — if
-    /// the cycle came from a non-Optional source like a declared `type t =
-    /// {self:t}` — should be left to throw a recursion error.
-    /// </summary>
+    /// <summary>Marker: this struct entered via a `?.` emission of <c>opt(struct{…})</c>.
+    /// Push width-propagation uses it to decide whether to restore an Optional break around
+    /// a self-closing cycle (contractive μX.opt(struct{…X…})) vs let it throw.</summary>
     public bool IsOptionalSourced { get; set; }
 
     public bool IsSolved {
@@ -125,53 +102,32 @@ public class StateStruct : ICompositeState {
             return true;
         }
     }
-    // Follows the StateArray/StateOptional/StateFun pattern: a struct is immutable iff fully
-    // solved. Named structs are always solved (IsSolved returns true on TypeName!=null), so the
-    // previous rule `TypeName==null` is preserved for them. The new edge: fully-concrete
-    // anonymous structs are now also immutable — required by Phase 1 of RecBound elimination
-    // so the F-bound check has a uniform "is this state fully determined" probe.
+    // Immutable iff fully solved (mirrors StateArray/StateOptional/StateFun) — gives the F-bound
+    // check a uniform "fully determined" probe.
     public bool IsMutable => !IsSolved;
     public string Description => ToString();
     public bool IsFrozen { get; internal set; }
 
-    /// <summary>
-    /// Name of the declared type this struct represents (e.g. "node").
-    /// null for anonymous struct literals. Named structs are always solved.
-    /// </summary>
+    /// <summary>Name of the declared type ("node", …); null for anonymous literals.
+    /// Named structs are always solved.</summary>
     public string TypeName { get; set; }
 
-    /// <summary>
-    /// Identity rule for combining two structs into a more-specific result
-    /// (Pull merge, Gcd, Unify, MergeStructs, UnionStructFields). The result
-    /// is "the most specific consistent identity":
-    /// - one side null, other named → take the named one (no conflict)
-    /// - both equal (case-insensitive) → that name
-    /// - both differ → null (true conflict — caller must reject or downgrade)
-    /// </summary>
+    /// <summary>Identity rule for refinement merges: pick the most specific consistent name
+    /// (one-named wins; equal stays; conflict → null).</summary>
     public static string MergedTypeName(string a, string b) {
         if (a == null) return b;
         if (b == null) return a;
         return a.Equals(b, StringComparison.OrdinalIgnoreCase) ? a : null;
     }
 
-    /// <summary>
-    /// Identity rule for the Lca (least-upper-bound) of two structs. The
-    /// result is "the most specific identity COMMON to both":
-    /// - both equal → that name
-    /// - any other case → null (anonymous struct, since one side lacks the name)
-    /// Stricter than <see cref="MergedTypeName"/> because LCA must not invent
-    /// a name the other side never carried.
-    /// </summary>
+    /// <summary>Identity rule for LCA: name common to both (else null). Stricter than
+    /// <see cref="MergedTypeName"/> — LCA must not invent a name.</summary>
     public static string LcaTypeName(string a, string b) {
         if (a == null || b == null) return null;
         return a.Equals(b, StringComparison.OrdinalIgnoreCase) ? a : null;
     }
 
-    /// <summary>
-    /// IsOptionalSourced propagates with OR-semantics. If either side is
-    /// optional-sourced, the result is too — the marker propagates through every
-    /// algebraic combination so cycle-rescue gating sees the full subgraph.
-    /// </summary>
+    /// <summary>IsOptionalSourced merges as OR so cycle-rescue gating sees the full subgraph.</summary>
     public static bool MergedIsOptionalSourced(bool a, bool b) => a || b;
 
     public virtual ICompositeState GetNonReferenced() {
@@ -221,8 +177,7 @@ public class StateStruct : ICompositeState {
     public int MembersCount => _nodes.Count;
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
-        // Delegate to StateExtensions.Lca which handles unsolved constraint fields
-        // via UnifyOrNull (unlike the old inline logic which skipped ConstraintsState fields)
+        // Delegate so unsolved ConstraintsState fields go through UnifyOrNull.
         this.Lca(otherType) as ITypeState;
 
     public virtual string PrintState(int depth) {
@@ -253,13 +208,8 @@ public class StateStruct : ICompositeState {
     public static ITypeState WithField(string name, StatePrimitive type)
         => new StateStruct(name, TicNode.CreateNamedNode(type.ToString(), type), isFrozen: false);
 
-    /// <summary>
-    /// Nominal comparison: when BOTH sides carry TypeName, equality is decided by name
-    /// (case-insensitive, Pierce TAPL §19) and we DO NOT descend into fields — that avoids
-    /// cycle-traversal on recursive μ-types AND prevents same-shape-but-distinct-name
-    /// types from silently unifying. Returns null when the rule does not apply (at least
-    /// one side anonymous); caller falls through to structural comparison/merge.
-    /// </summary>
+    /// <summary>Nominal equality when both sides carry TypeName (avoids cycle traversal and
+    /// prevents same-shape-distinct-name silent unification). Null ⇒ rule N/A.</summary>
     internal static bool? NominalEquals(StateStruct a, StateStruct b) {
         if (a.TypeName == null || b.TypeName == null) return null;
         return a.TypeName.Equals(b.TypeName, StringComparison.OrdinalIgnoreCase);
@@ -273,11 +223,8 @@ public class StateStruct : ICompositeState {
         if (NominalEquals(this, stateStruct) is bool nominal) return nominal;
         if (_nodes.Count != stateStruct._nodes.Count) return false;
 
-        // Coinductive Equals for cyclic struct shapes (Amadio-Cardelli '93 §4.2). With true graph
-        // cycles in named recursive types, descending through fields can recurse infinitely.
-        // Visited-pair guard: assume equal under recursive subgoal, return true on cycle.
-        // HashSet reused per-thread via Remove (one alloc for process lifetime) — see
-        // SolvingFunctions.GetMergedStateOrNull for the same pattern.
+        // Coinductive Equals for cyclic struct shapes (Amadio–Cardelli '93). Per-thread HashSet
+        // reused via Remove.
         var visited = _equalsVisited ??= new HashSet<(StateStruct, StateStruct)>();
         var key = (this, stateStruct);
         if (!visited.Add(key)) return true;

@@ -7,7 +7,6 @@ namespace NFun.Tic.Errors;
 internal static class TicErrors {
     public static Exception IncompatibleNodes(TicNode ancestor, TicNode descendant) {
         TraceLog.WriteLine($"  TIC ERROR IncompatibleNodes: anc={ancestor.Name}:{ancestor.State} desc={descendant.Name}:{descendant.State}");
-        TraceLog.WriteLine($"    Stack: {Environment.StackTrace}");
         return new TicIncompatibleAncestorSyntaxNodeException(ancestor, descendant);
     }
 

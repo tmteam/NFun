@@ -53,10 +53,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     /// <summary>True for TIC-internal types (I96, I48, I24, U48, U24, U12) that have no runtime representation.</summary>
     public bool IsAbstract => Name.HasFlag(PrimitiveTypeName._isAbstract);
 
-    /// <summary>
-    /// Narrowest concrete type that can hold all values of this abstract type.
-    /// I96→Real, I48→I64, I24→I32, U48→U64, U24→U32, U12→U16.
-    /// </summary>
+    /// <summary>Narrowest concrete supertype of an abstract type.</summary>
     public StatePrimitive ConcreteAncestor => Name switch {
         PrimitiveTypeName.I96 => Real,
         PrimitiveTypeName.I48 => I64,
@@ -73,7 +70,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public string PrintState(int depth) => ToString();
 
     public virtual bool CanBePessimisticConvertedTo(StatePrimitive type) {
-        // None ≤ Any (none is a value with toString/equals), but None is not ≤ any other primitive
+        // None ≤ {None, Any} only.
         if (Name == PrimitiveTypeName.None)
             return type.Name == PrimitiveTypeName.None || type.Name == PrimitiveTypeName.Any;
         if (type.Name == PrimitiveTypeName.None)
@@ -119,80 +116,56 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             None, //18
         };
 
-        //by default - any lca returns any
         for (int i = 0; i < maxVal; i++)
             for (int j = 0; j < maxVal; j++)
                 LcaMap[i, j] = Any;
 
-        //any,char,bool and self
         for (int i = 0; i < maxVal; i++)
         {
-            //x ^ x = x
             LcaMap[i, i] = numberToTypeMap[i];
-            //x _ x = x
             GcdMap[i, i] = numberToTypeMap[i];
-            //x _ any = x
             GcdMap[i, Any.Order] = numberToTypeMap[i];
         }
 
-        //real (only numeric types: Real..U8, orders 4..17)
         for (int i = Real.Order; i <= U8.Order; i++)
         {
-            //number ^ real = real
             LcaMap[i, Real.Order] = Real;
-            //number _ real = number
             GcdMap[i, Real.Order] = numberToTypeMap[i];
         }
 
-        //i96 (only numeric types: I96..U8, orders 5..17)
         for (int i = I96.Order; i <= U8.Order; i++)
         {
-            //i96 ^ iXX = i96,   i96 ^ uXX = i96
             LcaMap[i, I96.Order] = I96;
-            //i96 _ iXX = iXX,   i96 _ uXX = uXX
             GcdMap[i, I96.Order] = numberToTypeMap[i];
         }
 
-        //all ints
         for (int anc = I64.Order; anc <= I16.Order; anc++)
         {
             for (int desc = anc + 1; desc <= I16.Order; desc++)
             {
-                //I64 ^ i32 = I64
                 LcaMap[desc, anc] = numberToTypeMap[anc];
-                //I64 _ i32 = i32
                 GcdMap[desc, anc] = numberToTypeMap[desc];
             }
         }
 
-        //all uints
         for (int anc = U64.Order; anc <= U8.Order; anc++)
         {
             for (int desc = anc + 1; desc <= U8.Order; desc++)
             {
-                //u64 ^ u32 = u64
                 LcaMap[desc, anc] = numberToTypeMap[anc];
-                //u64 _ u32 = u32
                 GcdMap[desc, anc] = numberToTypeMap[desc];
             }
         }
 
-        //iXX to u12,u8
         for (int i = I64.Order; i <= I16.Order; i++)
         {
-            //iXX ^ u8  = iXX
             LcaMap[U8.Order, i] = numberToTypeMap[i];
-            //iXX _ u8  = u8
             GcdMap[U8.Order, i] = U8;
 
-            //iXX ^ u12  = iXX
             LcaMap[U12.Order, i] = numberToTypeMap[i];
-            //iXX _ u12  = u12
             GcdMap[U12.Order, i] = U12;
         }
 
-        //uXX ^ Ixx
-        //U32 ^ I64 = I64...
         LcaMap[U16.Order, I16.Order] = I24;
         LcaMap[U24.Order, I16.Order] = I32;
         LcaMap[U32.Order, I16.Order] = I48;
@@ -223,8 +196,6 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         LcaMap[U48.Order, I64.Order] = I64;
         LcaMap[U64.Order, I64.Order] = I96;
 
-        //uXX _ Ixx
-        //U32 _ I64 = U32...
         GcdMap[U16.Order, I16.Order] = U12;
         GcdMap[U24.Order, I16.Order] = U12;
         GcdMap[U32.Order, I16.Order] = U12;
@@ -255,13 +226,10 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         GcdMap[U48.Order, I64.Order] = U48;
         GcdMap[U64.Order, I64.Order] = U48;
 
-        // None ≤ Any: GCD(None, Any) = None
+        // None ≤ Any.
         GcdMap[None.Order, Any.Order] = None;
 
-        //a ^ b = b ^ a
-        //a _ b = b _ a
-
-        //reflect maps by diagonals
+        // reflect maps by diagonals
         for (int col = 0; col < maxVal; col++)
         {
             for (int row = col; row < maxVal; row++)

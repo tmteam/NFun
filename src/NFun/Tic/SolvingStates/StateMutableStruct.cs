@@ -4,11 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>
-/// Language-level mutable struct. Fields are invariant (not covariant).
-/// Subtype of immutable struct: MutStruct{a:T} &lt;: Struct{a:T} (read-only view is safe).
-/// Width subtyping: MutStruct{a,b} &lt;: MutStruct{a} (hiding fields is safe).
-/// </summary>
+/// <summary>Language-level mutable struct. Fields are invariant; width subtyping holds.
+/// MutStruct{a:T} &lt;: Struct{a:T}.</summary>
 public class StateMutableStruct : StateStruct {
 
     public StateMutableStruct(Dictionary<string, TicNode> fields, bool isFrozen, bool isOpen = false)
@@ -22,19 +19,14 @@ public class StateMutableStruct : StateStruct {
     internal StateMutableStruct(FieldMap fields, bool isFrozen, bool isOpen = false)
         : base(fields, isFrozen, isOpen) { }
 
-    /// <summary>Is this a language-level mutable struct (invariant fields)?</summary>
     public bool IsFieldMutable => true;
 
     public override ICompositeState GetNonReferenced() {
         var nodeCopy = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
         foreach (var (key, value) in Fields)
             nodeCopy.Add(key, value.GetNonReference());
-        // Preserve the named-type identity across non-reference flattening —
-        // see StateStruct.GetNonReferenced. Without this, a `result {...}`
-        // literal of named type `result` would lose its TypeName during the
-        // toposort flattening (`node.State = composite.GetNonReferenced()`),
-        // then fail to nominally short-circuit against the named-typed
-        // ancestor and trip the "Node is already solved" assert.
+        // Preserve TypeName + IsOptionalSourced across flattening so nominal short-circuit
+        // still fires; mirrors StateStruct.GetNonReferenced.
         return new StateMutableStruct(nodeCopy, IsFrozen, IsOpen) {
             TypeName = TypeName,
             IsOptionalSourced = IsOptionalSourced,

@@ -13,12 +13,8 @@ public class ConstraintsState : ITicNodeState {
         private set => _descendant = value;
     }
 
-    /// <summary>
-    /// Clears the Descendant slot. Used by CS-internal slot promotion when the descendant struct
-    /// is rebound as the F-bound (StructBound). The descendant obligation is subsumed by the
-    /// F-bound (`T &lt;: S`); leaving Descendant set would over-constrain `T = S` exactly,
-    /// defeating F-bounded polymorphism.
-    /// </summary>
+    /// <summary>Clears Descendant when its obligation is subsumed by StructBound (`T &lt;: S`);
+    /// leaving it set would over-constrain `T = S` and defeat F-bounded polymorphism.</summary>
     public void ClearDescendant() {
         _descendant = null;
     }
@@ -26,42 +22,22 @@ public class ConstraintsState : ITicNodeState {
     public bool HasAncestor => Ancestor != null;
     public bool HasDescendant => _descendant != null;
 
-    /// <summary>
-    /// When true, this constraint represents an optional type: opt(inner).
-    /// Set when None is added as a descendant. The actual StateOptional is
-    /// materialized before Destruction, after all constraints are collected.
-    /// </summary>
+    /// <summary>opt(inner) marker — set when None is added as descendant. StateOptional is
+    /// materialized before Destruction, after constraint collection (avoids stale snapshots).</summary>
     public bool IsOptional { get; private set; }
 
-    /// <summary>
-    /// F-bounded recursive upper bound: `T &lt;: τ(T)` — T is a fixed-point of the body τ
-    /// (Pierce TAPL §20.2 iso-recursive types). The body is currently always a
-    /// <see cref="StateStruct"/> whose fields may carry <see cref="StateRefTo"/> back to the
-    /// owning ConstraintsState — that's the F-bound self-reference. Contractivity
-    /// (Cardelli-Mitchell '89 §3) and covariance positions MUST hold for any such self-ref.
-    ///
-    /// Third independent dimension on CS, peer to IsComparable/IsOptional. Owned by exactly one
-    /// ConstraintsState — never aliased.
-    /// </summary>
+    /// <summary>F-bounded recursive upper bound `T &lt;: τ(T)` (Pierce TAPL §20.2). Body is a
+    /// StateStruct whose fields may RefTo this owning CS — contractivity + covariant positions
+    /// required. Owned by exactly one CS; never aliased.</summary>
     public StateStruct StructBound { get; set; }
 
-    /// <summary>
-    /// True iff this CS carries an F-bound. Single source of truth for "is this CS the holder
-    /// of a recursive bound" — read-side analogue of the <see cref="StructBound"/> slot. Phase
-    /// 3 of #108 migrates the source of truth to a new representation; this predicate is the
-    /// stable read API while that migration happens.
-    /// </summary>
     public bool HasStructBound => StructBound != null;
 
     public bool IsSolved => false;
     public bool IsMutable => true;
     public StatePrimitive Preferred { get; set; }
     public bool IsComparable { get; set; }
-    /// <summary>Clearable typeclass marker, peer to <see cref="IsComparable"/>.
-    /// True iff this CS must resolve to a Clearable container kind (List, Set,
-    /// Map). Propagated downward by Push from CompCs ancestors carrying
-    /// <see cref="StateCompositeConstraints.IsClearable"/> and from CS ancestors
-    /// via the OR rule mirroring IsComparable.</summary>
+    /// <summary>Clearable typeclass marker — CS must resolve to a Clearable kind (List/Set/Map).</summary>
     public bool IsClearable { get; set; }
     public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable && !IsClearable && !IsOptional && !HasStructBound;
 
@@ -82,9 +58,8 @@ public class ConstraintsState : ITicNodeState {
             Preferred = Preferred,
             IsOptional = IsOptional,
             IsClearable = IsClearable,
-            // StructBound copied by reference: defensive deep-copy is only needed when the
-            // copy participates in a merge that could mutate either side. Read-after-lift is
-            // correct with reference-copy.
+            // StructBound: reference copy is safe — only merges that could mutate either side
+            // need deep copy, and lift→read paths don't mutate.
             StructBound = StructBound,
         };
 
@@ -92,9 +67,7 @@ public class ConstraintsState : ITicNodeState {
         if (HasAncestor && !type.CanBePessimisticConvertedTo(Ancestor))
             return false;
 
-        // F-bound check: T ≤ CS{S} requires T:Struct, Fields(T) ⊇ Fields(S), and pointwise
-        // covariant ≤ on shared fields. F-bound self-references are guarded by FitStructBound
-        // (cycle-aware).
+        // F-bound subtyping with cycle-aware self-ref handling — see FitStructBound.
         if (HasStructBound && !FitStructBound(type, StructBound))
             return false;
 
@@ -125,21 +98,9 @@ public class ConstraintsState : ITicNodeState {
         }
     }
 
-    /// <summary>
-    /// Structural F-bound check: candidate type <c>T</c> satisfies bound <c>S</c>
-    /// (a <c>StateStruct</c>) iff:
-    ///   1. <c>T</c> is a <c>StateStruct</c> (or wraps one through a single
-    ///      <c>StateRefTo</c>),
-    ///   2. <c>Fields(T) ⊇ Fields(S)</c> by name (width subtyping),
-    ///   3. for each shared field, <c>T.fᵢ ≤ S.fᵢ</c> covariantly.
-    ///
-    /// Cycle guard: F-bound self-references (<c>S.fᵢ</c> may be a <c>RefTo</c>
-    /// back to the owning CS, whose <c>StructBound</c> is <c>S</c> itself —
-    /// when we recurse on <c>T.fᵢ</c> against that CS we'd hit <c>FitStructBound</c>
-    /// again with the same pair). We track in-progress (T, S) pairs and return
-    /// <c>true</c> on hit (Amadio–Cardelli equirecursive subtyping coinductive
-    /// rule — assume the recursive subgoal holds).
-    /// </summary>
+    /// <summary>Structural F-bound subtyping with coinductive cycle break
+    /// (Amadio–Cardelli '93): T ⊆ Struct{S} iff T width-supersets S and shares
+    /// covariantly. In-progress (T,S) pair on the stack ⇒ assume true.</summary>
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     private static bool FitStructBound(ITypeState candidate, StateStruct bound) {
         var guard = _fitStructBoundInProgress ??= new();
@@ -149,19 +110,16 @@ public class ConstraintsState : ITicNodeState {
     [ThreadStatic] private static List<(ITypeState, StateStruct)> _fitStructBoundInProgress;
 
     private static bool FitStructBoundInner(ITypeState candidate, StateStruct bound, List<(ITypeState, StateStruct)> guard) {
-        // Coinductive cycle break for F-bound self-refs.
         for (int i = 0; i < guard.Count; i++)
             if (ReferenceEquals(guard[i].Item1, candidate) && ReferenceEquals(guard[i].Item2, bound))
                 return true;
 
-        // Candidate must be a struct (possibly wrapped in StateRefTo).
         StateStruct candStruct = candidate switch {
             StateStruct s => s,
             _ => null,
         };
         if (candStruct == null) return false;
 
-        // Width subtyping: Fields(candidate) ⊇ Fields(bound).
         if (candStruct.FieldsCount < bound.FieldsCount) return false;
         foreach (var boundField in bound.Fields)
         {
@@ -196,20 +154,15 @@ public class ConstraintsState : ITicNodeState {
                 }
                 else if (boundFieldState is ITypeState boundTypeState)
                 {
-                    // Bound field is concrete — candidate field must Fit it.
                     if (candFieldState is ITypeState candTypeState)
                     {
-                        // Reuse existing FitsInto logic from Algebra layer.
                         if (!candTypeState.CanBePessimisticConvertedTo(boundTypeState as StatePrimitive ?? StatePrimitive.Any)
                             && !boundTypeState.Equals(candTypeState))
                         {
-                            // Composite vs composite — only accept exact match or primitive subtype.
                             if (boundTypeState is ICompositeState && candTypeState is ICompositeState)
                             {
-                                // Defer to existing structural rules — accept if shapes match.
                                 if (boundTypeState.GetType() != candTypeState.GetType())
                                     return false;
-                                // shallow accept; deep check left to merge phase
                             }
                             else return false;
                         }
@@ -251,9 +204,7 @@ public class ConstraintsState : ITicNodeState {
         if (type == null)
             return;
 
-        // None sets the IsOptional flag instead of being stored as a descendant.
-        // This avoids stale snapshots: Optional is materialized before Destruction,
-        // after all constraints are fully propagated.
+        // None → IsOptional flag instead of Descendant: avoids stale-snapshot Optional wrapping.
         if (type == StatePrimitive.None) {
             IsOptional = true;
             TraceLog.WriteLine($"    Constrains.AddDescendant: None => IsOptional=true");
@@ -262,15 +213,10 @@ public class ConstraintsState : ITicNodeState {
 
         if (!HasDescendant)
         {
-            // Bug hunt round 8 #46 (Probe 5). StateFun.Concretest fabricates fresh arg/ret
-            // nodes via ConcretestFun (StateExtensions.Concretest.cs:66-72): arg becomes
-            // Abstractest (Any for empty CS), ret becomes Concretest. That severs the
-            // identity link between the CS's snapshot and the lambda's actual binder/body
-            // nodes, so later Push of the LCA result back into the lambda over-widens its
-            // binder to Any — incompatible with the body's arithmetic constraint.
-            // Skip the snapshot when type is a live StateFun whose component nodes are
-            // unresolved (CS-typed) and NOT signature-rigid (IsSignatureParam guard
-            // protects function signatures from being mutated by snapshot identity-sharing).
+            // Live StateFun with unresolved non-signature nodes: preserve identity instead of
+            // Concretest snapshot. Concretest fabricates fresh arg/ret nodes (arg→Abstractest,
+            // ret→Concretest) which severs identity with the lambda's binder/body — later Push
+            // of the LCA result over-widens the binder to Any.
             if (type is StateFun fn && IsLiveSnapshotableFun(fn))
             {
                 _descendant = type;
@@ -284,19 +230,13 @@ public class ConstraintsState : ITicNodeState {
         }
         else
         {
-            // Short-circuit: if incoming is REFERENCE-equal to current Descendant, LCA is a no-op.
-            // (Cannot use structural Equals — StateStruct.Equals short-circuits on TypeName, so
-            // `n{v=1}` and `n{v=2}` would compare equal despite different field values, skipping
-            // necessary LCA propagation.) Reference equality safely captures the common case where
-            // multiple call sites share the same TIC node state for a named recursive arg type
-            // (GH #128 TreeSum 3-op regression).
+            // Reference equality (not structural Equals): StateStruct.Equals short-circuits on
+            // TypeName, so `n{v=1}` ≡ `n{v=2}` would skip needed LCA propagation.
             if (ReferenceEquals(Descendant, type)) return;
             var prev = Descendant;
             var incoming = type is ConstraintsState ? type.Concretest() : type;
-            // Row polymorphism: open structs (from SetFieldAccess) use field UNION,
-            // closed structs (from literals/LCA) use field INTERSECTION (standard LCA).
-            // Open struct = "at least these fields". Combining two open constraints:
-            // "at least {a}" AND "at least {b}" = "at least {a,b}" (field union).
+            // Row polymorphism: open structs combine by field UNION ("at least {a}" ∧
+            // "at least {b}" = "at least {a,b}"); closed structs use intersection (standard LCA).
             if (Descendant is StateStruct descS && incoming is StateStruct incS
                 && (descS.IsOpen || incS.IsOpen))
             {
@@ -329,18 +269,12 @@ public class ConstraintsState : ITicNodeState {
         return anyUnresolved;
     }
 
-    /// <summary>
-    /// Union two struct field sets (row polymorphism).
-    /// Creates a NEW struct with all fields from both. For shared fields, keep the existing node.
-    /// Result is open only if BOTH are open; closed absorbs open.
-    /// IMPORTANT: must NOT mutate inputs — struct states may be shared in the graph.
-    /// </summary>
+    /// <summary>Row-polymorphism union of two struct field sets — returns NEW struct (input
+    /// states may be shared across the graph; mutation would corrupt). Open only iff both open.</summary>
     private static StateStruct UnionStructFields(StateStruct existing, StateStruct incoming) {
         var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
-        // All fields from existing
         foreach (var field in existing.Fields)
             fields[field.Key] = field.Value;
-        // Add fields from incoming that aren't in existing
         foreach (var field in incoming.Fields)
             fields.TryAdd(field.Key, field.Value);
         return new StateStruct(fields, isFrozen: false, isOpen: existing.IsOpen && incoming.IsOpen) {
@@ -349,42 +283,18 @@ public class ConstraintsState : ITicNodeState {
         };
     }
 
-    /// <summary>
-    /// Intersect two constraint intervals:
-    ///   desc = LCA(this.Desc, other.Desc)
-    ///   anc  = GCD(this.Anc,  other.Anc)
-    ///   comp = this.IsComparable || other.IsComparable
-    ///   opt  = this.IsOptional || other.IsOptional
-    /// Returns null if ancestors are incompatible (GCD fails).
-    /// Does NOT merge Preferred or collapse composites.
-    /// </summary>
+    /// <summary>Intersect two constraint intervals — see specs_tic/Algebra/ConstraintsState.md.
+    /// Null when ancestors are GCD-incompatible. Does NOT merge Preferred or collapse composites.</summary>
     public ConstraintsState IntersectIntervalsOrNull(ConstraintsState other,
         TicNode resultOwnerNode = null) {
-        // Gate IsOptional OR-fusion on negative-skolem carriers (Pottier-Rémy ATTAPL §10.7).
-        // Bug hunt round 5 #10 family — `m.get(k)!`, `arr?[i]!`, `s?.f!`, `list.removeLast()!`.
-        //
-        // The IsOptional flag is a semilattice OR: normally `result = a || b` is correct
-        // for symmetric Merge. But at Destruction CS×CS the result subsequently aliases
-        // descendant via StateRefTo — propagating the flag across the equivalence class
-        // boundary. When the merge owner is a *rigid negative skolem*
-        // (IsForcedNonOptional, set only at `??`/`!`'s U-node) — i.e. signature
-        // says "this position rejects the implicit lift T ≤ opt(T)" — suppress the OR.
-        // The outer shell already carries the Optional layer; absorbing it here yields
-        // opt(opt(T)) — forbidden by TIC-OPTIONAL-FORMAL §4 INV-1.
-        //
-        // Note: we do NOT gate on IsOptionalElement — that flag is set on EVERY inner
-        // element of any StateOptional in the graph, including legitimate generic params
-        // like `wrap: T → opt(T)`'s T (which SHOULD absorb None descendants' IsOptional).
-        // The narrower IsForcedNonOptional flag distinguishes the two cases.
+        // Negative-skolem owners (IsForcedNonOptional, set at `??`/`!`'s U-node) reject the
+        // implicit lift T ≤ opt(T): suppress IsOptional OR-fusion, else result becomes opt(opt(T))
+        // (forbidden, INV-1). IsOptionalElement is too broad — fires on legitimate `wrap: T→opt(T)`.
         bool suppressOptionalOr = resultOwnerNode != null
             && resultOwnerNode.IsForcedNonOptional;
-        // Symmetric structural unwrap: when suppressing the OR-of-IsOptional, also peel
-        // a StateOptional layer from either side's Descendant if present (the carrier
-        // already provides the Optional shell). Without this, the descendant's
-        // `Desc = StateOptional(X)` propagates into the merged result and MergeOrNull
-        // returns the wrapped StateOptional at line 452 — re-introducing nesting at the
-        // resultOwner. Algebraically: opt(X) absorbed by a negative-skolem position
-        // is `X`, not `opt(X)`. Bug hunt round 5 #10 (lang-mode `arr?[0]!` family).
+        // Mirror the IsOptional suppression on Descendant: peel one StateOptional layer
+        // (negative-skolem absorbs opt(X) as X), otherwise the wrapped descendant re-introduces
+        // nesting through MergeOrNull below.
         var selfDesc = Descendant;
         var otherDesc = other.Descendant;
         if (suppressOptionalOr) {
@@ -398,18 +308,10 @@ public class ConstraintsState : ITicNodeState {
         result.AddDescendant(otherDesc);
         if (!result.TryAddAncestor(other.Ancestor))
             return null;
-        // Satisfiability check: if the merged interval [Desc..Anc] is empty (Desc wider
-        // than Anc — e.g. intersecting [I16..I24] with [U32..U48] produces [I48..U16]),
-        // no type satisfies BOTH constraints. The function's name promises null on
-        // failure; without this check we'd return a "non-empty" CS whose interval is
-        // mathematical garbage, forcing every caller to remember to call
-        // IntervalIsNonEmpty separately. Found via bug-regression unit-test discovery
-        // of finding #3 — the API name lied about the contract.
+        // Empty merged interval (Desc > Anc) → null, per function-name contract.
         if (!result.IntervalIsNonEmpty())
             return null;
-        // Preserve Preferred through interval intersection.
-        // Both sides may carry Preferred from integer constants (P=I32).
-        // Take first non-null; if both exist and differ, keep the one that fits.
+        // Preferred survives intersection: take first non-null; on conflict keep the one that fits.
         result.Preferred = Preferred ?? other.Preferred;
         if (Preferred != null && other.Preferred != null && !Preferred.Equals(other.Preferred))
             result.Preferred = result.CanBeConvertedTo(Preferred) ? Preferred : other.Preferred;
@@ -418,11 +320,7 @@ public class ConstraintsState : ITicNodeState {
         return result;
     }
 
-    /// <summary>
-    /// Returns true if the interval [Descendant..Ancestor] can contain at least one type.
-    /// Open intervals (no ancestor or no descendant) are trivially non-empty.
-    /// When Ancestor == Descendant, checks that comparable constraint is satisfied.
-    /// </summary>
+    /// <summary>True iff [Descendant..Ancestor] admits at least one type.</summary>
     public bool IntervalIsNonEmpty() {
         if (!HasAncestor || !HasDescendant)
             return true;
@@ -438,19 +336,9 @@ public class ConstraintsState : ITicNodeState {
         if (result == null)
             return null;
 
-        // Three-axis non-emptiness. IntersectIntervalsOrNull only validates the
-        // primitive [D..A] interval; trans-axis typeclass consistency
-        // (IsComparable × composite Desc, IsClearable × primitive Desc,
-        // StructBound × {non-Any Anc, primitive Desc}) lives in SimplifyOrNull.
-        // Without this step a Merge that combines IsComparable=true with a
-        // composite Descendant returns an algebraically inconsistent CS that
-        // downstream MergeInplace accepts silently — surfaced as runtime cast
-        // failures on `list<{struct}>.sort()`.
-        //
-        // Gated: SimplifyOrNull is called only when result carries at least one
-        // trans-axis flag AND there is something for it to conflict with
-        // (Descendant or non-empty StructBound). The common no-typeclass path
-        // pays only the flag-AND check, not the SimplifyOrNull body.
+        // SimplifyOrNull catches trans-axis typeclass × composite/primitive conflicts that the
+        // [D..A] interval check misses (else MergeInplace silently accepts inconsistent CS).
+        // Gated on flag+target presence so the common no-typeclass path stays cheap.
         if ((result.IsComparable || result.IsClearable || result.HasStructBound)
             && (result.HasDescendant || result.HasAncestor)) {
             var simplified = result.SimplifyOrNull();
@@ -489,14 +377,12 @@ public class ConstraintsState : ITicNodeState {
             if (!result.CanBeConvertedTo(result.Preferred))
                 result.Preferred = null;
 
-        // If descendant is a fully solved struct/optional and there is no ancestor constraint,
-        // the composite type IS the result.
         if (!result.HasAncestor && !result.IsComparable &&
             result.Descendant is StateStruct { IsSolved: true } or StateOptional { IsSolved: true })
         {
             if (result.Descendant is StateOptional && result.Preferred != null)
             {
-                // Don't collapse — let preferred type survive to runtime resolution
+                // Don't collapse: let Preferred survive to runtime resolution.
             }
             else if (result.IsOptional)
                 return StateOptional.Of(result.Descendant);
@@ -563,8 +449,7 @@ public class ConstraintsState : ITicNodeState {
     /// For most cases it means that descendant type will be used
     /// </summary>
     public ITicNodeState SolveContravariant() {
-        // F-bound is also the narrowest contravariant resolution when it's the sole constraint —
-        // the bound IS the most specific shape that satisfies the F-bound predicate.
+        // Sole-constraint StructBound: bound IS the narrowest shape satisfying it.
         if (HasStructBound
             && Ancestor == null
             && !HasDescendant
@@ -574,7 +459,6 @@ public class ConstraintsState : ITicNodeState {
             TraceLog.WriteLine($"  F-bound materialized (contra): {StructBound.PrintState(0)}");
             return IsOptional ? WrapOptional(StructBound) : StructBound;
         }
-        // Resolve inner type (ignoring IsOptional), then wrap if needed
         ITicNodeState inner;
         if (Preferred != null && CanBeConvertedTo(Preferred))
             inner = Preferred;
@@ -595,26 +479,18 @@ public class ConstraintsState : ITicNodeState {
         inner == StatePrimitive.Any ? StatePrimitive.Any : StateOptional.Of(inner);
 
     public ITicNodeState SimplifyOrNull() {
-        // Three-way non-emptiness check on (D, A, S). F-bound StructBound is a third independent
-        // dimension; its presence imposes additional constraints on which D and A are compatible.
-        // Structs cannot be Comparable; D=primitive is incompatible with S=struct; non-Any
-        // primitive A rejects S.
+        // F-bound × (D,A) compatibility: structs aren't Comparable, primitive D is incompatible
+        // with struct S, non-Any primitive A rejects S.
         if (HasStructBound) {
-            if (IsComparable) return null;                     // structs aren't Comparable
-            if (HasAncestor && Ancestor != StatePrimitive.Any) // primitive upper bound rejects struct
-                return null;
+            if (IsComparable) return null;
+            if (HasAncestor && Ancestor != StatePrimitive.Any) return null;
             if (HasDescendant) {
-                // D must be a struct compatible with S, OR an Optional whose
-                // element is, OR a CS whose StructBound is compatible.
                 if (Descendant is StatePrimitive descPrim && descPrim != StatePrimitive.None)
                     return null;
                 if (Descendant is StateStruct ds) {
-                    // Width subtype: D's fields must be a SUPERSET of S's fields.
                     foreach (var (k, _) in StructBound.Fields)
                         if (ds.GetFieldOrNull(k) == null) return null;
                 }
-                // Other Descendant kinds (StateOptional, ConstraintsState) are accepted
-                // conservatively here.
             }
         }
 
@@ -646,28 +522,20 @@ public class ConstraintsState : ITicNodeState {
                     return null;
             }
         }
-        // Clearable typeclass on CS: reject only on primitive descendants (never
-        // Clearable). Composite narrowing (StateArray/StateCollection → List)
-        // is handled by the Push apply cells, not here — narrowing inside
-        // SimplifyOrNull caused an Optional-cycle in `xs.clear(); xs[i]=v` (no
-        // explicit return) because the result composite became the inner
-        // element of an Optional that wrapped the same descendant chain.
+        // Clearable rejects primitive descendants only. Composite narrowing belongs to Push
+        // apply cells — doing it here previously produced an Optional cycle (see TicTechnicalDebt).
         if (IsClearable && Descendant is StatePrimitive csp && csp != StatePrimitive.None)
             return null;
 
         if (!HasDescendant) {
-            // IsOptional=true but no comparable descendant → None alone is not comparable → reject
+            // None alone isn't Comparable.
             if (IsComparable && IsOptional)
                 return null;
-            // Symmetric clause of the line below (HasDescendant branch): opt(T) is a composite
-            // and cannot satisfy a non-Any primitive Ancestor. Holds independently of whether
-            // a Descendant has been added yet — no future Pull can rescue it (Pull only narrows
-            // Ancestor via Gcd, and Gcd on a non-Any primitive cannot yield Any). Without this
-            // clause, `none.toHexText()` (Ancestor=I64, Desc=null, IsOptional=true) resolves
-            // to opt(int) and the runtime impl throws NFunImpossibleException. (MR2Bug3.)
+            // opt(T) is a composite — cannot satisfy a non-Any primitive Ancestor. No future
+            // Pull can rescue (Gcd on non-Any primitive can't yield Any).
             if (IsOptional && Ancestor is StatePrimitive pa && pa != StatePrimitive.Any)
                 return null;
-            return this; // IsOptional=true but no descendant yet — keep collecting constraints
+            return this; // collecting constraints
         }
 
         if (HasAncestor)
@@ -682,8 +550,7 @@ public class ConstraintsState : ITicNodeState {
 
             if (Ancestor.Equals(d))
             {
-                // Abstract types (I96, I48, U48, etc.) cannot be concrete results.
-                // If the interval collapses to an abstract point, reject.
+                // Abstract types have no runtime representation — interval cannot collapse there.
                 if (Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract))
                     return null;
                 return IsOptional ? StateOptional.Of(Ancestor) : (ITicNodeState)Ancestor;
@@ -692,8 +559,7 @@ public class ConstraintsState : ITicNodeState {
                 return this;
             if (!descendant.CanBePessimisticConvertedTo(Ancestor))
                 return null;
-            // opt(T) is a composite — it can't satisfy a primitive ancestor (except Any).
-            // {desc=U8, anc=Real, IsOptional=true} is contradictory: no opt(T) ≤ Real.
+            // opt(T) composite cannot satisfy a non-Any primitive Ancestor.
             if (IsOptional && Ancestor is StatePrimitive pa && pa != StatePrimitive.Any)
                 return null;
         }
@@ -750,25 +616,14 @@ public class ConstraintsState : ITicNodeState {
         if (IsComparable != constrainsState.IsComparable)
             return false;
 
-        // Structural equality on StructBound with coinductive cycle guard
-        // (Amadio–Cardelli equirecursive subtyping bisimulation, 1993; Pierce TAPL §21).
-        // Reference equality is unsafe because Gcd-style merges produce
-        // structurally-identical-but-reference-distinct bounds. We DON'T delegate to
-        // StateStruct.Equals because that path lacks a cycle guard for anonymous bounds
-        // (it relies on TypeName short-circuit, which lifted F-bounds may not have).
+        // StructBound structural equality with cycle guard (Amadio–Cardelli '93). Reference
+        // equality fails on Gcd-produced bounds; StateStruct.Equals lacks a guard for anonymous
+        // bounds (it relies on TypeName short-circuit).
         return StructBoundsEqual(StructBound, constrainsState.StructBound);
     }
 
-    /// <summary>
-    /// Structural equality on F-bound StructBound, cycle-aware via
-    /// coinductive in-progress guard. Two bounds are equal iff:
-    /// 1. both null, or both non-null with same field-name set + arity;
-    /// 2. for every shared field, the recursive value-state compares equal.
-    /// Cycle guard: when (S₁,S₂) is on the in-progress stack we return true
-    /// (assume equal — equirecursive bisimulation rule); the actual
-    /// counter-example would surface elsewhere in the field walk before
-    /// the cycle closes.
-    /// </summary>
+    /// <summary>Structural F-bound equality with coinductive (S₁,S₂)-pair cycle guard
+    /// (Amadio–Cardelli '93). Counter-examples surface during the field walk before cycle close.</summary>
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     private static bool StructBoundsEqual(StateStruct a, StateStruct b) {
         if (ReferenceEquals(a, b)) return true; // fast path; covers both-null
@@ -796,10 +651,8 @@ public class ConstraintsState : ITicNodeState {
                 var sA = valA.GetNonReference().State;
                 var sB = valB.GetNonReference().State;
                 if (sA is ConstraintsState csA && sB is ConstraintsState csB) {
-                    // Both unsolved; compare by structural CS equality but
-                    // RECURSE into StructBound coinductively if both have one
-                    // (avoids re-entering full ConstraintsState.Equals which
-                    // would lose the in-progress guard's identity).
+                    // Recurse into StructBound directly to preserve the in-progress guard
+                    // (ConstraintsState.Equals would create a fresh one).
                     if (csA.HasStructBound || csB.HasStructBound) {
                         if (!StructBoundsEqualInner(csA.StructBound, csB.StructBound, guard))
                             return false;
@@ -807,7 +660,6 @@ public class ConstraintsState : ITicNodeState {
                         return false;
                     }
                 } else if (sA is StateStruct ssA && sB is StateStruct ssB) {
-                    // Nested struct field — recurse with the same guard.
                     if (!StructBoundsEqualInner(ssA, ssB, guard)) return false;
                 } else if (!sA.Equals(sB)) {
                     return false;
@@ -820,14 +672,11 @@ public class ConstraintsState : ITicNodeState {
     }
 
     public override int GetHashCode() {
-        // Structural-aligned hash. Field NAMES + arity, NOT field types — recursing into types
-        // would cycle on F-bound self-refs. Equals is the source of truth for full equality;
-        // hash only ensures bucket spread for HashSet/Dictionary.
+        // Field names + arity only — recursing into field types would cycle on F-bound self-refs.
         unchecked {
             int h = 17;
             h = h * 31 + (Ancestor?.Name.GetHashCode() ?? 0);
-            // Use type-tag of Descendant (cheap, cycle-safe) — full structural
-            // equality lives in Equals.
+            // Type-tag only on Descendant — cycle-safe.
             h = h * 31 + (HasDescendant ? Descendant.GetType().GetHashCode() : 0);
             h = h * 31 + IsOptional.GetHashCode();
             h = h * 31 + IsComparable.GetHashCode();
@@ -856,7 +705,7 @@ public class ConstraintsState : ITicNodeState {
         if (Preferred != null)
             res += Preferred + "!";
         if (HasStructBound)
-            res += $"⊆μ"; // F-bound marker; full shape would self-recurse
+            res += $"⊆μ"; // F-bound; full shape would self-recurse
         return res;
     }
 }

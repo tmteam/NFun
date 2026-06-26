@@ -19,47 +19,30 @@ public class PullConstraintsFunctions : IStateFunction {
         => descendant.CanBePessimisticConvertedTo(ancestor);
 
     public bool Apply(ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // None is handled by AddDescendant setting IsOptional flag — no special wrapping needed.
         return ApplyAncestorConstrains(ancestorNode, ancestor, descendant);
     }
 
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
-        // Structural unwrap of `Descendant is StateOptional` when ancestor is a negative
-        // skolem (IsForcedNonOptional — `??`/`!`'s rigid U-node). The carrier already
-        // provides the Optional shell; absorbing it as Desc=opt(X) yields the algebraic
-        // `opt(opt(X))` nesting. Mirrors the gate in IntersectIntervalsOrNull.
-        // Bug hunt round 6 #33.
+        // Negative-skolem (??/! rigid U): unwrap `Desc is StateOptional` — absorbing
+        // it would yield `opt(opt(X))`. Mirrors IntersectIntervalsOrNull's gate.
         var descDesc = descendant.Descendant;
         if (ancestorNode.IsForcedNonOptional && descDesc is StateOptional descOpt)
             descDesc = descOpt.Element;
         ancestorCopy.AddDescendant(descDesc);
-        // Propagate Preferred bidirectionally:
-        // Upward (desc→anc): integer constants push I32 to array element types.
-        // Downward (anc→desc): struct field chains push I32 to generic function results.
+        // Bidirectional Preferred propagation. See specs_tic/Algebra/Preferred.md §3.
         if (ancestorCopy.Preferred == null && descendant.Preferred != null)
             ancestorCopy.Preferred = descendant.Preferred;
         if (descendant.Preferred == null && ancestor.Preferred != null)
             descendant.Preferred = ancestor.Preferred;
-        // Propagate IsOptional flag (OR semantics): if descendant is optional,
-        // the ancestor must be optional too. Uses AddDescendant(None) which sets the flag.
-        // SKIP when ancestorNode is:
-        //   - the inner element of a StateOptional (IsOptionalElement=true) — the outer
-        //     Optional layer already captures the optional-ness, so propagating IsOptional
-        //     here would create the algebraic `opt(opt(T))` nesting forbidden by
-        //     TIC-OPTIONAL-FORMAL §4 (INV-1).
-        //   - a negative-skolem rigid carrier (IsForcedNonOptional=true) — the `??`/`!`
-        //     U-node that REJECTS the implicit lift `T ≤ opt(T)`. Without this guard,
-        //     `??`'s U absorbs the left operand's Optional via Pull, then the result
-        //     stays Optional (Bug hunt round 6 #33 — `data.map(rule it.x ?? 99)` →
-        //     `fixedArray<UInt8?>` instead of `fixedArray<UInt8>`).
+        // IsOptional OR-propagation via AddDescendant(None). Skip when ancestor is:
+        //   - IsOptionalElement (outer Optional already captures it; opt(opt(T)) forbidden)
+        //   - IsForcedNonOptional (??/! rigid U rejects the implicit T ≤ opt(T) lift)
         if (descendant.IsOptional && !ancestorNode.IsOptionalElement && !ancestorNode.IsForcedNonOptional)
             ancestorCopy.AddDescendant(StatePrimitive.None);
-        // F-bound StructBound is a third independent constraint dimension. Combining two upper
-        // bounds is meet (Gcd = field union, narrower predicate). Both Pull and Push merge S via
-        // Gcd — there is no Lca on S because upper bounds are never widened by ≤. Contractivity
-        // preserved when both inputs are contractive (no wrapper structure changed).
+        // F-bound StructBound is a third axis. Combining upper bounds is meet (Gcd).
+        // No Lca on S — upper bounds are never widened by ≤.
         if (descendant.HasStructBound) {
             ancestorCopy.StructBound = !ancestorCopy.HasStructBound
                 ? SolvingFunctions.RewireStructBoundOwnership(descendant.StructBound, descendantNode, ancestorNode)
@@ -84,24 +67,19 @@ public class PullConstraintsFunctions : IStateFunction {
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
             }
-            // Verify ancestor constraints are compatible with Optional.
-            // If ancestor has constraints that reject composite types (e.g., IsComparable
-            // for arithmetic, or HasAncestor with a non-Any bound), reject.
+            // Reject if ancestor constraints forbid composite (IsComparable, non-Any ancestor cap).
             var probe = ancestor.GetCopy();
             probe.AddDescendant(descendant);
             if (probe.SimplifyOrNull() == null)
                 return false;
-            // Wrap ancestor in Optional, connecting element nodes for covariant propagation.
-            // The inner element gets a copy of ancestor constraints WITHOUT IsOptional —
-            // the Optional wrapper consumes the IsOptional flag.
+            // Wrap ancestor in Optional; inner carries the CS minus IsOptional
+            // (consumed by the wrapper).
             var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
             innerCs.Preferred = ancestor.Preferred;
             innerCs.IsClearable = ancestor.IsClearable;
             var innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
-            // F-bound migrates to inner CS on Optional wrap. The bound lives on the recursive
-            // variable (the inner element); self-RefTos in the bound that pointed at ancestorNode
-            // (the outer) must be rewired to point at innerNode, otherwise opt(CS{S}) with
-            // back-edges to outer-ancestor leaves dangling refs.
+            // F-bound migrates to inner on Optional wrap; self-RefTos pointing at the
+            // outer must rewire to innerNode or dangle.
             if (ancestor.HasStructBound)
                 innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
                     ancestor.StructBound, ancestorNode, innerNode);
@@ -110,9 +88,8 @@ public class PullConstraintsFunctions : IStateFunction {
             descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
-        // Descendant is StateStruct and ancestor has F-bound. The descendant struct is the
-        // candidate value; its fields contribute to the bound's required field set. GcdBound
-        // merges desc as another bound contributor (treats StateStruct as "CS-with-S = struct itself").
+        // F-bound + StateStruct descendant: merge desc into the bound via GcdBound
+        // (desc treated as a CS-with-S = struct itself).
         if (descendant is StateStruct descStruct && ancestor.HasStructBound)
         {
             var copy = ancestor.GetCopy();
@@ -134,9 +111,7 @@ public class PullConstraintsFunctions : IStateFunction {
         {
             if (descendant.Name == PrimitiveTypeName.None)
             {
-                // None ≤ Opt(T) — None doesn't propagate to the element; the IsOptional
-                // flag is set by Apply(CS,None) elsewhere when None reaches a CS-typed
-                // result. Just remove the opt-edge.
+                // None ≤ opt(T): detach edge. IsOptional materializes elsewhere via Apply(CS,None).
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
             }
@@ -146,25 +121,10 @@ public class PullConstraintsFunctions : IStateFunction {
         return false;
     }
 
-    /// <summary>
-    /// Lifts a non-None descendant from `Opt(T)` ancestor down to the element node `T`.
-    /// Implements the implicit-lift rule `T ≤ Opt(T)` materialisation: when a descendant
-    /// edge `desc → Opt(T)` is processed during Pull, rewire it to `desc → T` so the
-    /// descendant's state flows into the element, and EAGERLY propagate state — Pull is
-    /// single-pass over toposort and won't revisit the rewired ancestor's outgoing edges.
-    ///
-    /// Used at both primitive-descendant (`Apply(ICompositeState, StatePrimitive)`) and
-    /// CS-descendant (`Apply(CS, ICompositeState)` for descendants resolving to primitive)
-    /// sites. Without the eager propagation, `true ?? 1.5` would resolve to `Real = true`
-    /// (Bool never reaches the LCA target — MR6Bug3 family) and `1 ?? 'hello'` would
-    /// resolve to `arr(Ch) = 1` (MR3Bug1, originally).
-    ///
-    /// WORKAROUND-of-debt: the rewire+propagate pattern violates Pull's single-pass
-    /// toposort invariant — new edges should not appear AFTER toposort fixes node order.
-    /// The principled fix is a worklist Pull that re-fires propagation on rewires
-    /// automatically. Tracked in Specs/Tic/TicTechnicalDebt.md. For now, both call
-    /// sites use THIS helper to ensure the eager-propagation step cannot be forgotten.
-    /// </summary>
+    /// <summary>Materialise `T ≤ Opt(T)` lift: rewire desc→Opt(T) to desc→T and eagerly
+    /// re-Invoke. Eager step needed because Pull is single-pass over toposort.
+    /// WORKAROUND: rewire-after-toposort breaks single-pass invariant; proper fix is
+    /// worklist Pull. See specs_tic/TicTechnicalDebt.md.</summary>
     private void LiftDescendantToOptionalElement(StateOptional opt, TicNode ancestorNode, TicNode descendantNode) {
         descendantNode.RemoveAncestor(ancestorNode);
         descendantNode.AddAncestor(opt.ElementNode);
@@ -173,23 +133,16 @@ public class PullConstraintsFunctions : IStateFunction {
 
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Symmetric to Apply(CS, StateOptional) below: an IsOptional CS descendant
-        // logically represents opt(desc_inner). Per Pull's documented invariant
-        // (StagesExtension.cs lines 40-62) `opt(T) ≤ T` is rejected — a bare
-        // composite ancestor cannot accept it. Without this guard, the per-shape
-        // cases below TransformToArray/Fun/Struct strip the IsOptional flag
-        // silently and the chain `arr?.method()[idx]` compiles into an unsound
-        // bare-index that crashes at runtime when the source is none. The
-        // StateOptional ancestor case below handles IsOptional descendants
-        // correctly via TransformToOptionalOrNull. (MR7Bug3.)
+        // IsOptional CS descendant ≡ opt(desc_inner); bare composite ancestor cannot
+        // accept it (`opt(T) ≤ T` is rejected — see StagesExtension Push direction).
+        // The StateOptional ancestor branch handles it via TransformToOptionalOrNull.
         if (descendant.IsOptional && ancestor is not StateOptional)
             return false;
         switch (ancestor)
         {
             case StateArray ancArray:
             {
-                // Descendant has F-bound (struct shape) but ancestor is StateArray —
-                // structural conflict (struct ≠ array).
+                // F-bound × StateArray: structural conflict.
                 if (descendant.HasStructBound) return false;
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
                 if (result == null)
@@ -223,14 +176,8 @@ public class PullConstraintsFunctions : IStateFunction {
                 descendantNode.RemoveAncestor(ancestorNode);
                 return true;
             }
-            // StateMap deleted — Map flows through `case StateCollection ancColl`
-            // above with kind = ConstructorKind.Map. TransformToCollectionOrNull
-            // delegates to TransformToMapOrNull which builds the pair-struct
-            // element; SC's element-merge then naturally propagates both K
-            // and V via the inner struct's field nodes.
             case StateFun ancFun:
             {
-                // F-bound vs Fun is a structural conflict.
                 if (descendant.HasStructBound) return false;
                 var result = SolvingFunctions.TransformToFunOrNull(
                     descendantNode.Name, descendant, ancFun);
@@ -248,11 +195,8 @@ public class PullConstraintsFunctions : IStateFunction {
                 var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (result == null)
                     return false;
-                // Per Specs/NamedTypes.md (L3 "transparent alias — fully interchangeable",
-                // L124 "named types are structural — no runtime distinction") two distinct
-                // named structs with identical shape ARE compatible. On TypeName conflict
-                // downgrade both sides to anonymous instead of rejecting; the field-level
-                // Pull below still catches genuine shape mismatches. (Bug HH.)
+                // TypeName conflict between named structs: downgrade both to anonymous.
+                // Named types are structural — see Specs/NamedTypes.md.
                 if (result.TypeName != null && ancStruct.TypeName != null
                     && !result.TypeName.Equals(ancStruct.TypeName, System.StringComparison.OrdinalIgnoreCase))
                 {
@@ -260,10 +204,7 @@ public class PullConstraintsFunctions : IStateFunction {
                     result.TypeName = null;
                     ancStruct.TypeName = null;
                 }
-                // F-bound flowing INTO concrete struct. Descendant carries S = upper-bound shape;
-                // merge S into the produced struct so width-required fields become explicit
-                // constraints. GcdBound treats result + S as two parallel descendants, returning
-                // their meet (field union).
+                // F-bound flowing into concrete struct: merge S via GcdBound (field union).
                 if (descendant.HasStructBound)
                 {
                     var merged = SolvingFunctions.GcdBound(
@@ -272,19 +213,10 @@ public class PullConstraintsFunctions : IStateFunction {
                     result = merged;
                 }
                 descendantNode.State = result;
-                // Field-identity unification for shared fields whose snapshot side
-                // is a solved primitive and ancestor side is an empty CS placeholder
-                // (typical SetFieldAccess setup). Without this step, the field-access
-                // result node stays disconnected from the source's concrete primitive
-                // and the cascade through `+`/arithmetic picks the wrong type at
-                // Destruction. Safe-merge predicate lives in
-                // <see cref="SolvingFunctions.UnifyStructFieldIdentities"/> — see
-                // its doc for the algebraic justification.
+                // Field-identity unification — see UnifyStructFieldIdentities doc.
                 SolvingFunctions.UnifyStructFieldIdentities(result.Fields, ancStruct);
-                // Width propagation: descendant struct may have more fields than
-                // ancestor (e.g., generic T constrained to {a} via SetFieldAccess,
-                // but input provides {a,b}). Add extra fields to non-frozen ancestor
-                // to preserve type info through generic constraint graph.
+                // Width propagation: add desc-only fields to non-frozen ancestor so
+                // generic-T constraint graphs preserve full shape.
                 if (!ancStruct.IsFrozen)
                 {
                     foreach (var descField in result.Fields)
@@ -297,8 +229,7 @@ public class PullConstraintsFunctions : IStateFunction {
                         }
                     }
                 }
-                // If descendant's struct is opt-sourced, propagate the marker to the ancestor —
-                // both share the same merged identity and the cycle-rescue rule must apply uniformly.
+                // Propagate IsOptionalSourced — merged identity, cycle-rescue must apply uniformly.
                 if (result.IsOptionalSourced) ancStruct.IsOptionalSourced = true;
                 return true;
             }
@@ -309,14 +240,10 @@ public class PullConstraintsFunctions : IStateFunction {
                 {
                     if (descendant.HasDescendant && descendant.Descendant is StateStruct)
                     {
-                        // Struct descendant with explicit Optional ancestor
-                        // (e.g., ?.field sets opt(struct) ancestor on lambda param that already
-                        // has struct descendant from generic function binding).
-                        // Transform to opt(inner) carrying the struct constraints.
+                        // Struct desc × Optional anc: wrap as opt(inner) carrying the struct constraints.
                         var innerCsCopy = descendant.GetCopy();
                         var innerNode = TicNode.CreateTypeVariableNode(
                             "e" + descendantNode.Name + "'", innerCsCopy);
-                        // Rewire StructBound self-refs to new inner owner.
                         if (innerCsCopy.HasStructBound)
                             innerCsCopy.StructBound = SolvingFunctions.RewireStructBoundOwnership(
                                 innerCsCopy.StructBound, descendantNode, innerNode);
@@ -325,17 +252,14 @@ public class PullConstraintsFunctions : IStateFunction {
                         descendantNode.RemoveAncestor(ancestorNode);
                         return true;
                     }
-                    // When descendant is already marked Optional (from None in another branch),
-                    // materialize as opt(inner) and connect inner to ancestor's element.
-                    // This prevents IsOptional from leaking through the implicit lift redirect
-                    // (e.g., SetCoalesce's opt(U) ancestor — U must NOT inherit IsOptional).
+                    // IsOptional descendant: materialize as opt(inner) so IsOptional doesn't
+                    // leak through the implicit lift to a rigid carrier (e.g. SetCoalesce U).
                     if (descendant.IsOptional)
                     {
                         var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
                         innerCs.Preferred = descendant.Preferred;
                         var innerNode = TicNode.CreateTypeVariableNode(
                             "e" + descendantNode.Name + "'", innerCs);
-                        // F-bound migrates to inner CS on Optional materialization.
                         if (descendant.HasStructBound)
                             innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
                                 descendant.StructBound, descendantNode, innerNode);
@@ -345,21 +269,17 @@ public class PullConstraintsFunctions : IStateFunction {
                         descendantNode.RemoveAncestor(ancestorNode);
                         return true;
                     }
-                    // Implicit lift: T ≤ opt(T).
-                    // Only redirect to element for primitive/empty constraints.
                     if (!descendant.HasDescendant || descendant.Descendant is StatePrimitive)
                     {
                         if (!descendant.HasDescendant
                             || descendant.Descendant != StatePrimitive.None)
                         {
-                            // Non-None descendant: shared rewire+propagate helper
-                            // (originally MR3Bug1's fix; now also fixes MR6Bug3).
+                            // Non-None descendant: rewire+propagate via helper.
                             LiftDescendantToOptionalElement(ancOpt, ancestorNode, descendantNode);
                         }
                         else
                         {
-                            // None descendant: detach edge, no propagation needed
-                            // (IsOptional is materialized elsewhere via Apply(CS,None)).
+                            // None descendant: detach; IsOptional materializes via Apply(CS,None).
                             descendantNode.RemoveAncestor(ancestorNode);
                         }
                     }
@@ -377,15 +297,12 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (descendant.ElementNode != ancestor.ElementNode)
         {
-            // When descendant element is Optional but ancestor element is not,
-            // the ancestor element needs to be wrapped in Optional too.
-            // This happens during re-pull after PullNoneNode Phase 2 wraps inner elements.
+            // Descendant element Optional, ancestor not: wrap ancestor element too.
+            // Triggered by re-pull after Phase 2 wraps inner elements.
             if (descendant.ElementNode.State is StateOptional descOpt
                 && ancestor.ElementNode.State is ConstraintsState ancCon)
             {
-                // Create inner CS for the Optional element. When the ancestor's descendant
-                // is itself Optional (e.g., opt(I32) from a named type snapshot), unwrap it:
-                // the outer Optional wrapper consumes the Optional layer.
+                // Unwrap nested opt in ancestor's Descendant — outer wrapper consumes it.
                 var innerCopy = ancCon.GetCopy();
                 if (innerCopy.HasDescendant && innerCopy.Descendant is StateOptional innerOptDesc) {
                     var pref = innerCopy.Preferred;
@@ -407,17 +324,12 @@ public class PullConstraintsFunctions : IStateFunction {
         return true;
     }
 
-    /// <summary>
-    /// Pull for the unified single-arg invariant collection (Stage 2.1b).
-    /// Cross-kind pairs reject (uniform invariance). Same-kind: propagate
-    /// element subtype edge — covariant-style. Invariance is enforced LATER
-    /// in Destruction via MergeInplace (mirrors StateMutableStruct's pattern).
-    /// </summary>
+    /// <summary>Pull for unified single-arg invariant collections.
+    /// Invariance is enforced later in Destruction via MergeInplace.</summary>
     public bool Apply(StateCollection ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor.Constructor != descendant.Constructor)
         {
-            // Cross-kind among the Array-branch: per Stage 0 lattice,
-            // descendant must be at-or-below ancestor (List ⊂ Array ⊂ FixedArray).
+            // Array-branch: List ⊂ Array ⊂ FixedArray — desc must be at-or-below anc.
             if (!IsArrayBranchKind(ancestor.Constructor)
                 || !IsArrayBranchKind(descendant.Constructor)
                 || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
@@ -431,7 +343,6 @@ public class PullConstraintsFunctions : IStateFunction {
 
     private static bool IsSubtypeOrEqual(ConstructorKind sub, ConstructorKind sup) {
         if (sub == sup) return true;
-        // Lattice subtype: List ⊆ Array ⊆ FixedArray (Array-branch chain).
         if (sup == ConstructorKind.Array && sub == ConstructorKind.List) return true;
         if (sup == ConstructorKind.FixedArray
             && (sub == ConstructorKind.Array || sub == ConstructorKind.List))
@@ -439,13 +350,8 @@ public class PullConstraintsFunctions : IStateFunction {
         return false;
     }
 
-    /// <summary>
-    /// Cross-family Pull: any Array-branch StateCollection (List / Array /
-    /// FixedArray) fits into the legacy StateArray slot per Stage 0 hierarchy
-    /// <c>List ⊆ Array ⊆ FixedArray</c>. Set is rejected — different branch.
-    /// Element propagation is covariant-style (same as
-    /// <c>Apply(StateArray, StateArray)</c>).
-    /// </summary>
+    /// <summary>Cross-family Pull: Array-branch StateCollection ≤ StateArray.
+    /// Set rejected (different branch).</summary>
     public bool Apply(StateArray ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (!IsArrayBranchKind(descendant.Constructor))
             return false;
@@ -456,7 +362,6 @@ public class PullConstraintsFunctions : IStateFunction {
     }
 
     public bool Apply(StateCollection ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Reverse direction: legacy T[] flows into lang collection slot.
         if (!IsArrayBranchKind(ancestor.Constructor))
             return false;
         if (descendant.ElementNode != ancestor.ElementNode)
@@ -526,22 +431,15 @@ public class PullConstraintsFunctions : IStateFunction {
             }
             else if (descField != ancField.Value)
             {
-                // Tautology guard: when descField and ancField resolve (via RefTo)
-                // to the same target node, they are ALREADY tied — adding an
-                // ancestor edge creates a self-loop that the cycle resolver
-                // collapses to Any. This occurs at recursive μ-positions of named
-                // types (#10): body literal's field is RefTo to function return,
-                // ancestor's field cycles back to same node.
+                // Tautology guard: shared RefTo target ⇒ already tied. Self-loop
+                // would collapse to Any via cycle resolver (recursive named μ-positions).
                 if (descField.GetNonReference() == ancField.Value.GetNonReference())
                 {
                     TraceLog.WriteLine($"    Field '{ancField.Key}': desc and anc share non-ref target → skip (μ-cycle tautology)");
                     continue;
                 }
-                // Nominal μ-recursion (#10): when both sides are at a μ-position of
-                // the same named type, they are equal by nominal definition (named
-                // types are nominally identified by TypeName). Per-field reduction
-                // is not just unnecessary — it produces fresh anonymous nodes that
-                // drop the recursive identity and resolve to Any.
+                // Nominal μ-recursion: same-TypeName μ-positions are equal by nominal
+                // definition; per-field reduction would drop recursive identity and resolve to Any.
                 if (mergedName != null
                     && FieldReachesNamedType(ancField.Value, mergedName)
                     && FieldReachesNamedType(descField, mergedName))
@@ -549,16 +447,8 @@ public class PullConstraintsFunctions : IStateFunction {
                     TraceLog.WriteLine($"    Field '{ancField.Key}': nominal μ-position of '{mergedName}' → skip per-field merge");
                     continue;
                 }
-                // None field: None ≤ opt(T) is valid for any T, but None cannot be
-                // directly connected to a bare struct/array/fun ancestor. When the
-                // ancestor field is a CS, lift it to Optional by setting the
-                // IsOptional flag (via AddDescendant(None)) — this handles the
-                // function-arg case where two signature args share the same generic
-                // and one push constrains the field while another carries `none`.
-                // Without this, e.g. `factory({v=1}, {v=none})` with shared V silently
-                // drops the None and resolves V to int instead of int?. When the
-                // ancestor field is a bare composite/primitive there's no slot to
-                // lift into — rely on the outer Optional layer (array LCA, etc).
+                // None field: lift ancestor CS to IsOptional via AddDescendant(None).
+                // Bare composite/primitive ancestor has no slot — rely on outer Optional.
                 if (descField.GetNonReference().State == StatePrimitive.None)
                 {
                     var ancFieldNr = ancField.Value.GetNonReference();
@@ -578,12 +468,8 @@ public class PullConstraintsFunctions : IStateFunction {
             }
         }
 
-        // Width propagation: when descendant has extra fields and ancestor is mutable
-        // (inferred/generic, not frozen), add them to ancestor. This preserves type
-        // information through generic constraints (e.g., sort(T[],rule(T)->R):T[]
-        // where T must carry all input struct fields, not just those accessed in rule).
-        // Algebraic basis: desc ≤ anc, anc is being inferred → anc should be as
-        // narrow (specific) as possible → absorb all descendant fields.
+        // Width propagation to non-frozen ancestor: desc ≤ anc with anc inferred ⇒
+        // anc absorbs all desc fields to stay as narrow as possible.
         if (!ancestor.IsFrozen)
         {
             foreach (var descField in descendant.Fields)
@@ -603,20 +489,15 @@ public class PullConstraintsFunctions : IStateFunction {
 
 
     public bool Apply(StateOptional ancestor, StateOptional descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Compare through GetNonReference so RefTo chains pointing at the same
-        // node are recognised as tautology (#10 μ-cycle case).
+        // GetNonReference: recognise RefTo-chain tautology at μ-cycle.
         if (descendant.ElementNode.GetNonReference() != ancestor.ElementNode.GetNonReference())
             descendant.ElementNode.AddAncestor(ancestor.ElementNode);
         descendantNode.RemoveAncestor(ancestorNode);
         return true;
     }
 
-    /// <summary>
-    /// True iff <paramref name="field"/> reaches a struct with TypeName == <paramref name="typeName"/>
-    /// via Optional / Array unwrapping (μ-position of the named recursive type).
-    /// Used by Pull Struct←Struct to recognise that ancField and descField sit at the same
-    /// nominal recursion site, where per-field merge would lose recursive identity.
-    /// </summary>
+    /// <summary>True iff field reaches a struct with the given TypeName via
+    /// Optional/Array unwrapping (μ-position of the named recursive type).</summary>
     private static bool FieldReachesNamedType(TicNode field, string typeName) {
         if (string.IsNullOrEmpty(typeName)) return false;
         return ReachesNamedTypeRec(field, typeName, new HashSet<TicNode>());
@@ -643,15 +524,14 @@ public class PullConstraintsFunctions : IStateFunction {
         return true;
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // Stage C.3 — StateCompositeConstraints Pull cells (Specs/Tic/Algebra_CompositeConstraints.md §4).
+    // StateCompositeConstraints Pull cells.
+    // See specs_tic/Algebra/CompositeConstraints.md §4.
 
     public bool Apply(StateCompositeConstraints ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
         => CompCsApply.ApplySameClass(ancestor, descendant, ancestorNode, descendantNode);
 
     public bool Apply(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // §4.0.1: Any descendant → no-op; non-Any → reject (composite anc cannot accept prim).
-        // None descendant → set IsOptional flag, detach edge (mirrors CS pattern).
+        // None desc → set IsOptional and detach. Non-None primitive → reject.
         if (descendant.Name == PrimitiveTypeName.None) {
             var newState = ancestor.WithIsOptional(true);
             if (newState == null) return false;
@@ -659,55 +539,42 @@ public class PullConstraintsFunctions : IStateFunction {
             descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
-        // Composite ancestor cannot accept a non-None primitive descendant.
         return false;
     }
 
     public bool Apply(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // §4.0.2 reverse: Any anc → no-op; non-Any → reject.
+        // Any anc → no-op; non-Any → reject.
         return ancestor == StatePrimitive.Any;
     }
 
     public bool Apply(StateCompositeConstraints ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // §4.0.3 coerce: route through descendant's composite Descendant if any.
         if (descendant.HasDescendant && descendant.Descendant is StateCollection sc)
             return CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode);
         if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
             return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true);
-        // Typeclass propagation: mirror the Push CompCs→CS rule so IsClearable
-        // flows downward in Pull too. Needed because Pull on the same edge
-        // fires before Push and downstream Pull cells (StateArray ancestor on
-        // the same descendant) consult IsClearable to decide whether to
-        // collapse to StateArray or narrow to StateCollection(List).
+        // Propagate IsClearable downward (mirror of the Push CompCs→CS rule).
+        // Pull fires before Push and downstream Pull cells consult the flag.
         if (ancestor.IsClearable && !descendant.IsClearable)
             descendant.IsClearable = true;
-        // Empty / primitive-bound CS without composite Desc: the constraint hasn't materialised
-        // a shape yet. Reject only when CS positively forbids composites (IsComparable, primitive
-        // Ancestor cap). Otherwise accept — Pull will fire again when descendant later resolves
-        // to a collection (e.g. varargs binds x to StateArray after the count call sets the
-        // CompCS ancestor edge). Mirrors the Pull(CS, CS) defer-on-empty pattern.
+        // Defer-on-empty: accept unless CS positively forbids composites
+        // (IsComparable / non-Any primitive Ancestor / non-None primitive Descendant).
         if (descendant.IsComparable) return false;
         if (descendant.HasAncestor && descendant.Ancestor is StatePrimitive prim && prim != StatePrimitive.Any)
             return false;
-        // Symmetric to the HasAncestor reject: a non-None primitive Descendant
-        // (lower bound) also forbids a composite ancestor — a primitive cannot
-        // satisfy an Enumerable/Clearable typeclass. Without this, an early
-        // toposort visit that installed a primitive bound from a literal
-        // (e.g. `[1,2,3]` puts U8 into the element's CS) slips past the
-        // deferred-accept and only surfaces later as a runtime cast. Bug #40.
+        // Primitive Descendant forbids composite Enumerable/Clearable ancestor —
+        // otherwise an early-toposort literal bound (e.g. `[1,2,3]`) leaks past
+        // deferred-accept and surfaces as a runtime cast.
         if (descendant.HasDescendant && descendant.Descendant is StatePrimitive primDesc && primDesc != StatePrimitive.None)
             return false;
         return true;
     }
 
     public bool Apply(ConstraintsState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // §4.0.2 reverse with CS: if CS can accept composite (no IsComparable blocker),
-        // route as if CS were a CompCS-view. Pull semantics: CS.Desc widens to admit
-        // descendant's CompCS. Simplest sound move: install descendant's Concretest into CS.
+        // CS without IsComparable blocker: install desc's Concretest into CS (CS.Desc widens).
         if (ancestor.IsComparable) return false;
         var concretest = descendant.ConcretestCompCs();
         if (concretest is StateCompositeConstraints) {
-            // Still abstract — no concrete state to install; defer to later phases.
+            // Still abstract — defer.
             descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
@@ -718,12 +585,11 @@ public class PullConstraintsFunctions : IStateFunction {
 
     public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
         return descendant switch {
-            // StateMap was deleted — Map is StateCollection(Map, pair-struct).
             StateCollection sc => CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true),
             StateOptional opt => ApplyForwardOptional(ancestor, opt, ancestorNode, descendantNode),
-            StateFun _ => false,    // §4.0.1 explicit reject
-            StateStruct _ => false, // §4.0.1 explicit reject
+            StateFun _ => false,
+            StateStruct _ => false,
             _ => false,
         };
     }
@@ -733,18 +599,16 @@ public class PullConstraintsFunctions : IStateFunction {
             StateCollection sc => CompCsApply.ReversePullScCompCs(sc, descendant, ancestorNode, descendantNode),
             StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: true),
             StateOptional opt => ApplyReverseOptional(opt, descendant, ancestorNode, descendantNode),
-            StateFun _ => false,    // §4.0.2 explicit reject
-            StateStruct _ => false, // §4.0.2 explicit reject
+            StateFun _ => false,
+            StateStruct _ => false,
             _ => false,
         };
     }
 
     private bool ApplyForwardOptional(StateCompositeConstraints ancestor, StateOptional opt, TicNode ancestorNode, TicNode descendantNode) {
-        // §4.0.1: unwrap, recurse, set IsOptional=true on CompCS.
+        // Unwrap: set IsOptional on CompCS, route the opt.Element as the descendant.
         var optedState = ancestor.WithIsOptional(true);
         if (optedState == null) return false;
-        // Pass-through to the inner element by setting IsOpt-true on the CompCS
-        // and treating the opt.Element as the actual descendant.
         ancestorNode.State = optedState;
         descendantNode.RemoveAncestor(ancestorNode);
         opt.ElementNode.AddAncestor(ancestorNode);
@@ -752,14 +616,11 @@ public class PullConstraintsFunctions : IStateFunction {
     }
 
     private bool ApplyReverseOptional(StateOptional opt, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // §4.0.2: wrap or unwrap depending on descendant's IsOpt.
         if (descendant.IsOptional) {
-            // Both Optional — recurse on inner element.
             descendantNode.RemoveAncestor(ancestorNode);
             descendantNode.AddAncestor(opt.ElementNode);
             return true;
         }
-        // Descendant non-Optional, ancestor Optional → implicit lift, route to inner.
         descendantNode.RemoveAncestor(ancestorNode);
         descendantNode.AddAncestor(opt.ElementNode);
         return true;

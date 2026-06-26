@@ -22,23 +22,14 @@ public static partial class StateExtensions {
                 continue;
             }
 
-            // StateCompositeConstraints — Stage C.2 (Layer-0 algebra).
             if (a is StateCompositeConstraints acompcs)
                 return acompcs.GcdCompCs(b);
             if (b is StateCompositeConstraints bcompcs)
-                return bcompcs.GcdCompCs(a); // GCD is symmetric
+                return bcompcs.GcdCompCs(a);
 
             if (a is ConstraintsState ac)
             {
-                // Unconstrained ⊓ b: if a has no upper bound, its meet with b is determined
-                // entirely by b. Returning b.Abstractest() here was wrong — Abstractest
-                // gives the SUPREMUM (lattice top) which is the LCA direction, not GCD's
-                // meet/infimum. For two unconstrained CSs that produced Any here, the LCA
-                // of two unconstrained fn args (via LCA(Fun,Fun) → Gcd on args) widened
-                // to Any, which Push's contravariance later couldn't reconcile with a
-                // narrower annotation — surfaced as FU719 on `arr:s[]=[{f=rule it*N},...]`
-                // patterns. Returning `b` itself is the correct meet: b's own constraint
-                // set IS the intersection (since a accepts everything). (MR5Bug3.)
+                // Unconstrained a ⊓ b = b: a accepts everything so b's constraint set IS the meet.
                 if (ac.Ancestor == null) return b;
                 a = ac.Ancestor;
                 continue;
@@ -53,11 +44,9 @@ public static partial class StateExtensions {
 
             }
 
-            // None: GCD(None, Opt(T)) = None, GCD(None, Any) = None, GCD(None, T) = null
             if (a == None) return GcdWithNone(b);
             if (b == None) return GcdWithNone(a);
 
-            // Optional: covariant GCD
             if (a is StateOptional aopt) return GcdWithOptional(aopt, b);
             if (b is StateOptional bopt) return GcdWithOptional(bopt, a);
 
@@ -65,7 +54,7 @@ public static partial class StateExtensions {
                 return b is StatePrimitive bp ? ap.GetFirstCommonDescendantOrNull(bp) :
                     a== Any ? b.Abstractest() : null;
             if (b== Any) return a.Abstractest();
-            // MutStruct <: Struct — allow GCD across struct family
+            // MutStruct <: Struct → cross-kind GCD allowed.
             if (a.GetType() != b.GetType() && !(a is StateStruct && b is StateStruct)) return null;
             return a switch {
                 StateArray arrA => arrA.Gcd((StateArray)b),
@@ -79,9 +68,9 @@ public static partial class StateExtensions {
     private static ITicNodeState GcdWithNone(ITicNodeState other) =>
         other switch {
             StatePrimitive { Name: PrimitiveTypeName.None } => None,
-            StatePrimitive { Name: PrimitiveTypeName.Any } => None, // None ≤ Any → meet = None
-            StateOptional => None, // None ≤ Opt(T) → meet = None
-            _ => null // None is not ≤ other concrete types
+            StatePrimitive { Name: PrimitiveTypeName.Any } => None,
+            StateOptional => None,
+            _ => null
         };
 
     private static ITicNodeState GcdWithOptional(StateOptional opt, ITicNodeState other) {
@@ -90,10 +79,10 @@ public static partial class StateExtensions {
             var innerGcd = opt.Element.Gcd(otherOpt.Element);
             return innerGcd == null ? null : StateOptional.Of(innerGcd);
         }
-        // Opt(T) ≤ Any, so GCD(Opt(T), Any) = Opt(T)
+        // Opt(T) ≤ Any.
         if (other.Equals(Any))
             return opt.Element.Equals(Any) ? Any : opt;
-        // GCD(Opt(A), B) = GCD(A, B) — for non-Any B (common desc can't be optional since None ≰ B)
+        // Non-Any B: opt-wrapper doesn't affect meet (None ≰ B).
         return opt.Element.Gcd(other);
     }
 
@@ -104,18 +93,11 @@ public static partial class StateExtensions {
         return StateArray.Of(lcd);
     }
 
-    // Cycle guard for recursive struct GCD (e.g., type t = {a:t?, b:rule(t)->t?}).
-    // GCD reaches itself via Lca(StateFun) → contravariant-args Gcd → struct Gcd → field
-    // Gcd → here again. Each Lca/Gcd level builds a NEW struct snapshot, so ReferenceEquals
-    // alone misses the cycle. Use TypeName as the structural key: when both sides carry the
-    // same named-type identity, they're the same recursive μ-type — return one side
-    // coinductively. Without this guard, multi-self-path recursive named types (a path
-    // through `?` + a path through `rule(t)->...`) cause exponential snapshot expansion
-    // until stack/memory exhaustion
+    // Cycle guard for recursive named struct types: each Lca/Gcd level allocates a fresh
+    // snapshot, so ref-equality misses the μ-type. TypeName is the structural key.
     [ThreadStatic] private static List<string> _structGcdNamesInProgress;
 
     private static ITicNodeState Gcd(this StateStruct a, StateStruct b) {
-        // Named-type cycle short-circuit.
         if (a.TypeName != null && a.TypeName == b.TypeName) {
             var guard = _structGcdNamesInProgress ??= new();
             for (int i = 0; i < guard.Count; i++)
@@ -136,7 +118,6 @@ public static partial class StateExtensions {
         bool eitherMutable = a is StateMutableStruct || b is StateMutableStruct;
 
         var nodes = new Dictionary<string, TicNode>();
-        // GCD of structs = union of all fields. For shared fields, compute GCD of field types.
         foreach (var (name, aFieldNode) in a.Fields)
         {
             var bField = b.GetFieldOrNull(name);
@@ -147,7 +128,7 @@ public static partial class StateExtensions {
                 ITicNodeState fieldResult;
                 if (eitherMutable)
                 {
-                    // MutStruct fields are invariant: GCD requires Unify (exact match).
+                    // Invariant fields → Unify.
                     fieldResult = aFieldNode.State.UnifyOrNull(bField.State);
                 }
                 else
@@ -159,16 +140,13 @@ public static partial class StateExtensions {
                 nodes.Add(name, TicNode.CreateInvisibleNode(fieldResult));
             }
         }
-        // Add fields only in b
         foreach (var (name, bFieldNode) in b.Fields)
         {
             if (a.GetFieldOrNull(name) == null)
                 nodes.Add(name, bFieldNode);
         }
 
-        // GCD(MutStruct, MutStruct) = MutStruct (both mutable, intersection preserves mutability).
-        // GCD(Struct, MutStruct) = MutStruct (MutStruct is more specific/concrete).
-        // GCD(MutStruct, Struct) = MutStruct (symmetric).
+        // MutStruct is the narrower of the two — meet of any pair containing it stays MutStruct.
         if (eitherMutable)
             return new StateMutableStruct(nodes, isFrozen: true);
         return new StateStruct(nodes, isFrozen: true) {

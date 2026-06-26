@@ -5,12 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace NFun.Tic;
 
-/// <summary>
-/// List optimized for 0-1 elements (no array allocation).
-/// 0 items: _item0=null, _tail=null
-/// 1 item:  _item0=value, _tail=null  (saves T[4] that List would allocate)
-/// 2+ items: _item0=first, _tail=T[]  (raw array, no List wrapper)
-/// </summary>
+/// <summary>List with inline first element; allocates a raw tail array on the 2nd item.</summary>
 public sealed class SmallList<T> : IReadOnlyList<T> where T : class {
     private T _item0;
     private T[] _tail;
@@ -113,7 +108,7 @@ public sealed class SmallList<T> : IReadOnlyList<T> where T : class {
         if (_tail != null)
             Array.Clear(_tail, 0, Math.Min(_count - 1, _tail.Length));
         _count = 0;
-        // _tail kept for reuse (common ClearAncestors + re-add pattern)
+        // Keep _tail allocated for ClearAncestors + re-add reuse.
     }
 
     public T[] ToArray() {
@@ -125,10 +120,7 @@ public sealed class SmallList<T> : IReadOnlyList<T> where T : class {
         return result;
     }
 
-    /// <summary>
-    /// Returns a snapshot for safe iteration while the list may be mutated.
-    /// Zero allocation for 0-2 elements (95% of cases). ToArray() for 3+.
-    /// </summary>
+    /// <summary>Snapshot safe across mutations of the source list. Zero alloc for 0-2 elements.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Snapshot ToSnapshot() => new(_count, _item0, _count > 1 ? _tail![0] : default, _count > 2 ? ToArray() : null);
 
@@ -168,7 +160,6 @@ public sealed class SmallList<T> : IReadOnlyList<T> where T : class {
         }
     }
 
-    // Struct enumerator for non-boxing foreach
     public Enumerator GetEnumerator() => new(this);
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => new BoxedEnumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => new BoxedEnumerator(this);
