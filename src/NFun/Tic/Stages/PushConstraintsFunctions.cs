@@ -208,7 +208,7 @@ public class PushConstraintsFunctions : IStateFunction {
                     && !descendant.IsComparable
                     && !descendant.HasStructBound) {
                     var listResult = SolvingFunctions.TransformToCollectionOrNull(
-                        ConstructorKind.List, descendantNode.Name, descendant);
+                        ConstructorKind.List, descendantNode, descendantNode.Name, descendant);
                     if (listResult == null) return false;
                     if (listResult.ElementNode != ancArray.ElementNode)
                         listResult.ElementNode.AddAncestor(ancArray.ElementNode);
@@ -218,7 +218,7 @@ public class PushConstraintsFunctions : IStateFunction {
                         SolvingFunctions.PushConstraints(listResult.ElementNode, ancArray.ElementNode);
                     return true;
                 }
-                var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
+                var result = SolvingFunctions.TransformToArrayOrNull(descendantNode, descendantNode.Name, descendant);
                 if (result == null)
                     return false;
                 if (result.ElementNode == ancArray.ElementNode)
@@ -237,7 +237,7 @@ public class PushConstraintsFunctions : IStateFunction {
             case StateCollection ancColl:
             {
                 var result = SolvingFunctions.TransformToCollectionOrNull(
-                    ancColl.Constructor, descendantNode.Name, descendant);
+                    ancColl.Constructor, descendantNode, descendantNode.Name, descendant);
                 if (result == null) return false;
                 if (result.ElementNode == ancColl.ElementNode) {
                     descendantNode.RemoveAncestor(ancestorNode);
@@ -287,7 +287,7 @@ public class PushConstraintsFunctions : IStateFunction {
             }
             case StateOptional ancOpt:
             {
-                var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode, descendantNode.Name, descendant);
                 if (result == null)
                 {
                     if (descendant.HasDescendant && descendant.Descendant is StateStruct descStruct

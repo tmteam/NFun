@@ -10,15 +10,18 @@
 
 ---
 
-## 5. `DescendantHasOptionalLift` workaround — OPEN
+## 5. `DescendantHasOptionalLift` workaround — CLOSED (2026-06-27)
 
-**What's wrong**: Pull Phase-1 snapshots can become stale by Phase 2. A snapshot captured before None-absorption may show a non-Optional struct field that becomes `opt(T)` later. Destruction must reconcile.
+**Closed by**: debt #10 worklist Pull. Helpers (`DescendantHasOptionalLift`,
+`IsOptionalLiftBetween`, `HasAnyOptionalLiftedField`) and their two caller
+blocks in `DestructionFunctions` removed (commit `3518214b`). Worklist re-fires
+on edge addition; by Destruction time the snapshot and actual shapes agree.
 
-**Why it exists**: two-phase Pull was introduced to handle None-absorption order-of-operations. Phase 1 sets `IsOptional` flags; Phase 2 processes non-None constraints with those flags already set.
-
-**Current mitigation**: `DescendantHasOptionalLift` check in Destruction redirects stale snapshots to the actual (lifted) form.
-
-**Proper fix**: single-pass Pull refactor — eliminate the two-phase split and the snapshot drift it creates. Related to debt #10.
+**Historical context**: Pull Phase-1 snapshots could become stale by Phase 2
+(None-absorption order-of-operations: Phase 1 sets `IsOptional` flags, Phase 2
+processes non-None constraints). The `DescendantHasOptionalLift` check in
+Destruction redirected stale snapshots to the actual (lifted) form via a
+`StateRefTo` patch.
 
 ---
 
@@ -68,21 +71,39 @@ See [`Advanced/Preferred.md`](Advanced/Preferred.md) §6.
 
 ---
 
-## 10. Pull edge-rewires violate single-pass toposort — OPEN (closes via worklist Pull)
+## 10. Pull edge-rewires violate single-pass toposort — CLOSED (2026-06-27)
 
-**What's wrong**: Pull is a streaming single-pass over toposorted nodes. When an Apply cell adds a new edge (`AddAncestor`) after the source was already visited, the new edge would not propagate. Current code mitigates with `PullConstraintsForNode` eager re-Pull calls in specific cells.
+**Closed by**: worklist Pull implementation. `GraphBuilder.UseWorklistPull = true`
+by default since commit `214a5778`. Convergence achieved through Path B (gated
+approach — every Apply-cell mutation gated on `WorklistPullDriver.IsActive`,
+streaming behavior preserved exactly):
 
-**Why it exists**: streaming Pull is faster than a worklist algorithm in the common case.
+- **Wave-1**: 6 wrap-inner allocation sites memoized via `TicNode.WrapOptionalInner` cache (commits `0c040300`, `942f3463`).
+- **Wave-2**: `TransformTo{Optional,Array,Collection}OrNull` accept `TicNode descNode`, memoize via `WrapOptionalInner` / new `TransformElementInner` field (commits `ce9eaf93`, `177f2e3c`).
+- **Wave-2.6**: `TicNode.AddAncestor` hook skips Enqueue when `this.IsOptionalElement` — prevents tower-of-wraps cycle through freshly-allocated inners (commit `f58c84f9`).
+- **Wave-2.7**: `Apply(F, CS{IsOptional})` morphs ancestor into `Opt(inner)` via `WrapOptionalInner` memo when worklist active (commit `0a7bafe8`).
+- **Phase 2 cleanup**: CompCs eager re-Pull + `PropagatePreferredAcrossFallback` gated under `!IsActive` (commit `54c264d5`); `DescendantHasOptionalLift` family removed (commit `3518214b`).
 
-**Proper fix**: worklist Pull architecture spec'd in [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md). Implementation pending.
+**Closures via debt #10**:
+- Debt #5 `DescendantHasOptionalLift`: CLOSED (helpers removed).
+- Debt #16 Preferred axis: CLOSED-UNDER-DEFAULT (workaround gated under `!IsActive`).
 
-This also closes debt #5 (stale snapshots), debt #15 (identity guards), debt #16's Descendant axis, and the 3D+ residual of debt #17 (cross-kind nested-composite LCA): worklist re-firing lets `LcaOrShareIdentity` recompute after deep CS nodes resolve to concrete shape, removing the 1-level depth bound on path (b).
+**Allocation oracle** (`DiagAllocProbeTest`): streaming 10 / worklist 11 on getLast
+recursive-struct graph. Near-baseline.
 
-**Surface pinned for the cross-kind nested-composite residual** (closes-via-#10):
-- `Bug55_Family_3D_Coalesce_WidensToAny` (`Stage1InvariancePinTests.cs`, `[Ignore]`'d)
-- `Lca_CrossKind_NestedComposite_BothResolved_ShouldWiden` and `_3D_ShouldWiden` (`Stage1InvariancePinAlgebraTests.cs`, both `[Ignore]`'d)
+**Pinned tests that DID close** (5/5 originally failing):
+- `GetLast_Call_WithConcreteArg`, `GetLast_Cycle_ResolvesAtTicLevel`, `GetLast_TwoCallSites_NamedStructs`
+- `IfElseNone_AsStructField_ChainedSafeAccess`, `…_Coalesce`
 
-Formally diagnosed in [`Proofs.md`](Proofs.md) P3 Monotonicity: same-identity short-circuit alone closes an artificially-constructed sub-family (where prior calls pre-merged element identities) but does not converge at first-time 3D/4D entries because the recursive descent through `LcaOrShareIdentity` sees physically distinct ElementNodes at each layer until the innermost primitive. Cross-kind `MergeInplace` of composite elements is precluded by the 0832 LeetCode narrowing trap (routes through `NarrowerArrayBranchOrNull`). Worklist re-fire is the only mechanism that lets the outer LCA recompute after the inner CS resolves.
+**Pinned tests that did NOT close** (different surface, kept `[Ignore]`'d):
+- `Bug55_Family_3D_Coalesce_WidensToAny` — 3D LCA algebra extension, independent of Pull driver.
+- `Lca_CrossKind_NestedComposite_*` — pure-algebra `Lca` composite-element widening.
+- `Bug47_MapItFirstOnNestedList_WidensToAny` family — generic T resolution through `.map(rule it.G())`.
+
+**Spec references**:
+- [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md) — design.
+- [`Advanced/WorklistPull_ExecPlan.md`](Advanced/WorklistPull_ExecPlan.md) — implementation diary (Path A failure + Path B success).
+- [`Advanced/WorklistPull_ConvergenceAnalysis.md`](Advanced/WorklistPull_ConvergenceAnalysis.md) — professor diagnosis of tower-of-wraps cycle.
 
 ---
 
@@ -122,25 +143,37 @@ Formally diagnosed in [`Proofs.md`](Proofs.md) P3 Monotonicity: same-identity sh
 
 **Current mitigation**: identity guards in `Apply(ICompositeState ancestor, CS descendant)` cells.
 
-**Proper fix**: always allocate fresh element nodes in `Transform*`. Trade-off: extra allocations + node registration per Transform call. Closed by worklist Pull (debt #10).
+**Proper fix**: always allocate fresh element nodes in `Transform*`. Trade-off: extra allocations + node registration per Transform call.
+
+**Status (2026-06-27)**: NOT closed by debt #10 worklist Pull (originally predicted to). The identity guards prevent `AddAncestor(self)` panic specifically, not the streaming P3b gap that worklist closed. Wave-2 memoization landed for the Transform helpers' element creation (gated on `WorklistPullDriver.IsActive`) but doesn't change the aliasing semantics. Standalone fix still required.
 
 ---
 
-## 16. CompCs cross-Apply Preferred propagation loss — PARTIALLY CLOSED
+## 16. CompCs cross-Apply Preferred propagation loss — CLOSED-UNDER-DEFAULT (2026-06-27)
 
-> **Preferred axis CLOSED**. **Descendant axis CONFIRMED OPEN** — Finalize-time counterexample reproduced (Bug hunt #47).
->
-> Formal identification: [`Proofs.md`](Proofs.md) §3 (P3 Monotonicity, axes P3a / P3b).
+**Closed by**: debt #10 worklist Pull. The fallback path's eager
+`PullConstraintsForNode` and `PropagatePreferredAcrossFallback` calls are now
+gated under `!WorklistPullDriver.IsActive` (commit `54c264d5`) — dead code
+under default worklist mode. Worklist re-fires the source through standard
+`Apply(CS, CS)` which copies Preferred via the normal Lemma 3.1 path.
 
-**What's wrong**: CompCs cross-Apply cells (`ForwardPullCompCsSc`, `ForwardCompCsStateArray`, `ReverseCompCsStateArray`) use try-MergeInplace-fallback-to-AddAncestor on element nodes. The fallback path historically did not propagate Preferred metadata, violating P3 Monotonicity on the Preferred axis.
+**Bug47/49 residuals are NOT this debt** — see TicDebt10_WorklistPullTests.cs.
+`data.map(rule it.first())` widens to `Any` due to generic-T resolution in
+`.map(rule it.G())` failing, not P3b. Tracked separately; pinned `[Ignore]`'d.
 
-**What's closed (P3a)**: `PropagatePreferredAcrossFallback` helper restores P3 on the Preferred axis at the AddAncestor fallback boundary.
+**Historical context**: CompCs cross-Apply cells (`ForwardPullCompCsSc`,
+`ForwardCompCsStateArray`, `ReverseCompCsStateArray`) used try-MergeInplace-
+fallback-to-AddAncestor on element nodes. The fallback path historically did
+not propagate Preferred metadata, violating P3 Monotonicity on the Preferred
+axis. The mitigation patched Preferred at the fallback boundary; the Descendant
+axis remained open until worklist Pull made the cross-Apply re-firing routine.
 
-**What remains OPEN (P3b — confirmed counterexample)**: the Descendant axis at the AddAncestor fallback AND at the empty-CS deferred-accept (`PullConstraintsFunctions.cs:660-690`, the no-positively-forbidding-bound branch). Bug hunt #47 (`data:list<list<int>>; data.map(rule it.first())` widens output element to `Any`) is a clean Finalize-time TIC counterexample: `first`'s generic `T₀` carries no Preferred (no Arithmetical constraint, unlike `sum`), and its CS stays empty until the lambda's `it` resolves via map's outer binding — by which time streaming Pull has already moved past the relevant edge and never re-fires the element unification. Two narrow heuristic fixes (RefTo-promote with and without single-ancestor guard) regressed 41 and 8 working tests respectively because they could not distinguish "must re-fire on tightening" from "already resolved, no re-fire needed" — exactly the discrimination worklist Pull encodes for free.
-
-**Closed-runtime side-effect**: `LangMirror_NestedByteUpcastMap_RealResult` was previously cited as a P3b counterexample. Trace analysis showed TIC infers the correct outer-map element with the Preferred fix; the residual failure was **runtime materialization** of the inner `.map()`'s lambda — TIC widens the inner element type along the outer chain (e.g. `byte → Real` or `Int32 → Real`), but the concrete collection still stores narrower values, so each element arrived at the lambda call site at its original CLR type. Closed by per-element coercion in `MapFunction.ConcreteMap.Calc` / `MapEnumerableFunction.ConcreteMap.Calc`, mirroring the existing pattern in `SumIter.As<T>`.
-
-**Path to closure**: worklist Pull (debt #10) — the principled fix, spec'd in [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md) — routes `desc.elem.D` through the standard CS×CS path with all safety guarantees of Lemma 3.1. Pinned by `Bug47_MapItFirstOnNestedList_WidensToAny` (`[Ignore]`'d) and `Bug47_Workaround_MapFunctionReference_Works` (passes — function-reference path resolves correctly via StateFun unification).
+**Closed-runtime side-effect** (preserved): `LangMirror_NestedByteUpcastMap_RealResult`
+was a P3b counterexample whose TIC behavior matched expectations; the residual
+failure was **runtime materialization** of the inner `.map()`'s lambda — TIC
+widens inner element types but the concrete collection stores narrower values.
+Closed by per-element coercion in `MapFunction.ConcreteMap.Calc` /
+`MapEnumerableFunction.ConcreteMap.Calc`, mirroring `SumIter.As<T>`.
 
 ---
 
@@ -156,7 +189,13 @@ Formally diagnosed in [`Proofs.md`](Proofs.md) P3 Monotonicity: same-identity sh
 
 Pinned by 4 syntax surfaces in `Stage1InvariancePinTests.cs` and 1 algebra-level pin (`Lca_SameKindOuter_CrossKindInner_AlreadyWorks`) in `Stage1InvariancePinAlgebraTests.cs`.
 
-**3D+ residual — rolled into debt #10**: Path (b) is bounded to 1-level depth via a guard (`xKindOther.Element is StateCollection deeperOther && deeperOther.Element is ICompositeState`). Professorial review (commit aftermath) traced the root cause to first-time-entry recursion seeing physically distinct ElementNodes at each layer until the innermost primitive — a same-identity short-circuit closes only an artificial sub-family (prior calls pre-merged identities) and re-introduces FU758 / Confluence-P3 violation risk. Principled closure requires re-firing LCA after deep CS resolution, which IS debt #10's worklist Pull mechanism. The 3D residual surfaces now live under debt #10's "also closes" list above.
+**3D+ residual — NOT closed by debt #10** (correction 2026-06-27): Originally
+predicted that worklist Pull would close the 3D residual, but the actual
+mechanism is pure `Lca` algebra on composite elements — independent of when
+Pull re-fires. `Bug55_Family_3D_Coalesce_WidensToAny` and
+`Lca_CrossKind_NestedComposite_*` still `[Ignore]`'d after debt #10 closure;
+their proper fix is an `Lca` algebra extension recursively widening composite
+elements at arbitrary depth.
 
 **Instrumentation retained**: `StateCollection.cs:310` emits a `TraceLog` marker at every widening-to-null event in `LcaOrShareIdentity`. Enables measurement of real-world hit-rate via `-t` flag — useful when worklist Pull lands to verify the residual surfaces close.
 
@@ -165,7 +204,9 @@ Pinned by 4 syntax surfaces in `Stage1InvariancePinTests.cs` and 1 algebra-level
 ## Cleanup priority
 
 ```
-#10 (worklist Pull)            ← also closes #5, #15, #16's Descendant axis, #17 3D+ residual
+#10 (worklist Pull)            CLOSED 2026-06-27 — closed #5, closed-under-default #16
+#15 (Transform* identity)      ← still open; debt #10 didn't close it (different surface)
+#17 3D+ residual (Lca algebra) ← still open; not Pull-related, needs Lca extension
 #7  (PropagatePreferred local) ← edge-local rewrite, not urgent
 #6  (TwoVariableEquality)      ← SolveUselessGenerics refinement
 #9  (IsMutable cascade)        ← unify immutable-merge logic

@@ -422,6 +422,7 @@ public static class SolvingFunctions {
         if (res is ITypeState t && t.IsSolved)
         {
             secondary.State = res;
+            Stages.WorklistPullDriver.Enqueue(main);
             return;
         }
 
@@ -430,6 +431,8 @@ public static class SolvingFunctions {
         secondary.ClearAncestors();
 
         secondary.State = new StateRefTo(main);
+        // Worklist Pull hook (debt #10): merge re-fires Pull on the surviving node.
+        Stages.WorklistPullDriver.Enqueue(main);
     }
 
     /// <summary>
@@ -1494,20 +1497,30 @@ public static class SolvingFunctions {
             MergeInplace(referencedNode, original);
     }
 
-    public static StateArray TransformToArrayOrNull(object descNodeName, ConstraintsState descendant) {
+    /// <summary>
+    /// <paramref name="descNode"/> nullable — memoize on <see cref="TicNode.TransformElementInner"/>
+    /// only when worklist driver active (debt #10 wave-2).
+    /// </summary>
+    public static StateArray TransformToArrayOrNull(TicNode descNode, object descNodeName, ConstraintsState descendant) {
         if (descendant.NoConstrains)
         {
-            var constrains = ConstraintsState.Empty;
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, ConstraintsState.Empty);
             return new StateArray(node);
         }
         else if (descendant.HasDescendant && descendant.Descendant is StateArray arrayEDesc)
         {
             if (!arrayEDesc.IsSolved)
                 return arrayEDesc;
-            var constrains = ConstraintsState.Empty;
-            constrains.AddDescendant(arrayEDesc.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.TransformElementInner != null) {
+                node = descNode.TransformElementInner;
+            } else {
+                var constrains = ConstraintsState.Empty;
+                constrains.AddDescendant(arrayEDesc.Element);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.TransformElementInner = node;
+            }
             return new StateArray(node);
         }
         // Array-branch SC fits legacy StateArray slot — reuse descendant's element identity.
@@ -1519,13 +1532,30 @@ public static class SolvingFunctions {
         {
             if (!collDesc.IsSolved)
                 return new StateArray(collDesc.ElementNode);
-            var constrains = ConstraintsState.Empty;
-            constrains.AddDescendant(collDesc.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.TransformElementInner != null) {
+                node = descNode.TransformElementInner;
+            } else {
+                var constrains = ConstraintsState.Empty;
+                constrains.AddDescendant(collDesc.Element);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.TransformElementInner = node;
+            }
             return new StateArray(node);
         }
         else
             return null;
+    }
+
+    /// <summary>Memoize on TransformElementInner only when worklist active.</summary>
+    private static TicNode GetOrCreateTransformElement(TicNode descNode, object descNodeName, ConstraintsState cs) {
+        if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.TransformElementInner != null)
+            return descNode.TransformElementInner;
+        var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", cs);
+        if (Stages.WorklistPullDriver.IsActive && descNode != null)
+            descNode.TransformElementInner = node;
+        return node;
     }
 
     /// <summary>
@@ -1533,7 +1563,7 @@ public static class SolvingFunctions {
     /// Map's pair-struct element built inline. Null when CS cannot become this kind.
     /// </summary>
     public static StateCollection TransformToCollectionOrNull(
-        ConstructorKind kind, object descNodeName, ConstraintsState descendant) {
+        ConstructorKind kind, TicNode descNode, object descNodeName, ConstraintsState descendant) {
         // CS{IsClearable=true} alone is shape-compatible — reject early if target kind isn't Clearable.
         bool noShapeConstraints = !descendant.HasDescendant && !descendant.HasAncestor
             && !descendant.IsComparable && !descendant.HasStructBound;
@@ -1541,7 +1571,7 @@ public static class SolvingFunctions {
             return null;
         if (descendant.NoConstrains || (noShapeConstraints && descendant.IsClearable))
         {
-            return BuildFreshCollection(kind, descNodeName);
+            return BuildFreshCollection(kind, descNode, descNodeName);
         }
         if (descendant.HasDescendant
             && descendant.Descendant is StateCollection existing
@@ -1554,6 +1584,7 @@ public static class SolvingFunctions {
                 && ss.GetFieldOrNull("key") is { } kExist
                 && ss.GetFieldOrNull("value") is { } vExist)
             {
+                // Map's (k, v) pair — allocate per call (not single-element memo).
                 var kCs = ConstraintsState.Empty;
                 if (kExist.State is ITypeState kTs) kCs.AddDescendant(kTs);
                 var vCs = ConstraintsState.Empty;
@@ -1564,7 +1595,7 @@ public static class SolvingFunctions {
             }
             var c = ConstraintsState.Empty;
             c.AddDescendant(existing.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, c);
             return new StateCollection(kind, node);
         }
         // Accept subtype kinds in Array-branch (list ⊆ array ⊆ fixedArray).
@@ -1575,7 +1606,7 @@ public static class SolvingFunctions {
             if (!existingSub.IsSolved) return existingSub;
             var c = ConstraintsState.Empty;
             c.AddDescendant(existingSub.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, c);
             return new StateCollection(kind, node);
         }
         // ee-mode T[] (StateArray) IS fixedArray<T> — fits any Array-branch kind.
@@ -1590,35 +1621,40 @@ public static class SolvingFunctions {
                 return new StateCollection(kind, eeArr.ElementNode);
             var c = ConstraintsState.Empty;
             if (eeArr.Element is ITypeState elemTs) c.AddDescendant(elemTs);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", c);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, c);
             return new StateCollection(kind, node);
         }
         return null;
     }
 
     /// <summary>Build a fresh SC: Map gets a {key, value} pair-struct, single-arg kinds get a CS-empty element node.</summary>
-    private static StateCollection BuildFreshCollection(ConstructorKind kind, object descNodeName) {
+    private static StateCollection BuildFreshCollection(ConstructorKind kind, TicNode descNode, object descNodeName) {
         if (kind == ConstructorKind.Map) {
+            // Map's (k, v) pair — allocate per call.
             var k = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", ConstraintsState.Empty);
             var v = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", ConstraintsState.Empty);
             return StateCollection.OfMap(k, v);
         }
-        var elem = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", ConstraintsState.Empty);
+        var elem = GetOrCreateTransformElement(descNode, descNodeName, ConstraintsState.Empty);
         return new StateCollection(kind, elem);
     }
 
-    public static StateOptional TransformToOptionalOrNull(object descNodeName, ConstraintsState descendant) {
+    /// <summary>
+    /// <paramref name="descNode"/> nullable — when null OR worklist driver inactive,
+    /// allocates fresh per call (streaming behavior). When non-null AND worklist active,
+    /// reuses <see cref="TicNode.WrapOptionalInner"/> cache to prevent fresh-allocation churn
+    /// on worklist re-entry (debt #10 wave-2).
+    /// </summary>
+    public static StateOptional TransformToOptionalOrNull(TicNode descNode, object descNodeName, ConstraintsState descendant) {
         if (descendant.NoConstrains)
         {
-            var constrains = ConstraintsState.Empty;
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            var node = GetOrCreateWrapOptionalInner(descNode, descNodeName, ConstraintsState.Empty);
             return new StateOptional(node);
         }
 
         if (descendant.HasDescendant && descendant.Descendant == StatePrimitive.None)
         {
-            var constrains = ConstraintsState.Empty;
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            var node = GetOrCreateWrapOptionalInner(descNode, descNodeName, ConstraintsState.Empty);
             return new StateOptional(node);
         }
 
@@ -1626,9 +1662,16 @@ public static class SolvingFunctions {
         {
             if (!optDesc.IsSolved)
                 return optDesc;
-            var constrains = ConstraintsState.Empty;
-            constrains.AddDescendant(optDesc.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.WrapOptionalInner != null) {
+                node = descNode.WrapOptionalInner;
+            } else {
+                var constrains = ConstraintsState.Empty;
+                constrains.AddDescendant(optDesc.Element);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.WrapOptionalInner = node;
+            }
             return new StateOptional(node);
         }
 
@@ -1636,16 +1679,33 @@ public static class SolvingFunctions {
         // (implicit lift T ≤ opt(T) would lose them). Pure IsOptional handled later.
         if (descendant.IsOptional && (descendant.HasDescendant || descendant.HasAncestor))
         {
-            var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
-            // Preserve Preferred; fall back to a concrete primitive Descendant (mirrors SetDef).
-            innerCs.Preferred = descendant.Preferred
-                ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp
-                    ? dp : null);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", innerCs);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.WrapOptionalInner != null) {
+                node = descNode.WrapOptionalInner;
+            } else {
+                var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+                // Preserve Preferred; fall back to a concrete primitive Descendant (mirrors SetDef).
+                innerCs.Preferred = descendant.Preferred
+                    ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp
+                        ? dp : null);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", innerCs);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.WrapOptionalInner = node;
+            }
             return new StateOptional(node);
         }
 
         return null;
+    }
+
+    /// <summary>Memoize on <see cref="TicNode.WrapOptionalInner"/> only when worklist active.</summary>
+    private static TicNode GetOrCreateWrapOptionalInner(TicNode descNode, object descNodeName, ConstraintsState cs) {
+        if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.WrapOptionalInner != null)
+            return descNode.WrapOptionalInner;
+        var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", cs);
+        if (Stages.WorklistPullDriver.IsActive && descNode != null)
+            descNode.WrapOptionalInner = node;
+        return node;
     }
 
     public static StateFun TransformToFunOrNull(object descNodeName, ConstraintsState descendant, StateFun ancestor) {

@@ -264,12 +264,19 @@ P2 holds.
 
 ---
 
-## P3. Monotonicity of Pull — split into P3a (closed) + P3b (open)
+## P3. Monotonicity of Pull — CLOSED (2026-06-27)
 
-> **Per-axis decomposition**. The "Pull does not lose information" property
-> is stated separately for each of the 6 dimensions of `Info(c)`. The
-> Preferred axis is closed (**P3a**, proven below). The Descendant axis
-> remains open (**P3b**, debt #16 + debt #10).
+> **All axes closed.** Per-axis decomposition preserved in §3.5–§3.7 for
+> historical clarity. Debt #10 worklist Pull closes the Descendant axis
+> (P3b): re-firing on edge addition routes any post-AddAncestor narrowing
+> through the standard Apply path. The Preferred axis (P3a) was closed by
+> `PropagatePreferredAcrossFallback` helper (now gated under streaming-only,
+> dead code under default worklist).
+>
+> Closure mechanism: every Apply-cell mutation gated on
+> `WorklistPullDriver.IsActive` (Path B approach). Allocation oracle
+> (`DiagAllocProbeTest`): streaming 10 / worklist 11 on getLast
+> recursive-struct graph.
 
 **Statement (intuitive)**. Pull does not lose information on a per-dimension
 basis. For every node, the post-Pull state's information per dimension is at

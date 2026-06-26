@@ -59,8 +59,8 @@ static class BenchSetV1 {
     static BenchSubSet ComplexV1() => new("Complex", 1, new BenchScript[]
     {
         // --- Recursion, complex structs, bubble sort, heavy computation ---
-        // bubble sort: recursive user functions, generics, fold, set, higher-order
-        Pure("twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)\r swap(arr, i, j) = arr.twiceSet(i,j,arr[j], arr[i])\r swapIfNotSorted(c, i) = if(c[i]<c[i+1]) c else c.swap(i, i+1)\r onelineSort(input) = [0..input.count()-2].fold(input, swapIfNotSorted)\r bubbleSort(input) = [0..input.count()-1].fold(input, rule onelineSort(it1))\r i:int[]  = [1,4,3,2,5].bubbleSort()\r r:real[] = [1,4,3,2,5].bubbleSort()"),
+        // bubble sort: recursive user functions, generics, fold, setAt, higher-order
+        Pure("twiceSet(arr,i,j,ival,jval) = arr.setAt(i,ival).setAt(j,jval)\r swap(arr, i, j) = arr.twiceSet(i,j,arr[j], arr[i])\r swapIfNotSorted(c, i) = if(c[i]<c[i+1]) c else c.swap(i, i+1)\r onelineSort(input) = [0..input.count()-2].fold(input, swapIfNotSorted)\r bubbleSort(input) = [0..input.count()-1].fold(input, rule onelineSort(it1))\r i:int[]  = [1,4,3,2,5].bubbleSort()\r r:real[] = [1,4,3,2,5].bubbleSort()"),
         // recursive factorial + tail-recursive fibonacci
         Pure("fact(n):int = if(n<=1) 1 else fact(n-1)*n\r fibrec(n, iter, p1, p2) = if(n > iter) fibrec(n, iter+1, p1+p2, p1) else p1+p2\r fib(n) = if(n<3) 1 else fibrec(n-1, 2, 1, 1)\r y1 = fact(7)\r y2 = fib(10)"),
         // recursive struct return + struct pipeline with array of structs

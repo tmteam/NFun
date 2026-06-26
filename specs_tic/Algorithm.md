@@ -20,7 +20,7 @@ Phase 7: Finalize      — sanity checks, generic resolution
 Output:  TicResults    — type per node + generic instantiations
 ```
 
-Phases 3–6 may iterate internally (eager re-Pull, fixed-point Push).
+Phases 3–6 may iterate internally (worklist Pull drain, fixed-point Push).
 
 ## 2. Phase 1 — Build
 
@@ -65,14 +65,37 @@ Implementation: `NodeToposort` (Tarjan SCC + topological sort).
 - **Phase 3a (None-only)**: for every descendant edge with `descendant.State = None`, set `c.IsOptional = true` flag. None must be absorbed FIRST because the IsOptional flag affects LCA semantics in Phase 3b.
 - **Phase 3b (main)**: walk nodes in toposort order. For each node, walk its ancestor list and invoke `Apply(ancestor, descendant)` per the [`ApplyCells.md`](ApplyCells.md) truth table.
 
-### Streaming vs worklist
+### Worklist Pull (default since 2026-06-27)
 
-Current implementation: **streaming**. Each node visited once per phase. When an Apply cell adds a new edge (`AddAncestor`) after the source was already visited, the new edge would not propagate. Mitigated by:
-- **Eager re-Pull** (`PullConstraintsForNode`) after specific cross-Apply cells.
-- **Identity guards** in `TransformTo*OrNull` helpers.
-- `PropagatePreferredAcrossFallback` at CompCs AddAncestor fallback boundaries.
+Pull is a **queue-driven fixed-point loop** (debt #10 CLOSED).
 
-The principled fix is **worklist Pull** (see [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md)) — spec-closed, implementation pending.
+- Initial seed: nodes in toposort order, with two-phase split when None is
+  present (Phase 1 = None-state nodes first, Phase 2 = remaining).
+- Each dequeue invokes `Apply(ancestor, descendant)` per the ancestor list.
+- Re-enqueue trigger: `TicNode.AddAncestor` hook enqueues `this` on every edge
+  addition; `MergeInplace` enqueues the merged primary.
+- Hook skip: `IsOptionalElement` nodes don't re-enqueue — they're freshly-
+  allocated inners of Optional wraps and re-Pull on them drives the
+  tower-of-wraps cycle ([`Advanced/WorklistPull_ConvergenceAnalysis.md`](Advanced/WorklistPull_ConvergenceAnalysis.md) wave-2.6).
+- Termination: monotone narrowing on a finite lattice. `WorklistPullDriver`
+  caps drains at `max(1024, |V|·16)` and throws if exceeded.
+
+**Gated approach (Path B)**: every Apply-cell mutation (wrap-inner memoization,
+Transform* memoization, cell-morph) gated on `WorklistPullDriver.IsActive`.
+Streaming Pull (`GraphBuilder.UseWorklistPull = false` escape hatch) keeps
+the original code paths with workarounds: eager `PullConstraintsForNode`,
+`PropagatePreferredAcrossFallback`, identity guards in `Transform*`.
+
+**Workarounds removed under default worklist**:
+- ~~`DescendantHasOptionalLift`~~ family in `DestructionFunctions` (debt #5 — removed entirely).
+- ~~`PropagatePreferredAcrossFallback` + eager `PullConstraintsForNode`~~ in CompCs cross-Apply (debt #16 — gated under `!IsActive`, dead code under default).
+
+Identity guards in `TransformTo*OrNull` helpers (debt #15) remain — they
+prevent `AddAncestor(self)` panic from aliased elements, independent of Pull
+scheduling.
+
+See [`Advanced/WorklistPull.md`](Advanced/WorklistPull.md) for the design,
+[`Advanced/WorklistPull_ExecPlan.md`](Advanced/WorklistPull_ExecPlan.md) for the implementation diary.
 
 ### Apply cells
 
@@ -91,7 +114,17 @@ Pattern summary by state-pair:
 
 ### Optional guard rule
 
-`Apply(non-Opt composite ancestor, IsOptional CS descendant)` returns **false** in Pull. This rejects the unsound implicit unwrap `opt(T) ≤ T`. In Push, the same case **wraps the descendant in Optional** — Push permits the wrap (sound in that direction).
+`Apply(non-Opt composite ancestor, IsOptional CS descendant)`:
+- Under default worklist: MORPHS the ancestor into `Opt(inner)` via
+  `WrapOptionalInner` memo, then re-dispatches. Algebra: `LCA(F, Opt(F)) = Opt(F)`.
+  Pinned nodes (SyntaxNode literal, Named user variable, IsSignatureParam,
+  solved primitive) reject — committed types can't be morphed.
+- Under streaming (escape hatch): bare-rejects, relying on the toposort order
+  to have already morphed the ancestor through `WrapAncestorInOptional` via a
+  different edge.
+
+In Push, the same case wraps the descendant in Optional — Push permits the
+wrap (sound in that direction).
 
 ## 5. Phase 4 — Push
 
@@ -99,7 +132,7 @@ Pattern summary by state-pair:
 
 **Symmetric to Pull**, but propagates DOWNWARD. Per node, walk descendant list, invoke `Apply(ancestor, descendant)` per Push semantics.
 
-**Push doesn't add edges**: only validates compatibility and updates state. This makes Push immune to the "streaming toposort" issue affecting Pull.
+**Push doesn't add edges**: only validates compatibility and updates state. Same code path for streaming or worklist Pull.
 
 See [`ApplyCells.md`](ApplyCells.md) §2 for Push cells.
 

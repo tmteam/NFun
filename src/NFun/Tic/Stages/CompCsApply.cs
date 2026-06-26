@@ -29,13 +29,16 @@ internal static class CompCsApply {
                 SolvingFunctions.MergeInplace(ancestor.ElementNode, sc.ElementNode);
             } else {
                 sc.ElementNode.AddAncestor(ancestor.ElementNode);
-                // WORKAROUND (specs_tic/TicTechnicalDebt.md #16): AddAncestor edge is
-                // one-way, but streaming Pull may have processed the element before
-                // this edge existed — explicit Preferred copy closes the P3 gap.
-                PropagatePreferredAcrossFallback(sc.ElementNode, ancestor.ElementNode);
+                // Streaming: AddAncestor edge is one-way; explicit Preferred copy
+                // closes the P3 gap (debt #16). Worklist re-fires the source through
+                // the hook; standard Apply(CS, CS) copies Preferred — no helper needed.
+                if (!WorklistPullDriver.IsActive)
+                    PropagatePreferredAcrossFallback(sc.ElementNode, ancestor.ElementNode);
             }
-            // Eager re-Pull: toposort already processed this element pre-mutation.
-            SolvingFunctions.PullConstraintsForNode(ancestor.ElementNode);
+            // Streaming: eager re-Pull because toposort already processed this element.
+            // Worklist: hook auto-fires re-Pull on the source node.
+            if (!WorklistPullDriver.IsActive)
+                SolvingFunctions.PullConstraintsForNode(ancestor.ElementNode);
         }
         ancestorNode.State = newState;
         descendantNode.RemoveAncestor(ancestorNode);
@@ -154,10 +157,11 @@ internal static class CompCsApply {
                 SolvingFunctions.MergeInplace(ancestor.ElementNode, sa.ElementNode);
             } else {
                 sa.ElementNode.AddAncestor(ancestor.ElementNode);
-                // See PropagatePreferredAcrossFallback. specs_tic/TicTechnicalDebt.md #16.
-                PropagatePreferredAcrossFallback(sa.ElementNode, ancestor.ElementNode);
+                if (!WorklistPullDriver.IsActive)
+                    PropagatePreferredAcrossFallback(sa.ElementNode, ancestor.ElementNode);
             }
-            SolvingFunctions.PullConstraintsForNode(ancestor.ElementNode);
+            if (!WorklistPullDriver.IsActive)
+                SolvingFunctions.PullConstraintsForNode(ancestor.ElementNode);
         }
         if (isPull)
             descendantNode.RemoveAncestor(ancestorNode);
@@ -173,10 +177,11 @@ internal static class CompCsApply {
                 SolvingFunctions.MergeInplace(descendant.ElementNode, sa.ElementNode);
             } else {
                 descendant.ElementNode.AddAncestor(sa.ElementNode);
-                // See PropagatePreferredAcrossFallback. specs_tic/TicTechnicalDebt.md #16.
-                PropagatePreferredAcrossFallback(descendant.ElementNode, sa.ElementNode);
+                if (!WorklistPullDriver.IsActive)
+                    PropagatePreferredAcrossFallback(descendant.ElementNode, sa.ElementNode);
             }
-            SolvingFunctions.PullConstraintsForNode(descendant.ElementNode);
+            if (!WorklistPullDriver.IsActive)
+                SolvingFunctions.PullConstraintsForNode(descendant.ElementNode);
         }
         if (isPull)
             descendantNode.RemoveAncestor(ancestorNode);

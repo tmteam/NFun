@@ -83,7 +83,7 @@ public class Stage1InvariancePinTests {
     /// bounded to the 2D surface — unbounded recursion produced FU758 at
     /// the literal (malformed CS shape downstream). Residual of debt #17.
     /// </summary>
-    [Test, Ignore("Debt #10 (worklist Pull): 3D ?? widens to Any — closes when worklist re-fires LCA after deep CS resolution")]
+    [Test, Ignore("3D LCA gap — Lca algebra returns null for 3D composite element widening. Independent of debt #10 worklist Pull (verified 2026-06-27: closure didn't help). Needs Lca algebra extension at composite-element level.")]
     public void Bug55_Family_3D_Coalesce_WidensToAny() {
         var rt = Funny.Hardcore.BuildLang("x:int[][][]? = none\nout = x ?? [[[1]]]");
         rt.Run();

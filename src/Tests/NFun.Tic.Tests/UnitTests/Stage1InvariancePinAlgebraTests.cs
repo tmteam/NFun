@@ -83,7 +83,7 @@ public class Stage1InvariancePinAlgebraTests {
     /// Today: returns null (Stage 1 guard at line 227-228 blocks
     /// composite elements), and the caller widens to <c>Any</c>.
     /// </summary>
-    [Test, Ignore("Debt #10 (worklist Pull): pure-algebra LCA returns null when both sides have non-CS element nodes; the closed surface goes through TIC where the literal carries a CS element. Re-firing post-CS-resolution closes the residual.")]
+    [Test]
     public void Lca_CrossKind_NestedComposite_BothResolved_ShouldWiden() {
         // Both elements are concrete StateCollection — same-shape composite.
         var listOfList = StateCollection.OfList(StateCollection.OfList(I32));
@@ -98,7 +98,7 @@ public class Stage1InvariancePinAlgebraTests {
     /// Same shape at 3 levels deep. Bounded depth — path (b) rejects deeper
     /// nesting to avoid downstream FU758. Residual of debt #17.
     /// </summary>
-    [Test, Ignore("Debt #10 (worklist Pull): 3D cross-kind LCA bounded — path (b) rejects deeper nesting; re-firing closes after deep CS resolution")]
+    [Test]
     public void Lca_CrossKind_NestedComposite_3D_ShouldWiden() {
         var ll3 = StateCollection.OfList(StateCollection.OfList(StateCollection.OfList(I32)));
         var aa3 = StateCollection.OfMutableArray(StateCollection.OfMutableArray(StateCollection.OfMutableArray(I32)));

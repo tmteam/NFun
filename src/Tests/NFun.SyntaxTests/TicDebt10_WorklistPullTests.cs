@@ -61,7 +61,7 @@ public class TicDebt10_WorklistPullTests {
     /// <c>Any</c> instead of <c>Int32</c>. The runtime value is correct;
     /// only the static type is wrong. Same family: <c>.last()</c>.
     /// </summary>
-    [Test, Ignore("Bug hunt #47: it.first() in lambda widens to Any — blocked on TIC debt #10 (worklist Pull)")]
+    [Test, Ignore("Bug hunt #47: it.first() in lambda widens to Any. Verified 2026-06-27: worklist Pull (debt #10) DID NOT close this — different surface (generic T resolution gap in .map(rule it.G())). Separate algebra fix needed.")]
     public void Bug47_MapItFirstOnNestedList_WidensToAny() {
         var rt = Funny.Hardcore.BuildLang(
             "data = [[1,2],[3,4]]\n" +
@@ -78,7 +78,7 @@ public class TicDebt10_WorklistPullTests {
     /// <c>toArray</c>, <c>toList</c>, <c>toFixedArray</c>, <c>toSet</c>,
     /// <c>reverse</c>, <c>take</c>, <c>skip</c>.
     /// </summary>
-    [Test, Ignore("Bug hunt #49 (#47 family): nested map.toArray() widens inner element to Any — same TIC debt #10")]
+    [Test, Ignore("Bug hunt #49 (#47 family): nested map.toArray() widens inner element to Any. Verified 2026-06-27: worklist Pull (debt #10) DID NOT close this — same generic T resolution gap as Bug47.")]
     public void Bug49_NestedMapToArray_WidensElementToAny() {
         var rt = Funny.Hardcore.BuildLang("x = [[1,2,3]].map(rule it.toArray())");
         rt.Run();
@@ -92,7 +92,7 @@ public class TicDebt10_WorklistPullTests {
     /// IS Immutable). The expression is unusable as written until debt #10
     /// is closed.
     /// </summary>
-    [Test, Ignore("Bug hunt #49 (#47 family): nested map.toSet() blocked by Any element (FU580 reject) — same TIC debt #10")]
+    [Test, Ignore("Bug hunt #49 (#47 family): nested map.toSet() — Any element triggers FU580. Verified 2026-06-27: worklist Pull (debt #10) DID NOT close — same generic T resolution gap as Bug47.")]
     public void Bug49_NestedMapToSet_RejectedDueToAnyElement() {
         var rt = Funny.Hardcore.BuildLang("x = [[1,2,3]].map(rule it.toSet())");
         rt.Run();

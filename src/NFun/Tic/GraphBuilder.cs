@@ -35,6 +35,13 @@ public class GraphBuilder {
     /// </summary>
     public bool IsRecursion { get; set; }
 
+    /// <summary>
+    /// Worklist Pull (debt #10). Default true since 2026-06-27 — closes the 5 pinned
+    /// debt-#10 tests (GetLast family + IfElseNone family). Set false as escape hatch
+    /// to fall back to streaming Pull (the original code path with workarounds).
+    /// </summary>
+    public bool UseWorklistPull { get; set; } = true;
+
     public GraphBuilder() { _syntaxNodes = new TicNode[16]; _syntaxNodesLength = 16; }
     public GraphBuilder(int maxSyntaxNodeId) { _syntaxNodes = new TicNode[maxSyntaxNodeId]; _syntaxNodesLength = maxSyntaxNodeId; }
 
@@ -650,18 +657,27 @@ public class GraphBuilder {
         bool hasOptionalTypes;
         TicNode[] sorted;
         if (!hasNone) {
-            sorted = Toposort(node => {
-                if (!node.IsMemberOfAnything)
-                    SolvingFunctions.PullConstraintsForNode(node);
-            });
+            if (UseWorklistPull) {
+                sorted = Toposort();
+                Stages.WorklistPullDriver.RunPull(sorted, twoPhase: false);
+                PrintTrace("1+2. Toposorted + WorklistPull", sorted);
+            } else {
+                sorted = Toposort(node => {
+                    if (!node.IsMemberOfAnything)
+                        SolvingFunctions.PullConstraintsForNode(node);
+                });
+                PrintTrace("1+2. Toposorted+Pulled (fused)", sorted);
+            }
             hasOptionalTypes = false;
-            PrintTrace("1+2. Toposorted+Pulled (fused)", sorted);
         } else {
             sorted = Toposort();
             PrintTrace("1. Toposorted", sorted);
-            SolvingFunctions.PullConstraintsTwoPhase(sorted);
+            if (UseWorklistPull)
+                Stages.WorklistPullDriver.RunPull(sorted, twoPhase: true);
+            else
+                SolvingFunctions.PullConstraintsTwoPhase(sorted);
             hasOptionalTypes = true;
-            PrintTrace("2. PullConstraints (two-phase)", sorted);
+            PrintTrace("2. PullConstraints", sorted);
         }
 
         // Propagate Preferred BEFORE Push: Push collapses literal CS to bare primitive when its

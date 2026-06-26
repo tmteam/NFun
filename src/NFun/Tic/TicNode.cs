@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
+using NFun.Tic.Stages;
 
 namespace NFun.Tic;
 
@@ -31,6 +32,10 @@ public class TicNode {
 
     private static int _interlockedId = 0;
     private readonly int _uid = 0;
+
+    /// <summary>DIAGNOSTIC: count node allocations. Used by WorklistPullDriver to detect
+    /// fresh-allocation churn during convergence-failure probes.</summary>
+    public static int DiagAllocCount => _interlockedId;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registered = false)
@@ -71,6 +76,13 @@ public class TicNode {
         for (int i = 0; i < _ancestors.Count; i++)
             if (_ancestors[i] == node) return;
         _ancestors.Add(node);
+        // Worklist Pull hook (debt #10): edge addition re-fires Pull on `this`.
+        // No-op when driver inactive (default). Skip when `this` is an element of an
+        // Optional — re-Pull on freshly-allocated inners drives the tower-of-wraps
+        // cycle (WorklistPull_ConvergenceAnalysis.md wave-2.6). Their constraint
+        // propagation goes through the outer Optional's element via the State setter.
+        if (!IsOptionalElement)
+            WorklistPullDriver.Enqueue(this);
     }
 
     public void AddAncestors(IEnumerable<TicNode> nodes) {
@@ -127,6 +139,22 @@ public class TicNode {
     /// <c>cs.StructBound != null</c>.
     /// </summary>
     public bool IsContractiveCycleHead { get; set; }
+
+    /// <summary>
+    /// Memo of the inner element node when this node is wrapped from CS into Opt(innerCS).
+    /// Populated ONLY when <see cref="Stages.WorklistPullDriver.IsActive"/> — streaming Pull
+    /// allocates fresh per cell fire as before. Worklist reuses the cached inner to prevent
+    /// fresh-allocation churn on re-entry (debt #10 wave-1).
+    /// </summary>
+    internal TicNode WrapOptionalInner { get; set; }
+
+    /// <summary>
+    /// Memo of the element node created when this node was transformed from CS into a single-arg
+    /// composite (StateArray / single-arg StateCollection). Populated ONLY when worklist driver
+    /// is active. Separate from <see cref="WrapOptionalInner"/> because Opt-wrap and shape-
+    /// transform carry semantically different element constraints (debt #10 wave-2).
+    /// </summary>
+    internal TicNode TransformElementInner { get; set; }
 
     public bool IsSolved => _state.IsSolved;
     public bool IsMutable => _state.IsMutable;

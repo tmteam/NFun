@@ -74,15 +74,28 @@ public class PullConstraintsFunctions : IStateFunction {
                 return false;
             // Wrap ancestor in Optional; inner carries the CS minus IsOptional
             // (consumed by the wrapper).
-            var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
-            innerCs.Preferred = ancestor.Preferred;
-            innerCs.IsClearable = ancestor.IsClearable;
-            var innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
-            // F-bound migrates to inner on Optional wrap; self-RefTos pointing at the
-            // outer must rewire to innerNode or dangle.
-            if (ancestor.HasStructBound)
-                innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
-                    ancestor.StructBound, ancestorNode, innerNode);
+            //
+            // Worklist Pull (debt #10 wave-1): under worklist re-entry the cycle may
+            // re-enter this cell on `ancestorNode`; cache the inner on
+            // `WrapOptionalInner` so the second fire reuses it instead of allocating
+            // fresh. Streaming Pull visits each node once — no caching needed there,
+            // so the gate keeps streaming behavior exact.
+            TicNode innerNode = null;
+            if (Stages.WorklistPullDriver.IsActive)
+                innerNode = ancestorNode.WrapOptionalInner;
+            if (innerNode == null) {
+                var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
+                innerCs.Preferred = ancestor.Preferred;
+                innerCs.IsClearable = ancestor.IsClearable;
+                innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
+                // F-bound migrates to inner on Optional wrap; self-RefTos pointing at the
+                // outer must rewire to innerNode or dangle.
+                if (ancestor.HasStructBound)
+                    innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
+                        ancestor.StructBound, ancestorNode, innerNode);
+                if (Stages.WorklistPullDriver.IsActive)
+                    ancestorNode.WrapOptionalInner = innerNode;
+            }
             descOpt.ElementNode.AddAncestor(innerNode);
             ancestorNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
@@ -133,18 +146,42 @@ public class PullConstraintsFunctions : IStateFunction {
 
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // IsOptional CS descendant ≡ opt(desc_inner); bare composite ancestor cannot
-        // accept it (`opt(T) ≤ T` is rejected — see StagesExtension Push direction).
-        // The StateOptional ancestor branch handles it via TransformToOptionalOrNull.
+        // IsOptional CS descendant + non-Optional composite ancestor:
+        // streaming Pull (default) bare-rejects because the toposort guaranteed
+        // WrapAncestorInOptional fired earlier through a different edge, leaving
+        // ancestorNode already StateOptional by the time this cell ran. Worklist
+        // Pull (debt #10 wave-2.7) breaks that ordering invariant — the cell must
+        // perform the wrap itself. Algebra: LCA(F, Opt(F)) = Opt(F). Gated on
+        // IsActive — streaming behavior preserved exactly.
         if (descendant.IsOptional && ancestor is not StateOptional)
-            return false;
+        {
+            if (!Stages.WorklistPullDriver.IsActive)
+                return false;
+            // Pinned ancestor cannot be morphed — match WrapAncestorInOptional's gate.
+            bool isPinned = ancestorNode.Type != TicNodeType.TypeVariable
+                         || ancestorNode.IsSignatureParam
+                         || (ancestorNode.IsSolved && ancestorNode.State is StatePrimitive);
+            if (isPinned)
+                return false;
+            // Synthesize Opt(inner) on ancestorNode; inner carries the original
+            // composite state. Memoize via WrapOptionalInner so re-entry reuses inner.
+            var inner = ancestorNode.WrapOptionalInner;
+            if (inner == null) {
+                inner = TicNode.CreateTypeVariableNode("ow" + ancestorNode.Name, ancestorNode.State);
+                inner.IsOptionalElement = true;
+                ancestorNode.WrapOptionalInner = inner;
+            }
+            ancestorNode.State = new StateOptional(inner);
+            ancestorNode.IsOptionalElement = true;
+            return Apply((ICompositeState)ancestorNode.State, descendant, ancestorNode, descendantNode);
+        }
         switch (ancestor)
         {
             case StateArray ancArray:
             {
                 // F-bound × StateArray: structural conflict.
                 if (descendant.HasStructBound) return false;
-                var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
+                var result = SolvingFunctions.TransformToArrayOrNull(descendantNode, descendantNode.Name, descendant);
                 if (result == null)
                     return false;
                 // WORKAROUND: TransformToArrayOrNull/CollectionOrNull/MapOrNull
@@ -168,7 +205,7 @@ public class PullConstraintsFunctions : IStateFunction {
             {
                 if (descendant.HasStructBound) return false;
                 var result = SolvingFunctions.TransformToCollectionOrNull(
-                    ancColl.Constructor, descendantNode.Name, descendant);
+                    ancColl.Constructor, descendantNode, descendantNode.Name, descendant);
                 if (result == null) return false;
                 if (result.ElementNode != ancColl.ElementNode)
                     result.ElementNode.AddAncestor(ancColl.ElementNode);
@@ -235,18 +272,26 @@ public class PullConstraintsFunctions : IStateFunction {
             }
             case StateOptional ancOpt:
             {
-                var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                var result = SolvingFunctions.TransformToOptionalOrNull(descendantNode, descendantNode.Name, descendant);
                 if (result == null)
                 {
                     if (descendant.HasDescendant && descendant.Descendant is StateStruct)
                     {
                         // Struct desc × Optional anc: wrap as opt(inner) carrying the struct constraints.
-                        var innerCsCopy = descendant.GetCopy();
-                        var innerNode = TicNode.CreateTypeVariableNode(
-                            "e" + descendantNode.Name + "'", innerCsCopy);
-                        if (innerCsCopy.HasStructBound)
-                            innerCsCopy.StructBound = SolvingFunctions.RewireStructBoundOwnership(
-                                innerCsCopy.StructBound, descendantNode, innerNode);
+                        // Worklist memoizes inner on descendantNode (debt #10 wave-1).
+                        TicNode innerNode = null;
+                        if (Stages.WorklistPullDriver.IsActive)
+                            innerNode = descendantNode.WrapOptionalInner;
+                        if (innerNode == null) {
+                            var innerCsCopy = descendant.GetCopy();
+                            innerNode = TicNode.CreateTypeVariableNode(
+                                "e" + descendantNode.Name + "'", innerCsCopy);
+                            if (innerCsCopy.HasStructBound)
+                                innerCsCopy.StructBound = SolvingFunctions.RewireStructBoundOwnership(
+                                    innerCsCopy.StructBound, descendantNode, innerNode);
+                            if (Stages.WorklistPullDriver.IsActive)
+                                descendantNode.WrapOptionalInner = innerNode;
+                        }
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
                         descendantNode.RemoveAncestor(ancestorNode);
@@ -256,14 +301,22 @@ public class PullConstraintsFunctions : IStateFunction {
                     // leak through the implicit lift to a rigid carrier (e.g. SetCoalesce U).
                     if (descendant.IsOptional)
                     {
-                        var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
-                        innerCs.Preferred = descendant.Preferred;
-                        var innerNode = TicNode.CreateTypeVariableNode(
-                            "e" + descendantNode.Name + "'", innerCs);
-                        if (descendant.HasStructBound)
-                            innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
-                                descendant.StructBound, descendantNode, innerNode);
-                        innerNode.IsOptionalElement = true;
+                        // Worklist memoizes inner on descendantNode (debt #10 wave-1).
+                        TicNode innerNode = null;
+                        if (Stages.WorklistPullDriver.IsActive)
+                            innerNode = descendantNode.WrapOptionalInner;
+                        if (innerNode == null) {
+                            var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+                            innerCs.Preferred = descendant.Preferred;
+                            innerNode = TicNode.CreateTypeVariableNode(
+                                "e" + descendantNode.Name + "'", innerCs);
+                            if (descendant.HasStructBound)
+                                innerCs.StructBound = SolvingFunctions.RewireStructBoundOwnership(
+                                    descendant.StructBound, descendantNode, innerNode);
+                            innerNode.IsOptionalElement = true;
+                            if (Stages.WorklistPullDriver.IsActive)
+                                descendantNode.WrapOptionalInner = innerNode;
+                        }
                         innerNode.AddAncestor(ancOpt.ElementNode);
                         descendantNode.State = new StateOptional(innerNode);
                         descendantNode.RemoveAncestor(ancestorNode);
@@ -309,8 +362,16 @@ public class PullConstraintsFunctions : IStateFunction {
                     innerCopy = ConstraintsState.Of(innerOptDesc.Element, innerCopy.Ancestor, innerCopy.IsComparable);
                     innerCopy.Preferred = pref;
                 }
-                var innerNode = TicNode.CreateTypeVariableNode(
-                    "e" + ancestor.ElementNode.Name + "'", innerCopy);
+                // Worklist memoizes inner on ancestor.ElementNode (debt #10 wave-1).
+                TicNode innerNode = null;
+                if (Stages.WorklistPullDriver.IsActive)
+                    innerNode = ancestor.ElementNode.WrapOptionalInner;
+                if (innerNode == null) {
+                    innerNode = TicNode.CreateTypeVariableNode(
+                        "e" + ancestor.ElementNode.Name + "'", innerCopy);
+                    if (Stages.WorklistPullDriver.IsActive)
+                        ancestor.ElementNode.WrapOptionalInner = innerNode;
+                }
                 descOpt.ElementNode.AddAncestor(innerNode);
                 ancestor.ElementNode.State = new StateOptional(innerNode);
                 ancestor.ElementNode.IsOptionalElement = true;

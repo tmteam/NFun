@@ -146,8 +146,16 @@ public static class StagesExtension {
                      || (nodeA.IsSolved && nodeA.State is StatePrimitive);
         if (isPinned)
             throw Errors.TicErrors.IncompatibleNodes(nodeA, nodeB);
-        var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeA.Name, nodeA.State);
-        innerNode.IsOptionalElement = true;
+        // Worklist memoizes the inner on nodeA (debt #10 wave-1).
+        TicNode innerNode = null;
+        if (WorklistPullDriver.IsActive)
+            innerNode = nodeA.WrapOptionalInner;
+        if (innerNode == null) {
+            innerNode = TicNode.CreateTypeVariableNode("ow" + nodeA.Name, nodeA.State);
+            innerNode.IsOptionalElement = true;
+            if (WorklistPullDriver.IsActive)
+                nodeA.WrapOptionalInner = innerNode;
+        }
         nodeA.State = new StateOptional(innerNode);
         nodeA.IsOptionalElement = true;
         return function.Apply((StateOptional)nodeA.State, optB, nodeA, nodeB);
@@ -169,8 +177,16 @@ public static class StagesExtension {
         // Mirrors WrapAncestorInOptional's pinned-Named protection.
         if (nodeB.Type != TicNodeType.SyntaxNode && nodeB.State is ICompositeState && !nodeB.IsOptionalElement)
             return Invoke(function, optA.ElementNode, nodeB);
-        var innerNode = TicNode.CreateTypeVariableNode("ow" + nodeB.Name, nodeB.State);
-        innerNode.IsOptionalElement = true;
+        // Worklist memoizes the inner on nodeB (debt #10 wave-1).
+        TicNode innerNode = null;
+        if (WorklistPullDriver.IsActive)
+            innerNode = nodeB.WrapOptionalInner;
+        if (innerNode == null) {
+            innerNode = TicNode.CreateTypeVariableNode("ow" + nodeB.Name, nodeB.State);
+            innerNode.IsOptionalElement = true;
+            if (WorklistPullDriver.IsActive)
+                nodeB.WrapOptionalInner = innerNode;
+        }
         nodeB.State = new StateOptional(innerNode);
         nodeB.IsOptionalElement = true;
         return function.Apply(optA, (StateOptional)nodeB.State, nodeA, nodeB);

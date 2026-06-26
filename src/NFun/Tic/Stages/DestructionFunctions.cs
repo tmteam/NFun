@@ -144,27 +144,6 @@ public class DestructionFunctions : IStateFunction {
 
         TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
 
-        // WORKAROUND (specs_tic/TicTechnicalDebt.md #5 — stale Pull snapshots):
-        // Phase 1 snapshot pre-dates Phase 2 Optional wrapping of elements.
-        // Clean fix: single-pass Pull or snapshot refresh.
-        if (DescendantHasOptionalLift(ancestor.Descendant, descendant))
-        {
-            ancestorNode.State = new StateRefTo(descendantNode);
-            descendantNode.RemoveAncestor(ancestorNode);
-            return true;
-        }
-
-        // WORKAROUND (specs_tic/TicTechnicalDebt.md #5 — reverse direction):
-        // snapshot has Optional elements actual lacks. Destruct via the snapshot.
-        if (ancestor.Descendant is StateArray ancArr && descendant is StateArray descArr
-            && ancArr.Element is StateOptional && descArr.Element is not StateOptional)
-        {
-            TraceLog.WriteLine($"  Reverse Optional lift: snapshot={ancestor.Descendant}, actual={descendant}");
-            ancestorNode.State = ancestor.Descendant;
-            descendantNode.RemoveAncestor(ancestorNode);
-            return Apply(ancArr, descArr, ancestorNode, descendantNode);
-        }
-
         if (descendant.GetType() == ancestor.Descendant?.GetType())
         {
             // Recurse via snapshot. innerNode (not ancestorNode) preserves the Optional wrapper.
@@ -278,7 +257,7 @@ public class DestructionFunctions : IStateFunction {
         {
             if (descendant.HasDescendant && descendant.Descendant is StateOptional)
             {
-                var descOpt = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                var descOpt = SolvingFunctions.TransformToOptionalOrNull(descendantNode, descendantNode.Name, descendant);
                 if (descOpt != null)
                 {
                     descendantNode.State = descOpt;
@@ -467,38 +446,6 @@ public class DestructionFunctions : IStateFunction {
         }
 
         return true;
-    }
-
-    /// <summary>Detects stale-snapshot Optional lift in nested composite layers.
-    /// See specs_tic/TicTechnicalDebt.md #5.</summary>
-    private static bool DescendantHasOptionalLift(ITicNodeState staleDescendant, ICompositeState actual) =>
-        (staleDescendant, actual) switch {
-            (StateArray staleArr, StateArray actualArr) =>
-                IsOptionalLiftBetween(staleArr.Element, actualArr.Element),
-            (StateStruct staleStr, StateStruct actualStr) =>
-                HasAnyOptionalLiftedField(staleStr, actualStr),
-            _ => false
-        };
-
-    /// <summary>Direct or deeper-position Optional-lift divergence.</summary>
-    private static bool IsOptionalLiftBetween(ITicNodeState stale, ITicNodeState actual) {
-        if (actual is StateOptional && stale is not StateOptional)
-            return true;
-        return (stale, actual) switch {
-            (StateArray sa, StateArray aa) => IsOptionalLiftBetween(sa.Element, aa.Element),
-            (StateStruct ss, StateStruct sas) => HasAnyOptionalLiftedField(ss, sas),
-            _ => false
-        };
-    }
-
-    private static bool HasAnyOptionalLiftedField(StateStruct stale, StateStruct actual) {
-        foreach (var (key, actualFieldNode) in actual.Fields) {
-            var staleFieldNode = stale.GetFieldOrNull(key);
-            if (staleFieldNode == null) continue;
-            if (IsOptionalLiftBetween(staleFieldNode.State, actualFieldNode.State))
-                return true;
-        }
-        return false;
     }
 
     // StateCompositeConstraints Destruction cells: Concretest then re-dispatch.
