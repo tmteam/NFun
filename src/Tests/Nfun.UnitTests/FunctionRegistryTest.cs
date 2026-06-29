@@ -270,7 +270,8 @@ public class FunctionRegistryTest {
     public void SearchAll_CaseInsensitive() {
         var f = new StubFunction("Foo", 1);
         var dict = CreateDict(f);
-        var results = dict.SearchAllFunctionsIgnoreCase("foo", 1);
+        // StubFunction default CallStyle = Both → lives in both dicts.
+        var results = dict.SearchAllFunctionsIgnoreCase("foo", 1, isExtensionCall: false);
 
         Assert.AreEqual(1, results.Count);
         Assert.AreEqual(f, results[0]);
@@ -279,7 +280,7 @@ public class FunctionRegistryTest {
     [Test]
     public void SearchAll_NoMatch_ReturnsEmpty() {
         var dict = CreateDict(new StubFunction("foo", 1));
-        var results = dict.SearchAllFunctionsIgnoreCase("bar", 1);
+        var results = dict.SearchAllFunctionsIgnoreCase("bar", 1, isExtensionCall: false);
         Assert.AreEqual(0, results.Count);
     }
 }

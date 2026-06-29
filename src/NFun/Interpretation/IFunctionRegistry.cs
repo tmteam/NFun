@@ -7,7 +7,14 @@ using NFun.Interpretation.Functions;
 namespace NFun.Interpretation;
 
 public interface IFunctionRegistry {
-    IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount);
+    /// <summary>
+    /// Returns case-insensitive matches for the given name + arity, restricted to the
+    /// call-style dictionary that fits the call site. Used by error messages
+    /// (function not found) so suggestions don't leak across the strict-mode boundary.
+    /// </summary>
+    /// <param name="isExtensionCall">true for piped call sites (<c>arr.f()</c>) — search the
+    /// extension dict; false for direct call sites (<c>f(arr)</c>) — search the direct dict.</param>
+    IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount, bool isExtensionCall);
     IFunctionSignature GetOrNull(string name, int argCount);
 
     /// <summary>
@@ -219,21 +226,16 @@ public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
     private readonly Dictionary<string, OverloadSet> _direct;
     private readonly Dictionary<string, OverloadSet> _extension;
 
-    public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
+    public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount, bool isExtensionCall) {
         //code used only in error handling. No need to optimize.
         var lowerName = name.ToLower();
         var results = new List<IFunctionSignature>();
-        foreach (var (key, set) in _direct)
+        var dict = isExtensionCall ? _extension : _direct;
+        foreach (var (key, set) in dict)
             if (key.ToLower() == lowerName)
             {
                 var sig = set.GetByArity(argCount);
                 if (sig != null) results.Add(sig);
-            }
-        foreach (var (key, set) in _extension)
-            if (key.ToLower() == lowerName)
-            {
-                var sig = set.GetByArity(argCount);
-                if (sig != null && !results.Contains(sig)) results.Add(sig);
             }
         return results;
     }
@@ -353,27 +355,22 @@ public sealed class ScopeFunctionRegistry : IFunctionRegistry {
     private readonly Dictionary<string, OverloadSet> _localDirect;
     private readonly Dictionary<string, OverloadSet> _localExtension;
 
-    public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
+    public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount, bool isExtensionCall) {
         //code used only in error handling. No need to optimize.
         var lowerName = name.ToLower();
         var results = new List<IFunctionSignature>();
-        foreach (var (key, set) in _localDirect)
+        var dict = isExtensionCall ? _localExtension : _localDirect;
+        foreach (var (key, set) in dict)
             if (key.ToLower() == lowerName)
             {
                 var sig = set.GetByArity(argCount);
                 if (sig != null) results.Add(sig);
             }
-        foreach (var (key, set) in _localExtension)
-            if (key.ToLower() == lowerName)
-            {
-                var sig = set.GetByArity(argCount);
-                if (sig != null && !results.Contains(sig)) results.Add(sig);
-            }
 
         if (results.Any())
             return results;
         else
-            return _origin.SearchAllFunctionsIgnoreCase(name, argCount);
+            return _origin.SearchAllFunctionsIgnoreCase(name, argCount, isExtensionCall);
     }
 
     public IFunctionSignature GetOrNull(string name, int argCount) {
