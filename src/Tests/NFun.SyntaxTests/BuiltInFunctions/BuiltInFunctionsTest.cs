@@ -17,6 +17,17 @@ public class BuiltInFunctionsTest {
     [TestCase("abs(-1.0)", 1.0)]
     [TestCase("abs(0x1-0x4)", 3)]
     [TestCase("15 - min(abs(1-4), 0x7)", 12)]
+    // abs on int8 — single-equation form
+    [TestCase("out:int8 = abs(-5)",  (sbyte)5)]
+    [TestCase("out:int8 = abs(0)",   (sbyte)0)]
+    [TestCase("out:int8 = abs(127)", (sbyte)127)]
+    // sign(T):int32 — returns -1/0/1; constraint is SignedNumber so int8 reachable
+    [TestCase("sign(-5)",   -1)]
+    [TestCase("sign(0)",     0)]
+    [TestCase("sign(5)",     1)]
+    [TestCase("sign(0.0)",   0)]
+    [TestCase("sign(3.14)",  1)]
+    [TestCase("sign(-3.14)",-1)]
     [TestCase("sqrt(0x0)", 0.0)]
     [TestCase("sqrt(1.0)", 1.0)]
     [TestCase("sqrt(4.0)", 2.0)]
@@ -71,6 +82,7 @@ public class BuiltInFunctionsTest {
     [TestCase("out:int16  = max([1,10,6])", (short)10)]
     [TestCase("out:uint16 = max([1,10,6])", (ushort)10)]
     [TestCase("out:byte   = max([1,10,6])", (byte)10)]
+    [TestCase("out:int8   = max([1,10,6])", (sbyte)10)]
     [TestCase("min([1.0,10.5,6.0])", 1.0)]
     [TestCase("min([0x1,-10,0])", -10)]
     [TestCase("min(1.0,3.4)", 1.0)]
@@ -82,6 +94,7 @@ public class BuiltInFunctionsTest {
     [TestCase("out:int16  = min([1,10,6])", (short)1)]
     [TestCase("out:uint16 = min([1,10,6])", (ushort)1)]
     [TestCase("out:byte   = min([1,10,6])", (byte)1)]
+    [TestCase("out:int8   = min([1,10,6])", (sbyte)1)]
     [TestCase("median([1.0,10.5,6.0])", 6.0)]
     [TestCase("median([1,-10,0])", 0)]
     [TestCase("median([1])", 1)]
@@ -94,6 +107,7 @@ public class BuiltInFunctionsTest {
     [TestCase("out:int16  = median([1,10,6])", (Int16)6)]
     [TestCase("out:uint16 = median([1,10,6])", (UInt16)6)]
     [TestCase("out:uint8  = median([1,10,6])", (byte)6)]
+    [TestCase("out:int8   = median([1,10,6])", (sbyte)6)]
     [TestCase("[1.0,2.0,3.0].any()", true)]
     [TestCase("['a'].any()", true)]
     [TestCase("[1..10].filter(rule it>3).any()", true)]
@@ -116,6 +130,7 @@ public class BuiltInFunctionsTest {
     [TestCase("out:int16[]  = [4,3,5,1].sort()", new Int16[] { 1, 3, 4, 5 })]
     [TestCase("out:uint16[] = [4,3,5,1].sort()", new UInt16[] { 1, 3, 4, 5 })]
     [TestCase("out:uint8[]  = [4,3,5,1].sort()", new Byte[] { 1, 3, 4, 5 })]
+    [TestCase("out:int8[]   = [4,3,5,1].sort()", new sbyte[] { 1, 3, 4, 5 })]
     [TestCase("['4.0','3.0','5.0','1.0'].sort()", new[] { "1.0", "3.0", "4.0", "5.0" })]
     [TestCase("out:real[]   = range(0,5)", new[] { 0.0, 1, 2, 3, 4, 5 })]
     [TestCase("out:int64[]  = range(0,5)", new long[] { 0, 1, 2, 3, 4, 5 })]
@@ -125,6 +140,10 @@ public class BuiltInFunctionsTest {
     [TestCase("out:int16[]  = range(0,5)", new Int16[] { 0, 1, 2, 3, 4, 5 })]
     [TestCase("out:uint16[] = range(0,5)", new UInt16[] { 0, 1, 2, 3, 4, 5 })]
     [TestCase("out:uint8[]  = range(0,5)", new Byte[] { 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:int8[]   = range(0,5)", new sbyte[] { 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:int8[]   = range(-5,5)", new sbyte[] { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:int8[]   = range(5,0)", new sbyte[] { 5, 4, 3, 2, 1, 0 })]
+    [TestCase("out:int8[]   = range(1,10,2)", new sbyte[] { 1, 3, 5, 7, 9 })]
     [TestCase("out:real[]   = range(-2.5,2.4)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5 })]
     [TestCase("out:real[]   = range(-2.5,2.5)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5 })]
     [TestCase("out:real[]   = range(-2.5,2.6)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5 })]
@@ -320,4 +339,12 @@ public class BuiltInFunctionsTest {
         Assert.Throws<Exceptions.FunnyParseException>(
             () => "out = 'h' in 'hello'".Calc());
     }
+
+    // abs(MinValue) cannot be represented in same width (two's-complement
+    // asymmetry) — Math.Abs throws. Symmetric for Int8 and Int16.
+    [TestCase("x:int8=-128\r out=x.abs()")]
+    [TestCase("x:int16=-32768\r out=x.abs()")]
+    public void Abs_OfMinValue_Throws(string expr) =>
+        Assert.Throws<Exceptions.FunnyRuntimeException>(
+            () => Funny.Hardcore.Build(expr).Calc());
 }

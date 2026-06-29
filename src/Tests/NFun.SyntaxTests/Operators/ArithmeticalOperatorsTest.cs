@@ -167,6 +167,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("out:int64 = 2//x", (long)2, (long)1)]
     [TestCase("out:uint64 = 2//x", (ulong)2, (ulong)1)]
     [TestCase("out:int16 = 2//x", (Int16)2, (Int16)1)]
+    [TestCase("out:int8  = 2//x", (sbyte)2, (sbyte)1)]
     [TestCase("out:byte = 2//x", (byte)2, (byte)1)]
     [TestCase("out:int = 2//x", (int)2, (int)1)]
     [TestCase("out:uint16 = 2//x", (UInt16)2, (UInt16)1)]
@@ -180,6 +181,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("out:int64 = 2%x", (long)3, (long)2)]
     [TestCase("out:uint64 = 2%x", (ulong)1, (ulong)0)]
     [TestCase("out:int16 = 2%x", (Int16)5, (Int16)2)]
+    [TestCase("out:int8  = 2%x", (sbyte)5, (sbyte)2)]
     [TestCase("out:byte = 2%x", (byte)2, (byte)0)]
     [TestCase("out:uint16 = 2%x", (UInt16)2, (UInt16)0)]
     [TestCase("out:uint64 = 2%x", (ulong)2, (ulong)0)]
@@ -237,6 +239,10 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y:int64 = -(1)", (Int64)(-1.0))]
     [TestCase("y:int32 = -(1)", (Int32)(-1.0))]
     [TestCase("y:int16 = -(1)", (Int16)(-1.0))]
+    [TestCase("y:int8  = -(1)", (sbyte)(-1))]
+    // Hex/bin negative literal binning admits Int8 (the bin starts at I8, not I16).
+    [TestCase("y:int8 = -0x05",   (sbyte)(-5))]
+    [TestCase("y:int8 = -0b0101", (sbyte)(-5))]
     [TestCase("y = -0x1 ", -1)]
     [TestCase("y = -(-1)", 1)]
     [TestCase("y = -(-(-1))", -1)]
@@ -417,6 +423,23 @@ public class ArithmeticalOperatorsTest {
     public void MR2Bug4c_ByteModuloByte_KeepsByteType() {
         "y:byte = 5\rz:byte = 2\rout = y % z".AssertReturns(
             ("y", (byte)5), ("z", (byte)2), ("out", (byte)1));
+    }
+
+    // Unary negate keeps the operand's signed width (no widening to Int32) —
+    // SignedNumber constraint admits Int8 as concrete descendant.
+    [Test]
+    public void Negate_Int8_StaysInt8() {
+        var rt = Funny.Hardcore.Build("x:int8 = -5\nout = -x");
+        rt.Run();
+        Assert.AreEqual("Int8", rt["out"].Type.ToString());
+        Assert.AreEqual((sbyte)5, rt["out"].Value);
+    }
+
+    [Test]
+    public void NegateThenAssignBack_Int8_NoNarrowingError() {
+        var rt = Funny.Hardcore.Build("x:int8 = -5\nout:int8 = -x");
+        rt.Run();
+        Assert.AreEqual((sbyte)5, rt["out"].Value);
     }
 
     // ───────────────────────────────────────────────────────────────

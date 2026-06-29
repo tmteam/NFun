@@ -1377,7 +1377,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 else
                 {
                     //negative constant
-                    if (l >= Int16.MinValue)
+                    if (l >= sbyte.MinValue)
+                        _ticTypeGraph.SetGenericConst(node.OrderNumber, I8, I64, I32);
+                    else if (l >= Int16.MinValue)
                         _ticTypeGraph.SetGenericConst(node.OrderNumber, I16, I64, I32);
                     else if (l >= Int32.MinValue)
                         _ticTypeGraph.SetGenericConst(node.OrderNumber, I32, I64, I32);
@@ -1391,7 +1393,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 throw new NFunImpossibleException("Generic token has to be ulong or long");
 
             //positive constant
-            if (actualValue <= byte.MaxValue)
+            // 0..127 — fits U4 (lattice bottom): widens to ANY numeric incl. I8.
+            if (actualValue <= (ulong)SByte.MaxValue)
+                _ticTypeGraph.SetGenericConst(node.OrderNumber, U4, I96, I32);
+            else if (actualValue <= byte.MaxValue)
                 _ticTypeGraph.SetGenericConst(node.OrderNumber, U8, I96, I32);
             else if (actualValue <= (ulong)Int16.MaxValue)
                 _ticTypeGraph.SetGenericConst(node.OrderNumber, U12, I96, I32);
@@ -1419,6 +1424,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 {
                     descendant = l switch {
                                      //negative constant
+                                     >= sbyte.MinValue => I8,
                                      >= Int16.MinValue => I16,
                                      >= Int32.MinValue => I32,
                                      _                 => I64
@@ -1443,7 +1449,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // so resolution picks Int64 instead of Real. Ancestor stays Real so generic
             // contexts (user functions, Arithmetics operators) still accept Real operands.
             StatePrimitive posPreferred;
-            if (actualValue <= byte.MaxValue) { descendant = U8; posPreferred = GetPreferredIntConstantType(); }
+            // 0..127 — fits U4 (lattice bottom): widens to ANY numeric incl. I8.
+            if (actualValue <= (ulong)SByte.MaxValue) { descendant = U4; posPreferred = GetPreferredIntConstantType(); }
+            else if (actualValue <= byte.MaxValue) { descendant = U8; posPreferred = GetPreferredIntConstantType(); }
             else if (actualValue <= (ulong)Int16.MaxValue) { descendant = U12; posPreferred = GetPreferredIntConstantType(); }
             else if (actualValue <= (ulong)UInt16.MaxValue) { descendant = U16; posPreferred = GetPreferredIntConstantType(); }
             else if (actualValue <= (ulong)Int32.MaxValue) { descendant = U24; posPreferred = GetPreferredIntConstantType(); }

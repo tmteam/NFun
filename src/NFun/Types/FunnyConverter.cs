@@ -79,6 +79,7 @@ public class FunnyConverter {
         return resultFunnyType.BaseType switch {
                    BaseFunnyType.Any                                  => converter.ToFunObject(clrValue),
                    BaseFunnyType.Bool                                 => Convert.ToBoolean(clrValue),
+                   BaseFunnyType.Int8                                 => Convert.ToSByte(clrValue),
                    BaseFunnyType.Int16                                => Convert.ToInt16(clrValue),
                    BaseFunnyType.Int32                                => Convert.ToInt32(clrValue),
                    BaseFunnyType.Int64                                => Convert.ToInt64(clrValue),

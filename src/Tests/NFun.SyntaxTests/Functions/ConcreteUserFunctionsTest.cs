@@ -19,6 +19,10 @@ public class ConcreteUserFunctionsTest {
     [TestCase("arr(a:real[]):real[] = a    \r  y = arr([1.0,2.0])", new[] { 1.0, 2.0 })]
     [TestCase("arr(a:real[]):real[] = a.concat(a) \r  y = arr([1.0,2.0])", new[] { 1.0, 2.0, 1.0, 2.0 })]
     [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])", new[] { 1, 2 })]
+    // Narrow signed type in concrete function signature (round-trips through
+    // SubstituteConcreteTypes / SearchMaxGenericTypeId without throwing).
+    [TestCase("f(x:int8):int8 = x\r y = f(5)", (sbyte)5)]
+    [TestCase("f(x:int8):int8 = -x\r y = f(5)", (sbyte)(-5))]
     [TestCase("arr(a:text[]):text[] = a.concat(a) \r  y = arr(['qwe','rty'])", new[] { "qwe", "rty", "qwe", "rty" })]
     [TestCase(@"car2(g):real = g(2.0,4.0); y = car2(max)    ", 4.0)]
     [TestCase(@"

@@ -18,6 +18,7 @@ public readonly struct FunnyType {
     public static readonly FunnyType UInt16 = new(BaseFunnyType.UInt16);
     public static readonly FunnyType UInt32 = new(BaseFunnyType.UInt32);
     public static readonly FunnyType UInt64 = new(BaseFunnyType.UInt64);
+    public static readonly FunnyType Int8   = new(BaseFunnyType.Int8);
     public static readonly FunnyType Int16  = new(BaseFunnyType.Int16);
     public static readonly FunnyType Int32  = new(BaseFunnyType.Int32);
     public static readonly FunnyType Int64  = new(BaseFunnyType.Int64);
@@ -180,10 +181,11 @@ public readonly struct FunnyType {
         => !obj1.Equals(obj2);
 
     public bool IsPrimitive
-        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Any || BaseType == BaseFunnyType.None || BaseType == BaseFunnyType.Custom;
+        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Int8 || BaseType == BaseFunnyType.Any || BaseType == BaseFunnyType.None || BaseType == BaseFunnyType.Custom;
 
     public bool IsNumeric()
-        => BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real;
+        => (BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real)
+           || BaseType == BaseFunnyType.Int8;
 
     internal static readonly StringComparer StructKeyComparer = StringComparer.InvariantCultureIgnoreCase;
 
@@ -199,6 +201,7 @@ public readonly struct FunnyType {
         {
             case BaseFunnyType.Empty:
             case BaseFunnyType.Bool:
+            case BaseFunnyType.Int8:
             case BaseFunnyType.Int16:
             case BaseFunnyType.Int32:
             case BaseFunnyType.Int64:
@@ -304,6 +307,7 @@ public readonly struct FunnyType {
         switch (BaseType)
         {
             case BaseFunnyType.Bool:
+            case BaseFunnyType.Int8:
             case BaseFunnyType.Int16:
             case BaseFunnyType.Int32:
             case BaseFunnyType.Int64:

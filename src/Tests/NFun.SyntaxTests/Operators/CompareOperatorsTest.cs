@@ -242,6 +242,21 @@ public class CompareOperatorsTest {
     [TestCase("x:byte; y = x==42", (byte)1, false)]
     [TestCase("x:byte; y = x==42", (byte)42, true)]
     [TestCase("x:byte; y = x==42", (byte)43, false)]
+    [TestCase("x:int8; y = x>42",  (sbyte)1,  false)]
+    [TestCase("x:int8; y = x>42",  (sbyte)42, false)]
+    [TestCase("x:int8; y = x>42",  (sbyte)43, true)]
+    [TestCase("x:int8; y = x>=42", (sbyte)1,  false)]
+    [TestCase("x:int8; y = x>=42", (sbyte)42, true)]
+    [TestCase("x:int8; y = x>=42", (sbyte)43, true)]
+    [TestCase("x:int8; y = x<42",  (sbyte)1,  true)]
+    [TestCase("x:int8; y = x<42",  (sbyte)42, false)]
+    [TestCase("x:int8; y = x<42",  (sbyte)43, false)]
+    [TestCase("x:int8; y = x<=42", (sbyte)1,  true)]
+    [TestCase("x:int8; y = x<=42", (sbyte)42, true)]
+    [TestCase("x:int8; y = x<=42", (sbyte)43, false)]
+    [TestCase("x:int8; y = x==42", (sbyte)1,  false)]
+    [TestCase("x:int8; y = x==42", (sbyte)42, true)]
+    [TestCase("x:int8; y = x==42", (sbyte)43, false)]
     public void SingleVariableEquation(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 

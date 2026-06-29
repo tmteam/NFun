@@ -95,6 +95,7 @@ internal static partial class Errors {
                 TokType.TwoDots => "..",
                 // TokType.Step removed — "step" is now a contextual keyword (parsed as Id)
                 TokType.TextType => "text",
+                TokType.Int8Type => "int8",
                 TokType.Int16Type => "int16",
                 TokType.Int32Type => "int32",
                 TokType.Int64Type => "int64",

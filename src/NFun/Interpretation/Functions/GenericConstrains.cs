@@ -75,7 +75,7 @@ public readonly struct GenericConstrains {
         = new(I48, null, false);
 
     public static readonly GenericConstrains SignedNumber
-        = new(Real, I16, false);
+        = new(Real, I8, false);
 
     public static readonly GenericConstrains Numbers
         = new(Real, null, false);

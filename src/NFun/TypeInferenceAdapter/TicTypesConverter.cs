@@ -289,6 +289,25 @@ public abstract class TicTypesConverter {
                                     return FunnyType.UInt16;
                                 case PrimitiveTypeName.U12:
                                     return FunnyType.UInt8;
+                                case PrimitiveTypeName.I24:
+                                {
+                                    if (constrains.HasDescendant &&
+                                        constrains.Descendant.CanBePessimisticConvertedTo(StatePrimitive.I16))
+                                        return FunnyType.Int16;
+                                    return FunnyType.Int32;
+                                }
+                                case PrimitiveTypeName.I12:
+                                {
+                                    // I12 abstract: descendant fits I8 (e.g. U4) → I8; else widen to I16.
+                                    if (constrains.HasDescendant &&
+                                        constrains.Descendant.CanBePessimisticConvertedTo(StatePrimitive.I8))
+                                        return FunnyType.Int8;
+                                    return FunnyType.Int16;
+                                }
+                                case PrimitiveTypeName.U4:
+                                    // U4 = lattice bottom (0..127 range). Materialise as UInt8 — the
+                                    // narrowest concrete unsigned that covers U4's value range.
+                                    return FunnyType.UInt8;
                                 default:
                                     throw new NotSupportedException();
                             }
@@ -466,6 +485,8 @@ public abstract class TicTypesConverter {
             PrimitiveTypeName.I32  => FunnyType.Int32,
             PrimitiveTypeName.I24  => FunnyType.Int32,
             PrimitiveTypeName.I16  => FunnyType.Int16,
+            PrimitiveTypeName.I12  => FunnyType.Int16,
+            PrimitiveTypeName.I8   => FunnyType.Int8,
             PrimitiveTypeName.U64  => FunnyType.UInt64,
             PrimitiveTypeName.U32  => FunnyType.UInt32,
             PrimitiveTypeName.U16  => FunnyType.UInt16,
@@ -478,6 +499,7 @@ public abstract class TicTypesConverter {
             PrimitiveTypeName.U48  => FunnyType.UInt64,
             PrimitiveTypeName.U24  => FunnyType.UInt32,
             PrimitiveTypeName.U12  => FunnyType.UInt16,
+            PrimitiveTypeName.U4   => FunnyType.UInt8,
             PrimitiveTypeName.None => FunnyType.None,
             _ => throw new ArgumentOutOfRangeException()
         };

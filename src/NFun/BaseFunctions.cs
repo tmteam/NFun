@@ -38,6 +38,7 @@ internal static class BaseFunctions {
             new LessOrEqualFunction(),
             new MinFunction(),
             new MaxFunction(),
+            new SignFunction(),
 
             new ToHexTextFunction(),
             new ToBinTextFunction(),

@@ -8,6 +8,7 @@ public enum BaseFunnyType {
     UInt16 = 4,
     UInt32 = 5,
     UInt64 = 6,
+    Int8 = 21,
     Int16 = 7,
     Int32 = 8,
     Int64 = 9,

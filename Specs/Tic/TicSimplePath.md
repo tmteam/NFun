@@ -176,7 +176,7 @@ Determined during the AST numbering pass (`SetNodeNumberVisitor`). Sets `IsSimpl
 Even when IsSimpleBody = true, SPS performs additional checks that cause it to return null:
 
 1. **Apriori types:** All externally-provided variable types must be primitive (numeric, Bool, Char, Ip, Any, or Empty).
-2. **Type annotations:** Variable definition type syntax must be either empty or a named primitive type. Recognition uses a case-insensitive set: {int16, int, int32, int64, byte, uint8, uint16, uint, uint32, uint64, real, bool, char, ip, any}.
+2. **Type annotations:** Variable definition type syntax must be either empty or a named primitive type. Recognition uses a case-insensitive set: {int8, int16, int, int32, int64, byte, uint8, uint16, uint, uint32, uint64, real, bool, char, ip, any}.
 3. **Function signatures:** Each function used in the expression must be one of:
    - `PureGenericFunctionBase` with exactly 1 generic constraint (single type parameter T with bounds).
    - `IConcreteFunction` with all argument and return types being primitive.

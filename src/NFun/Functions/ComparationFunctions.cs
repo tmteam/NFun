@@ -154,6 +154,33 @@ public class MaxFunction : PureGenericFunctionBase {
     }
 }
 
+public class SignFunction : GenericFunctionBase {
+    public SignFunction() : base("sign", GenericConstrains.SignedNumber, FunnyType.Int32, FunnyType.Generic(0))
+        { ArgProperties = FunArgProperty.FromNames("x"); }
+
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
+        FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
+            BaseFunnyType.Int8 => new Int8Impl(),
+            BaseFunnyType.Int16 => new Int16Impl(),
+            BaseFunnyType.Int32 => new Int32Impl(),
+            BaseFunnyType.Int64 => new Int64Impl(),
+            BaseFunnyType.Real => context.RealTypeSelect<FunctionWithSingleArg>(new DoubleImpl(), new DecimalImpl()),
+            _ => throw new Exceptions.NFunImpossibleException($"sign: unsupported type {concreteTypes[0]}")
+        };
+        result.Name = "sign";
+        result.ArgTypes = concreteTypes;
+        result.ReturnType = FunnyType.Int32;
+        return result;
+    }
+
+    private sealed class Int8Impl    : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((sbyte)a); }
+    private sealed class Int16Impl   : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((short)a); }
+    private sealed class Int32Impl   : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((int)a); }
+    private sealed class Int64Impl   : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((long)a); }
+    private sealed class DoubleImpl  : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((double)a); }
+    private sealed class DecimalImpl : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((decimal)a); }
+}
+
 /// <summary>
 /// Defensive guard for binary `min(T,T)` / `max(T,T)` (Bugs KK + LL). The TIC
 /// `Comparable` generic constraint admits types that the array variant

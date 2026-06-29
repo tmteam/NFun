@@ -2,14 +2,14 @@
 
 Most functions may be applied for different types of operands. To simplify the description, we will give names to some sets of types:
 
-| Name          | Types                                                           | Formal constrains                                   |
-|---------------|-----------------------------------------------------------------|-----------------------------------------------------|
-| All           | All types                                                       | T => any                                            |
-| Integers      | `int64`, `int32`,`int16`,  `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
-| Numbers       | `real`, **[Integers]**                                          | T => real                                           |
-| Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
-| Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
-| Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
+| Name          | Types                                                                    | Formal constrains                                   |
+|---------------|--------------------------------------------------------------------------|-----------------------------------------------------|
+| All           | All types                                                                | T => any                                            |
+| Integers      | `int64`, `int32`,`int16`, `int8`, `uint64`, `uint32`, `uint16`, `byte`   | T => (int64 &#124; uint64)                          |
+| Numbers       | `real`, **[Integers]**                                                   | T => real                                           |
+| Signed        | `int64`, `int32`, `int16`, `int8`                                        | int8 => T => int64                                  |
+| Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`                     | (int32 &#124; uint32) => T => real                  |
+| Comparables   | `text`, `char`, **[Numbers]**                                            | T is IComparable                                    |
 
 ## Built-in constants
 
@@ -45,6 +45,7 @@ Most functions may be applied for different types of operands. To simplify the d
 | Function       | Constrains     | Returns	                                                                                                                                   |
 |----------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 | abs(T):T       | Signed, `real` | the absolute value                                                                                                                         |
+| sign(T):int32  | Signed, `real` | -1 if negative, 0 if zero, +1 if positive. Always returns `int32`. NaN propagates per IEEE 754.                                            |
 | min(T,T):T     | Comparables    | first or second argument, whichever is smaller. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned |
 | max(T,T):T     | Comparables    | first or second argument, whichever is bigger. If any argument is equal to NaN (in case if T is real and real is double), NaN is returned  |
 | convert(TA):TR | ----           | Converts an argument of type `TA` to type `TR`. See the conversion specification below.                                  |
@@ -65,31 +66,32 @@ The `?` on a target type **only** affects 🪂 conversions: it replaces the runt
 
 #### Primitive matrix
 
-Rows = source. Columns = target. (Aliases: `byte ≡ uint8`, `int ≡ int32`, `uint ≡ uint32`, `text ≡ char[]`.)
+Rows = source. Columns = target. (Aliases: `byte ≡ uint8`, `sbyte ≡ int8`, `int ≡ int32`, `uint ≡ uint32`, `text ≡ char[]`.)
 
-| from\to    | u8 | u16 | u32 | u64 | i16 | i32 | i64 | real | bool | char | text | ip |
-|------------|----|-----|-----|-----|-----|-----|-----|------|------|------|------|----|
-| **u8**     | I  | I   | I   | I   | I   | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
-| **u16**    | 🪂 | I   | I   | I   | 🪂  | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
-| **u32**    | 🪂 | 🪂  | I   | I   | 🪂  | 🪂  | I   | I    | ✓    | 🪂   | ✓    | ✓  |
-| **u64**    | 🪂 | 🪂  | 🪂  | I   | 🪂  | 🪂  | 🪂  | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
-| **i16**    | 🪂 | 🪂  | 🪂  | 🪂  | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
-| **i32**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | I   | I   | I    | ✓    | 🪂   | ✓    | 🪂 |
-| **i64**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | I   | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
-| **real**   | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | I    | ✓    | 🪂   | ✓    | ✗  |
-| **bool**   | ✓  | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓    | I    | ✗    | ✓    | ✗  |
-| **char**   | 🪂 | ✓   | ✓   | ✓   | 🪂  | ✓   | ✓   | ✓    | ✗    | I    | ✓    | ✗  |
-| **text**   | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | I    | 🪂 |
-| **ip**     | ✗  | ✗   | ✓   | I   | ✗   | **✗**| ✓  | ✗    | ✗    | ✗    | ✓    | I  |
-| **any**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | ✓    | 🪂 |
+| from\to    | u8 | u16 | u32 | u64 | i8 | i16 | i32 | i64 | real | bool | char | text | ip |
+|------------|----|-----|-----|-----|----|-----|-----|-----|------|------|------|------|----|
+| **u8**     | I  | I   | I   | I   | 🪂 | I   | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
+| **u16**    | 🪂 | I   | I   | I   | 🪂 | 🪂  | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
+| **u32**    | 🪂 | 🪂  | I   | I   | 🪂 | 🪂  | 🪂  | I   | I    | ✓    | 🪂   | ✓    | ✓  |
+| **u64**    | 🪂 | 🪂  | 🪂  | I   | 🪂 | 🪂  | 🪂  | 🪂  | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
+| **i8**     | 🪂 | 🪂  | 🪂  | 🪂  | I  | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
+| **i16**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
+| **i32**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | I   | I   | I    | ✓    | 🪂   | ✓    | 🪂 |
+| **i64**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | I   | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
+| **real**   | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | I    | ✓    | 🪂   | ✓    | ✗  |
+| **bool**   | ✓  | ✓   | ✓   | ✓   | ✓  | ✓   | ✓   | ✓   | ✓    | I    | ✗    | ✓    | ✗  |
+| **char**   | 🪂 | ✓   | ✓   | ✓   | 🪂 | 🪂  | ✓   | ✓   | ✓    | ✗    | I    | ✓    | ✗  |
+| **text**   | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | I    | 🪂 |
+| **ip**     | ✗  | ✗   | ✓   | I   | ✗  | ✗   | **✗**| ✓  | ✗    | ✗    | ✗    | ✓    | I  |
+| **any**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | ✓    | 🪂 |
 
 Reading the cells:
-- **Widening** within the numeric subtype lattice (`u8 ≤ u16 ≤ u32 ≤ u64`, `u8 ≤ i16 ≤ i32 ≤ i64`, `u16 ≤ i32 ≤ i64`, `u32 ≤ i64`, any-numeric `≤ real`) → **I**.
+- **Widening** within the numeric subtype lattice (`u8 ≤ u16 ≤ u32 ≤ u64`, `i8 ≤ i16 ≤ i32 ≤ i64`, `u8 ≤ i16 ≤ i32 ≤ i64`, `u16 ≤ i32 ≤ i64`, `u32 ≤ i64`, any-numeric `≤ real`) → **I**.
 - **Narrowing** → **🪂** (throws on overflow; `:T?` gives `none`).
 - **`real → integer`** → **⚠🪂** — fractional part silently truncated (`1.5 → 1`); throws/`none` on overflow.
 - **`u64 → real`, `i64 → real`** → **⚠** — silent precision loss above 2⁵³.
 - **`bool ↔ numeric`** is **C-style**: `false ↔ 0`, `true ↔ 1` (back-direction); `int → bool`: `0 → false`, any non-zero → `true`. `real → bool`: `0.0/±0.0/NaN → false`, finite non-zero → `true`. All total.
-- **`char ↔ numeric`**: `char` is a UTF-16 code unit. `char → u16+/i32+/real` is **✓**; `char → u8/i16` is **🪂** (overflow). `u8/u16 → char` is **✓** (every u8/u16 is a valid code unit, including surrogates). Wider integer or signed → `char` is **🪂**.
+- **`char ↔ numeric`**: `char` is a UTF-16 code unit. `char → u16+/i32+/real` is **✓**; `char → u8/i8/i16` is **🪂** (overflow). `u8/u16 → char` is **✓** (every u8/u16 is a valid code unit, including surrogates). Wider integer or signed → `char` is **🪂**.
 - **`bool ↔ char`** → **✗** (no canonical mapping).
 - **`X → text`** is **✓** universally (equivalent to `toText(X)`).
 - **`text → X`** (X ≠ text) is **🪂** (parse; `int.Parse(invariant)`, `bool` accepts `"true"`/`"false"`/`"1"`/`"0"` case-insensitive, `ip` via `IPAddress.Parse`, `char` only if `len == 1`).

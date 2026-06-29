@@ -567,4 +567,28 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
         "out:int16[] = [32766..32767]".Calc()
             .AssertResultHas("out", new short[] { 32766, 32767 });
     }
+
+    [Test]
+    public void MR5Bug1_RangeToMaxValue_Int8() {
+        "out:int8[] = [126..127]".Calc()
+            .AssertResultHas("out", new sbyte[] { 126, 127 });
+    }
+
+    [Test]
+    public void Reverse_OfInt8Array() {
+        Funny.Hardcore.Build("x:int8[]=[1,2,3]\r out=x.reverse()").Calc()
+            .AssertResultHas("out", new sbyte[] { 3, 2, 1 });
+    }
+
+    [Test]
+    public void Filter_OfInt8Array() {
+        Funny.Hardcore.Build("x:int8[]=[-2,-1,0,1,2]\r out=x.filter(rule it>0)").Calc()
+            .AssertResultHas("out", new sbyte[] { 1, 2 });
+    }
+
+    [Test]
+    public void Count_OfInt8Array() {
+        Funny.Hardcore.Build("x:int8[]=[1,2,3,4,5]\r out=x.count()").Calc()
+            .AssertResultHas("out", 5);
+    }
 }

@@ -101,6 +101,7 @@ public abstract class TypeBehaviour {
             BaseFunnyType.UInt16 => RealToUInt16,
             BaseFunnyType.UInt32 => RealToUInt32,
             BaseFunnyType.UInt64 => RealToUInt64,
+            BaseFunnyType.Int8   => RealToInt8,
             BaseFunnyType.Int16  => RealToInt16,
             BaseFunnyType.Int32  => RealToInt32,
             BaseFunnyType.Int64  => RealToInt64,
@@ -115,47 +116,53 @@ public abstract class TypeBehaviour {
         };
     
     protected  static readonly Type[] FunToClrTypesMap = {
-        null,
-        typeof(char),
-        typeof(bool),
-        typeof(byte),
-        typeof(ushort),
-        typeof(uint),
-        typeof(ulong),
-        typeof(short),
-        typeof(int),
-        typeof(long),
-        typeof(double),
-        typeof(IPAddress),
-        null,
-        null,
-        null,
-        typeof(object),
-        null,
-        null, // Optional
-        null  // None
+        null,              //  0 Empty
+        typeof(char),      //  1 Char
+        typeof(bool),      //  2 Bool
+        typeof(byte),      //  3 UInt8
+        typeof(ushort),    //  4 UInt16
+        typeof(uint),      //  5 UInt32
+        typeof(ulong),     //  6 UInt64
+        typeof(short),     //  7 Int16
+        typeof(int),       //  8 Int32
+        typeof(long),      //  9 Int64
+        typeof(double),    // 10 Real
+        typeof(IPAddress), // 11 Ip
+        null,              // 12 ArrayOf
+        null,              // 13 Fun
+        null,              // 14 Generic
+        typeof(object),    // 15 Any
+        null,              // 16 Struct
+        null,              // 17 Optional
+        null,              // 18 None
+        null,              // 19 Custom
+        null,              // 20 NamedStruct
+        typeof(sbyte),     // 21 Int8
     };
 
     protected static readonly object[] DefaultPrimitiveValues = {
-        null,
-        default(char),
-        default(bool),
-        default(byte),
-        default(ushort),
-        default(uint),
-        default(ulong),
-        default(short),
-        default(int),
-        default(long),
-        default(double),
-        new IPAddress(new byte[]{127,0,0,1}),
-        null,
-        null,
-        null,
-        new(),
-        null,
-        null, // Optional
-        null  // None
+        null,                                //  0 Empty
+        default(char),                       //  1 Char
+        default(bool),                       //  2 Bool
+        default(byte),                       //  3 UInt8
+        default(ushort),                     //  4 UInt16
+        default(uint),                       //  5 UInt32
+        default(ulong),                      //  6 UInt64
+        default(short),                      //  7 Int16
+        default(int),                        //  8 Int32
+        default(long),                       //  9 Int64
+        default(double),                     // 10 Real
+        new IPAddress(new byte[]{127,0,0,1}),// 11 Ip
+        null,                                // 12 ArrayOf
+        null,                                // 13 Fun
+        null,                                // 14 Generic
+        new(),                               // 15 Any
+        null,                                // 16 Struct
+        null,                                // 17 Optional
+        null,                                // 18 None
+        null,                                // 19 Custom
+        null,                                // 20 NamedStruct
+        default(sbyte),                      // 21 Int8
     };
     
     private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName
@@ -167,6 +174,7 @@ public abstract class TypeBehaviour {
             { BaseFunnyType.UInt16, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
             { BaseFunnyType.UInt32, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
             { BaseFunnyType.UInt64, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
+            { BaseFunnyType.Int8, new PrimitiveTypeInputFunnyConverter(FunnyType.Int8) },
             { BaseFunnyType.Int16, new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
             { BaseFunnyType.Int32, new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
             { BaseFunnyType.Int64, new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
@@ -181,6 +189,7 @@ public abstract class TypeBehaviour {
     private static readonly IOutputFunnyConverter Uint16Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16));
     private static readonly IOutputFunnyConverter Uint32Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32));
     private static readonly IOutputFunnyConverter Uint64Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64));
+    private static readonly IOutputFunnyConverter Int8Converter   = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int8, typeof(sbyte));
     private static readonly IOutputFunnyConverter Int16Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16));
     private static readonly IOutputFunnyConverter Int32Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32));
     private static readonly IOutputFunnyConverter Int64Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64));
@@ -196,6 +205,7 @@ public abstract class TypeBehaviour {
             BaseFunnyType.UInt16 => Uint16Converter,
             BaseFunnyType.UInt32 => Uint32Converter,
             BaseFunnyType.UInt64 => Uint64Converter,
+            BaseFunnyType.Int8   => Int8Converter,
             BaseFunnyType.Int16  => Int16Converter,
             BaseFunnyType.Int32  => Int32Converter,
             BaseFunnyType.Int64  => Int64Converter,
@@ -212,6 +222,11 @@ public abstract class TypeBehaviour {
     public Func<object, object> GetFromCharToNumberConverterOrNull(BaseFunnyType to) =>
         to switch {
             BaseFunnyType.UInt8 => o => Convert.ToByte((char)o),
+            BaseFunnyType.Int8  => o => {
+                var b = (char)o;
+                if (b > sbyte.MaxValue) throw new OverflowException($"Cannot convert char '{o}' to int8");
+                return (sbyte)b;
+            },
             BaseFunnyType.UInt16 => o => GetUnicodeBytes(o, out var bytes) > 2
                 ? throw new OverflowException($"Cannot convert char value '{o}' to unt16")
                 : BitConverter.ToUInt16(bytes, 0),
@@ -249,6 +264,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             { typeof(UInt16), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16)) },
             { typeof(UInt32), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32)) },
             { typeof(UInt64), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64)) },
+            { typeof(sbyte), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int8, typeof(sbyte)) },
             { typeof(Int16), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16)) },
             { typeof(Int32), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
             { typeof(Int64), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
@@ -266,6 +282,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             { typeof(UInt16), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
             { typeof(UInt32), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
             { typeof(UInt64), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
+            { typeof(sbyte), new PrimitiveTypeInputFunnyConverter(FunnyType.Int8) },
             { typeof(Int16), new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
             { typeof(Int32), new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
             { typeof(Int64), new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
@@ -299,6 +316,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             BaseFunnyType.UInt16 => ToUInt16,
             BaseFunnyType.UInt32 => ToUInt32,
             BaseFunnyType.UInt64 => ToUInt64,
+            BaseFunnyType.Int8   => ToInt8,
             BaseFunnyType.Int16  => ToInt16,
             BaseFunnyType.Int32  => ToInt32,
             BaseFunnyType.Int64  => ToInt64,
@@ -337,6 +355,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(UInt16),  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16)) },
             { typeof(UInt32),  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32)) },
             { typeof(UInt64),  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64)) },
+            { typeof(sbyte),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int8, typeof(sbyte)) },
             { typeof(Int16),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16)) },
             { typeof(Int32),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
             { typeof(Int64),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
@@ -354,6 +373,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(UInt16), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
             { typeof(UInt32), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
             { typeof(UInt64), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
+            { typeof(sbyte), new PrimitiveTypeInputFunnyConverter(FunnyType.Int8) },
             { typeof(Int16), new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
             { typeof(Int32), new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
             { typeof(Int64), new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
@@ -389,6 +409,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             BaseFunnyType.UInt16 => ToUInt16,
             BaseFunnyType.UInt32 => ToUInt32,
             BaseFunnyType.UInt64 => ToUInt64,
+            BaseFunnyType.Int8   => ToInt8,
             BaseFunnyType.Int16  => ToInt16,
             BaseFunnyType.Int32  => ToInt32,
             BaseFunnyType.Int64  => ToInt64,

@@ -48,6 +48,13 @@ public class FormatSpecifierTest {
     public void NamedSpecifier(string expr, string expected) =>
         $"y = {expr}".AssertReturns("y", expected);
 
+    // Width-preserving hex/bin on int8 (matches ToHexText/ToBinText behavior).
+    [TestCase("x:int8=-1\r y='{x:hex}'", "FF")]
+    [TestCase("x:int8=-1\r y='{x:bin}'", "11111111")]
+    [TestCase("x:int8=5\r  y='{x}'",     "5")]
+    public void NamedSpecifier_NarrowSignedOperand(string expr, string expected) =>
+        expr.AssertResultHas("y", expected);
+
     // ═══════════════════════════════════════════════════════════════
     // Alignment only
     // ═══════════════════════════════════════════════════════════════

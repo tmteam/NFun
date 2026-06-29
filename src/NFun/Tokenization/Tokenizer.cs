@@ -120,7 +120,8 @@ public class Tokenizer {
         { "finally", TokType.Reserved },
         { "for", TokType.Reserved },
         { "fail", TokType.Reserved },
-        { "int8", TokType.Reserved },
+        { "int8", TokType.Int8Type },
+        { "sbyte", TokType.Int8Type },
         { "import", TokType.Reserved },
         { "int128", TokType.Reserved },
 

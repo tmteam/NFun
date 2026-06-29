@@ -136,6 +136,7 @@ public class SonicaCompatTest {
     [TestCase("x:int;  q:int;  out = x & q", BaseFunnyType.Int32)]
     [TestCase("x:uint; q:uint; out = x & q", BaseFunnyType.UInt32)]
     [TestCase("x:byte; q:byte; out = x & q", BaseFunnyType.UInt8)]
+    [TestCase("x:int8; q:int8; out = x & q", BaseFunnyType.Int8)]
     [TestCase("x:int16; q:int16; out = x & q", BaseFunnyType.Int16)]
     [TestCase("x:int64; q:int64; out = x & q", BaseFunnyType.Int64)]
     public void TypedInputs_Bitwise_ResultIsArgType(string expr, BaseFunnyType expected) {
@@ -149,6 +150,7 @@ public class SonicaCompatTest {
     [TestCase("x:int;  out = x << 1",  BaseFunnyType.Int32)]
     [TestCase("x:uint; out = x << 1",  BaseFunnyType.UInt32)]
     [TestCase("x:byte; out = x << 1",  BaseFunnyType.UInt8)]
+    [TestCase("x:int8; out = x << 1",  BaseFunnyType.Int8)]
     [TestCase("x:int64; out = x << 1", BaseFunnyType.Int64)]
     public void TypedShift_ResultIsLhsType(string expr, BaseFunnyType expected)
         => Assert.AreEqual(expected, TypeOf(expr, IntegerPreferredType.Real));
@@ -157,6 +159,7 @@ public class SonicaCompatTest {
     // OBVIOUS — explicit output annotation pins the result type.
     // ───────────────────────────────────────────────────────────────
     [TestCase("out:int16 = 1 & 1", BaseFunnyType.Int16)]
+    [TestCase("out:int8 = 1 & 1",  BaseFunnyType.Int8)]
     [TestCase("out:byte = 1 & 1",  BaseFunnyType.UInt8)]
     [TestCase("out:uint = 1 & 1",  BaseFunnyType.UInt32)]
     [TestCase("out:int64 = 1 & 1", BaseFunnyType.Int64)]
@@ -215,6 +218,7 @@ public class SonicaCompatTest {
     [TestCase("x:int;  out = x & 1", BaseFunnyType.Int32)]
     [TestCase("x:uint; out = x & 1", BaseFunnyType.UInt32)]
     [TestCase("x:byte; out = x & 1", BaseFunnyType.UInt8)]
+    [TestCase("x:int8; out = x & 1", BaseFunnyType.Int8)]
     [TestCase("x:int16; out = x & 1", BaseFunnyType.Int16)]
     public void TypedTimesLiteral_Bitwise_AdaptsToTyped(string expr, BaseFunnyType expected)
         => Assert.AreEqual(expected, TypeOf(expr, IntegerPreferredType.Real));

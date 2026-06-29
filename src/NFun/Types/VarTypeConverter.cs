@@ -11,7 +11,8 @@ namespace NFun.Types;
 
 public static class VarTypeConverter {
     private static readonly bool[,] PrimitiveConvertMap;
-    private const int PrimitiveTypeCount = 16;
+    // 22 to accommodate Int8 (= 21); existing primitives still indexed by their original values.
+    private const int PrimitiveTypeCount = 22;
     static VarTypeConverter() {
         PrimitiveConvertMap = new bool [PrimitiveTypeCount, PrimitiveTypeCount];
         //every type can be converted to itself
@@ -45,6 +46,13 @@ public static class VarTypeConverter {
 
         PrimitiveConvertMap[(int)BaseFunnyType.Int32, (int)BaseFunnyType.Int64] = true;
 
+        // Int8 lives outside the UInt8..Int64 contiguous range (= 21). Wire its
+        // signed-widening paths explicitly. No unsigned-target paths — negatives
+        // can't be represented; no narrowing — anything→Int8 is rejected.
+        PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Int16] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Int32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Int64] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Real]  = true;
     }
 
     private static readonly Func<object, object> ToText = o => new TextFunnyArray(o?.ToString() ?? "");

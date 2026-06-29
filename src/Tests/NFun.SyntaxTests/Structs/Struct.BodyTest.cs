@@ -25,6 +25,23 @@ public class StructBodyTest {
                 "y",
                 new { a = 1.0, b = "vasa" });
 
+    // Narrow primitive field types — preserved through struct construction
+    [Test]
+    public void StructField_OfInt8_PreservesType() {
+        var rt = Funny.Hardcore.Build("v:int8=5\r p={x=v}\r out=p.x");
+        rt.Run();
+        Assert.AreEqual("Int8", rt["out"].Type.ToString());
+        Assert.AreEqual((sbyte)5, rt["out"].Value);
+    }
+
+    [Test]
+    public void StructField_OfByte_PreservesType() {
+        var rt = Funny.Hardcore.Build("v:byte=5\r p={x=v}\r out=p.x");
+        rt.Run();
+        Assert.AreEqual("UInt8", rt["out"].Type.ToString());
+        Assert.AreEqual((byte)5, rt["out"].Value);
+    }
+
 
     [TestCase("y = {a = 1.0; b ='vasa'; c = 12*5.0}")]
     [TestCase("y = {a = 1.0;; b ='vasa', c = 12*5.0;}")]

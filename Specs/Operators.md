@@ -12,9 +12,9 @@ Most operators may be applied for different types of operands. To simplify the d
 | Name          | Types                                                           | Formal constrains                                   |
 |---------------|-----------------------------------------------------------------|-----------------------------------------------------|
 | All           | All types                                                       | T => any                                            |
-| Integers      | `int64`, `int32`,`int16`,  `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
+| Integers      | `int64`, `int32`,`int16`, `int8`, `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
 | Numbers       | `real`, **[Integers]**                                          | T => real                                           |
-| Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
+| Signed        | `int64`, `int32`, `int16`, `int8`                               | int8 => T => int64                                  |
 | Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
 | Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
 

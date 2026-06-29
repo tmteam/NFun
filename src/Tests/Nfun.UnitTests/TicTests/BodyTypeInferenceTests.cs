@@ -11,14 +11,16 @@ public class BodyTypeInferenceTests {
     [Test]
     public void SetGenericConstant() {
         var result = TestHelper.Solve("x = 10");
-        var t = result.AssertAndGetSingleGeneric(U8, Real);
+        // 10 <= 127 → U4 (lattice bottom, 0..127 fits both I8 and U8).
+        var t = result.AssertAndGetSingleGeneric(U4, Real);
         result.AssertAreGenerics(t, "x");
     }
 
     [Test]
     public void SetConstants() {
         var result = TestHelper.Solve("x = 0x10");
-        var t = result.AssertAndGetSingleGeneric(U8, I96);
+        // 0x10 = 16, fits 0..127 → U4.
+        var t = result.AssertAndGetSingleGeneric(U4, I96);
         result.AssertAreGenerics(t, "x");
     }
 
@@ -162,7 +164,8 @@ public class BodyTypeInferenceTests {
     [Test]
     public void GenericArrInit() {
         var result = TestHelper.Solve("y  = [1..4]");
-        var generic = result.AssertAndGetSingleGeneric(U8, Real);
+        // 1..4 small values → element type starts at U4 (0..127 bottom).
+        var generic = result.AssertAndGetSingleGeneric(U4, Real);
         result.AssertNamed(StateArray.Of(generic), "y");
     }
 
@@ -244,7 +247,8 @@ public class BodyTypeInferenceTests {
     [Test]
     public void Sort() {
         var result = TestHelper.Solve("y = [4,3,5,1].sort()");
-        var g = result.AssertAndGetSingleGeneric(U8, Real, true);
+        // All elements <= 127 → element type starts at U4 (lattice bottom).
+        var g = result.AssertAndGetSingleGeneric(U4, Real, true);
         result.AssertNamed(StateArray.Of(g), "y");
     }
 
@@ -258,7 +262,8 @@ public class BodyTypeInferenceTests {
     [Test]
     public void InitArrayWithVar() {
         var result = TestHelper.Solve("y = [x,2,3]");
-        var generic = result.AssertAndGetSingleGeneric(U8, Real);
+        // 2, 3 fit U4 (lattice bottom).
+        var generic = result.AssertAndGetSingleGeneric(U4, Real);
 
         result.AssertNamed(StateArray.Of(generic), "y");
         result.AssertAreGenerics(generic, "x");

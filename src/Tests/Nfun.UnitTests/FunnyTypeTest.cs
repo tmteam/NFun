@@ -5,6 +5,23 @@ namespace NFun.UnitTests;
 
 [TestFixture]
 public class FunnyTypeTest {
+    // All primitives in the BaseFunnyType range Char..Int8 must report IsPrimitive=true.
+    // Used by DefaultValueHelper, IFunnyVar, FunnyConverter dispatch.
+    [TestCase(BaseFunnyType.Bool)]
+    [TestCase(BaseFunnyType.Char)]
+    [TestCase(BaseFunnyType.UInt8)]
+    [TestCase(BaseFunnyType.UInt16)]
+    [TestCase(BaseFunnyType.UInt32)]
+    [TestCase(BaseFunnyType.UInt64)]
+    [TestCase(BaseFunnyType.Int8)]
+    [TestCase(BaseFunnyType.Int16)]
+    [TestCase(BaseFunnyType.Int32)]
+    [TestCase(BaseFunnyType.Int64)]
+    [TestCase(BaseFunnyType.Real)]
+    [TestCase(BaseFunnyType.Ip)]
+    public void IsPrimitive_ReturnsTrue(BaseFunnyType type) =>
+        Assert.IsTrue(FunnyType.PrimitiveOf(type).IsPrimitive);
+
     #region Equals
 
     [Test]

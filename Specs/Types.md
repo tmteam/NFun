@@ -26,6 +26,7 @@ Some types have multiple identifiers like `byte` and `uint8` for a byte, and `in
 | Unsigned int 16 | `uint16`        | Integer value [0..65535]                                                                                 | `y:uint16 = 123 `                  |
 | Unsigned int 32 | `uint32` `uint` | Integer value [0..4294967295]                                                                            | `y:uint32 = 123 `                  |
 | Unsigned int 64 | `uint64`        | Integer value [0..18446744073709551615]                                                                  | `y:uint64 = 123 `                  |
+| Signed int 8    | `int8` `sbyte`  | Integer value [-128..127]                                                                                | `y:int8 = -42; z:sbyte = 0x7F`     |
 | Signed int 16   | `int16`         | Integer value [-32768..32767]                                                                            | `y:int16 = 123 `                   |
 | Signed int 32   | `int32` `int`   | Integer value [-2147483648..2147483647]                                                                  | `y:int32 = 123 `                   |
 | Signed int 64   | `int64`         | Integer value [-9223372036854775808..9223372036854775807]                                                | `y:int64 = 123 `                   |

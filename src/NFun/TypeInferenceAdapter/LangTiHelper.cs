@@ -49,6 +49,7 @@ public static class LangTiHelper {
     public static ITicNodeState ConvertToTiType(this FunnyType origin) =>
         origin.BaseType switch {
             BaseFunnyType.Bool => StatePrimitive.Bool,
+            BaseFunnyType.Int8 => StatePrimitive.I8,
             BaseFunnyType.Int16 => StatePrimitive.I16,
             BaseFunnyType.Int32 => StatePrimitive.I32,
             BaseFunnyType.Int64 => StatePrimitive.I64,
@@ -97,6 +98,7 @@ public static class LangTiHelper {
         INamedTypeFieldRegistry registry, ResolveContext ctx) =>
         origin.BaseType switch {
             BaseFunnyType.Bool => StatePrimitive.Bool,
+            BaseFunnyType.Int8 => StatePrimitive.I8,
             BaseFunnyType.Int16 => StatePrimitive.I16,
             BaseFunnyType.Int32 => StatePrimitive.I32,
             BaseFunnyType.Int64 => StatePrimitive.I64,

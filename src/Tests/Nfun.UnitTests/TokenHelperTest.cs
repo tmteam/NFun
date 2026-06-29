@@ -57,6 +57,8 @@ public class TokenHelperTest {
     [TestCase("uint32;", BaseFunnyType.UInt32)]
     [TestCase("uint64;(", BaseFunnyType.UInt64)]
     [TestCase("uint64;a", BaseFunnyType.UInt64)]
+    [TestCase("int8", BaseFunnyType.Int8)]
+    [TestCase("int8=", BaseFunnyType.Int8)]
     [TestCase("real", BaseFunnyType.Real)]
     [TestCase("real:", BaseFunnyType.Real)]
     [TestCase("bool", BaseFunnyType.Bool)]
@@ -64,7 +66,6 @@ public class TokenHelperTest {
     public void ReadType_PrimitiveTypes(string expr, BaseFunnyType expected) =>
         AssertFunnyType(expr, FunnyType.PrimitiveOf(expected));
 
-    [TestCase("int8")]
     [TestCase("async")]
     public void ReservedWord_Throw(string expr) => FunnyAssert.ObviousFailsOnParse(() => Tokenizer.ToFlow(expr));
 

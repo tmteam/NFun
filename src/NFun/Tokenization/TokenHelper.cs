@@ -51,6 +51,7 @@ public static class TokenHelper {
     }
 
     private static string ToTypeName(this Tok token) => token.Type switch {
+        TokType.Int8Type     => "int8",
         TokType.Int16Type    => "int16",
         TokType.Int32Type    => "int32",
         TokType.Int64Type    => "int64",
@@ -211,6 +212,7 @@ public static class TokenHelper {
         or TokType.BoolType
         or TokType.CharType
         or TokType.RealType
+        or TokType.Int8Type
         or TokType.Int16Type
         or TokType.Int32Type
         or TokType.Int64Type

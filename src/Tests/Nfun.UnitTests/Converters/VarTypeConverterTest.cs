@@ -15,6 +15,10 @@ public class VarTypeConverterTest {
     [TestCase((long)1, (double)1, BaseFunnyType.Int64, BaseFunnyType.Real)]
     [TestCase((byte)1, (UInt32)1, BaseFunnyType.UInt8, BaseFunnyType.UInt32)]
     [TestCase((byte)1, (Int32)1, BaseFunnyType.UInt8, BaseFunnyType.Int32)]
+    [TestCase((sbyte)-5, (Int16)(-5), BaseFunnyType.Int8, BaseFunnyType.Int16)]
+    [TestCase((sbyte)-5, (Int32)(-5), BaseFunnyType.Int8, BaseFunnyType.Int32)]
+    [TestCase((sbyte)-5, (Int64)(-5), BaseFunnyType.Int8, BaseFunnyType.Int64)]
+    [TestCase((sbyte)-5, (double)(-5), BaseFunnyType.Int8, BaseFunnyType.Real)]
     public void ConvertPrimitives(object from, object expected, BaseFunnyType typeFrom, BaseFunnyType typeTo) {
         Assert.IsTrue(
             VarTypeConverter.CanBeConverted(

@@ -28,6 +28,7 @@ public static class TypeSyntaxResolver {
     private static FunnyType ResolveNamed(TypeSyntax.Named named, ICustomTypeRegistry customTypes) {
         var name = named.Name;
         return name.ToLowerInvariant() switch {
+            "int8" or "sbyte" => FunnyType.Int8,
             "int16"           => FunnyType.Int16,
             "int" or "int32"  => FunnyType.Int32,
             "int64"           => FunnyType.Int64,

@@ -8,6 +8,11 @@ public class GenericUserFunctionsTest {
     [TestCase("fake(a) = a\r y = fake(1.0)", 1.0)]
     [TestCase("fake(a) = a\r y = fake(fake(true))", true)]
     [TestCase("fake(a) = a\r y = 'test'.fake().fake().fake()", "test")]
+    // Generic monomorphization preserves narrow primitive types (Int8 reachable
+    // via SearchMaxGenericTypeId + SubstituteConcreteTypes).
+    [TestCase("id(a) = a\r y:int8 = id(5)", (sbyte)5)]
+    [TestCase("id(a) = a\r y:byte = id(5)", (byte)5)]
+    [TestCase("id(a) = a\r y:int16 = id(5)", (short)5)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,true)", 1)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,false)", 2)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2.0,true)", 1.0)]

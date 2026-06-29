@@ -14,6 +14,8 @@ public class ConvertFunctionsTest {
     [TestCase("int32", (int)-123, "int16", (short)-123)]
     [TestCase("int64", (long)-123, "int16", (short)-123)]
     [TestCase("uint8", (byte)123, "int16", (short)123)]
+    [TestCase("int8",  (sbyte)-12, "int16", (short)-12)]
+    [TestCase("int8",  (sbyte)123, "int16", (short)123)]
     [TestCase("uint16", (ushort)123, "int16", (short)123)]
     [TestCase("uint32", (uint)123, "int16", (short)123)]
     [TestCase("uint64", (ulong)123, "int16", (short)123)]
@@ -23,6 +25,8 @@ public class ConvertFunctionsTest {
     [TestCase("int32", (int)-123, "int", -123)]
     [TestCase("int64", (long)-123, "int", -123)]
     [TestCase("uint8", (byte)123, "int", 123)]
+    [TestCase("int8",  (sbyte)-12, "int", -12)]
+    [TestCase("int8",  (sbyte)123, "int", 123)]
     [TestCase("uint16", (ushort)123, "int", 123)]
     [TestCase("uint32", (uint)123, "int", 123)]
     [TestCase("uint64", (ulong)123, "int", 123)]
@@ -32,6 +36,8 @@ public class ConvertFunctionsTest {
     [TestCase("int32", (int)-123, "int64", (long)-123)]
     [TestCase("int64", (long)-123, "int64", (long)-123)]
     [TestCase("uint8", (byte)123, "int64", (long)123)]
+    [TestCase("int8",  (sbyte)-12, "int64", (long)-12)]
+    [TestCase("int8",  (sbyte)123, "int64", (long)123)]
     [TestCase("uint16", (ushort)123, "int64", (long)123)]
     [TestCase("uint32", (uint)123, "int64", (long)123)]
     [TestCase("uint64", (ulong)123, "int64", (long)123)]
@@ -63,6 +69,16 @@ public class ConvertFunctionsTest {
     [TestCase("uint16", (ushort)123, "uint64", (ulong)123)]
     [TestCase("uint32", (uint)123, "uint64", (ulong)123)]
     [TestCase("uint64", (ulong)123, "uint64", (ulong)123)]
+    // → int8 direction (only values that fit -128..127):
+    [TestCase("int",    (int)-123,    "int8", (sbyte)-123)]
+    [TestCase("int",    (int)123,     "int8", (sbyte)123)]
+    [TestCase("int16",  (short)-123,  "int8", (sbyte)-123)]
+    [TestCase("int64",  (long)-123,   "int8", (sbyte)-123)]
+    [TestCase("uint8",  (byte)123,    "int8", (sbyte)123)]
+    [TestCase("uint16", (ushort)123,  "int8", (sbyte)123)]
+    [TestCase("uint32", (uint)123,    "int8", (sbyte)123)]
+    [TestCase("uint64", (ulong)123,   "int8", (sbyte)123)]
+    [TestCase("int8",   (sbyte)-123,  "int8", (sbyte)-123)]
     public void ConvertIntegersFunctionsTest(
         string inputType, object inputValue, string outputType,
         object expectedOutput) {

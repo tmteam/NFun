@@ -13,6 +13,8 @@ public class DivideIntFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
                                            BaseFunnyType.UInt32 => UInt32Function.Instance,            
                                            BaseFunnyType.UInt64 => UInt64Function.Instance,            
+            
+                                           BaseFunnyType.Int8 => Int8Function.Instance,            
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
@@ -49,6 +51,13 @@ public class DivideIntFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a / (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.DivideInt, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a / (sbyte)b);
+        }
+      
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.DivideInt, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
@@ -71,6 +80,8 @@ public class RemainderFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
                                            BaseFunnyType.UInt32 => UInt32Function.Instance,            
                                            BaseFunnyType.UInt64 => UInt64Function.Instance,            
+            
+                                           BaseFunnyType.Int8 => Int8Function.Instance,            
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
@@ -108,6 +119,13 @@ public class RemainderFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a % (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.Remainder, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a % (sbyte)b);
+        }
+      
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.Remainder, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
@@ -142,6 +160,8 @@ public class AddFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
                                            BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
                                            BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
+            
+                                           BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,            
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
@@ -203,10 +223,24 @@ public class AddFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a + (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.Add, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a + (sbyte)b);
+        }
+      
         private class Int16CheckedFunction : FunctionWithTwoArgs {
              public static Int16CheckedFunction Instance = new ();
              public Int16CheckedFunction() : base(CoreFunNames.Add, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
              public override object Calc(object a, object b){ checked { return (Int16)((Int16)a + (Int16)b); }}
+        }
+      
+      
+        private class Int8CheckedFunction : FunctionWithTwoArgs {
+             public static Int8CheckedFunction Instance = new ();
+             public Int8CheckedFunction() : base(CoreFunNames.Add, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b){ checked { return (sbyte)((sbyte)a + (sbyte)b); }}
         }
       
         private class Int32Function : FunctionWithTwoArgs {
@@ -255,6 +289,8 @@ public class SubstractFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
                                            BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
                                            BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
+            
+                                           BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,            
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
@@ -316,10 +352,24 @@ public class SubstractFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a - (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.Substract, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a - (sbyte)b);
+        }
+      
         private class Int16CheckedFunction : FunctionWithTwoArgs {
              public static Int16CheckedFunction Instance = new ();
              public Int16CheckedFunction() : base(CoreFunNames.Substract, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
              public override object Calc(object a, object b){ checked { return (Int16)((Int16)a - (Int16)b); }}
+        }
+      
+      
+        private class Int8CheckedFunction : FunctionWithTwoArgs {
+             public static Int8CheckedFunction Instance = new ();
+             public Int8CheckedFunction() : base(CoreFunNames.Substract, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b){ checked { return (sbyte)((sbyte)a - (sbyte)b); }}
         }
       
         private class Int32Function : FunctionWithTwoArgs {
@@ -368,6 +418,8 @@ public class MultiplyFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
                                            BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
                                            BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
+            
+                                           BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,            
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
@@ -429,10 +481,24 @@ public class MultiplyFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a * (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.Multiply, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a * (sbyte)b);
+        }
+      
         private class Int16CheckedFunction : FunctionWithTwoArgs {
              public static Int16CheckedFunction Instance = new ();
              public Int16CheckedFunction() : base(CoreFunNames.Multiply, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
              public override object Calc(object a, object b){ checked { return (Int16)((Int16)a * (Int16)b); }}
+        }
+      
+      
+        private class Int8CheckedFunction : FunctionWithTwoArgs {
+             public static Int8CheckedFunction Instance = new ();
+             public Int8CheckedFunction() : base(CoreFunNames.Multiply, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b){ checked { return (sbyte)((sbyte)a * (sbyte)b); }}
         }
       
         private class Int32Function : FunctionWithTwoArgs {
@@ -481,6 +547,8 @@ public class BitXorFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
                                            BaseFunnyType.UInt32 => UInt32Function.Instance,            
                                            BaseFunnyType.UInt64 => UInt64Function.Instance,            
+            
+                                           BaseFunnyType.Int8 => Int8Function.Instance,            
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
@@ -517,6 +585,13 @@ public class BitXorFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a ^ (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.BitXor, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a ^ (sbyte)b);
+        }
+      
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.BitXor, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
@@ -539,6 +614,8 @@ public class BitAndFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
                                            BaseFunnyType.UInt32 => UInt32Function.Instance,            
                                            BaseFunnyType.UInt64 => UInt64Function.Instance,            
+            
+                                           BaseFunnyType.Int8 => Int8Function.Instance,            
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
@@ -575,6 +652,13 @@ public class BitAndFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a & (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.BitAnd, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a & (sbyte)b);
+        }
+      
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.BitAnd, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
@@ -597,6 +681,8 @@ public class BitOrFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
                                            BaseFunnyType.UInt32 => UInt32Function.Instance,            
                                            BaseFunnyType.UInt64 => UInt64Function.Instance,            
+            
+                                           BaseFunnyType.Int8 => Int8Function.Instance,            
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
@@ -633,6 +719,13 @@ public class BitOrFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) => (Int16)((Int16)a | (Int16)b);
         }
       
+      
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.BitOr, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) => (sbyte)((sbyte)a | (sbyte)b);
+        }
+      
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.BitOr, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
@@ -653,6 +746,7 @@ public class NegateFunction : PureGenericFunctionBase {
     public NegateFunction() : base(CoreFunNames.Negate, GenericConstrains.SignedNumber, 1) { }
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
+                                           BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
@@ -669,10 +763,22 @@ public class NegateFunction : PureGenericFunctionBase {
                     public static Int16Function Instance = new Int16Function();
                     public override object Calc(object a) => (Int16)(-(Int16)a);
                 }
+      
+
+                private class Int8Function : FunctionWithSingleArg {
+                    public static Int8Function Instance = new Int8Function();
+                    public override object Calc(object a) => (sbyte)(-(sbyte)a);
+                }
 
                 private class Int16CheckedFunction : FunctionWithSingleArg {
                     public static Int16CheckedFunction Instance = new Int16CheckedFunction();
                     public override object Calc(object a){ checked { return (Int16)(-(Int16)a); }}
+                }
+      
+
+                private class Int8CheckedFunction : FunctionWithSingleArg {
+                    public static Int8CheckedFunction Instance = new Int8CheckedFunction();
+                    public override object Calc(object a){ checked { return (sbyte)(-(sbyte)a); }}
                 }
 
                 private class Int32Function : FunctionWithSingleArg {
@@ -712,6 +818,7 @@ public class AbsFunction : PureGenericFunctionBase {
     public AbsFunction() : base("abs", GenericConstrains.SignedNumber, 1) { ArgProperties = FunArgProperty.FromNames("x"); }
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
+                                           BaseFunnyType.Int8 => Int8Function.Instance,
                                            BaseFunnyType.Int16 => Int16Function.Instance,
                                            BaseFunnyType.Int32 => Int32Function.Instance,
                                            BaseFunnyType.Int64 => Int64Function.Instance,
@@ -727,6 +834,12 @@ public class AbsFunction : PureGenericFunctionBase {
                 private class Int16Function : FunctionWithSingleArg {  
                     public static Int16Function Instance = new Int16Function();
                     public override object Calc(object a) => (Int16)Math.Abs((Int16)a); 
+                }
+      
+      
+                private class Int8Function : FunctionWithSingleArg {  
+                    public static Int8Function Instance = new Int8Function();
+                    public override object Calc(object a) => (sbyte)Math.Abs((sbyte)a); 
                 }
       
                 private class Int32Function : FunctionWithSingleArg {  
@@ -758,6 +871,8 @@ public class PowFunction : PureGenericFunctionBase {
                                            BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,
                                            BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
                                            BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
+
+                                           BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
@@ -854,6 +969,17 @@ public class PowFunction : PureGenericFunctionBase {
                  return result;
              }
         }
+      
+
+        private class Int8Function : FunctionWithTwoArgs {
+             public static Int8Function Instance = new ();
+             private Int8Function() : base(CoreFunNames.Pow, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) {
+                 sbyte baseVal = (sbyte)a; int exp = (sbyte)b; sbyte result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (sbyte)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (sbyte)(baseVal * baseVal); }
+                 return result;
+             }
+        }
 
         private class Int16CheckedFunction : FunctionWithTwoArgs {
              public static Int16CheckedFunction Instance = new ();
@@ -861,6 +987,17 @@ public class PowFunction : PureGenericFunctionBase {
              public override object Calc(object a, object b) { checked {
                  Int16 baseVal = (Int16)a; int exp = (Int16)b; Int16 result = 1;
                  while (exp > 0) { if ((exp & 1) == 1) result = (Int16)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (Int16)(baseVal * baseVal); }
+                 return result;
+             }}
+        }
+      
+
+        private class Int8CheckedFunction : FunctionWithTwoArgs {
+             public static Int8CheckedFunction Instance = new ();
+             public Int8CheckedFunction() : base(CoreFunNames.Pow, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b) { checked {
+                 sbyte baseVal = (sbyte)a; int exp = (sbyte)b; sbyte result = 1;
+                 while (exp > 0) { if ((exp & 1) == 1) result = (sbyte)(result * baseVal); exp >>= 1; if (exp > 0) baseVal = (sbyte)(baseVal * baseVal); }
                  return result;
              }}
         }

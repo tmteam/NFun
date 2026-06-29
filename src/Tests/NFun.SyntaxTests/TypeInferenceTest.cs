@@ -327,6 +327,8 @@ public class TypeInferenceTest {
     [TestCase("uint16", (UInt16)1, BaseFunnyType.UInt16)]
     [TestCase("uint32", (UInt32)1, BaseFunnyType.UInt32)]
     [TestCase("uint64", (UInt64)1, BaseFunnyType.UInt64)]
+    [TestCase("int8", (sbyte)1, BaseFunnyType.Int8)]
+    [TestCase("sbyte", (sbyte)1, BaseFunnyType.Int8)]
     [TestCase("int16", (Int16)1, BaseFunnyType.Int16)]
     [TestCase("int", (int)1, BaseFunnyType.Int32)]
     [TestCase("int32", (int)1, BaseFunnyType.Int32)]
@@ -337,6 +339,23 @@ public class TypeInferenceTest {
         var res = $"x:{type}\r  y = x".Calc("x", expected);
         res.AssertReturns(expected);
         res.AssertResultIs(("y", GetClrType(FunnyType.PrimitiveOf(baseFunnyType))));
+    }
+
+    // sbyte ≡ int8: alias is interchangeable in type annotations.
+    [Test]
+    public void SbyteAlias_InterchangeableWithInt8() {
+        var rt = Funny.Hardcore.Build("x:sbyte=5\r y:int8=x\r out=y");
+        rt.Run();
+        Assert.AreEqual("Int8", rt["out"].Type.ToString());
+        Assert.AreEqual((sbyte)5, rt["out"].Value);
+    }
+
+    [Test]
+    public void SbyteAlias_InFunctionSignature() {
+        var rt = Funny.Hardcore.Build("f(x:sbyte):sbyte = -x\r out = f(5)");
+        rt.Run();
+        Assert.AreEqual("Int8", rt["out"].Type.ToString());
+        Assert.AreEqual((sbyte)-5, rt["out"].Value);
     }
 
     [TestCase("int[]", new[] { 1, 2, 3 }, BaseFunnyType.Int32)]
@@ -359,7 +378,7 @@ public class TypeInferenceTest {
     [TestCase("uint16", "&", BaseFunnyType.UInt16)]
     [TestCase("uint32", "&", BaseFunnyType.UInt32)]
     [TestCase("uint64", "&", BaseFunnyType.UInt64)]
-    //[TestCase("int8", "&", BaseVarType.Int8)]
+    [TestCase("int8", "&", BaseFunnyType.Int8)]
     [TestCase("int16", "&", BaseFunnyType.Int16)]
     [TestCase("int", "&", BaseFunnyType.Int32)]
     [TestCase("int32", "&", BaseFunnyType.Int32)]
@@ -369,7 +388,7 @@ public class TypeInferenceTest {
     [TestCase("uint16", "|", BaseFunnyType.UInt16)]
     [TestCase("uint32", "|", BaseFunnyType.UInt32)]
     [TestCase("uint64", "|", BaseFunnyType.UInt64)]
-    //[TestCase("int8", "|", BaseVarType.Int8)]
+    [TestCase("int8", "|", BaseFunnyType.Int8)]
     [TestCase("int16", "|", BaseFunnyType.Int16)]
     [TestCase("int", "|", BaseFunnyType.Int32)]
     [TestCase("int32", "|", BaseFunnyType.Int32)]
@@ -379,7 +398,7 @@ public class TypeInferenceTest {
     [TestCase("uint16", "^", BaseFunnyType.UInt16)]
     [TestCase("uint32", "^", BaseFunnyType.UInt32)]
     [TestCase("uint64", "^", BaseFunnyType.UInt64)]
-    //[TestCase("int8", "^", BaseVarType.Int8)]
+    [TestCase("int8", "^", BaseFunnyType.Int8)]
     [TestCase("int16", "^", BaseFunnyType.Int16)]
     [TestCase("int", "^", BaseFunnyType.Int32)]
     [TestCase("int32", "^", BaseFunnyType.Int32)]
@@ -394,7 +413,7 @@ public class TypeInferenceTest {
     [TestCase("uint16", BaseFunnyType.UInt16)]
     [TestCase("uint32", BaseFunnyType.UInt32)]
     [TestCase("uint64", BaseFunnyType.UInt64)]
-    //[TestCase("int8",  BaseVarType.Int8)]
+    [TestCase("int8", BaseFunnyType.Int8)]
     [TestCase("int16", BaseFunnyType.Int16)]
     [TestCase("int", BaseFunnyType.Int32)]
     [TestCase("int32", BaseFunnyType.Int32)]

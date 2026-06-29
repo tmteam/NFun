@@ -27,7 +27,7 @@ namespace NFun.Tic;
 internal sealed class SimplePrimitiveSolver {
 
     private const byte OPEN = 0xFF;
-    private const int PRIM_COUNT = 19; // must match StatePrimitive type count (0..18)
+    private const int PRIM_COUNT = 22; // must match StatePrimitive type count (0..21) — includes I12, I8, U4
 
     private struct Group {
         public byte Desc;       // ordinal lower bound, OPEN = unconstrained
@@ -78,9 +78,10 @@ internal sealed class SimplePrimitiveSolver {
         PrimitiveTypeName.Any, PrimitiveTypeName.Bool, PrimitiveTypeName.Char,
         PrimitiveTypeName.Ip, PrimitiveTypeName.Real, PrimitiveTypeName.I96,
         PrimitiveTypeName.I64, PrimitiveTypeName.I48, PrimitiveTypeName.I32,
-        PrimitiveTypeName.I24, PrimitiveTypeName.I16, PrimitiveTypeName.U64,
-        PrimitiveTypeName.U48, PrimitiveTypeName.U32, PrimitiveTypeName.U24,
-        PrimitiveTypeName.U16, PrimitiveTypeName.U12, PrimitiveTypeName.U8,
+        PrimitiveTypeName.I24, PrimitiveTypeName.I16, PrimitiveTypeName.I12,
+        PrimitiveTypeName.I8, PrimitiveTypeName.U64, PrimitiveTypeName.U48,
+        PrimitiveTypeName.U32, PrimitiveTypeName.U24, PrimitiveTypeName.U16,
+        PrimitiveTypeName.U12, PrimitiveTypeName.U8, PrimitiveTypeName.U4,
         PrimitiveTypeName.None
     };
 
@@ -312,7 +313,7 @@ internal sealed class SimplePrimitiveSolver {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsPrimitiveBaseType(BaseFunnyType t) =>
         t is BaseFunnyType.Bool or BaseFunnyType.Char or BaseFunnyType.Ip or BaseFunnyType.Any
-            or BaseFunnyType.Real or BaseFunnyType.Int16 or BaseFunnyType.Int32 or BaseFunnyType.Int64
+            or BaseFunnyType.Real or BaseFunnyType.Int8 or BaseFunnyType.Int16 or BaseFunnyType.Int32 or BaseFunnyType.Int64
             or BaseFunnyType.UInt8 or BaseFunnyType.UInt16 or BaseFunnyType.UInt32 or BaseFunnyType.UInt64;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -333,7 +334,7 @@ internal sealed class SimplePrimitiveSolver {
 
     private static readonly HashSet<string> s_primitiveTypeNames =
         new(StringComparer.OrdinalIgnoreCase) {
-            "int16", "int", "int32", "int64",
+            "int8", "sbyte", "int16", "int", "int32", "int64",
             "byte", "uint8", "uint16", "uint", "uint32", "uint64",
             "real", "bool", "char", "ip", "any"
         };
@@ -448,6 +449,8 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     // Cached ordinals for frequently used primitives in interval setup
+    private static readonly byte s_ordI8  = OrdOf(StatePrimitive.I8);
+    private static readonly byte s_ordU4  = OrdOf(StatePrimitive.U4);
     private static readonly byte s_ordI16 = OrdOf(StatePrimitive.I16);
     private static readonly byte s_ordI32 = OrdOf(StatePrimitive.I32);
     private static readonly byte s_ordI64 = OrdOf(StatePrimitive.I64);
@@ -468,7 +471,8 @@ internal sealed class SimplePrimitiveSolver {
     private void SetupHexBin(int gid, object value) {
         if (value is long l) {
             if (l <= 0) {
-                if (l >= short.MinValue) SetInterval(gid, s_ordI16, s_ordI64, s_ordI32);
+                if (l >= sbyte.MinValue) SetInterval(gid, s_ordI8, s_ordI64, s_ordI32);
+                else if (l >= short.MinValue) SetInterval(gid, s_ordI16, s_ordI64, s_ordI32);
                 else if (l >= int.MinValue) SetInterval(gid, s_ordI32, s_ordI64, s_ordI32);
                 else SetConcrete(gid, s_ordI64);
                 return;
@@ -478,7 +482,9 @@ internal sealed class SimplePrimitiveSolver {
     }
 
     private void SetupHexBinPositive(int gid, ulong v) {
-        if      (v <= byte.MaxValue)          SetInterval(gid, s_ordU8,  s_ordI96, s_ordI32);
+        // 0..127 — fits U4 (lattice bottom): widens to ANY numeric incl. I8.
+        if      (v <= (ulong)sbyte.MaxValue)  SetInterval(gid, s_ordU4,  s_ordI96, s_ordI32);
+        else if (v <= byte.MaxValue)          SetInterval(gid, s_ordU8,  s_ordI96, s_ordI32);
         else if (v <= (ulong)short.MaxValue)  SetInterval(gid, s_ordU12, s_ordI96, s_ordI32);
         else if (v <= ushort.MaxValue)         SetInterval(gid, s_ordU16, s_ordI96, s_ordI32);
         else if (v <= int.MaxValue)            SetInterval(gid, s_ordU24, s_ordI96, s_ordI32);
@@ -490,7 +496,8 @@ internal sealed class SimplePrimitiveSolver {
     private void SetupDecimal(int gid, object value) {
         if (value is long l) {
             if (l <= 0) {
-                var desc = l >= short.MinValue ? s_ordI16
+                var desc = l >= sbyte.MinValue ? s_ordI8
+                         : l >= short.MinValue ? s_ordI16
                          : l >= int.MinValue   ? s_ordI32
                          :                       s_ordI64;
                 // Negative literal smaller than Int32.MinValue won't fit Preferred I32 —
@@ -514,7 +521,11 @@ internal sealed class SimplePrimitiveSolver {
         // Mirror hex/bin: when value > Int32.Max, switch Preferred to I64 so
         // unconstrained resolution picks Int64 instead of falling through to Real.
         // Ancestor stays Real so generic contexts still accept Real operands. (MR4Bug1.)
-        if (v <= byte.MaxValue) { desc = s_ordU8; pref = _preferredIntOrd; }
+        // 0..127 — fits U4 (abstract lattice bottom, 0..127 range): widens to ANY numeric.
+        // Covers the I8 ∩ U8 = 0..127 common subset so `int8 = 100` and `uint8 = 100`
+        // both succeed from the same literal binning.
+        if (v <= (ulong)sbyte.MaxValue) { desc = s_ordU4; pref = _preferredIntOrd; }
+        else if (v <= byte.MaxValue) { desc = s_ordU8; pref = _preferredIntOrd; }
         else if (v <= (ulong)short.MaxValue) { desc = s_ordU12; pref = _preferredIntOrd; }
         else if (v <= ushort.MaxValue) { desc = s_ordU16; pref = _preferredIntOrd; }
         else if (v <= int.MaxValue) { desc = s_ordU24; pref = _preferredIntOrd; }
@@ -927,6 +938,7 @@ internal sealed class SimplePrimitiveSolver {
             BaseFunnyType.UInt16 => s_ordU16,
             BaseFunnyType.UInt32 => s_ordU32,
             BaseFunnyType.UInt64 => s_ordU64,
+            BaseFunnyType.Int8   => s_ordI8,
             BaseFunnyType.Int16  => s_ordI16,
             BaseFunnyType.Int32  => s_ordI32,
             BaseFunnyType.Int64  => s_ordI64,

@@ -228,11 +228,12 @@ public class RangeFunction : GenericFunctionBase {
             BaseFunnyType.UInt16 => UInt16Function.Instance,
             BaseFunnyType.UInt32 => UInt32Function.Instance,
             BaseFunnyType.UInt64 => UInt64Function.Instance,
+            BaseFunnyType.Int8   => Int8Function.Instance,
             BaseFunnyType.Int16  => Int16Function.Instance,
             BaseFunnyType.Int32  => Int32Function.Instance,
             BaseFunnyType.Int64  => Int64Function.Instance,
             BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(
-                RealDoubleFunction.Instance, 
+                RealDoubleFunction.Instance,
                 RealDecimalFunction.Instance),
             _ => throw new NotSupportedException()
         };
@@ -342,7 +343,7 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = (byte) a;
             var end = (byte) b;
-            
+
             byte[] result;
             if (start < end)
             {
@@ -360,6 +361,35 @@ public class RangeFunction : GenericFunctionBase {
                     result[c] = (byte)(start - c);
             }
             return new ImmutableFunnyArray(result);
+        }
+    }
+
+    class Int8Function : FunctionWithTwoArgs {
+        public static readonly Int8Function Instance = new();
+
+        private Int8Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int8), FunnyType.Int8, FunnyType.Int8)
+        { }
+
+        public override object Calc(object a, object b)
+        {
+            var start = (sbyte) a;
+            var end = (sbyte) b;
+            sbyte[] result;
+            if (start < end)
+            {
+                int len = end - start + 1;
+                result = new sbyte[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (sbyte)(start + c);
+            }
+            else
+            {
+                int len = start - end + 1;
+                result = new sbyte[len];
+                for (int c = 0; c < len; c++)
+                    result[c] = (sbyte)(start - c);
+            }
+            return new ImmutableFunnyArray(result, FunnyType.Int8);
         }
     }
 
@@ -540,6 +570,7 @@ public class RangeStepFunction : GenericFunctionBase {
             BaseFunnyType.UInt16 => UInt16Function.Instance,
             BaseFunnyType.UInt32 => UInt32Function.Instance,
             BaseFunnyType.UInt64 => UInt64Function.Instance,
+            BaseFunnyType.Int8   => Int8Function.Instance,
             BaseFunnyType.Int16  => Int16Function.Instance,
             BaseFunnyType.Int32  => Int32Function.Instance,
             BaseFunnyType.Int64  => Int64Function.Instance,
@@ -654,6 +685,33 @@ public class RangeStepFunction : GenericFunctionBase {
                 for (var i = start; i >= end; i -= step)
                     result.Add(i);
             return new ImmutableFunnyArray(result.ToArray());
+        }
+    }
+
+    class Int8Function : FunctionWithManyArguments {
+        public static readonly Int8Function Instance = new();
+
+        private Int8Function() : base(
+            Id, FunnyType.ArrayOf(FunnyType.Int8), FunnyType.Int8, FunnyType.Int8,
+            FunnyType.Int8)
+        { }
+
+        public override object Calc(object[] args)
+        {
+            var start = (sbyte) args[0];
+            var end = (sbyte) args[1];
+            var step = (sbyte) args[2];
+            if (step <= 0)
+                throw new FunnyRuntimeException("Step has to be positive");
+
+            var result = new List<sbyte>();
+            if (start < end)
+                for (var i = start; i <= end; i = (sbyte)(i + step))
+                    result.Add(i);
+            else
+                for (var i = start; i >= end; i = (sbyte)(i - step))
+                    result.Add(i);
+            return new ImmutableFunnyArray(result.ToArray(), FunnyType.Int8);
         }
     }
 

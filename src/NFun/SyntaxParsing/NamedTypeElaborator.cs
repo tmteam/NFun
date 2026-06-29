@@ -561,7 +561,7 @@ internal static class NamedTypeElaborator {
     /// misleading errors at constructor call sites.
     /// </summary>
     private static bool IsPrimitiveTypeName(string name) => name.ToLowerInvariant() switch {
-        "int16" or "int" or "int32" or "int64"
+        "int8" or "sbyte" or "int16" or "int" or "int32" or "int64"
             or "byte" or "uint8" or "uint16" or "uint" or "uint32" or "uint64"
             or "real" or "bool" or "char" or "text" or "any" or "ip" => true,
         _ => false

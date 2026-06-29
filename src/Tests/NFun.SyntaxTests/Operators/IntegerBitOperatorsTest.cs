@@ -35,6 +35,10 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 1 & 2", (byte)0)]
     [TestCase("y:uint8 = 2 & 2", (byte)2)]
     [TestCase("y:uint8 = 1 & 3", (byte)1)]
+    [TestCase("y:int8 = 1 & 1", (sbyte)1)]
+    [TestCase("y:int8 = 1 & 2", (sbyte)0)]
+    [TestCase("y:int8 = 2 & 2", (sbyte)2)]
+    [TestCase("y:int8 = 1 & 3", (sbyte)1)]
     [TestCase("y = 0xFFFFFFFF & 0x0", (long)0)]
     [TestCase("y = 0xFFFFFFFF & 0xFFFFFFFF", (long)0xFFFFFFFF)]
     [TestCase("y:uint64 = 0xFFFFFFFF_FFFFFFFF & 0xFFFFFFFF_FFFFFFFF", (UInt64)0xFFFFFFFF_FFFFFFFF)]
@@ -49,6 +53,9 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 0xFF & 0xFF", (byte)0xFF)]
     [TestCase("y:uint8 = 0xFF & 0", (byte)0)]
     [TestCase("y:uint8 = 0 & 0xFF", (byte)0)]
+    [TestCase("y:int8 = 0x7F & 0x7F", (sbyte)0x7F)]
+    [TestCase("y:int8 = 0x7F & 0",    (sbyte)0)]
+    [TestCase("y:int8 = 0 & 0x7F",    (sbyte)0)]
     public void ConstantBitAnd(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
@@ -84,6 +91,10 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 1 | 2", (byte)3)]
     [TestCase("y:uint8 = 2 | 2", (byte)2)]
     [TestCase("y:uint8 = 1 | 3", (byte)3)]
+    [TestCase("y:int8 = 1 | 1", (sbyte)1)]
+    [TestCase("y:int8 = 1 | 2", (sbyte)3)]
+    [TestCase("y:int8 = 2 | 2", (sbyte)2)]
+    [TestCase("y:int8 = 1 | 3", (sbyte)3)]
     [TestCase("y = 0xFFFFFFFF | 0x0", (long)0xFFFFFFFF)]
     [TestCase("y = 0xFFFFFFFF | 0xFFFFFFFF", (long)0xFFFFFFFF)]
     [TestCase("y:uint64 = 0xFFFFFFFF_FFFFFFFF | 0xFFFFFFFF_FFFFFFFF", (UInt64)0xFFFFFFFF_FFFFFFFF)]
@@ -98,6 +109,9 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 0xFF | 0xFF", (byte)0xFF)]
     [TestCase("y:uint8 = 0xFF | 0", (byte)0xFF)]
     [TestCase("y:uint8 = 0 | 0xFF", (byte)0xFF)]
+    [TestCase("y:int8 = 0x7F | 0x7F", (sbyte)0x7F)]
+    [TestCase("y:int8 = 0x7F | 0",    (sbyte)0x7F)]
+    [TestCase("y:int8 = 0 | 0x7F",    (sbyte)0x7F)]
     public void ConstantBitOr(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
@@ -129,6 +143,10 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 1 ^ 0", (byte)1)]
     [TestCase("y:uint8 = 1 ^ 1", (byte)0)]
     [TestCase("y:uint8 = 0 ^ 0", (byte)0)]
+    [TestCase("y:int8 = 0 ^ 1", (sbyte)1)]
+    [TestCase("y:int8 = 1 ^ 0", (sbyte)1)]
+    [TestCase("y:int8 = 1 ^ 1", (sbyte)0)]
+    [TestCase("y:int8 = 0 ^ 0", (sbyte)0)]
     [TestCase("y = 0xFFFFFFFF ^ 0x0", (long)0xFFFFFFFF)]
     [TestCase("y = 0xFFFFFFFF ^ 0xFFFFFFFF", (long)0)]
     [TestCase("y:uint64 = 0xFFFFFFFF_FFFFFFFF ^ 0xFFFFFFFF_FFFFFFFF", (UInt64)0)]
@@ -143,6 +161,9 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 0xFF ^ 0xFF", (byte)0)]
     [TestCase("y:uint8 = 0xFF ^ 0", (byte)0xFF)]
     [TestCase("y:uint8 = 0 ^ 0xFF", (byte)0xFF)]
+    [TestCase("y:int8 = 0x7F ^ 0x7F", (sbyte)0)]
+    [TestCase("y:int8 = 0x7F ^ 0",    (sbyte)0x7F)]
+    [TestCase("y:int8 = 0 ^ 0x7F",    (sbyte)0x7F)]
     public void ConstantBitXor(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
@@ -197,6 +218,9 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint16 = ~0xF0F0", (ushort)0xF0F)]
     [TestCase("y:uint8 = ~1", (byte)0xFE)]
     [TestCase("y:uint8 = ~0xF0", (byte)0xF)]
+    [TestCase("y:int8 = ~1",  (sbyte)(-2))]
+    [TestCase("y:int8 = ~-1", (sbyte)0)]
+    [TestCase("y:int8 = ~0x0F", (sbyte)(-16))]
     [TestCase("y = 1 == ~~1", true)]
     [TestCase("y = 0 == ~~0", true)]
     [TestCase("y = -1 == ~~-1", true)]
@@ -231,6 +255,8 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8  = 0xF0<<8",  (byte)0xF0)]               // 8 % 8 = 0
     [TestCase("y:uint8  = 0xFE<<16", (byte)0xFE)]               // 16 % 8 = 0
     [TestCase("y:uint8  = 0x1<<9",   (byte)2)]                  // 9 % 8 = 1
+    [TestCase("y:int8   = 0x1<<8",   (sbyte)1)]                 // 8 % 8 = 0
+    [TestCase("y:int8   = 0x1<<9",   (sbyte)2)]                 // 9 % 8 = 1
     public void BitshiftWraps_AllWidths(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 

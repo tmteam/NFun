@@ -12,6 +12,7 @@ public class InputTypeConvertersTest {
     [TestCase((ushort)2, BaseFunnyType.UInt16)]
     [TestCase((uint)3, BaseFunnyType.UInt32)]
     [TestCase((ulong)4, BaseFunnyType.UInt64)]
+    [TestCase((sbyte)-5, BaseFunnyType.Int8)]
     [TestCase((Int16)1, BaseFunnyType.Int16)]
     [TestCase((int)2, BaseFunnyType.Int32)]
     [TestCase((long)3, BaseFunnyType.Int64)]
@@ -49,6 +50,7 @@ public class InputTypeConvertersTest {
     [TestCase(new UInt16[] { 1, 2, 3 }, BaseFunnyType.UInt16)]
     [TestCase(new UInt32[] { 1, 2, 3 }, BaseFunnyType.UInt32)]
     [TestCase(new UInt64[] { 1, 2, 3 }, BaseFunnyType.UInt64)]
+    [TestCase(new sbyte[] { -1, 2, 3 }, BaseFunnyType.Int8)]
     [TestCase(new Int16[] { 1, 2, 3 }, BaseFunnyType.Int16)]
     [TestCase(new Int32[] { 1, 2, 3 }, BaseFunnyType.Int32)]
     [TestCase(new Int64[] { 1, 2, 3 }, BaseFunnyType.Int64)]
@@ -159,6 +161,7 @@ public class InputTypeConvertersTest {
         AssertCreatesItemInCacheOnce(typeof(ushort), FunnyType.UInt16);
         AssertCreatesItemInCacheOnce(typeof(uint), FunnyType.UInt32);
         AssertCreatesItemInCacheOnce(typeof(ulong), FunnyType.UInt64);
+        AssertCreatesItemInCacheOnce(typeof(sbyte), FunnyType.Int8);
         AssertCreatesItemInCacheOnce(typeof(int), FunnyType.Int32);
         AssertCreatesItemInCacheOnce(typeof(long), FunnyType.Int64);
 

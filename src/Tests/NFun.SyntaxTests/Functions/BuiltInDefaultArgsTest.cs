@@ -120,10 +120,12 @@ public class BuiltInDefaultArgsTest {
     // declared width, then formatted without forced padding.
     [TestCase("y:int=-1\r o=toHexText(y)", "FFFFFFFF")]
     [TestCase("y:int16=-1\r o=toHexText(y)", "FFFF")]
+    [TestCase("y:int8=-1\r o=toHexText(y)", "FF")]
     [TestCase("y:int64=-1\r o=toHexText(y)", "FFFFFFFFFFFFFFFF")]
     [TestCase("y:byte=255\r o=toHexText(y)", "FF")]
     [TestCase("y:int=-1\r o=toBinText(y)", "11111111111111111111111111111111")]
     [TestCase("y:int16=-1\r o=toBinText(y)", "1111111111111111")]
+    [TestCase("y:int8=-1\r o=toBinText(y)", "11111111")]
     public void ToHexBin_PreservesOperandBitWidth(string expr, string expected) =>
         expr.AssertResultHas("o", expected);
 

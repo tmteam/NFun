@@ -26,11 +26,17 @@ public class BitShiftLeftFunction : GenericFunctionBase {
                BaseFunnyType.UInt32 => new UInt32Function(),
                BaseFunnyType.UInt16 => new UInt16Function(),
                BaseFunnyType.UInt8  => new UInt8Function(),
+               BaseFunnyType.Int8   => new Int8Function(),
                BaseFunnyType.Int32  => new Int32Function(),
                BaseFunnyType.Int64  => new Int64Function(),
                BaseFunnyType.Int16  => new Int16Function(),
                _                    => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
            };
+
+    private class Int8Function : FunctionWithTwoArgs {
+        public Int8Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int8, FunnyType.Int8, FunnyType.UInt8) { }
+        public override object Calc(object a, object b) => (sbyte)((sbyte)a << ((byte)b & 0x07));
+    }
 
     private class Int16Function : FunctionWithTwoArgs {
         public Int16Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int16, FunnyType.Int16, FunnyType.UInt8) { }
@@ -94,11 +100,17 @@ public class BitShiftRightFunction : GenericFunctionBase {
                BaseFunnyType.UInt32 => new UInt32Function(),
                BaseFunnyType.UInt16 => new UInt16Function(),
                BaseFunnyType.UInt8  => new UInt8Function(),
+               BaseFunnyType.Int8   => new Int8Function(),
                BaseFunnyType.Int32  => new Int32Function(),
                BaseFunnyType.Int64  => new Int64Function(),
                BaseFunnyType.Int16  => new Int16Function(),
                _                    => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
            };
+
+    private class Int8Function : FunctionWithTwoArgs {
+        public Int8Function() : base(CoreFunNames.BitShiftRight, FunnyType.Int8, FunnyType.Int8, FunnyType.UInt8) { }
+        public override object Calc(object a, object b) => (sbyte)((sbyte)a >> ((byte)b & 0x07));
+    }
 
     private class Int16Function : FunctionWithTwoArgs {
         public Int16Function() : base(CoreFunNames.BitShiftRight, FunnyType.Int16, FunnyType.Int16, FunnyType.UInt8) { }
@@ -168,6 +180,7 @@ public class BitInverseFunction : PureGenericFunctionBase {
         BaseFunnyType.UInt16 => UInt16Function.Instance,
         BaseFunnyType.UInt32 => UInt32Function.Instance,
         BaseFunnyType.UInt64 => UInt64Function.Instance,
+        BaseFunnyType.Int8   => Int8Function.Instance,
         BaseFunnyType.Int16  => Int16Function.Instance,
         BaseFunnyType.Int32  => Int32Function.Instance,
         BaseFunnyType.Int64  => Int64Function.Instance,
@@ -227,6 +240,11 @@ public class BitInverseFunction : PureGenericFunctionBase {
     private class UInt64Function : FunctionWithSingleArg {
         public static readonly UInt64Function Instance = new();
         public override object Calc(object a) => (UInt64)(~(UInt64)a);
+    }
+
+    private class Int8Function : FunctionWithSingleArg {
+        public static readonly Int8Function Instance = new();
+        public override object Calc(object a) => (sbyte)(~(sbyte)a);
     }
 
     private class Int16Function : FunctionWithSingleArg {

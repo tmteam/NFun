@@ -7,10 +7,10 @@ namespace NFun.Functions {
 <#
     //------------------------------------------------------------------------------------------------------------------------------
     //Body
-    var integers = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int16" ,"Int32" ,"Int64" };
-    var numbers  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int16" ,"Int32" ,"Int64","Real" };
-    var arithmetical  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int16" ,"Int32" ,"Int64","Real" };
-    var signedNumber = new[] {"Int16","Int32","Int64","Real"};
+    var integers = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int8" ,"Int16" ,"Int32" ,"Int64" };
+    var numbers  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int8" ,"Int16" ,"Int32" ,"Int64","Real" };
+    var arithmetical  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int8" ,"Int16" ,"Int32" ,"Int64","Real" };
+    var signedNumber = new[] {"Int8" ,"Int16","Int32","Int64","Real"};
     
     WriteTwoArgFunction("DivideInt",integers,"/");
     WriteTwoArgFunction("Remainder",numbers,"%");

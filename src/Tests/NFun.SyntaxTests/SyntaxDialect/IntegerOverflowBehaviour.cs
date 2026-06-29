@@ -64,4 +64,26 @@ public class IntegerOverflowBehaviour {
             Assert.Pass();
         }
     }
+
+    // Negate(MinValue) edge — symmetric across signed widths under both modes.
+    // Int8 added alongside Int16: SignedNumber constraint now admits Int8 as
+    // concrete descendant, so the checked/unchecked dispatch is reachable.
+    [TestCase("x:int8=-128\r y=-x")]
+    [TestCase("x:int16=-32768\r y=-x")]
+    public void Negate_MinValue_Checked_Throws(string expr) {
+        var runtime = Funny.Hardcore.WithDialect(integerOverflow: IntegerOverflow.Checked).Build(expr);
+        try {
+            var result = runtime.Calc();
+            Assert.Fail($"No exception thrown: {result}");
+        } catch (FunnyRuntimeException e) when (e.InnerException is OverflowException) {
+            Assert.Pass();
+        }
+    }
+
+    [TestCase("x:int8=-128\r y=-x",   (sbyte)-128)]
+    [TestCase("x:int16=-32768\r y=-x", (short)-32768)]
+    public void Negate_MinValue_Unchecked_Wraps(string expr, object expected) {
+        var rt = Funny.Hardcore.WithDialect(integerOverflow: IntegerOverflow.Unchecked).Build(expr);
+        Assert.AreEqual(expected, rt.Calc().Get("y"));
+    }
 }
