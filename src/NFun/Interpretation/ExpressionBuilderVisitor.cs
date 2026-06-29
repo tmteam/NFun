@@ -67,16 +67,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     /// <summary>
-    /// Look up a function in the registry, respecting extension separation.
-    /// For piped calls when separation is enabled, looks up with extension prefix first.
+    /// Look up a function in the registry, respecting extension separation. Routes to the
+    /// extension dict on piped calls, the direct dict on bare calls when separation is
+    /// enabled; falls back to the union when separation is disabled.
     /// </summary>
     private IFunctionSignature GetFunctionOrNull(string name, int argCount, bool isPiped) {
-        if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled && isPiped)
-        {
-            // Try extension function first, then fall back to built-in
-            var ext = _functions.GetOrNull(TicSetupVisitor.ExtensionKeyPrefix + name, argCount);
-            if (ext != null) return ext;
-        }
+        if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled)
+            return _functions.GetOrNull(name, argCount, isPiped ? CallStyle.Extension : CallStyle.Direct);
         return _functions.GetOrNull(name, argCount);
     }
 

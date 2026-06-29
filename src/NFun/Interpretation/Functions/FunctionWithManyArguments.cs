@@ -9,12 +9,37 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
     public string Name { get; }
     public FunnyType[] ArgTypes { get; protected set; }
 
+    /// <summary>
+    /// True when the function is reachable only via piped syntax under
+    /// <see cref="ExtensionFunctionsSeparation.Enabled"/>. Defaults to false
+    /// for the legacy constructors; set via the descriptor constructor.
+    /// </summary>
+    public bool IsExtension { get; }
+    /// <summary>
+    /// Derived from <see cref="IsExtension"/>: true → <see cref="CallStyle.Extension"/>,
+    /// false → <see cref="CallStyle.Both"/>.
+    /// </summary>
+    public CallStyle CallStyle => IsExtension ? CallStyle.Extension : CallStyle.Both;
+
     protected FunctionWithManyArguments(string name) => Name = name;
 
     protected FunctionWithManyArguments(string name, FunnyType returnType, params FunnyType[] argTypes) {
         Name = name;
         ArgTypes = argTypes;
         ReturnType = returnType;
+    }
+
+    /// <summary>
+    /// Descriptor-based constructor. Carries IsExtension and optional
+    /// per-arg metadata (defaults, varargs) in one place.
+    /// </summary>
+    protected FunctionWithManyArguments(FunctionSignatureDescription signature) {
+        Name = signature.Name;
+        ArgTypes = signature.InputTypes;
+        ReturnType = signature.OutputType;
+        IsExtension = signature.IsExtension;
+        if (signature.ArgProperties != null)
+            ArgProperties = signature.ArgProperties;
     }
 
     public FunnyType ReturnType { get; protected set; }

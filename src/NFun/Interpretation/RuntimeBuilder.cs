@@ -565,9 +565,10 @@ internal static class RuntimeBuilder {
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Generic {functionSyntaxNode.Id} {funType}");
             //make function prototype
-            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, protoArgTypes, functionSyntaxNode.IsExtension);
+            var effectiveCallStyle = EffectiveCallStyle(functionSyntaxNode.IsExtension, dialect);
+            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, protoArgTypes, effectiveCallStyle);
             //add prototype to dictionary for future use
-            var registryKey = TicSetupVisitor.GetRegistryKey(prototype.Name, prototype.IsExtension, dialect.ExtensionFunctionsSeparation);
+            var registryKey = TicSetupVisitor.GetRegistryKey(prototype.Name, prototype.CallStyle == CallStyle.Extension, dialect.ExtensionFunctionsSeparation);
             functionsRegistry.Add(registryKey, prototype);
             var function =
                 functionSyntaxNode.BuildConcrete(
@@ -589,8 +590,9 @@ internal static class RuntimeBuilder {
             PrecomputeDefaultValues(functionSyntaxNode, typeInferenceResuls, functionsRegistry, dialect, customTypes);
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsRegistry,
-                dialect, namedTypeFieldRegistry);
-            var genRegistryKey = TicSetupVisitor.GetRegistryKey(function.Name, function.IsExtension, dialect.ExtensionFunctionsSeparation);
+                dialect, EffectiveCallStyle(functionSyntaxNode.IsExtension, dialect),
+                namedTypeFieldRegistry);
+            var genRegistryKey = TicSetupVisitor.GetRegistryKey(function.Name, function.CallStyle == CallStyle.Extension, dialect.ExtensionFunctionsSeparation);
             functionsRegistry.Add(genRegistryKey, function);
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
@@ -681,7 +683,7 @@ internal static class RuntimeBuilder {
                 if (overridden != null) pArgTypes = overridden;
             }
 
-            var prototype = new ConcreteUserFunctionPrototype(fn.Id, retType, pArgTypes, fn.IsExtension);
+            var prototype = new ConcreteUserFunctionPrototype(fn.Id, retType, pArgTypes, EffectiveCallStyle(fn.IsExtension, dialect));
             var registryKey = TicSetupVisitor.GetRegistryKey(fn.Id, fn.IsExtension, dialect.ExtensionFunctionsSeparation);
             functionsRegistry.Add(registryKey, prototype);
             prototypes[k] = prototype;
@@ -918,4 +920,17 @@ internal static class RuntimeBuilder {
         foreach (var child in node.Children)
             ApplyTiResultToSubtree(child, results);
     }
+
+    /// <summary>
+    /// Maps user-function syntax (<c>x.f()</c> vs <c>f(x)</c>) to its dialect-effective
+    /// <see cref="CallStyle"/> at registration time. Under
+    /// <see cref="ExtensionFunctionsSeparation.Disabled"/> (default) both syntaxes are
+    /// aliases — register as <see cref="CallStyle.Both"/>. Under
+    /// <see cref="ExtensionFunctionsSeparation.Enabled"/> the syntax restricts the
+    /// reachable call site — Extension or Direct accordingly.
+    /// </summary>
+    private static CallStyle EffectiveCallStyle(bool isExtensionSyntax, DialectSettings dialect)
+        => dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
+            ? (isExtensionSyntax ? CallStyle.Extension : CallStyle.Direct)
+            : CallStyle.Both;
 }

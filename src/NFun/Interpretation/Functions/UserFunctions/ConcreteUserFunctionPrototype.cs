@@ -3,14 +3,16 @@ using NFun.Exceptions;
 using NFun.Interpretation.Nodes;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions; 
+namespace NFun.Interpretation.Functions;
 
 internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
-    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes, bool isExtension = false) : base(
+    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes, CallStyle callStyle = CallStyle.Both) : base(
         name,
-        returnType, argTypes) { IsExtension = isExtension; }
+        returnType, argTypes) {
+        CallStyle = callStyle;
+    }
 
-    public bool IsExtension { get; }
+    public CallStyle CallStyle { get; }
     public bool IsUserDefined => true;
 
     private ConcreteUserFunction _function;
@@ -32,13 +34,13 @@ internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
         var userFunction = context.GetUserFunctionClone(this);
         if (userFunction != null)
             return userFunction;
-        var clone = new ConcreteUserFunctionPrototype(Name, ReturnType, ArgTypes, IsExtension);
+        var clone = new ConcreteUserFunctionPrototype(Name, ReturnType, ArgTypes, CallStyle);
         context.AddUserFunctionClone(this, clone);
         var originClone = _function.Clone(context);
         clone.SetActual((ConcreteUserFunction)originClone);
         return clone;
     }
-    
+
     public override string ToString() => $"FUN-user-prototype {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
 
 }

@@ -10,6 +10,12 @@ public interface IFunctionRegistry {
     IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount);
     IFunctionSignature GetOrNull(string name, int argCount);
 
+    /// <summary>
+    /// Look up restricted to a specific call style (Direct = bare-call only,
+    /// Extension = piped-call only). The "Both" namespace is searched in either case.
+    /// </summary>
+    IFunctionSignature GetOrNull(string name, int argCount, CallStyle callStyle) => GetOrNull(name, argCount);
+
     /// <summary>Returns true if any function with the given name exists at any arity.</summary>
     bool ContainsName(string name) => false;
 
@@ -19,6 +25,13 @@ public interface IFunctionRegistry {
     /// </summary>
     IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames) =>
         FunctionRegistryHelper.DefaultFindOrNull(this, name, positionalArgCount, namedArgNames);
+
+    /// <summary>
+    /// Same as <see cref="FindOrNull(string,int,string[])"/> but restricted to the given call style.
+    /// Used by extension-separation lookup so the fallback path doesn't leak across styles.
+    /// </summary>
+    IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames, CallStyle callStyle) =>
+        FindOrNull(name, positionalArgCount, namedArgNames);
 }
 
 /// <summary>
@@ -190,36 +203,55 @@ internal static class FunctionRegistryHelper {
 public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
     public ImmutableFunctionRegistry(IConcreteFunction[] concretes, GenericFunctionBase[] generics)
     {
-        _registry = new Dictionary<string, OverloadSet>(concretes.Length + generics.Length);
+        _direct = new Dictionary<string, OverloadSet>(concretes.Length + generics.Length);
+        _extension = new Dictionary<string, OverloadSet>(concretes.Length + generics.Length);
         foreach (var concrete in concretes) TryAdd(concrete);
         foreach (var generic in generics) TryAdd(generic);
     }
 
-    private ImmutableFunctionRegistry(Dictionary<string, OverloadSet> registry) =>
-        _registry = registry;
+    private ImmutableFunctionRegistry(
+        Dictionary<string, OverloadSet> direct,
+        Dictionary<string, OverloadSet> extension) {
+        _direct = direct;
+        _extension = extension;
+    }
 
-    private readonly Dictionary<string, OverloadSet> _registry;
+    private readonly Dictionary<string, OverloadSet> _direct;
+    private readonly Dictionary<string, OverloadSet> _extension;
 
     public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
         //code used only in error handling. No need to optimize.
         var lowerName = name.ToLower();
         var results = new List<IFunctionSignature>();
-        foreach (var (key, set) in _registry)
-        {
+        foreach (var (key, set) in _direct)
             if (key.ToLower() == lowerName)
             {
                 var sig = set.GetByArity(argCount);
-                if (sig != null)
-                    results.Add(sig);
+                if (sig != null) results.Add(sig);
             }
-        }
+        foreach (var (key, set) in _extension)
+            if (key.ToLower() == lowerName)
+            {
+                var sig = set.GetByArity(argCount);
+                if (sig != null && !results.Contains(sig)) results.Add(sig);
+            }
         return results;
     }
 
     public IFunctionSignature GetOrNull(string name, int argCount) =>
-        _registry.TryGetValue(name, out var set) ? set.GetByArity(argCount) : null;
+        // Search direct first, then extension. Functions with CallStyle.Both live in
+        // both; the priority doesn't matter since the same instance is returned.
+        (_direct.TryGetValue(name, out var dset) ? dset.GetByArity(argCount) : null)
+        ?? (_extension.TryGetValue(name, out var eset) ? eset.GetByArity(argCount) : null);
 
-    public bool ContainsName(string name) => _registry.ContainsKey(name);
+    public IFunctionSignature GetOrNull(string name, int argCount, CallStyle callStyle) {
+        if (callStyle == CallStyle.Extension)
+            return _extension.TryGetValue(name, out var eset) ? eset.GetByArity(argCount) : null;
+        // Direct or Both — direct dict.
+        return _direct.TryGetValue(name, out var dset) ? dset.GetByArity(argCount) : null;
+    }
+
+    public bool ContainsName(string name) => _direct.ContainsKey(name) || _extension.ContainsKey(name);
 
     public IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames) {
         var hasNamed = namedArgNames != null && namedArgNames.Length > 0;
@@ -233,8 +265,33 @@ public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
                 return exact;
         }
 
-        // Search overloads for match with defaults/params
-        if (_registry.TryGetValue(name, out var set))
+        // Search overloads (direct first, then extension) for match with defaults/params.
+        if (_direct.TryGetValue(name, out var dset))
+        {
+            var m = FunctionRegistryHelper.FindAmongOverloads(
+                dset.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
+            if (m != null) return m;
+        }
+        if (_extension.TryGetValue(name, out var eset))
+            return FunctionRegistryHelper.FindAmongOverloads(
+                eset.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
+        return null;
+    }
+
+    public IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames, CallStyle callStyle) {
+        var hasNamed = namedArgNames != null && namedArgNames.Length > 0;
+
+        var totalArgs = positionalArgCount + (hasNamed ? namedArgNames.Length : 0);
+        var exact = GetOrNull(name, totalArgs, callStyle);
+        if (exact != null)
+        {
+            if (!hasNamed) return exact;
+            if (FunctionRegistryHelper.HasMatchingArgProperties(exact, positionalArgCount, namedArgNames))
+                return exact;
+        }
+
+        var dict = callStyle == CallStyle.Extension ? _extension : _direct;
+        if (dict.TryGetValue(name, out var set))
             return FunctionRegistryHelper.FindAmongOverloads(
                 set.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
         return null;
@@ -243,10 +300,11 @@ public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
     public ImmutableFunctionRegistry CloneWith(params IFunctionSignature[] functions) {
         if (functions.Length == 0)
             return this;
-        var newRegistry = new Dictionary<string, OverloadSet>(_registry.Count, StringComparer.OrdinalIgnoreCase);
-        foreach (var (key, set) in _registry)
-            newRegistry[key] = set.Clone();
-        var dic = new ImmutableFunctionRegistry(newRegistry);
+        var newDirect = new Dictionary<string, OverloadSet>(_direct.Count);
+        foreach (var (key, set) in _direct) newDirect[key] = set.Clone();
+        var newExt = new Dictionary<string, OverloadSet>(_extension.Count);
+        foreach (var (key, set) in _extension) newExt[key] = set.Clone();
+        var dic = new ImmutableFunctionRegistry(newDirect, newExt);
         foreach (var function in functions)
         {
             if (!dic.TryAdd(function))
@@ -257,11 +315,21 @@ public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
     }
 
     private bool TryAdd(IFunctionSignature function) {
-        if (!_registry.TryGetValue(function.Name, out var set))
+        bool ok = true;
+        var cs = function.CallStyle;
+        if (cs == CallStyle.Direct || cs == CallStyle.Both)
+            ok &= TryAddTo(_direct, function);
+        if (cs == CallStyle.Extension || cs == CallStyle.Both)
+            ok &= TryAddTo(_extension, function);
+        return ok;
+    }
+
+    private static bool TryAddTo(Dictionary<string, OverloadSet> dict, IFunctionSignature function) {
+        if (!dict.TryGetValue(function.Name, out var set))
             set = new OverloadSet();
         if (!set.TryAdd(function))
             return false;
-        _registry[function.Name] = set;
+        dict[function.Name] = set;
         return true;
     }
 }
@@ -270,31 +338,37 @@ public sealed class ImmutableFunctionRegistry : IFunctionRegistry {
 public sealed class ScopeFunctionRegistry : IFunctionRegistry {
     public ScopeFunctionRegistry(IFunctionRegistry origin) {
         _origin = origin;
-        _local = new();
+        _localDirect = new();
+        _localExtension = new();
     }
 
     public ScopeFunctionRegistry(IFunctionRegistry origin, int scopeCapacity)
     {
         _origin = origin;
-        _local = new(scopeCapacity);
+        _localDirect = new(scopeCapacity);
+        _localExtension = new(scopeCapacity);
     }
 
     private readonly IFunctionRegistry _origin;
-    private readonly Dictionary<string, OverloadSet> _local;
+    private readonly Dictionary<string, OverloadSet> _localDirect;
+    private readonly Dictionary<string, OverloadSet> _localExtension;
 
     public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
         //code used only in error handling. No need to optimize.
         var lowerName = name.ToLower();
         var results = new List<IFunctionSignature>();
-        foreach (var (key, set) in _local)
-        {
+        foreach (var (key, set) in _localDirect)
             if (key.ToLower() == lowerName)
             {
                 var sig = set.GetByArity(argCount);
-                if (sig != null)
-                    results.Add(sig);
+                if (sig != null) results.Add(sig);
             }
-        }
+        foreach (var (key, set) in _localExtension)
+            if (key.ToLower() == lowerName)
+            {
+                var sig = set.GetByArity(argCount);
+                if (sig != null && !results.Contains(sig)) results.Add(sig);
+            }
 
         if (results.Any())
             return results;
@@ -303,54 +377,109 @@ public sealed class ScopeFunctionRegistry : IFunctionRegistry {
     }
 
     public IFunctionSignature GetOrNull(string name, int argCount) {
-        if (_local.TryGetValue(name, out var set))
+        var local = (_localDirect.TryGetValue(name, out var dset) ? dset.GetByArity(argCount) : null)
+                 ?? (_localExtension.TryGetValue(name, out var eset) ? eset.GetByArity(argCount) : null);
+        return local ?? _origin.GetOrNull(name, argCount);
+    }
+
+    public IFunctionSignature GetOrNull(string name, int argCount, CallStyle callStyle) {
+        if (callStyle == CallStyle.Extension)
         {
-            var sig = set.GetByArity(argCount);
-            if (sig != null) return sig;
+            var local = _localExtension.TryGetValue(name, out var eset) ? eset.GetByArity(argCount) : null;
+            return local ?? _origin.GetOrNull(name, argCount, callStyle);
         }
-        return _origin.GetOrNull(name, argCount);
+        {
+            var local = _localDirect.TryGetValue(name, out var dset) ? dset.GetByArity(argCount) : null;
+            return local ?? _origin.GetOrNull(name, argCount, callStyle);
+        }
     }
 
     public bool ContainsName(string name) =>
-        _local.ContainsKey(name) || _origin.ContainsName(name);
+        _localDirect.ContainsKey(name) || _localExtension.ContainsKey(name) || _origin.ContainsName(name);
 
     public IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames) {
         var hasNamed = namedArgNames != null && namedArgNames.Length > 0;
 
         var totalArgs = positionalArgCount + (hasNamed ? namedArgNames.Length : 0);
-        if (_local.TryGetValue(name, out var localSet))
+        var local = (_localDirect.TryGetValue(name, out var dset) ? dset.GetByArity(totalArgs) : null)
+                 ?? (_localExtension.TryGetValue(name, out var eset) ? eset.GetByArity(totalArgs) : null);
+        if (local != null)
         {
-            var localExact = localSet.GetByArity(totalArgs);
-            if (localExact != null)
-            {
-                if (!hasNamed) return localExact;
-                if (FunctionRegistryHelper.HasMatchingArgProperties(localExact, positionalArgCount, namedArgNames))
-                    return localExact;
-            }
+            if (!hasNamed) return local;
+            if (FunctionRegistryHelper.HasMatchingArgProperties(local, positionalArgCount, namedArgNames))
+                return local;
+        }
 
-            // Search local overloads for match with defaults/params
+        // Search local overloads for match with defaults/params
+        if (_localDirect.TryGetValue(name, out var dset2))
+        {
             var match = FunctionRegistryHelper.FindAmongOverloads(
-                localSet.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
-            if (match != null)
-                return match;
+                dset2.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
+            if (match != null) return match;
+        }
+        if (_localExtension.TryGetValue(name, out var eset2))
+        {
+            var match = FunctionRegistryHelper.FindAmongOverloads(
+                eset2.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
+            if (match != null) return match;
         }
 
         return _origin.FindOrNull(name, positionalArgCount, namedArgNames);
     }
 
-    public void Add(IFunctionSignature function) => Add(function.Name, function);
+    public IFunctionSignature FindOrNull(string name, int positionalArgCount, string[] namedArgNames, CallStyle callStyle) {
+        var hasNamed = namedArgNames != null && namedArgNames.Length > 0;
+        var totalArgs = positionalArgCount + (hasNamed ? namedArgNames.Length : 0);
+        var localDict = callStyle == CallStyle.Extension ? _localExtension : _localDirect;
+        IFunctionSignature local = localDict.TryGetValue(name, out var lset) ? lset.GetByArity(totalArgs) : null;
+        if (local != null)
+        {
+            if (!hasNamed) return local;
+            if (FunctionRegistryHelper.HasMatchingArgProperties(local, positionalArgCount, namedArgNames))
+                return local;
+        }
+        if (localDict.TryGetValue(name, out var lset2))
+        {
+            var match = FunctionRegistryHelper.FindAmongOverloads(
+                lset2.ToList(), positionalArgCount, namedArgNames ?? Array.Empty<string>());
+            if (match != null) return match;
+        }
+        return _origin.FindOrNull(name, positionalArgCount, namedArgNames, callStyle);
+    }
+
+    public void Add(IFunctionSignature function) {
+        if (function.CallStyle == CallStyle.Direct || function.CallStyle == CallStyle.Both)
+            AddTo(_localDirect, function.Name, function);
+        if (function.CallStyle == CallStyle.Extension || function.CallStyle == CallStyle.Both)
+            AddTo(_localExtension, function.Name, function);
+    }
 
     /// <summary>
-    /// Add a function under a specific registry key (may differ from function.Name for extension functions).
+    /// Add a function under a specific registry key (may differ from function.Name for extension functions
+    /// when the caller uses the legacy <c>.</c>-prefixed key). The prefix is stripped and the function
+    /// placed into the appropriate physical dictionary based on its <see cref="CallStyle"/>.
     /// </summary>
     public void Add(string registryKey, IFunctionSignature function) {
-        if (!_local.TryGetValue(registryKey, out var set))
+        // Legacy prefix handling: ".f" goes to extension dict under bare name, "f" to direct dict.
+        // New callers should use Add(function) — the prefix path stays for backward compat.
+        string bareName = registryKey.StartsWith('.') ? registryKey.Substring(1) : registryKey;
+        bool routeToExtension = registryKey.StartsWith('.') || function.CallStyle == CallStyle.Extension;
+        bool routeToDirect = !registryKey.StartsWith('.')
+            && (function.CallStyle == CallStyle.Direct || function.CallStyle == CallStyle.Both);
+        if (routeToDirect)
+            AddTo(_localDirect, bareName, function);
+        if (routeToExtension || function.CallStyle == CallStyle.Both)
+            AddTo(_localExtension, bareName, function);
+    }
+
+    private static void AddTo(Dictionary<string, OverloadSet> dict, string key, IFunctionSignature function) {
+        if (!dict.TryGetValue(key, out var set))
             set = new OverloadSet();
 #if DEBUG
         if (set.GetByArity(function.ArgTypes.Length) != null)
-            AssertChecks.Panic($"Function overload {registryKey}/{function.ArgTypes.Length} already exists in function map");
+            AssertChecks.Panic($"Function overload {key}/{function.ArgTypes.Length} already exists in function map");
 #endif
         set.TryAdd(function);
-        _local[registryKey] = set;
+        dict[key] = set;
     }
 }

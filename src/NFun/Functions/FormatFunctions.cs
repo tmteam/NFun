@@ -15,18 +15,17 @@ namespace NFun.Functions;
 /// toNumText(value:real, decimals:int=2, minDigits:int=0, thousands:bool=false, forceZeros:bool=true) → text
 /// </summary>
 public class ToNumTextFunction : FunctionWithManyArguments {
-    public ToNumTextFunction() : base(
-        CoreFunNames.ToNumText,
-        FunnyType.Text,
-        FunnyType.Real, FunnyType.Int32, FunnyType.Int32, FunnyType.Bool, FunnyType.Bool) {
-        ArgProperties = new[] {
+    public ToNumTextFunction() : base(new FunctionSignatureDescription(
+        name: CoreFunNames.ToNumText,
+        outputType: FunnyType.Text,
+        inputTypes: new[] { FunnyType.Real, FunnyType.Int32, FunnyType.Int32, FunnyType.Bool, FunnyType.Bool },
+        argProperties: new[] {
             new FunArgProperty { Name = "value" },
             new FunArgProperty { Name = "decimals", HasDefault = true, DefaultValue = 2 },
             new FunArgProperty { Name = "minDigits", HasDefault = true, DefaultValue = 0 },
             new FunArgProperty { Name = "thousands", HasDefault = true, DefaultValue = false },
             new FunArgProperty { Name = "forceZeros", HasDefault = true, DefaultValue = true },
-        };
-    }
+        })) { }
 
     public override object Calc(object[] args) {
         var value = Convert.ToDouble(args[0]);

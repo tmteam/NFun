@@ -7,6 +7,8 @@ public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase {
     protected GenericFunctionWithSingleArgument(string name, FunnyType returnType, params FunnyType[] argTypes) : base(
         name, returnType, argTypes) { }
 
+    protected GenericFunctionWithSingleArgument(FunctionSignatureDescription signature) : base(signature) { }
+
     protected abstract object Calc(object a);
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) =>

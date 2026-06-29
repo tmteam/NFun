@@ -17,6 +17,8 @@ public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
         name,
         constrains, returnType, argTypes) { }
 
+    protected GenericFunctionWithTwoArguments(FunctionSignatureDescription signature) : base(signature) { }
+
     protected override object Calc(object[] args) => Calc(args[0], args[1]);
 
     protected abstract object Calc(object a, object b);

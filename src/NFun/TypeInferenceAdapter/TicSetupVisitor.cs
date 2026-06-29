@@ -847,34 +847,29 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
             && node.IsPipeForward)
         {
-            // Piped call with separation: look up extension function first, then fall back to built-in.
-            // Extension user functions are stored with "." prefix to avoid name collision.
-            signature = _dictionary.GetOrNull(ExtensionKeyPrefix + node.Id, allArgs.Length)
-                     ?? _dictionary.GetOrNull(node.Id, allArgs.Length);
-            // If we found a regular user function via the second lookup, reject it
-            if (signature != null && signature.IsUserDefined && !signature.IsExtension)
-                signature = null;
+            // Piped call: search the extension dict — functions registered as CallStyle.Both
+            // (built-ins, plus user functions when separation is Disabled) also live there.
+            signature = _dictionary.GetOrNull(node.Id, allArgs.Length, CallStyle.Extension);
         }
         else if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
                  && !node.IsPipeForward && !node.IsOperator)
         {
-            // Direct call with separation: only find non-extension functions (normal lookup, no prefix)
-            signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
-            // Extension functions won't be found here (they're stored with "." prefix).
-            // But double-check in case it somehow exists:
-            if (signature != null && signature.IsExtension)
-                signature = null;
+            // Direct call: search the direct dict only.
+            signature = _dictionary.GetOrNull(node.Id, allArgs.Length, CallStyle.Direct);
         }
         else
         {
-            // No separation or operator: normal lookup
+            // No separation or operator: search across both dicts (legacy GetOrNull).
             signature = _dictionary.GetOrNull(node.Id, allArgs.Length);
         }
 
         // Fallback: built-in with default args, called with fewer positional args
         if (signature == null && !node.IsOperator)
         {
-            var found = _dictionary.FindOrNull(node.Id, allArgs.Length, Array.Empty<string>());
+            var found = _dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
+                ? _dictionary.FindOrNull(node.Id, allArgs.Length, Array.Empty<string>(),
+                    node.IsPipeForward ? CallStyle.Extension : CallStyle.Direct)
+                : _dictionary.FindOrNull(node.Id, allArgs.Length, Array.Empty<string>());
             if (found?.ArgProperties != null)
             {
                 var props = found.ArgProperties;

@@ -20,7 +20,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
 
     private readonly IReadOnlyList<ConstraintsState> _constrainsMap;
     public int BuiltCount { get; private set; }
-    public bool IsExtension => _syntaxNode.IsExtension;
+    public CallStyle CallStyle { get; }
     public bool IsUserDefined => true;
 
     internal static GenericUserFunction Create(
@@ -28,6 +28,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         UserFunctionDefinitionSyntaxNode syntaxNode,
         IFunctionRegistry dictionary,
         DialectSettings dialect,
+        CallStyle callStyle,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null) {
         var ticGenerics = typeInferenceResults.Generics;
 
@@ -122,6 +123,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
             extendedGenerics,
             structGenericMap,
             dialect,
+            callStyle,
             namedTypeFieldRegistry);
         return function;
     }
@@ -251,6 +253,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         IReadOnlyList<ConstraintsState> constrainsMap,
         IReadOnlyList<(StateStruct, ConstraintsState)> structGenericMap,
         DialectSettings dialect,
+        CallStyle callStyle,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null) : base(syntaxNode.Id, constrains, returnType, argTypes) {
         _typeInferenceResults = typeInferenceResults;
         _constrainsMap = constrainsMap;
@@ -259,6 +262,7 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
         _dictionary = dictionary;
         _dialect = dialect;
         _namedTypeFieldRegistry = namedTypeFieldRegistry;
+        CallStyle = callStyle;
     }
 
     readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new();

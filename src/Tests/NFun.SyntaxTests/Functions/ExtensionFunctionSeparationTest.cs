@@ -134,4 +134,73 @@ public class ExtensionFunctionSeparationTest {
     }
 
     #endregion
+
+    #region LINQ built-ins marked IExtensionFunction — strict under Enabled
+
+    // Built-ins tagged via IExtensionFunction (count, map, filter, first, last, sort, etc.)
+    // stay bi-callable under Disabled (backward-compat) but become piped-only under Enabled.
+
+    [Test]
+    public void Disabled_BuiltinCountDirect_Works() =>
+        "y = count([1,2,3])".AssertReturns("y", 3);
+
+    [Test]
+    public void Disabled_BuiltinCountPiped_Works() =>
+        "y = [1,2,3].count()".AssertReturns("y", 3);
+
+    [Test]
+    public void Enabled_BuiltinCountDirect_Rejected() {
+        Assert.That(() =>
+            "y = count([1,2,3])"
+                .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled),
+            Throws.InstanceOf<Exception>());
+    }
+
+    [Test]
+    public void Enabled_BuiltinMapDirect_Rejected() {
+        Assert.That(() =>
+            "y = map([1,2,3], rule it*2)"
+                .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled),
+            Throws.InstanceOf<Exception>());
+    }
+
+    [Test]
+    public void Enabled_BuiltinFilterDirect_Rejected() {
+        Assert.That(() =>
+            "y = filter([1,2,3], rule it > 1)"
+                .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled),
+            Throws.InstanceOf<Exception>());
+    }
+
+    [Test]
+    public void Enabled_BuiltinFirstDirect_Rejected() {
+        Assert.That(() =>
+            "y = first([1,2,3])"
+                .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled),
+            Throws.InstanceOf<Exception>());
+    }
+
+    [Test]
+    public void Enabled_BuiltinMapPiped_Works() {
+        var result = "y = [1,2,3].map(rule it*2)"
+            .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled);
+        result.AssertReturns("y", new[] { 2, 4, 6 });
+    }
+
+    [Test]
+    public void Enabled_BuiltinFilterPiped_Works() {
+        var result = "y = [1,2,3].filter(rule it > 1)"
+            .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled);
+        result.AssertReturns("y", new[] { 2, 3 });
+    }
+
+    [Test]
+    public void Enabled_NonLinqBuiltin_RangeStillDirect() {
+        // Factories (range, abs, etc.) are NOT IExtensionFunction — still callable directly under Enabled.
+        var result = "y = range(1, 3)"
+            .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled);
+        result.AssertReturns("y", new[] { 1, 2, 3 });
+    }
+
+    #endregion
 }

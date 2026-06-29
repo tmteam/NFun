@@ -11,6 +11,21 @@ public abstract class GenericFunctionBase : IGenericFunction {
     private readonly int _maxGenericId;
     public string Name { get; }
     public FunnyType[] ArgTypes { get; }
+    /// <summary>
+    /// True when the function is reachable only via piped syntax under
+    /// <see cref="ExtensionFunctionsSeparation.Enabled"/>. Set via the
+    /// <see cref="FunctionSignatureDescription"/> constructor; defaults to
+    /// false for the legacy constructors (bi-callable).
+    /// </summary>
+    public bool IsExtension { get; }
+
+    /// <summary>
+    /// Maps <see cref="IsExtension"/> to <see cref="CallStyle"/>:
+    /// true → <see cref="CallStyle.Extension"/>; false → <see cref="CallStyle.Both"/>.
+    /// Built-ins never declare <see cref="CallStyle.Direct"/> intrinsically —
+    /// that's reserved for user-defined functions tagged by RuntimeBuilder.
+    /// </summary>
+    public CallStyle CallStyle => IsExtension ? CallStyle.Extension : CallStyle.Both;
 
     protected GenericFunctionBase(
         string name, FunnyType returnType,
@@ -57,6 +72,35 @@ public abstract class GenericFunctionBase : IGenericFunction {
                            .Max(i => i.SearchMaxGenericTypeId());
         if (!maxGenericId.HasValue)
             throw new InvalidOperationException($"Type {name} has wrong generic definition");
+    }
+
+    /// <summary>
+    /// Descriptor-based constructor. Carries <see cref="FunctionSignatureDescription.IsExtension"/>
+    /// to drive <see cref="CallStyle"/>, plus optional explicit
+    /// <see cref="FunctionSignatureDescription.Constrains"/>. Future signature
+    /// metadata (vararg, etc.) plugs in via the descriptor without churning
+    /// every concrete constructor.
+    /// </summary>
+    protected GenericFunctionBase(FunctionSignatureDescription signature) {
+        Name = signature.Name;
+        ArgTypes = signature.InputTypes;
+        ReturnType = signature.OutputType;
+        IsExtension = signature.IsExtension;
+        var maxGenericId = signature.InputTypes
+                           .Append(signature.OutputType)
+                           .Max(i => i.SearchMaxGenericTypeId());
+        if (!maxGenericId.HasValue)
+            throw new InvalidOperationException($"Type {signature.Name} has wrong generic definition");
+        if (signature.Constrains != null) {
+            Constrains = signature.Constrains;
+        } else {
+            Constrains = new GenericConstrains[maxGenericId.Value + 1];
+            for (int i = 0; i <= maxGenericId; i++)
+                Constrains[i] = GenericConstrains.Any;
+        }
+        _maxGenericId = maxGenericId.Value;
+        if (signature.ArgProperties != null)
+            ArgProperties = signature.ArgProperties;
     }
     
     public FunnyType ReturnType { get; }
