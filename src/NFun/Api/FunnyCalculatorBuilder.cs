@@ -158,7 +158,7 @@ public class FunnyCalculatorBuilder {
             constants = cl;
         }
 
-        var dic = BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour);
+        IFunctionRegistry dic = BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour, _dialect.ExtensionFunctionsSeparation);
 
         if (_customFunctionFactories.Any())
             dic = dic.CloneWith(_customFunctionFactories.Select(f=>f(_dialect)).ToArray());

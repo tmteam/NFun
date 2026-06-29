@@ -31,7 +31,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         GraphBuilder ticGraph,
         TypeInferenceResultsBuilder results, TypeBehaviour typeBehaviour) => SetupTicForBody(
         tree, ticGraph,
-        BaseFunctions.GetFunctions(typeBehaviour),
+        BaseFunctions.GetFunctions(typeBehaviour, Dialects.Origin.ExtensionFunctionsSeparation),
         EmptyConstantList.Instance,
         EmptyAprioriTypesMap.Instance,
         EmptyCustomTypeRegistry.Instance,

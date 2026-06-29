@@ -218,7 +218,11 @@ internal static class RuntimeBuilder {
         {
             userFunctions = new IUserFunction[totalFunctions];
 
-            var scopeFunctionDictionary = new ScopeFunctionRegistry(functionsRegistry, totalFunctions);
+            // Scope variant mirrors the origin's storage shape: Single-Dict origin → Single-Dict scope,
+            // Dual-Dict origin → Dual-Dict scope. Keeps per-mode invariants consistent.
+            IScopeFunctionRegistry scopeFunctionDictionary = functionsRegistry is DualDictFunctionRegistry
+                ? new DualDictScopeFunctionRegistry(functionsRegistry, totalFunctions)
+                : (IScopeFunctionRegistry)new SingleDictScopeFunctionRegistry(functionsRegistry, totalFunctions);
             functionRegistry = scopeFunctionDictionary;
 
             int builtCount = 0;
@@ -454,7 +458,7 @@ internal static class RuntimeBuilder {
     private static IUserFunction BuildFunctionAndPutItToDictionary(
         UserFunctionDefinitionSyntaxNode functionSyntaxNode,
         IConstantList constants,
-        ScopeFunctionRegistry functionsRegistry,
+        IScopeFunctionRegistry functionsRegistry,
         DialectSettings dialect,
         ICustomTypeRegistry customTypes = null,
         INamedTypeFieldRegistry namedTypeFieldRegistry = null,
@@ -611,7 +615,7 @@ internal static class RuntimeBuilder {
     private static IUserFunction[] BuildMutualRecursiveGroup(
         UserFunctionDefinitionSyntaxNode[] group,
         IConstantList constants,
-        ScopeFunctionRegistry functionsRegistry,
+        IScopeFunctionRegistry functionsRegistry,
         DialectSettings dialect,
         ICustomTypeRegistry customTypes,
         INamedTypeFieldRegistry namedTypeFieldRegistry,

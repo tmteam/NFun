@@ -11,13 +11,13 @@ public class FunctionRegistryTest {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static ImmutableFunctionRegistry CreateDict(params StubFunction[] funcs) =>
+    private static SingleDictFunctionRegistry CreateDict(params StubFunction[] funcs) =>
         new(funcs, Array.Empty<GenericFunctionBase>());
 
-    private static ImmutableFunctionRegistry CreateDictFromConcretes(params IConcreteFunction[] funcs) =>
+    private static SingleDictFunctionRegistry CreateDictFromConcretes(params IConcreteFunction[] funcs) =>
         new(funcs, Array.Empty<GenericFunctionBase>());
 
-    // ── ImmutableFunctionRegistry: GetOrNull ──────────────────────────────
+    // ── SingleDictFunctionRegistry: GetOrNull ──────────────────────────────
 
     [Test]
     public void GetOrNull_ExistingFunction_ReturnsIt() {
@@ -205,7 +205,7 @@ public class FunctionRegistryTest {
     public void Scope_GetOrNull_DelegatesToOrigin() {
         var f = new StubFunction("foo", 1);
         var origin = CreateDict(f);
-        var scope = new ScopeFunctionRegistry(origin);
+        var scope = new SingleDictScopeFunctionRegistry(origin);
 
         Assert.AreEqual(f, scope.GetOrNull("foo", 1));
     }
@@ -214,7 +214,7 @@ public class FunctionRegistryTest {
     public void Scope_GetOrNull_LocalOverridesOrigin() {
         var f1 = new StubFunction("foo", 1);
         var origin = CreateDict(f1);
-        var scope = new ScopeFunctionRegistry(origin);
+        var scope = new SingleDictScopeFunctionRegistry(origin);
         var f2 = new StubFunction("foo", 1);
         scope.Add(f2);
 
@@ -225,7 +225,7 @@ public class FunctionRegistryTest {
     public void Scope_GetOrNull_LocalAndOriginCoexist() {
         var f1 = new StubFunction("foo", 1);
         var origin = CreateDict(f1);
-        var scope = new ScopeFunctionRegistry(origin);
+        var scope = new SingleDictScopeFunctionRegistry(origin);
         var f2 = new StubFunction("bar", 2);
         scope.Add(f2);
 
@@ -237,7 +237,7 @@ public class FunctionRegistryTest {
     public void Scope_FindOrNull_DelegatesToOrigin() {
         var f = new StubFunction("max", 2, "a", "b");
         var origin = CreateDict(f);
-        var scope = new ScopeFunctionRegistry(origin);
+        var scope = new SingleDictScopeFunctionRegistry(origin);
 
         Assert.AreEqual(f, scope.FindOrNull("max", 0, new[] { "a", "b" }));
     }
@@ -246,7 +246,7 @@ public class FunctionRegistryTest {
     public void Scope_FindOrNull_PrefersLocal() {
         var f1 = new StubFunction("max", 2, "a", "b");
         var origin = CreateDict(f1);
-        var scope = new ScopeFunctionRegistry(origin);
+        var scope = new SingleDictScopeFunctionRegistry(origin);
         var f2 = new StubFunction("max", 2, "x", "y");
         scope.Add(f2);
 
@@ -257,7 +257,7 @@ public class FunctionRegistryTest {
     public void Scope_FindOrNull_FallsBackToOrigin() {
         var f1 = new StubFunction("max", 2, "a", "b");
         var origin = CreateDict(f1);
-        var scope = new ScopeFunctionRegistry(origin);
+        var scope = new SingleDictScopeFunctionRegistry(origin);
         var f2 = new StubFunction("min", 2, "x", "y");
         scope.Add(f2);
 

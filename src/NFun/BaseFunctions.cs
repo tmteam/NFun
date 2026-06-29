@@ -7,10 +7,20 @@ using NFun.Types;
 namespace NFun; 
 
 internal static class BaseFunctions {
-    internal static ImmutableFunctionRegistry GetFunctions(TypeBehaviour typeBehaviour) 
-        => typeBehaviour.RealTypeSelect(DefaultDoubleFunctions,DefaultDecimalFunctions);
-    private static ImmutableFunctionRegistry DefaultDoubleFunctions { get; }
-    private static ImmutableFunctionRegistry DefaultDecimalFunctions { get; }
+    /// <summary>
+    /// Returns the appropriate registry impl per dialect: pipe-independent single-dict
+    /// under <see cref="ExtensionFunctionsSeparation.Disabled"/>, pipe-aware dual-dict
+    /// under <see cref="ExtensionFunctionsSeparation.Enabled"/>.
+    /// </summary>
+    internal static IFunctionRegistry GetFunctions(TypeBehaviour typeBehaviour, ExtensionFunctionsSeparation separation)
+        => separation == ExtensionFunctionsSeparation.Enabled
+            ? (IFunctionRegistry)typeBehaviour.RealTypeSelect(DualDoubleFunctions, DualDecimalFunctions)
+            : typeBehaviour.RealTypeSelect(SingleDoubleFunctions, SingleDecimalFunctions);
+
+    private static SingleDictFunctionRegistry SingleDoubleFunctions { get; }
+    private static SingleDictFunctionRegistry SingleDecimalFunctions { get; }
+    private static DualDictFunctionRegistry DualDoubleFunctions { get; }
+    private static DualDictFunctionRegistry DualDecimalFunctions { get; }
     private static GenericFunctionBase[] GenericFunctions { get; }
     private static IConcreteFunction[] ConcreteFunctions { get; }
     private static IConcreteFunction[] ConcreteDoubleFunctions { get; }
@@ -168,11 +178,11 @@ internal static class BaseFunctions {
             new CeilDecimalFunction(),
             new FloorDecimalFunction(),
         };
-        DefaultDoubleFunctions = new ImmutableFunctionRegistry(
-            ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray(),
-            GenericFunctions);
-        DefaultDecimalFunctions = new ImmutableFunctionRegistry(
-            ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray(),
-            GenericFunctions);
+        var allDoubleConcretes = ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray();
+        var allDecimalConcretes = ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray();
+        SingleDoubleFunctions = new SingleDictFunctionRegistry(allDoubleConcretes, GenericFunctions);
+        SingleDecimalFunctions = new SingleDictFunctionRegistry(allDecimalConcretes, GenericFunctions);
+        DualDoubleFunctions = new DualDictFunctionRegistry(allDoubleConcretes, GenericFunctions);
+        DualDecimalFunctions = new DualDictFunctionRegistry(allDecimalConcretes, GenericFunctions);
     }
 }

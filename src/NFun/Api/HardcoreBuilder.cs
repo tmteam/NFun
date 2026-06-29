@@ -118,7 +118,7 @@ public class HardcoreBuilder {
         var converter = Converter;
         return RuntimeBuilder.Build(
             script,
-            BaseFunctions.GetFunctions(converter.TypeBehaviour).CloneWith(_customFunctions),
+            BaseFunctions.GetFunctions(converter.TypeBehaviour, _dialect.ExtensionFunctionsSeparation).CloneWith(_customFunctions),
             _dialect,
             _constants.Length > 0 ? new ConstantList(converter, _constants) : null,
             _mutableApriori,
@@ -128,7 +128,7 @@ public class HardcoreBuilder {
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
             script,
-            BaseFunctions.GetFunctions(Converter.TypeBehaviour).CloneWith(_customFunctions),
+            BaseFunctions.GetFunctions(Converter.TypeBehaviour, _dialect.ExtensionFunctionsSeparation).CloneWith(_customFunctions),
             _dialect,
             _constants.Length > 0 ? new ConstantList(Converter, _constants) : null,
             _mutableApriori,
