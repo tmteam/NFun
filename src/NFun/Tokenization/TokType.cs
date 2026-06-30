@@ -153,6 +153,8 @@ public enum TokType {
     UInt32Type,
     UInt64Type,
     RealType,
+    Float32Type,
+    Float64Type,
     BoolType,
     CharType,
     AnythingType,

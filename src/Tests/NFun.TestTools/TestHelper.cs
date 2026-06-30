@@ -84,6 +84,23 @@ public static class TestHelper {
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
+    // Float-family helpers: float32/float64 keywords require explicit dialect opt-in
+    // (FloatFamilySupport.None is default to keep backward compat).
+    public static FunnyRuntime BuildWithFloats(this string expr) =>
+        Funny.Hardcore.WithDialect(floatFamilySupport: FloatFamilySupport.Float32AndFloat64).Build(expr);
+
+    public static CalculationResult CalcWithFloats(this string expr, params (string id, object val)[] values) =>
+        BuildWithFloats(expr).Calc(values);
+
+    // Combined Float32AndFloat64 + Optional (needed for float32? tests).
+    public static FunnyRuntime BuildWithFloatsAndOptional(this string expr) =>
+        Funny.Hardcore.WithDialect(
+            floatFamilySupport: FloatFamilySupport.Float32AndFloat64,
+            optionalTypesSupport: OptionalTypesSupport.Enabled).Build(expr);
+
+    public static CalculationResult CalcWithFloatsAndOptional(this string expr, params (string id, object val)[] values) =>
+        BuildWithFloatsAndOptional(expr).Calc(values);
+
 
     public static string ToStringSmart(this object v) =>
         v switch {

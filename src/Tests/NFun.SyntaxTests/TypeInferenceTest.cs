@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
@@ -329,6 +330,12 @@ public class TypeInferenceTest {
     [TestCase("uint64", (UInt64)1, BaseFunnyType.UInt64)]
     [TestCase("int8", (sbyte)1, BaseFunnyType.Int8)]
     [TestCase("sbyte", (sbyte)1, BaseFunnyType.Int8)]
+    // Float32/Float64 input-output round-trip. Requires FloatFamily dialect opt-in
+    // via Funny.Hardcore.WithDialect — this parametric uses default dialect, so
+    // these cases are kept Ignore'd. Equivalent coverage in BuiltInFunctionsTest
+    // (Float32_GenericMonomorphisation, Float32_TypedFunction etc.).
+    [TestCase("float32", 1.0f, BaseFunnyType.Float32, Ignore = "Default dialect rejects float32 keyword; covered by Float32_* tests using BuildWithFloats")]
+    [TestCase("float64", 1.0,  BaseFunnyType.Real,    Ignore = "Default dialect rejects float64 keyword; covered by Default_Float64Keyword_BuildsRealVariable")]
     [TestCase("int16", (Int16)1, BaseFunnyType.Int16)]
     [TestCase("int", (int)1, BaseFunnyType.Int32)]
     [TestCase("int32", (int)1, BaseFunnyType.Int32)]
@@ -545,8 +552,12 @@ public class TypeInferenceTest {
     public void AbstractInt_ResolvesToInt32_NoOverflow(string expr, int[] expected) =>
         expr.Calc().AssertResultHas("out", expected);
 
-    [TestCase("out = if(false) [0] else [5000000000]",  new ulong[] { 5_000_000_000UL })]
-    public void AbstractInt_ExceedsUInt32_ResolvesToUInt64(string expr, ulong[] expected) =>
+    // After LCA-of-Preferreds propagation: preferreds of literal 0 (I32) and 5B (I64) LCA
+    // to I64, so the resolved element type is Int64 (also holds 5B, matches the branch that
+    // needed the widening). Previously resolved to UInt64 via ancestor when preferreds were
+    // dropped on mismatch.
+    [TestCase("out = if(false) [0] else [5000000000]",  new long[] { 5_000_000_000L })]
+    public void AbstractInt_ExceedsUInt32_ResolvesToInt64(string expr, long[] expected) =>
         expr.Calc().AssertResultHas("out", expected);
 
     [Test]
@@ -554,4 +565,177 @@ public class TypeInferenceTest {
         var result = "x:uint32 = 3000000000; y:int = 1; out = max(x, y)".Calc();
         Assert.AreEqual(3_000_000_000L, result.Get("out"));
     }
+
+    #region Float32AndFloat64 dialect
+    // Real literals carry [F32..Real, Pref=Real] — narrow to F32 at typed target.
+
+    // Real literal — no annotation → Real (Pref=Real).
+    [Test]
+    public void Float32_RealLiteral_UnAnnotated_StaysReal() {
+        var rt = "out = 1.5".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Real", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5, rt["out"].Value);
+    }
+
+    // if(c) T1 else T2 with mixed real literals + f32 target → LCA narrows to F32.
+    [Test]
+    public void Float32_IfElse_TwoRealLiterals_NarrowToF32() {
+        var rt = "c:bool; out:float32 = if(c) 1.0 else 2.0".BuildWithFloats();
+        rt["c"].Value = true;
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_IfElse_TwoRealLiterals_ElseBranch_NarrowToF32() {
+        var rt = "c:bool; out:float32 = if(c) 1.0 else 2.0".BuildWithFloats();
+        rt["c"].Value = false;
+        rt.Run();
+        Assert.AreEqual(2.0f, rt["out"].Value);
+    }
+
+    // LCA of float32 typed + real typed variables = Real.
+    [Test]
+    public void Float32_IfElse_F32AndReal_LcaIsReal() {
+        var rt = "c:bool; x:float32=1.5; y:real=2.5; out = if(c) x else y".BuildWithFloats();
+        rt["c"].Value = true;
+        rt.Run();
+        Assert.AreEqual("Real", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_IfElse_F32AndInt_LcaIsF32() {
+        // Both branches lift to F32 (int has [i64..Real,Pref=Real] but constrained by f32).
+        var rt = "c:bool; x:float32=1.5; y:int=2; out:float32 = if(c) x else y".BuildWithFloats();
+        rt["c"].Value = false;
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(2.0f, rt["out"].Value);
+    }
+
+    // Same but implicit LCA (no annotation): TIC picks the narrower F32
+    // (since int→f32 widens and f32 covers both).
+    [Test]
+    public void Float32_IfElse_F32AndInt_ImplicitLca_ResolvesF32() {
+        var rt = "c:bool; x:float32=1.5; y:int=2; out = if(c) x else y".BuildWithFloats();
+        rt["c"].Value = true;
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    // Explicit cast in one branch, target f32.
+    [Test]
+    public void Float32_IfElse_ExplicitReal_TargetF32_ParseError() {
+        // Cannot narrow: one branch is :real explicitly, out is :float32.
+        Assert.Throws<FunnyParseException>(() =>
+            "c:bool; x:real=1.0; out:float32 = if(c) x else 2.0".BuildWithFloats());
+    }
+
+    // Variable inference from usage: TIC decides x is F32 because of `out:float32 = x`.
+    [Test]
+    public void Float32_VariableInferred_ViaOutputAnnotation() {
+        var rt = "x = 1.5; out:float32 = x".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    // Mixed arithmetic (int + real) narrowed to f32.
+    [Test]
+    public void Float32_MixedArithmetic_NarrowsToF32() {
+        var rt = "x = 1 + 2.0; out:float32 = x".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.0f, rt["out"].Value);
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+    }
+
+    // Chain of assignments: a:f32 -> b -> c -> out.
+    [Test]
+    public void Float32_ChainPropagation_ThroughLocals() {
+        var rt = "a:float32=1.0\r b = a\r c = b * 2.0\r out = c".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(2.0f, rt["out"].Value);
+    }
+
+    // Long chain: 5 hops.
+    [Test]
+    public void Float32_LongChain_5Hops_PropagatesF32() {
+        var rt = "a:float32=1.0\r b=a+0.5\r c=b*2.0\r d=c-0.5\r e=d\r out=e".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(2.5f, rt["out"].Value);
+    }
+
+    // float64 alias should equal Real.
+    [Test]
+    public void Float64_Keyword_IsAliasForReal_InArithmetic() {
+        var rt = "x:float64=1.5\r y:real=x\r out = y+1.0".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Real", rt["out"].Type.ToString());
+        Assert.AreEqual(2.5, rt["out"].Value);
+    }
+
+    // Type annotation on function parameter propagates.
+    [Test]
+    public void Float32_FunctionReturnTypeInference() {
+        var rt = "f(x:float32) = x + 1.0\r out = f(1.5)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(2.5f, rt["out"].Value);
+    }
+
+    // Deferred narrowing: backward propagation from `out:float32` narrows y and z to F32.
+    [Test]
+    public void Float32_DeferredNarrowing_ThroughIntermediate() {
+        var rt = "z = 3.14; y = z + 1.0; out:float32 = y".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(3.14f + 1.0f, rt["out"].Value);
+    }
+
+    // Two independent chains, only one narrowed.
+    [Test]
+    public void Float32_TwoIndependentChains_DifferentTypes() {
+        var rt = "a:float32=1.0\r b:real=2.0\r outA=a+1.0\r outB=b+1.0".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["outA"].Type.ToString());
+        Assert.AreEqual("Real", rt["outB"].Type.ToString());
+    }
+
+    // Both branches literal-typed with f32 annotation on one — Real literal
+    // has flexible constraint [F32..Real], narrows to F32 to match sibling.
+    [Test]
+    public void Float32_IfElse_TypedBranch_F32AndRealLiteral() {
+        var rt = "c:bool; x:float32=1.5; out = if(c) x else 2.0".BuildWithFloats();
+        rt["c"].Value = false;
+        rt.Run();
+        // TIC narrows the real-literal to F32 (its [F32..Real] range meets F32).
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(2.0f, rt["out"].Value);
+    }
+
+    // Narrow: `out:float32` forces literal 2.0 to F32; LCA(F32, F32) = F32.
+    [Test]
+    public void Float32_IfElse_TypedBranch_F32AndRealLiteral_TargetF32() {
+        var rt = "c:bool; x:float32=1.5; out:float32 = if(c) x else 2.0".BuildWithFloats();
+        rt["c"].Value = false;
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(2.0f, rt["out"].Value);
+    }
+
+    // Var declared as `real`, mixed with int in if-else → LCA=real.
+    [Test]
+    public void Float32_IfElse_RealVarAndInt_LcaIsReal() {
+        var rt = "c:bool; x:real=1.5; out = if(c) x else 2".BuildWithFloats();
+        rt["c"].Value = true;
+        rt.Run();
+        Assert.AreEqual("Real", rt["out"].Type.ToString());
+    }
+    #endregion
 }

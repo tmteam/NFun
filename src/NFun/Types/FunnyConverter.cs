@@ -18,6 +18,7 @@ public class FunnyConverter {
     public TypeBehaviour TypeBehaviour { get; }
     public static readonly FunnyConverter RealIsDouble = new(TypeBehaviour.RealIsDouble);
     public static readonly FunnyConverter RealIsDecimal = new(TypeBehaviour.RealIsDecimal);
+    public static readonly FunnyConverter RealIsDoubleWithFloatFamily = new(TypeBehaviour.RealIsDoubleWithFloatFamily);
     
     private FunnyConverter(TypeBehaviour typeBehaviour) => TypeBehaviour = typeBehaviour;
 
@@ -87,8 +88,8 @@ public class FunnyConverter {
                    BaseFunnyType.UInt16                               => Convert.ToUInt16(clrValue),
                    BaseFunnyType.UInt32                               => Convert.ToUInt32(clrValue),
                    BaseFunnyType.UInt64                               => Convert.ToUInt64(clrValue),
-                   BaseFunnyType.Real when TypeBehaviour.RealType == typeof(double) => Convert.ToDouble(clrValue),
-                   BaseFunnyType.Real                                 => Convert.ToDecimal(clrValue),
+                   BaseFunnyType.Real                                 => TypeBehaviour.ConvertClrValueToReal(clrValue),
+                   BaseFunnyType.Float32                              => Convert.ToSingle(clrValue),
                    BaseFunnyType.Char                                 => clrValue.ToString(),
                    _                                                  => converter.ToFunObject(clrValue)
                };

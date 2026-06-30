@@ -13,9 +13,10 @@ Most operators may be applied for different types of operands. To simplify the d
 |---------------|-----------------------------------------------------------------|-----------------------------------------------------|
 | All           | All types                                                       | T => any                                            |
 | Integers      | `int64`, `int32`,`int16`, `int8`, `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
-| Numbers       | `real`, **[Integers]**                                          | T => real                                           |
-| Signed        | `int64`, `int32`, `int16`, `int8`                               | int8 => T => int64                                  |
-| Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
+| Floats        | `float32`, `float64` (≡`real`)                                  | float32 => T => real                                |
+| Numbers       | **[Floats]**, **[Integers]**                                    | T => real                                           |
+| Signed        | `real`, `float32`, `int64`, `int32`, `int16`, `int8`            | int8 => T => real                                   |
+| Arithmetics   | `real`, `float32`, `int64`, `int32`, `uint64`, `uint32`         | (int32 &#124; uint32) => T => real                  | 
 | Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
 
 ## Operators Precedence in NFun

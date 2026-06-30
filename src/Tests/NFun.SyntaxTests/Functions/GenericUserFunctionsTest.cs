@@ -61,6 +61,12 @@ public class GenericUserFunctionsTest {
     [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2)]
     public void ConstantEquation(string expr, object expected) => expr.AssertReturns("y", expected);
 
+    // Generic monomorphisation to Float32 — requires FloatFamily dialect opt-in.
+    [TestCase("id(a) = a\r y:float32 = id(1.5)",  1.5f)]
+    [TestCase("id(a) = a\r y:float32 = id(5)",    5.0f)]
+    public void Float32_GenericMonomorphisation(string expr, object expected) =>
+        expr.BuildWithFloats().Calc().AssertReturns("y", expected);
+
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,true)", 1.0)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,false)", 2.0)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,false,true)", 1)]
@@ -191,4 +197,90 @@ public class GenericUserFunctionsTest {
     [TestCase("out = f(1); F(x)= 1; f(x) = x; ")]
     [TestCase("F(x:int)= 1; out = f(1); f(x:real) = 2; ")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    #region Float32AndFloat64 dialect
+    // Generic user function monomorphisation to float32.
+
+    // pair(a,b) = a + b — inferred to F32.
+    [Test]
+    public void Float32_Generic_PairSum_InferredF32() {
+        var rt = "pair(a,b) = a + b\r y:float32 = pair(1.0, 2.0)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.0f, rt["y"].Value);
+    }
+
+    // first(arr) = arr[0] — with concrete f32[].
+    [Test]
+    public void Float32_Generic_FirstOfF32Array() {
+        var rt = "first(arr) = arr[0]\r arr:float32[]=[1.5,2.5,3.5]\r y:float32 = first(arr)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["y"].Value);
+    }
+
+    // last(arr) = arr[arr.count()-1].
+    [Test]
+    public void Float32_Generic_LastOfF32Array() {
+        var rt = "last(arr) = arr[arr.count()-1]\r arr:float32[]=[1.5,2.5,3.5]\r y:float32 = last(arr)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.5f, rt["y"].Value);
+    }
+
+    // Twice a generic ID call.
+    [Test]
+    public void Float32_Generic_IdComposed() {
+        var rt = "id(x) = x\r y:float32 = id(id(1.5))".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["y"].Value);
+    }
+
+    // Sum of two f32 arrays with generic zip-style function.
+    [Test]
+    public void Float32_Generic_MapOverF32Array() {
+        var rt = "double(x) = x * 2.0\r arr:float32[] = [1.0,2.0,3.0]\r y = arr.map(rule double(it))".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 2.0f, 4.0f, 6.0f }, rt["y"].Value);
+    }
+
+    // Generic function with two type params — one f32, one int, target real.
+    [Test]
+    public void Float32_Generic_TwoDifferentTypesAtCallSite() {
+        var rt = "pair(a,b) = a + b\r x:float32=1.5\r y = pair(x, 2)".BuildWithFloats();
+        rt.Run();
+        // Result narrows to Float32 since f32 is the dominant type in the call.
+        Assert.AreEqual(3.5f, rt["y"].Value);
+    }
+
+    // Generic function target-narrowed to f32.
+    [Test]
+    public void Float32_Generic_TwoDifferentTypes_TargetF32() {
+        var rt = "pair(a,b) = a + b\r x:float32=1.5\r y:float32 = pair(x, 2)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.5f, rt["y"].Value);
+    }
+
+    // Choise-style with f32 branch.
+    [Test]
+    public void Float32_Generic_Choise_WithF32() {
+        var rt = "pick(a,b,take) = if(take) a else b\r y:float32 = pick(1.5, 2.5, true)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["y"].Value);
+    }
+
+    // Nested generic with f32.
+    [Test]
+    public void Float32_Generic_ComposedGenerics() {
+        var rt = "id(x) = x\r pair(a,b)=a+b\r y:float32 = pair(id(1.0), id(2.0))".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.0f, rt["y"].Value);
+    }
+
+    // Recursive-ish user function with f32.
+    [Test]
+    public void Float32_Generic_UserFunctionCallingItself() {
+        var rt = "f(x:float32):float32 = if(x < 0.1) 1.0 else f(x/2.0)\r y = f(1.0)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["y"].Type.ToString());
+        Assert.AreEqual(1.0f, rt["y"].Value);
+    }
+    #endregion
 }

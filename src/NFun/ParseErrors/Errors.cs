@@ -104,6 +104,8 @@ internal static partial class Errors {
                 TokType.UInt32Type => "uint32",
                 TokType.UInt64Type => "uint64",
                 TokType.RealType => "real",
+                TokType.Float32Type => "float32",
+                TokType.Float64Type => "float64",
                 TokType.BoolType => "bool",
                 TokType.CharType => "char",
                 TokType.AnythingType => "any",

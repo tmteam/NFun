@@ -278,4 +278,11 @@ public class FunctionDefaultValuesTest {
     [Test]
     public void Default_CalledFromAnotherFunction_Chain() =>
         "f(a, b = 10) = a + b \r g(x, c = 5) = f(x) + c \r h(z) = g(z) \r y = h(1)".AssertReturns("y", 16);
+
+    // WO10 — Default-expanded call in dependency visitor. Function alias is keyed by
+    // declared arity, so a call site with fewer positional args needs re-resolution
+    // through IsParams/IsKeywordOnly logic. Regression pin.
+    [Test]
+    public void Default_ExpandedCall_DependencyVisitorResolves() =>
+        "a(x, n=2) = x + n\rout = a(5)".Calc().AssertResultHas("out", 7);
 }

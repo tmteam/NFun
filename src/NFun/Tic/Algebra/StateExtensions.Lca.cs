@@ -25,12 +25,18 @@ public static partial class StateExtensions {
             var comparable = ac.IsComparable && bc.IsComparable;
             var isOptional = ac.IsOptional || bc.IsOptional;
             // Propagate Preferred hint through LCA (not algebraic, just a resolution hint).
-            // Rule: if both agree, keep; if only one has it, keep; if both differ, keep null.
+            // Rule: if both agree, keep; if only one has it, keep; if both differ, take their
+            // LCA — the wider one preserves the resolution intent (e.g. LCA(int-literal-P=I32,
+            // real-literal-P=Real) → P=Real: any int lifts losslessly, and the user wrote a real
+            // literal in one branch so Real is the intended resolution). Dropping to null would
+            // silently pick the interval's descendant (Float32 in this case) and lose precision.
             var preferred = (ac.Preferred, bc.Preferred) switch {
                 (null, null)  => (StatePrimitive)null,
                 (null, var p) => p,
                 (var p, null) => p,
-                var (pa, pb)  => pa.Equals(pb) ? pa : null
+                var (pa, pb)  => pa.Equals(pb)
+                    ? pa
+                    : pa.GetLastCommonPrimitiveAncestor(pb) is { } lca && !lca.Equals(Any) ? lca : null
             };
             if (lcaDesc == null) {
                 var result = ConstraintsState.Of(isComparable: comparable, isOptional: isOptional);

@@ -101,6 +101,7 @@ public class MultiMapSumFunction : GenericFunctionBase {
                            BaseFunnyType.UInt64 => new ConcreteMapSumBase((a, b) => (UInt64)a + (UInt64)b, (UInt64)0),
                            BaseFunnyType.Int32  => new ConcreteMapSumBase((a, b) => (Int32)a + (Int32)b, 0),
                            BaseFunnyType.Int64  => new ConcreteMapSumBase((a, b) => (Int64)a + (Int64)b, (Int64)0),
+                           BaseFunnyType.Float32 => new ConcreteMapSumBase((a, b) => (float)a + (float)b, (float)0),
                            BaseFunnyType.Real => context.RealTypeSelect(
                                ifIsDouble: new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0),
                                ifIsDecimal: new ConcreteMapSumBase((a, b) => (decimal)a + (decimal)b, (decimal)0)),
@@ -292,11 +293,12 @@ public class MaxElementFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
         if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
-        // IEEE 754: NaN propagates through max — LINQ Max ignores NaN, so use manual loop
+        // IEEE 754: NaN propagates through max — return NaN on first NaN element (double or float).
+        // Without early-return, IComparable's ordering of NaN (as smallest) silently discards it.
         object result = null;
         foreach (var item in array)
         {
-            if (item is double d && double.IsNaN(d)) return item;
+            if (IEEE754Guard.IsNaN(item)) return item;
             if (result == null || ((IComparable)item).CompareTo(result) > 0)
                 result = item;
         }
@@ -316,11 +318,11 @@ public class MinElementFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
         if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
-        // IEEE 754: NaN propagates through min — LINQ Min ignores NaN, so use manual loop
+        // IEEE 754: NaN propagates through min. Same reasoning as MaxElementFunction.
         object result = null;
         foreach (var item in array)
         {
-            if (item is double d && double.IsNaN(d)) return item;
+            if (IEEE754Guard.IsNaN(item)) return item;
             if (result == null || ((IComparable)item).CompareTo(result) < 0)
                 result = item;
         }

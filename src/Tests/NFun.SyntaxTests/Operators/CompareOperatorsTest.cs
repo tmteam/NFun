@@ -260,6 +260,24 @@ public class CompareOperatorsTest {
     public void SingleVariableEquation(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 
+    // ───────────────────────────────────────────────────────────────
+    // Float32 comparison ops — opt-in dialect, work via IComparable
+    // (System.Single implements IComparable).
+    // ───────────────────────────────────────────────────────────────
+    [TestCase("x:float32; y = x>1.5",  1.0f, false)]
+    [TestCase("x:float32; y = x>1.5",  2.0f, true)]
+    [TestCase("x:float32; y = x>=1.5", 1.5f, true)]
+    [TestCase("x:float32; y = x>=1.5", 1.0f, false)]
+    [TestCase("x:float32; y = x<1.5",  1.0f, true)]
+    [TestCase("x:float32; y = x<1.5",  2.0f, false)]
+    [TestCase("x:float32; y = x<=0.0", 0.0f, true)]
+    [TestCase("x:float32; y = x==1.5", 1.5f, true)]
+    [TestCase("x:float32; y = x==1.5", 2.0f, false)]
+    [TestCase("x:float32; y = x!=1.5", 1.5f, false)]
+    [TestCase("x:float32; y = x!=1.5", 2.0f, true)]
+    public void Float32_SingleVariableEquation(string expr, float arg, bool expected) =>
+        expr.CalcWithFloats(("x", arg)).AssertReturns("y", expected);
+
     // ═══════════════════════════════════════════════════════════════
     // Struct equality with structural subtyping
     // ═══════════════════════════════════════════════════════════════

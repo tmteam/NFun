@@ -293,4 +293,45 @@ public class RealIsDecimalTest {
     public void ObviousFails(string expr) =>
         FunnyAssert.ObviousFailsOnParse(() =>
             expr.BuildWithDialect(realClrType: RealClrType.IsDecimal));
+
+    // ─── Big-int → real precision: double loses precision above 2^53, decimal doesn't ─
+
+    [Test]
+    public void RealIsDouble_IntLiteral_At2Pow53_Exact() =>
+        "out:real = 9007199254740992".AssertReturns("out", 9007199254740992.0);
+
+    [Test]
+    public void RealIsDouble_IntLiteral_2Pow53Plus1_RoundsDown() =>
+        // 2^53+1 has no exact double representation — nearest-even lands on 2^53.
+        "out:real = 9007199254740993".AssertReturns("out", 9007199254740992.0);
+
+    [Test]
+    public void RealIsDouble_IntLiteral_2Pow54Plus1_RoundsDown() =>
+        // Past 2^54 every-other integer rounds.
+        "out:real = 18014398509481985".AssertReturns("out", 18014398509481984.0);
+
+    [Test]
+    public void RealIsDecimal_IntLiteral_2Pow53Plus1_ExactUnlikeDouble() =>
+        // Same literal that lost precision under IsDouble stays exact under IsDecimal.
+        "out:real = 9007199254740993"
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
+            .Calc()
+            .AssertReturns("out", 9007199254740993m);
+
+    [Test]
+    public void RealIsDecimal_IntLiteral_2Pow54Plus1_ExactUnlikeDouble() =>
+        "out:real = 18014398509481985"
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
+            .Calc()
+            .AssertReturns("out", 18014398509481985m);
+
+    // Direct A/B: same literal, two dialects, divergent runtime values.
+    [Test]
+    public void DoubleVsDecimal_At2Pow53Plus1_Divergent() {
+        var asDouble  = "out:real = 9007199254740993".Calc().Get("out");
+        var asDecimal = "out:real = 9007199254740993"
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal).Calc().Get("out");
+        Assert.AreEqual(9007199254740992.0, asDouble);
+        Assert.AreEqual(9007199254740993m,  asDecimal);
+    }
 }

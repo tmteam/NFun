@@ -19,6 +19,12 @@ public class VarTypeConverterTest {
     [TestCase((sbyte)-5, (Int32)(-5), BaseFunnyType.Int8, BaseFunnyType.Int32)]
     [TestCase((sbyte)-5, (Int64)(-5), BaseFunnyType.Int8, BaseFunnyType.Int64)]
     [TestCase((sbyte)-5, (double)(-5), BaseFunnyType.Int8, BaseFunnyType.Real)]
+    // Float32 widening targets
+    [TestCase((int)5,    5.0f,         BaseFunnyType.Int32, BaseFunnyType.Float32, Ignore = "Float32 phase 4: int→f32 var convert")]
+    [TestCase((sbyte)-5, -5.0f,        BaseFunnyType.Int8,  BaseFunnyType.Float32, Ignore = "Float32 phase 4: i8→f32 var convert")]
+    [TestCase((byte)42,  42.0f,        BaseFunnyType.UInt8, BaseFunnyType.Float32, Ignore = "Float32 phase 4: u8→f32 var convert")]
+    [TestCase(1.5f,      1.5,          BaseFunnyType.Float32, BaseFunnyType.Real,  Ignore = "Float32 phase 4: f32→real var convert")]
+    [TestCase(1.5f,      1.5f,         BaseFunnyType.Float32, BaseFunnyType.Float32,Ignore = "Float32 phase 4: f32→f32 identity")]
     public void ConvertPrimitives(object from, object expected, BaseFunnyType typeFrom, BaseFunnyType typeTo) {
         Assert.IsTrue(
             VarTypeConverter.CanBeConverted(

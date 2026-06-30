@@ -15,10 +15,6 @@ public class StructGenericFunctionTest {
         .AssertResultHas("r", 12)
         .AssertResultHas("b", true);
 
-    // Verifies generic function `f(x) = x.age` accepts an external typed input `user`
-    // via row-polymorphism / structural subtyping (req-interface style). TIC infers
-    // `user:{child:{age:Any}[]; age:Any}` from the two call sites `f(user)` and
-    // `f(user.child[0])`. Runtime accepts a Dictionary<string,object> with required fields.
     [Test]
     public void CallToAllowedReqTypeDef() {
         var runtime = Funny.Hardcore.Build("f(x) = x.age; y1 = f(user); y2 = f(user.child[0])");
@@ -171,13 +167,7 @@ public class StructGenericFunctionTest {
     [TestCase(
         @"f(n) = n.field;
                   y = fact({nonExistingField=x})")]
-    // Note: "fact(n) = ...n.nonExistingField" without a call site is no longer a compile error —
-    // with polymorphic function args, the struct type stays open until instantiation.
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-
-    // ═══════════════════════════════════════════════════════════════
-    // Struct field map preserves preferred type (Int32 vs Real)
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void StructFieldMap_PreservesIntType() {
@@ -189,23 +179,16 @@ public class StructGenericFunctionTest {
 
     [Test]
     public void DirectVariableMap_PreservesIntType() {
-        // Regression test
         var r = "m = [[1,2],[3,4]]\r out = m.map(rule it.sum())".Calc();
         Assert.AreEqual(new[] { 3, 7 }, r.Get("out"));
         r.AssertResultHas("out", new[] { 3, 7 });
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // sort/filter preserves all struct fields (row polymorphism)
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
     public void Sort_PreservesAllFields() {
-        // sort by it.a should preserve field b
         var runtime = Funny.Hardcore.Build("[{a=2,b=20},{a=1,b=10}].sort(rule it.a)");
         runtime.Run();
         var outType = runtime["out"].Type;
-        // Output must be struct array with BOTH fields a and b
         Assert.AreEqual(BaseFunnyType.ArrayOf, outType.BaseType, "out should be array");
         var elemType = outType.ArrayTypeSpecification.FunnyType;
         Assert.AreEqual(BaseFunnyType.Struct, elemType.BaseType, "element should be struct");
@@ -255,13 +238,8 @@ public class StructGenericFunctionTest {
 
     [Test]
     public void Sort_ThenAccessField_Preserves() =>
-        // When downstream code accesses fields, TIC preserves them
         "[{a=2,b=20},{a=1,b=10}].sort(rule it.a).map(rule it.b)"
             .AssertReturns("out", new[] { 10, 20 });
-
-    // ═══════════════════════════════════════════════════════════════
-    // Generic function preserves struct fields
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void GenericFuncLosesStructFields_Fixed() {
@@ -269,15 +247,74 @@ public class StructGenericFunctionTest {
             .AssertReturns("out", "c");
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Lambda struct covariance
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
     public void LambdaStructCovariance() {
-        // f(p) = p.x + 0.5 infers p:{x:real}. arr:{x:int}[].
-        // arr.map(rule f(it)) works with struct covariance.
         "f(p) = p.x + 0.5\r arr:{x:int}[] = [{x=1},{x=2}]\r out = arr.map(rule f(it))"
             .Calc().AssertResultHas("out", new[] { 1.5, 2.5 });
     }
+
+    #region Float32AndFloat64 dialect
+
+    [Test]
+    public void Float32_Generic_StructAccessor_ReturnsF32() {
+        var rt = "getter(p) = p.x\r a:{x:float32}={x=1.5}\r out=getter(a)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Generic_TwoCallsSameShape() {
+        var rt = "getter(p) = p.x\r a:{x:float32}={x=1.5}\r b:{x:float32}={x=2.5}\r out=getter(a)+getter(b)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(4.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Generic_FunctionReturnsStruct_WithF32() {
+        var rt = "mk(x:float32):{v:float32} = {v=x}\r r = mk(1.5)\r out = r.v".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Generic_FoldOnStructArray_SumF32Field() {
+        var rt = "sumX(items:{x:float32}[]):float32 = items.fold(0.0, rule it1 + it2.x)\r arr:{x:float32}[]=[{x=1.0},{x=2.0},{x=3.0}]\r out = sumX(arr)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(6.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Generic_GetMax_StructWithF32_PreservesOtherFields() {
+        var rt = "getMax(items) = items.fold(rule if(it1.v > it2.v) it1 else it2)\r arr:{v:float32,name:text}[] = [{v=3.0,name='a'},{v=5.0,name='b'}]\r out = getMax(arr).name".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("b", rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Generic_MapBuildsStructArray_WithF32Field() {
+        var rt = "arr:float32[]=[1.0,2.0,3.0]\r out = arr.map(rule {v=it})".BuildWithFloats();
+        rt.Run();
+        var mapped = ((System.Collections.IEnumerable)rt["out"].Value);
+        int count = 0;
+        foreach (var _ in mapped) count++;
+        Assert.AreEqual(3, count);
+    }
+
+    [Test]
+    public void Float32_Generic_SortStructs_ByF32Field() {
+        var rt = "arr:{v:float32,name:text}[] = [{v=3.0,name='c'},{v=1.0,name='a'},{v=2.0,name='b'}]\r out = arr.sort(rule it.v).map(rule it.name)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { "a", "b", "c" }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Generic_FilterStructs_ByF32Field() {
+        var rt = "arr:{v:float32}[] = [{v=1.0},{v=3.0},{v=2.0}]\r out = arr.filter(rule it.v > 1.5).map(rule it.v)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 3.0f, 2.0f }, rt["out"].Value);
+    }
+    #endregion
 }

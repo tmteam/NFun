@@ -12,7 +12,7 @@ namespace NFun.Types;
 public static class VarTypeConverter {
     private static readonly bool[,] PrimitiveConvertMap;
     // 22 to accommodate Int8 (= 21); existing primitives still indexed by their original values.
-    private const int PrimitiveTypeCount = 22;
+    private const int PrimitiveTypeCount = 23;
     static VarTypeConverter() {
         PrimitiveConvertMap = new bool [PrimitiveTypeCount, PrimitiveTypeCount];
         //every type can be converted to itself
@@ -53,6 +53,17 @@ public static class VarTypeConverter {
         PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Int32] = true;
         PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Int64] = true;
         PrimitiveConvertMap[(int)BaseFunnyType.Int8, (int)BaseFunnyType.Real]  = true;
+
+        // integer → Float32 → Real widening chain.
+        PrimitiveConvertMap[(int)BaseFunnyType.UInt8,  (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.UInt16, (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.UInt32, (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.UInt64, (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int8,   (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int16,  (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int32,  (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Int64,  (int)BaseFunnyType.Float32] = true;
+        PrimitiveConvertMap[(int)BaseFunnyType.Float32, (int)BaseFunnyType.Real]   = true;
     }
 
     private static readonly Func<object, object> ToText = o => new TextFunnyArray(o?.ToString() ?? "");
@@ -117,6 +128,13 @@ public static class VarTypeConverter {
         {
             var realToInt = TypeBehaviour.GetRealToIntConverterOrNull(to.BaseType);
             if (realToInt != null) return realToInt;
+        }
+        // float32 → integer/char: same truncation as real → integer (spec-consistent, matches
+        // C/Java/Go — Convert.ToXxx(float) does banker's rounding which is a .NET outlier).
+        if (from.BaseType == BaseFunnyType.Float32)
+        {
+            var f32ToInt = TypeBehaviour.GetFloat32ToIntConverterOrNull(to.BaseType);
+            if (f32ToInt != null) return f32ToInt;
         }
         if (from.IsNumeric())
             return  typeBehaviour.GetNumericConverterOrNull(to.BaseType);

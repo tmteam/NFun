@@ -13,6 +13,7 @@ public class OutputTypeConvertersTest {
     [TestCase((uint)3, BaseFunnyType.UInt32)]
     [TestCase((ulong)4, BaseFunnyType.UInt64)]
     [TestCase((sbyte)-5, BaseFunnyType.Int8)]
+    [TestCase(1.5f, BaseFunnyType.Float32, Ignore = "Float32 phase 4: System.Single ↔ Float32 output convert")]
     [TestCase((Int16)1, BaseFunnyType.Int16)]
     [TestCase((int)2, BaseFunnyType.Int32)]
     [TestCase((long)3, BaseFunnyType.Int64)]

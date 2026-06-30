@@ -294,4 +294,11 @@ else 'not supported' ", 2, "two")]
                          else 10", IfExpressionSetup.IfElseIf)]
     public void ObviouslyFails(string expr, IfExpressionSetup setup) =>
         expr.AssertObviousFailsOnParse(setup);
+
+    // Mixed signed/unsigned branches: LCA widens to the smallest int type containing both.
+    // U32+I32 → I64, U16+I16 → I32.
+    [TestCase("a:int32 = 1\r b:uint32 = 2\r c = if(true) a else b", 1L)]
+    [TestCase("a:uint16 = 1\r b:int16 = 2\r c = if(true) a else b", 1)]
+    public void IfElse_MixedSignedUnsigned_WidensToLargerSigned(string expr, object expected) =>
+        expr.AssertResultHas("c", expected);
 }

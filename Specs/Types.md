@@ -30,7 +30,8 @@ Some types have multiple identifiers like `byte` and `uint8` for a byte, and `in
 | Signed int 16   | `int16`         | Integer value [-32768..32767]                                                                            | `y:int16 = 123 `                   |
 | Signed int 32   | `int32` `int`   | Integer value [-2147483648..2147483647]                                                                  | `y:int32 = 123 `                   |
 | Signed int 64   | `int64`         | Integer value [-9223372036854775808..9223372036854775807]                                                | `y:int64 = 123 `                   |
-| Natural value   | `real`          | Non-integer numeric value . Depending on the settings, it can be either a double or a decimal clr number | `y:real = 123.5 `                  |
+| Float 32        | `float32`       | IEEE 754 single-precision (~7 digits). Requires dialect `FloatFamilySupport.Float32AndFloat64` (opt-in — default is `None`, in which case the `float32`/`float64` keywords are parse errors).| `y:float32 = 3.14`                 |
+| Float 64 / Real | `float64` `real`| IEEE 754 double-precision (~15 digits) **or** decimal per dialect `RealClrType`. `real ≡ float64`. `float64` keyword requires `FloatFamilySupport.Float32AndFloat64`; `real` is always available.| `y:real = 123.5; z:float64 = 2.5`  |
 | Ip Address      | `ip`            | Ip v4 address                                                                                            | `y:ip = 192.168.0.1 `              |
 
 ## Optional type `T?`

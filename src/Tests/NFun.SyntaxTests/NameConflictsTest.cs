@@ -1,3 +1,5 @@
+using NFun;
+using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -30,4 +32,17 @@ public class NameConflictsTest {
     [TestCase("foo(x) = x +1\r foo = 1+2 \ry = foo*3  ")]
     [TestCase("foo(x) = x +1\r foo = 1+2 \ry = foo*3 \r  ")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    // Round 6 #74 + #83 — re-declaration via a bare type annotation, and re-annotation with an
+    // incompatible composite type. Both must surface as clean FU879 "already declared", not
+    // as InvalidOperationException from SearchUsagesHelper or "Node is already solved" from TIC.
+    [TestCase("y = 5\ny:int")]
+    [TestCase("y:int = 5\ny:real")]
+    [TestCase("y = [1,2]\ny:int[]")]
+    [TestCase("x:int = 5\nx:text = 'hi'\nout = x")]
+    [TestCase("x:int = 5\nx:int[] = [1,2]\nout = x")]
+    public void RedeclareOrReannotate_ThrowsAlreadyDeclared(string script) {
+        var ex = Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build(script));
+        StringAssert.Contains("already declared", ex!.Message);
+    }
 }

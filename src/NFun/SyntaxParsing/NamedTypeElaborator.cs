@@ -560,12 +560,8 @@ internal static class NamedTypeElaborator {
     /// shadows `text`. Without this guard, the type is accepted at declaration but produces
     /// misleading errors at constructor call sites.
     /// </summary>
-    private static bool IsPrimitiveTypeName(string name) => name.ToLowerInvariant() switch {
-        "int8" or "sbyte" or "int16" or "int" or "int32" or "int64"
-            or "byte" or "uint8" or "uint16" or "uint" or "uint32" or "uint64"
-            or "real" or "bool" or "char" or "text" or "any" or "ip" => true,
-        _ => false
-    };
+    private static bool IsPrimitiveTypeName(string name) =>
+        NFun.TypeInferenceAdapter.TypeSyntaxResolver.TryResolvePrimitiveKeyword(name, out _);
 
     private static string GetAliasTargetName(TypeSyntax syntax) {
         while (true) {

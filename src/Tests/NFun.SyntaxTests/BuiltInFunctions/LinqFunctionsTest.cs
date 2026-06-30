@@ -169,4 +169,12 @@ class LinqFunctionsTest {
         @"iSum(r:int, x:int):int = r+x
                      y = fold([100][1:1], iSum)")]
     public void FailsOnRuntime(string expr) => expr.AssertObviousFailsOnRuntime();
+
+    // FU711 negatives — same structural depth for T across all args, must resolve cleanly.
+    [TestCase("y = concat('abc', 'def')", "abcdef")]
+    [TestCase("y = [1, 2, 3].map(rule it * 2)", new[] { 2, 4, 6 })]
+    [TestCase("y = [1, 2, 3].filter(rule it > 1)", new[] { 2, 3 })]
+    [TestCase("y = [1,2,3].fold(rule it1 + it2)", 6)]
+    public void DepthConsistent_ResolvesGeneric(string expr, object expected) =>
+        expr.AssertReturns("y", expected);
 }

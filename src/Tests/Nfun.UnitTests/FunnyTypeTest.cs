@@ -17,10 +17,28 @@ public class FunnyTypeTest {
     [TestCase(BaseFunnyType.Int16)]
     [TestCase(BaseFunnyType.Int32)]
     [TestCase(BaseFunnyType.Int64)]
+    [TestCase(BaseFunnyType.Float32)]
     [TestCase(BaseFunnyType.Real)]
     [TestCase(BaseFunnyType.Ip)]
     public void IsPrimitive_ReturnsTrue(BaseFunnyType type) =>
         Assert.IsTrue(FunnyType.PrimitiveOf(type).IsPrimitive);
+
+    // Numeric set must include Float32. Used by widening / arithmetic dispatch.
+    [TestCase(BaseFunnyType.UInt8)]
+    [TestCase(BaseFunnyType.UInt16)]
+    [TestCase(BaseFunnyType.UInt32)]
+    [TestCase(BaseFunnyType.UInt64)]
+    [TestCase(BaseFunnyType.Int8)]
+    [TestCase(BaseFunnyType.Int16)]
+    [TestCase(BaseFunnyType.Int32)]
+    [TestCase(BaseFunnyType.Int64)]
+    [TestCase(BaseFunnyType.Float32)]
+    [TestCase(BaseFunnyType.Real)]
+    public void IsNumeric_ReturnsTrue(BaseFunnyType type) =>
+        Assert.IsTrue(FunnyType.PrimitiveOf(type).IsNumeric());
+
+    [Test] public void Float32_PrimitiveStatic_HasFloat32BaseType() =>
+        Assert.AreEqual(BaseFunnyType.Float32, FunnyType.Float32.BaseType);
 
     #region Equals
 

@@ -344,4 +344,16 @@ public class IntegerBitOperatorsTest {
     [TestCase("a:byte=5\r y:int32 = ~a", 250)]
     public void BitwiseNot_PreservesUnsignedOperandWidth(string expr, int expected) =>
         expr.AssertResultHas("y", expected);
+
+    // Mixed signed/unsigned: TIC widens to the smallest int type containing both intervals.
+    // U16+I16 → I32, U32+I32 → I64. U64+I64 has no common int type → parse error.
+    [TestCase("a:uint32 = 5\r b:int32 = 3\r c = a & b", 1L)]
+    [TestCase("a:uint16 = 5\r b:int16 = 3\r c = a & b", 1)]
+    public void MixedSignedUnsigned_Bitwise_WidensToLargerSigned(string expr, object expected) =>
+        expr.AssertResultHas("c", expected);
+
+    [Test]
+    public void MixedSignedUnsigned_Bitwise_U64_I64_HasNoCommonType_Rejected() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
+            "a:uint64 = 5\r b:int64 = 3\r c = a & b".Build());
 }

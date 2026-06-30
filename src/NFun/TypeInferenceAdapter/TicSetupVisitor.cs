@@ -431,8 +431,34 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return null;
     }
 
-    private FunnyType ResolveType(TypeSyntax syntax) =>
-        TypeSyntaxResolver.Resolve(syntax, _customTypes);
+    private FunnyType ResolveType(TypeSyntax syntax) {
+        if (_dialect.FloatFamilySupport == FloatFamilySupport.None)
+            RejectFloatFamilyKeywordOrNull(syntax);
+        return TypeSyntaxResolver.Resolve(syntax, _customTypes);
+    }
+
+    private static void RejectFloatFamilyKeywordOrNull(TypeSyntax syntax) {
+        switch (syntax) {
+            case TypeSyntax.Named n:
+                var lower = n.Name.ToLowerInvariant();
+                if (lower == "float32" || lower == "float64")
+                    throw new Exceptions.FunnyParseException(
+                        778,
+                        $"'{n.Name}' requires FloatFamilySupport.Float32AndFloat64 (currently None). " +
+                        $"Use 'real' instead, or enable the dialect setting.",
+                        n.Interval.Start, n.Interval.Finish);
+                break;
+            case TypeSyntax.ArrayOf a:    RejectFloatFamilyKeywordOrNull(a.Element); break;
+            case TypeSyntax.OptionalOf o: RejectFloatFamilyKeywordOrNull(o.Element); break;
+            case TypeSyntax.StructOf s:
+                foreach (var f in s.Fields) RejectFloatFamilyKeywordOrNull(f.FieldType);
+                break;
+            case TypeSyntax.FunOf f:
+                RejectFloatFamilyKeywordOrNull(f.ReturnType);
+                foreach (var a in f.ArgTypes) RejectFloatFamilyKeywordOrNull(a);
+                break;
+        }
+    }
 
     public bool Visit(SyntaxTree node) => VisitChildren(node);
 
@@ -1105,6 +1131,25 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // else: fall through to standard PureGenericFunctionBase handling
         }
 
+        // Special case: math over Floats (`/`, `sqrt`, `sin`, ...) under None-mode dialect.
+        // Restores pre-Phase-5 concrete-Real semantics: T pinned to [Real..Real] instead of
+        // [F32..Real]. Under F32F64 mode we keep the full interval — same shape as `+`, `*`;
+        // TicTypesConverter picks the ancestor (Real) for unconstrained resolutions, and
+        // F32 args still force T=F32. Same if-branch pattern as real-literal dispatch above.
+        // Float-family math (`sqrt`, `sin`, `divide`, ...) under None-mode dialect: pin
+        // T to [Real..Real]. Under F32F64 mode the full [F32..Real] survives. Same
+        // dispatch axis as the real-literal branch (TypeBehaviour.RealLiteralIsGeneric).
+        if (signature is PureGenericFunctionBase pureFloats
+            && ReferenceEquals(pureFloats.Constrains[0].Descendant, F32)
+            && ReferenceEquals(pureFloats.Constrains[0].Ancestor, Real)
+            && !_dialect.Converter.TypeBehaviour.RealLiteralIsGeneric)
+        {
+            var genericType = _ticTypeGraph.InitializeVarNode(Real, Real, false);
+            _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[] { genericType });
+            _ticTypeGraph.SetCall(genericType, ids);
+            return true;
+        }
+
         if (signature is PureGenericFunctionBase pure)
         {
             // Сase of (T,T):T signatures
@@ -1346,7 +1391,14 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         var type = ConvertType(node.OutputType);
 
         if (type is StatePrimitive p)
-            _ticTypeGraph.SetConst(node.OrderNumber, p);
+        {
+            // Under float family real literals carry [F32..Real, Pref=Real] so they
+            // can narrow to F32 at typed targets. Otherwise pinned to Real.
+            if (p.Name == PrimitiveTypeName.Real && _dialect.Converter.TypeBehaviour.RealLiteralIsGeneric)
+                _ticTypeGraph.SetGenericConst(node.OrderNumber, F32, Real, Real);
+            else
+                _ticTypeGraph.SetConst(node.OrderNumber, p);
+        }
         else if (type is StateArray a && a.Element is StatePrimitive primitiveElement)
             _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
         else if (type is StateOptional opt)
@@ -1768,6 +1820,22 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     node.Left.OrderNumber, node.Right.OrderNumber, node.OrderNumber);
                 return true;
             }
+        }
+
+        // Float-family math (`/`, generic over Floats [F32..Real]) under None-mode dialect:
+        // pin T to [Real..Real] to keep pre-Phase-5 concrete-Real semantics
+        // (`3/2` → Real, no residual generic). Under F32F64 mode the full interval survives
+        // and TicTypesConverter picks Real via ancestor (same pattern as `+`, `*`).
+        if (signature is PureGenericFunctionBase pureFloats
+            && ReferenceEquals(pureFloats.Constrains[0].Descendant, F32)
+            && ReferenceEquals(pureFloats.Constrains[0].Ancestor, Real)
+            && !_dialect.Converter.TypeBehaviour.RealLiteralIsGeneric)
+        {
+            var genericType = _ticTypeGraph.InitializeVarNode(Real, Real, false);
+            _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[] { genericType });
+            _ticTypeGraph.SetCall(genericType,
+                node.Left.OrderNumber, node.Right.OrderNumber, node.OrderNumber);
+            return true;
         }
 
         if (signature is PureGenericFunctionBase pure)

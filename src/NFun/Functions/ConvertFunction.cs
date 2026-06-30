@@ -306,6 +306,8 @@ public class ConvertFunction : GenericFunctionBase {
         int    => FunnyType.Int32,
         long   => FunnyType.Int64,
         double or decimal => FunnyType.Real,
+        float  => FunnyType.Float32,
+        sbyte  => FunnyType.Int8,
         bool   => FunnyType.Bool,
         char   => FunnyType.Char,
         System.Net.IPAddress => FunnyType.Ip,
@@ -332,7 +334,9 @@ public class ConvertFunction : GenericFunctionBase {
                 BaseFunnyType.Int16  => o => (short)((bool)o ? 1 : 0),
                 BaseFunnyType.Int32  => o => (bool)o ? 1 : 0,
                 BaseFunnyType.Int64  => o => (long)((bool)o ? 1L : 0L),
+                BaseFunnyType.Int8   => o => (sbyte)((bool)o ? 1 : 0),
                 BaseFunnyType.Real   => o => (bool)o ? 1.0 : 0.0,
+                BaseFunnyType.Float32 => o => (bool)o ? 1.0f : 0.0f,
                 _ => null
             };
         }
@@ -346,6 +350,11 @@ public class ConvertFunction : GenericFunctionBase {
                 BaseFunnyType.Int16  => o => (short)o != 0,
                 BaseFunnyType.Int32  => o => (int)o != 0,
                 BaseFunnyType.Int64  => o => (long)o != 0,
+                BaseFunnyType.Int8   => o => (sbyte)o != 0,
+                BaseFunnyType.Float32 => o => {
+                    var f = (float)o;
+                    return !float.IsNaN(f) && f != 0.0f;
+                },
                 // real → bool: 0.0/-0.0/NaN → false, finite non-zero / ±Inf → true.
                 // `d != 0.0` already yields false for both ±0.0 (IEEE-754 equality).
                 // NaN compares unequal to everything, so `d != 0.0` is true for NaN — must
@@ -514,6 +523,8 @@ public class ConvertFunction : GenericFunctionBase {
             BaseFunnyType.Int16 => o => ToBoolFunnyArray(BitConverter.GetBytes((short)o)),
             BaseFunnyType.Int32 => o => ToBoolFunnyArray(BitConverter.GetBytes((int)o)),
             BaseFunnyType.Int64 => o => ToBoolFunnyArray(BitConverter.GetBytes((long)o)),
+            BaseFunnyType.Int8 => o => ToBoolFunnyArray(new[] { unchecked((byte)(sbyte)o) }),
+            BaseFunnyType.Float32 => o => ToBoolFunnyArray(BitConverter.GetBytes((float)o)),
             BaseFunnyType.Real => o => ToBoolFunnyArray(BitConverter.GetBytes((double)o)),
             _ when fromType.IsText => o => ToBoolFunnyArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())),
             _ => null
@@ -548,6 +559,8 @@ public class ConvertFunction : GenericFunctionBase {
             BaseFunnyType.Int16 => o => new ImmutableFunnyArray(BitConverter.GetBytes((short)o)),
             BaseFunnyType.Int32 => o => new ImmutableFunnyArray(BitConverter.GetBytes((int)o)),
             BaseFunnyType.Int64 => o => new ImmutableFunnyArray(BitConverter.GetBytes((long)o)),
+            BaseFunnyType.Int8 => o => new ImmutableFunnyArray(new[] { unchecked((byte)(sbyte)o) }),
+            BaseFunnyType.Float32 => o => new ImmutableFunnyArray(BitConverter.GetBytes((float)o)),
             BaseFunnyType.Real => o => new ImmutableFunnyArray(BitConverter.GetBytes((double)o)),
             _ => from.IsText ? o => new ImmutableFunnyArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())) : null
         };
@@ -579,6 +592,8 @@ public class ConvertFunction : GenericFunctionBase {
             BaseFunnyType.Int16 =>  o => Int16.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.Int32 =>  o => Int32.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.Int64 =>  o => Int64.Parse(((IFunnyArray)o).ToText()),
+            BaseFunnyType.Int8 =>   o => sbyte.Parse(((IFunnyArray)o).ToText()),
+            BaseFunnyType.Float32 => o => float.Parse(((IFunnyArray)o).ToText(), CultureInfo.InvariantCulture),
             BaseFunnyType.Real =>   o => double.Parse(((IFunnyArray)o).ToText(), CultureInfo.InvariantCulture),
             _ => null
         };
@@ -608,6 +623,8 @@ public class ConvertFunction : GenericFunctionBase {
             BaseFunnyType.Int16 => o => BitConverter.ToInt16(StrictBytes(o, 2), 0),
             BaseFunnyType.Int32 => o => BitConverter.ToInt32(StrictBytes(o, 4), 0),
             BaseFunnyType.Int64 => o => BitConverter.ToInt64(StrictBytes(o, 8), 0),
+            BaseFunnyType.Int8 => o => unchecked((sbyte)StrictBytes(o, 1)[0]),
+            BaseFunnyType.Float32 => o => BitConverter.ToSingle(StrictBytes(o, 4), 0),
             BaseFunnyType.Real => o => BitConverter.ToDouble(StrictBytes(o, 8), 0),
             _ => to.IsText ? o => new ImmutableFunnyArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())) : null
         };

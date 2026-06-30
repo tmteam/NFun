@@ -6,9 +6,10 @@ Most functions may be applied for different types of operands. To simplify the d
 |---------------|--------------------------------------------------------------------------|-----------------------------------------------------|
 | All           | All types                                                                | T => any                                            |
 | Integers      | `int64`, `int32`,`int16`, `int8`, `uint64`, `uint32`, `uint16`, `byte`   | T => (int64 &#124; uint64)                          |
-| Numbers       | `real`, **[Integers]**                                                   | T => real                                           |
-| Signed        | `int64`, `int32`, `int16`, `int8`                                        | int8 => T => int64                                  |
-| Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`                     | (int32 &#124; uint32) => T => real                  |
+| Floats        | `float32`, `float64` (≡`real`)                                           | float32 => T => real                                |
+| Numbers       | **[Floats]**, **[Integers]**                                             | T => real                                           |
+| Signed        | `real`, `float32`, `int64`, `int32`, `int16`, `int8`                     | int8 => T => real                                   |
+| Arithmetics   | `real`, `float32`, `int64`, `int32`, `uint64`, `uint32`                  | (int32 &#124; uint32) => T => real                  |
 | Comparables   | `text`, `char`, **[Numbers]**                                            | T is IComparable                                    |
 
 ## Built-in constants
@@ -18,28 +19,33 @@ Most functions may be applied for different types of operands. To simplify the d
 | `π`      | real | 3.14159265... |
 | `∞`      | real | positive infinity |
 
-## Concrete math functions
+## Math functions
 
-| Function              | Returns	                                                                     |
-|-----------------------|------------------------------------------------------------------------------|
-| sqrt(real):real            | the square root of a specified number                                        |
-| cos(real):real             | the cosine of the specified angle                                            |
-| sin(real):real             | the sine of the specified angle                                              |
-| tan(real):real             | the tangent of the specified angle                                           |
-| atan(real):real            | the angle whose tangent is the specified number                              |
-| atan2(y:real, x:real):real | the angle whose tangent is the quotient of two specified numbers             |
-| asin(real):real       | the angle whose sine is the specified number                                 |
-| acos(real):real       | the angle whose cosine is the specified number	                              |
-| exp(real):real        | e raised to the specified power	                                             |
-| log(real):real        | the natural (base e) logarithm of a specified number                         |
-| log(real,real):real   | the logarithm of a specified number in a specified base.                     |
-| log10(real):real      | the base 10 logarithm of a specified number                                  |
-| avg(real[]):real      | Computed average of an array of real numbers. Throws if input array is empty |
-| round(real,digits:int):real | the value rounded to the specified number of digits                    |
-| ceil(real):real        | the smallest integer greater than or equal to the argument. `ceil(7.03)` → `8.0` |
-| floor(real):real       | the largest integer less than or equal to the argument. `floor(7.03)` → `7.0`    |
-| range(from:T, to:T):T[]    | array of numbers from `from` to `to` inclusive. `range(1,3)` → `[1,2,3]`. Descending if from > to |
-| range(from:T, to:T, step:T):T[] | array with step. `range(1,10,3)` → `[1,4,7,10]`                  |
+All math functions are **generic over Floats**: input and output share the same float
+type T ∈ {`float32`, `float64`} (with `float64 ≡ real`). Float32 backings use
+`System.MathF` (single-precision); float64/real backings use `System.Math` (double)
+or `System.Decimal` per `RealClrType` dialect.
+
+| Function              | Constrains | Returns	                                                                |
+|-----------------------|------------|------------------------------------------------------------------------------|
+| sqrt(T):T             | Floats     | the square root of a specified number                                        |
+| cos(T):T              | Floats     | the cosine of the specified angle                                            |
+| sin(T):T              | Floats     | the sine of the specified angle                                              |
+| tan(T):T              | Floats     | the tangent of the specified angle                                           |
+| atan(T):T             | Floats     | the angle whose tangent is the specified number                              |
+| atan2(y:T, x:T):T     | Floats     | the angle whose tangent is the quotient of two specified numbers             |
+| asin(T):T             | Floats     | the angle whose sine is the specified number                                 |
+| acos(T):T             | Floats     | the angle whose cosine is the specified number	                              |
+| exp(T):T              | Floats     | e raised to the specified power	                                             |
+| log(T):T              | Floats     | the natural (base e) logarithm of a specified number                         |
+| log(T,T):T            | Floats     | the logarithm of a specified number in a specified base.                     |
+| log10(T):T            | Floats     | the base 10 logarithm of a specified number                                  |
+| avg(T[]):T            | Floats     | Computed average of an array of floats. Throws if input array is empty       |
+| round(T,digits:int):T | Floats     | the value rounded to the specified number of digits                          |
+| ceil(T):T             | Floats     | the smallest integer greater than or equal to the argument. `ceil(7.03)` → `8.0` |
+| floor(T):T            | Floats     | the largest integer less than or equal to the argument. `floor(7.03)` → `7.0`    |
+| range(from:T, to:T):T[]    | Numbers | array of numbers from `from` to `to` inclusive. `range(1,3)` → `[1,2,3]`. Descending if from > to |
+| range(from:T, to:T, step:T):T[] | Numbers | array with step. `range(1,10,3)` → `[1,4,7,10]`                  |
 
 ## Generic functions
 | Function       | Constrains     | Returns	                                                                                                                                   |
@@ -66,30 +72,31 @@ The `?` on a target type **only** affects 🪂 conversions: it replaces the runt
 
 #### Primitive matrix
 
-Rows = source. Columns = target. (Aliases: `byte ≡ uint8`, `sbyte ≡ int8`, `int ≡ int32`, `uint ≡ uint32`, `text ≡ char[]`.)
+Rows = source. Columns = target. (Aliases: `byte ≡ uint8`, `sbyte ≡ int8`, `int ≡ int32`, `uint ≡ uint32`, `real ≡ float64`, `text ≡ char[]`.)
 
-| from\to    | u8 | u16 | u32 | u64 | i8 | i16 | i32 | i64 | real | bool | char | text | ip |
-|------------|----|-----|-----|-----|----|-----|-----|-----|------|------|------|------|----|
-| **u8**     | I  | I   | I   | I   | 🪂 | I   | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
-| **u16**    | 🪂 | I   | I   | I   | 🪂 | 🪂  | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
-| **u32**    | 🪂 | 🪂  | I   | I   | 🪂 | 🪂  | 🪂  | I   | I    | ✓    | 🪂   | ✓    | ✓  |
-| **u64**    | 🪂 | 🪂  | 🪂  | I   | 🪂 | 🪂  | 🪂  | 🪂  | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
-| **i8**     | 🪂 | 🪂  | 🪂  | 🪂  | I  | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
-| **i16**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
-| **i32**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | I   | I   | I    | ✓    | 🪂   | ✓    | 🪂 |
-| **i64**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | I   | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
-| **real**   | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | I    | ✓    | 🪂   | ✓    | ✗  |
-| **bool**   | ✓  | ✓   | ✓   | ✓   | ✓  | ✓   | ✓   | ✓   | ✓    | I    | ✗    | ✓    | ✗  |
-| **char**   | 🪂 | ✓   | ✓   | ✓   | 🪂 | 🪂  | ✓   | ✓   | ✓    | ✗    | I    | ✓    | ✗  |
-| **text**   | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | I    | 🪂 |
-| **ip**     | ✗  | ✗   | ✓   | I   | ✗  | ✗   | **✗**| ✓  | ✗    | ✗    | ✗    | ✓    | I  |
-| **any**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | ✓    | 🪂 |
+| from\to    | u8 | u16 | u32 | u64 | i8 | i16 | i32 | i64 | f32 | real | bool | char | text | ip |
+|------------|----|-----|-----|-----|----|-----|-----|-----|-----|------|------|------|------|----|
+| **u8**     | I  | I   | I   | I   | 🪂 | I   | I   | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
+| **u16**    | 🪂 | I   | I   | I   | 🪂 | 🪂  | I   | I   | I   | I    | ✓    | ✓    | ✓    | ✗  |
+| **u32**    | 🪂 | 🪂  | I   | I   | 🪂 | 🪂  | 🪂  | I   | ⚠   | I    | ✓    | 🪂   | ✓    | ✓  |
+| **u64**    | 🪂 | 🪂  | 🪂  | I   | 🪂 | 🪂  | 🪂  | 🪂  | ⚠   | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
+| **i8**     | 🪂 | 🪂  | 🪂  | 🪂  | I  | I   | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
+| **i16**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | I   | I   | I   | I   | I    | ✓    | 🪂   | ✓    | ✗  |
+| **i32**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | I   | I   | ⚠   | I    | ✓    | 🪂   | ✓    | 🪂 |
+| **i64**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | I   | ⚠   | ⚠    | ✓    | 🪂   | ✓    | 🪂 |
+| **f32**    | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | I   | I    | ✓    | 🪂   | ✓    | ✗  |
+| **real**   | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂| ⚠🪂 | ⚠🪂 | ⚠🪂 | ⚠🪂 | I    | ✓    | 🪂   | ✓    | ✗  |
+| **bool**   | ✓  | ✓   | ✓   | ✓   | ✓  | ✓   | ✓   | ✓   | ✓   | ✓    | I    | ✗    | ✓    | ✗  |
+| **char**   | 🪂 | ✓   | ✓   | ✓   | 🪂 | 🪂  | ✓   | ✓   | ✓   | ✓    | ✗    | I    | ✓    | ✗  |
+| **text**   | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | I    | 🪂 |
+| **ip**     | ✗  | ✗   | ✓   | I   | ✗  | ✗   | **✗**| ✓  | ✗   | ✗    | ✗    | ✗    | ✓    | I  |
+| **any**    | 🪂 | 🪂  | 🪂  | 🪂  | 🪂 | 🪂  | 🪂  | 🪂  | 🪂  | 🪂   | 🪂   | 🪂   | ✓    | 🪂 |
 
 Reading the cells:
-- **Widening** within the numeric subtype lattice (`u8 ≤ u16 ≤ u32 ≤ u64`, `i8 ≤ i16 ≤ i32 ≤ i64`, `u8 ≤ i16 ≤ i32 ≤ i64`, `u16 ≤ i32 ≤ i64`, `u32 ≤ i64`, any-numeric `≤ real`) → **I**.
+- **Widening** within the numeric subtype lattice (`u8 ≤ u16 ≤ u32 ≤ u64`, `i8 ≤ i16 ≤ i32 ≤ i64`, `u8 ≤ i16 ≤ i32 ≤ i64`, `u16 ≤ i32 ≤ i64`, `u32 ≤ i64`, small ints `≤ f32`, `f32 ≤ real`) → **I**.
 - **Narrowing** → **🪂** (throws on overflow; `:T?` gives `none`).
-- **`real → integer`** → **⚠🪂** — fractional part silently truncated (`1.5 → 1`); throws/`none` on overflow.
-- **`u64 → real`, `i64 → real`** → **⚠** — silent precision loss above 2⁵³.
+- **`f32 / real → integer`** → **⚠🪂** — fractional part silently truncated (`1.5 → 1`); throws/`none` on overflow.
+- **`u64 → real`, `i64 → real`, wide-int → f32**, **`real → f32`** → **⚠** — silent precision loss (f32 mantissa = 24 bits, real ≈ 53 bits).
 - **`bool ↔ numeric`** is **C-style**: `false ↔ 0`, `true ↔ 1` (back-direction); `int → bool`: `0 → false`, any non-zero → `true`. `real → bool`: `0.0/±0.0/NaN → false`, finite non-zero → `true`. All total.
 - **`char ↔ numeric`**: `char` is a UTF-16 code unit. `char → u16+/i32+/real` is **✓**; `char → u8/i8/i16` is **🪂** (overflow). `u8/u16 → char` is **✓** (every u8/u16 is a valid code unit, including surrogates). Wider integer or signed → `char` is **🪂**.
 - **`bool ↔ char`** → **✗** (no canonical mapping).

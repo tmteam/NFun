@@ -55,6 +55,13 @@ public class FormatSpecifierTest {
     public void NamedSpecifier_NarrowSignedOperand(string expr, string expected) =>
         expr.AssertResultHas("y", expected);
 
+    // Float32 format specifiers — opt-in dialect required.
+    [TestCase("x:float32=3.14\r y='{x}'",         "3.14")]
+    [TestCase("x:float32=3.14159\r y='{x:0.00}'", "3.14")]
+    [TestCase("x:float32=42\r y='{x:0000}'",      "0042")]
+    public void Float32_NamedSpecifier(string expr, string expected) =>
+        expr.BuildWithFloats().Calc().AssertResultHas("y", expected);
+
     // ═══════════════════════════════════════════════════════════════
     // Alignment only
     // ═══════════════════════════════════════════════════════════════

@@ -80,6 +80,8 @@ public class Tokenizer {
         { "bool", TokType.BoolType },
         { "char", TokType.CharType },
         { "real", TokType.RealType },
+        { "float32", TokType.Float32Type },
+        { "float64", TokType.Float64Type },
 
         { "int16", TokType.Int16Type },
         { "int", TokType.Int32Type },

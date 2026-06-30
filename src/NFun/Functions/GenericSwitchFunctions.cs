@@ -26,10 +26,16 @@ public class MultiSumFunction : GenericFunctionBase {
             BaseFunnyType.Int16  => context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
             BaseFunnyType.Int32  => context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
             BaseFunnyType.Int64  => context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+            BaseFunnyType.Float32 => Float32Function.Instance,
             BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
             _                    => throw new NFunImpossibleException("Unsupported type for this function")
         };
 
+    private class Float32Function : FunctionWithSingleArg {
+        public static readonly Float32Function Instance = new();
+        private Float32Function() : base(Id, FunnyType.Float32, FunnyType.ArrayOf(FunnyType.Float32)){ }
+        public override object Calc(object a) => ((IFunnyArray) a).As<float>().Sum();
+    }
 
     private class RealDoubleFunction : FunctionWithSingleArg {
         public static readonly RealDoubleFunction Instance = new();
@@ -232,6 +238,7 @@ public class RangeFunction : GenericFunctionBase {
             BaseFunnyType.Int16  => Int16Function.Instance,
             BaseFunnyType.Int32  => Int32Function.Instance,
             BaseFunnyType.Int64  => Int64Function.Instance,
+            BaseFunnyType.Float32 => Float32Function.Instance,
             BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(
                 RealDoubleFunction.Instance,
                 RealDecimalFunction.Instance),
@@ -239,6 +246,21 @@ public class RangeFunction : GenericFunctionBase {
         };
 
     private const string Id = "range";
+
+    class Float32Function : FunctionWithTwoArgs {
+        public static readonly Float32Function Instance = new();
+        private Float32Function() : base(Id, FunnyType.ArrayOf(FunnyType.Float32), FunnyType.Float32, FunnyType.Float32) { }
+        public override object Calc(object a, object b) {
+            var start = (float)a;
+            var end = (float)b;
+            // Half-open enumeration matching int Range semantics: from..to inclusive,
+            // step = ±1.0f, ascending if from < to else descending.
+            var list = new List<float>();
+            if (start <= end) for (float v = start; v <= end; v += 1f) list.Add(v);
+            else for (float v = start; v >= end; v -= 1f) list.Add(v);
+            return new ImmutableFunnyArray(list.ToArray(), FunnyType.Float32);
+        }
+    }
 
     class Int16Function : FunctionWithTwoArgs {
         public static readonly Int16Function Instance = new();
@@ -574,11 +596,28 @@ public class RangeStepFunction : GenericFunctionBase {
             BaseFunnyType.Int16  => Int16Function.Instance,
             BaseFunnyType.Int32  => Int32Function.Instance,
             BaseFunnyType.Int64  => Int64Function.Instance,
+            BaseFunnyType.Float32 => Float32Function.Instance,
             BaseFunnyType.Real   =>context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance,RealDecimalFunction.Instance),
             _                    => throw new NFunImpossibleException("Unsupported type for this function")
         };
 
     private const string Id = "rangeWithStep";
+
+    class Float32Function : FunctionWithManyArguments {
+        public static readonly Float32Function Instance = new();
+        private Float32Function() : base(
+            Id, FunnyType.ArrayOf(FunnyType.Float32), FunnyType.Float32, FunnyType.Float32, FunnyType.Float32) { }
+        public override object Calc(object[] args) {
+            var start = (float)args[0];
+            var end = (float)args[1];
+            var step = (float)args[2];
+            if (step <= 0f) throw new FunnyRuntimeException("Step has to be positive");
+            var list = new List<float>();
+            if (start <= end) for (float v = start; v <= end; v += step) list.Add(v);
+            else for (float v = start; v >= end; v -= step) list.Add(v);
+            return new ImmutableFunnyArray(list.ToArray(), FunnyType.Float32);
+        }
+    }
 
     class Int16Function : FunctionWithManyArguments {
         public static readonly Int16Function Instance = new();

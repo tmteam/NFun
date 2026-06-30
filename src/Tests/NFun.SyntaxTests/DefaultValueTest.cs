@@ -92,6 +92,14 @@ public class DefaultValueTest {
     public void DefaultOfAnyConstantTest() =>
         Assert.IsNull("default".Calc().Get("out"));
 
+    // Float32 default values — requires FloatFamily opt-in.
+    [TestCase("y:float32 = default", default(float))]
+    [TestCase("y:float64 = default", default(double))]
+    [TestCase("d():float32 = default; y:float32 = d()", default(float))]
+    [TestCase("d() = default; y:float32 = d()", default(float))]
+    public void Float32_DefaultValue(string expression, object expected) =>
+        expression.BuildWithFloats().Calc().AssertReturns("y", expected);
+
     [Test]
     public void ArrayOfIntConstantTest() =>
         "if(true) default else [1,2,3]".AssertReturns(Array.Empty<Int32>());

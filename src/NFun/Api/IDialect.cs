@@ -22,21 +22,36 @@ internal static class Dialects {
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
-        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled
-        )
-        => new(
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None
+        ) {
+        // Reject incompatible combo: Decimal-backed Real + IEEE float family.
+        if (realClrType == RealClrType.IsDecimal && floatFamilySupport == FloatFamilySupport.Float32AndFloat64)
+            throw new System.ArgumentException(
+                "FloatFamilySupport.Float32AndFloat64 is incompatible with RealClrType.IsDecimal. " +
+                "Either set FloatFamilySupport=None to keep decimal Real, or use RealClrType.IsDouble " +
+                "to enable IEEE float32/float64 keywords.");
+
+        var converter = (realClrType, floatFamilySupport) switch {
+            (RealClrType.IsDouble,  FloatFamilySupport.None)              => FunnyConverter.RealIsDouble,
+            (RealClrType.IsDouble,  FloatFamilySupport.Float32AndFloat64) => FunnyConverter.RealIsDoubleWithFloatFamily,
+            (RealClrType.IsDecimal, FloatFamilySupport.None)              => FunnyConverter.RealIsDecimal,
+            _ => throw new System.InvalidOperationException("Unreachable")
+        };
+
+        return new(
             ifExpressionSetup,
             integerPreferredType,
-            realClrType == RealClrType.IsDouble
-                ? FunnyConverter.RealIsDouble
-                : FunnyConverter.RealIsDecimal,
+            converter,
             integerOverflow == IntegerOverflow.Unchecked,
             allowUserFunctions,
             optionalTypesSupport,
             allowNewlineInStrings,
             namedTypesSupport,
             tryCatchSupport,
-            extensionFunctionsSeparation);
+            extensionFunctionsSeparation,
+            floatFamilySupport);
+    }
 }
 
 
@@ -56,7 +71,8 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         AllowNewlineInStrings allowNewlineInStrings = AllowNewlineInStrings.Allow,
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
-        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled) {
+        ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -67,6 +83,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         NamedTypesSupport = namedTypesSupport;
         TryCatchSupport = tryCatchSupport;
         ExtensionFunctionsSeparation = extensionFunctionsSeparation;
+        FloatFamilySupport = floatFamilySupport;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
@@ -78,6 +95,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
     public NamedTypesSupport NamedTypesSupport { get; }
     public TryCatchSupport TryCatchSupport { get; }
     public ExtensionFunctionsSeparation ExtensionFunctionsSeparation { get; }
+    public FloatFamilySupport FloatFamilySupport { get; }
 }
 
 /// <summary>
@@ -182,4 +200,18 @@ public enum ExtensionFunctionsSeparation {
     Disabled = 0,
     /// <summary>Extension functions (x.f() = expr) have a separate namespace from regular functions</summary>
     Enabled = 1
+}
+
+/// <summary>
+/// Availability of the IEEE 754 float family keywords (`float32`, `float64`).
+/// The `real` keyword is always available regardless of this setting.
+/// </summary>
+public enum FloatFamilySupport {
+    /// <summary>`float32` and `float64` keywords are parse errors.</summary>
+    None = 0,
+    /// <summary>
+    /// `float32` (System.Single) and `float64` (alias for `real`) keywords enabled.
+    /// Incompatible with <see cref="RealClrType.IsDecimal"/>.
+    /// </summary>
+    Float32AndFloat64 = 1
 }

@@ -1,7 +1,7 @@
 namespace NFun.Tic.SolvingStates;
 
 public class StatePrimitive : ITypeState, ITicNodeState {
-    private const int LatticeSize = 22;
+    private const int LatticeSize = 23;
 
     private static readonly StatePrimitive[,] LcaMap;
     private static readonly StatePrimitive[,] GcdMap;
@@ -37,6 +37,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public static StatePrimitive Char { get; } = new(PrimitiveTypeName.Char);
     public static StatePrimitive Ip { get; } = new(PrimitiveTypeName.Ip);
     public static StatePrimitive Real { get; } = new(PrimitiveTypeName.Real);
+    public static StatePrimitive F32 { get; } = new(PrimitiveTypeName.F32);
     public static StatePrimitive I96 { get; } = new(PrimitiveTypeName.I96);
     public static StatePrimitive I64 { get; } = new(PrimitiveTypeName.I64);
     public static StatePrimitive I48 { get; } = new(PrimitiveTypeName.I48);
@@ -110,23 +111,24 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             Bool, //2
             Ip,   //3
             Real, //4
-            I96,  //5
-            I64,  //6
-            I48,  //7
-            I32,  //8
-            I24,  //9
-            I16,  //10
-            I12,  //11
-            I8,   //12
-            U64,  //13
-            U48,  //14
-            U32,  //15
-            U24,  //16
-            U16,  //17
-            U12,  //18
-            U8,   //19
-            U4,   //20
-            None, //21
+            F32,  //5
+            I96,  //6
+            I64,  //7
+            I48,  //8
+            I32,  //9
+            I24,  //10
+            I16,  //11
+            I12,  //12
+            I8,   //13
+            U64,  //14
+            U48,  //15
+            U32,  //16
+            U24,  //17
+            U16,  //18
+            U12,  //19
+            U8,   //20
+            U4,   //21
+            None, //22
         };
 
         //by default - any lca returns any
@@ -154,7 +156,14 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             GcdMap[i, Real.Order] = numberToTypeMap[i];
         }
 
-        //i96 (only numeric types: I96..U4, orders 5..20)
+        //F32 vs integers: LCA=F32, GCD=int.  (F32 vs Real handled by the Real loop above.)
+        for (int i = I96.Order; i <= U4.Order; i++)
+        {
+            LcaMap[i, F32.Order] = F32;
+            GcdMap[i, F32.Order] = numberToTypeMap[i];
+        }
+
+        //i96 (only integer types: I96..U4, orders 6..21)
         for (int i = I96.Order; i <= U4.Order; i++)
         {
             //i96 ^ iXX = i96,   i96 ^ uXX = i96

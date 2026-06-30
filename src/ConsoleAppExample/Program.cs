@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using NFun;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
@@ -776,7 +777,7 @@ class Program {
     static int ExecuteNonInteractive(string expression) {
         try
         {
-            var runtime = Funny.Hardcore.WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, namedTypesSupport: NamedTypesSupport.Enabled).Build(expression);
+            var runtime = Funny.Hardcore.WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, namedTypesSupport: NamedTypesSupport.Enabled, floatFamilySupport: FloatFamilySupport.Float32AndFloat64).Build(expression);
             var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
 
             if (inputs.Count > 0)
@@ -822,7 +823,7 @@ class Program {
 
         try
         {
-            var runtime = Funny.Hardcore.WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, namedTypesSupport: NamedTypesSupport.Enabled).Build(fullScript);
+            var runtime = Funny.Hardcore.WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled, namedTypesSupport: NamedTypesSupport.Enabled, floatFamilySupport: FloatFamilySupport.Float32AndFloat64).Build(fullScript);
             var inputs = runtime.Variables.Where(v => !v.IsOutput).ToList();
             var outputs = runtime.Variables.Where(v => v.IsOutput).ToList();
 

@@ -27,7 +27,7 @@ namespace NFun.Tic;
 internal sealed class SimplePrimitiveSolver {
 
     private const byte OPEN = 0xFF;
-    private const int PRIM_COUNT = 22; // must match StatePrimitive type count (0..21) — includes I12, I8, U4
+    private const int PRIM_COUNT = 23; // must match StatePrimitive type count (0..22) — includes F32, I12, I8, U4
 
     private struct Group {
         public byte Desc;       // ordinal lower bound, OPEN = unconstrained
@@ -76,7 +76,8 @@ internal sealed class SimplePrimitiveSolver {
 
     private static readonly PrimitiveTypeName[] s_allPrimitives = {
         PrimitiveTypeName.Any, PrimitiveTypeName.Bool, PrimitiveTypeName.Char,
-        PrimitiveTypeName.Ip, PrimitiveTypeName.Real, PrimitiveTypeName.I96,
+        PrimitiveTypeName.Ip, PrimitiveTypeName.Real, PrimitiveTypeName.F32,
+        PrimitiveTypeName.I96,
         PrimitiveTypeName.I64, PrimitiveTypeName.I48, PrimitiveTypeName.I32,
         PrimitiveTypeName.I24, PrimitiveTypeName.I16, PrimitiveTypeName.I12,
         PrimitiveTypeName.I8, PrimitiveTypeName.U64, PrimitiveTypeName.U48,
@@ -313,7 +314,8 @@ internal sealed class SimplePrimitiveSolver {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsPrimitiveBaseType(BaseFunnyType t) =>
         t is BaseFunnyType.Bool or BaseFunnyType.Char or BaseFunnyType.Ip or BaseFunnyType.Any
-            or BaseFunnyType.Real or BaseFunnyType.Int8 or BaseFunnyType.Int16 or BaseFunnyType.Int32 or BaseFunnyType.Int64
+            or BaseFunnyType.Real or BaseFunnyType.Float32
+            or BaseFunnyType.Int8 or BaseFunnyType.Int16 or BaseFunnyType.Int32 or BaseFunnyType.Int64
             or BaseFunnyType.UInt8 or BaseFunnyType.UInt16 or BaseFunnyType.UInt32 or BaseFunnyType.UInt64;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -332,14 +334,13 @@ internal sealed class SimplePrimitiveSolver {
             _                   => false
         };
 
-    private static readonly HashSet<string> s_primitiveTypeNames =
-        new(StringComparer.OrdinalIgnoreCase) {
-            "int8", "sbyte", "int16", "int", "int32", "int64",
-            "byte", "uint8", "uint16", "uint", "uint32", "uint64",
-            "real", "bool", "char", "ip", "any"
-        };
+    private static bool IsPrimitiveTypeName(string name) =>
+        NFun.TypeInferenceAdapter.TypeSyntaxResolver.TryResolvePrimitiveKeyword(name, out _);
 
-    private static bool IsPrimitiveTypeName(string name) => s_primitiveTypeNames.Contains(name);
+    private static bool IsFloatFamilyKeyword(TypeSyntax syntax) =>
+        syntax is TypeSyntax.Named n
+        && (n.Name.Equals("float32", System.StringComparison.OrdinalIgnoreCase)
+         || n.Name.Equals("float64", System.StringComparison.OrdinalIgnoreCase));
 
     private static bool AllAprioriTypesArePrimitive(IAprioriTypesMap aprioriTypes) {
         foreach (var a in aprioriTypes) {
@@ -463,6 +464,7 @@ internal sealed class SimplePrimitiveSolver {
     private static readonly byte s_ordU48 = OrdOf(StatePrimitive.U48);
     private static readonly byte s_ordU64 = OrdOf(StatePrimitive.U64);
     private static readonly byte s_ordReal = OrdOf(StatePrimitive.Real);
+    private static readonly byte s_ordF32 = OrdOf(StatePrimitive.F32);
     private static readonly byte s_ordBool = OrdOf(StatePrimitive.Bool);
     private static readonly byte s_ordChar = OrdOf(StatePrimitive.Char);
     private static readonly byte s_ordIp   = OrdOf(StatePrimitive.Ip);
@@ -892,6 +894,9 @@ internal sealed class SimplePrimitiveSolver {
                         return null;
                     var defGid = solver.GetOrCreateVarGroup(eq.Id);
                     if (eq.OutputTypeSpecified) {
+                        if (dialect.FloatFamilySupport == FloatFamilySupport.None
+                            && IsFloatFamilyKeyword(eq.TypeSpecificationOrNull.TypeSyntax))
+                            return null; // fall back to full TIC, which throws the proper parse error
                         var resolved = TypeSyntaxResolver.Resolve(eq.TypeSpecificationOrNull.TypeSyntax, customTypes);
                         solver.SetConcreteChecked(defGid, ToPrimitiveOrd(resolved));
                     }
@@ -908,6 +913,9 @@ internal sealed class SimplePrimitiveSolver {
                     // Gate: type annotation must be primitive
                     if (!IsSimpleTypeSyntax(vd.TypeSyntax))
                         return null;
+                    if (dialect.FloatFamilySupport == FloatFamilySupport.None
+                        && IsFloatFamilyKeyword(vd.TypeSyntax))
+                        return null; // fall back to full TIC
                     var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax, customTypes);
                     solver.SetConcreteChecked(solver.GetOrCreateVarGroup(vd.Id), ToPrimitiveOrd(resolved2));
                     break;
@@ -943,6 +951,7 @@ internal sealed class SimplePrimitiveSolver {
             BaseFunnyType.Int32  => s_ordI32,
             BaseFunnyType.Int64  => s_ordI64,
             BaseFunnyType.Real   => s_ordReal,
+            BaseFunnyType.Float32 => s_ordF32,
             BaseFunnyType.Char   => s_ordChar,
             BaseFunnyType.Ip     => s_ordIp,
             BaseFunnyType.Any    => s_ordAny,

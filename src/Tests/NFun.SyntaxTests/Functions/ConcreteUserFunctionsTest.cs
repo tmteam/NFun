@@ -1,5 +1,6 @@
 namespace NFun.SyntaxTests.Functions;
 
+using Exceptions;
 using TestTools;
 using NUnit.Framework;
 
@@ -37,6 +38,13 @@ public class ConcreteUserFunctionsTest {
         ", 3)]
     public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected) =>
         expr.AssertReturns("y", expected);
+
+    // Float32 in user function signatures — requires FloatFamily opt-in.
+    [TestCase("f(x:float32):float32 = x\r y = f(1.5)",  1.5f)]
+    [TestCase("f(x:float32):float32 = -x\r y = f(1.5)", -1.5f)]
+    [TestCase("f(a:float32, b:float32):float32 = a + b\r y = f(1.5, 2.5)", 4.0f)]
+    public void Float32_TypedFunction(string expr, object expected) =>
+        expr.BuildWithFloats().Calc().AssertReturns("y", expected);
 
     [TestCase("_inc(a) = a+1\r y = _inc(2)", 3)]
     [TestCase("_inc(y) = y+1\r y = _inc(2)", 3)]
@@ -188,4 +196,117 @@ public class ConcreteUserFunctionsTest {
     [TestCase("max(a,b) = if(a>b) a else b\r y = max(3,5)", 5, Description = "max(2 args) shadows builtin max(2 args)")]
     public void UserFunction_SameNameAsBuiltin_DifferentArityOrNonRecursive_Works(string expr, int expected) =>
         expr.AssertResultHas("y", expected);
+
+    #region Float32AndFloat64 dialect
+    // Concrete-typed user functions with float32 in signature.
+
+    // f(x:float32, y:int):float32 = x + y (mixed args, int widens to f32).
+    [Test]
+    public void Float32_MixedArgs_IntWidensToF32() {
+        var rt = "f(x:float32, y:int):float32 = x + y\r out = f(1.5, 2)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.5f, rt["out"].Value);
+    }
+
+    // f(x:float32):real = x — widen in return.
+    [Test]
+    public void Float32_ReturnWidenedToReal() {
+        var rt = "f(x:float32):real = x\r out = f(1.5)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Real", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5, rt["out"].Value);
+    }
+
+    // f(x:real):float32 = x — narrowing return, must fail.
+    [Test]
+    public void Float32_NarrowingReturn_RealToF32_ParseError() =>
+        Assert.Throws<Exceptions.FunnyParseException>(() =>
+            "f(x:real):float32 = x\r out = f(1.5)".BuildWithFloats());
+
+    // Multiple f32 params, arithmetic composition.
+    [Test]
+    public void Float32_ThreeArgs_Arithmetic() {
+        var rt = "f(a:float32,b:float32,c:float32):float32 = a + b*c\r out = f(1.0, 2.0, 3.0)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(7.0f, rt["out"].Value);
+    }
+
+    // f32 array param.
+    [Test]
+    public void Float32_ArrayParam_ReturnsElement() {
+        var rt = "f(a:float32[]):float32 = a[0]\r out = f([1.5,2.5,3.5])".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    // f32 array param, return array.
+    [Test]
+    public void Float32_ArrayParam_ArrayReturn_Concat() {
+        var rt = "f(a:float32[]):float32[] = a.concat(a)\r out = f([1.5,2.5])".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.5f, 2.5f, 1.5f, 2.5f }, rt["out"].Value);
+    }
+
+    // Type-mismatched literal at call site — int literal narrows to f32.
+    [Test]
+    public void Float32_ConcreteFunc_IntLiteralAtCallSite() {
+        var rt = "f(x:float32):float32 = x\r out = f(42)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(42.0f, rt["out"].Value);
+    }
+
+    // Recursive f32 function (halving toward base case).
+    [Test]
+    public void Float32_RecursiveHalving() {
+        var rt = "f(x:float32):float32 = if(x < 0.01) 1.0 else f(x/2.0)\r out = f(0.5)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.0f, rt["out"].Value);
+    }
+
+    // Two arrows: f32 arg passed to text-returning function.
+    [Test]
+    public void Float32_PassedToToText() {
+        var rt = "f(x:float32):text = x.toText()\r out = f(3.5)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("3.5", rt["out"].Value);
+    }
+
+    // ReturnType float32? not tested here — that requires optional dialect
+    // (covered in OptionalTypeTest.cs).
+
+    // Higher-order: pass f32→f32 function as argument.
+    [Test]
+    public void Float32_HigherOrderFunction_MapWithF32Lambda() {
+        var rt = "twice(x:float32):float32 = x + x\r arr:float32[]=[1.0,2.0,3.0]\r out = arr.map(twice)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 2.0f, 4.0f, 6.0f }, rt["out"].Value);
+    }
+
+    // Explicit function reference used in fold.
+    [Test]
+    public void Float32_HigherOrderFunction_FoldWithF32Lambda() {
+        var rt = "add(a:float32,b:float32):float32 = a + b\r arr:float32[]=[1.0,2.0,3.0]\r out = arr.fold(add)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(6.0f, rt["out"].Value);
+    }
+    #endregion
+
+    #region Regression pins for TIC workarounds
+
+    // WO2 — StateFun solved-shortcut in DeepCloneNode. Without it: "Circular ancestor 0" crash.
+    [Test]
+    public void UserFunctionCall_ConcreteReturn_NoCircularAncestor() =>
+        "f(x) = x+1\r y = f(2)".Calc().AssertResultHas("y", 3);
+
+    // WO5 / Round 6 #75 — DestructionFunctions incompatibility guard. If-branches with
+    // structurally incompatible types (Text vs Int) must surface as a parse error, not
+    // silently coerce int → char[] via ToText.
+    [TestCase("f(x) = if(x==0) 'a' else x\ry = f(0)")]
+    [TestCase("f(x) = if (x==0) 'a' else x; out = f(5)")]
+    [TestCase("f(x) = if (false) 'a' else x; out = f(42)")]
+    public void UserFunctionReturn_IncompatibleIfBranches_ParseError(string script) =>
+        Assert.Throws<FunnyParseException>(() => script.Calc());
+
+    #endregion
 }

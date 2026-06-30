@@ -578,7 +578,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             long l => ConstantExpressionNode.CreateConcrete(primitive, l, _dialect.Converter.TypeBehaviour, node.Interval),
             ulong u => ConstantExpressionNode.CreateConcrete(primitive, u, _dialect.Converter.TypeBehaviour, node.Interval),
             string d => new ConstantExpressionNode(
-                _dialect.Converter.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval),
+                _dialect.Converter.TypeBehaviour.CoerceParsedRealLiteral(
+                    _dialect.Converter.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval),
+                    primitive),
                 primitive, node.Interval),
             _ => null
         };

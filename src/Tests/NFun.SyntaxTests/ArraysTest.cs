@@ -405,8 +405,21 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
     [TestCase("y = [4..1..-2.0]")]
     [TestCase("y = [1..4..-2.0]")]
     [TestCase("y = [1..4..0]")]
+    // FU711 — `in(T, T[])` rejects vacuous T=Any when args are at mismatched structural depths.
+    [TestCase("y = 'h' in 'hello'")]     // char[] vs char[]: T must be both char and char[]
+    [TestCase("y = [1,2] in [1,2,3]")]   // int[] vs int[]: T must be both int and int[]
+    [TestCase("y = 1 in 'hello'")]        // int vs char[]: T must be both int and char
+    [TestCase("y = true in [1,2,3]")]     // bool vs int[]: T must be both bool and int
     public void ObviouslyFailsOnParse(string expr)
         => expr.AssertObviousFailsOnParse();
+
+    // FU711 — `in(T, T[])` success cases: T resolves consistently.
+    [TestCase("y = 'abc' in ['abc', 'def']", true)]   // text vs text[]
+    [TestCase("y = /'h' in 'hello'", true)]           // char vs char[]
+    [TestCase("y = [1,2] in [[1,2],[3,4]]", true)]    // int[] vs int[][]
+    [TestCase("y = 'hello' in ['hello', 'world']", true)]  // text vs text[]
+    public void InOperator_DepthConsistent_Works(string expr, bool expected) =>
+        expr.AssertReturns("y", expected);
 
 
     [TestCase("y = [0..10][11]")]
@@ -574,6 +587,18 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
             .AssertResultHas("out", new sbyte[] { 126, 127 });
     }
 
+    [Test, Ignore("Float32 phase 4: Float32 array construction pending")]
+    public void Float32Array_LiteralInit() {
+        "out:float32[] = [1.0, 2.0, 3.0]".Calc()
+            .AssertResultHas("out", new[] { 1.0f, 2.0f, 3.0f });
+    }
+
+    [Test, Ignore("Float32 phase 4: reverse on float32[] pending")]
+    public void Reverse_OfFloat32Array() {
+        Funny.Hardcore.Build("x:float32[]=[1.0,2.0,3.0]\r out=x.reverse()").Calc()
+            .AssertResultHas("out", new[] { 3.0f, 2.0f, 1.0f });
+    }
+
     [Test]
     public void Reverse_OfInt8Array() {
         Funny.Hardcore.Build("x:int8[]=[1,2,3]\r out=x.reverse()").Calc()
@@ -591,4 +616,180 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
         Funny.Hardcore.Build("x:int8[]=[1,2,3,4,5]\r out=x.count()").Calc()
             .AssertResultHas("out", 5);
     }
+
+    #region Float32AndFloat64 dialect
+    // Array of float32 — construction, access, higher-order ops.
+
+    [Test]
+    public void Float32_Array_ExplicitTypeLiteral() {
+        var rt = "out:float32[] = [1.0, 2.0, 3.0]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 2.0f, 3.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_ElementAccess_Index0() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = arr[0]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_ElementAccess_LastIndex() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = arr[2]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Slice_Middle() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0, 4.0, 5.0]\r out = arr[1:3]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 2.0f, 3.0f, 4.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Slice_Prefix() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0, 4.0, 5.0]\r out = arr[:2]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 2.0f, 3.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Slice_Suffix() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0, 4.0, 5.0]\r out = arr[2:]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 3.0f, 4.0f, 5.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Slice_Step() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0, 4.0, 5.0]\r out = arr[::2]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 3.0f, 5.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Concat() {
+        var rt = "a:float32[] = [1.0, 2.0]\r b:float32[] = [3.0, 4.0]\r out = a.concat(b)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 2.0f, 3.0f, 4.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Count() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = arr.count()".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_IntLiteralsInF32Context() {
+        // Int literals in explicitly-typed float32 array context should narrow to f32.
+        var rt = "arr:float32[] = [1, 2, 3]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 2.0f, 3.0f }, rt["arr"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_MixedIntAndReal_TargetF32() {
+        var rt = "arr:float32[] = [1, 2.5, 3]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 2.5f, 3.0f }, rt["arr"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Reverse() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = arr.reverse()".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 3.0f, 2.0f, 1.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Filter() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0, 4.0]\r out = arr.filter(rule it > 2.0)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 3.0f, 4.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_MapSquare() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = arr.map(rule it * it)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 4.0f, 9.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Contains() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = 2.0 in arr".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(true, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_NotContains() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = 5.0 in arr".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(false, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Sort() {
+        var rt = "arr:float32[] = [3.0, 1.0, 2.0]\r out = arr.sort()".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 2.0f, 3.0f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Equality() {
+        var rt = "a:float32[] = [1.0, 2.0]\r b:float32[] = [1.0, 2.0]\r out = a == b".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(true, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Inequality() {
+        var rt = "a:float32[] = [1.0, 2.0]\r b:float32[] = [1.0, 3.0]\r out = a == b".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(false, rt["out"].Value);
+    }
+
+    // 2D array of f32.
+    [Test]
+    public void Float32_TwoDimArray_ElementAccess() {
+        var rt = "m:float32[][] = [[1.0, 2.0],[3.0, 4.0]]\r out = m[1][0]".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(3.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_FoldSum() {
+        var rt = "arr:float32[] = [1.0, 2.0, 3.0]\r out = arr.fold(rule it1 + it2)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(6.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Max() {
+        var rt = "arr:float32[] = [1.0, 5.0, 3.0]\r out = arr.max()".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(5.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Array_Min() {
+        var rt = "arr:float32[] = [3.0, 1.0, 5.0]\r out = arr.min()".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.0f, rt["out"].Value);
+    }
+
+    // Array element type inferred from function target.
+    [Test]
+    public void Float32_Array_InferredFromFunctionCall() {
+        var rt = "f(a:float32[]):float32 = a[0]\r out = f([1.5, 2.5])".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+    #endregion
 }

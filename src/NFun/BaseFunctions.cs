@@ -108,7 +108,26 @@ internal static class BaseFunctions {
             new ThrowErrorFunction(),
             new OopsFunction0(),
             new OopsFunction1(),
-            new OopsFunction2()
+            new OopsFunction2(),
+
+            // Math fns generic over Floats (Float32 + Real).
+            new SqrtFunction(),
+            new SinFunction(),
+            new CosFunction(),
+            new TanFunction(),
+            new AsinFunction(),
+            new AcosFunction(),
+            new AtanFunction(),
+            new Atan2Function(),
+            new ExpFunction(),
+            new LogEFunction(),
+            new LogFunction(),
+            new Log10Function(),
+            new CeilFunction(),
+            new FloorFunction(),
+            new RoundFunction(),
+            new AverageFunction(),
+            new DivideFunction(),
         };
 
         ConcreteFunctions = new IConcreteFunction[] {
@@ -138,47 +157,9 @@ internal static class BaseFunctions {
             new Concat3TextsFunction(),
         };
 
-        ConcreteDoubleFunctions = new IConcreteFunction[] {
-            new AverageDoubleFunction(),
-
-            new DivideDoubleFunction(),
-            new SqrtDoubleFunction(),
-            new SinDoubleFunction(),
-            new CosDoubleFunction(),
-            new TanDoubleFunction(),
-            new AtanDoubleFunction(),
-            new Atan2DoubleFunction(),
-            new AsinDoubleFunction(),
-            new AcosDoubleFunction(),
-            new ExpDoubleFunction(),
-            new LogDoubleFunction(),
-            new LogEDoubleFunction(),
-            new Log10DoubleFunction(),
-            new RoundToDoubleFunction(),
-            new CeilDoubleFunction(),
-            new FloorDoubleFunction(),
-        };
-
-        ConcreteDecimalFunctions = new IConcreteFunction[] {
-            new AverageDecimalFunction(),
-
-            new DivideDecimalFunction(),
-            new SqrtDecimalFunction(),
-            new SinDecimalFunction(),
-            new CosDecimalFunction(),
-            new TanDecimalFunction(),
-            new AtanDecimalFunction(),
-            new Atan2DecimalFunction(),
-            new AsinDecimalFunction(),
-            new AcosDecimalFunction(),
-            new ExpDecimalFunction(),
-            new LogDecimalFunction(),
-            new LogEDecimalFunction(),
-            new Log10DecimalFunction(),
-            new RoundToDecimalFunction(),
-            new CeilDecimalFunction(),
-            new FloorDecimalFunction(),
-        };
+        // Math fns dispatch via GenericFunctions (Floats constraint).
+        ConcreteDoubleFunctions = System.Array.Empty<IConcreteFunction>();
+        ConcreteDecimalFunctions = System.Array.Empty<IConcreteFunction>();
         var allDoubleConcretes = ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray();
         var allDecimalConcretes = ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray();
         SingleDoubleFunctions = new SingleDictFunctionRegistry(allDoubleConcretes, GenericFunctions);

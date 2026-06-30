@@ -34,8 +34,9 @@ public class FunnyCalculatorBuilder {
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
-        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll) =>
-        WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions));
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None) =>
+        WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions, floatFamilySupport: floatFamilySupport));
 
     public FunnyCalculatorBuilder WithCustomType(IFunnyCustomTypeDefinition typeDefinition) {
         var customType = FunnyType.CustomOf(typeDefinition);

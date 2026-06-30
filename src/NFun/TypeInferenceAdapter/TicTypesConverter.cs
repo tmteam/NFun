@@ -481,6 +481,7 @@ public abstract class TicTypesConverter {
             PrimitiveTypeName.Char => FunnyType.Char,
             PrimitiveTypeName.Bool => FunnyType.Bool,
             PrimitiveTypeName.Real => FunnyType.Real,
+            PrimitiveTypeName.F32  => FunnyType.Float32,
             PrimitiveTypeName.I64  => FunnyType.Int64,
             PrimitiveTypeName.I32  => FunnyType.Int32,
             PrimitiveTypeName.I24  => FunnyType.Int32,

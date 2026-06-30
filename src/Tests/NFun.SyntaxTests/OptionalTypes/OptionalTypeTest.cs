@@ -32,75 +32,20 @@ public class OptionalTypeTest {
     public void OptionalAnnotation_AssignNone_Builds(string expr) =>
         Assert.DoesNotThrow(() => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
-    [Test]
-    public void OptionalInt_AssignNone_ReturnsNull() {
-        var result = "y:int? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalReal_AssignNone_ReturnsNull() {
-        var result = "y:real? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalText_AssignNone_ReturnsNull() {
-        var result = "y:text? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalBool_AssignNone_ReturnsNull() {
-        var result = "y:bool? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalChar_AssignNone_ReturnsNull() {
-        var result = "y:char? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalByte_AssignNone_ReturnsNull() {
-        var result = "y:byte? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalInt16_AssignNone_ReturnsNull() {
-        var result = "y:int16? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalInt64_AssignNone_ReturnsNull() {
-        var result = "y:int64? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalUint16_AssignNone_ReturnsNull() {
-        var result = "y:uint16? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalUint32_AssignNone_ReturnsNull() {
-        var result = "y:uint32? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalUint64_AssignNone_ReturnsNull() {
-        var result = "y:uint64? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-    [Test]
-    public void OptionalAny_AssignNone_ReturnsNull() {
-        var result = "y:any? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+    [TestCase("y:int? = none")]
+    [TestCase("y:real? = none")]
+    [TestCase("y:text? = none")]
+    [TestCase("y:bool? = none")]
+    [TestCase("y:char? = none")]
+    [TestCase("y:byte? = none")]
+    [TestCase("y:int16? = none")]
+    [TestCase("y:int64? = none")]
+    [TestCase("y:uint16? = none")]
+    [TestCase("y:uint32? = none")]
+    [TestCase("y:uint64? = none")]
+    [TestCase("y:any? = none")]
+    public void OptionalAnnotation_AssignNone_ReturnsNull(string expr) {
+        var result = expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
 
@@ -151,24 +96,12 @@ public class OptionalTypeTest {
         "y:int?[] = [1, 2, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new int?[] { 1, 2, 3 });
 
 
-    [Test]
-    public void ArrayOfOptionalInts_WithNone() =>
-        Assert.DoesNotThrow(() => "y:int?[] = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
-
-
-    [Test]
-    public void ArrayOfOptionalReals_WithNone() =>
-        Assert.DoesNotThrow(() => "y:real?[] = [1.0, none, 3.0]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
-
-
-    [Test]
-    public void ArrayOfOptionalTexts_WithNone() =>
-        Assert.DoesNotThrow(() => "y:text?[] = ['hello', none]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
-
-
-    [Test]
-    public void ArrayOfOptionalBools_WithNone() =>
-        Assert.DoesNotThrow(() => "y:bool?[] = [true, none, false]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
+    [TestCase("y:int?[] = [1, none, 3]")]
+    [TestCase("y:real?[] = [1.0, none, 3.0]")]
+    [TestCase("y:text?[] = ['hello', none]")]
+    [TestCase("y:bool?[] = [true, none, false]")]
+    public void ArrayOfOptional_WithNone_Builds(string expr) =>
+        Assert.DoesNotThrow(() => expr.BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
 
 
     [Test]
@@ -196,37 +129,18 @@ public class OptionalTypeTest {
         "y:int[]? = [1, 2, 3]".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled).AssertReturns("y", new[] { 1, 2, 3 });
 
 
-    [Test]
-    public void OptionalArrayOfInts_WithNone() {
-        var result = "y:int[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+    [TestCase("y:int[]? = none")]
+    [TestCase("y:real[]? = none")]
+    [TestCase("y:text[]? = none")]
+    [TestCase("y:int?[]? = none")]
+    public void OptionalArray_AssignNone_ReturnsNull(string expr) {
+        var result = expr.CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
         Assert.IsNull(result.Get("y"));
     }
-
-
-    [Test]
-    public void OptionalArrayOfReals_WithNone() {
-        var result = "y:real[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
-
-    [Test]
-    public void OptionalArrayOfTexts_WithNone() {
-        var result = "y:text[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
-
 
     [Test]
     public void OptionalArrayOfOptionalInts_WithValue() =>
         Assert.DoesNotThrow(() => "y:int?[]? = [1, none, 3]".BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled));
-
-
-    [Test]
-    public void OptionalArrayOfOptionalInts_WithNone() {
-        var result = "y:int?[]? = none".CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
-        Assert.IsNull(result.Get("y"));
-    }
 
 
     [Test]
@@ -2841,4 +2755,191 @@ public class OptionalTypeTest {
     public void MR9Bug1_Control_DefaultWithNumericContext_ReturnsZero() {
         "y = default + 1".AssertResultHas("y", 1);
     }
+
+    #region Float32AndFloat64 dialect
+    // Optional float32? — requires Float family + Optional dialects.
+
+    // Declare optional f32 with a value.
+    [Test]
+    public void OptionalFloat32_AssignValue() {
+        var rt = "out:float32? = 1.5".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual("Float32?", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    // Declare optional f32 with none.
+    [Test]
+    public void OptionalFloat32_AssignNone_ReturnsNull() {
+        var rt = "out:float32? = none".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.IsNull(rt["out"].Value);
+    }
+
+    // ?? coalesce yields default when none.
+    [Test]
+    public void OptionalFloat32_NullCoalesce_None_ReturnsDefault() {
+        var rt = "x:float32? = none\r out = x ?? 3.14".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(3.14f, rt["out"].Value);
+    }
+
+    // ?? coalesce yields value when present.
+    [Test]
+    public void OptionalFloat32_NullCoalesce_Value_ReturnsValue() {
+        var rt = "x:float32? = 1.5\r out = x ?? 3.14".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    // Force unwrap `!` on value.
+    [Test]
+    public void OptionalFloat32_ForceUnwrap_Value_ReturnsValue() {
+        var rt = "x:float32? = 1.5\r out = x!".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["out"].Value);
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+    }
+
+    // Force unwrap `!` on none — throws at runtime.
+    [Test]
+    public void OptionalFloat32_ForceUnwrap_None_Throws() {
+        var rt = "x:float32? = none\r out = x!".BuildWithFloatsAndOptional();
+        Assert.Throws<FunnyRuntimeException>(() => rt.Run());
+    }
+
+    // f32? → real? widening (implicit).
+    [Test]
+    public void OptionalFloat32_WidenToOptionalReal() {
+        var rt = "x:float32? = 1.5\r out:real? = x".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(1.5, rt["out"].Value);
+    }
+
+    // if-else with optional f32.
+    [Test]
+    public void OptionalFloat32_IfElse_ValueBranch() {
+        var rt = "c:bool; x:float32=1.5; out:float32? = if(c) x else none".BuildWithFloatsAndOptional();
+        rt["c"].Value = true;
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    [Test]
+    public void OptionalFloat32_IfElse_NoneBranch() {
+        var rt = "c:bool; x:float32=1.5; out:float32? = if(c) x else none".BuildWithFloatsAndOptional();
+        rt["c"].Value = false;
+        rt.Run();
+        Assert.IsNull(rt["out"].Value);
+    }
+
+    // Array of optional f32 with mixed values and nones.
+    [Test]
+    public void OptionalFloat32_ArrayWithNones() {
+        var rt = "out:float32?[] = [1.0, none, 3.0]".BuildWithFloatsAndOptional();
+        rt.Run();
+        var arr = (System.Collections.IEnumerable)rt["out"].Value;
+        var list = new System.Collections.Generic.List<object>();
+        foreach (var i in arr) list.Add(i);
+        Assert.AreEqual(3, list.Count);
+        Assert.AreEqual(1.0f, list[0]);
+        Assert.IsNull(list[1]);
+        Assert.AreEqual(3.0f, list[2]);
+    }
+
+    // filterNotNull on float32?[]
+    [Test]
+    public void OptionalFloat32_FilterNotNull_KeepsOnlyValues() {
+        var rt = "arr:float32?[] = [1.0, none, 3.0]\r out = arr.filterNotNull()".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.0f, 3.0f }, rt["out"].Value);
+    }
+
+    // Chained coalesce.
+    [Test]
+    public void OptionalFloat32_ChainedCoalesce() {
+        var rt = "a:float32? = none\r b:float32? = none\r c:float32 = 5.5\r out = a ?? b ?? c".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(5.5f, rt["out"].Value);
+    }
+
+    // Optional float32 struct field.
+    [Test]
+    public void OptionalFloat32_AsStructField() {
+        var rt = "v:float32?=1.5\r p={x=v}\r out=p.x".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    // Struct with float32? field defaulting to none.
+    [Test]
+    public void OptionalFloat32_StructFieldWithNone() {
+        var rt = "p:{x:float32?} = {x=none}\r out = p.x ?? 0.0".BuildWithFloatsAndOptional();
+        rt.Run();
+        Assert.AreEqual(0.0f, rt["out"].Value);
+    }
+    #endregion
+
+    #region Coalesce LCA through Optional (WO1 — eager Pull propagation after edge rewire)
+
+    // Left is non-Optional; TIC must lift Bool through Optional to compute LCA(Bool, Real)=Any.
+    // Regression for MR3Bug1 family — soundness violation if Bool never reached the LCA target.
+    [Test]
+    public void Coalesce_BoolLeftRealRight_LcaLiftsToAny() {
+        var rt = "y = true ?? 1.5"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.AreEqual(true, rt.Get("y"));
+    }
+
+    [Test]
+    public void Coalesce_IntLeftTextRight_LcaLiftsToAny() {
+        var rt = "y = 1 ?? 'hello'"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.AreEqual(1, rt.Get("y"));
+    }
+
+    #endregion
+
+    #region Numeric literal in Optional array context (WO6 — unwrap-then-cast fixup)
+
+    // TIC infers element type Int32?; the literal `1` must be built as an Optional
+    // ConstantExpressionNode. Without the post-hoc cast: ArgumentOutOfRangeException.
+    [Test]
+    public void Literal_InOptionalArrayContext_UnwrapCastHandled() {
+        var rt = "y = [1, none][0]"
+            .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
+        Assert.AreEqual(1, rt.Get("y"));
+    }
+
+    #endregion
+
+    #region Identity-through-none does not stack-overflow (Round 6 #84)
+
+    // `f(x) = if (x==none) none else x` builds a constraint-state cycle in TicTypesConverter
+    // .BuildNamedTypeFromTicState. Depth-bounded guard prevents infinite recursion.
+    [Test]
+    public void IdentityThroughNone_UntypedGenericParam_DoesNotStackOverflow() =>
+        Assert.DoesNotThrow(() =>
+            Funny.Hardcore
+                .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+                .Build("f(x) = if (x==none) none else x\nout = f(5)"));
+
+    [Test]
+    public void IdentityThroughNone_TypedParam_Works() {
+        var rt = Funny.Hardcore
+            .WithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .Build("f(x:int?) = if (x==none) none else x\nout = f(5)");
+        rt.Run();
+        Assert.AreEqual(5, rt["out"].Value);
+    }
+
+    // `none in [1,2,3]` — none is opt(T), array is int[]. FU711 must not reject:
+    // T can unify to Int32 with Optional wrapping (no depth mismatch).
+    [Test]
+    public void NoneInIntArray_TypeChecks() =>
+        Assert.DoesNotThrow(() => "y = none in [1,2,3]"
+            .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled)
+            .Calc());
+
+    #endregion
 }

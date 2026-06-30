@@ -25,7 +25,6 @@ public class StructBodyTest {
                 "y",
                 new { a = 1.0, b = "vasa" });
 
-    // Narrow primitive field types — preserved through struct construction
     [Test]
     public void StructField_OfInt8_PreservesType() {
         var rt = Funny.Hardcore.Build("v:int8=5\r p={x=v}\r out=p.x");
@@ -40,6 +39,16 @@ public class StructBodyTest {
         rt.Run();
         Assert.AreEqual("UInt8", rt["out"].Type.ToString());
         Assert.AreEqual((byte)5, rt["out"].Value);
+    }
+
+    [Test]
+    public void StructField_OfFloat32_PreservesType() {
+        var rt = Funny.Hardcore
+            .WithDialect(floatFamilySupport: FloatFamilySupport.Float32AndFloat64)
+            .Build("v:float32=1.5\r p={x=v}\r out=p.x");
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
     }
 
 
@@ -677,15 +686,6 @@ foo = [[[fooin]]]; bar = foo;".Build();
             Funny.Hardcore.WithApriori<int>("foo").Build(expression);
         });
 
-    // ───────────────────────────────────────────────────────────────
-    // MR5Bug3 — TIC constraint-propagation through Array→Struct→Rule
-    //   fails for 2+ anonymous structs with function-valued fields using
-    //   single-arg shorthand. Specifically:
-    //     type s = {f:rule(int)->int}
-    //     arr:s[] = [{f=rule it*2}, {f=rule it*3}]   # FU719
-    //   Workarounds: single-element array; explicit `s{...}` ctor;
-    //   `rule(it:int)=...` annotation; zero-arg rule signature.
-    // ───────────────────────────────────────────────────────────────
     [Test]
     public void MR5Bug3_ArrayOfAnonStructWithFnField_FU719() {
         Assert.DoesNotThrow(() =>
@@ -702,50 +702,21 @@ foo = [[[fooin]]]; bar = foo;".Build();
                 .Build("type s = {f:rule(int)->int}\rarr:s[] = [{f=rule it*2}, {f=rule it*3}, {f=rule it*4}]"));
     }
 
-    // ───────────────────────────────────────────────────────────────
-    // MR5Bug6 — Struct annotation with FEWER fields than source is
-    //   silently ignored:
-    //     a = {x=1, y=2, z=3}
-    //     b:{x:int, y:int} = a    # annotation says 2 fields
-    //     out = b.z               # but z is still accessible! returns 3
-    //
-    //   Per spec annotation should be the static type. Either reject
-    //   assignment with extra fields, or drop them at the boundary.
-    //   Equality also compares all 3 fields against the annotation's 2.
-    // ───────────────────────────────────────────────────────────────
     [Test]
     public void MR5Bug6_NarrowStructAnnotation_RejectsExtraFieldAccess() {
-        // Width subtyping per Specs/Types.md L90-91: `{x,y,z}` IS convertible to `{x,y}`.
-        // The assignment must succeed, but `b`'s static type is the annotation `{x,y}` —
-        // accessing the extra `z` through `b` must be rejected at compile time. (MR5Bug6.)
+        // Width subtyping (Specs/Types.md L90-91): `{x,y,z}` IS convertible to `{x,y}`.
+        // Assignment succeeds, but accessing a field outside the declared annotation
+        // must be rejected at compile time.
         Assert.Throws<FunnyParseException>(() =>
             "a = {x=1, y=2, z=3}\rb:{x:int, y:int} = a\rout = b.z".Calc());
     }
 
     [Test]
     public void MR5Bug6_NarrowStructAnnotation_LegitNarrowingWorks() {
-        // The same assignment should accept (width subtyping); accessing fields that
-        // ARE in the declared annotation must continue to work post-fix.
         "a = {x=1, y=2, z=3}\rb:{x:int, y:int} = a\rout = b.x"
             .Calc().AssertResultHas("out", 1);
     }
 
-    // ───────────────────────────────────────────────────────────────
-    // MR9Bug2 — Struct literal with duplicate field name produces a
-    //   cryptic TIC-internal diagnostic instead of a clear validation:
-    //
-    //     y = {a=1, a=2}
-    //     # FU798: Types cannot be solved: Node 2:[..] cannot has state {a:..}
-    //
-    //   Same for `;` separator. User has no way to tell that "duplicate
-    //   field 'a'" is the actual issue. The parser/semantic layer should
-    //   catch duplicate field names BEFORE TIC and emit a clean error.
-    //   Severity: minor (UX, not correctness).
-    // ───────────────────────────────────────────────────────────────
-    // After fix: parser detects duplicate field names BEFORE TIC and emits a
-    // clear FU502 "Duplicate field '{name}' in struct literal" instead of the
-    // cryptic FU798 internal-node-state message. Case-insensitive — matches
-    // struct field lookup elsewhere.
     [Test]
     public void MR9Bug2_DuplicateFieldInStructLiteral_ClearError() {
         var ex = Assert.Throws<FunnyParseException>(() => "y = {a=1, a=2}".Calc());
@@ -759,9 +730,118 @@ foo = [[[fooin]]]; bar = foo;".Build();
         StringAssert.Contains("duplicate", ex.Message.ToLowerInvariant());
     }
 
-    // 2b. Control: distinct field names work as expected.
     [Test]
     public void MR9Bug2_Control_DistinctFields_Work() {
-        "y = {a=1, b=2}".Calc(); // Just verify it parses without error.
+        "y = {a=1, b=2}".Calc();
     }
+
+    #region Float32AndFloat64 dialect
+
+    [Test]
+    public void Float32_Struct_FieldConstruction_ExplicitAnnotation() {
+        var rt = "v:float32=1.5\r p={x=v}\r out=p.x".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_TypedFunctionParam_AccessField() {
+        var rt = "f(p:{x:float32}):float32 = p.x\r v:float32=1.5\r out = f({x=v})".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_NestedStruct_WithF32Field() {
+        var rt = "v:float32=1.5\r p={a={b=v}}\r out=p.a.b".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_TwoF32Fields_Sum() {
+        var rt = "a:float32=1.5\r b:float32=2.5\r p={a=a,b=b}\r out=p.a+p.b".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(4.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_IfElse_FieldLca_NarrowToF32() {
+        var rt = "c:bool; out:{a:float32} = if(c) {a=1.0} else {a=2.0}".BuildWithFloats();
+        rt["c"].Value = true;
+        rt.Run();
+        Assert.AreEqual(1.0f, ((System.Collections.Generic.IDictionary<string, object>)rt["out"].Value)["a"]);
+    }
+
+    [Test]
+    public void Float32_Struct_IfElse_MixedF32AndInt_TargetF32() {
+        var rt = "c:bool; x:float32=1.5; out:{a:float32} = if(c) {a=x} else {a=2}".BuildWithFloats();
+        rt["c"].Value = false;
+        rt.Run();
+        Assert.AreEqual(2.0f, ((System.Collections.Generic.IDictionary<string, object>)rt["out"].Value)["a"]);
+    }
+
+    [Test]
+    public void Float32_Struct_Equality_TwoF32Structs() {
+        var rt = "a:float32=1.5; b:float32=1.5; out = {x=a} == {x=b}".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(true, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_Inequality_TwoDifferentF32Structs() {
+        var rt = "a:float32=1.5; b:float32=2.5; out = {x=a} == {x=b}".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(false, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_StructArray_MapAccessF32Field() {
+        var rt = "arr:{x:float32}[] = [{x=1.5},{x=2.5}]\r out = arr.map(rule it.x)".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(new[] { 1.5f, 2.5f }, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_RealLiteral_TargetF32Field_Narrows() {
+        var rt = "out:{x:float32} = {x=1.5}".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual(1.5f, ((System.Collections.Generic.IDictionary<string, object>)rt["out"].Value)["x"]);
+    }
+
+    [Test]
+    public void Float32_Struct_MixedFieldTypes_PreserveEach() {
+        var rt = "v:float32=3.14\r p={pi=v, count=5, name='pi'}\r a=p.pi\r b=p.count\r c=p.name".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["a"].Type.ToString());
+        Assert.AreEqual(3.14f, rt["a"].Value);
+        Assert.AreEqual(5, rt["b"].Value);
+        Assert.AreEqual("pi", rt["c"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_ThreeLevelNesting_F32Access() {
+        var rt = "v:float32=42.0\r p={a={b={c=v}}}\r out=p.a.b.c".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(42.0f, rt["out"].Value);
+    }
+
+    [Test]
+    public void Float32_Struct_PassAndReturn_PreserveF32Field() {
+        var rt = "identity(s:{x:float32}):{x:float32} = s\r v:float32=1.5\r p={x=v}\r q=identity(p)\r out=q.x".BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Float32", rt["out"].Type.ToString());
+        Assert.AreEqual(1.5f, rt["out"].Value);
+    }
+    #endregion
+
+    [Test]
+    public void StructArrayFieldArith_WidensToReal() =>
+        "data:{x:int,y:real}[]=[{x=1,y=2.5}]\rout = data[0].y + 1"
+            .Calc().AssertResultHas("out", 3.5);
 }

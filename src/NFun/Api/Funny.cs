@@ -122,13 +122,15 @@ public static class Funny {
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
-        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll)
+        AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None)
         => new FunnyCalculatorBuilder().WithDialect(
             ifExpressionSyntax,
             integerPreferredType,
             realClrType,
             integerOverflow,
-            allowUserFunctions);
+            allowUserFunctions,
+            floatFamilySupport);
 
     #endregion
 }

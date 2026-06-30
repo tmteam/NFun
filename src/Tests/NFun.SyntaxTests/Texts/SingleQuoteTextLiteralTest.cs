@@ -419,4 +419,13 @@ public class SingleQuoteTextLiteralTest {
     public void MR4Bug6_MatchingPair_BackCompat_StillWorks() {
         "y = ‘Hello‘".AssertResultHas("y", "Hello");
     }
+
+    // WO9 — Both left-with-right (‘…’) and left-with-left (‘…‘) accepted.
+    // Same-char pairing is a documented back-compat path in QuotationReader.
+    [Test]
+    public void TypographicQuote_ProperPairAndSameChar_ProduceIdenticalResult() {
+        var proper = "y = ‘hi’".Calc().Get("y");
+        var hack   = "y = ‘hi‘".Calc().Get("y");
+        Assert.AreEqual(proper, hack);
+    }
 }

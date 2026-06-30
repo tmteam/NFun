@@ -10,6 +10,7 @@ internal class ConstantExpressionNode : IExpressionNode {
         primitive.BaseType switch {
             BaseFunnyType.Any    => new ConstantExpressionNode(value,   FunnyType.Any, interval),
             BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
+            BaseFunnyType.Float32 => new ConstantExpressionNode((float)value, FunnyType.Float32, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value,   FunnyType.Int64, interval),
             BaseFunnyType.Int32  => new ConstantExpressionNode((int)value,    FunnyType.Int32, interval),
             BaseFunnyType.Int16  => new ConstantExpressionNode((short)value,  FunnyType.Int16, interval),
@@ -25,6 +26,7 @@ internal class ConstantExpressionNode : IExpressionNode {
         primitive.BaseType switch {
             BaseFunnyType.Any    => new ConstantExpressionNode(value,   FunnyType.Any, interval),
             BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
+            BaseFunnyType.Float32 => new ConstantExpressionNode((float)value, FunnyType.Float32, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value,   FunnyType.Int64, interval),
             BaseFunnyType.Int32  => new ConstantExpressionNode((int)value,    FunnyType.Int32, interval),
             BaseFunnyType.Int16  => new ConstantExpressionNode((short)value,  FunnyType.Int16, interval),

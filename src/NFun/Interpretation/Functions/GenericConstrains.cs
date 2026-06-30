@@ -77,6 +77,10 @@ public readonly struct GenericConstrains {
     public static readonly GenericConstrains SignedNumber
         = new(Real, I8, false);
 
+    /// <summary>IEEE float family constraint: <c>F32 ≤ T ≤ Real</c>.</summary>
+    public static readonly GenericConstrains Floats
+        = new(Real, F32, false);
+
     public static readonly GenericConstrains Numbers
         = new(Real, null, false);
 

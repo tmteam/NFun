@@ -22,6 +22,7 @@ public readonly struct FunnyType {
     public static readonly FunnyType Int16  = new(BaseFunnyType.Int16);
     public static readonly FunnyType Int32  = new(BaseFunnyType.Int32);
     public static readonly FunnyType Int64  = new(BaseFunnyType.Int64);
+    public static readonly FunnyType Float32 = new(BaseFunnyType.Float32);
     public static readonly FunnyType Real   = new(BaseFunnyType.Real);
     public static readonly FunnyType Text   = ArrayOf(Char);
     public static readonly FunnyType None   = new(BaseFunnyType.None);
@@ -181,11 +182,11 @@ public readonly struct FunnyType {
         => !obj1.Equals(obj2);
 
     public bool IsPrimitive
-        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Int8 || BaseType == BaseFunnyType.Any || BaseType == BaseFunnyType.None || BaseType == BaseFunnyType.Custom;
+        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Int8 || BaseType == BaseFunnyType.Float32 || BaseType == BaseFunnyType.Any || BaseType == BaseFunnyType.None || BaseType == BaseFunnyType.Custom;
 
     public bool IsNumeric()
         => (BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real)
-           || BaseType == BaseFunnyType.Int8;
+           || BaseType == BaseFunnyType.Int8 || BaseType == BaseFunnyType.Float32;
 
     internal static readonly StringComparer StructKeyComparer = StringComparer.InvariantCultureIgnoreCase;
 
@@ -209,6 +210,7 @@ public readonly struct FunnyType {
             case BaseFunnyType.UInt16:
             case BaseFunnyType.UInt32:
             case BaseFunnyType.UInt64:
+            case BaseFunnyType.Float32:
             case BaseFunnyType.Real:
             case BaseFunnyType.Char:
             case BaseFunnyType.Ip:
@@ -315,6 +317,7 @@ public readonly struct FunnyType {
             case BaseFunnyType.UInt16:
             case BaseFunnyType.UInt32:
             case BaseFunnyType.UInt64:
+            case BaseFunnyType.Float32:
             case BaseFunnyType.Real:
             case BaseFunnyType.Char:
             case BaseFunnyType.Ip:

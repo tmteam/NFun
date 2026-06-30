@@ -156,4 +156,12 @@ public class ErrorDetailsTest {
                 });
         }
     }
+
+    // WO11 — `out:T_narrow = expr_wide` (e.g. `out:byte = 1000000`) surfaces the actionable
+    // FU740 "value doesn't fit type" error instead of the cryptic FU761. Pinned via a
+    // synthesized branch in Errors.4.Types.cs that walks up from the EquationSyntaxNode's RHS
+    // when the TIC descendant is missing.
+    [Test]
+    public void ByteEquation_LiteralOverflow_ProducesFriendlyError() =>
+        Assert.Throws<FunnyParseException>(() => "out:byte = 1000000".Calc());
 }

@@ -84,11 +84,18 @@ public class RemainderFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int8 => Int8Function.Instance,            
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
-                                           BaseFunnyType.Int64 => Int64Function.Instance,            
+                                           BaseFunnyType.Int64 => Int64Function.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
-      
+
+        private class Float32Function : FunctionWithTwoArgs {
+             public static Float32Function Instance = new ();
+             private Float32Function() : base(CoreFunNames.Remainder, FunnyType.Float32, FunnyType.Float32, FunnyType.Float32) { }
+             public override object Calc(object a, object b) => (float)((float)a % (float)b);
+        }
+
         private class UInt8Function : FunctionWithTwoArgs {
              public static UInt8Function Instance = new ();
              private UInt8Function() : base(CoreFunNames.Remainder, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
@@ -164,11 +171,18 @@ public class AddFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,            
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
-                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
-      
+
+        private class Float32Function : FunctionWithTwoArgs {
+             public static Float32Function Instance = new ();
+             private Float32Function() : base(CoreFunNames.Add, FunnyType.Float32, FunnyType.Float32, FunnyType.Float32) { }
+             public override object Calc(object a, object b) => (float)((float)a + (float)b);
+        }
+
         private class UInt8Function : FunctionWithTwoArgs {
              public static UInt8Function Instance = new ();
              private UInt8Function() : base(CoreFunNames.Add, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
@@ -293,11 +307,18 @@ public class SubstractFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,            
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
-                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
-      
+
+        private class Float32Function : FunctionWithTwoArgs {
+             public static Float32Function Instance = new ();
+             private Float32Function() : base(CoreFunNames.Substract, FunnyType.Float32, FunnyType.Float32, FunnyType.Float32) { }
+             public override object Calc(object a, object b) => (float)((float)a - (float)b);
+        }
+
         private class UInt8Function : FunctionWithTwoArgs {
              public static UInt8Function Instance = new ();
              private UInt8Function() : base(CoreFunNames.Substract, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
@@ -422,11 +443,18 @@ public class MultiplyFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,            
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
-                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
-      
+
+        private class Float32Function : FunctionWithTwoArgs {
+             public static Float32Function Instance = new ();
+             private Float32Function() : base(CoreFunNames.Multiply, FunnyType.Float32, FunnyType.Float32, FunnyType.Float32) { }
+             public override object Calc(object a, object b) => (float)((float)a * (float)b);
+        }
+
         private class UInt8Function : FunctionWithTwoArgs {
              public static UInt8Function Instance = new ();
              private UInt8Function() : base(CoreFunNames.Multiply, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
@@ -750,6 +778,7 @@ public class NegateFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<FunctionWithSingleArg>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
@@ -759,11 +788,16 @@ public class NegateFunction : PureGenericFunctionBase {
         return result;
     }
 
+                private class Float32Function : FunctionWithSingleArg {
+                    public static Float32Function Instance = new Float32Function();
+                    public override object Calc(object a) => (float)(-(float)a);
+                }
+
                 private class Int16Function : FunctionWithSingleArg {
                     public static Int16Function Instance = new Int16Function();
                     public override object Calc(object a) => (Int16)(-(Int16)a);
                 }
-      
+
 
                 private class Int8Function : FunctionWithSingleArg {
                     public static Int8Function Instance = new Int8Function();
@@ -822,6 +856,7 @@ public class AbsFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int16 => Int16Function.Instance,
                                            BaseFunnyType.Int32 => Int32Function.Instance,
                                            BaseFunnyType.Int64 => Int64Function.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<FunctionWithSingleArg>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
@@ -830,10 +865,15 @@ public class AbsFunction : PureGenericFunctionBase {
         result.ReturnType = concreteTypes[0];
         return result;
     }
-      
-                private class Int16Function : FunctionWithSingleArg {  
+
+                private class Float32Function : FunctionWithSingleArg {
+                    public static Float32Function Instance = new Float32Function();
+                    public override object Calc(object a) => (float)Math.Abs((float)a);
+                }
+
+                private class Int16Function : FunctionWithSingleArg {
                     public static Int16Function Instance = new Int16Function();
-                    public override object Calc(object a) => (Int16)Math.Abs((Int16)a); 
+                    public override object Calc(object a) => (Int16)Math.Abs((Int16)a);
                 }
       
       
@@ -876,9 +916,16 @@ public class PowFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
                                            BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
                                            BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                                           BaseFunnyType.Float32 => Float32Function.Instance,
                                            BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
+
+        private class Float32Function : FunctionWithTwoArgs {
+             public static Float32Function Instance = new ();
+             private Float32Function() : base(CoreFunNames.Pow, FunnyType.Float32, FunnyType.Float32, FunnyType.Float32) { }
+             public override object Calc(object a, object b) => (float)Math.Pow((float)a, (float)b);
+        }
 
         private class UInt8Function : FunctionWithTwoArgs {
              public static UInt8Function Instance = new ();

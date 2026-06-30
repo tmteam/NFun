@@ -60,6 +60,8 @@ public static class TokenHelper {
         TokType.UInt32Type   => "uint32",
         TokType.UInt64Type   => "uint64",
         TokType.RealType     => "real",
+        TokType.Float32Type  => "float32",
+        TokType.Float64Type  => "float64",
         TokType.BoolType     => "bool",
         TokType.CharType     => "char",
         TokType.TextType     => "text",
@@ -212,6 +214,8 @@ public static class TokenHelper {
         or TokType.BoolType
         or TokType.CharType
         or TokType.RealType
+        or TokType.Float32Type
+        or TokType.Float64Type
         or TokType.Int8Type
         or TokType.Int16Type
         or TokType.Int32Type

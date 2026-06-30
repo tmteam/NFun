@@ -18,6 +18,7 @@ internal  static class DefaultValueHelper {
         { BaseFunnyType.Char,   default(char) },
         { BaseFunnyType.Ip,     new IPAddress(new byte[]{0,0,0,0}) },
         { BaseFunnyType.Real,   default(double) },
+        { BaseFunnyType.Float32, default(float) },
         { BaseFunnyType.Int8,   default(sbyte) },
         { BaseFunnyType.Int16,  default(Int16) },
         { BaseFunnyType.Int32,  default(Int32) },

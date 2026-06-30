@@ -104,7 +104,11 @@ public class LessOrEqualFunction : GenericFunctionWithTwoArguments {
 internal static class IEEE754Guard {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool EitherIsNaN(object a, object b)
-        => a is double da && double.IsNaN(da) || b is double db && double.IsNaN(db);
+        => IsNaN(a) || IsNaN(b);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsNaN(object o)
+        => (o is double d && double.IsNaN(d)) || (o is float f && float.IsNaN(f));
 }
 
 public class MinFunction : PureGenericFunctionBase {
@@ -120,9 +124,9 @@ public class MinFunction : PureGenericFunctionBase {
 
     private class MinConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            // IEEE 754: NaN propagates through min
+            // IEEE 754: NaN propagates through min (works for double and float)
             if (IEEE754Guard.EitherIsNaN(a, b))
-                return a is double da && double.IsNaN(da) ? a : b;
+                return IEEE754Guard.IsNaN(a) ? a : b;
             var left = (IComparable)a;
             var right = (IComparable)b;
             return left.CompareTo(right) > 0 ? b : a;
@@ -143,9 +147,9 @@ public class MaxFunction : PureGenericFunctionBase {
 
     private class MaxConcreteFunction : FunctionWithTwoArgs {
         public override object Calc(object a, object b) {
-            // IEEE 754: NaN propagates through max
+            // IEEE 754: NaN propagates through max (works for double and float)
             if (IEEE754Guard.EitherIsNaN(a, b))
-                return a is double da && double.IsNaN(da) ? a : b;
+                return IEEE754Guard.IsNaN(a) ? a : b;
             var arg1 = (IComparable)a;
             var arg2 = (IComparable)b;
             var result = arg1.CompareTo(arg2) > 0 ? a : b;
@@ -164,6 +168,7 @@ public class SignFunction : GenericFunctionBase {
             BaseFunnyType.Int16 => new Int16Impl(),
             BaseFunnyType.Int32 => new Int32Impl(),
             BaseFunnyType.Int64 => new Int64Impl(),
+            BaseFunnyType.Float32 => new Float32Impl(),
             BaseFunnyType.Real => context.RealTypeSelect<FunctionWithSingleArg>(new DoubleImpl(), new DecimalImpl()),
             _ => throw new Exceptions.NFunImpossibleException($"sign: unsupported type {concreteTypes[0]}")
         };
@@ -177,6 +182,7 @@ public class SignFunction : GenericFunctionBase {
     private sealed class Int16Impl   : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((short)a); }
     private sealed class Int32Impl   : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((int)a); }
     private sealed class Int64Impl   : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((long)a); }
+    private sealed class Float32Impl : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((float)a); }
     private sealed class DoubleImpl  : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((double)a); }
     private sealed class DecimalImpl : FunctionWithSingleArg { public override object Calc(object a) => Math.Sign((decimal)a); }
 }
