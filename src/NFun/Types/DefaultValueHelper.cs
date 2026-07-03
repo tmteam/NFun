@@ -29,12 +29,12 @@ internal  static class DefaultValueHelper {
         { BaseFunnyType.UInt64, default(UInt64) }
     };
 
-    public static object GetDefaultFunnyValue(this FunnyType type) {
+    public static object GetDefaultFunnyValue(this FunnyType type, INamedTypeFieldRegistry namedTypes = null) {
         if (type.BaseType == BaseFunnyType.Custom)
             return type.CustomTypeDefinition.DefaultValue;
         if (type.IsPrimitive)
             return PrimitiveTypeMap[type.BaseType];
-        
+
         if (type.BaseType == BaseFunnyType.ArrayOf)
         {
             if (type.ArrayTypeSpecification.FunnyType.BaseType == BaseFunnyType.Char)
@@ -42,14 +42,50 @@ internal  static class DefaultValueHelper {
             return new ImmutableFunnyArray(type.ArrayTypeSpecification.FunnyType);
         }
 
+        // Stage C — Concretest(FixedArray)=FixedArray means types resolve to fixedArray<T>
+        // including ee-mode contexts. `default(fixedArray<T>)` is an empty FixedFunnyArray.
+        if (type.BaseType == BaseFunnyType.FixedArray)
+            return new NFun.Runtime.Lists.FixedFunnyArray(
+                type.FixedArrayTypeSpecification.FunnyType, Array.Empty<object>());
+
+        // Symmetric defaults for the other lang-mode collection kinds.
+        if (type.BaseType == BaseFunnyType.List)
+            return new NFun.Runtime.Lists.MutableFunnyList(
+                type.ListTypeSpecification.FunnyType, Array.Empty<object>());
+        if (type.BaseType == BaseFunnyType.MutableArray)
+            return new NFun.Runtime.Lists.MutableFunnyArray(
+                type.MutableArrayTypeSpecification.FunnyType, Array.Empty<object>());
+        if (type.BaseType == BaseFunnyType.Set)
+            return new NFun.Runtime.Lists.MutableFunnySet(type.SetTypeSpecification.FunnyType);
+        if (type.BaseType == BaseFunnyType.Map)
+            return new NFun.Runtime.Lists.MutableFunnyMap(
+                type.MapTypeSpecification.KeyType,
+                type.MapTypeSpecification.ValueType);
+
         if (type.BaseType == BaseFunnyType.Struct)
         {
             var structValue = new FunnyStruct.FieldsDictionary(type.StructTypeSpecification.Count);
 
             foreach (var (fieldName, fieldType) in type.StructTypeSpecification)
-                structValue.Add(fieldName, fieldType.GetDefaultFunnyValue());
+                structValue.Add(fieldName, fieldType.GetDefaultFunnyValue(namedTypes));
 
             return new FunnyStruct(structValue);
+        }
+
+        // NamedStruct: look up its fields in the registry and build a FunnyStruct
+        // with each field defaulted recursively (BugHunt-stmt #70). TicTypesConverter
+        // preserves NamedStruct identity for fields of an enclosing named struct
+        // (b.p stays as NamedStructOf(p) instead of inlining p's shape) — that's
+        // semantically correct for runtime fit-checking, but means the default-value
+        // walk also has to know the named type's shape.
+        if (type.BaseType == BaseFunnyType.NamedStruct
+            && namedTypes != null
+            && namedTypes.TryGetFields(type.NamedStructTypeName, out var fields))
+        {
+            var sv = new FunnyStruct.FieldsDictionary(fields.Length);
+            foreach (var (fieldName, fieldType) in fields)
+                sv.Add(fieldName, fieldType.GetDefaultFunnyValue(namedTypes));
+            return new FunnyStruct(sv);
         }
 
         if (type.BaseType == BaseFunnyType.Fun)

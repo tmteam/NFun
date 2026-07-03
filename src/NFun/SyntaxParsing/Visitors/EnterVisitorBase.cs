@@ -34,4 +34,17 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<DfsEnterResult> {
     public virtual DfsEnterResult Visit(TypeDeclarationSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(NamedTypeConstructorSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(TryCatchSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(BlockSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(ReturnSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(ForSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(WhileSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(WhenSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(WhenArmSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(BreakSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(ContinueSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(PrintSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(TryBlockSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(IfBlockSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(FieldAssignmentSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(IndexedAssignmentSyntaxNode node) => DefaultVisitEnter(node);
 }

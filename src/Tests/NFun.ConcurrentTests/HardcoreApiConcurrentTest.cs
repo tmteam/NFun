@@ -90,12 +90,12 @@ public class HardcoreApiConcurrentTest {
     public void SomeFun3() =>
         @"   swapIfNotSorted(c, i)
   	                =	if   (c[i]<c[i+1]) c
-  		                else c.set(i, 1)".AssertConcurrentHardcore();
+  		                else c.setAt(i, 1)".AssertConcurrentHardcore();
 
     [Test]
     public void SomeFun4() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
+  	                        = arr.setAt(i,ival).setAt(j,jval)
 
                           swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
@@ -130,7 +130,7 @@ public class HardcoreApiConcurrentTest {
     [Test]
     public void foldOfHiOrder() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
+  	                        = arr.setAt(i,ival).setAt(j,jval)
 
       swap(arr, i, j)
         = arr.twiceSet(i,j,arr[j], arr[i])
@@ -147,7 +147,7 @@ public class HardcoreApiConcurrentTest {
     [Test]
     public void BubbleSortSemiConcrete() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                = arr.set(i,ival).set(j,jval)
+  	                = arr.setAt(i,ival).setAt(j,jval)
 
                   swap(arr, i, j)
                     = arr.twiceSet(i,j,arr[j], arr[i])
@@ -173,7 +173,7 @@ public class HardcoreApiConcurrentTest {
     [Test]
     public void WIP() {
         var expr = @"twiceSet(arr,i,j,ival,jval)
-  	                = arr.set(i,ival).set(j,jval)
+  	                = arr.setAt(i,ival).setAt(j,jval)
 
                   swap(arr, i, j)
                     = arr.twiceSet(i,j,arr[j], arr[i])
@@ -223,7 +223,7 @@ public class HardcoreApiConcurrentTest {
 
     [Test]
     public void TestEverything() {
-        var expr = @"       twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
+        var expr = @"       twiceSet(arr,i,j,ival,jval) = arr.setAt(i,ival).setAt(j,jval)
 
                           #swap elements i,j in array arr
                           swap(arr, i, j)

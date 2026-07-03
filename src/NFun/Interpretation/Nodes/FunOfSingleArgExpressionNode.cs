@@ -27,9 +27,17 @@ internal class FunOfSingleArgExpressionNode : IExpressionNode {
     public object Calc() {
         try {
             if (_lazy) return _fun.Calc((object)_arg1);
-            return _fun.Calc(_arg1.Calc());
+            object a = _arg1.Calc();
+            if (a is ReturnSignal or BreakSignal or ContinueSignal) return a;
+            return _fun.Calc(a);
         }
         catch (FunnyRuntimeException) { throw; }
+        catch (OverflowException e) {
+            // Rewrap CLR overflow text (e.g. "Negating the minimum value of a
+            // twos complement number is invalid") in a NFun-typed runtime
+            // message. Bug hunt round 3 #19.
+            throw new FunnyRuntimeException($"{_fun.Name}: integer overflow", e);
+        }
         catch (Exception e) { throw new FunnyRuntimeException(e.Message, e); }
     }
 

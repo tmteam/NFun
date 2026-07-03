@@ -29,4 +29,17 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(TypeDeclarationSyntaxNode node) => true;
     public virtual bool Visit(NamedTypeConstructorSyntaxNode node) => true;
     public virtual bool Visit(TryCatchSyntaxNode node) => true;
+    public virtual bool Visit(BlockSyntaxNode node) => true;
+    public virtual bool Visit(ReturnSyntaxNode node) => true;
+    public virtual bool Visit(ForSyntaxNode node) => true;
+    public virtual bool Visit(WhileSyntaxNode node) => true;
+    public virtual bool Visit(WhenSyntaxNode node) => true;
+    public virtual bool Visit(WhenArmSyntaxNode node) => true;
+    public virtual bool Visit(BreakSyntaxNode node) => true;
+    public virtual bool Visit(ContinueSyntaxNode node) => true;
+    public virtual bool Visit(PrintSyntaxNode node) => true;
+    public virtual bool Visit(TryBlockSyntaxNode node) => true;
+    public virtual bool Visit(IfBlockSyntaxNode node) => true;
+    public virtual bool Visit(FieldAssignmentSyntaxNode node) => true;
+    public virtual bool Visit(IndexedAssignmentSyntaxNode node) => true;
 }

@@ -227,17 +227,20 @@ public class ConvertSpecMatrixTest {
         Assert.AreEqual(3, arr[2]);
     }
 
+    // ip → uXX uses network (big-endian) byte order: 127.3.2.1 = 0x7F030201.
+    // Bug hunt #9 — prior LE value (0x0102037f) contradicted Functions.md
+    // §Serialization "4 bytes network order".
     [Test]
     public void IpToUInt32_NaturalRepresentation_Works() =>
-        "out:uint = 127.3.2.1.convert()".AssertResultHas("out", (uint)0x0102037f);
+        "out:uint = 127.3.2.1.convert()".AssertResultHas("out", (uint)0x7f030201);
 
     [Test]
     public void IpToInt64_Widening_Works() =>
-        "out:int64 = 127.3.2.1.convert()".AssertResultHas("out", (long)0x0102037f);
+        "out:int64 = 127.3.2.1.convert()".AssertResultHas("out", (long)0x7f030201);
 
     [Test]
     public void IpToUInt64_Widening_Works() =>
-        "out:uint64 = 127.3.2.1.convert()".AssertResultHas("out", (ulong)0x0102037f);
+        "out:uint64 = 127.3.2.1.convert()".AssertResultHas("out", (ulong)0x7f030201);
 
     [Test]
     public void IpToInt32_StaticReject() =>
@@ -261,7 +264,7 @@ public class ConvertSpecMatrixTest {
 
     [Test]
     public void UInt32ToIp_Works() =>
-        "x:uint = 0x0102037f\rout:ip = convert(x)"
+        "x:uint = 0x7f030201\rout:ip = convert(x)"
             .AssertResultHas("out", System.Net.IPAddress.Parse("127.3.2.1"));
 
     [Test]

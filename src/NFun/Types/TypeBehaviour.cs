@@ -218,6 +218,22 @@ public abstract class TypeBehaviour {
             _           => Convert.ToChar(o)
         };
 
+    // Static-ctor sentinel: any new BaseFunnyType value must extend both lookup
+    // tables below to the same length, or readers indexing by `(int)BaseType`
+    // hit IndexOutOfRange at runtime (the latent bug fixed in Stage 2.2 when
+    // BaseFunnyType.List was added). Validate at type load so new enum values
+    // are caught at the next app start, not at the unlucky `GetDefaultPrimitiveValueOrNull`
+    // call site.
+    static TypeBehaviour() {
+        var enumLength = Enum.GetValues(typeof(BaseFunnyType)).Length;
+        if (FunToClrTypesMap.Length != enumLength)
+            throw new InvalidOperationException(
+                $"FunToClrTypesMap has {FunToClrTypesMap.Length} entries but BaseFunnyType has {enumLength} values.");
+        if (DefaultPrimitiveValues.Length != enumLength)
+            throw new InvalidOperationException(
+                $"DefaultPrimitiveValues has {DefaultPrimitiveValues.Length} entries but BaseFunnyType has {enumLength} values.");
+    }
+
     protected  static readonly Type[] FunToClrTypesMap = {
         null,              //  0 Empty
         typeof(char),      //  1 Char
@@ -242,6 +258,13 @@ public abstract class TypeBehaviour {
         null,              // 20 NamedStruct
         typeof(sbyte),     // 21 Int8
         typeof(float),     // 22 Float32
+        null,              // 23 List
+        null,              // 24 MutableArray
+        null,              // 25 FixedArray
+        null,              // 26 Enumerable (constraint-only — never instantiated)
+        null,              // 27 Set
+        null,              // 28 Clearable (constraint-only — never instantiated)
+        null,              // 29 Map
     };
 
     protected static readonly object[] DefaultPrimitiveValues = {
@@ -268,6 +291,13 @@ public abstract class TypeBehaviour {
         null,                                // 20 NamedStruct
         default(sbyte),                      // 21 Int8
         default(float),                      // 22 Float32
+        null,                                // 23 List
+        null,                                // 24 MutableArray
+        null,                                // 25 FixedArray
+        null,                                // 26 Enumerable (constraint-only)
+        null,                                // 27 Set
+        null,                                // 28 Clearable (constraint-only)
+        null,                                // 29 Map
     };
 
     private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName

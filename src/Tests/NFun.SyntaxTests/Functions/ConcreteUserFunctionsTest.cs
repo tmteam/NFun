@@ -65,7 +65,7 @@ public class ConcreteUserFunctionsTest {
     [Test]
     public void BubbleSortConcrete() {
         var expr = @"twiceSet(arr:int[],i:int,j:int,ival:int,jval:int):int[]
-  	                        = arr.set(i,ival).set(j,jval)
+  	                        = arr.setAt(i,ival).setAt(j,jval)
 
                           swap(arr:int[], i:int, j:int):int[]
                             = arr.twiceSet(i,j,arr[j], arr[i])

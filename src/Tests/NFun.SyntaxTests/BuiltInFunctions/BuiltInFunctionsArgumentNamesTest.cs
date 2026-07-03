@@ -103,7 +103,7 @@ public class BuiltInFunctionsArgumentNamesTest {
     [TestCase("y = except(b = [2], a = [1,2,3])", new[] { 1, 3 })]
     [TestCase("y = unique(b = [2,3], a = [1,2])", new[] { 1, 3 })]
     // ── Array: three-arg ────────────────────────────────────────────────────
-    [TestCase("y = set(value = 9, index = 1, arr = [1,2,3])", new[] { 1, 9, 3 })]
+    [TestCase("y = setAt(value = 9, index = 1, arr = [1,2,3])", new[] { 1, 9, 3 })]
     [TestCase("y = slice(to = 2, from = 0, arr = [1,2,3,4,5])", new[] { 1, 2, 3 })]
     // ── Array: four-arg ─────────────────────────────────────────────────────
     [TestCase("y = slice(step = 2, to = 4, from = 0, arr = [1,2,3,4,5])", new[] { 1, 3, 5 })]

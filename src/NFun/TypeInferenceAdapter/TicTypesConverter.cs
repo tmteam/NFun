@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
+using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -212,12 +213,42 @@ public abstract class TicTypesConverter {
     private FunnyType ConvertToFunnyArray(StateArray array)
         => FunnyType.ArrayOf(Convert(array.Element));
 
+    private FunnyType ConvertToFunnyCollection(StateCollection coll) {
+        // Map's element is a frozen {key:K, value:V} pair-struct — read K and V
+        // off the inner struct's field nodes via pattern match instead of
+        // dedicated accessors on StateCollection. Keeps StateCollection
+        // data-driven (no Map-specific API) per its design intent.
+        if (coll.Constructor == ConstructorKind.Map
+            && coll.ElementNode.GetNonReference().State is StateStruct ss
+            && ss.GetFieldOrNull("key") is { } k
+            && ss.GetFieldOrNull("value") is { } v) {
+            return FunnyType.MapOf(Convert(k.State), Convert(v.State));
+        }
+        return coll.Constructor switch {
+            ConstructorKind.List       => FunnyType.ListOf(Convert(coll.Element)),
+            ConstructorKind.Array      => FunnyType.MutableArrayOf(Convert(coll.Element)),
+            ConstructorKind.FixedArray => FunnyType.FixedArrayOf(Convert(coll.Element)),
+            ConstructorKind.Set        => FunnyType.SetOf(Convert(coll.Element)),
+            _ => throw new NotSupportedException(
+                $"StateCollection({coll.Constructor}) has no FunnyType mapping yet."),
+        };
+    }
+
+    // StateMap deleted — Map is now StateCollection(Map, pair-struct).
+
     private const int OptionalConvertMark = -58000;
     private FunnyType ConvertToFunnyOptional(StateOptional opt) {
         // Cycle guard: generic functions with if..else none create cyclic Optionals
         var elem = opt.ElementNode;
-        if (elem.VisitMark == OptionalConvertMark)
+        if (elem.VisitMark == OptionalConvertMark) {
+            // Named struct cycle (#10 invert/sameTree composition): preserve TypeName instead
+            // of dropping to Any. Otherwise `fun f(t:tree?)->tree?` returns
+            // `{value, left:Any, right:Any}?` because the depth-1 cycle position
+            // triggers this guard before ConvertToFunnyStruct's NamedStructOf path.
+            if (elem.State is StateStruct { TypeName: { } tn })
+                return FunnyType.OptionalOf(FunnyType.NamedStructOf(tn));
             return FunnyType.Any; // break cycle
+        }
         var prev = elem.VisitMark;
         elem.VisitMark = OptionalConvertMark;
         var result = FunnyType.OptionalOf(Convert(opt.Element));
@@ -258,6 +289,25 @@ public abstract class TicTypesConverter {
                             return constrains.IsOptional
                                 ? FunnyType.OptionalOf(ToConcrete(abs.ConcreteAncestor.Name))
                                 : ToConcrete(abs.ConcreteAncestor.Name);
+                        // Concrete (non-abstract) descendant with no ancestor — typically a
+                        // failed-constraint recovery shape (e.g. element of `[1.5]` after the
+                        // outer `y:int[]` upper-bound was rejected). Render as the descendant
+                        // type instead of falling back to Any so FU740/diagnostics surface
+                        // the actual value type (`Real[]`, not `Any[]`). (MR10Bug1.)
+                        if (constrains.HasDescendant && constrains.Descendant is StatePrimitive concretePrim)
+                            return constrains.IsOptional
+                                ? FunnyType.OptionalOf(ToConcrete(concretePrim.Name))
+                                : ToConcrete(concretePrim.Name);
+                        // Composite descendant (Struct/Array/Optional/Fun) with no ancestor —
+                        // generic-resolution shape at the call site. E.g. for `f(p) = {a=p.a};
+                        // out = f({a=1})`, the outer-scope CS for f's result has descendant
+                        // = StateStruct{a:I32} but no ancestor (free generic). Without this,
+                        // call-site generic resolution yields Any and the body builder sees
+                        // p:Any → NRE on field access. (MR11Bug1.) Recurses on the composite.
+                        if (constrains.HasDescendant && constrains.Descendant is ICompositeState compositeDesc)
+                            return constrains.IsOptional
+                                ? FunnyType.OptionalOf(Convert(compositeDesc))
+                                : Convert(compositeDesc);
                         // Inside a named struct: Empty constraint = recursion boundary
                         if (_convertingNamedTypes is { Count: > 0 } && constrains.NoConstrains)
                             return FunnyType.NamedStructOf(_convertingNamedTypes.First());
@@ -318,12 +368,28 @@ public abstract class TicTypesConverter {
 
                     case StateArray array:
                         return ConvertToFunnyArray(array);
+                    case StateCollection coll:
+                        return ConvertToFunnyCollection(coll);
+                    // StateMap deleted — Map handled in ConvertToFunnyCollection above.
                     case StateOptional opt:
                         return ConvertToFunnyOptional(opt);
                     case StateFun fun:
                         return ConvertToFunnyFun(fun);
                     case StateStruct str:
                         return ConvertToFunnyStruct(str);
+                    case StateCompositeConstraints compcs:
+                    {
+                        // Stage C — typeclass constraint. Surface it as the
+                        // corresponding FunnyType (EnumerableOf / ClearableOf) so
+                        // the call site implicit-casts any compatible runtime
+                        // collection into it. Concretest's Enumerable→List
+                        // default would lock the user function to a single
+                        // collection kind, which is wrong for polymorphic args.
+                        var elem = Convert(compcs.ElementNode.State);
+                        if (compcs.IsClearable)
+                            return FunnyType.ClearableOf(elem);
+                        return FunnyType.EnumerableOf(elem);
+                    }
                     default:
                         throw new NFunImpossibleException($"Type {type?.ToString()??"<null>"} is not supported for convertion");
                 }
@@ -348,11 +414,25 @@ public abstract class TicTypesConverter {
                    StatePrimitive primitive   => ToConcrete(primitive.Name),
                    ConstraintsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
                    StateArray array           => ConvertToFunnyArray(array),
+                   StateCollection coll       => ConvertToFunnyCollection(coll),
                    StateOptional opt          => ConvertToFunnyOptional(opt),
                    StateFun fun               => ConvertToFunnyFun(fun),
                    StateStruct str            => TryGetStructGenericIndex(str, out var idx) ? FunnyType.Generic(idx) : ConvertToFunnyStruct(str),
+                   StateCompositeConstraints compcs => ConvertToFunnyEnumerable(compcs),
                    _                          => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
                };
+
+        // CompCs with non-collapsed interval — appears in generic signatures bound
+        // by a typeclass constraint (e.g. `count(xs: Enumerable<T>)` /
+        // `clear(xs: Mutable<T>)`). The Funny surface type echoes which
+        // typeclass the ancestor marker encodes; element generic is recovered
+        // via ElementNode.State.
+        private FunnyType ConvertToFunnyEnumerable(StateCompositeConstraints compcs) {
+            var elem = Convert(compcs.ElementNode.State);
+            if (compcs.IsClearable)
+                return FunnyType.ClearableOf(elem);
+            return FunnyType.EnumerableOf(elem);
+        }
 
         private int GetGenericIndexOrThrow(ConstraintsState constraints) {
             var index = _constrainsMap.IndexOf(constraints);
@@ -426,6 +506,9 @@ public abstract class TicTypesConverter {
                         return _argTypes[index];
                     case StateArray array:
                         return ConvertToFunnyArray(array);
+                    case StateCollection coll:
+                        return ConvertToFunnyCollection(coll);
+                    // StateMap deleted — Map handled in ConvertToFunnyCollection above.
                     case StateOptional opt:
                         return ConvertToFunnyOptional(opt);
                     case StateFun fun:
@@ -434,6 +517,13 @@ public abstract class TicTypesConverter {
                         if (TryGetStructGenericType(str, out var concreteType))
                             return concreteType;
                         return ConvertToFunnyStruct(str);
+                    case StateCompositeConstraints compcs:
+                    {
+                        var elem = Convert(compcs.ElementNode.State);
+                        if (compcs.IsClearable)
+                            return FunnyType.ClearableOf(elem);
+                        return FunnyType.EnumerableOf(elem);
+                    }
                     default:
                         throw new NotSupportedException();
                 }

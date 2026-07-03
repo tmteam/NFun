@@ -344,4 +344,60 @@ public class RecursiveStructTest {
     }
 
     #endregion
+
+    // ═══════════════════════════════════════════════════════════════
+    // COLLECTION-RECURSIVE μ-KNOT: type t = {v:int, kids: array<t>}
+    // Worklist Pull convergence pin (lang-mutable-collections regression).
+    // ═══════════════════════════════════════════════════════════════
+
+    #region Collection-recursive μ-knot convergence
+
+    /// <summary>Builds the 2-node μ-knot on the named variable: struct{v:I32, kids: K}
+    /// where K = collection(kind, elem = the named struct node itself).</summary>
+    private static TicNode CreateCollectionRecursiveStructKnot(
+        GraphBuilder graph, string varName, ConstructorKind kind, string typeName) {
+        var vNode = TicNode.CreateTypeVariableNode(varName + "V", I32);
+        var kidsNode = TicNode.CreateTypeVariableNode(varName + "Kids", ConstraintsState.Empty);
+        var structState = new StateStruct(
+            new System.Collections.Generic.Dictionary<string, TicNode> {
+                ["v"] = vNode,
+                ["kids"] = kidsNode
+            }, isFrozen: false) { TypeName = typeName };
+        graph.SetVarType(varName, structState);
+        var structNode = graph.GetNamedNode(varName);
+        kidsNode.State = new StateCollection(kind, structNode); // close the knot
+        return structNode;
+    }
+
+    [Test(Description =
+        "μ-knot desc ≤ anc: Pull decomposition of the knot re-emits its own already-" +
+        "discharged edges around the cycle (struct edge ⇒ kids edge ⇒ struct edge). " +
+        "Without run-scoped coinductive discharge memo the worklist oscillates forever " +
+        "(StackOverflow via VisitMark clobber, then non-convergence). " +
+        "Repro of lang-mode `type t = {v:int, kids:t[]}; x = t{v=1}`.")]
+    public void CollectionRecursiveStruct_DescBelowAnc_PullConverges() {
+        var graph = new GraphBuilder();
+        var anc = CreateCollectionRecursiveStructKnot(graph, "a", ConstructorKind.Array, "t");
+        var desc = CreateCollectionRecursiveStructKnot(graph, "d", ConstructorKind.Array, "t");
+        desc.AddAncestor(anc);
+
+        var result = graph.Solve(); // must terminate — this is the pin
+
+        Assert.IsInstanceOf<StateStruct>(
+            graph.GetNamedNode("d").GetNonReference().State,
+            "descendant knot must stay a struct after solving");
+        Assert.NotNull(result);
+    }
+
+    [Test(Description = "Same knot for the List constructor (lang literal default kind).")]
+    public void CollectionRecursiveStruct_ListKind_PullConverges() {
+        var graph = new GraphBuilder();
+        var anc = CreateCollectionRecursiveStructKnot(graph, "a", ConstructorKind.List, "t");
+        var desc = CreateCollectionRecursiveStructKnot(graph, "d", ConstructorKind.List, "t");
+        desc.AddAncestor(anc);
+
+        Assert.DoesNotThrow(() => graph.Solve());
+    }
+
+    #endregion
 }

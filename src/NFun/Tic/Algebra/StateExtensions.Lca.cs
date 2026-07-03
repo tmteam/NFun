@@ -11,9 +11,13 @@ public static partial class StateExtensions {
             return aref.Element.Lca(b);
         if (b is StateRefTo bref)
             return a.Lca(bref.Element);
+        // LCA is symmetric — both dispatches route into LcaCompCs.
+        if (a is StateCompositeConstraints acompcs)
+            return acompcs.LcaCompCs(b);
+        if (b is StateCompositeConstraints bcompcs)
+            return bcompcs.LcaCompCs(a);
         if (a is ConstraintsState ac && b is ConstraintsState bc)
         {
-            // Both are constraints — compute LCA of their concretest forms
             var descA = ac.HasDescendant ? ac.Descendant : null;
             var descB = bc.HasDescendant ? bc.Descendant : null;
             var lcaDesc = (descA, descB) switch {
@@ -43,7 +47,10 @@ public static partial class StateExtensions {
                 result.Preferred = preferred;
                 return result;
             }
-            if (!comparable && !isOptional && preferred == null && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
+            if (!comparable
+                && !isOptional
+                && preferred == null
+                && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
                 return lcaDesc;
             var cs = ConstraintsState.Of(lcaDesc, null, comparable, isOptional);
             cs.Preferred = preferred;
@@ -51,7 +58,6 @@ public static partial class StateExtensions {
         }
         if (b is ConstraintsState bc2) {
             var inner = bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();
-            // Propagate IsOptional: LCA(T, C[.., opt=true]) = C[T.., opt=true]
             if (bc2.IsOptional && !inner.Equals(Any)) {
                 // Canonical flag form: the IsOptional flag already carries the axis,
                 // so the stored Descendant must be opt-free — [opt(X)..]? is opt(opt(X))
@@ -63,11 +69,8 @@ public static partial class StateExtensions {
             }
             // opt(P) ∨ CS[D..A](Pref) = CS[P..A]?(Pref): while the CS side carries a
             // Preferred hint, the join stays an unresolved interval (desc = P keeps the
-            // left side's contribution). The former eager `StateOptional.Of(Preferred)`
-            // here baked the hint into a concrete primitive — violating TicPreferred P3
-            // and blocking Push from narrowing the target down (`{v:float32?}` field
-            // pushes F32, but pre-baked opt(Re) can't accept it → FU719, Bug#6).
-            // Ported from lang-mutable-collections.
+            // left side's contribution). Collapsing to solved opt(P) here would bake the
+            // concretest and drop the hint before materialization decides whether it fits.
             if (bc2.Preferred != null
                 && inner is StateOptional { IsSolved: true } optInner
                 && optInner.Element is StatePrimitive innerP) {
@@ -82,14 +85,12 @@ public static partial class StateExtensions {
             return inner;
         }
         if (a is ConstraintsState)
-            return b.Lca(a); // symmetric: hits bc2 branch above
+            return b.Lca(a); // symmetry routes to the bc2 branch
 
-        // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
         if (a == None)
             return LcaWithNone(b);
         if (b == None)
             return LcaWithNone(a);
-        // Optional: covariant wrapper
         if (a is StateOptional aopt)
             return LcaWithOptional(aopt, b);
         if (b is StateOptional bopt)
@@ -100,9 +101,20 @@ public static partial class StateExtensions {
         if (b is StatePrimitive)
             return Any;
         return a switch {
-            StateArray aarr => b is StateArray barr ? StateArray.Of(aarr.Element.Lca(barr.Element)) : Any,
+            StateArray aarr => b switch {
+                StateArray barr => StateArray.Of(aarr.Element.Lca(barr.Element)),
+                // Array-branch SC ∨ StateArray = StateArray with element-LCA.
+                StateCollection bcoll
+                    when bcoll.Constructor == ConstructorKind.List
+                      || bcoll.Constructor == ConstructorKind.Array
+                      || bcoll.Constructor == ConstructorKind.FixedArray =>
+                    StateArray.Of(aarr.Element.Lca(bcoll.Element)),
+                _ => Any
+            },
             StateFun af => b is StateFun bf ? af.Lca(bf) : Any,
             StateStruct astruct => b is StateStruct bstruct ? astruct.Lca(bstruct) : Any,
+            // See specs_tic/Algebra/LcaOrShareIdentity.md for the identity-sharing fallback.
+            StateCollection acoll => acoll.LcaOrShareIdentity(b) ?? Any,
             _ => Any
         };
     }
@@ -111,10 +123,9 @@ public static partial class StateExtensions {
         if (other.Equals(None))
             return None;
         if (other.Equals(Any))
-            return Any; // None ≤ Any → LCA = Any
+            return Any;
         if (other is StateOptional opt)
-            return opt.Element.Equals(Any) ? Any : other; // None ≤ Opt(T) → LCA = Opt(T); opt(any) = any
-        // None ^ T = Opt(T) for non-Any types
+            return opt.Element.Equals(Any) ? Any : other; // opt(any) collapses to any
         return StateOptional.Of(other);
     }
 
@@ -124,17 +135,12 @@ public static partial class StateExtensions {
             inner = opt.Element.Lca(otherOpt.Element);
         else
             inner = opt.Element.Lca(other);
-        // opt(any) = any (collapses)
         if (inner.Equals(Any))
             return Any;
         return StateOptional.Of(inner);
     }
 
-    // Cycle guard for recursive struct LCA. Two layers:
-    //   1. Named-type short-circuit: if both sides have the same TypeName, the μ-cycle
-    //      reached itself through Lca/Gcd interleaving (Lca creates new struct snapshots
-    //      every level, so ref-equality misses). Coinductively return one side.
-    //   2. Reference-equals fallback for anonymous structs (no TypeName).
+    // Cycle guards: TypeName for named μ-types (snapshots break ref-equality), ref-equality for anonymous.
     [ThreadStatic] private static List<(StateStruct, StateStruct)> _structLcaInProgress;
     [ThreadStatic] private static List<string> _structLcaNamesInProgress;
 
@@ -151,7 +157,6 @@ public static partial class StateExtensions {
                 nameGuard.RemoveAt(nameGuard.Count - 1);
             }
         }
-        // Anonymous struct ref-equality guard (pre-existing).
         var guard = _structLcaInProgress ??= new();
         for (int i = 0; i < guard.Count; i++)
             if (ReferenceEquals(guard[i].Item1, a) && ReferenceEquals(guard[i].Item2, b)
@@ -169,9 +174,6 @@ public static partial class StateExtensions {
         bool bothMutable = a is StateMutableStruct && b is StateMutableStruct;
         bool eitherMutable = a is StateMutableStruct || b is StateMutableStruct;
 
-        // MutStruct x MutStruct: try invariant Unify per field; if any fails, downgrade to immutable Struct.
-        // MutStruct x Struct (or vice versa): always upcast to immutable Struct with covariant LCA.
-        // Struct x Struct: covariant LCA per field (existing behavior).
         var nodes = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
         bool unifyFailed = false;
         foreach (var aField in a.Fields)
@@ -179,18 +181,18 @@ public static partial class StateExtensions {
             var bField = b.GetFieldOrNull(aField.Key);
             if (bField == null) continue;
 
-            var aState = aField.Value.GetNonReference().State;
-            var bState = bField.GetNonReference().State;
+            var aNr = aField.Value.GetNonReference();
+            var bNr = bField.GetNonReference();
+            var aState = aNr.State;
+            var bState = bNr.State;
 
             ITicNodeState fieldType;
             if (bothMutable && !unifyFailed)
             {
-                // Invariant: try Unify first
                 fieldType = aState.UnifyOrNull(bState);
                 if (fieldType == null)
                 {
-                    // Unify failed — downgrade entire result to immutable Struct, use LCA
-                    unifyFailed = true;
+                    unifyFailed = true; // downgrade entire result to immutable Struct
                     fieldType = aState.Lca(bState);
                 }
             }
@@ -203,15 +205,9 @@ public static partial class StateExtensions {
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));
         }
 
-        // Both MutStruct and all fields unified → result is MutStruct.
-        // Otherwise → immutable Struct (mixed mutability or Unify failure).
         if (bothMutable && !unifyFailed)
             return new StateMutableStruct(nodes, true);
-        // Note: IsOptionalSourced is NOT propagated through Lca. Lca produces
-        // the structurally-narrowest common ancestor — its identity should not
-        // inherit a marker that originated only on one side. The marker
-        // matters for cycle-rescue gating, where Pull/Push merges share the
-        // identity (handled in PullConstraintsFunctions.Apply(Struct,Struct)).
+        // IsOptionalSourced is one-sided identity metadata — not propagated through LCA.
         return new StateStruct(nodes, true) {
             TypeName = StateStruct.LcaTypeName(a.TypeName, b.TypeName),
         };

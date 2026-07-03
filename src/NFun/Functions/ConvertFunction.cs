@@ -192,6 +192,34 @@ public class ConvertFunction : GenericFunctionBase {
         if (to == FunnyType.Any || from == to)
             return o => o;
 
+        // WORKAROUND: scoped reject for one shape — `if specificType then
+        // specialBehavior`-style. The root cause is in `VarTypeConverter`:
+        // its `T → Optional<U>` implicit lift returns `NoConvertion` instead
+        // of `null` when no `T → U` morphism exists (a deliberate trust hack
+        // for struct width-subtyping that `?.` rescues at runtime). When that
+        // lie propagates into the element-conversion path of List→Array
+        // etc., we get a typed-lie at runtime: `convert(['abc']):int?[]` ⇒
+        // TextFunnyArray under `array<Int32?>`. Composite-element parsing
+        // isn't supported by `convert()` yet, so the user-visible answer is
+        // FU887; this block makes sure that's what fires.
+        //
+        // Proper fix: make the `T → Optional<U>` lift honest (return null on
+        // missing `T → U`) and add a separate explicit width-subtyping path
+        // for the struct case the lift was trying to keep working. Tracked
+        // in CLAUDE.md "Current workarounds" #9. Bug #34.
+        if (TryGetCollectionElement(from, out var fromElem)
+            && TryGetCollectionElement(to, out var toElem)
+            && toElem.BaseType == BaseFunnyType.Optional
+            && fromElem.BaseType != BaseFunnyType.Optional)
+        {
+            var unwrapped = toElem.OptionalTypeSpecification.ElementType;
+            if (fromElem != unwrapped
+                && unwrapped != FunnyType.Any
+                && VarTypeConverter.GetConverterOrNull(
+                    context.Converter.TypeBehaviour, fromElem, unwrapped) == null)
+                return null;
+        }
+
         if (to == FunnyType.Text)
         {
             if (from.ArrayTypeSpecification?.FunnyType == FunnyType.UInt8)
@@ -262,6 +290,31 @@ public class ConvertFunction : GenericFunctionBase {
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Extracts the element type from any single-arg collection (ee-mode T[],
+    /// lang-mode list / array / fixedArray). Returns false for non-collection
+    /// or two-arg shapes. Used by the collection→collection unsoundness guard.
+    /// </summary>
+    private static bool TryGetCollectionElement(FunnyType collection, out FunnyType element) {
+        switch (collection.BaseType) {
+            case BaseFunnyType.ArrayOf:
+                element = collection.ArrayTypeSpecification.FunnyType;
+                return true;
+            case BaseFunnyType.List:
+                element = collection.ListTypeSpecification.FunnyType;
+                return true;
+            case BaseFunnyType.MutableArray:
+                element = collection.MutableArrayTypeSpecification.FunnyType;
+                return true;
+            case BaseFunnyType.FixedArray:
+                element = collection.FixedArrayTypeSpecification.FunnyType;
+                return true;
+            default:
+                element = default;
+                return false;
+        }
     }
 
     /// <summary>
@@ -370,30 +423,37 @@ public class ConvertFunction : GenericFunctionBase {
         return null;
     }
 
+    private static byte[] BytesBE(uint v) =>
+        new byte[] { (byte)(v >> 24), (byte)(v >> 16), (byte)(v >> 8), (byte)v };
+
     private static Func<object, object> CreateToIpConverterOrNull(FunnyType from) =>
         from.BaseType switch {
             // Per PRAGMATIC matrix §1.4: i32/i64/u64 → ip are all 🪂 (must fit
             // [0, 2^32-1]). Throws OverflowException on bad value, which the runtime
             // wrapper layers turn into a FunnyRuntimeException for `:ip` and `none`
             // for `:ip?`. u32 → ip is total ✓ (every u32 value is a valid IPv4).
+            //
+            // Network byte order: the numeric value's most-significant octet is the
+            // first IP octet. `IPAddress(long)` is host-endian and would invert this
+            // — see the matching ip → uXX path in `CreateFromIpConverterOrNull`.
             BaseFunnyType.Int32 => o => {
                 var v = (int)o;
                 if (v < 0)
                     throw new OverflowException($"Cannot convert negative int {v} to Ip: IPv4 requires non-negative value in [0, 2^32-1]");
-                return new IPAddress((long)(uint)v);
+                return new IPAddress(BytesBE((uint)v));
             },
-            BaseFunnyType.UInt32 => o => new IPAddress((long)(UInt32)o),
+            BaseFunnyType.UInt32 => o => new IPAddress(BytesBE((UInt32)o)),
             BaseFunnyType.Int64 => o => {
                 var v = (long)o;
                 if (v < 0L || v > uint.MaxValue)
                     throw new OverflowException($"Cannot convert int64 {v} to Ip: IPv4 requires value in [0, 2^32-1]");
-                return new IPAddress(v);
+                return new IPAddress(BytesBE((uint)v));
             },
             BaseFunnyType.UInt64 => o => {
                 var v = (ulong)o;
                 if (v > uint.MaxValue)
                     throw new OverflowException($"Cannot convert uint64 {v} to Ip: IPv4 requires value in [0, 2^32-1]");
-                return new IPAddress((long)v);
+                return new IPAddress(BytesBE((uint)v));
             },
             BaseFunnyType.ArrayOf => from.ArrayTypeSpecification.FunnyType.BaseType switch {
                 BaseFunnyType.Char => o => IPAddress.Parse(((IFunnyArray)o).ToText()),
@@ -453,6 +513,16 @@ public class ConvertFunction : GenericFunctionBase {
 
     private static Func<object, object> CreateFromIpConverterOrNull(FunnyType to) {
         static byte[] ToBytes(object arg) => ((IPAddress)arg).GetAddressBytes();
+        // ip → uXX uses network (big-endian) byte order to preserve the natural
+        // numeric identity: 127.0.0.1 → 0x7F000001 = 2130706433. BitConverter
+        // is host-endian (typically little-endian) and would yield 0x0100007F
+        // — the bytes-of-an-IP table in Functions.md §Serialization documents
+        // big-endian explicitly, and Bug hunt #9 verified the previous
+        // implementation contradicted it.
+        static uint ToUInt32BE(object arg) {
+            var b = ToBytes(arg);
+            return ((uint)b[0] << 24) | ((uint)b[1] << 16) | ((uint)b[2] << 8) | b[3];
+        }
 
         return to.BaseType switch {
             // BaseFunnyType.Int32 deliberately omitted — ip→i32 is ✗ per PRAGMATIC
@@ -461,9 +531,9 @@ public class ConvertFunction : GenericFunctionBase {
             // by the explicit pre-check in TryBuildConverterFn so users get a
             // pointed hint about :uint / :long alternatives instead of a generic
             // FU887 from this method returning null.
-            BaseFunnyType.UInt32 => o => BitConverter.ToUInt32(ToBytes(o), 0),
-            BaseFunnyType.Int64 => o => (long)BitConverter.ToUInt32(ToBytes(o), 0),
-            BaseFunnyType.UInt64 => o => (ulong)BitConverter.ToUInt32(ToBytes(o), 0),
+            BaseFunnyType.UInt32 => o => ToUInt32BE(o),
+            BaseFunnyType.Int64 => o => (long)ToUInt32BE(o),
+            BaseFunnyType.UInt64 => o => (ulong)ToUInt32BE(o),
             BaseFunnyType.ArrayOf => to.ArrayTypeSpecification.FunnyType.BaseType switch {
                 BaseFunnyType.UInt8 => o => new ImmutableFunnyArray(ToBytes(o)),
                 BaseFunnyType.UInt16 => o => new ImmutableFunnyArray(ToBytes(o).SelectToArray(x => (UInt16)x)),

@@ -188,6 +188,9 @@ public class VariableSource : IFunnyVar {
         if (type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None)
             return FunnyNone.Instance;
 
+        if (type.BaseType == BaseFunnyType.List)
+            return new NFun.Runtime.Lists.MutableFunnyList(type.ListTypeSpecification.FunnyType);
+
         if (type.ArrayTypeSpecification == null)
             return null;
 

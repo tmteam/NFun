@@ -17,12 +17,10 @@ public static partial class StateExtensions {
         if (to== Any)
             return true;
 
-        // None can only optimistically convert to None or Optional targets
         if (from == None)
             return to == None
                 || (to is ICompositeState cs && from.CanBeConvertedOptimisticTo(cs));
 
-        // Optional can only optimistically convert to Optional targets
         if (from is StateOptional)
             return to is ICompositeState cs2 && from.CanBeConvertedOptimisticTo(cs2);
         if (to is ICompositeState compositeState)
@@ -39,10 +37,8 @@ public static partial class StateExtensions {
             if (to is ConstraintsState toConstraints)
             {
                 var ancestor = toConstraints.Ancestor;
-                // if there is no ancestor, than anything can be possibly converted to 'to'
                 if (ancestor == null || Equals(ancestor, Any))
                     return true;
-                //if there is ancestor, then either 'from.ancestor` either `from.desc` has to be converted to it
                 if (fromConstraints.HasAncestor && fromConstraints.Ancestor.CanBeConvertedOptimisticTo(ancestor))
                     return true;
                 if (fromConstraints.HasDescendant && fromConstraints.Descendant.CanBeConvertedOptimisticTo(ancestor))
@@ -56,7 +52,6 @@ public static partial class StateExtensions {
         if (from is ICompositeState)
         {
             if (to is ConstraintsState constrainsState)
-                // if there is no ancestor, than anything can be possibly converted to 'to'
                 return constrainsState.Ancestor == null || Equals(constrainsState.Ancestor, Any);
             return false;
         }
@@ -94,7 +89,6 @@ public static partial class StateExtensions {
         if (from is StateRefTo r)
             return r.Element.CanBeConvertedOptimisticTo(to);
 
-        // to is Optional: implicit lift from any compatible type
         if (to is StateOptional optTo)
         {
             return from switch {
@@ -104,12 +98,11 @@ public static partial class StateExtensions {
             };
         }
 
-        // from is Optional: can only convert to Optional target (handled above)
         if (from is StateOptional)
             return false;
         if (from is ConstraintsState constrainsState)
             return !constrainsState.HasDescendant;
-        // MutStruct <: Struct — allow cross-type comparison within struct family
+        // MutStruct <: Struct: same kind for dispatch.
         if (from.GetType() != to.GetType() && !(from is StateStruct && to is StateStruct))
             return false;
         return from switch {
@@ -179,7 +172,6 @@ public static partial class StateExtensions {
         if (to is StateRefTo ancRef)
             return from.CanBeConvertedPessimisticTo(ancRef.Element);
 
-        // to is Optional: None → Opt(T) = true, Opt(A) → Opt(B) covariant, T → Opt(T) implicit lift
         if (to is StateOptional optTo)
         {
             if (from == None)
@@ -192,7 +184,6 @@ public static partial class StateExtensions {
         if (to== Any)
             return true;
 
-        // None and Optional can't pessimistically convert to non-optional targets (except Any above)
         if (from == None)
             return to == None;
         if (from is StateOptional)
@@ -221,6 +212,21 @@ public static partial class StateExtensions {
         from switch {
             StateArray arrayDesc => to switch {
                 StateArray arrayAnc => arrayDesc.Element.CanBeConvertedPessimisticTo(arrayAnc.Element),
+                // T[] flows into Array-branch SC by element subtype.
+                StateCollection collAnc when collAnc.Constructor is ConstructorKind.List
+                                            or ConstructorKind.Array
+                                            or ConstructorKind.FixedArray
+                    => arrayDesc.Element.CanBeConvertedPessimisticTo(collAnc.Element),
+                _ => false
+            },
+            // Cross-kind via ConstructorLattice; element check is pessimistic.
+            StateCollection collDesc => to switch {
+                StateCollection collAnc when ConstructorLattice.IsSubtypeOf(collDesc.Constructor, collAnc.Constructor)
+                    => collDesc.Element.CanBeConvertedPessimisticTo(collAnc.Element),
+                StateArray arrAnc when collDesc.Constructor is ConstructorKind.List
+                                       or ConstructorKind.Array
+                                       or ConstructorKind.FixedArray
+                    => collDesc.Element.CanBeConvertedPessimisticTo(arrAnc.Element),
                 _ => false
             },
             StateFun fromFun => to switch {

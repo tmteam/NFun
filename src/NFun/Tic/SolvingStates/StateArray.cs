@@ -26,14 +26,24 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
 
     public ITicNodeState Element => ElementNode.State;
 
-    public override string ToString() {
-        if (ElementNode.IsSolved)
-            return $"arr({ElementNode})";
-
-        return $"arr({ElementNode.Name})";
-    }
+    // Delegate to the depth-guarded printer — μ-recursive element states would
+    // recurse forever through TicNode.ToString.
+    public override string ToString() =>
+        ElementNode.IsSolved ? PrintState(0) : $"arr({ElementNode.Name})";
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) {
+        // Cross-family: StateArray vs Array-branch StateCollection widens to T[]
+        // per the lattice (specs_tic/TicTypeSystem.md §ConstructorLattice).
+        if (otherType is StateCollection collOther
+            && (collOther.Constructor == ConstructorKind.List
+             || collOther.Constructor == ConstructorKind.Array
+             || collOther.Constructor == ConstructorKind.FixedArray))
+        {
+            if (Element is not ITypeState elemA || collOther.Element is not ITypeState elemB)
+                return null;
+            var elemLca = elemA.GetLastCommonAncestorOrNull(elemB);
+            return elemLca == null ? null : Of(elemLca);
+        }
         if (otherType is not StateArray arrayType)
             return StatePrimitive.Any;
         if (Element is not ITypeState elementTypeA)
@@ -59,8 +69,7 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
 
     public override bool Equals(object obj) {
         if (obj is not StateArray arr) return false;
-        // Cycle guard for true graph cycles in named recursive types (e.g. forest = {kids: forest[]}).
-        // Amadio-Cardelli '93 §4.2 coinductive bisimulation: assume equal under recursive subgoal.
+        // Coinductive cycle guard for recursive types (Amadio–Cardelli '93).
         var elem = ElementNode;
         if (elem.VisitMark == ArrayCycleGuard) return true;
         var prev = elem.VisitMark;
@@ -79,16 +88,14 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
-    private const int LeafMark = -56000;
-
     public IEnumerable<TicNode> AllLeafTypes
     {
         get
         {
             if (ElementNode.State is ICompositeState composite) {
-                if (ElementNode.VisitMark == LeafMark) yield break;
+                if (ElementNode.VisitMark == Tic.TicVisitMarks.StateLeaf) yield break;
                 var prev = ElementNode.VisitMark;
-                ElementNode.VisitMark = LeafMark;
+                ElementNode.VisitMark = Tic.TicVisitMarks.StateLeaf;
                 foreach (var leaf in composite.AllLeafTypes)
                     yield return leaf;
                 ElementNode.VisitMark = prev;

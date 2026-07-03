@@ -289,14 +289,18 @@ public class ConvertFunctionsTest {
     // integer first: convert(convert(x):int):char. The previous RealToCharConvert
     // test cases are removed.
 
-    [TestCase("out:int64    = 127.3.2.1.convert()", (long)0x0102037f)]
-    [TestCase("out:uint64   = 127.3.2.1.convert()", (ulong)0x0102037f)]
+    // ip → uXX uses network (big-endian) byte order — matches the natural
+    // hex reading of the IP (127.3.2.1 = 0x7F030201). Bug hunt #9: prior
+    // value was the host-endian (LE) interpretation, contradicting Functions.md
+    // §Serialization "4 bytes network order".
+    [TestCase("out:int64    = 127.3.2.1.convert()", (long)0x7f030201)]
+    [TestCase("out:uint64   = 127.3.2.1.convert()", (ulong)0x7f030201)]
     // ip→int32 is now ✗ per PRAGMATIC matrix §1.4 — see ConvertSpecMatrixTest.IpToInt32_StaticReject.
     // Use :uint or :long instead. The previous test cases that exercised ip→int32 are removed.
-    [TestCase("out:uint     = 127.3.2.1.convert()", (uint)0x0102037f)]
-    [TestCase("out:int64    = 255.254.253.252.convert()", (long)0xfcfdfeff)]
-    [TestCase("out:uint64   = 255.254.253.252.convert()", (ulong)0xfcfdfeff)]
-    [TestCase("out:uint     = 255.254.253.252.convert()", (uint)0xfcfdfeff)]
+    [TestCase("out:uint     = 127.3.2.1.convert()", (uint)0x7f030201)]
+    [TestCase("out:int64    = 255.254.253.252.convert()", (long)0xfffefdfc)]
+    [TestCase("out:uint64   = 255.254.253.252.convert()", (ulong)0xfffefdfc)]
+    [TestCase("out:uint     = 255.254.253.252.convert()", (uint)0xfffefdfc)]
     [TestCase("out:byte[]   = 127.3.2.1.convert()", new byte[] { 127, 3, 2, 1 })]
     [TestCase("out:uint16[] = 127.3.2.1.convert()", new ushort[] { 127, 3, 2, 1 })]
     [TestCase("out:uint32[] = 127.3.2.1.convert()", new uint[] { 127, 3, 2, 1 })]
@@ -312,16 +316,18 @@ public class ConvertFunctionsTest {
     public void FromIpConvert(string expr, object expected) =>
         Funny.Hardcore.Build(expr).Calc().AssertResultHas("out", expected);
 
-    [TestCase("x:int64  = 0x0102037f; out:ip = x.convert()", "127.3.2.1")]
-    [TestCase("x:uint64 = 0x0102037f; out:ip = x.convert()", "127.3.2.1")]
-    [TestCase("x:int    = 0x0102037f; out:ip = x.convert()", "127.3.2.1")]
-    [TestCase("x:uint   = 0x0102037f; out:ip = x.convert()", "127.3.2.1")]
-    [TestCase("x:int64  = 0xfcfdfeff; out:ip = x.convert()", "255.254.253.252")]
-    [TestCase("x:uint64 = 0xfcfdfeff; out:ip = x.convert()", "255.254.253.252")]
+    // uXX → ip uses network (big-endian) byte order — 0x7F030201 → "127.3.2.1".
+    // Bug hunt #9.
+    [TestCase("x:int64  = 0x7f030201; out:ip = x.convert()", "127.3.2.1")]
+    [TestCase("x:uint64 = 0x7f030201; out:ip = x.convert()", "127.3.2.1")]
+    [TestCase("x:int    = 0x7f030201; out:ip = x.convert()", "127.3.2.1")]
+    [TestCase("x:uint   = 0x7f030201; out:ip = x.convert()", "127.3.2.1")]
+    [TestCase("x:int64  = 0xfffefdfc; out:ip = x.convert()", "255.254.253.252")]
+    [TestCase("x:uint64 = 0xfffefdfc; out:ip = x.convert()", "255.254.253.252")]
     // Negative i32 → ip is now 🪂 per PRAGMATIC matrix §1.4 (was: raw byte
     // reinterpret → "255.254.253.252"). See ConvertSpecMatrixTest.Int32NegativeToIp_Throws
     // and Int32NegativeToIpOpt_ReturnsNone for the new behavior.
-    [TestCase("x:uint   = 0xfcfdfeff; out:ip = x.convert()", "255.254.253.252")]
+    [TestCase("x:uint   = 0xfffefdfc; out:ip = x.convert()", "255.254.253.252")]
     [TestCase("x:byte[]   = [127,3,2,1]; out:ip = x.convert()", "127.3.2.1")]
     [TestCase("x:uint16[] = [127,3,2,1]; out:ip = x.convert()", "127.3.2.1")]
     [TestCase("x:uint32[] = [127,3,2,1]; out:ip = x.convert()", "127.3.2.1")]

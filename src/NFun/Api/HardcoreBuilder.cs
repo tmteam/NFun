@@ -130,6 +130,34 @@ public class HardcoreBuilder {
             _customTypes);
     }
 
+    public FunnyRuntime BuildLang(string script) {
+        var converter = Converter;
+        // Lang-mode requires Optional + NamedTypes + MutableStructs (and
+        // ExtensionFunctionsSeparation per spec). Hardcore is the entry point,
+        // so stamp these features here unconditionally — `RuntimeBuilder.BuildLang`
+        // validates that they're set, throwing if a hand-rolled caller passed
+        // a dialect with them off.
+        var langDialect = new DialectSettings(
+            _dialect.IfExpressionSetup,
+            _dialect.IntegerPreferredType,
+            _dialect.Converter,
+            _dialect.AllowIntegerOverflow,
+            _dialect.AllowUserFunctions,
+            OptionalTypesSupport.Enabled,
+            _dialect.AllowNewlineInStrings,
+            NamedTypesSupport.Enabled,
+            _dialect.TryCatchSupport,
+            ExtensionFunctionsSeparation.Enabled,
+            useMutableStructs: true);
+        return RuntimeBuilder.BuildLang(
+            script,
+            BaseFunctions.GetFunctionsLang(converter.TypeBehaviour, ExtensionFunctionsSeparation.Enabled).CloneWith(_customFunctions),
+            langDialect,
+            _constants.Length > 0 ? new ConstantList(converter, _constants) : null,
+            _mutableApriori,
+            _customTypes);
+    }
+
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
             script,

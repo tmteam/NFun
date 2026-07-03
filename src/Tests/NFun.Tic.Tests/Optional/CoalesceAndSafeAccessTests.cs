@@ -478,4 +478,28 @@ class CoalesceAndSafeAccessTests {
     }
 
     #endregion
+
+    #region None left operand — negative-skolem U rejects the None IsOptional lift
+
+    [Test(Description =
+        "opt(None) ?? int const -> non-optional int. None = opt(⊥) contributes nothing " +
+        "to the rigid U of ?? (None ≤ opt(U) holds for every U); AddDescendant(None) " +
+        "used to set IsOptional on U unconditionally, typing `a?.x ?? -1` over an " +
+        "always-none field as Int32? and falsely rejecting `(a?.x ?? -1) + 1` (review N1).")]
+    public void Coalesce_NoneLeft_WithIntConst_ReturnsNonOptional() {
+        var graph = new GraphBuilder();
+        graph.SetVarType("x", StateOptional.Of(StatePrimitive.None));
+        graph.SetVar("x", 0);
+        graph.SetIntConst(1, U8);
+        graph.SetCoalesce(0, 1, 2);
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        var yState = result.GetVariableNode("y").GetNonReference().State;
+        Assert.IsFalse(
+            yState is StateOptional || yState is ConstraintsState { IsOptional: true },
+            $"?? with non-optional right must solve non-optional, got {yState}");
+    }
+
+    #endregion
 }

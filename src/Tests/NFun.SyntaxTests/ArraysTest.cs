@@ -535,6 +535,25 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
         Assert.DoesNotThrow(() => "y = 'cba'.sort()".Calc());
     }
 
+    // Comparable typeclass enforcement: sort<T:Comparable> rejects composite
+    // element types (struct/array/fun) at compile time. The check lives in
+    // ConstraintsState.SimplifyOrNull (case ICompositeState) and now also
+    // gates CS-merge paths — without that, the IsComparable flag silently
+    // OR-merged with a composite Descendant and surfaced as a runtime cast
+    // to IComparable failure during sort comparison. Lang-mode only: ee-mode
+    // .Calc() goes through legacy StateArray which never had this hole.
+    [Test]
+    public void SortOnListOfStructs_RejectedAtCompileTime() {
+        Assert.Throws<FunnyParseException>(() =>
+            NFun.Funny.Hardcore.BuildLang("a = [{key=1,value=10}]\nout = a.sort()"));
+    }
+
+    [Test]
+    public void SortOnListOfArrays_RejectedAtCompileTime() {
+        Assert.Throws<FunnyParseException>(() =>
+            NFun.Funny.Hardcore.BuildLang("a = [[1,2],[3,4]]\nout = a.sort()"));
+    }
+
     // take/skip with negative count emit a clean domain error rather than
     // leaking the underlying .NET overflow / Array.Copy sourceIndex message.
     // Mirrors the existing `repeat(_, -1)` contract.

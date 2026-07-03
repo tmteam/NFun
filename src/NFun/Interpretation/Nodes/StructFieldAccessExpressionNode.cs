@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
@@ -31,7 +32,11 @@ internal class StructFieldAccessExpressionNode : IExpressionNode {
     public IEnumerable<IRuntimeNode> Children => new[] { _source };
 
     public object Calc() {
-        var val = ((FunnyStruct)_source.Calc()).GetValue(_fieldName);
+        var sourceObj = _source.Calc();
+        if (sourceObj is null)
+            throw new FunnyRuntimeException(
+                $"Cannot read field '.{_fieldName}' — target struct is none (use `?.` for safe access on optional types)");
+        var val = ((FunnyStruct)sourceObj).GetValue(_fieldName);
         return _converter != null ? _converter(val) : val;
     }
 

@@ -6,9 +6,7 @@ using System.Runtime.CompilerServices;
 namespace NFun.Tic;
 
 /// <summary>
-/// Specialized (string → TicNode) dictionary optimized for 0-2 entries.
-/// 0-2 entries: inline key/value fields, no Dictionary allocation.
-/// 3+ entries: spills to Dictionary (one-way, no shrink-back).
+/// (string → TicNode) map: inline 0-2 entries, spill to Dictionary on the 3rd (one-way).
 /// </summary>
 public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
     private string _key0, _key1;
@@ -24,7 +22,7 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
         _inlineCount = 1;
     }
 
-    /// <summary>Takes ownership of dictionary. Flattens to inline if ≤2 entries.</summary>
+    /// <summary>Takes ownership; flattens to inline form if ≤2 entries.</summary>
     public FieldMap(Dictionary<string, TicNode> dict) {
         if (dict.Count <= 2) {
             _inlineCount = 0;
@@ -82,7 +80,6 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
         _inlineCount = -1;
     }
 
-    /// <summary>Indexer setter for patterns like nodes[key] = value.</summary>
     public TicNode this[string key] {
         set {
             if (_inlineCount >= 0) {
@@ -95,12 +92,12 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
         }
     }
 
-    /// <summary>Get value by positional index (0-based). For indexed member access.</summary>
+    /// <summary>Value at 0-based positional index.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TicNode GetValueAt(int index) {
         if (_inlineCount >= 0)
             return index == 0 ? _val0! : _val1!;
-        // Dictionary: iterate to index (rare path — 3+ fields)
+        // 3+ fields: iterate to index.
         int i = 0;
         foreach (var v in _dict!.Values) {
             if (i == index) return v;
@@ -108,8 +105,6 @@ public sealed class FieldMap : IEnumerable<KeyValuePair<string, TicNode>> {
         }
         throw new ArgumentOutOfRangeException(nameof(index));
     }
-
-    // --- Iteration ---
 
     public ValuesEnumerable Values => new(this);
     public Enumerator GetEnumerator() => new(this);

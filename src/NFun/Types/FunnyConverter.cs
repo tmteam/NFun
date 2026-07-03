@@ -137,6 +137,14 @@ public class FunnyConverter {
                 return new ClrArrayOutputFunnyConverter(clrType, elementConverter);
             }
 
+            if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                var elementType = clrType.GetGenericArguments()[0];
+                // ReSharper disable once RedundantAssignment
+                var elementConverter = GetOutputConverterReq(elementType, reqDeepthCheck++);
+                return new ClrListOutputFunnyConverter(clrType, elementConverter);
+            }
+
             if (clrType == typeof(Dictionary<string, object>))
                 return DynamicStructToDictionaryOutputFunnyConverter.Instance;
             if (clrType == typeof(IDictionary<string, object>))
@@ -192,6 +200,40 @@ public class FunnyConverter {
                     var elementConverter = GetOutputConverterFor(funnyType.ArrayTypeSpecification.FunnyType);
                     var arrayType = elementConverter.ClrType.MakeArrayType();
                     return new ClrArrayOutputFunnyConverter(arrayType, elementConverter);
+                }
+                case BaseFunnyType.List:
+                {
+                    var elementConverter = GetOutputConverterFor(funnyType.ListTypeSpecification.FunnyType);
+                    var listType = typeof(List<>).MakeGenericType(elementConverter.ClrType);
+                    return new ClrListOutputFunnyConverter(listType, elementConverter);
+                }
+                case BaseFunnyType.MutableArray:
+                {
+                    var elementConverter = GetOutputConverterFor(funnyType.MutableArrayTypeSpecification.FunnyType);
+                    var arrayType = elementConverter.ClrType.MakeArrayType();
+                    return new ClrMutableArrayOutputFunnyConverter(arrayType, elementConverter);
+                }
+                case BaseFunnyType.FixedArray:
+                {
+                    // Stage C — fixedArray<char> is a text shape, surface as string.
+                    if (funnyType.IsText)
+                        return new FixedArrayCharToStringOutputFunnyConverter();
+                    var elementConverter = GetOutputConverterFor(funnyType.FixedArrayTypeSpecification.FunnyType);
+                    var arrayType = elementConverter.ClrType.MakeArrayType();
+                    return new ClrFixedArrayOutputFunnyConverter(arrayType, elementConverter);
+                }
+                case BaseFunnyType.Set:
+                {
+                    var elementConverter = GetOutputConverterFor(funnyType.SetTypeSpecification.FunnyType);
+                    var hashSetType = typeof(HashSet<>).MakeGenericType(elementConverter.ClrType);
+                    return new ClrHashSetOutputFunnyConverter(hashSetType, elementConverter);
+                }
+                case BaseFunnyType.Map:
+                {
+                    var keyConverter   = GetOutputConverterFor(funnyType.MapTypeSpecification.KeyType);
+                    var valueConverter = GetOutputConverterFor(funnyType.MapTypeSpecification.ValueType);
+                    var dictType = typeof(Dictionary<,>).MakeGenericType(keyConverter.ClrType, valueConverter.ClrType);
+                    return new ClrDictionaryOutputFunnyConverter(dictType, keyConverter, valueConverter);
                 }
                 case BaseFunnyType.Optional:
                 {
@@ -266,6 +308,71 @@ public class FunnyConverter {
                     // ReSharper disable once RedundantAssignment
                     elementType, funnyType.ArrayTypeSpecification.FunnyType, reqDeepthCheck++);
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
+            }
+
+            // Stage C — FixedArray gets a fixedArray-flavoured wrapper for CLR T[] inputs
+            // (Concretest(FixedArray)=FixedArray means ee T[] slots now resolve to lang
+            // fixedArray<T>, requiring the wrap into FixedFunnyArray for IFunnyEnumerable cast).
+            if (funnyType.BaseType == BaseFunnyType.FixedArray)
+            {
+                var elementType = clrTypeOrNull?.GetElementType();
+                var elementConverter = GetInputConverterReq(
+                    elementType, funnyType.FixedArrayTypeSpecification.FunnyType, reqDeepthCheck++);
+                return new ClrArrayInputForFixedArray(elementConverter);
+            }
+
+            // Lang-mode `x:int[]` resolves to MutableArray. External inputs
+            // arriving as raw CLR T[] must be wrapped into MutableFunnyArray so
+            // that LINQ functions (count, map, etc.) can iterate via IFunnyEnumerable.
+            if (funnyType.BaseType == BaseFunnyType.MutableArray)
+            {
+                var elementType = clrTypeOrNull?.GetElementType();
+                var elementConverter = GetInputConverterReq(
+                    elementType, funnyType.MutableArrayTypeSpecification.FunnyType, reqDeepthCheck++);
+                return new ClrArrayInputForMutableArray(elementConverter);
+            }
+
+            if (funnyType.BaseType == BaseFunnyType.List)
+            {
+                Type elementClrType = null;
+                if (clrTypeOrNull != null
+                    && clrTypeOrNull.IsGenericType
+                    && clrTypeOrNull.GetGenericTypeDefinition() == typeof(List<>))
+                    elementClrType = clrTypeOrNull.GetGenericArguments()[0];
+                var elementConverter = GetInputConverterReq(
+                    // ReSharper disable once RedundantAssignment
+                    elementClrType, funnyType.ListTypeSpecification.FunnyType, reqDeepthCheck++);
+                return new ClrListInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (funnyType.BaseType == BaseFunnyType.Set)
+            {
+                Type elementClrType = null;
+                if (clrTypeOrNull != null
+                    && clrTypeOrNull.IsGenericType
+                    && clrTypeOrNull.GetGenericTypeDefinition() == typeof(HashSet<>))
+                    elementClrType = clrTypeOrNull.GetGenericArguments()[0];
+                var elementConverter = GetInputConverterReq(
+                    // ReSharper disable once RedundantAssignment
+                    elementClrType, funnyType.SetTypeSpecification.FunnyType, reqDeepthCheck++);
+                return new ClrHashSetInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (funnyType.BaseType == BaseFunnyType.Map)
+            {
+                Type keyClrType = null;
+                Type valueClrType = null;
+                if (clrTypeOrNull != null
+                    && clrTypeOrNull.IsGenericType
+                    && clrTypeOrNull.GetGenericTypeDefinition() == typeof(Dictionary<,>)) {
+                    var args = clrTypeOrNull.GetGenericArguments();
+                    keyClrType = args[0];
+                    valueClrType = args[1];
+                }
+                var spec = funnyType.MapTypeSpecification;
+                var keyConverter = GetInputConverterReq(keyClrType, spec.KeyType, reqDeepthCheck++);
+                var valueConverter = GetInputConverterReq(valueClrType, spec.ValueType, reqDeepthCheck++);
+                return new ClrDictionaryInputTypeFunnyConverter(keyConverter, valueConverter);
             }
 
             if (funnyType.BaseType == BaseFunnyType.Optional)
@@ -347,6 +454,29 @@ public class FunnyConverter {
                 var elementConverter = GetInputConverterReq(elementType, reqDeepthCheck++);
 
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                var elementType = clrType.GetGenericArguments()[0];
+                // ReSharper disable once RedundantAssignment
+                var elementConverter = GetInputConverterReq(elementType, reqDeepthCheck++);
+                return new ClrListInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(HashSet<>))
+            {
+                var elementType = clrType.GetGenericArguments()[0];
+                var elementConverter = GetInputConverterReq(elementType, reqDeepthCheck++);
+                return new ClrHashSetInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            {
+                var args = clrType.GetGenericArguments();
+                var keyConverter = GetInputConverterReq(args[0], reqDeepthCheck++);
+                var valueConverter = GetInputConverterReq(args[1], reqDeepthCheck++);
+                return new ClrDictionaryInputTypeFunnyConverter(keyConverter, valueConverter);
             }
 
             if (Nullable.GetUnderlyingType(clrType) is { } underlyingType)

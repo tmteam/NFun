@@ -8,6 +8,8 @@ public static class SolvingStates {
 
     public static ITypeState Array(ITicNodeState state) => StateArray.Of(state);
 
+    public static ITypeState FixedArray(ITicNodeState state) => StateCollection.OfFixedArray(state);
+
     public static ITicNodeState Constrains(ITicNodeState desc = null, StatePrimitive anc = null,
         bool isComparable = false)
         => ConstraintsState.Of(desc, anc, isComparable);

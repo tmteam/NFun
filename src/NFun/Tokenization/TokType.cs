@@ -219,5 +219,77 @@ public enum TokType {
     /// 'catch' keyword for error handling
     /// </summary>
     Catch,
+    /// <summary>
+    /// Synthetic token: indentation increased (indent-based blocks)
+    /// </summary>
+    Indent,
+    /// <summary>
+    /// Synthetic token: indentation decreased (indent-based blocks)
+    /// </summary>
+    Dedent,
+    /// <summary>
+    /// 'fun' keyword for function definitions
+    /// </summary>
+    Fun,
+    /// <summary>
+    /// 'return' keyword
+    /// </summary>
+    Return,
+    /// <summary>
+    /// 'elif' keyword for if/elif/else blocks
+    /// </summary>
+    Elif,
+    /// <summary>
+    /// 'for' keyword for loops
+    /// </summary>
+    For,
+    /// <summary>
+    /// 'while' keyword for loops
+    /// </summary>
+    While,
+    /// <summary>
+    /// 'when' keyword for pattern matching
+    /// </summary>
+    When,
+    /// <summary>
+    /// 'break' keyword for loop control
+    /// </summary>
+    Break,
+    /// <summary>
+    /// 'continue' keyword for loop control
+    /// </summary>
+    Continue,
+    /// <summary>
+    /// 'anyway' keyword (try-finally equivalent)
+    /// </summary>
+    Anyway,
+    /// <summary>
+    /// 'print' keyword
+    /// </summary>
+    Print,
+    /// <summary>
+    /// += (compound assignment: add)
+    /// </summary>
+    PlusDef,
+    /// <summary>
+    /// -= (compound assignment: subtract)
+    /// </summary>
+    MinusDef,
+    /// <summary>
+    /// *= (compound assignment: multiply)
+    /// </summary>
+    MulDef,
+    /// <summary>
+    /// /= (compound assignment: divide)
+    /// </summary>
+    DivDef,
+    /// <summary>
+    /// %= (compound assignment: remainder)
+    /// </summary>
+    ModDef,
+    /// <summary>
+    /// //= (compound assignment: integer divide)
+    /// </summary>
+    IntDivDef,
 
 }

@@ -31,8 +31,93 @@ public readonly struct FunnyType {
 
     public static FunnyType ArrayOf(FunnyType type) => new(type);
 
+    /// <summary>
+    /// Lang-mode growable list <c>list&lt;T&gt;</c>. Distinct from
+    /// <see cref="ArrayOf"/> — the legacy ee-mode <c>T[]</c> stays unchanged.
+    /// </summary>
+    public static FunnyType ListOf(FunnyType type) => new(new ListTypeSpecification(type));
+
+    /// <summary>
+    /// Lang-mode mutable array <c>array&lt;T&gt;</c>. Fixed length, mutable
+    /// element. Distinct from both <see cref="ArrayOf"/> (ee-mode immutable)
+    /// and <see cref="ListOf"/> (growable).
+    /// </summary>
+    public static FunnyType MutableArrayOf(FunnyType type) => new(new MutableArrayTypeSpecification(type));
+
+    /// <summary>
+    /// Lang-mode immutable fixed-length array <c>fixedArray&lt;T&gt;</c>.
+    /// Read-only after construction. Sits at the top of the Array-branch
+    /// lattice: list and mutable array values flow into it, but it doesn't
+    /// flow back down.
+    /// </summary>
+    public static FunnyType FixedArrayOf(FunnyType type) => new(new FixedArrayTypeSpecification(type));
+
+    /// <summary>
+    /// <para>Stage C — constraint-only generic container shape <c>Enumerable&lt;V&gt;</c>
+    /// for function signatures (e.g. <c>count&lt;V&gt;(xs: Enumerable&lt;V&gt;)</c>).
+    /// Accepts any concrete collection kind whose <see cref="Tic.SolvingStates.ConstructorKind"/>
+    /// caps at <see cref="Tic.SolvingStates.ConstructorKind.Enumerable"/> — list, mutable
+    /// array, fixed array, set, queue, map, or the legacy ee-mode <c>T[]</c>.</para>
+    /// <para>Never instantiated as a value type. At graph-build time, occurrences in
+    /// argument positions are converted to a <see cref="Tic.SolvingStates.StateCompositeConstraints"/>
+    /// node with <c>Ancestor=Enumerable</c> and <c>ElementNode</c> bound to the
+    /// resolved element generic per spec §6.2 dispatch flow.</para>
+    /// </summary>
+    public static FunnyType EnumerableOf(FunnyType type) => new(new EnumerableTypeSpecification(type));
+
+    /// <summary>
+    /// Lang-mode unordered hash <c>set&lt;T&gt;</c>. Invariant in element.
+    /// Backed by <c>MutableFunnySet</c> (<c>HashSet&lt;object&gt;</c>). Sits on
+    /// a separate branch from the List/Array/FixedArray chain — its only
+    /// supertype is <see cref="EnumerableOf"/>.
+    /// </summary>
+    public static FunnyType SetOf(FunnyType type) => new(new SetTypeSpecification(type));
+
+    /// <summary>
+    /// Stage C — constraint-only typeclass <c>Mutable&lt;V&gt;</c>. Satisfied
+    /// by <c>list&lt;V&gt;</c>, <c>array&lt;V&gt;</c>, <c>set&lt;V&gt;</c> (and
+    /// future queue/stack). Rejected for <c>fixedArray&lt;V&gt;</c> /
+    /// <c>T[]</c> ee-mode / <c>enumerable&lt;V&gt;</c>. Used for mutators like
+    /// <c>clear</c>, future <c>addAll</c>, etc.
+    /// </summary>
+    public static FunnyType ClearableOf(FunnyType type) => new(new ClearableTypeSpecification(type));
+
+    /// <summary>
+    /// Lang-mode hash <c>map&lt;K, V&gt;</c>. Both arguments invariant. Backed
+    /// by <see cref="NFun.Runtime.Lists.MutableFunnyMap"/>. Iteration over a
+    /// map yields <c>{key, value}</c> structs (Stage C — runtime-level pair
+    /// iteration; explicit destructure syntax is deferred).
+    /// </summary>
+    public static FunnyType MapOf(FunnyType keyType, FunnyType valueType)
+        => new(new MapTypeSpecification(keyType, valueType));
+
     public static FunnyType OptionalOf(FunnyType type) =>
-        type.BaseType == BaseFunnyType.Optional ? type : new(type, isOptional: true);
+        // Idempotent for already-optional and for None (which renders as `any?` —
+        // already an optional shape). Bug hunt round 5 #29.
+        type.BaseType is BaseFunnyType.Optional or BaseFunnyType.None ? type : new(type, isOptional: true);
+
+    /// <summary>
+    /// Element type yielded by iterating this type as an Enumerable. For
+    /// collection-shaped types returns their element; for Map returns the
+    /// synthesised <c>{key, value}</c> pair-struct. Returns <c>null</c> when
+    /// the type is not iterable.
+    ///
+    /// <para>Single point of truth for "what does this type yield when you
+    /// for-loop over it" — keeps the parser, runtime and TIC adapter aligned
+    /// without each having to enumerate kind cases independently.</para>
+    /// </summary>
+    public FunnyType? GetEnumerableElementTypeOrNull() => BaseType switch {
+        BaseFunnyType.ArrayOf      => ((ArrayTypeSpecification)_payload).FunnyType,
+        BaseFunnyType.List         => ((ListTypeSpecification)_payload).FunnyType,
+        BaseFunnyType.MutableArray => ((MutableArrayTypeSpecification)_payload).FunnyType,
+        BaseFunnyType.FixedArray   => ((FixedArrayTypeSpecification)_payload).FunnyType,
+        BaseFunnyType.Set          => ((SetTypeSpecification)_payload).FunnyType,
+        BaseFunnyType.Enumerable   => ((EnumerableTypeSpecification)_payload).FunnyType,
+        BaseFunnyType.Map          => StructOf(
+            ("key",   ((MapTypeSpecification)_payload).KeyType),
+            ("value", ((MapTypeSpecification)_payload).ValueType)),
+        _ => null,
+    };
 
     internal static FunnyType StructOf(StructTypeSpecification fields) => new(fields);
 
@@ -120,13 +205,91 @@ public readonly struct FunnyType {
         _extra = 0;
     }
 
-    public bool IsText => BaseType == BaseFunnyType.ArrayOf && ((ArrayTypeSpecification)_payload).FunnyType.BaseType == BaseFunnyType.Char;
+    private FunnyType(ListTypeSpecification listSpec) {
+        BaseType = BaseFunnyType.List;
+        _payload = listSpec;
+        _extra = 1;
+    }
+
+    private FunnyType(MutableArrayTypeSpecification mutArraySpec) {
+        BaseType = BaseFunnyType.MutableArray;
+        _payload = mutArraySpec;
+        _extra = 1;
+    }
+
+    private FunnyType(FixedArrayTypeSpecification fixedArraySpec) {
+        BaseType = BaseFunnyType.FixedArray;
+        _payload = fixedArraySpec;
+        _extra = 1;
+    }
+
+    private FunnyType(EnumerableTypeSpecification enumerableSpec) {
+        BaseType = BaseFunnyType.Enumerable;
+        _payload = enumerableSpec;
+        _extra = 1;
+    }
+
+    private FunnyType(SetTypeSpecification setSpec) {
+        BaseType = BaseFunnyType.Set;
+        _payload = setSpec;
+        _extra = 1;
+    }
+
+    private FunnyType(ClearableTypeSpecification mutableSpec) {
+        BaseType = BaseFunnyType.Clearable;
+        _payload = mutableSpec;
+        _extra = 1;
+    }
+
+    private FunnyType(MapTypeSpecification mapSpec) {
+        BaseType = BaseFunnyType.Map;
+        _payload = mapSpec;
+        _extra = 2;
+    }
+
+    public bool IsText => (BaseType == BaseFunnyType.ArrayOf && ((ArrayTypeSpecification)_payload).FunnyType.BaseType == BaseFunnyType.Char)
+                       || (BaseType == BaseFunnyType.FixedArray && ((FixedArrayTypeSpecification)_payload).FunnyType.BaseType == BaseFunnyType.Char);
+
+    /// <summary>True when this is a lang-mode <c>list&lt;T&gt;</c>.</summary>
+    public bool IsList => BaseType == BaseFunnyType.List;
+
+    /// <summary>True when this is a lang-mode mutable <c>array&lt;T&gt;</c>.</summary>
+    public bool IsMutableArray => BaseType == BaseFunnyType.MutableArray;
+
+    /// <summary>True when this is a lang-mode immutable <c>fixedArray&lt;T&gt;</c>.</summary>
+    public bool IsFixedArray => BaseType == BaseFunnyType.FixedArray;
+
+    /// <summary>True when this is a Stage C constraint-only <c>Enumerable&lt;T&gt;</c>.</summary>
+    public bool IsEnumerable => BaseType == BaseFunnyType.Enumerable;
+
+    /// <summary>True when this is a lang-mode unordered <c>set&lt;T&gt;</c>.</summary>
+    public bool IsSet => BaseType == BaseFunnyType.Set;
+
+    /// <summary>True when this is a Stage C constraint-only <c>Mutable&lt;T&gt;</c>.</summary>
+    public bool IsMutableConstraint => BaseType == BaseFunnyType.Clearable;
+
+    /// <summary>True when this is a lang-mode <c>map&lt;K, V&gt;</c>.</summary>
+    public bool IsMap => BaseType == BaseFunnyType.Map;
 
     public readonly BaseFunnyType BaseType;
 
     public IStructTypeSpecification StructTypeSpecification => _payload as IStructTypeSpecification;
 
     public ArrayTypeSpecification ArrayTypeSpecification => _payload as ArrayTypeSpecification;
+
+    public ListTypeSpecification ListTypeSpecification => _payload as ListTypeSpecification;
+
+    public MutableArrayTypeSpecification MutableArrayTypeSpecification => _payload as MutableArrayTypeSpecification;
+
+    public FixedArrayTypeSpecification FixedArrayTypeSpecification => _payload as FixedArrayTypeSpecification;
+
+    public EnumerableTypeSpecification EnumerableTypeSpecification => _payload as EnumerableTypeSpecification;
+
+    public SetTypeSpecification SetTypeSpecification => _payload as SetTypeSpecification;
+
+    public ClearableTypeSpecification ClearableTypeSpecification => _payload as ClearableTypeSpecification;
+
+    public MapTypeSpecification MapTypeSpecification => _payload as MapTypeSpecification;
 
     public OptionalTypeSpecification OptionalTypeSpecification => _payload as OptionalTypeSpecification;
 
@@ -158,11 +321,20 @@ public readonly struct FunnyType {
         {
             return BaseType switch {
                 BaseFunnyType.ArrayOf  => ((ArrayTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.List     => ((ListTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.MutableArray => ((MutableArrayTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.FixedArray => ((FixedArrayTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.Enumerable => ((EnumerableTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.Set      => ((SetTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.Clearable  => ((ClearableTypeSpecification)_payload).FunnyType,
+                BaseFunnyType.Map      => ((MapTypeSpecification)_payload).KeyType,
                 BaseFunnyType.Optional => ((OptionalTypeSpecification)_payload).ElementType,
                 BaseFunnyType.Fun      => ((FunTypeSpecification)_payload).Output,
                 _                      => throw new InvalidOperationException($"Type '{this}' contains no generic arguments")
             };
         }
+        if (index == 1 && BaseType == BaseFunnyType.Map)
+            return ((MapTypeSpecification)_payload).ValueType;
         var count = _genericArgumentsCount;
         if (index >= count)
             throw new InvalidOperationException($"Type '{this}' contains only {count} generic arguments");
@@ -222,6 +394,27 @@ public readonly struct FunnyType {
                 return OptionalOf(SubstituteConcreteTypes(((OptionalTypeSpecification)genericOrNot._payload).ElementType, solvedTypes));
             case BaseFunnyType.ArrayOf:
                 return ArrayOf(SubstituteConcreteTypes(((ArrayTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.List:
+                return ListOf(SubstituteConcreteTypes(((ListTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.MutableArray:
+                return MutableArrayOf(SubstituteConcreteTypes(((MutableArrayTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.FixedArray:
+                return FixedArrayOf(SubstituteConcreteTypes(((FixedArrayTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.Enumerable:
+                // Element substitutes; container kind stays constraint-only (Enumerable).
+                // The actual concrete kind at runtime is whatever satisfied the CompCS — the
+                // runtime impl casts to IFunnyEnumerable, not to a specific concrete type.
+                return EnumerableOf(SubstituteConcreteTypes(((EnumerableTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.Set:
+                return SetOf(SubstituteConcreteTypes(((SetTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.Clearable:
+                return ClearableOf(SubstituteConcreteTypes(((ClearableTypeSpecification)genericOrNot._payload).FunnyType, solvedTypes));
+            case BaseFunnyType.Map: {
+                var spec = (MapTypeSpecification)genericOrNot._payload;
+                return MapOf(
+                    SubstituteConcreteTypes(spec.KeyType, solvedTypes),
+                    SubstituteConcreteTypes(spec.ValueType, solvedTypes));
+            }
             case BaseFunnyType.Fun:
                 var funSpec = (FunTypeSpecification)genericOrNot._payload;
                 var outputTypes = new FunnyType[funSpec.Inputs.Length];
@@ -233,6 +426,16 @@ public readonly struct FunnyType {
                     outputTypes);
             case BaseFunnyType.Generic:
                 return solvedTypes[genericOrNot._extra];
+            case BaseFunnyType.Struct: {
+                // Struct with possibly-generic fields. Walk fields and
+                // substitute each one. Preserves IsFrozen.
+                var src = (StructTypeSpecification)genericOrNot._payload;
+                var fields = new (string, FunnyType)[src.Count];
+                int i = 0;
+                foreach (var field in src)
+                    fields[i++] = (field.Key, SubstituteConcreteTypes(field.Value, solvedTypes));
+                return StructOf(src.IsFrozen, fields);
+            }
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -280,6 +483,121 @@ public readonly struct FunnyType {
                     concreteType = ((ArrayTypeSpecification)concreteType._payload).FunnyType;
                     strict = false;
                     continue;
+                case BaseFunnyType.List when concreteType.BaseType != BaseFunnyType.List:
+                    return false;
+                case BaseFunnyType.List:
+                    // list<T> is INVARIANT in element — generic resolution requires equality,
+                    // not subtype. Switch to strict mode for the recursive comparison.
+                    genericType = ((ListTypeSpecification)genericType._payload).FunnyType;
+                    concreteType = ((ListTypeSpecification)concreteType._payload).FunnyType;
+                    strict = true;
+                    continue;
+                case BaseFunnyType.MutableArray when concreteType.BaseType != BaseFunnyType.MutableArray:
+                    return false;
+                case BaseFunnyType.MutableArray:
+                    // array<T> is INVARIANT in element (same rule as list).
+                    genericType = ((MutableArrayTypeSpecification)genericType._payload).FunnyType;
+                    concreteType = ((MutableArrayTypeSpecification)concreteType._payload).FunnyType;
+                    strict = true;
+                    continue;
+                case BaseFunnyType.FixedArray when concreteType.BaseType != BaseFunnyType.FixedArray:
+                    return false;
+                case BaseFunnyType.FixedArray:
+                    // fixedArray<T> is INVARIANT in element (same rule as list/array).
+                    genericType = ((FixedArrayTypeSpecification)genericType._payload).FunnyType;
+                    concreteType = ((FixedArrayTypeSpecification)concreteType._payload).FunnyType;
+                    strict = true;
+                    continue;
+                case BaseFunnyType.Set when concreteType.BaseType != BaseFunnyType.Set:
+                    return false;
+                case BaseFunnyType.Set:
+                    // set<T> is INVARIANT in element (same rule as list/array/fixedArray).
+                    genericType = ((SetTypeSpecification)genericType._payload).FunnyType;
+                    concreteType = ((SetTypeSpecification)concreteType._payload).FunnyType;
+                    strict = true;
+                    continue;
+                case BaseFunnyType.Map when concreteType.BaseType != BaseFunnyType.Map:
+                    return false;
+                case BaseFunnyType.Map: {
+                    // map<K,V> is INVARIANT in both args. Recurse on K then V.
+                    var gm = (MapTypeSpecification)genericType._payload;
+                    var cm = (MapTypeSpecification)concreteType._payload;
+                    if (!TrySolveGenericTypes(genericArguments, gm.KeyType, cm.KeyType, strict: true))
+                        return false;
+                    if (!TrySolveGenericTypes(genericArguments, gm.ValueType, cm.ValueType, strict: true))
+                        return false;
+                    return true;
+                }
+                case BaseFunnyType.Clearable:
+                    // Mutable<V> accepts list / array / set / map kinds — every
+                    // ConstructorKind for which ConstructorLattice.IsMutable is
+                    // true. FixedArray / ArrayOf ee / Enumerable are NOT mutable
+                    // — reject. Map's element is the synthesized {key, value}
+                    // pair-struct (Specs/Tic/Algebra/StateMap.md §3), parallel
+                    // to how Enumerable<T> sees Map.
+                    {
+                        FunnyType mutableElement;
+                        switch (concreteType.BaseType) {
+                            case BaseFunnyType.Clearable:
+                                mutableElement = ((ClearableTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.List:
+                                mutableElement = ((ListTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.MutableArray:
+                                mutableElement = ((MutableArrayTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.Set:
+                                mutableElement = ((SetTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.Map:
+                                {
+                                    var mapSpec = (MapTypeSpecification)concreteType._payload;
+                                    mutableElement = FunnyType.StructOf(
+                                        ("key", mapSpec.KeyType),
+                                        ("value", mapSpec.ValueType));
+                                    break;
+                                }
+                            default:
+                                return false; // not a mutable container
+                        }
+                        genericType = ((ClearableTypeSpecification)genericType._payload).FunnyType;
+                        concreteType = mutableElement;
+                        strict = true;
+                        continue;
+                    }
+                case BaseFunnyType.Enumerable:
+                    // Enumerable<V> accepts any concrete collection kind whose element fits V.
+                    // Extract concrete element by container kind; element is invariant (V identity).
+                    {
+                        FunnyType concreteElement;
+                        switch (concreteType.BaseType) {
+                            case BaseFunnyType.Enumerable:
+                                concreteElement = ((EnumerableTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.ArrayOf:
+                                concreteElement = ((ArrayTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.List:
+                                concreteElement = ((ListTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.MutableArray:
+                                concreteElement = ((MutableArrayTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.FixedArray:
+                                concreteElement = ((FixedArrayTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            case BaseFunnyType.Set:
+                                concreteElement = ((SetTypeSpecification)concreteType._payload).FunnyType;
+                                break;
+                            default:
+                                return false; // not a collection — Enumerable not satisfiable
+                        }
+                        genericType = ((EnumerableTypeSpecification)genericType._payload).FunnyType;
+                        concreteType = concreteElement;
+                        strict = true; // element invariance
+                        continue;
+                    }
                 case BaseFunnyType.Fun when concreteType.BaseType != BaseFunnyType.Fun:
                     return false;
                 case BaseFunnyType.Fun:
@@ -329,6 +647,26 @@ public readonly struct FunnyType {
                 return ((OptionalTypeSpecification)_payload).ElementType.SearchMaxGenericTypeId();
             case BaseFunnyType.ArrayOf:
                 return ((ArrayTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.List:
+                return ((ListTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.MutableArray:
+                return ((MutableArrayTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.FixedArray:
+                return ((FixedArrayTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.Enumerable:
+                return ((EnumerableTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.Set:
+                return ((SetTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.Clearable:
+                return ((ClearableTypeSpecification)_payload).FunnyType.SearchMaxGenericTypeId();
+            case BaseFunnyType.Map: {
+                var spec = (MapTypeSpecification)_payload;
+                var kId = spec.KeyType.SearchMaxGenericTypeId();
+                var vId = spec.ValueType.SearchMaxGenericTypeId();
+                if (!kId.HasValue) return vId;
+                if (!vId.HasValue) return kId;
+                return Math.Max(kId.Value, vId.Value);
+            }
             case BaseFunnyType.Fun:
                 var funSpec = (FunTypeSpecification)_payload;
                 var iId = funSpec.Inputs.Select(i => i.SearchMaxGenericTypeId()).Max();
@@ -350,8 +688,18 @@ public readonly struct FunnyType {
     public override string ToString() =>
         BaseType switch {
             BaseFunnyType.ArrayOf  => ((ArrayTypeSpecification)_payload).FunnyType + "[]",
+            BaseFunnyType.List     => "list<" + ((ListTypeSpecification)_payload).FunnyType + ">",
+            BaseFunnyType.MutableArray => "array<" + ((MutableArrayTypeSpecification)_payload).FunnyType + ">",
+            BaseFunnyType.FixedArray => "fixedArray<" + ((FixedArrayTypeSpecification)_payload).FunnyType + ">",
+            BaseFunnyType.Enumerable => "enumerable<" + ((EnumerableTypeSpecification)_payload).FunnyType + ">",
+            BaseFunnyType.Set      => "set<" + ((SetTypeSpecification)_payload).FunnyType + ">",
+            BaseFunnyType.Clearable  => "clearable<" + ((ClearableTypeSpecification)_payload).FunnyType + ">",
+            BaseFunnyType.Map      => "map<" + ((MapTypeSpecification)_payload).KeyType + "," + ((MapTypeSpecification)_payload).ValueType + ">",
             BaseFunnyType.Optional => ((OptionalTypeSpecification)_payload).ElementType + "?",
-            BaseFunnyType.None     => "none",
+            // Internal "None" type — surfaced when a slot holds only `none`
+            // (e.g. `x = none`). User-facing convention: render as `any?` so
+            // it matches the user-facing Optional surface. Bug hunt round 3 SC-4.
+            BaseFunnyType.None     => "any?",
             BaseFunnyType.Fun      => $"({string.Join(",", ((FunTypeSpecification)_payload).Inputs)})->{((FunTypeSpecification)_payload).Output}",
             BaseFunnyType.Struct =>
                 $"{{{string.Join(";", ((IStructTypeSpecification)_payload).Select(s => s.Key + ":" + s.Value))}}}",

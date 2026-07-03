@@ -7,14 +7,32 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 
 //todo optimization
-namespace NFun.Functions; 
+namespace NFun.Functions;
+
+internal static class SumIter {
+    // Stage C — sum accepts any collection shape (ee IFunnyArray + lang
+    // IFunnyEnumerable subclasses). Sum's signature is `EnumerableOf<T>` where
+    // T is the arithmetical resolution: byte / int / real / decimal / .... The
+    // typeclass dispatch doesn't run element-wise conversion at the call-site
+    // (only the container is checked), so each element may still arrive as a
+    // narrower CLR numeric (`byte` when T is `double`). Convert each element on
+    // the way through.
+    public static IEnumerable<T> As<T>(object o) {
+        var src = (System.Collections.IEnumerable)o switch {
+            null => throw new NFunImpossibleException($"sum: unsupported collection shape {o?.GetType()}"),
+            var seq => seq,
+        };
+        foreach (var item in src)
+            yield return (T)System.Convert.ChangeType(item, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
+    }
+}
 
 public class MultiSumFunction : GenericFunctionBase {
     private const string Id = "sum";
 
     public MultiSumFunction() : base(
         Id, GenericConstrains.Arithmetical, FunnyType.Generic(0),
-        FunnyType.ArrayOf(FunnyType.Generic(0)))
+        FunnyType.EnumerableOf(FunnyType.Generic(0)))
     { ArgProperties = FunArgProperty.FromNames("arr"); }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
@@ -39,27 +57,27 @@ public class MultiSumFunction : GenericFunctionBase {
 
     private class RealDoubleFunction : FunctionWithSingleArg {
         public static readonly RealDoubleFunction Instance = new();
-        private RealDoubleFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)){ }
-        public override object Calc(object a) => ((IFunnyArray) a).As<double>().Sum();
+        private RealDoubleFunction() : base(Id, FunnyType.Real, FunnyType.EnumerableOf(FunnyType.Real)){ }
+        public override object Calc(object a) => SumIter.As<double>(a).Sum();
     }
 
 
     private class RealDecimalFunction : FunctionWithSingleArg {
         public static readonly RealDecimalFunction Instance = new();
-        private RealDecimalFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real))
+        private RealDecimalFunction() : base(Id, FunnyType.Real, FunnyType.EnumerableOf(FunnyType.Real))
         { }
-        public override object Calc(object a) => ((IFunnyArray) a).As<decimal>().Sum();
+        public override object Calc(object a) => SumIter.As<decimal>(a).Sum();
     }
 
 
     private class Int16Function : FunctionWithSingleArg {
         public static readonly Int16Function Instance = new();
-        private Int16Function() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16))
+        private Int16Function() : base(Id, FunnyType.Int16, FunnyType.EnumerableOf(FunnyType.Int16))
         { }
         public override object Calc(object a)
         {
             short answer = 0;
-            foreach (var i in ((IFunnyArray)a).As<short>())
+            foreach (var i in SumIter.As<short>(a))
             {
                 answer += i;
             }
@@ -70,11 +88,11 @@ public class MultiSumFunction : GenericFunctionBase {
 
     private class Int32Function : FunctionWithSingleArg {
         public static readonly Int32Function Instance = new();
-        private Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32))
+        private Int32Function() : base(Id, FunnyType.Int32, FunnyType.EnumerableOf(FunnyType.Int32))
         { }
         public override object Calc(object a) {
             int sum = 0;
-            foreach (int i in ((IFunnyArray)a).As<int>())
+            foreach (int i in SumIter.As<int>(a))
             {
                 sum += i;
             }
@@ -84,11 +102,11 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class Int64Function : FunctionWithSingleArg {
         public static readonly Int64Function Instance = new();
-        private Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64))
+        private Int64Function() : base(Id, FunnyType.Int64, FunnyType.EnumerableOf(FunnyType.Int64))
         { }
         public override object Calc(object a) {
             long sum = 0;
-            foreach (long l in ((IFunnyArray)a).As<long>())
+            foreach (long l in SumIter.As<long>(a))
             {
                 sum += l;
             }
@@ -98,10 +116,10 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class UInt16Function : FunctionWithSingleArg {
         public static readonly UInt16Function Instance = new();
-        private UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)){ }
+        private UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.EnumerableOf(FunnyType.UInt16)){ }
         public override object Calc(object a) {
             ushort answer = 0;
-            foreach (var i in ((IFunnyArray)a).As<ushort>())
+            foreach (var i in SumIter.As<ushort>(a))
                 answer += i;
             return answer;
         }
@@ -109,12 +127,12 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class UInt32Function : FunctionWithSingleArg {
         public static readonly UInt32Function Instance = new();
-        private UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32))
+        private UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.EnumerableOf(FunnyType.UInt32))
         { }
         public override object Calc(object a)
         {
             uint answer = 0;
-            foreach (var i in ((IFunnyArray) a).As<uint>())
+            foreach (var i in SumIter.As<uint>(a))
                 answer += i;
             return answer;
         }
@@ -122,12 +140,12 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class UInt64Function : FunctionWithSingleArg {
         public static readonly UInt64Function Instance = new();
-        private UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64))
+        private UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.EnumerableOf(FunnyType.UInt64))
         { }
         public override object Calc(object a)
         {
             ulong answer = 0;
-            foreach (var i in ((IFunnyArray) a).As<ulong>())
+            foreach (var i in SumIter.As<ulong>(a))
                 answer += i;
             return answer;
         }
@@ -135,14 +153,14 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class Int16CheckedFunction : FunctionWithSingleArg {
         public static readonly Int16CheckedFunction Instance = new();
-        private Int16CheckedFunction() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16))
+        private Int16CheckedFunction() : base(Id, FunnyType.Int16, FunnyType.EnumerableOf(FunnyType.Int16))
         { }
         public override object Calc(object a)
         {
             checked
             {
                 short answer = 0;
-                foreach (var i in ((IFunnyArray)a).As<short>())
+                foreach (var i in SumIter.As<short>(a))
                     answer += i;
                 return answer;
             }
@@ -151,12 +169,12 @@ public class MultiSumFunction : GenericFunctionBase {
 
     private class Int32CheckedFunction : FunctionWithSingleArg {
         public static readonly Int32CheckedFunction Instance = new();
-        private Int32CheckedFunction() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32)) { }
+        private Int32CheckedFunction() : base(Id, FunnyType.Int32, FunnyType.EnumerableOf(FunnyType.Int32)) { }
         public override object Calc(object a) {
             checked
             {
                 int answer = 0;
-                foreach (var i in ((IFunnyArray)a).As<int>())
+                foreach (var i in SumIter.As<int>(a))
                     answer += i;
                 return answer;
             }
@@ -165,12 +183,12 @@ public class MultiSumFunction : GenericFunctionBase {
 
     private class Int64CheckedFunction : FunctionWithSingleArg {
         public static readonly Int64CheckedFunction Instance = new();
-        private Int64CheckedFunction() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64)) { }
+        private Int64CheckedFunction() : base(Id, FunnyType.Int64, FunnyType.EnumerableOf(FunnyType.Int64)) { }
         public override object Calc(object a) {
             checked
             {
                 long answer = 0;
-                foreach (var i in ((IFunnyArray)a).As<long>())
+                foreach (var i in SumIter.As<long>(a))
                     answer += i;
                 return answer;
             }
@@ -179,12 +197,12 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class UInt16CheckedFunction : FunctionWithSingleArg {
         public static readonly UInt16CheckedFunction Instance = new();
-        private UInt16CheckedFunction() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)){ }
+        private UInt16CheckedFunction() : base(Id, FunnyType.UInt16, FunnyType.EnumerableOf(FunnyType.UInt16)){ }
         public override object Calc(object a) {
             checked
             {
                 ushort answer = 0;
-                foreach (var i in ((IFunnyArray)a).As<ushort>())
+                foreach (var i in SumIter.As<ushort>(a))
                     answer += i;
                 return answer;
             }
@@ -193,12 +211,12 @@ public class MultiSumFunction : GenericFunctionBase {
     
     private class UInt32CheckedFunction : FunctionWithSingleArg {
         public static readonly UInt32CheckedFunction Instance = new();
-        private UInt32CheckedFunction() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32)){ }
+        private UInt32CheckedFunction() : base(Id, FunnyType.UInt32, FunnyType.EnumerableOf(FunnyType.UInt32)){ }
         public override object Calc(object a) {
             checked
             {
                 uint answer = 0;
-                foreach (var i in ((IFunnyArray)a).As<uint>())
+                foreach (var i in SumIter.As<uint>(a))
                     answer += i;
                 return answer;
             }
@@ -207,12 +225,12 @@ public class MultiSumFunction : GenericFunctionBase {
 
     private class UInt64CheckedFunction : FunctionWithSingleArg {
         public static readonly UInt64CheckedFunction Instance = new();
-        private UInt64CheckedFunction() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64)) { }
+        private UInt64CheckedFunction() : base(Id, FunnyType.UInt64, FunnyType.EnumerableOf(FunnyType.UInt64)) { }
         public override object Calc(object a) {
             checked
             {
                 ulong answer = 0;
-                foreach (var i in ((IFunnyArray)a).As<ulong>())
+                foreach (var i in SumIter.As<ulong>(a))
                     answer += i;
                 return answer;
             }
@@ -662,13 +680,15 @@ public class RangeStepFunction : GenericFunctionBase {
             if (step <= 0)
                 throw new FunnyRuntimeException("Step has to be positive");
 
+            // Loop counter widened to long so step-overshoot near int.max doesn't
+            // wrap into an infinite loop (bug hunt #8: `[2147483640..2147483646 step 3]`).
             var result = new List<int>();
             if (start < end)
-                for (int i = start; i <= end; i += step)
-                    result.Add(i);
+                for (long i = start; i <= end; i += step)
+                    result.Add((int)i);
             else
-                for (int i = start; i >= end; i -= step)
-                    result.Add(i);
+                for (long i = start; i >= end; i -= step)
+                    result.Add((int)i);
             return new ImmutableFunnyArray(result.ToArray());
         }
     }

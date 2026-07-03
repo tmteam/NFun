@@ -45,14 +45,15 @@ public class ExtensionFunctionSeparationTest {
     }
 
     [Test]
-    public void Enabled_RegularNotCallableViaPipe() {
-        // double(x) = x * 2 -> 5.double() should NOT work (no extension named double)
-        // May throw FunnyParseException (TIC rejects) or NFunImpossibleException (ExpressionBuilder can't resolve)
-        Assert.That(() =>
-            "double(x) = x * 2\r y = 5.double()"
-                .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled),
-            Throws.InstanceOf<Exception>());
-    }
+    public void Enabled_RegularCallableViaPipe() =>
+        // Regular (non-extension) user fns are pipe-callable too in separation mode —
+        // extension takes precedence when both exist (see Enabled_BothCanCoexist),
+        // but a bare regular fn falls through the pipe path. The previous strict
+        // rejection was inconsistent: typed-arg regular fns succeeded while generic
+        // ones threw MJ78 (BugHunt-stmt #44).
+        "double(x) = x * 2\r y = 5.double()"
+            .CalcWithDialect(extensionFunctionsSeparation: ExtensionFunctionsSeparation.Enabled)
+            .AssertReturns("y", 10);
 
     [Test]
     public void Enabled_ExtensionNotCallableDirectly() {

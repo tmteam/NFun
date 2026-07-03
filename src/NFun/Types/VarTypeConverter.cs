@@ -73,7 +73,15 @@ public static class VarTypeConverter {
         //todo coverage
         if (from.Equals(to))
             return NoConvertion;
-        if (to.IsText)
+        // ToText shortcut for primitive → text conversions. Don't engage it for
+        // collection-typed sources (Array / List / MutableArray) — those need
+        // structural conversion below; naive `.ToString()` on a collection
+        // yields "[a,b,c]" rather than the element string.
+        if (to.IsText
+            && from.BaseType != BaseFunnyType.ArrayOf
+            && from.BaseType != BaseFunnyType.List
+            && from.BaseType != BaseFunnyType.MutableArray
+            && from.BaseType != BaseFunnyType.FixedArray)
             return ToText;
         if (to.BaseType == BaseFunnyType.Any)
             return NoConvertion;
@@ -138,6 +146,207 @@ public static class VarTypeConverter {
         }
         if (from.IsNumeric())
             return  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
+
+        // Stage C — any concrete collection → Enumerable<T> is identity at runtime
+        // because all collection runtime types implement IFunnyEnumerable. The
+        // generic-resolution layer collapses element types; the boxed reference passes
+        // through unchanged.
+        if (to.BaseType == BaseFunnyType.Enumerable
+            && (from.BaseType == BaseFunnyType.List
+                || from.BaseType == BaseFunnyType.MutableArray
+                || from.BaseType == BaseFunnyType.FixedArray
+                || from.BaseType == BaseFunnyType.ArrayOf
+                || from.BaseType == BaseFunnyType.Set
+                || from.BaseType == BaseFunnyType.Enumerable
+                || from.BaseType == BaseFunnyType.Clearable
+                || from.BaseType == BaseFunnyType.Map))
+            return NoConvertion;
+
+        // Mutable<T> is satisfied by list / array / set / map runtime values —
+        // and by another Mutable (no-op). Every concrete kind for which
+        // ConstructorLattice.IsMutable is true. FixedArray and ee-mode T[] are
+        // rejected here because they're immutable; that rejection is what makes
+        // clear() etc. emit a parse error instead of a runtime exception.
+        if (to.BaseType == BaseFunnyType.Clearable
+            && (from.BaseType == BaseFunnyType.List
+                || from.BaseType == BaseFunnyType.MutableArray
+                || from.BaseType == BaseFunnyType.Set
+                || from.BaseType == BaseFunnyType.Map
+                || from.BaseType == BaseFunnyType.Clearable))
+            return NoConvertion;
+
+        // Lang-mode list<T> ≤ T[] per Stage 0 collections hierarchy
+        // (`List ⊆ Array ⊆ FixedArray ⊆ Enumerable`). Allows existing LINQ
+        // generic functions keyed on `T[]` to consume list literals + factory
+        // results without per-function overloads. Element conversion piggy-backs
+        // on the array path's recursive resolution.
+        if (from.BaseType == BaseFunnyType.List && to.BaseType == BaseFunnyType.ArrayOf)
+        {
+            var fromElem = from.ListTypeSpecification.FunnyType;
+            var toElem = to.ArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null)
+                return null;
+            return o => {
+                var origin = (NFun.Runtime.Lists.IFunnyList)o;
+                var array = new object[origin.Count];
+                int i = 0;
+                foreach (var e in origin)
+                    array[i++] = elementConverter == NoConvertion ? e : elementConverter(e);
+                return new Runtime.Arrays.ImmutableFunnyArray(array, toElem);
+            };
+        }
+
+        // Lang-mode array<T> ≤ T[] (Stage 0). Symmetric to the list case above.
+        if (from.BaseType == BaseFunnyType.MutableArray && to.BaseType == BaseFunnyType.ArrayOf)
+        {
+            var fromElem = from.MutableArrayTypeSpecification.FunnyType;
+            var toElem = to.ArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null)
+                return null;
+            return o => {
+                var origin = (NFun.Runtime.Lists.IFunnyMutableArray)o;
+                var array = new object[origin.Count];
+                for (int i = 0; i < origin.Count; i++) {
+                    var e = origin.GetElementOrNull(i);
+                    array[i] = elementConverter == NoConvertion ? e : elementConverter(e);
+                }
+                return new Runtime.Arrays.ImmutableFunnyArray(array, toElem);
+            };
+        }
+
+        // list<T> ≤ array<T> per Stage 0 (lattice direction `List ⊂ Array`).
+        // List handle is already an IFunnyMutableArray, so the runtime cast is
+        // a copy into a fixed-length array (size pinned). Element conversion
+        // recurses on the inner types.
+        if (from.BaseType == BaseFunnyType.List && to.BaseType == BaseFunnyType.MutableArray)
+        {
+            var fromElem = from.ListTypeSpecification.FunnyType;
+            var toElem = to.MutableArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null)
+                return null;
+            return o => {
+                var origin = (NFun.Runtime.Lists.IFunnyList)o;
+                var items = new object[origin.Count];
+                int i = 0;
+                foreach (var e in origin)
+                    items[i++] = elementConverter == NoConvertion ? e : elementConverter(e);
+                return new NFun.Runtime.Lists.MutableFunnyArray(toElem, items);
+            };
+        }
+
+        // Reverse direction: legacy T[] → lang array<T> (for assignment slots
+        // that absorb ee-mode LINQ results).
+        if (from.BaseType == BaseFunnyType.ArrayOf && to.BaseType == BaseFunnyType.MutableArray)
+        {
+            var fromElem = from.ArrayTypeSpecification.FunnyType;
+            var toElem = to.MutableArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            return o => {
+                var origin = (Runtime.Arrays.IFunnyArray)o;
+                var items = new object[origin.Count];
+                for (int i = 0; i < origin.Count; i++) {
+                    var e = origin.GetElementOrNull(i);
+                    items[i] = elementConverter == NoConvertion ? e : elementConverter(e);
+                }
+                return new NFun.Runtime.Lists.MutableFunnyArray(toElem, items);
+            };
+        }
+
+        // Per the Stage-0 lattice: implicit casts are upcast-only.
+        // array → list and fixedArray → list/array require explicit `.toList()`
+        // / `.toArray()` / etc. (Stage C user-facing API).
+
+        // FixedArray conversions per Stage 0 lattice (`Array ⊂ FixedArray`):
+        //   list/array → fixedArray (subtype direction; copy snapshot)
+        //   fixedArray → T[]        (LINQ subtyping)
+        if (from.BaseType == BaseFunnyType.List && to.BaseType == BaseFunnyType.FixedArray)
+        {
+            var fromElem = from.ListTypeSpecification.FunnyType;
+            var toElem = to.FixedArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            return o => {
+                var origin = (NFun.Runtime.Lists.IFunnyList)o;
+                var items = new object[origin.Count];
+                int i = 0;
+                foreach (var e in origin)
+                    items[i++] = elementConverter == NoConvertion ? e : elementConverter(e);
+                return new NFun.Runtime.Lists.FixedFunnyArray(toElem, items);
+            };
+        }
+        if (from.BaseType == BaseFunnyType.MutableArray && to.BaseType == BaseFunnyType.FixedArray)
+        {
+            var fromElem = from.MutableArrayTypeSpecification.FunnyType;
+            var toElem = to.FixedArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            return o => {
+                var origin = (NFun.Runtime.Lists.IFunnyMutableArray)o;
+                var items = new object[origin.Count];
+                for (int i = 0; i < origin.Count; i++) {
+                    var e = origin.GetElementOrNull(i);
+                    items[i] = elementConverter == NoConvertion ? e : elementConverter(e);
+                }
+                return new NFun.Runtime.Lists.FixedFunnyArray(toElem, items);
+            };
+        }
+        if (from.BaseType == BaseFunnyType.FixedArray && to.BaseType == BaseFunnyType.ArrayOf)
+        {
+            var fromElem = from.FixedArrayTypeSpecification.FunnyType;
+            var toElem = to.ArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            return o => {
+                // Stage C — under unified ee↔lang model, a `fixedArray<T>` slot may at
+                // runtime hold either FixedFunnyArray (lang-mode literal / map result)
+                // OR ee-mode ImmutableFunnyArray (Concretest-routed legacy literal that
+                // didn't get wrapped). Accept both.
+                int count = o switch {
+                    NFun.Runtime.Lists.IFunnyFixedArray f => f.Count,
+                    IFunnyArray a => a.Count,
+                    _ => throw new System.InvalidCastException($"fixedArray→array converter: unsupported source {o?.GetType()}"),
+                };
+                var array = new object[count];
+                int idx = 0;
+                foreach (var e in (System.Collections.Generic.IEnumerable<object>)o) {
+                    array[idx++] = elementConverter == NoConvertion ? e : elementConverter(e);
+                }
+                return new Runtime.Arrays.ImmutableFunnyArray(array, toElem);
+            };
+        }
+        // Stage C — ee-mode T[] flows into lang-mode fixedArray<T> slot. Since T[] IS
+        // fixedArray in ee semantics (single collection type), the conversion is a
+        // re-wrap with element conversion: ee ImmutableFunnyArray → lang FixedFunnyArray.
+        if (from.BaseType == BaseFunnyType.ArrayOf && to.BaseType == BaseFunnyType.FixedArray)
+        {
+            var fromElem = from.ArrayTypeSpecification.FunnyType;
+            var toElem = to.FixedArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            return o => {
+                var origin = (Runtime.Arrays.IFunnyArray)o;
+                var array = new object[origin.Count];
+                for (int i = 0; i < origin.Count; i++) {
+                    var e = origin.GetElementOrNull(i);
+                    array[i] = elementConverter == NoConvertion ? e : elementConverter(e);
+                }
+                return new NFun.Runtime.Lists.FixedFunnyArray(toElem, array);
+            };
+        }
+
+        // Per the lattice, fixedArray → list / array is downcast direction.
+        // Requires an explicit `.toList()` / `.toArray()` — no silent runtime
+        // cast here.
+
+        // Per the Stage-0 lattice: list ⊆ array. Implicit cast is ONLY in the
+        // upcast direction. The reverse (array → list) requires an explicit
+        // `.toList()` — kept symmetric with toArray / toSet / toFixedArray
+        // (Stage C user-facing API). No "silent" array→list converter here.
+
         if (from.BaseType != to.BaseType)
             return null;
         
@@ -171,6 +380,45 @@ public static class VarTypeConverter {
                 }
 
                 return new ImmutableFunnyArray(array, to.ArrayTypeSpecification.FunnyType);
+            };
+        }
+        // Stage C — fixedArray<X> → fixedArray<Y> via element conversion. Runtime
+        // source may be either FixedFunnyArray (lang-mode literal / map result) or
+        // ee-mode IFunnyArray (Concretest-routed legacy literal); accept both.
+        if (from.BaseType == BaseFunnyType.FixedArray)
+        {
+            var fromElem = from.FixedArrayTypeSpecification.FunnyType;
+            var toElem = to.FixedArrayTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            if (elementConverter == NoConvertion) return NoConvertion;
+            return o => {
+                int count = o switch {
+                    IFunnyArray a => a.Count,
+                    NFun.Runtime.Lists.IFunnyEnumerable e => e.Count,
+                    _ => throw new System.InvalidCastException($"fixedArray converter: unsupported source {o?.GetType()}"),
+                };
+                var array = new object[count];
+                int i = 0;
+                foreach (var item in (System.Collections.Generic.IEnumerable<object>)o)
+                    array[i++] = elementConverter(item);
+                return new NFun.Runtime.Lists.FixedFunnyArray(toElem, array);
+            };
+        }
+        // set<X> → set<Y> via element conversion. Source is MutableFunnySet (lang-mode).
+        if (from.BaseType == BaseFunnyType.Set)
+        {
+            var fromElem = from.SetTypeSpecification.FunnyType;
+            var toElem = to.SetTypeSpecification.FunnyType;
+            var elementConverter = GetConverterOrNull(typeBehaviour, fromElem, toElem);
+            if (elementConverter == null) return null;
+            if (elementConverter == NoConvertion) return NoConvertion;
+            return o => {
+                var origin = (NFun.Runtime.Lists.IFunnyMutableSet)o;
+                var items = new List<object>(origin.Count);
+                foreach (var item in origin)
+                    items.Add(elementConverter(item));
+                return new NFun.Runtime.Lists.MutableFunnySet(toElem, items);
             };
         }
         if (from.BaseType == BaseFunnyType.Fun)
@@ -247,7 +495,20 @@ public static class VarTypeConverter {
     public static bool CanBeConverted(FunnyType from, FunnyType to) {
         while (true)
         {
-            if (to.IsText) return true;
+            // Mirror of GetConverterOrNull's first rule — also covers invariant
+            // same-kind pairs (map<K,V> → same map<K,V>) with no dedicated arm.
+            if (from.Equals(to)) return true;
+
+            // ToText shortcut — EXCEPT collection sources, exactly as the factory:
+            // naive ToString on a collection yields "[a,b,c]", so those need the
+            // structural rules below. (The unconditional `to.IsText → true` was the
+            // predicate/factory divergence of review N2.)
+            if (to.IsText
+                && from.BaseType != BaseFunnyType.ArrayOf
+                && from.BaseType != BaseFunnyType.List
+                && from.BaseType != BaseFunnyType.MutableArray
+                && from.BaseType != BaseFunnyType.FixedArray)
+                return true;
 
             // None → Optional(T) is always valid
             if (from.BaseType == BaseFunnyType.None && to.BaseType == BaseFunnyType.Optional)
@@ -263,6 +524,87 @@ public static class VarTypeConverter {
             if (to.BaseType == BaseFunnyType.Optional && from.BaseType != BaseFunnyType.Optional)
                 return CanBeConverted(from, to.OptionalTypeSpecification.ElementType);
 
+            // list<T> → T[] per collections hierarchy (Stage 0). And the reverse
+            // for lang-mode mutable variable reassignment (`out = concat(out,…)`).
+            if (from.BaseType == BaseFunnyType.List && to.BaseType == BaseFunnyType.ArrayOf)
+                return CanBeConverted(from.ListTypeSpecification.FunnyType,
+                                      to.ArrayTypeSpecification.FunnyType);
+            // Upcast-only per Stage 0 lattice: List ⊆ MutableArray ⊆ FixedArray
+            // ⊆ ArrayOf (ee), with FixedArray ⇄ ArrayOf as the ee↔lang bridge
+            // (same semantic shape). Downcast requires explicit `.toXxx()`.
+            if (from.BaseType == BaseFunnyType.List && to.BaseType == BaseFunnyType.MutableArray)
+                return CanBeConverted(from.ListTypeSpecification.FunnyType,
+                                      to.MutableArrayTypeSpecification.FunnyType);
+            if (from.BaseType == BaseFunnyType.MutableArray && to.BaseType == BaseFunnyType.ArrayOf)
+                return CanBeConverted(from.MutableArrayTypeSpecification.FunnyType,
+                                      to.ArrayTypeSpecification.FunnyType);
+            // Reverse ee→lang bridge (factory: "assignment slots that absorb ee-mode
+            // LINQ results") — was missing from the predicate.
+            if (from.BaseType == BaseFunnyType.ArrayOf && to.BaseType == BaseFunnyType.MutableArray)
+                return CanBeConverted(from.ArrayTypeSpecification.FunnyType,
+                                      to.MutableArrayTypeSpecification.FunnyType);
+            if (from.BaseType == BaseFunnyType.List && to.BaseType == BaseFunnyType.FixedArray)
+                return CanBeConverted(from.ListTypeSpecification.FunnyType,
+                                      to.FixedArrayTypeSpecification.FunnyType);
+            if (from.BaseType == BaseFunnyType.MutableArray && to.BaseType == BaseFunnyType.FixedArray)
+                return CanBeConverted(from.MutableArrayTypeSpecification.FunnyType,
+                                      to.FixedArrayTypeSpecification.FunnyType);
+            if (from.BaseType == BaseFunnyType.FixedArray && to.BaseType == BaseFunnyType.ArrayOf)
+                return CanBeConverted(from.FixedArrayTypeSpecification.FunnyType,
+                                      to.ArrayTypeSpecification.FunnyType);
+            if (from.BaseType == BaseFunnyType.ArrayOf && to.BaseType == BaseFunnyType.FixedArray)
+                return CanBeConverted(from.ArrayTypeSpecification.FunnyType,
+                                      to.FixedArrayTypeSpecification.FunnyType);
+
+            // Stage C — any concrete collection is convertible to Enumerable<T>
+            // (constraint-only top of the lattice). Element-type check by container kind.
+            if (to.BaseType == BaseFunnyType.Enumerable) {
+                var toElem = to.EnumerableTypeSpecification.FunnyType;
+                switch (from.BaseType) {
+                    case BaseFunnyType.Enumerable:
+                        return CanBeConverted(from.EnumerableTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.List:
+                        return CanBeConverted(from.ListTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.MutableArray:
+                        return CanBeConverted(from.MutableArrayTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.FixedArray:
+                        return CanBeConverted(from.FixedArrayTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.ArrayOf:
+                        return CanBeConverted(from.ArrayTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Set:
+                        return CanBeConverted(from.SetTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Clearable:
+                        return CanBeConverted(from.ClearableTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Map:
+                        // Map iterates as {key,value} pair-structs; the factory accepts
+                        // any Map → Enumerable without element inspection (D3 leniency).
+                        return true;
+                }
+            }
+
+            // Stage C — Mutable<T> typeclass. Satisfied only by mutable kinds
+            // (list / array / set). FixedArray and ee-mode T[] reject here so
+            // `clear(fixedArray(...))` fails at parse time.
+            if (to.BaseType == BaseFunnyType.Clearable) {
+                var toElem = to.ClearableTypeSpecification.FunnyType;
+                switch (from.BaseType) {
+                    case BaseFunnyType.Clearable:
+                        return CanBeConverted(from.ClearableTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.List:
+                        return CanBeConverted(from.ListTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.MutableArray:
+                        return CanBeConverted(from.MutableArrayTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Set:
+                        return CanBeConverted(from.SetTypeSpecification.FunnyType, toElem);
+                    case BaseFunnyType.Map:
+                        // Mutable typeclass is satisfied by map (factory accepts it).
+                        return true;
+                    // FixedArray, ArrayOf (ee), Enumerable — NOT mutable, reject.
+                    default:
+                        return false;
+                }
+            }
+
             if (to.BaseType == from.BaseType)
             {
                 switch (to.BaseType)
@@ -271,6 +613,16 @@ public static class VarTypeConverter {
                         @from = @from.ArrayTypeSpecification.FunnyType;
                         to = to.ArrayTypeSpecification.FunnyType;
                         continue;
+                    case BaseFunnyType.FixedArray:
+                        // Immutable fixedArray: element-covariant, factory converts
+                        // element-wise (was missing from the same-kind switch).
+                        @from = @from.FixedArrayTypeSpecification.FunnyType;
+                        to = to.FixedArrayTypeSpecification.FunnyType;
+                        continue;
+                    case BaseFunnyType.List:
+                        // list<T> is INVARIANT — element must match exactly, not be convertible.
+                        return @from.ListTypeSpecification.FunnyType
+                            .Equals(to.ListTypeSpecification.FunnyType);
                     case BaseFunnyType.Optional:
                         @from = @from.OptionalTypeSpecification.ElementType;
                         to = to.OptionalTypeSpecification.ElementType;
@@ -280,6 +632,14 @@ public static class VarTypeConverter {
                         return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                     case BaseFunnyType.Struct:
                         return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
+                    case BaseFunnyType.Set:
+                        // set<T> is INVARIANT — element must match exactly.
+                        return @from.SetTypeSpecification.FunnyType
+                            .Equals(to.SetTypeSpecification.FunnyType);
+                    case BaseFunnyType.Clearable:
+                        // Mutable<T> is INVARIANT — element must match exactly.
+                        return @from.ClearableTypeSpecification.FunnyType
+                            .Equals(to.ClearableTypeSpecification.FunnyType);
                 }
             }
 

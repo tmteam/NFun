@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
+using NFun.Runtime.Lists;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -31,11 +32,21 @@ internal class SafeArrayAccessExpressionNode : IExpressionNode {
         var source = _source.Calc();
         if (source is FunnyNone)
             return FunnyNone.Instance;
-        var arr = (IFunnyArray)source;
         var index = (int)_index.Calc();
-        if (index < 0 || index >= arr.Count)
-            return FunnyNone.Instance;
-        var element = arr.GetElementOrNull(index);
+        object element;
+        switch (source) {
+            case IFunnyArray arr:
+                if (index < 0 || index >= arr.Count) return FunnyNone.Instance;
+                element = arr.GetElementOrNull(index);
+                break;
+            case IFunnyMutableArray mutArr:
+                if (index < 0 || index >= mutArr.Count) return FunnyNone.Instance;
+                element = mutArr.GetElementOrNull(index);
+                break;
+            default:
+                throw new FunnyRuntimeException(
+                    $"?[: expected indexed collection, got {source?.GetType().Name ?? "null"}");
+        }
         if (element == null)
             return FunnyNone.Instance;
         return _elementConverter != null ? _elementConverter(element) : element;

@@ -139,7 +139,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             for (int a = 0; a < fn.Args.Count; a++)
                 visitor._aliasScope.AddVariableAlias(fn.Args[a].Id, prefixes[i] + fn.Args[a].Id);
 
-            if (!fn.Body.Accept(visitor)) { visitor._aliasScope.ExitScope(); return false; }
+            visitor._returnSlotStack.Push(fn.Body.OrderNumber);
+            try {
+                if (!fn.Body.Accept(visitor)) { visitor._aliasScope.ExitScope(); return false; }
+            } finally {
+                visitor._returnSlotStack.Pop();
+            }
 
             foreach (var arg in fn.Args) {
                 if (arg.HasDefault) {
@@ -158,6 +163,16 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     internal Dictionary<(string, int), UserFunctionDefinitionSyntaxNode> _userFunctions;
     internal bool _hasUserFunctions;
     private HashSet<string> _narrowedFieldPaths;
+    /// <summary>
+    /// Stack of "return-slot" OrderNumbers — one per enclosing function /
+    /// lambda. Every `return expr` constrains its expression's type to the
+    /// top entry so all return paths in a function unify (LCA).
+    /// Without this only the body's LAST statement contributed to the
+    /// function's return type and early-return values with incompatible
+    /// types crashed with InvalidCastException at runtime
+    /// (BugHuntStatementsResults #10).
+    /// </summary>
+    private readonly Stack<int> _returnSlotStack = new();
     /// <summary>
     /// Registry key prefix for extension functions when ExtensionFunctionsSeparation is enabled.
     /// Extension function "f" is stored as ".f" to avoid collision with regular function "f".
@@ -434,7 +449,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private FunnyType ResolveType(TypeSyntax syntax) {
         if (_dialect.FloatFamilySupport == FloatFamilySupport.AccordingToRealBehaviour)
             RejectFloatFamilyKeywordOrNull(syntax);
-        return TypeSyntaxResolver.Resolve(syntax, _customTypes);
+        return TypeSyntaxResolver.Resolve(syntax, _customTypes, _dialect.IsLangMode);
     }
 
     private static void RejectFloatFamilyKeywordOrNull(TypeSyntax syntax) {
@@ -483,7 +498,29 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(UserFunctionDefinitionSyntaxNode node) {
         // Single-function path. No arg name prefixing — own graph, no peers.
         RegisterUserFunctionHeader(node, argNamePrefix: null);
-        var result = VisitChildren(node);
+        // Push the function's return slot so all `return` statements inside
+        // the body unify their expression types against this node.
+        _returnSlotStack.Push(node.Body.OrderNumber);
+        bool result;
+        try {
+            result = VisitChildren(node);
+        }
+        finally {
+            _returnSlotStack.Pop();
+        }
+
+        // If the body can fall off the end without `return`/`break`/`continue`,
+        // the runtime returns FunnyNone per Statements.md §Functions. Reflect
+        // that in the type system by adding a `none` descendant to the body's
+        // return-slot — LCA(body, none) widens the function's return type to
+        // Optional (BugHunt-stmt #41/#42/#46). Lambdas keep the
+        // last-expression-as-implicit-return semantics and are NOT included.
+        if (result && node.Body is BlockSyntaxNode && !AlwaysExits(node.Body))
+        {
+            var bodyNode = _ticTypeGraph.GetOrCreateNode(node.Body.OrderNumber);
+            var noneNode = _ticTypeGraph.CreateVarType(StatePrimitive.None);
+            noneNode.AddAncestor(bodyNode);
+        }
 
         // Constrain default expressions: type must be assignable to parameter type.
         // DefaultValue is already visited by Visit(TypedVarDefSyntaxNode) → VisitChildren.
@@ -494,6 +531,47 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Conservative test: does every path through <paramref name="node"/> end
+    /// in an explicit control-flow exit (`return`/`break`/`continue`)?
+    /// Used to decide whether a function body has a fall-off path that
+    /// implicitly returns FunnyNone.
+    /// </summary>
+    private static bool AlwaysExits(ISyntaxNode node) {
+        if (node == null) return false;
+        switch (node) {
+            case ReturnSyntaxNode:
+            case BreakSyntaxNode:
+            case ContinueSyntaxNode:
+                return true;
+            case BlockSyntaxNode block:
+                // A block always-exits if ANY of its statements
+                // unconditionally always-exits — everything after that
+                // statement is unreachable and shouldn't influence the
+                // inferred return type (BugHunt-stmt #69).
+                for (int i = 0; i < block.Statements.Count; i++)
+                    if (AlwaysExits(block.Statements[i])) return true;
+                return false;
+            case IfThenElseSyntaxNode ite:
+                // An auto-inserted DefaultValueSyntaxNode else (lang-mode if
+                // without explicit else) is the fall-off path itself.
+                if (ite.ElseExpr is DefaultValueSyntaxNode) return false;
+                foreach (var ifCase in ite.Ifs)
+                    if (!AlwaysExits(ifCase.Expression)) return false;
+                return AlwaysExits(ite.ElseExpr);
+            case TryBlockSyntaxNode tryBlock:
+                // Both try AND catch must always-exit; a missing catch means the
+                // exception propagates to the caller (also an exit from this
+                // function). Anyway is intentionally NOT considered here — the
+                // runtime semantics of `return` from anyway need their own
+                // narrowing rule once that path is stable. (StmtBug81.)
+                if (!AlwaysExits(tryBlock.TryBody)) return false;
+                return tryBlock.CatchBody == null || AlwaysExits(tryBlock.CatchBody);
+            default:
+                return false;
+        }
     }
 
     /// <summary>
@@ -582,7 +660,20 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             }
         }
 
-        if (elementHint != null)
+        // Decide once: stamp ArraySyntaxNode.Kind so both TIC constraint setup
+        // (this method) and ExpressionBuilderVisitor.Visit(ArraySyntaxNode)
+        // read from the same field. Lang-mode bare `[1,2,3]` resolves to
+        // list<T> (StateCollection.List); ee-mode stays the covariant
+        // immutable T[] (StateArray).
+        node.Kind = _dialect.IsLangMode ? ArrayLiteralKind.List : ArrayLiteralKind.Array;
+        if (node.Kind == ArrayLiteralKind.List)
+        {
+            if (elementHint != null)
+                _ticTypeGraph.SetSoftListInit(node.OrderNumber, elementIds, elementHint);
+            else
+                _ticTypeGraph.SetSoftListInit(node.OrderNumber, elementIds);
+        }
+        else if (elementHint != null)
             _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds, elementHint);
         else
             _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds);
@@ -765,9 +856,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public bool Visit(StructInitSyntaxNode node) {
         if (!VisitChildren(node))
             return false;
-        _ticTypeGraph.SetStructInit(
-            node.Fields.SelectToArray(f => f.Name),
-            node.Fields.SelectToArray(f => f.Node.OrderNumber), node.OrderNumber);
+        var fieldNames = node.Fields.SelectToArray(f => f.Name);
+        var fieldIds = node.Fields.SelectToArray(f => f.Node.OrderNumber);
+        if (_dialect.UseMutableStructs)
+            _ticTypeGraph.SetMutableStructInit(fieldNames, fieldIds, node.OrderNumber);
+        else
+            _ticTypeGraph.SetStructInit(fieldNames, fieldIds, node.OrderNumber);
         // If OutputType is pre-set (from named type constructor expansion),
         // set ancestor constraint so TIC knows the struct shape for recursive types.
         // This ensures `none` defaults are recognized as Optional at any nesting depth.
@@ -818,7 +912,18 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _aliasScope.AddVariableAlias(originName, anonymName);
         }
 
-        VisitChildren(node);
+        // Multi-line lambda body (`f = fun(x): return x * 2`) has explicit
+        // `return` statements that need a return slot to bind against —
+        // otherwise the return's expression isn't constrained and the
+        // lambda's return type widens to Any (BugHunt-stmt #53). Push the
+        // body's OrderNumber as the return slot — same mechanism used by
+        // named UserFunctionDefinitionSyntaxNode.
+        _returnSlotStack.Push(node.Body.OrderNumber);
+        try {
+            VisitChildren(node);
+        } finally {
+            _returnSlotStack.Pop();
+        }
 
         var aliasNames = new string[node.ArgumentsDefinition.Count];
         for (var i = 0; i < node.ArgumentsDefinition.Count; i++)
@@ -875,7 +980,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             // Piped call: search the extension dict — functions registered as CallStyle.Both
             // (built-ins, plus user functions when separation is Disabled) also live there.
-            signature = _dictionary.GetOrNull(node.Id, allArgs.Length, CallStyle.Extension);
+            // Fall back to the regular dict: pipe is a general call form (Statements.md
+            // §Extension) — regular fns MAY also be piped (`5.double()`, BugHunt-stmt #44).
+            signature = _dictionary.GetOrNull(node.Id, allArgs.Length, CallStyle.Extension)
+                     ?? _dictionary.GetOrNull(node.Id, allArgs.Length);
         }
         else if (_dialect.ExtensionFunctionsSeparation == ExtensionFunctionsSeparation.Enabled
                  && !node.IsPipeForward && !node.IsOperator)
@@ -942,6 +1050,19 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 allArgs[0].OrderNumber,
                 allArgs[1].OrderNumber,
                 node.OrderNumber);
+            return true;
+        }
+
+        // ! (force unwrap) — TIC special form: (opt(T)) → T
+        // Routes through SetForceUnwrap so its rigid U-node carries
+        // IsForcedNonOptional and the CS×CS IsOptional OR-gate suppresses nested
+        // when the input is internally nested Optional. Bug hunt round 5 #10.
+        if (node.Id == CoreFunNames.ForceUnwrap && allArgs.Length == 1)
+        {
+#if DEBUG
+            Trace(node, $"ForceUnwrap({allArgs[0].OrderNumber},{node.OrderNumber})");
+#endif
+            _ticTypeGraph.SetForceUnwrap(allArgs[0].OrderNumber, node.OrderNumber);
             return true;
         }
 
@@ -1169,20 +1290,31 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             // save refernces to generic types, for use at 'apply tic results' step
             _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
 
-            // Propagate preferred for generics that only appear in return type.
-            // These are safe: no call-site arg can conflict with the preferred type.
-            // Generics shared with arg types stay wide UNLESS at least one call-site
-            // arg is the literal `none` — then the generic can't be pinned by callers
-            // and the body's Preferred is the right default (GH #126).
-            bool anyArgIsNone = false;
+            // Propagate preferred for generics. Two safety conditions allow the body's
+            // Preferred to win over caller-driven inference:
+            //   (1) The generic appears ONLY in return type — no call-site arg can pin it.
+            //   (2) At least one call-site arg cannot pin the generic — either the literal
+            //       `none` (GH #126) or an unbound name with empty constraints. In both
+            //       cases the caller hasn't expressed a type preference, so body's Preferred
+            //       is the right default. Without this, `g(x) = g(x-1); out = g(x)` infers
+            //       x:Real instead of x:Int32 — the integer literal `1` in the body is the
+            //       only typing signal and must win.
+            bool anyArgDoesNotPin = false;
             for (int i = 0; i < allArgs.Length; i++) {
                 var argNode = _ticTypeGraph.GetOrCreateNode(allArgs[i].OrderNumber).GetNonReference();
                 if (argNode.State is StatePrimitive p && p == None) {
-                    anyArgIsNone = true;
+                    anyArgDoesNotPin = true;
+                    break;
+                }
+                if (argNode.State is ConstraintsState ucs
+                    && !ucs.HasAncestor && !ucs.HasDescendant
+                    && !ucs.HasStructBound && !ucs.IsComparable
+                    && !ucs.IsOptional && ucs.Preferred == null) {
+                    anyArgDoesNotPin = true;
                     break;
                 }
             }
-            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes, anyArgIsNone);
+            PropagateReturnOnlyPreferred(t.Constrains, t.ArgTypes, t.ReturnType, genericTypes, anyArgDoesNotPin);
         }
         else genericTypes = Array.Empty<StateRefTo>();
 
@@ -1662,6 +1794,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         type.BaseType switch {
             BaseFunnyType.Optional => true,
             BaseFunnyType.ArrayOf  => ContainsOptional(type.ArrayTypeSpecification.FunnyType),
+            BaseFunnyType.List     => ContainsOptional(type.ListTypeSpecification.FunnyType),
             BaseFunnyType.None     => true,
             _                      => false
         };
@@ -1714,6 +1847,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             return type.GenericId == genericIndex;
         if (type.BaseType == BaseFunnyType.ArrayOf)
             return TypeContainsGeneric(type.ArrayTypeSpecification.FunnyType, genericIndex);
+        if (type.BaseType == BaseFunnyType.List)
+            return TypeContainsGeneric(type.ListTypeSpecification.FunnyType, genericIndex);
         if (type.BaseType == BaseFunnyType.Optional)
             return TypeContainsGeneric(type.OptionalTypeSpecification.ElementType, genericIndex);
         if (type.BaseType == BaseFunnyType.Fun) {
@@ -1743,6 +1878,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (constrains.HasStructBound)
         {
             return _ticTypeGraph.InitializeVarNode(null, null, false);
+        }
+        // Stage C.4a — composite-lattice constraint (Enumerable<T> / IndexedRead<T> / IndexedMutable<T>).
+        // Emit a StateCompositeConstraints node with the cap set; descendant unset (Pull from
+        // concrete args at call sites refines via §4.1.1).
+        if (constrains.HasCompositeAncestor)
+        {
+            return _ticTypeGraph.InitializeCompositeVarNode(constrains.CompositeAncestor);
         }
         // Do NOT propagate preferred into call-site TIC graph.
         // Preferred is used only in CreateSomeConcrete (fallback for uncalled functions).
@@ -1939,6 +2081,566 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         // try and catch branches unify like if-else: result = LCA(try, catch)
         var expressions = new[] { node.TryExpr.OrderNumber, node.CatchExpr.OrderNumber };
         _ticTypeGraph.SetIfElse(Array.Empty<int>(), expressions, node.OrderNumber);
+        return true;
+    }
+
+    public bool Visit(BlockSyntaxNode node) {
+        var statements = node.Statements;
+
+        // Visit statements one by one, detecting early-exit guards for type narrowing.
+        // Pattern: `if x == none: return ...` → x is non-optional for all subsequent statements.
+        // Same algebraic rule as expression-mode narrowing: WhenFalse of the guard condition
+        // applies to all code that executes when the guard does NOT exit.
+        int narrowingScopesOpened = 0;
+        for (int i = 0; i < statements.Count; i++) {
+            var stmt = statements[i];
+
+            // Check if this is an early-exit guard:
+            // Pattern 1: `if x == none: return ...` (parsed as IfThenElseSyntaxNode with DefaultValue else)
+            // Pattern 2: multiline if-block with no else (IfBlockSyntaxNode)
+            // Both patterns: single if-branch, body always exits (return/break/continue)
+            var guardCondition = TryGetEarlyExitGuardCondition(stmt);
+            if (i < statements.Count - 1 && guardCondition != null) {
+                // Visit the if-block first (condition + body get TIC constraints)
+                if (!stmt.Accept(this))
+                    return false;
+
+                var narrowing = Interpretation.NarrowingAnalyzer.Analyze(guardCondition);
+                if (narrowing.WhenFalse.Count > 0) {
+                    // Guard exits when condition is true → subsequent code sees WhenFalse
+                    // e.g., `if x == none: return 0` → WhenFalse = {x} (x is non-none)
+                    EnterBlockNarrowingScope(narrowing.WhenFalse, node.OrderNumber);
+                    narrowingScopesOpened++;
+                }
+                continue;
+            }
+
+            // For non-guard statements, visit normally (within any active narrowing scope)
+            if (!stmt.Accept(this))
+                return false;
+        }
+
+        // Exit all narrowing scopes (LIFO order)
+        for (int i = 0; i < narrowingScopesOpened; i++)
+            _aliasScope.ExitScope();
+
+        // The block's type = last statement's type. Indexed/Field assignments
+        // are side-effecting STATEMENTS (NFun has no expression-position
+        // assignment — the parser rejects `b = (a[i]=v)`). Binding them as
+        // block ancestors would graft V0's IsOptional (from implicit-None
+        // body return) onto the assignment's target via the back-edge in
+        // Visit(IndexedAssignmentSyntaxNode) line 2515-2516, producing a
+        // self-Optional cycle in Destruction. The NFun parser wraps
+        // top-level `xs[i]=v` in an EquationSyntaxNode (id=xs, expression
+        // = IndexedAssignmentSyntaxNode) — peek through that wrap.
+        if (statements.Count > 0) {
+            var lastStatement = statements[statements.Count - 1];
+            int lastExprId;
+            if (lastStatement is EquationSyntaxNode eq) {
+                if (eq.Expression is IndexedAssignmentSyntaxNode
+                 || eq.Expression is FieldAssignmentSyntaxNode)
+                    lastExprId = -1; // void statement — no block contribution
+                else
+                    lastExprId = eq.Expression.OrderNumber;
+            }
+            else if (lastStatement is IndexedAssignmentSyntaxNode
+                  || lastStatement is FieldAssignmentSyntaxNode)
+                lastExprId = -1;
+            else
+                lastExprId = lastStatement.OrderNumber;
+
+            if (lastExprId >= 0) {
+                var blockNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
+                var lastNode = _ticTypeGraph.GetOrCreateNode(lastExprId);
+                lastNode.AddAncestor(blockNode);
+            }
+        }
+
+        // For equations inside the block, set up variable definitions
+        foreach (var stmt in statements) {
+            if (stmt is EquationSyntaxNode eqNode) {
+                _ticTypeGraph.SetDef(eqNode.Id, eqNode.Expression.OrderNumber);
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Enters a narrowing scope for block-level type narrowing.
+    /// Same mechanism as VisitWithNarrowing but the scope stays open across multiple statements.
+    /// </summary>
+    private void EnterBlockNarrowingScope(System.Collections.Generic.HashSet<string> narrowedVars, int scopeId) {
+        _aliasScope.EnterScope(scopeId);
+        foreach (var id in narrowedVars) {
+            if (Interpretation.NarrowingAnalyzer.IsFieldPath(id)) {
+                (_narrowedFieldPaths ??= new()).Add(id);
+                continue;
+            }
+            var resolvedId = id;
+            if (!_ticTypeGraph.HasNamedNode(id)) {
+                var aliasedId = _aliasScope.GetVariableAlias(id);
+                if (aliasedId == id || !_ticTypeGraph.HasNamedNode(aliasedId))
+                    continue;
+                resolvedId = aliasedId;
+            }
+            var varNode = _ticTypeGraph.GetNamedNode(resolvedId);
+            if (varNode.State is Tic.SolvingStates.StatePrimitive
+                || (varNode.State is Tic.SolvingStates.ICompositeState cs && cs is not Tic.SolvingStates.StateOptional))
+                continue;
+            var alias = scopeId + "~" + resolvedId;
+            _aliasScope.AddVariableAlias(id, alias);
+            _ticTypeGraph.SetNarrowedVariable(resolvedId, alias);
+        }
+    }
+
+    /// <summary>
+    /// If the statement is an early-exit guard (if-block whose body always returns),
+    /// returns the condition for narrowing analysis. Returns null otherwise.
+    /// Handles both IfThenElseSyntaxNode (lang mode single-line: `if x == none: return -1`)
+    /// and IfBlockSyntaxNode (multiline if-block with no else).
+    /// </summary>
+    private static ISyntaxNode TryGetEarlyExitGuardCondition(ISyntaxNode stmt) {
+        // Lang mode: `if x == none: return -1` parses as IfThenElseSyntaxNode with DefaultValue else
+        if (stmt is IfThenElseSyntaxNode ifThenElse
+            && ifThenElse.Ifs.Length == 1
+            && ifThenElse.ElseExpr is DefaultValueSyntaxNode
+            && BodyAlwaysExits(ifThenElse.Ifs[0].Expression))
+            return ifThenElse.Ifs[0].Condition;
+        // Multiline if-block with no else
+        if (stmt is IfBlockSyntaxNode ifBlock
+            && ifBlock.ElseBody == null
+            && ifBlock.Ifs.Length == 1
+            && BodyAlwaysExits(ifBlock.Ifs[0].Expression))
+            return ifBlock.Ifs[0].Condition;
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if a syntax node always exits the current block (return/break/continue).
+    /// Used to detect early-exit guards like `if x == none: return 0` so subsequent
+    /// statements in the enclosing block can narrow the variable. continue/break
+    /// exit the current loop iteration/loop — equivalent to return for narrowing the
+    /// remaining statements of the loop body block.
+    /// </summary>
+    private static bool BodyAlwaysExits(ISyntaxNode body) => body switch {
+        ReturnSyntaxNode => true,
+        ContinueSyntaxNode => true,
+        BreakSyntaxNode => true,
+        // `oops(...)` always throws — bottom type, no return path. The narrowing
+        // contract ("guard fired ⇒ subsequent statements unreachable") holds.
+        FunCallSyntaxNode call when call.Id == "oops" => true,
+        BlockSyntaxNode block => block.Statements.Count > 0
+            && BodyAlwaysExits(block.Statements[block.Statements.Count - 1]),
+        _ => false
+    };
+
+    public bool Visit(ReturnSyntaxNode node) {
+        if (node.Expression != null) {
+            if (!node.Expression.Accept(this))
+                return false;
+
+            // Bind the return's expression type to the enclosing function/
+            // lambda's return slot so all return paths unify via LCA and the
+            // function signature reflects the join.
+            if (_returnSlotStack.Count > 0) {
+                var exprNode = _ticTypeGraph.GetOrCreateNode(node.Expression.OrderNumber);
+                var funcReturnNode = _ticTypeGraph.GetOrCreateNode(_returnSlotStack.Peek());
+                exprNode.AddAncestor(funcReturnNode);
+            }
+        }
+        else if (_returnSlotStack.Count > 0) {
+            // Bare `return` returns `none` (per Statements.md). Without this
+            // contribution the return slot's LCA ignores the bare-return path —
+            // a function like `fun f(x): if cond: return; return 99` infers
+            // return type Int32 while the runtime can produce `none`, violating
+            // the type/value invariant (BugHunt-stmt #27).
+            var funcReturnNode = _ticTypeGraph.GetOrCreateNode(_returnSlotStack.Peek());
+            var noneNode = _ticTypeGraph.CreateVarType(None);
+            noneNode.AddAncestor(funcReturnNode);
+        }
+        // ReturnSyntaxNode itself has bottom type (it diverges — never produces a
+        // value as an expression). Leaving its TIC node unconstrained lets `??`
+        // and similar combinators see it as a "no-information" branch:
+        //   `x ?? return e`  →  type of x's element  (return contributes ⊥).
+        return true;
+    }
+
+    public bool Visit(ForSyntaxNode node) {
+        // Visit collection expression
+        if (!node.Collection.Accept(this))
+            return false;
+
+        // Create element type variable T. In ee-mode the collection must be
+        // StateArray(T); in lang-mode anything Enumerable<T> is acceptable
+        // (List, Array, FixedArray, Set, …). Using CompCs{Anc=Enumerable, e=T}
+        // as a soft upper bound lets lang-mode lists/sets flow through without
+        // being forced into StateArray (which would error on `a = list(...);
+        // for x in a`).
+        var elementType = _ticTypeGraph.CreateVarType();
+        if (_dialect.IsLangMode) {
+            var enumerableUpperBound = _ticTypeGraph.CreateVarType(
+                Tic.SolvingStates.StateCompositeConstraints.Create(
+                    elementType,
+                    ancestor: ConstructorKind.Enumerable,
+                    descendant: null,
+                    isOptional: false));
+            var collectionRef = _ticTypeGraph.GetOrCreateNode(node.Collection.OrderNumber);
+            collectionRef.AddAncestor(enumerableUpperBound);
+        } else {
+            _ticTypeGraph.GetOrCreateArrayNode(node.Collection.OrderNumber, elementType);
+        }
+        // Create a synthetic node for the iterator, wired to element type T
+        var iteratorSyntheticId = _nextSyntheticId++;
+        _ticTypeGraph.GetOrCreateNode(iteratorSyntheticId); // fresh unconstrained node
+        elementType.AddAncestor(_ticTypeGraph.GetOrCreateNode(iteratorSyntheticId));
+
+        // Enter scope for iterator variable
+        _aliasScope.EnterScope(node.OrderNumber);
+        var iteratorAlias = node.OrderNumber + "::" + node.IteratorName;
+        _aliasScope.AddVariableAlias(node.IteratorName, iteratorAlias);
+
+        // Wire iterator variable to element type
+        _ticTypeGraph.SetDef(iteratorAlias, iteratorSyntheticId);
+
+        // Visit body
+        if (!node.Body.Accept(this))
+            return false;
+        _aliasScope.ExitScope();
+
+        // For loop produces none (it's a statement)
+        _ticTypeGraph.SetConst(node.OrderNumber, None);
+        return true;
+    }
+
+    public bool Visit(WhileSyntaxNode node) {
+        // Visit condition and constrain to bool
+        if (!node.Condition.Accept(this))
+            return false;
+        _ticTypeGraph.SetCallArgument(
+            new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.Bool),
+            node.Condition.OrderNumber);
+
+        // Visit body — narrow variables proven non-none by the loop condition.
+        // The condition is re-checked before every iteration, so on entry to
+        // any iteration's body the narrowed variables are guaranteed non-none.
+        // Body reassignments fall back to the original (possibly Optional) type:
+        // the alias governs READS only; equation-style writes flow through the
+        // outer VariableSource via BuildEquationForLang, so a pattern like
+        //   while cur != none:
+        //     out = concat(out, [cur.value])     ← cur narrowed → tree
+        //     cur = cur.next                     ← LHS is the outer optional
+        // works without `!` on cur.value.
+        if (_dialect.OptionalTypesSupport == OptionalTypesSupport.Enabled) {
+            var narrowing = Interpretation.NarrowingAnalyzer.Analyze(node.Condition);
+            if (narrowing.WhenTrue.Count > 0) {
+                if (!VisitWithNarrowing(node.Body, narrowing.WhenTrue, node.OrderNumber))
+                    return false;
+            } else {
+                if (!node.Body.Accept(this)) return false;
+            }
+        } else {
+            if (!node.Body.Accept(this)) return false;
+        }
+
+        // While loop produces none (it's a statement)
+        _ticTypeGraph.SetConst(node.OrderNumber, None);
+        return true;
+    }
+
+    public bool Visit(WhenSyntaxNode node) {
+        // Visit subject if present
+        if (node.Subject != null) {
+            if (!node.Subject.Accept(this))
+                return false;
+        }
+
+        // Visit all arms
+        foreach (var arm in node.Arms) {
+            if (!arm.Accept(this))
+                return false;
+        }
+
+        // Visit else body if present
+        if (node.ElseBody != null) {
+            if (!node.ElseBody.Accept(this))
+                return false;
+        }
+
+        if (node.ElseBody != null) {
+            // Expression form: result = LCA of all arm bodies + else body.
+            // Wire like IfThenElse: all body expressions are subtypes of the result.
+            var bodyIds = new int[node.Arms.Length + 1];
+            for (int i = 0; i < node.Arms.Length; i++)
+                bodyIds[i] = node.Arms[i].Body.OrderNumber;
+            bodyIds[^1] = node.ElseBody.OrderNumber;
+
+            // If subject-based: arm conditions must unify with subject
+            if (node.Subject != null) {
+                for (int i = 0; i < node.Arms.Length; i++) {
+                    var condNode = _ticTypeGraph.GetOrCreateNode(node.Arms[i].Condition.OrderNumber);
+                    var subjectNode = _ticTypeGraph.GetOrCreateNode(node.Subject.OrderNumber);
+                    condNode.AddAncestor(subjectNode);
+                }
+            } else {
+                // Condition-based: each condition must be bool
+                for (int i = 0; i < node.Arms.Length; i++) {
+                    _ticTypeGraph.SetCallArgument(
+                        new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.Bool),
+                        node.Arms[i].Condition.OrderNumber);
+                }
+            }
+
+            // Use SetIfElse with empty conditions for type unification of bodies
+            _ticTypeGraph.SetIfElse(System.Array.Empty<int>(), bodyIds, node.OrderNumber);
+        } else {
+            // Statement form (no else): result = none
+            if (node.Subject != null) {
+                for (int i = 0; i < node.Arms.Length; i++) {
+                    var condNode = _ticTypeGraph.GetOrCreateNode(node.Arms[i].Condition.OrderNumber);
+                    var subjectNode = _ticTypeGraph.GetOrCreateNode(node.Subject.OrderNumber);
+                    condNode.AddAncestor(subjectNode);
+                }
+            } else {
+                for (int i = 0; i < node.Arms.Length; i++) {
+                    _ticTypeGraph.SetCallArgument(
+                        new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.Bool),
+                        node.Arms[i].Condition.OrderNumber);
+                }
+            }
+            _ticTypeGraph.SetConst(node.OrderNumber, None);
+        }
+
+        return true;
+    }
+
+    public bool Visit(WhenArmSyntaxNode node) => VisitChildren(node);
+
+    public bool Visit(BreakSyntaxNode node) {
+        // Break is a bottom type — leave unconstrained so it's compatible with
+        // any context (e.g., x ?? break). Same as bare return.
+        return true;
+    }
+
+    public bool Visit(ContinueSyntaxNode node) {
+        // Continue is a bottom type — leave unconstrained so it's compatible with
+        // any context (e.g., x ?? continue). Same as bare return.
+        return true;
+    }
+
+    public bool Visit(PrintSyntaxNode node) {
+        // Visit expression
+        if (!node.Expression.Accept(this))
+            return false;
+        // Print produces none
+        _ticTypeGraph.SetConst(node.OrderNumber, None);
+        return true;
+    }
+
+    public bool Visit(TryBlockSyntaxNode node) {
+        // Visit try body
+        if (!node.TryBody.Accept(this))
+            return false;
+
+        // Visit catch body if present
+        if (node.CatchBody != null) {
+            if (node.ErrorVariableName != null) {
+                // Enter scope for catch body — error variable visible only inside.
+                // Mirror of Visit(TryCatchSyntaxNode): the error variable is a struct
+                // {message: text, data: any} per Statements.md.
+                _aliasScope.EnterScope(node.OrderNumber);
+                var aliasName = node.OrderNumber + "~" + node.ErrorVariableName;
+                _aliasScope.AddVariableAlias(node.ErrorVariableName, aliasName);
+
+                var charType = new Tic.SolvingStates.StatePrimitive(
+                    Tic.SolvingStates.PrimitiveTypeName.Char);
+                var textType = (Tic.SolvingStates.ITicNodeState)new Tic.SolvingStates.StateArray(
+                    Tic.TicNode.CreateTypeVariableNode(charType));
+                var any = (Tic.SolvingStates.ITicNodeState)new Tic.SolvingStates.StatePrimitive(
+                    Tic.SolvingStates.PrimitiveTypeName.Any);
+                var errorType = Tic.SolvingStates.StateStruct.Of(
+                    ("message", textType),
+                    ("data", any));
+                _ticTypeGraph.SetVarType(aliasName, errorType);
+
+                if (!node.CatchBody.Accept(this))
+                    return false;
+                _aliasScope.ExitScope();
+            } else {
+                if (!node.CatchBody.Accept(this))
+                    return false;
+            }
+        }
+
+        // Visit anyway body if present
+        if (node.AnywayBody != null) {
+            if (!node.AnywayBody.Accept(this))
+                return false;
+        }
+
+        if (node.CatchBody != null) {
+            // Expression form: result = LCA(tryBody, catchBody) — like if-else
+            var bodyIds = new[] { node.TryBody.OrderNumber, node.CatchBody.OrderNumber };
+            _ticTypeGraph.SetIfElse(System.Array.Empty<int>(), bodyIds, node.OrderNumber);
+        } else {
+            // `try-anyway` (no catch): on success result = tryBody value (anyway's value
+            // is discarded per Statements.md); on error, the error propagates after
+            // anyway runs, so the result is never observed. Type = tryBody type.
+            // BugHunt-stmt #28: previously marked the whole try-block as `None`,
+            // which dropped the try-body value when assigned (`result = try: 42
+            // anyway: 99` → none instead of 42).
+            _ticTypeGraph.SetIfElse(System.Array.Empty<int>(),
+                new[] { node.TryBody.OrderNumber }, node.OrderNumber);
+        }
+        return true;
+    }
+
+    public bool Visit(IfBlockSyntaxNode node) {
+        // Visit all if/elif conditions and bodies
+        foreach (var ifCase in node.Ifs) {
+            if (!ifCase.Accept(this))
+                return false;
+        }
+
+        // Visit else body if present
+        if (node.ElseBody != null) {
+            if (!node.ElseBody.Accept(this))
+                return false;
+        }
+
+        // IfBlock produces none (statement form)
+        _ticTypeGraph.SetConst(node.OrderNumber, None);
+        return true;
+    }
+
+    public bool Visit(FieldAssignmentSyntaxNode node) {
+        // Visit children: source struct and value expression
+        if (!node.Source.Accept(this))
+            return false;
+        if (!node.Value.Accept(this))
+            return false;
+
+        // Constrain: source must be a struct with the given field.
+        // Use SetFieldAccess to extract the field type node, then constrain value to match.
+        var fieldAccessId = _nextSyntheticId++;
+        _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, fieldAccessId, node.FieldName);
+
+        // Value type must be assignable to the field type (value is descendant of field type)
+        var valueNode = _ticTypeGraph.GetOrCreateNode(node.Value.OrderNumber);
+        var fieldNode = _ticTypeGraph.GetOrCreateNode(fieldAccessId);
+
+        // Pin the field's TIC node when the source variable bears a named-type
+        // contract: `type box = {v:int}; p = box{v=10}; p.v = none` must reject
+        // (`none` cannot be assigned to a non-optional field per Optionals.md).
+        // Without pinning, WrapAncestorInOptional auto-lifts the field to int?,
+        // silently changing the type of the named declaration (BugHunt-stmt #33).
+        // Mark IsSignatureParam — same mechanism that protects function-signature
+        // composite params from Opt-lift.
+        if (_namedTypeFieldRegistry != null) {
+            // Resolve the variable's TIC node by NAME (for top-level NamedId references),
+            // not by syntax node — VariableSyntaxNode.OrderNumber points at the *use site*
+            // whose state is RefTo to the actual variable node; only the named-node carries
+            // the registered StateStruct + TypeName.
+            Tic.TicNode varTicNode = null;
+            if (node.Source is NamedIdSyntaxNode nameRef
+                && _ticTypeGraph.HasNamedNode(nameRef.Id))
+                varTicNode = _ticTypeGraph.GetNamedNode(nameRef.Id).GetNonReference();
+            else
+                varTicNode = _ticTypeGraph.GetOrCreateNode(node.Source.OrderNumber).GetNonReference();
+            string typeName = varTicNode.State switch {
+                Tic.SolvingStates.StateStruct s => s.TypeName,
+                Tic.SolvingStates.StateOptional opt when opt.ElementNode.GetNonReference().State is Tic.SolvingStates.StateStruct ss => ss.TypeName,
+                _ => null
+            };
+            if (typeName != null
+                && _namedTypeFieldRegistry.TryGetFields(typeName, out var declaredFields)) {
+                foreach (var (fname, ftype) in declaredFields) {
+                    if (string.Equals(fname, node.FieldName, System.StringComparison.OrdinalIgnoreCase)
+                        && ftype.BaseType != BaseFunnyType.Optional) {
+                        fieldNode.GetNonReference().IsSignatureParam = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        valueNode.AddAncestor(fieldNode);
+
+        // Result of the field assignment expression = source struct type
+        var resultNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
+        var sourceNode = _ticTypeGraph.GetOrCreateNode(node.Source.OrderNumber);
+        sourceNode.AddAncestor(resultNode);
+
+        return true;
+    }
+
+    public bool Visit(IndexedAssignmentSyntaxNode node) {
+        // a[i] = v shape — TIC enforces:
+        //   • index is Int32
+        //   • value's type ≤ target's element type
+        //   • result = target (so the Equation re-bind keeps the same identity)
+        // The "target must be a mutable kind" check is deferred to runtime —
+        // pinning a concrete container kind here would overwrite the value's
+        // own kind (e.g. `a = list(...); a[i] = v` would force `a` to be
+        // re-typed as the pinned kind, breaking `list`-specific methods like
+        // `add`). The runtime expression node checks `IFunnyMutableArray` and
+        // surfaces a clean exception otherwise.
+        if (!node.Target.Accept(this)) return false;
+        if (!node.Index.Accept(this)) return false;
+        if (!node.Value.Accept(this)) return false;
+
+        // Bug hunt round 10 #53. Reject indexed-write on a target whose TIC
+        // state is already a solved-immutable ee-mode `StateArray<T>` (which
+        // is what `:text` / `:char[]` style annotation routed through
+        // FunnyType.Text or any other ArrayOf — but NOT the lang-mode
+        // MutableArrayOf / ListOf — produces via TrySetVarType in the prior
+        // Visit(EquationSyntaxNode)). Without this early reject, the CompCs
+        // cap added below would later trigger CompCsApply.ForwardCompCsStateArray
+        // to set State on the already-solved node — Debug.Assert fails with
+        // "Node is already solved". Per `specs_lang/Texts.md` §5 "text is
+        // immutable"; the lang-mode mutable kinds (`list<T>`, `array<T>`)
+        // continue to support indexed-write through their own targetRef.State.
+        if (node.Target is NFun.SyntaxParsing.SyntaxNodes.NamedIdSyntaxNode targetId)
+        {
+            var targetVarNode = _ticTypeGraph.GetNamedNodeOrNull(targetId.Id);
+            if (targetVarNode != null
+                && targetVarNode.GetNonReference().State is Tic.SolvingStates.StateArray solvedArr
+                && solvedArr.IsSolved)
+                throw NFun.ParseErrors.Errors.IndexedWriteOnImmutableArray(
+                    FunnyType.ArrayOf(TicTypesConverter.Concrete.Convert(solvedArr.Element)),
+                    node.Interval);
+        }
+
+        _ticTypeGraph.SetCallArgument(
+            new Tic.SolvingStates.StatePrimitive(Tic.SolvingStates.PrimitiveTypeName.I32),
+            node.Index.OrderNumber);
+
+        // Add a SOFT upper-bound constraint (target ≤ Array<elementType>) via a
+        // typeclass CAP (StateCompositeConstraints with Anc=Array), NOT a
+        // concrete StateCollection point. Cap form is essential for typeclass
+        // intersection — when xs is also constrained by clear() (CompCs Anc=
+        // Enumerable, IsClearable=true), ApplySameClass unifies the two caps
+        // into CompCs{Anc=Array, IsClearable=true}, then Concretest narrows to
+        // List. A concrete StateCollection(Array) descendant would be rejected
+        // by SimplifyOrNull (Array isn't Clearable) — which is correct ONLY
+        // for declared `a:int[]`, not for inferred-via-write xs.
+        var elementType = _ticTypeGraph.CreateVarType();
+        var mutArrUpperBound = _ticTypeGraph.CreateVarType(
+            Tic.SolvingStates.StateCompositeConstraints.Create(
+                elementNode: elementType,
+                ancestor: Tic.SolvingStates.ConstructorKind.Array,
+                descendant: null,
+                isOptional: false,
+                isClearable: false));
+        var targetRef = _ticTypeGraph.GetOrCreateNode(node.Target.OrderNumber);
+        targetRef.AddAncestor(mutArrUpperBound);
+
+        _ticTypeGraph.GetOrCreateNode(node.Value.OrderNumber).AddAncestor(elementType);
+        elementType.IsMemberOfAnything = true;
+
+        var resultNode = _ticTypeGraph.GetOrCreateNode(node.OrderNumber);
+        targetRef.AddAncestor(resultNode);
+
         return true;
     }
 }

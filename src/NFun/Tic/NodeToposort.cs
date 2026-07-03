@@ -24,22 +24,17 @@ public class NodeToposort {
 
     private int _visitDepth = 0;
 
-    /// <summary>
-    /// Topological sort + optional per-node callback (streaming Pull fusion).
-    /// If onNodeReady is provided, it is called for each non-reference node
-    /// immediately after post-processing, in toposort order.
-    /// </summary>
+    /// <summary>Topological sort; if <paramref name="onNodeReady"/> is non-null, invokes it on each non-reference node in order (streaming Pull fusion).</summary>
     public void OptimizeTopology(Action<TicNode> onNodeReady = null) {
-        // Cycle handling relies on Stages.Invoke's visited-pair guard; no pre-pass marking is
-        // needed here. The in-Visit cycle initiator detection below still sets
-        // IsContractiveCycleHead for the paths that consume it.
-
         _path = new Stack<TicNode>(_allNodes.Count);
 
         foreach (var nonReferenceNode in _allNodes)
             Visit(nonReferenceNode);
 
         // Post-process: dereference ancestors, transfer RefTo edges, build result array.
+        // _referenceNodesCount only counts RefTo nodes encountered live during Visit;
+        // MergeGroup creates additional RefTos post-Visit, so we size optimistically and
+        // trim with Array.Resize.
         NonReferenceOrdered = new TicNode[_path.Count - _referenceNodesCount];
         var nonRefId = 0;
         foreach (var node in _path)
@@ -48,18 +43,28 @@ public class NodeToposort {
             {
                 var ancestor = node.Ancestors[i];
                 if (ancestor.State is StateRefTo ancrRefTo)
-                    node.SetAncestor(i, ancrRefTo.Node.GetNonReference());
+                {
+                    var deref = ancrRefTo.Node.GetNonReference();
+                    // Identity-share via IsLiveSnapshotableFun can leave a RefTo ancestor whose
+                    // deref-target is `node` itself. Drop the stale self-edge — `T ≤ T` is the
+                    // identity ordering element and must be elided structurally.
+                    if (deref == node)
+                    {
+                        node.RemoveAncestor(ancestor);
+                        i--;
+                        continue;
+                    }
+                    node.SetAncestor(i, deref);
+                }
             }
 
             if (node.State is StateRefTo refTo)
             {
                 foreach (var refAncestor in node.Ancestors)
                 {
-                    // Skip self-edges that would arise when transferring
-                    // ancestors of a RefTo'd node where one ancestor IS the
-                    // refTo target. Happens when SetCall(F-bounded fun)
-                    // produces a return node with State=RefTo(fun.RetNode)
-                    // AND fun.RetNode is in the ancestor chain (cycle).
+                    // Skip self-edges that arise when an ancestor IS the RefTo target — happens
+                    // for SetCall(F-bounded fun) where return state RefTo(fun.RetNode) and
+                    // fun.RetNode is already in the chain.
                     if (refAncestor == refTo.Node) continue;
                     refTo.Node.AddAncestor(refAncestor);
                 }
@@ -73,9 +78,15 @@ public class NodeToposort {
                 if (node.State is ICompositeState composite)
                     node.State = composite.GetNonReferenced();
 
-                // Streaming: process node immediately in toposort order
+                // Streaming Pull (when onNodeReady is set).
                 onNodeReady?.Invoke(node);
             }
+        }
+
+        if (nonRefId < NonReferenceOrdered.Length) {
+            var trimmed = new TicNode[nonRefId];
+            Array.Copy(NonReferenceOrdered, trimmed, nonRefId);
+            NonReferenceOrdered = trimmed;
         }
     }
 
@@ -94,7 +105,7 @@ public class NodeToposort {
         }
     }
 
-    private const int NodeInListMark = -33753;
+    private const int NodeInListMark = TicVisitMarks.NodeInList;
 
     public void AddToTopology(TicNode node) {
         if (node == null)
@@ -128,8 +139,7 @@ public class NodeToposort {
 
             if (node.VisitMark == InProcess)
             {
-                // Node is visiting, that means cycle found
-                // initialize cycle collecting process
+                // Re-entry — start collecting the cycle.
                 _cycle = new Stack<TicNode>(_path.Count + 1);
                 _cycleInitiator = node;
                 return false;
@@ -142,10 +152,7 @@ public class NodeToposort {
                 _referenceNodesCount++;
                 if (!Visit(refTo.Node))
                 {
-                    // VisitNodeInCycle rolls back graph
-                    // so we need to decrement counter
-                    _referenceNodesCount--;
-                    // this node is part of cycle
+                    _referenceNodesCount--; // VisitNodeInCycle rolls back graph
                     return VisitNodeInCycle(node);
                 }
             }
@@ -154,8 +161,8 @@ public class NodeToposort {
                 for (int mi = 0; mi < composite.MemberCount; mi++)
                     if (!Visit(composite.GetMember(mi)))
                     {
-                        // A composite-member edge is contractive by construction (Cardelli-Mitchell
-                        // '89 §3). Mark cycle initiator and continue toposort.
+                        // Composite-member edge is contractive (Cardelli-Mitchell '89 §3) — mark
+                        // initiator and continue.
                         if (_cycleInitiator != null)
                         {
                             _cycleInitiator.IsContractiveCycleHead = true;
@@ -197,29 +204,16 @@ public class NodeToposort {
         _cycle.Push(node);
 
         if (_cycleInitiator != node)
-        {
-            //continue to collect cycle route
-            return false;
-        }
+            return false; // keep collecting
 
-        // Ref and/or ancestor cycle found
-        // That means all elements in cycle have to be merged
-
-        // (a<= b <= c = a)  =>  (a = b = c) 
-
-        // Reverse cycle in-place (avoid LINQ Reverse() allocation)
+        // Full cycle collected — merge: (a ≤ b ≤ c = a) ⇒ (a = b = c).
         var cycleArray = _cycle.ToArray();
         Array.Reverse(cycleArray);
         var merged = SolvingFunctions.MergeGroup(cycleArray);
 
-        // Cycle is merged
         _cycle = null;
         _cycleInitiator = null;
 
-        // continue toposort algorithm
         return Visit(merged);
-
-        // Whole cycle is not found yet            
-        // step back
     }
 }

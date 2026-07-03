@@ -17,32 +17,30 @@ public class GraphBuilder {
     private readonly List<TicNode> _outputNodes = new();
     private readonly List<TicNode> _inputNodes = new();
 
-    /// <summary>Registry of named type definitions for lazy expansion of recursive types.</summary>
     internal Types.INamedTypeFieldRegistry _namedTypeRegistry;
     internal Types.INamedTypeFieldRegistry NamedTypeRegistry {
         get => _namedTypeRegistry;
         set {
             _namedTypeRegistry = value;
-            // Named types are the only entry point for declared μ-recursive
-            // shapes (struct {next: self?}). Their presence indicates that
-            // downstream cycle-aware passes may have work to do; absence
-            // proves they don't.
+            // Named-type registry is the only entry for declared μ-recursive shapes;
+            // flips IsRecursion so cycle-aware passes skip when there's nothing to do.
             if (value != null) IsRecursion = true;
         }
     }
 
     /// <summary>
-    /// Set to true when the graph contains any construct that could produce
-    /// a μ-recursive type: a named-type registry (declared recursive shapes),
-    /// a SafeFieldAccess (`?.` — creates IsOptionalSourced struct that can
-    /// close cycles via Push), or a user function (potential self-recursion
-    /// via SetCall(StateFun) — its body may contain a recursive call).
-    /// All cycle-aware destruction-time machinery (ThrowIfRecursiveType-
-    /// Definition's pre-scan, LiftMuTypes, ScCClosurePass) early-exits
-    /// when this is false. Non-recursive expressions thus pay zero cycle-
-    /// detection cost.
+    /// True iff the graph may produce μ-recursive types (named-type registry, `?.`, or
+    /// user-function body). Gates the visited-pair guard in StagesExtension and all
+    /// cycle-aware destruction passes — false ⇒ zero cycle-detection cost.
     /// </summary>
     public bool IsRecursion { get; set; }
+
+    /// <summary>
+    /// Worklist Pull (debt #10). Default true since 2026-06-27 — closes the 5 pinned
+    /// debt-#10 tests (GetLast family + IfElseNone family). Set false as escape hatch
+    /// to fall back to streaming Pull (the original code path with workarounds).
+    /// </summary>
+    public bool UseWorklistPull { get; set; } = true;
 
     public GraphBuilder() { _syntaxNodes = new TicNode[16]; _syntaxNodesLength = 16; }
     public GraphBuilder(int maxSyntaxNodeId) { _syntaxNodes = new TicNode[maxSyntaxNodeId]; _syntaxNodesLength = maxSyntaxNodeId; }
@@ -50,11 +48,22 @@ public class GraphBuilder {
     public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false)
         => new(CreateVarType(ConstraintsState.Of(desc, anc, isComparable)));
 
+    /// <summary>
+    /// Generic var node with composite-shape constraint (Enumerable&lt;T&gt; etc.).
+    /// See Specs/Tic/Algebra_CompositeConstraints.md §4.1.1.
+    /// </summary>
+    public StateRefTo InitializeCompositeVarNode(ConstructorKind? ancestor) {
+        var elementNode = TicNode.CreateInvisibleNode(ConstraintsState.Empty);
+        var compcs = StateCompositeConstraints.Create(
+            elementNode,
+            ancestor: ancestor,
+            descendant: null,
+            isOptional: false);
+        return new StateRefTo(CreateVarType(compcs));
+    }
+
     #region node management
 
-    /// <summary>
-    /// Returns already exists syntax node, or creates new one with empty constraints
-    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TicNode GetOrCreateNode(int id) {
         if (id >= _syntaxNodesLength) GrowSyntaxNodes(id);
@@ -91,6 +100,10 @@ public class GraphBuilder {
         return ans;
     }
 
+    /// <summary>Lookup-only variant of <see cref="GetNamedNode"/> — null if absent, no side effects.</summary>
+    public TicNode GetNamedNodeOrNull(string name)
+        => _variables.TryGetValue(name, out var varnode) ? varnode : null;
+
     public TicNode[] GetNamedNodes(string[] names) {
         var ans = new TicNode[names.Length];
         for (int i = 0; i < names.Length; i++)
@@ -113,9 +126,6 @@ public class GraphBuilder {
         return varNode;
     }
 
-    /// <summary>
-    /// Merge already exists syntax node, or creates new one with specified type
-    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void MergeOrSetNode(int id, StateRefTo type) {
         var alreadyExists = GetSyntaxNodeOrEnlarge(id);
@@ -150,6 +160,36 @@ public class GraphBuilder {
         _syntaxNodes[id] = res;
     }
 
+    public void GetOrCreateListNode(int id, TicNode elementType) {
+        var newState = StateCollection.OfList(elementType);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State =
+                SolvingFunctions.GetMergedStateOrNull(newState, alreadyExists.State) ??
+                throw TicErrors.CannotSetState(elementType, newState);
+            return;
+        }
+
+        var res = TicNode.CreateSyntaxNode(id, newState, true);
+        _syntaxNodes[id] = res;
+    }
+
+    public void GetOrCreateMutableArrayNode(int id, TicNode elementType) {
+        var newState = StateCollection.OfMutableArray(elementType);
+        var alreadyExists = GetSyntaxNodeOrEnlarge(id);
+        if (alreadyExists != null)
+        {
+            alreadyExists.State =
+                SolvingFunctions.GetMergedStateOrNull(newState, alreadyExists.State) ??
+                throw TicErrors.CannotSetState(elementType, newState);
+            return;
+        }
+
+        var res = TicNode.CreateSyntaxNode(id, newState, true);
+        _syntaxNodes[id] = res;
+    }
+
     public TicNode GetOrCreateStructNode(int id, StateStruct stateStruct) {
         var alreadyExists = GetSyntaxNodeOrEnlarge(id);
         if (alreadyExists != null)
@@ -180,28 +220,16 @@ public class GraphBuilder {
         }
     }
 
-    /// <summary>
-    /// Optimized version of SetCallArgument for ref cases.
-    /// When the arg is a fresh constraint node (e.g. integer constant)
-    /// whose range is fully subsumed by the generic's range,
-    /// converts it to a direct reference — avoids an ancestor edge
-    /// and simplifies solver work.
-    /// </summary>
+    /// <summary>SetCallArgument fast path: convert subsumed-range fresh CS arg to direct ref, skip ancestor edge.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCallArgument(StateRefTo type, int argId) {
         var node = GetOrCreateNode(argId);
-        // Fast check: only fresh nodes (no ancestors) can be const-ref candidates.
-        // Keeps the method small for JIT inlining — slow path is NoInlining.
         if (node.Ancestors.Count == 0 && TryConvertConstToRef(node, type))
             return;
         node.AddAncestor(type.Node);
     }
 
-    /// <summary>
-    /// Slow path: checks if a fresh constraint node's range is fully subsumed
-    /// by the generic's range, and if so, converts it to a direct reference.
-    /// Common case: integer constant (2) as arg to arithmetic op (x * 2).
-    /// </summary>
+    /// <summary>Const-ref conversion: fresh CS arg whose range fits inside the generic's range becomes a direct ref.</summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static bool TryConvertConstToRef(TicNode node, StateRefTo type) {
         if (node.IsMemberOfAnything)
@@ -210,14 +238,13 @@ public class GraphBuilder {
             return false;
         if (type.Node.State is not ConstraintsState genCs)
             return false;
-        // Check: generic's range [genDesc..genAnc] ⊆ arg's range [argDesc..argAnc]
         if (genCs.Descendant is not StatePrimitive genDesc) return false;
         if (argCs.Descendant is not StatePrimitive argDesc) return false;
         if (genCs.Ancestor == null || argCs.Ancestor == null) return false;
         if (!argDesc.CanBePessimisticConvertedTo(genDesc)) return false;
         if (!genCs.Ancestor.CanBePessimisticConvertedTo(argCs.Ancestor)) return false;
         if (argCs.IsComparable && !genCs.IsComparable) return false;
-        // Transfer preferred from constant to generic (so type resolution is preserved)
+        // Preferred carries provenance — must survive the CS→Ref conversion.
         if (argCs.Preferred != null && genCs.Preferred == null)
             genCs.Preferred = argCs.Preferred;
         node.State = type;
@@ -240,23 +267,32 @@ public class GraphBuilder {
                     throw TicErrors.CannotSetState(node, primitive);
                 break;
             }
+            case StateCompositeConstraints compcs:
+            {
+                // Composite-shape signature param (Enumerable<T>): register ElementNode alongside.
+                if (compcs.ElementNode.State is ICompositeState elemComp)
+                    RegistrateCompositeType(elemComp);
+                if (!compcs.ElementNode.Registered) {
+                    compcs.ElementNode.Registered = true;
+                    _typeVariables.Add(compcs.ElementNode);
+                }
+                var ancestor = CreateVarType(compcs);
+                ancestor.IsSignatureParam = true;
+                node.AddAncestor(ancestor);
+                break;
+            }
             case ICompositeState composite:
             {
                 RegistrateCompositeType(composite);
                 var ancestor = CreateVarType(composite);
-                // Function signature params have fixed composite shape.
-                // WrapAncestorInOptional checks this flag and throws TIC error.
-                // Algebraic meaning: Opt(T) ≤ T is invalid — param shape is a given, not inferred.
+                // Signature param's composite shape is rigid: Opt(T) ≤ T invalid (lift would change contract).
                 ancestor.IsSignatureParam = true;
                 node.AddAncestor(ancestor);
                 break;
             }
             case StateRefTo refTo:
             {
-                // Guard against self-loop: if the call arg already references the same
-                // target node, adding it as ancestor would create a trivial cycle
-                // (the toposort ref-transfer would produce node.AddAncestor(node)).
-                // This occurs in recursive calls that pass a parameter unchanged.
+                // Guard self-loop: arg already refs target → AddAncestor would self-cycle through toposort ref-transfer.
                 var target = refTo.Node.GetNonReference();
                 if (node.State is StateRefTo existingRef && existingRef.Node.GetNonReference() == target)
                     break;
@@ -297,10 +333,8 @@ public class GraphBuilder {
             case StatePrimitive primitive:
                 return node.TryBecomeConcrete(primitive);
             case ICompositeState composite:
-                // Composite re-annotation on an already-solved node would
-                // trip the TicNode state-setter assertion "Node is already
-                // solved" — surface it as a clean FU879
-                // "Variable is already declared" via the caller. (Round 6 #83.)
+                // Composite re-annotation on a solved node would trip the state-setter assertion;
+                // surface as a clean FU879 via the caller's TrySetVarType=false branch.
                 if (!node.IsMutable && !state.Equals(node.State))
                     return false;
                 RegistrateCompositeType(composite);
@@ -311,11 +345,7 @@ public class GraphBuilder {
         }
     }
 
-    /// <summary>
-    /// Constrains expression node to be assignable to the named variable's type.
-    /// Like SetDef but without marking the variable as output.
-    /// Used for default value expressions in function parameters.
-    /// </summary>
+    /// <summary>Like <see cref="SetDef"/> but the variable is NOT registered as output. For parameter defaults.</summary>
     public void SetDefaultValueConstraint(string varName, int exprNodeId) {
         var exprNode = GetOrCreateNode(exprNodeId);
         var varNode = GetNamedNode(varName);
@@ -326,10 +356,23 @@ public class GraphBuilder {
     public void SetDef(string name, int rightNodeId) {
         var exprNode = GetOrCreateNode(rightNodeId);
         var defNode = GetNamedNode(name);
-        _outputNodes.Add(defNode);
+        if (!_outputNodes.Contains(defNode))
+            _outputNodes.Add(defNode);
 
         if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
             constrains.Preferred = primitive;
+
+        // Identity-share rule literal (StateFun) into an unconstrained var so SetCall later finds
+        // StateFun directly and preserves IsSignatureParam rigidity (without it, the SetCall ELSE
+        // synthesizes fresh args that widen at call sites). Skip the Pull edge — Apply(StateFun,
+        // StateFun) on identity-shared state would call retNode.AddAncestor(retNode).
+        if (exprNode.State is StateFun lambdaFun
+            && defNode.State is ConstraintsState defCs && defCs.NoConstrains
+            && defNode.Ancestors.Count == 0)
+        {
+            defNode.State = lambdaFun;
+            return;
+        }
 
         exprNode.AddAncestor(defNode);
     }
@@ -338,7 +381,6 @@ public class GraphBuilder {
         var args = GetNamedNodes(varNames);
         var exprId = GetOrCreateNode(returnId);
         var returnTypeNode = CreateVarType(returnType);
-        //expr<=returnType<= ...
         exprId.AddAncestor(returnTypeNode);
         var fun = StateFun.Of(args, returnTypeNode);
 
@@ -351,38 +393,24 @@ public class GraphBuilder {
         return fun;
     }
 
-    /// <summary>
-    /// Set function call, where function variable (or expression) placed at bodyId
-    /// </summary>
+    /// <summary>Function call where the function lives at bodyId (variable or expression).</summary>
     public void SetCall(int bodyId, params int[] argThenReturnIds)
         => SetCall(GetOrCreateNode(bodyId), argThenReturnIds);
 
-    /// <summary>
-    /// Set function call, of function variable with id of name
-    /// </summary>
+    /// <summary>Function call where the function is a named variable.</summary>
     public void SetCall(string name, params int[] argThenReturnIds)
         => SetCall(GetNamedNode(name), argThenReturnIds);
 
-    /// <summary>
-    /// Set function call, of already known functional type
-    /// </summary>
+    /// <summary>Function call with a known <see cref="StateFun"/> signature.</summary>
     public void SetCall(StateFun funState, params int[] argThenReturnIds) {
         if (funState.ArgsCount != argThenReturnIds.Length - 1)
             throw new ArgumentException("Sizes of type and id array have to be equal");
 
         RegistrateCompositeType(funState);
 
-        // IsRecursion is set by RuntimeBuilder when functionSyntaxNode.IsRecursive
-        // (computed by FindFunctionDependenciesVisitor during solve-order
-        // analysis, BEFORE TIC). No need to set it heuristically here.
 
-        // Per-call-site instantiation for F-bounded functions. When the function carries an
-        // F-bound (CS{StructBound} on any argNode or returnNode), the signature is shared across
-        // call sites — without cloning, two sites passing structurally-different types collide on
-        // the Descendant slot (LCA → Any). Damas-Milner '82 let-polymorphism: instantiate
-        // signature fresh per call.
-        // IsRecursion gates the entire μ-machinery: when false, no signature can carry a
-        // recursive shape (named-type registry hasn't been set), so skip the walk.
+        // Damas-Milner '82 let-polymorphism: F-bounded signatures (CS{StructBound}) must
+        // instantiate fresh per call site or distinct callers collide on the Descendant slot.
         bool needsPerSiteClone = IsRecursion && SignatureHasRecursiveShape(funState);
         var argNodeMap = needsPerSiteClone
             ? CreatePerSiteCloneMap(funState)
@@ -391,32 +419,18 @@ public class GraphBuilder {
         for (int i = 0; i < funState.ArgsCount; i++)
         {
             var argNode = funState.ArgNodes[i];
-            // Mark composite params from function signature as pinned —
-            // prevents Optional wrapping (Opt(T) ≤ T is invalid for given types).
+            // Composite signature params are shape-rigid: Opt(T) ≤ T would change the contract.
             if (argNode.State is ICompositeState)
                 argNode.IsSignatureParam = true;
 
-            // Per-site clone redirect: use clone of argNode for THIS call's edges.
-            // Map keys are GetNonReference forms.
             var argKey = argNode.GetNonReference();
             var effectiveArgNode = argNodeMap != null && argNodeMap.TryGetValue(argKey, out var cloned)
                 ? cloned
                 : argNode;
             var state = effectiveArgNode.State;
-            // Route composite-state and constraint-state args through StateRefTo when sharing
-            // would create aliased member TicNodes downstream (Damas-Milner '82 §3
-            // let-monomorphic body — each param-use is a reflexive constraint, so the call
-            // should add an edge, not a fresh structural copy).
-            //
-            // Gate:
-            // - ConstraintsState: always (Descendant slot may share TicNodes across sites).
-            // - StateFun: always — even when solved, function-shaped composites contain
-            //   member TicNodes that get shared via SetCallArgument(composite,…)'s
-            //   CreateVarType(composite) path; a recursive self-call passing the same
-            //   param through would hit "Circular ancestor 0" on AddAncestor.
-            // - Other composites (StateArray/StateOptional/StateStruct): only when unsolved.
-            //   Solved arrays/structs have terminal member states with no further
-            //   constraint propagation, so sharing them is safe and skips an indirection.
+            // Damas-Milner '82 §3 let-monomorphic body: each param-use is a reflexive constraint,
+            // so the call adds an edge. Route through RefTo for CS, StateFun (members share even
+            // when solved → self-call would self-loop), and unsolved composites.
             if (state is ConstraintsState
                 || state is StateFun
                 || (state is ICompositeState comp && !comp.IsSolved))
@@ -426,13 +440,9 @@ public class GraphBuilder {
 
         var returnId = argThenReturnIds[^1];
         var returnNode = GetOrCreateNode(returnId);
-        // When fun's return state contains contractive cycle nodes (F-bound), do NOT MergeInplace —
-        // that would either share cycle TicNodes across GraphBuilder instances (corrupting them
-        // across solves) or trigger Circular ancestor on SetAncestor. Route the return through
-        // StateRefTo to the function's return node so the cycle stays internal to the function's
-        // signature; the call site sees a single RefTo edge.
-        // Same IsRecursion gate as needsPerSiteClone above — without recursive constructs in
-        // the graph, no return position can carry a contractive cycle.
+        // Contractive-cycle returns (F-bound) must NOT MergeInplace: that would either share
+        // cycle TicNodes across solves or hit Circular ancestor. Route via RefTo so the cycle
+        // stays internal to the signature.
         if (IsRecursion && ReturnContainsContractiveCycle(funState.RetNode))
         {
             var refToFunReturn = new StateRefTo(funState.RetNode);
@@ -447,12 +457,7 @@ public class GraphBuilder {
         }
     }
 
-    /// <summary>
-    /// Detects whether a function signature contains a μ-recursive cycle (struct with self-RefTo
-    /// through fields). Such functions are F-bounded polymorphic and need per-call-site
-    /// instantiation to prevent Descendant LCA collision across call sites with
-    /// structurally-different types.
-    /// </summary>
+    /// <summary>True iff the signature carries a μ-recursive cycle (F-bound) and needs per-call cloning.</summary>
     private static bool SignatureHasRecursiveShape(StateFun funState) {
         var visited = new HashSet<TicNode>();
         foreach (var arg in funState.ArgNodes)
@@ -474,38 +479,28 @@ public class GraphBuilder {
     }
 
     /// <summary>
-    /// Deep structural clone of the function signature subgraph for THIS call site.
-    /// Damas-Milner '82 let-polymorphism: signature is the polymorphic template; each caller
-    /// gets a fresh monomorphic instance. Cycle-safe via placeholder pattern: the new node is
-    /// registered in the map BEFORE recursing into its state, so back-edges through the cycle
-    /// find their clone target and close the cycle in the clone.
+    /// Per-call-site clone of the signature subgraph (Damas-Milner '82 instantiation).
+    /// Placeholder pattern closes μ-cycles: new node registered before recursing into state.
     /// </summary>
     private Dictionary<TicNode, TicNode> CreatePerSiteCloneMap(StateFun funState) {
         var map = new Dictionary<TicNode, TicNode>();
         foreach (var arg in funState.ArgNodes)
             DeepCloneNode(arg, map);
-        // RetNode is intentionally NOT pre-cloned: SetCall handles return via
-        // its own MergeInplace/RefTo path, and cloning here would break the
-        // sharing assumption between arg and return positions for monovariant μ.
+        // RetNode not pre-cloned: SetCall handles return separately, and cloning here would
+        // break arg/return sharing for monovariant μ.
         return map.Count > 0 ? map : null;
     }
 
     private TicNode DeepCloneNode(TicNode original, Dictionary<TicNode, TicNode> map) {
         var nr = original.GetNonReference();
         if (map.TryGetValue(nr, out var existing)) return existing;
-        // Solved primitive states are monomorphic — share by reference.
+        // Monomorphic — share by reference.
         if (nr.State is StatePrimitive) return nr;
-        // Solved function shapes ((int)->int etc.) carry no polymorphic carrier:
-        // their ArgNodes/RetNode are concrete. Sharing is mandatory — without it,
-        // the placeholder would be a distinct TicNode wrapping a CloneState-returned
-        // StateFun whose inner nodes still alias the original's. Pull's
-        // Apply(StateFun, StateFun) then runs `retNode.AddAncestor(retNode)` on the
-        // shared primitive ret and panics "Circular ancestor 0" (BugHunt-stmt #49).
+        // Solved StateFun: ArgNodes/RetNode are concrete; sharing is mandatory because a clone
+        // would alias the originals' inner nodes and Apply(StateFun, StateFun) would self-loop.
         if (nr.State is StateFun fn && fn.IsSolved) return nr;
 
-        // Placeholder pattern: register the clone BEFORE recursing into state.
-        // Any cycle through this node (RefTo → DeepCloneNode → reach this nr again)
-        // will find the placeholder in map and use it instead of recursing.
+        // Placeholder: register before recursing so back-edges close the cycle in the clone.
         var placeholder = TicNode.CreateInvisibleNode(ConstraintsState.Empty);
         map[nr] = placeholder;
         placeholder.State = CloneState(nr.State, map);
@@ -521,14 +516,13 @@ public class GraphBuilder {
             case StateOptional opt:
                 return new StateOptional(DeepCloneNode(opt.ElementNode, map));
             case StateArray arr:
-                return StateArray.Of(arr.ElementNode); // arrays preserve sharing — element typically primitive
+                // Arrays preserve element sharing — element is typically primitive, no cycle.
+                return StateArray.Of(arr.ElementNode);
             case StateStruct s when s.TypeName != null:
-                // Named types are structurally fixed by their declaration.
-                // Sharing is safe: the identity comes from the registry.
+                // Named types: identity comes from the registry; sharing is safe.
                 return s;
             case StateStruct s:
-                // Anonymous struct (potentially recursive): clone fields
-                // through the map to preserve cycles.
+                // Anonymous (potentially recursive): clone fields through the map to close cycles.
                 var newFields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
                 foreach (var (name, fn) in s.Fields)
                     newFields[name] = DeepCloneNode(fn, map);
@@ -537,9 +531,7 @@ public class GraphBuilder {
                     IsOptionalSourced = s.IsOptionalSourced,
                 };
             case StateFun funState:
-                // Unsolved function shape (polymorphic in arg/ret): clone inner
-                // nodes through the map. Solved StateFun is short-circuited by
-                // the IsSolved share in DeepCloneNode and never reaches here.
+                // Unsolved: clone inner nodes through the map (solved StateFun short-circuited above).
                 var clonedArgs = new TicNode[funState.ArgNodes.Length];
                 for (int i = 0; i < funState.ArgNodes.Length; i++)
                     clonedArgs[i] = DeepCloneNode(funState.ArgNodes[i], map);
@@ -551,59 +543,54 @@ public class GraphBuilder {
     }
 
     private static bool ReturnContainsContractiveCycle(TicNode retNode) {
-        var nr = retNode.GetNonReference();
-        if (nr.IsContractiveCycleHead) return true;
-        if (nr.State is StateOptional opt) return ContainsContractiveCycle(opt.ElementNode, new HashSet<TicNode>());
-        if (nr.State is ICompositeState composite) {
-            for (int i = 0; i < composite.MemberCount; i++)
-                if (ContainsContractiveCycle(composite.GetMember(i), new HashSet<TicNode>())) return true;
-        }
-        return false;
+        var visited = new HashSet<TicNode>();
+        return ContainsContractiveCycle(retNode, visited);
     }
 
+    /// <summary>
+    /// True iff n reaches itself through composite-member edges (μ-cycle), or is a marked head.
+    /// Visited is back-tracked so a shared DAG node isn't misreported as a cycle.
+    /// At graph-build time NodeToposort hasn't run, so the flag alone is insufficient.
+    /// </summary>
     private static bool ContainsContractiveCycle(TicNode n, HashSet<TicNode> visited) {
         var nr = n.GetNonReference();
-        if (!visited.Add(nr)) return false;
         if (nr.IsContractiveCycleHead) return true;
-        if (nr.State is ICompositeState composite) {
-            for (int i = 0; i < composite.MemberCount; i++)
-                if (ContainsContractiveCycle(composite.GetMember(i), visited)) return true;
+        if (nr.State is not ICompositeState composite) return false;
+        if (!visited.Add(nr)) return true; // back-edge through composites
+        bool result = false;
+        for (int i = 0; i < composite.MemberCount; i++) {
+            if (ContainsContractiveCycle(composite.GetMember(i), visited)) {
+                result = true;
+                break;
+            }
         }
-        return false;
+        visited.Remove(nr);
+        return result;
     }
 
-    /// <summary>Binary pure generic call (T,T):T — zero array allocation.</summary>
+    /// <summary>Binary pure-generic call (T,T):T.</summary>
     public void SetCall(StateRefTo generic, int arg0Id, int arg1Id, int returnId) {
         SetCallArgument(generic, arg0Id);
         SetCallArgument(generic, arg1Id);
         MergeOrSetNode(returnId, generic);
     }
 
-    /// <summary>Unary pure generic call (T):T — zero array allocation.</summary>
+    /// <summary>Unary pure-generic call (T):T.</summary>
     public void SetCall(StateRefTo generic, int argId, int returnId) {
         SetCallArgument(generic, argId);
         MergeOrSetNode(returnId, generic);
     }
 
-    /// <summary>
-    /// Set pure generic function call
-    /// for signatures like (T,T...):T.
-    ///
-    /// Optimized version of setCall([],[])
-    /// </summary>
+    /// <summary>Pure-generic call (T,T...):T.</summary>
     public void SetCall(StateRefTo generic, int[] argThenReturnIds) {
         for (int i = 0; i < argThenReturnIds.Length - 1; i++)
             SetCallArgument(generic, argThenReturnIds[i]);
 
         var returnId = argThenReturnIds[^1];
-        //Since we know that the type refers to a generic type,
-        // in most case we can immediately create a node with this type.
         MergeOrSetNode(returnId, generic);
     }
 
-    /// <summary>
-    /// Set function call, with function signature
-    /// </summary>
+    /// <summary>Function call with an explicit per-argument signature.</summary>
     public void SetCall(ITicNodeState[] argThenReturnTypes, int[] argThenReturnIds) {
         Debug.Assert(argThenReturnTypes.Length == argThenReturnIds.Length);
 
@@ -621,11 +608,8 @@ public class GraphBuilder {
     private void SetCall(TicNode functionNode, int[] argThenReturnIds) {
         var id = argThenReturnIds[^1];
 
-        // When functionNode is RefTo(target), the synthesized StateFun must be written
-        // onto target.State, not functionNode.State. Overwriting functionNode.State would
-        // sever the RefTo link and the target node — which carries the declared field type
-        // (e.g. `t: rule()->s?` on a named struct) once Pull propagates from the source —
-        // would remain unconstrained, disconnected from the call's fresh args/return.
+        // When functionNode is RefTo(target), the synthesized StateFun goes on target.State
+        // — overwriting functionNode.State would sever the link and orphan the declared field type.
         var targetNode = functionNode;
         if (functionNode.State is StateRefTo r)
             targetNode = r.Node;
@@ -661,16 +645,11 @@ public class GraphBuilder {
     public ITicResults Solve(bool ignorePrefered = false) => SolveCore(ignorePrefered);
 
     private ITicResults SolveCore(bool ignorePrefered) {
-        // Broadcast the recursion-possibility flag to thread-static so all
-        // cycle-aware hot paths (Stages.Invoke visited-pair guard, etc.) can
-        // short-circuit. Set by GraphBuilder construction (NamedTypeRegistry,
-        // SafeFieldAccess) or explicitly by RuntimeBuilder for recursive
-        // user functions (functionSyntaxNode.IsRecursive).
+        // Broadcast to thread-static: Stages.Invoke's visited-pair guard short-circuits when false.
         Stages.StagesExtension._isRecursion = IsRecursion;
 
-        // Check if any None nodes exist (quick scan during AddToTopology).
-        // If no None: fused Toposort+Pull (streaming, saves one O(n) pass).
-        // If None: separate two-phase Pull needed (IsOptional flag ordering).
+        // None presence dictates Pull strategy: absent ⇒ fused Toposort+Pull (single pass);
+        // present ⇒ two-phase Pull (IsOptional ordering, see specs_tic/TicAlgorithm.md).
         bool hasNone = false;
         for (int i = 0; i < _syntaxNodesLength; i++)
             if (_syntaxNodes[i]?.State == StatePrimitive.None) { hasNone = true; break; }
@@ -678,45 +657,41 @@ public class GraphBuilder {
         bool hasOptionalTypes;
         TicNode[] sorted;
         if (!hasNone) {
-            // Fast path: fused Toposort+Pull (no None → single pass)
-            sorted = Toposort(node => {
-                if (!node.IsMemberOfAnything)
-                    SolvingFunctions.PullConstraintsForNode(node);
-            });
+            if (UseWorklistPull) {
+                sorted = Toposort();
+                Stages.WorklistPullDriver.RunPull(sorted, twoPhase: false);
+                PrintTrace("1+2. Toposorted + WorklistPull", sorted);
+            } else {
+                sorted = Toposort(node => {
+                    if (!node.IsMemberOfAnything)
+                        SolvingFunctions.PullConstraintsForNode(node);
+                });
+                PrintTrace("1+2. Toposorted+Pulled (fused)", sorted);
+            }
             hasOptionalTypes = false;
-            PrintTrace("1+2. Toposorted+Pulled (fused)", sorted);
         } else {
-            // Slow path: separate Toposort then two-phase Pull
             sorted = Toposort();
             PrintTrace("1. Toposorted", sorted);
-            SolvingFunctions.PullConstraintsTwoPhase(sorted);
+            if (UseWorklistPull)
+                Stages.WorklistPullDriver.RunPull(sorted, twoPhase: true);
+            else
+                SolvingFunctions.PullConstraintsTwoPhase(sorted);
             hasOptionalTypes = true;
-            PrintTrace("2. PullConstraints (two-phase)", sorted);
+            PrintTrace("2. PullConstraints", sorted);
         }
 
-        // Broadcast Preferred BEFORE Push. Push's Apply(StatePrimitive, ConstraintsState)
-        // collapses literal CS [U8..Re]I32! to bare U8 when its ancestor pins it to a single
-        // primitive (e.g., `y:byte = 5` → literal `5` is forced to U8 by z annotation, losing
-        // the I32 Preferred). With Preferred broadcast AFTER Push, no CS carries Preferred and
-        // CollectPreferred finds nothing — `byte+byte` and `int16+int16` with negative literals
-        // then default-resolve to Real instead of I32. Running PropagatePreferred between Pull
-        // and Push captures the literal's Preferred while it still lives on the CS (per
-        // TicPreferred.md P3 monotonicity — Preferred is metadata, doesn't affect Pull/Push).
-        // (MR2Bug4.)
+        // Propagate Preferred BEFORE Push: Push collapses literal CS to bare primitive when its
+        // ancestor pins it, dropping Preferred. Preferred is metadata (TicPreferred.md P3
+        // monotonicity), so propagating between Pull and Push is sound.
         SolvingFunctions.PropagatePreferred(sorted);
         SolvingFunctions.PushConstraints(sorted);
-        // SCC closure via Kleene fixpoint for cyclic contractive components
-        // (Amadio-Cardelli §4.2 / Pottier-Rémy '05 §10.6). Single-pass Push leaves degenerate
-        // ref-chains in self-referential return positions of co-recursive functions; iterating
-        // Push on each cyclic SCC to fixpoint propagates the F-bound through the cycle, producing
-        // the canonical regular tree. Acyclic singletons skip the SCC pass — zero overhead for
-        // simple code. Skipped entirely when the graph cannot have μ-recursion.
+        // SCC closure for contractive cycles (Amadio-Cardelli §4.2 / Pottier-Rémy '05 §10.6):
+        // single-pass Push leaves degenerate ref-chains in co-recursive returns; iterate to
+        // fixpoint per cyclic SCC to produce the canonical regular tree.
         if (IsRecursion) ScCClosurePass(sorted);
         PrintTrace("3. PushConstraints", sorted);
 
-        // Pass NamedTypeRegistry through Destruction/Finalize so TryRepairOptSourcedCycle can
-        // match cycle structs against declared named types and stamp TypeName on the µ-type root.
-        // Threaded explicitly (no globals) so concurrent solves are isolated.
+        // Thread NamedTypeRegistry explicitly (no globals) so concurrent solves stay isolated.
         bool allTypesAreSolved = SolvingFunctions.Destruction(sorted, hasOptionalTypes, NamedTypeRegistry, IsRecursion);
         PrintTrace("4. Destructed");
 
@@ -738,20 +713,12 @@ public class GraphBuilder {
     }
 
     /// <summary>
-    /// Post-Push SCC closure stage. For each cyclic contractive SCC in the constraint graph,
-    /// iterate Push-to-fixpoint so co-recursive μ-types in return positions fold to canonical
-    /// form. Single-pass Push leaves chains like opt(ref(opt(ref(...)))) at self-referential
-    /// return positions because the cycle requires multiple traversals to propagate the F-bound
-    /// from other branches into the recursive return path. Per Cousot '77 / Kildall '73
-    /// monotone-dataflow on a finite-height lattice (ConstraintsState narrowing), iteration
-    /// converges.
+    /// Post-Push: iterate Push to fixpoint on each cyclic contractive SCC so co-recursive
+    /// μ-types fold to canonical form. Converges by Cousot '77 / Kildall '73 monotone-dataflow
+    /// on the finite-height CS-narrowing lattice.
     /// </summary>
     private void ScCClosurePass(TicNode[] sorted) {
-        // Fast path: this stage exists only for cyclic μ-recursive types.
-        // Most expressions have no recursive structure — skip in O(n) by
-        // probing for any node with cyclic shape (StructBound from F-bound
-        // lift, or contractive cycle head). Avoids list allocation +
-        // Tarjan SCC traversal for non-recursive code.
+        // O(n) probe avoids list allocation + Tarjan SCC traversal when no cycle exists.
         if (!HasAnyRecursiveCandidate(sorted))
             return;
 
@@ -768,7 +735,6 @@ public class GraphBuilder {
         }
     }
 
-    /// <summary>O(n) scan: any node with cyclic or F-bound shape?</summary>
     private static bool HasAnyRecursiveCandidate(TicNode[] sorted) {
         for (int i = 0; i < sorted.Length; i++) {
             var n = sorted[i];

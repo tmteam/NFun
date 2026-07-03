@@ -180,8 +180,10 @@ public class BodyTypeInferenceTests {
     public void MapWithLambda() {
         var result = TestHelper.Solve("y  = a.map(rule(i:int)=i+1)");
         result.AssertNoGenerics();
-        result.AssertNamed(Array(I32), "y");
-        result.AssertNamed(Array(I32), "a");
+        // ee-mode (TestHelper.Origin) uses MapFunction (FixedArray-strict).
+        // Element invariance pins `a` to fixedArray<int> directly.
+        result.AssertNamed(FixedArray(I32), "y");
+        result.AssertNamed(FixedArray(I32), "a");
     }
 
     [Test]
@@ -280,7 +282,8 @@ public class BodyTypeInferenceTests {
     public void HiOrderMap() {
         var result = TestHelper.Solve("y = '12'.map(toText)");
         result.AssertNoGenerics();
-        result.AssertNamed(Array(Array(Char)), "y");
+        // Stage C — map output is fixedArrayOf; toText returns Array(Char) (text).
+        result.AssertNamed(FixedArray(Array(Char)), "y");
     }
 
 

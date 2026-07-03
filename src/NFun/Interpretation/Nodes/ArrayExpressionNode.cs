@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Interpretation.Nodes;
 
@@ -22,6 +23,11 @@ internal class ArrayExpressionNode : IExpressionNode {
         for (int i = 0; i < _elements.Length; i++)
             arr[i] = _elements[i].Calc();
 
+        // Stage C — Concretest(FixedArray)=FixedArray means an [...] literal in
+        // ee mode can resolve to fixedArray<T>. Wrap as FixedFunnyArray.
+        if (Type.BaseType == BaseFunnyType.FixedArray)
+            return new NFun.Runtime.Lists.FixedFunnyArray(
+                Type.FixedArrayTypeSpecification.FunnyType, arr);
         return FunnyArrayTools.CreateArray(arr, Type.ArrayTypeSpecification.FunnyType);
     }
 

@@ -900,4 +900,29 @@ class OptionalTests {
 
     #endregion
 
+    #region Block Narrowing
+
+    [Test(Description = "x:opt(i32); narrowed_x = unwrap(x); narrowed_x + 1 → i32")]
+    public void BlockNarrowing_NarrowedVarCanBeUsedWithAdd() {
+        // x: int?  →  narrowed_x = int  →  narrowed_x + 1 = int
+        var graph = new GraphBuilder();
+        graph.SetVarType("x", StateOptional.Of(I32));
+        graph.SetNarrowedVariable("x", "narrowed_x");
+
+        // narrowed_x → node 0
+        graph.SetVar("narrowed_x", 0);
+        // literal 1 → node 1
+        graph.SetConst(1, I32);
+        // add(narrowed_x, 1) → node 2
+        // Simulates `+` as concrete (i32, i32) -> i32
+        graph.SetCall(new ITicNodeState[] { I32, I32, I32 }, new[] { 0, 1, 2 });
+        graph.SetDef("y", 2);
+
+        var result = graph.Solve();
+        result.AssertNoGenerics();
+        result.AssertNamed(I32, "y");
+        result.AssertNamed(StateOptional.Of(I32), "x");
+    }
+
+    #endregion
 }

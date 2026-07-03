@@ -122,12 +122,17 @@ class BugRegression_MergeOrNullCycleTests {
     }
 
     [Test]
-    public void Merge_MutableStructAndImmutableStruct_ReturnsNull() {
-        // MutStruct and Struct are different type constructors — cannot merge.
+    public void Merge_MutableStructAndImmutableStruct_UpcastsToFrozen() {
+        // Mut ≤ Frozen — Liskov upcast. Same algebra as LcaStructFields.
+        // Result is plain StateStruct (frozen view), never StateMutableStruct.
         var mut = new StateMutableStruct(isOpen: false);
         var imm = new StateStruct();
-        Assert.IsNull(SolvingFunctions.GetMergedStateOrNull(mut, imm));
-        Assert.IsNull(SolvingFunctions.GetMergedStateOrNull(imm, mut));
+        var fwd = SolvingFunctions.GetMergedStateOrNull(mut, imm);
+        var rev = SolvingFunctions.GetMergedStateOrNull(imm, mut);
+        Assert.IsInstanceOf<StateStruct>(fwd);
+        Assert.IsNotInstanceOf<StateMutableStruct>(fwd);
+        Assert.IsInstanceOf<StateStruct>(rev);
+        Assert.IsNotInstanceOf<StateMutableStruct>(rev);
     }
 
     [Test]

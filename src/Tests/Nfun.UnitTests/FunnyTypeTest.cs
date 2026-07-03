@@ -674,4 +674,80 @@ public class FunnyTypeTest {
         var t2 = FunnyType.StructOf();
         Assert.AreNotEqual(t1, t2);
     }
+
+    // ─── Stage 2.2: BaseFunnyType.List ────────────────────────────────────
+
+    [Test]
+    public void TwoEqualListTypes_Equals_ReturnsTrue() {
+        var a = FunnyType.ListOf(FunnyType.Int32);
+        var b = FunnyType.ListOf(FunnyType.Int32);
+        Assert.IsTrue(a == b);
+        Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
+    }
+
+    [Test]
+    public void TwoListTypesWithDifferentElement_NotEqual() {
+        var a = FunnyType.ListOf(FunnyType.Int32);
+        var b = FunnyType.ListOf(FunnyType.Real);
+        Assert.AreNotEqual(a, b);
+    }
+
+    [Test]
+    public void ListOfInt_ToString_RendersAsListInt() {
+        Assert.AreEqual("list<Int32>", FunnyType.ListOf(FunnyType.Int32).ToString());
+    }
+
+    [Test]
+    public void ListAndArrayWithSameElement_NotEqual() {
+        // list<T> and T[] are distinct base types — never structurally equal.
+        var list = FunnyType.ListOf(FunnyType.Int32);
+        var arr = FunnyType.ArrayOf(FunnyType.Int32);
+        Assert.AreNotEqual(list, arr);
+        Assert.IsTrue(list.IsList);
+        Assert.IsFalse(arr.IsList);
+    }
+
+    [Test]
+    public void ListOf_GetGenericArgument_ReturnsElement() {
+        var t = FunnyType.ListOf(FunnyType.Real);
+        Assert.AreEqual(FunnyType.Real, t.GetGenericArgument(0));
+    }
+
+    [Test]
+    public void SolveGenericTypes_ListOfT_SolvedTypeIsT() {
+        var solvingTypes = new FunnyType[1];
+        var concrete = FunnyType.Int32;
+        var ok = FunnyType.TrySolveGenericTypes(
+            solvingTypes,
+            FunnyType.ListOf(FunnyType.Generic(0)),
+            FunnyType.ListOf(concrete));
+        Assert.IsTrue(ok);
+        Assert.AreEqual(concrete, solvingTypes[0]);
+    }
+
+    [Test]
+    public void SolveGenericTypes_ListOfT_StrictInvariance_RejectsSubtype() {
+        // list<T> is INVARIANT — TrySolveGenericTypes must reject a strict mismatch
+        // (T=Int32 cannot be widened to Real). For ArrayOf this would succeed
+        // via covariance; for List it must fail.
+        var ok = FunnyType.TrySolveGenericTypes(
+            new FunnyType[1],
+            genericType: FunnyType.ListOf(FunnyType.Int32),
+            concreteType: FunnyType.ListOf(FunnyType.Real));
+        Assert.IsFalse(ok);
+    }
+
+    [Test]
+    public void SubstituteConcreteTypes_ListOfGeneric_SubstitutesElement() {
+        var someSolving = new[] { FunnyType.Real };
+        var generic = FunnyType.ListOf(FunnyType.Generic(0));
+        var result = FunnyType.SubstituteConcreteTypes(generic, someSolving);
+        Assert.AreEqual(FunnyType.ListOf(FunnyType.Real), result);
+    }
+
+    [Test]
+    public void SearchMaxGenericTypeId_ListOfGeneric_FindsId() {
+        var t = FunnyType.ListOf(FunnyType.Generic(2));
+        Assert.AreEqual(2, t.SearchMaxGenericTypeId());
+    }
 }

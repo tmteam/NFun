@@ -4,31 +4,35 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
+using NFun.Tic.Stages;
 
 namespace NFun.Tic;
 
 using System.Text;
 
 public enum TicNodeType {
-    /// <summary>
-    /// input or output variable of expression
-    /// TicNode's name equals to variable name
-    /// </summary>
+    /// <summary>Input or output variable — Name = variable name.</summary>
     Named = 2,
 
-    /// <summary>
-    /// Syntax node. TicNode's name equals to node's order number
-    /// </summary>
+    /// <summary>Syntax node — Name = order number.</summary>
     SyntaxNode = 4,
 
-    /// <summary>
-    /// Generic type from function/constant signature or created in process of solving.
-    /// </summary>
+    /// <summary>Generic type from a signature, or one created during solving.</summary>
     TypeVariable = 8
 }
 
 public class TicNode {
     internal int VisitMark = -1;
+
+    /// <summary>
+    /// Worklist-Pull enqueue dedup mark (see <see cref="Stages.WorklistPullDriver"/>).
+    /// MUST be a separate field from <see cref="VisitMark"/>: Enqueue fires from inside
+    /// Apply cells while a PullRec traversal is in flight, and writing the traversal's
+    /// visited-mark field would erase "visited" on μ-cycle members — the traversal then
+    /// re-enters the cycle forever (StackOverflow on collection-recursive named types).
+    /// Two independent dedup domains ⇒ two fields.
+    /// </summary>
+    internal int EnqueueMark = -1;
     internal bool Registered = false;
 
     private ITicNodeState _state;
@@ -38,6 +42,10 @@ public class TicNode {
 
     private static int _interlockedId = 0;
     private readonly int _uid = 0;
+
+    /// <summary>DIAGNOSTIC: count node allocations. Used by WorklistPullDriver to detect
+    /// fresh-allocation churn during convergence-failure probes.</summary>
+    public static int DiagAllocCount => _interlockedId;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registered = false)
@@ -69,23 +77,28 @@ public class TicNode {
     #region Ancestors
 
     /// <summary>
-    /// Deduplicate ancestor edges. With true graph cycles in named recursive types, the same
-    /// root node's field can receive O(N) duplicate AddAncestor calls from N literal-struct
-    /// call sites (all sharing the cycle root); without deduplication, _ancestors grows as
-    /// O(N), each Pull iterates all entries → O(N²) Pull cost on AccessChain(N).
-    /// PERF: ~8% on Simple|Build for non-recursive code — pays for safety on cyclic graphs.
-    /// Targeted dedup at specific call sites was attempted (commit history) but proved too
-    /// risky given the number of sites that can introduce duplicates during recursive
-    /// resolution (Pull/Push/SetCall/MergeRefs paths). Reverted to global dedup for
-    /// correctness; further perf wins should come from reducing M2-B unconditional overhead
-    /// (IsContractiveCycleHead allocations, FreezeFunctionSignatureStructs, etc.).
+    /// Deduplicate ancestor edges. Cycles in named recursive types can trigger O(N) duplicate
+    /// AddAncestor calls onto the cycle root — without dedup, each Pull becomes O(N²).
     /// </summary>
     public void AddAncestor(TicNode node) {
         if(node == this)
             AssertChecks.Panic("Circular ancestor 0");
         for (int i = 0; i < _ancestors.Count; i++)
             if (_ancestors[i] == node) return;
+        // Coinductive closure (worklist Pull only): re-emitting a pair whose edge was
+        // already consumed by Pull decomposition this run is redundant — and on
+        // μ-recursive knots it is the source of a non-terminating add/remove cycle.
+        // See WorklistPullDriver.MarkDischarged.
+        if (WorklistPullDriver.IsDischarged(this, node))
+            return;
         _ancestors.Add(node);
+        // Worklist Pull hook (debt #10): edge addition re-fires Pull on `this`.
+        // No-op when driver inactive (default). Skip when `this` is an element of an
+        // Optional — re-Pull on freshly-allocated inners drives the tower-of-wraps
+        // cycle (WorklistPull_ConvergenceAnalysis.md wave-2.6). Their constraint
+        // propagation goes through the outer Optional's element via the State setter.
+        if (!IsOptionalElement)
+            WorklistPullDriver.Enqueue(this);
     }
 
     public void AddAncestors(IEnumerable<TicNode> nodes) {
@@ -113,27 +126,67 @@ public class TicNode {
 
     public bool IsMemberOfAnything { get; set; }
     /// <summary>
-    /// True if this node is the element of a StateOptional composite.
-    /// Used by PropagateOptionalUpward to avoid double-wrapping: if a node is already
-    /// the element of opt(T), wrapping it again would create opt(opt(T)).
+    /// True iff this node is the element of a <see cref="StateOptional"/>. Gates
+    /// PropagateOptionalUpward to prevent <c>opt(opt(T))</c>.
     /// </summary>
     internal bool IsOptionalElement { get; set; }
+
     /// <summary>
-    /// True if this node's composite shape comes from a function signature parameter.
-    /// Prevents Optional wrapping: Opt(T) ≤ T is invalid for signature-given types.
+    /// True iff this node's composite shape is a function signature parameter.
+    /// Set in SetCallArgument(composite) and <see cref="GraphBuilder.SetCall(StateFun, int[])"/>.
+    /// Read by <c>WrapAncestorInOptional</c> to reject <c>Opt(T) ≤ T</c> — signature shape is rigid.
     /// </summary>
     internal bool IsSignatureParam { get; set; }
 
     /// <summary>
-    /// Witness flag certifying that this node is the head of a contractive μ-cycle
-    /// (Cardelli–Mitchell '89 §3 contractivity: every back-edge crosses a type constructor).
-    /// Set by the SCC driver after a cyclic SCC has been verified contractive. Downstream cycle
-    /// checks (ThrowIfRecursiveTypeDefinition, runtime Fit, coinductive Equals) treat this node
-    /// as a contractive boundary — equivalent to <c>cs.StructBound != null</c> for
-    /// short-circuiting purposes. Per Pottier–Rémy '92, μ-types are properties of the constraint
-    /// graph, not first-class AST objects.
+    /// Negative-skolem flag (Pottier-Rémy ATTAPL §10.7): rigid signature element that REJECTS
+    /// the implicit lift <c>T ≤ opt(T)</c>. Set on the U-node in <c>SetCoalesce</c> and
+    /// <c>SetForceUnwrap</c>, where the outer Optional shell sits at the input and U must never
+    /// absorb an Optional layer. Distinct from <see cref="IsSignatureParam"/> (generic params
+    /// like <c>wrap: T → opt(T)</c>'s T SHOULD receive IsOptional from None descendants).
+    /// Gates <c>IntersectIntervalsOrNull</c>'s IsOptional OR-fusion.
+    /// </summary>
+    internal bool IsForcedNonOptional { get; set; }
+
+    /// <summary>
+    /// Head of a contractive μ-cycle (Cardelli–Mitchell '89 §3: every back-edge crosses a type
+    /// constructor). Set by the SCC driver after the cycle has been verified contractive.
+    /// Cycle-aware checks treat this node as a contractive boundary, equivalent to
+    /// <c>cs.StructBound != null</c>.
     /// </summary>
     public bool IsContractiveCycleHead { get; set; }
+
+    /// <summary>
+    /// Memo of the inner element node when this node is wrapped from CS into Opt(innerCS).
+    /// Populated ONLY when <see cref="Stages.WorklistPullDriver.IsActive"/> — streaming Pull
+    /// allocates fresh per cell fire as before. Worklist reuses the cached inner to prevent
+    /// fresh-allocation churn on re-entry (debt #10 wave-1).
+    /// </summary>
+    internal TicNode WrapOptionalInner { get; set; }
+
+    /// <summary>
+    /// Memo of the element node created when this node was transformed from CS into a single-arg
+    /// composite (StateArray / single-arg StateCollection). Populated ONLY when worklist driver
+    /// is active. Separate from <see cref="WrapOptionalInner"/> because Opt-wrap and shape-
+    /// transform carry semantically different element constraints (debt #10 wave-2).
+    /// </summary>
+    internal TicNode TransformElementInner { get; set; }
+
+    /// <summary>
+    /// Pottier-Rémy decision/edit split (ATTAPL §10.7) applied at the
+    /// <c>Apply(StateCompositeConstraints, ConstraintsState)</c> defer-accept site.
+    /// When that cell decides to accept silently (CS Descendant is empty, no composite
+    /// has been narrowed downstream yet), it records the ancestor <see cref="TicNode"/>
+    /// here. Later, when this node's <c>State</c> transitions out of an empty / wider CS
+    /// into a narrowed CS or a composite, the State setter walks this list and
+    /// <see cref="WorklistPullDriver.Enqueue"/>s each ancestor so that
+    /// <c>Apply(StateCompositeConstraints, *)</c> re-fires with the freshly-narrowed
+    /// descendant and back-propagates the element shape into the compCs ancestor.
+    /// Populated ONLY when <see cref="WorklistPullDriver.IsActive"/>. Lazy-allocated
+    /// to keep TicNode memory near baseline for nodes that never hit defer-accept
+    /// (the common case). Closes debt #10 worklist Pull family Bug47/49.
+    /// </summary>
+    internal SmallList<TicNode> PendingCompCsDeferredAccept { get; set; }
 
     public bool IsSolved => _state.IsSolved;
     public bool IsMutable => _state.IsMutable;
@@ -144,22 +197,16 @@ public class TicNode {
         set
         {
             Debug.Assert(value != null);
-            // Allowed mutations of a "solved" state (IsMutable=false):
-            //  1. value.Equals(_state) — no-op idempotent.
-            //  2. StateRefTo — graph-level redirection (rewiring).
-            //  3. StateOptional over composite _state — implicit-lift wrap T ≤ opt(T)
-            //     (Universal algebraic postulate per TicTypeSystem §Optional). The wrap
-            //     creates innerNode holding _state by reference, so structural identity
-            //     (TypeName, IsOptionalSourced) survives — only an Optional layer is added.
-            //  4. _state is anonymous StateStruct — anonymous structs carry no nominal
-            //     identity to preserve, so row-poly merges, LiftMuTypes promotion to
-            //     CS{StructBound}, and field-by-field refinement may all replace it.
-            //     WORKAROUND: this 4th clause is wider than strictly necessary — it
-            //     accepts any `value` for an anonymous-struct _state rather than enumerating
-            //     the three legitimate transitions (struct→struct, struct→CS{StructBound},
-            //     struct→StateRefTo). Narrowing it would re-trigger the BugC_LcaOfRecursiveVarsInArray
-            //     assertion failure that surfaced when Phase 1 of #108 flipped anonymous-
-            //     solved structs to IsMutable=false. Tracked in TicTechnicalDebt.md.
+            // Snapshot for the worklist Pull monotonicity gate at the end of
+            // this setter — see comment near the Enqueue call below.
+            var oldState = _state;
+            // Allowed transitions out of a solved (IsMutable=false) state:
+            //  1. idempotent (Equals).
+            //  2. StateRefTo — graph rewire.
+            //  3. StateOptional over composite — implicit lift T ≤ opt(T) (TicTypeSystem §Optional).
+            //  4. anonymous StateStruct — row-poly merges + LiftMuTypes promotion to CS{StructBound}.
+            //     WORKAROUND: clause (4) is wider than the three legitimate transitions; narrowing
+            //     re-triggers BugC_LcaOfRecursiveVarsInArray. Tracked in specs_tic/TechnicalDebt.md #18.
             Debug.Assert(_state == null || IsMutable || value.Equals(_state)
                 || value is StateRefTo
                 || (value is StateOptional && _state is ICompositeState)
@@ -171,8 +218,7 @@ public class TicNode {
             {
                 optional.ElementNode.IsMemberOfAnything = true;
                 optional.ElementNode.IsOptionalElement = true;
-                // Flatten nested optionals at assignment time: opt(opt(T)) → opt(T)
-                // NFun doesn't support nested optionals, so any nesting is a solver artifact
+                // Flatten opt(opt(T)) → opt(T): nested Optional is a solver artifact.
                 var innerNonRef = optional.ElementNode.GetNonReference();
                 if (innerNonRef.State is StateOptional innerOpt)
                 {
@@ -184,20 +230,13 @@ public class TicNode {
             else if (value is StateRefTo refTo && refTo.Node == this)
             {
                 TraceLog.WriteLine($"  Skip self-referencing node {Name}");
-                return; // Skip self-referencing (occurs with recursive struct types)
+                return; // self-ref arises with recursive struct types
             }
-            // If assigning an opt-sourced struct state would close a non-contractive cycle (one
-            // of the struct's fields reaches this very node via composite traversal without an
-            // Optional/Array break), restore the Optional break by wrapping the new state in
-            // StateOptional. Yields the principal iso-recursive type μX. opt(struct{…X…})
-            // instead of an invalid struct→struct loop. The IsOptionalSourced gate (set by
-            // SetSafeFieldAccess and preserved through merges) distinguishes inferred recursion
-            // through `?.` from a declared `type t = {self:t}` which must error.
-            // Gate order: StructSubgraphIsOptSourced short-circuits on `ns.IsOptionalSourced`
-            // (O(1)) and on a non-opt-sourced subgraph (single field walk, no recursion into
-            // unrelated nodes). StructHasFieldReaching walks the struct's reachable subgraph
-            // looking for `this` — the more expensive predicate, evaluated only when the
-            // cheaper one already classified the struct as opt-sourced.
+            // Assigning an opt-sourced struct that closes a non-contractive cycle through `this`:
+            // restore the Optional break by wrapping in StateOptional. Yields the principal
+            // iso-recursive type μX. opt(struct{…X…}) instead of an invalid struct→struct loop.
+            // IsOptionalSourced (set by SetSafeFieldAccess) distinguishes inferred `?.` recursion
+            // from declared <c>type t = {self:t}</c> (the latter must error).
             if (value is StateStruct ns
                 && SolvingFunctions.StructSubgraphIsOptSourced(ns)
                 && SolvingFunctions.StructHasFieldReaching(ns, this))
@@ -207,7 +246,73 @@ public class TicNode {
                 value = new StateOptional(inner);
             }
             _state = value;
+            // Pottier-Rémy decision/edit split drain (ATTAPL §10.7). When `this`
+            // tightens IN A WAY THE DEFERRED COMPCS CARES ABOUT, re-Pull `this`
+            // so its outgoing edge into the deferred ancestor re-fires the
+            // compCs Apply with the now-resolved descendant shape.
+            //
+            // The compCs Apply(StateCompositeConstraints, ConstraintsState) cell
+            // (PullConstraintsFunctions.cs:611-645) only makes progress when the
+            // descendant's CS has either:
+            //   - acquired a HasDescendant (StateCollection / StateArray /
+            //     primitive None), or
+            //   - transitioned into an ICompositeState directly.
+            // Other transitions (Ancestor tightening, Preferred propagation,
+            // IsOptional, StructBound) do not change the compCs cell's outcome
+            // — gating on those would enqueue endlessly through μ-recursive
+            // struct cycles (debt #10 attempt #1 regression, Round4
+            // RecStruct_HOFArg).
+            //
+            // Closes Bug47/49 family while keeping μ-recursive struct
+            // convergence intact.
+            if (WorklistPullDriver.IsActive
+                && _ancestors.Count > 0
+                && value is not StateRefTo) {
+                bool descendantShapeAcquired = TransitionAcquiredDescendantShape(oldState, value);
+                if (descendantShapeAcquired) {
+                    bool anyPending = (PendingCompCsDeferredAccept != null && PendingCompCsDeferredAccept.Count > 0);
+                    if (!anyPending) {
+                        for (int i = 0; i < _ancestors.Count; i++) {
+                            var anc = _ancestors[i];
+                            if (anc.PendingCompCsDeferredAccept != null && anc.PendingCompCsDeferredAccept.Count > 0) {
+                                anyPending = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (anyPending)
+                        WorklistPullDriver.Enqueue(this);
+                }
+            }
         }
+    }
+
+    /// <summary>
+    /// True iff the state transition produced a new "descendant shape" — i.e., it
+    /// would alter the outcome of <c>Apply(StateCompositeConstraints, ConstraintsState)</c>
+    /// at <c>PullConstraintsFunctions.cs:611</c>. Used to gate the worklist-Pull
+    /// re-enqueue at the State setter so μ-recursive struct cycles (whose state
+    /// thrashes through ancestor tightening / preferred propagation but never
+    /// acquires a composite descendant shape) don't blow the drain budget.
+    /// </summary>
+    private static bool TransitionAcquiredDescendantShape(ITicNodeState oldState, ITicNodeState newState) {
+        // Becoming a composite directly is always a shape acquisition.
+        if (newState is SolvingStates.ICompositeState) {
+            // Already a (same-class) composite? — shape unchanged.
+            if (oldState is SolvingStates.ICompositeState) return false;
+            return true;
+        }
+        // CS → CS: only the Descendant slot matters to Apply(compCs, CS).
+        if (newState is SolvingStates.ConstraintsState newCs) {
+            if (oldState is not SolvingStates.ConstraintsState oldCs) {
+                // null → CS counts only if Descendant present.
+                return newCs.HasDescendant;
+            }
+            // HasDescendant transition false → true is the shape-acquisition signal.
+            if (!oldCs.HasDescendant && newCs.HasDescendant) return true;
+            return false;
+        }
+        return false;
     }
 
     public object Name { get; }
@@ -286,11 +391,10 @@ public class TicNode {
     public TicNode GetNonReference() {
         if (State is not StateRefTo refTo)
             return this;
-        // Path compression: find root, then flatten chain
+        // Union-find path compression.
         var root = refTo.Node;
         while (root.State is StateRefTo nextRef)
             root = nextRef.Node;
-        // Compress: point directly to root (skip intermediate nodes)
         if (refTo.Node != root)
             State = new StateRefTo(root);
         return root;
@@ -301,9 +405,7 @@ public class TicNode {
     public void ClearAncestors() => _ancestors.Clear();
 
     /// <summary>
-    /// If this node has nested optional state opt(opt(T)), flatten to opt(T).
-    /// Bypasses the normal state setter assertion since the node may already be solved.
-    /// NFun doesn't support nested optionals — any nesting is a solver artifact.
+    /// Flatten <c>opt(opt(T)) → opt(T)</c>, bypassing the state-setter assertion (node may be solved).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void FlattenNestedOptional() {

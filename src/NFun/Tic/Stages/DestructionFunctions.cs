@@ -22,8 +22,7 @@ public class DestructionFunctions : IStateFunction {
                 : ancestor;
             if (descendant.IsOptional && resolved != StatePrimitive.None) {
                 descendantNode.State = StateOptional.Of(resolved);
-                // Remove stale edge: state changed to composite (StateOptional),
-                // re-processing would hit Apply(Prim, Composite) → IncompatibleNodes.
+                // State changed to composite — drop edge before it re-fires as Prim→Composite.
                 descendantNode.RemoveAncestor(ancestorNode);
             }
             else
@@ -34,17 +33,10 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // StateFun's Destruction calls `Destruction(ancestor.RetNode, descendant.RetNode)`
-        // with positional args (descendantNode=ancestor.RetNode, ancestorNode=descendant.RetNode)
-        // — semantically inverted from intuitive (anc,desc) order. When the actual return-type
-        // relation is `None ≤ opt(T)` (e.g. `rule none` body fed into `rule()->T?` field with
-        // the body wrapped in a struct under an Optional declaration), this swap surfaces here
-        // as `ancestor=None, descendant=opt(T)`. The lift `None ≤ opt(T)` is algebraically
-        // valid; accept silently to honor the inversion.
+        // None ≤ opt(T) lift — surfaces here through StateFun ret-node positional inversion.
         if (ancestor == StatePrimitive.None && descendant is StateOptional)
             return true;
-        // Composite can only fit into Any. However, during Optional solving, Optional element
-        // nodes may temporarily have Optional state before Destruction resolves them.
+        // IsOptionalElement bypass: Optional element nodes may carry Optional state mid-resolve.
         if (!descendant.CanBePessimisticConvertedTo(ancestor) && !descendantNode.IsOptionalElement)
             throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
         return true;
@@ -52,8 +44,7 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // None ≤ opt(T): no-op. None adds no information to an Optional constraint.
-        // MaterializeOptionalFlags resolves the final type after all branches are processed.
+        // None ≤ opt(T): no-op. MaterializeOptionalFlags resolves later.
         if (descendant == StatePrimitive.None && ancestor.IsOptional)
             return true;
         if (ancestor.CanBeConvertedTo(descendant)) {
@@ -69,19 +60,26 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // When ancestor is Optional and descendant is not, wrap as opt(descendant)
-        // instead of flat-merging. This mirrors Apply(CS, StatePrimitive) which already
-        // does StateOptional.Of(descendant) for non-None primitives.
-        // Without this, a subsequent None descendant would collapse the flat-merged
-        // ConstraintsState to None, losing the Optional semantic.
+        // Wrap as opt(descendant) instead of flat-merging; otherwise a later None
+        // descendant would collapse the merged CS, losing Optional.
         if (ancestor.IsOptional && !descendant.IsOptional)
         {
+            // Contractivity (Amadio-Cardelli '93 §3): T ≤ opt(T) is trivial when
+            // descendant alias-equals the node we'd wrap — wrapping yields μX.opt(X).
+            // Mirrors StagesExtension.WrapAncestorInOptional.
+            if (ReferenceEquals(descendantNode.GetNonReference(), ancestorNode))
+            {
+                descendantNode.RemoveAncestor(ancestorNode);
+                return true;
+            }
             ancestorNode.State = new StateOptional(descendantNode);
             descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
 
-        var result = ancestor.MergeOrNull(descendant);
+        // Pass ancestorNode so IntersectIntervalsOrNull's IsOptional OR-gate fires for
+        // negative-skolem and IsOptionalElement carriers.
+        var result = ancestor.MergeOrNull(descendant, ancestorNode);
         if (result == null)
             return false;
 
@@ -91,11 +89,22 @@ public class DestructionFunctions : IStateFunction {
             return true;
         }
 
+        // Split T_inner = ancestor, T_outer = opt(ancestor) when OR-gate suppressed
+        // descendant's Optional — a plain RefTo would erase it.
+        // See specs_tic/TechnicalDebt.md §Closed (#17).
+        bool descendantHadSuppressedOpt =
+            ancestorNode.IsForcedNonOptional
+            && (descendant.IsOptional || descendant.Descendant is StateOptional)
+            && result is ConstraintsState rcs
+            && !rcs.IsOptional;
+
         if (ancestorNode.Type == TicNodeType.TypeVariable ||
             descendantNode.Type != TicNodeType.TypeVariable)
         {
             ancestorNode.State = result;
-            descendantNode.State = new StateRefTo(ancestorNode);
+            descendantNode.State = descendantHadSuppressedOpt
+                ? (ITicNodeState)new StateOptional(ancestorNode)
+                : new StateRefTo(ancestorNode);
         }
         else
         {
@@ -109,18 +118,29 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        // Rigidity for `??` element: when ancestor is marked IsSignatureParam
+        // (set by SetCoalesce on U) and descendant is Optional, redirect
+        // ancestor to the descendant's INNER element instead of the descendant
+        // itself. This implements the algebraic rule "?? unwraps Optional" at
+        // the destruction layer: U must not absorb the descendant's Optional
+        // outer (BugHunt-stmt #50). Pure Pull-time rigidity is insufficient
+        // because the descendant only becomes Optional during Destruction.
+        if (ancestorNode.IsSignatureParam && descendant is StateOptional descOpt) {
+            ancestorNode.State = new StateRefTo(descOpt.ElementNode);
+            descendantNode.RemoveAncestor(ancestorNode);
+            return true;
+        }
         // RefTo short-circuit is legal only when the descendant COVERS the accumulated
         // join (ancestor.Descendant): resolving `anc := ref(desc)` equates the result
         // with ONE contributor. If the join carries an Optional axis the descendant
         // lacks (if-else with a none-branch: join elem [U8..]?I32!, then-branch elem
         // [U8..]I32!), the short-circuit silently drops the `?` — fall through to the
-        // recovery paths below instead. Ported from lang-mutable-collections.
+        // snapshot-recursion below instead, which resolves by the join itself.
         if (descendant.FitsInto(ancestor)
             && !(ancestor.HasDescendant
                  && JoinCarriesOptionalBeyond(ancestor.Descendant, descendant, 0)))
         {
             if (ancestor.IsOptional) {
-                // Wrap in Optional: ancestor becomes opt(descendant)
                 var innerNode = TicNode.CreateTypeVariableNode(
                     "e" + ancestorNode.Name + "'", new StateRefTo(descendantNode));
                 ancestorNode.State = new StateOptional(innerNode);
@@ -133,34 +153,9 @@ public class DestructionFunctions : IStateFunction {
 
         TraceLog.WriteLine($"{descendant} does not fit into {ancestor}");
 
-        // WORKAROUND: stale Pull snapshot. Desc-snapshot created in Phase 1, but Phase 2
-        // wraps elements in Optional. Snapshot diverges from actual descendant.
-        // Root cause: temporal gap in two-phase Pull. Clean fix: single-pass Pull or snapshot refresh.
-        // When actual descendant has Optional-wrapped elements that snapshot doesn't know about:
-        if (DescendantHasOptionalLift(ancestor.Descendant, descendant))
-        {
-            ancestorNode.State = new StateRefTo(descendantNode);
-            descendantNode.RemoveAncestor(ancestorNode);
-            return true;
-        }
-
-        // WORKAROUND: reverse stale snapshot. Snapshot has Optional elements that actual doesn't
-        // (e.g., snapshot arr(opt(U8)) from IsOptional LCA, actual arr(U8)).
-        // Same root cause as above. Use snapshot and destruct element-by-element.
-        if (ancestor.Descendant is StateArray ancArr && descendant is StateArray descArr
-            && ancArr.Element is StateOptional && descArr.Element is not StateOptional)
-        {
-            TraceLog.WriteLine($"  Reverse Optional lift: snapshot={ancestor.Descendant}, actual={descendant}");
-            ancestorNode.State = ancestor.Descendant;
-            descendantNode.RemoveAncestor(ancestorNode);
-            return Apply(ancArr, descArr, ancestorNode, descendantNode);
-        }
-
         if (descendant.GetType() == ancestor.Descendant?.GetType())
         {
-            // Use the snapshot type and recursively destruct element-by-element.
-            // Preserve Optional wrapper when ancestor has IsOptional flag.
-            // Pass innerNode (not ancestorNode) to recursive Apply so it doesn't overwrite the Optional.
+            // Recurse via snapshot. innerNode (not ancestorNode) preserves the Optional wrapper.
             TicNode destructTarget;
             if (ancestor.IsOptional)
             {
@@ -184,6 +179,8 @@ public class DestructionFunctions : IStateFunction {
                     Apply((StateStruct)ancestor.Descendant, @struct, destructTarget, descendantNode),
                 StateOptional opt =>
                     Apply((StateOptional)ancestor.Descendant, opt, destructTarget, descendantNode),
+                StateCollection coll =>
+                    Apply((StateCollection)ancestor.Descendant, coll, destructTarget, descendantNode),
                 _ => throw new NotSupportedException($"type {descendant} is not supported for destruction")
             };
         }
@@ -192,17 +189,66 @@ public class DestructionFunctions : IStateFunction {
         return true;
     }
 
+    /// <summary>
+    /// True iff <paramref name="join"/> carries an Optional axis (opt(·) or CS with
+    /// IsOptional) at some structural position where <paramref name="target"/> does
+    /// not. Used to gate the RefTo short-circuit above: `anc := ref(target)` would
+    /// silently erase that axis. None on the target side counts as optional (it IS
+    /// the bottom of the Optional axis).
+    /// </summary>
+    private static bool JoinCarriesOptionalBeyond(ITicNodeState join, ITicNodeState target, int depth)
+        => JoinCarriesOptionalBeyond(join, target, depth, null);
+
+    private static bool JoinCarriesOptionalBeyond(
+        ITicNodeState join, ITicNodeState target, int depth,
+        HashSet<(ITicNodeState, ITicNodeState)> visited) {
+        if (depth > 100) return false;
+        if (join is StateRefTo jr) join = jr.Node.GetNonReference().State;
+        if (target is StateRefTo tr) target = tr.Node.GetNonReference().State;
+
+        // μ-recursive states form cyclic graphs with branching (left/right tree
+        // fields) — a coinductive visited-pair set keeps the walk linear; a depth
+        // guard alone makes it exponential. Reference identity: structural Equals
+        // on μ-states is itself recursive and StateCollection hashes collide.
+        visited ??= new HashSet<(ITicNodeState, ITicNodeState)>(RefPairComparer.Instance);
+        if (!visited.Add((join, target)))
+            return false; // cycle re-entered — coinductively no new axis
+
+        bool joinOpt = join is StateOptional || join is ConstraintsState { IsOptional: true };
+        bool targetOpt = target is StateOptional
+                         || target is ConstraintsState { IsOptional: true }
+                         || target == StatePrimitive.None;
+        if (joinOpt && !targetOpt)
+            return true;
+
+        // Descend pairwise through matching constructors (unwrap matched Optional).
+        if (join is StateOptional jo && target is StateOptional to2)
+            return JoinCarriesOptionalBeyond(jo.Element, to2.Element, depth + 1, visited);
+        if (join is StateArray ja && target is StateArray ta)
+            return JoinCarriesOptionalBeyond(ja.Element, ta.Element, depth + 1, visited);
+        if (join is StateCollection jc && target is StateCollection tc && jc.Constructor == tc.Constructor)
+            return JoinCarriesOptionalBeyond(jc.Element, tc.Element, depth + 1, visited);
+        if (join is StateStruct js && target is StateStruct ts) {
+            foreach (var jf in js.Fields) {
+                var tf = ts.GetFieldOrNull(jf.Key);
+                if (tf == null) continue;
+                if (JoinCarriesOptionalBeyond(
+                        jf.Value.GetNonReference().State, tf.GetNonReference().State, depth + 1, visited))
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
         if (ancestor is StateOptional opt)
         {
             if (descendant.Name != PrimitiveTypeName.None)
             {
-                // T ≤ opt(T): constrain the Optional's element with T
                 SolvingFunctions.Destruction(descendantNode, opt.ElementNode);
                 descendantNode.RemoveAncestor(ancestorNode);
             }
 
-            // None ≤ opt(T) is always valid (no-op)
             return true;
         }
 
@@ -211,9 +257,8 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ICompositeState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // When ancestor is Optional and descendant has IsOptional, materialize descendant
-        // to Optional and do element-level destruction. Guard against cycles: if ancestor's
-        // element chain leads back to descendantNode, use ancestor edge instead of recursive Apply.
+        // Materialize IsOptional descendant to opt(inner), then element-level destruct.
+        // Cycle guard: if ancestor's element chains back to descendant, use the ancestor edge.
         if (ancestor is StateOptional ancOptEarly && descendant.IsOptional)
         {
             var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
@@ -222,16 +267,13 @@ public class DestructionFunctions : IStateFunction {
                 "e" + descendantNode.Name + "'", innerCs);
             descendantNode.State = new StateOptional(innerNode);
             descendantNode.RemoveAncestor(ancestorNode);
-            // Check for cycle: does ancestor element resolve to descendantNode?
             var ancElem = ancOptEarly.ElementNode.GetNonReference();
             if (ancElem == descendantNode || ancElem == innerNode) {
-                // Cycle — connect via ancestor edge instead of recursive Apply
                 if (ancElem.IsSolved)
                     innerNode.State = ancElem.State;
                 else
                     innerNode.AddAncestor(ancElem);
             } else {
-                // No cycle — safe to do element-level destruction
                 Apply(ancOptEarly, (StateOptional)descendantNode.State, ancestorNode, descendantNode);
             }
             return true;
@@ -249,8 +291,7 @@ public class DestructionFunctions : IStateFunction {
         else if (ancestor is StateStruct ancStruct
                  && descendant.HasDescendant && descendant.Descendant is StateStruct)
         {
-            // Transform descendant constrains to struct, then destruct field-by-field.
-            // Preserve IsOptional: if the constraint was Optional, wrap result in Optional.
+            // Transform to struct; preserve outer Optional when descendant.IsOptional.
             var descStruct = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
             if (descStruct != null)
             {
@@ -260,7 +301,6 @@ public class DestructionFunctions : IStateFunction {
                     var optState = new StateOptional(innerNode);
                     descendantNode.State = optState;
                     descendantNode.RemoveAncestor(ancestorNode);
-                    // Destruct inner struct with ancestor
                     SolvingFunctions.Destruction(innerNode, ancestorNode);
                 } else {
                     descendantNode.State = descStruct;
@@ -277,7 +317,7 @@ public class DestructionFunctions : IStateFunction {
         {
             if (descendant.HasDescendant && descendant.Descendant is StateOptional)
             {
-                var descOpt = SolvingFunctions.TransformToOptionalOrNull(descendantNode.Name, descendant);
+                var descOpt = SolvingFunctions.TransformToOptionalOrNull(descendantNode, descendantNode.Name, descendant);
                 if (descOpt != null)
                 {
                     descendantNode.State = descOpt;
@@ -291,8 +331,7 @@ public class DestructionFunctions : IStateFunction {
             }
             else if (descendant.IsOptional)
             {
-                // Descendant has IsOptional flag — materialize to Optional, then
-                // do element-level destruction (opt vs opt).
+                // IsOptional descendant: materialize to opt(inner), then opt-vs-opt destruct.
                 var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
                 innerCs.Preferred = descendant.Preferred;
                 var innerNode = TicNode.CreateTypeVariableNode(
@@ -303,7 +342,6 @@ public class DestructionFunctions : IStateFunction {
             }
             else
             {
-                // Implicit lift: T ≤ opt(T). Destruct descendant with Optional's element.
                 SolvingFunctions.Destruction(descendantNode, ancOpt.ElementNode);
                 descendantNode.RemoveAncestor(ancestorNode);
             }
@@ -311,18 +349,11 @@ public class DestructionFunctions : IStateFunction {
         else
         {
             TraceLog.WriteLine($"{ancestor} does not fit into {descendant}");
-            // Genuine incompatibility: ancestor composite (e.g. arr(Ch))
-            // cannot fit into descendant CS's interval, and no
-            // optional/struct/snapshot rescue branch matched. Per professor's
-            // analysis (BugHunt #75): silent `return true` here let TIC
-            // commit a bogus type (function inferred `(int)->arr(Ch)` from
-            // `f(x) = if(x==0) 'a' else x`) which then silently coerces
-            // values via `VarTypeConverter.ToText` at the call site.
-            // DestructionRec ignores the bool return — must throw explicitly.
-            // Reject only when the descendant CS has a concrete upper bound
-            // (`Ancestor`) that genuinely excludes the composite — that's the
-            // case where Destruction has no algebraic solution. Other cases
-            // (unconstrained descendant) stay silent-true for back-compat.
+            // Reject only when descendant CS has a concrete Ancestor cap that
+            // excludes the composite. DestructionRec ignores bool return —
+            // a silent `return true` here lets TIC commit a bogus type that
+            // VarTypeConverter then coerces at runtime, so throw explicitly.
+            // Unconstrained-descendant cases stay silent-true for back-compat.
             if (descendant.HasAncestor && descendant.Ancestor != null
                 && !ancestor.FitsInto(descendant.Ancestor))
                 throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
@@ -337,19 +368,62 @@ public class DestructionFunctions : IStateFunction {
     public bool Apply(StateArray ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) =>
         SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
 
+    /// <summary>Destruction for unified single-arg invariant collections.
+    /// Element MergeInplace is the invariance rejection channel — Pull/Push
+    /// (covariant-style) cannot deliver it alone.</summary>
+    public bool Apply(StateCollection ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (ancestor.Constructor != descendant.Constructor)
+        {
+            if (!IsArrayBranchKind(ancestor.Constructor)
+                || !IsArrayBranchKind(descendant.Constructor)
+                || !IsSubtypeOrEqual(descendant.Constructor, ancestor.Constructor))
+                return false;
+            // Cross-kind at Destruction: MergeInplace requires invariance and crashes
+            // when ElementNodes hold cross-kind solved collections. Recursive
+            // Destruction routes same-kind through MergeInplace, cross-kind recurses.
+            return SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
+        }
+        if (descendant.ElementNode != ancestor.ElementNode)
+            SolvingFunctions.MergeInplace(descendant.ElementNode, ancestor.ElementNode);
+        return true;
+    }
+
+    private static bool IsSubtypeOrEqual(ConstructorKind sub, ConstructorKind sup) {
+        if (sub == sup) return true;
+        if (sup == ConstructorKind.Array && sub == ConstructorKind.List) return true;
+        if (sup == ConstructorKind.FixedArray
+            && (sub == ConstructorKind.Array || sub == ConstructorKind.List))
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Cross-family Destruction: Array-branch StateCollection (List / Array /
+    /// FixedArray) ≤ legacy StateArray. Covariant element fit. Runtime gap
+    /// closed by <see cref="VarTypeConverter"/> at the call-site cast.
+    /// </summary>
+    public bool Apply(StateArray ancestor, StateCollection descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(descendant.Constructor))
+            return false;
+        return SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
+    }
+
+    public bool Apply(StateCollection ancestor, StateArray descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (!IsArrayBranchKind(ancestor.Constructor))
+            return false;
+        return SolvingFunctions.Destruction(descendant.ElementNode, ancestor.ElementNode);
+    }
+
+    private static bool IsArrayBranchKind(ConstructorKind kind) =>
+        kind == ConstructorKind.List
+        || kind == ConstructorKind.Array
+        || kind == ConstructorKind.FixedArray;
+
     public bool Apply(StateFun ancestor, StateFun descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // Variance: for `desc ≤ anc` on StateFun (function subtyping):
-        //   args contravariant — anc.arg ≤ desc.arg, so call `Destruction(anc.arg, desc.arg)`
-        //   ret  covariant     — desc.ret ≤ anc.ret, so call `Destruction(desc.ret, anc.ret)`
-        // Signature `Destruction(descendantNode, ancestorNode)`: first positional is the
-        // subtype, second is the supertype. The previous wiring inverted both directions
-        // : args called as `Destruction(desc.arg, anc.arg)` (covariant —
-        // wrong), ret called as `Destruction(anc.ret, desc.ret)` (contravariant — wrong).
-        // It usually still worked because in most cases arg/ret nodes are reference-equal after
-        // merge (Destruction line 1438 returns true at identity). But when args/rets have a
-        // genuine T ≤ opt(T) lift on either side (e.g. SafeAccess unwrap+wrap setup wiring),
-        // the inversion surfaced StatePrimitive vs StateOptional mismatch on the wrong side and
-        // threw IncompatibleNodes.
+        // Function subtyping for `desc ≤ anc`:
+        //   args contravariant: Destruction(anc.arg, desc.arg)
+        //   ret  covariant:     Destruction(desc.ret, anc.ret)
+        // Signature is Destruction(subtype, supertype).
         if (ancestor.ArgsCount == descendant.ArgsCount)
             for (int i = 0; i < ancestor.ArgsCount; i++)
                 SolvingFunctions.Destruction(ancestor.ArgNodes[i], descendant.ArgNodes[i]);
@@ -358,36 +432,47 @@ public class DestructionFunctions : IStateFunction {
     }
 
     public bool Apply(StateStruct ancestor, StateStruct descendant, TicNode ancestorNode, TicNode descendantNode) {
-        // MutStruct x MutStruct: invariant fields — use MergeInplace (enforces equality).
+        // MutStruct × MutStruct: invariant (MergeInplace).
+        // MutStruct × Struct: Mut ≤ Frozen (Liskov read-only view) — handled by
+        // the covariant field-by-field branch below.
         bool invariant = ancestor is StateMutableStruct && descendant is StateMutableStruct;
 
-        // Struct cannot fit into MutStruct (immutable cannot be upgraded to mutable)
-        if (ancestor is StateMutableStruct && descendant is not StateMutableStruct)
-            throw Errors.TicErrors.IncompatibleNodes(ancestorNode, descendantNode);
-
-        // Destruct field-by-field: for each ancestor field, find matching descendant field.
         var sameFieldCount = 0;
         foreach (var (key, ancFieldNode) in ancestor.Fields)
         {
             var descFieldNode = descendant.GetFieldOrNull(key);
             if (descFieldNode == null)
-                continue; // descendant may have fewer fields (struct width subtyping)
+                continue; // width subtyping: descendant may have fewer fields
 
             if (invariant)
             {
-                // Invariant: unify fields (must be same type)
+                // Stale-snapshot None ≤ opt(T) lift at invariant fields: Pull Phase 1
+                // snapshots `none` defaults; Phase 2 lifts the other side to opt(T).
+                // Raw MergeInplace would assert "already solved" on the unequal pair.
+                // RefTo redirect preserves the lift. See specs_tic/TechnicalDebt.md §Closed (#5).
+                var ancNr = ancFieldNode.GetNonReference();
+                var descNr = descFieldNode.GetNonReference();
+                if (ancNr.State is StatePrimitive { Name: PrimitiveTypeName.None }
+                    && descNr.State is StateOptional)
+                {
+                    ancNr.State = new StateRefTo(descNr);
+                    sameFieldCount++;
+                    continue;
+                }
+                if (descNr.State is StatePrimitive { Name: PrimitiveTypeName.None }
+                    && ancNr.State is StateOptional)
+                {
+                    descNr.State = new StateRefTo(ancNr);
+                    sameFieldCount++;
+                    continue;
+                }
                 SolvingFunctions.MergeInplace(descFieldNode, ancFieldNode);
                 sameFieldCount++;
                 continue;
             }
 
-            // Stale snapshot lift: ancestor field came from a Pull-Phase-1 snapshot that captured
-            // a `none` default (StatePrimitive.None) before Phase 2 wrapped the corresponding
-            // descendant field in Optional. None ≤ opt(T) is a valid implicit lift; rejecting it
-            // would error on the algebraically-trivial case. Mirrors Pull's "Field 'X': None desc
-            // → skip (handled by outer Optional)" rule. We refresh ancestor's field to RefTo the
-            // descendant's (correctly-inferred) field — otherwise the inferred output type would
-            // still render the stale `k:none` instead of `k:opt(T)`. Same root as
+            // Stale-snapshot None ≤ opt(T) lift (covariant branch).
+            // See specs_tic/TechnicalDebt.md §Closed (#5).
             var ancFieldNr = ancFieldNode.GetNonReference();
             var descFieldNr = descFieldNode.GetNonReference();
             if (ancFieldNr.State is StatePrimitive { Name: PrimitiveTypeName.None }
@@ -402,9 +487,8 @@ public class DestructionFunctions : IStateFunction {
                 sameFieldCount++;
         }
 
-        // Only redirect if all fields match AND field nodes actually resolved to the
-        // same node. This prevents overwriting an LCA result when field types differ
-        // (e.g. I32 ≤ Re both destruct successfully but aren't equal).
+        // Redirect only when field nodes resolved to identical targets — prevents
+        // overwriting an LCA result when types are compatible but unequal.
         if (sameFieldCount == ancestor.FieldsCount && sameFieldCount == descendant.FieldsCount)
         {
             bool fieldsEquivalent = true;
@@ -424,94 +508,71 @@ public class DestructionFunctions : IStateFunction {
         return true;
     }
 
-    /// <summary>
-    /// Checks if the actual descendant composite contains Optional-wrapped elements
-    /// that the stale constraint descendant doesn't (e.g. arr(opt(T)) vs arr(U8)).
-    /// This happens when Phase 2 wraps array/struct elements in Optional after
-    /// the constraint's Descendant was already set. Recurses transitively through
-    /// composite layers — μ-identity preservation
-    /// keeps deeper nesting intact so the lift detection must walk past one level.
-    /// </summary>
-    private static bool DescendantHasOptionalLift(ITicNodeState staleDescendant, ICompositeState actual) =>
-        (staleDescendant, actual) switch {
-            (StateArray staleArr, StateArray actualArr) =>
-                IsOptionalLiftBetween(staleArr.Element, actualArr.Element),
-            (StateStruct staleStr, StateStruct actualStr) =>
-                HasAnyOptionalLiftedField(staleStr, actualStr),
-            _ => false
-        };
+    // StateCompositeConstraints Destruction cells: Concretest then re-dispatch.
 
-    /// <summary>
-    /// Two states differ by Optional-lift if either:
-    /// - actual is Optional and stale is not (the direct case);
-    /// - both are composite of the same kind, and recursively a deeper position
-    ///   shows the same divergence (μ-recursion case: arr(struct{k:opt}) vs arr(struct{k:None})).
-    /// </summary>
-    private static bool IsOptionalLiftBetween(ITicNodeState stale, ITicNodeState actual) {
-        if (actual is StateOptional && stale is not StateOptional)
-            return true;
-        return (stale, actual) switch {
-            (StateArray sa, StateArray aa) => IsOptionalLiftBetween(sa.Element, aa.Element),
-            (StateStruct ss, StateStruct sas) => HasAnyOptionalLiftedField(ss, sas),
-            _ => false
-        };
-    }
+    public bool Apply(StateCompositeConstraints ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => CompCsApply.ApplySameClass(ancestor, descendant, ancestorNode, descendantNode);
 
-    private static bool HasAnyOptionalLiftedField(StateStruct stale, StateStruct actual) {
-        foreach (var (key, actualFieldNode) in actual.Fields) {
-            var staleFieldNode = stale.GetFieldOrNull(key);
-            if (staleFieldNode == null) continue;
-            if (IsOptionalLiftBetween(staleFieldNode.State, actualFieldNode.State))
-                return true;
-        }
+    public bool Apply(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
+        => descendant == StatePrimitive.Any
+           || ConcretiseAndRetryForward(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode)
+        => ancestor == StatePrimitive.Any
+           || ConcretiseAndRetryReverse(ancestor, descendant, ancestorNode, descendantNode);
+
+    public bool Apply(StateCompositeConstraints ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        if (descendant.HasDescendant && descendant.Descendant is StateCollection sc)
+            return CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode);
+        if (descendant.HasDescendant && descendant.Descendant is StateArray sa)
+            return CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true);
         return false;
     }
 
-    /// <summary>
-    /// True iff <paramref name="join"/> carries an Optional axis (opt(·) or CS with
-    /// IsOptional) at some structural position where <paramref name="target"/> does
-    /// not. Used to gate the RefTo short-circuit above: `anc := ref(target)` would
-    /// silently erase that axis. None on the target side counts as optional (it IS
-    /// the bottom of the Optional axis). Coinductive reference-identity visited-pair
-    /// walk — μ-recursive trees with branching make depth-only guards exponential.
-    /// Ported from lang-mutable-collections.
-    /// </summary>
-    private static bool JoinCarriesOptionalBeyond(ITicNodeState join, ITicNodeState target, int depth)
-        => JoinCarriesOptionalBeyond(join, target, depth, null);
-
-    private static bool JoinCarriesOptionalBeyond(
-        ITicNodeState join, ITicNodeState target, int depth,
-        HashSet<(ITicNodeState, ITicNodeState)> visited) {
-        if (depth > 100) return false;
-        if (join is StateRefTo jr) join = jr.Node.GetNonReference().State;
-        if (target is StateRefTo tr) target = tr.Node.GetNonReference().State;
-
-        visited ??= new HashSet<(ITicNodeState, ITicNodeState)>(RefPairComparer.Instance);
-        if (!visited.Add((join, target)))
-            return false; // cycle re-entered — coinductively no new axis
-
-        bool joinOpt = join is StateOptional || join is ConstraintsState { IsOptional: true };
-        bool targetOpt = target is StateOptional
-                         || target is ConstraintsState { IsOptional: true }
-                         || target == StatePrimitive.None;
-        if (joinOpt && !targetOpt)
+    public bool Apply(ConstraintsState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        var concretest = descendant.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) {
+            descendantNode.RemoveAncestor(ancestorNode);
             return true;
-
-        // Descend pairwise through matching constructors (unwrap matched Optional).
-        if (join is StateOptional jo && target is StateOptional to2)
-            return JoinCarriesOptionalBeyond(jo.Element, to2.Element, depth + 1, visited);
-        if (join is StateArray ja && target is StateArray ta)
-            return JoinCarriesOptionalBeyond(ja.Element, ta.Element, depth + 1, visited);
-        if (join is StateStruct js && target is StateStruct ts) {
-            foreach (var jf in js.Fields) {
-                var tf = ts.GetFieldOrNull(jf.Key);
-                if (tf == null) continue;
-                if (JoinCarriesOptionalBeyond(
-                        jf.Value.GetNonReference().State, tf.GetNonReference().State, depth + 1, visited))
-                    return true;
-            }
         }
-        return false;
+        descendantNode.State = concretest;
+        return true;
+    }
+
+    public bool Apply(StateCompositeConstraints ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return descendant switch {
+            StateCollection sc => CompCsApply.ForwardPullCompCsSc(ancestor, sc, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ForwardCompCsStateArray(ancestor, sa, ancestorNode, descendantNode, isPull: true),
+            StateOptional _ => true,
+            StateFun _ => false,
+            StateStruct _ => false,
+            _ => false,
+        };
+    }
+
+    public bool Apply(ICompositeState ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        return ancestor switch {
+            StateCollection sc => CompCsApply.ReversePullScCompCs(sc, descendant, ancestorNode, descendantNode),
+            StateArray sa => CompCsApply.ReverseCompCsStateArray(sa, descendant, ancestorNode, descendantNode, isPull: true),
+            StateOptional _ => true,
+            StateFun _ => false,
+            StateStruct _ => false,
+            _ => false,
+        };
+    }
+
+    private bool ConcretiseAndRetryForward(StateCompositeConstraints ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode) {
+        var concretest = ancestor.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) return false;
+        ancestorNode.State = concretest;
+        return descendant == StatePrimitive.Any;
+    }
+
+    private bool ConcretiseAndRetryReverse(StatePrimitive ancestor, StateCompositeConstraints descendant, TicNode ancestorNode, TicNode descendantNode) {
+        var concretest = descendant.ConcretestCompCs();
+        if (concretest is StateCompositeConstraints) return false;
+        descendantNode.State = concretest;
+        return ancestor == StatePrimitive.Any;
     }
 
     private sealed class RefPairComparer : IEqualityComparer<(ITicNodeState, ITicNodeState)> {

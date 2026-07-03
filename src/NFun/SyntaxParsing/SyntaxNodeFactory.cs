@@ -120,4 +120,45 @@ public static class SyntaxNodeFactory {
 
     public static ISyntaxNode ComparisonChain(IList<ISyntaxNode> operands, IList<Tok> operators) =>
         new ComparisonChainSyntaxNode(operands, operators);
+
+    public static BlockSyntaxNode Block(IReadOnlyList<ISyntaxNode> statements, Interval interval) =>
+        new BlockSyntaxNode(statements, interval);
+
+    public static ReturnSyntaxNode Return(ISyntaxNode expression, Interval interval) =>
+        new ReturnSyntaxNode(expression, interval);
+
+    public static ForSyntaxNode For(string iteratorName, ISyntaxNode collection, ISyntaxNode body, Interval interval) =>
+        new(iteratorName, collection, body, interval);
+
+    public static WhileSyntaxNode While(ISyntaxNode condition, ISyntaxNode body, Interval interval) =>
+        new(condition, body, interval);
+
+    public static WhenSyntaxNode When(ISyntaxNode subject, WhenArmSyntaxNode[] arms, ISyntaxNode elseBody, Interval interval) =>
+        new(subject, arms, elseBody, interval);
+
+    public static WhenArmSyntaxNode WhenArm(ISyntaxNode condition, ISyntaxNode body, int start, int finish) =>
+        new(condition, body, new Interval(start, finish));
+
+    public static BreakSyntaxNode Break(Interval interval) => new(interval);
+
+    public static ContinueSyntaxNode Continue(Interval interval) => new(interval);
+
+    public static PrintSyntaxNode Print(ISyntaxNode expression, Interval interval) =>
+        new(expression, interval);
+
+    public static TryBlockSyntaxNode TryBlock(ISyntaxNode tryBody, ISyntaxNode catchBody,
+        string errorVariableName, ISyntaxNode anywayBody, Interval interval) =>
+        new(tryBody, catchBody, errorVariableName, anywayBody, interval);
+
+    public static IfBlockSyntaxNode IfBlock(IfCaseSyntaxNode[] ifs, ISyntaxNode elseBody, Interval interval) =>
+        new(ifs, elseBody, interval);
+
+    public static FieldAssignmentSyntaxNode FieldAssignment(
+        string variableName, string fieldName,
+        ISyntaxNode source, ISyntaxNode value, Interval interval) =>
+        new(variableName, fieldName, source, value, interval);
+
+    public static IndexedAssignmentSyntaxNode IndexedAssignment(
+        ISyntaxNode target, ISyntaxNode index, ISyntaxNode value, Interval interval) =>
+        new(target, index, value, interval);
 }

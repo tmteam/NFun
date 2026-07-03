@@ -73,7 +73,7 @@ public class GeneralParserTest {
             });
 
     private void AssertParsed(string expr, ISyntaxNode node) {
-        var expectedExpression = SyntaxNodeReader.ReadNodeOrNull(Tokenizer.ToFlow(expr));
+        var expectedExpression = ExpressionParser.ReadNodeOrNull(Tokenizer.ToFlow(expr));
         AssertEquals(expectedExpression, node);
     }
 

@@ -147,7 +147,7 @@ y = tostring(x)", "y", "not supported")]
     [TestCase("y = [1,2,3,4].any() # true", "y", true)]
     [TestCase("y:int[] = [3,1,2,3,4].sort() # [1,2,3,3,4]", "y", new[] { 1, 2, 3, 3, 4 })]
     [TestCase("y:int[] = [1,2,3,4].reverse() #[4,3,2,1]", "y", new[] { 4, 3, 2, 1 })]
-    [TestCase("y:int[] = [0..6].set(3, 42) #[0,1,2,42,4,5,6]", "y", new[] { 0, 1, 2, 42, 4, 5, 6 })]
+    [TestCase("y:int[] = [0..6].setAt(3, 42) #[0,1,2,42,4,5,6]", "y", new[] { 0, 1, 2, 42, 4, 5, 6 })]
     [TestCase("y = [].any() # false", "y", false)]
     [TestCase("y:int[] = 1.repeat(3) # [1,1,1]", "y", new[] { 1, 1, 1 })]
     [TestCase(

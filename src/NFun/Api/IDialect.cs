@@ -72,7 +72,9 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
         ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
-        FloatFamilySupport floatFamilySupport = FloatFamilySupport.AccordingToRealBehaviour) {
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.AccordingToRealBehaviour,
+        bool useMutableStructs = false,
+        bool isLangMode = false) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -84,6 +86,8 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         TryCatchSupport = tryCatchSupport;
         ExtensionFunctionsSeparation = extensionFunctionsSeparation;
         FloatFamilySupport = floatFamilySupport;
+        UseMutableStructs = useMutableStructs;
+        IsLangMode = isLangMode;
     }
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
@@ -96,6 +100,15 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
     public TryCatchSupport TryCatchSupport { get; }
     public ExtensionFunctionsSeparation ExtensionFunctionsSeparation { get; }
     public FloatFamilySupport FloatFamilySupport { get; }
+    /// <summary>When true, struct literals produce StateMutableStruct (invariant field types). Used in lang mode.</summary>
+    public bool UseMutableStructs { get; }
+    /// <summary>
+    /// True for lang-mode scripts (parsed via <c>BuildLang</c>). Drives lang-specific defaults:
+    /// <c>[1,2,3]</c> literal resolves to <c>list&lt;T&gt;</c> (StateCollection.List) instead of
+    /// the ee-mode covariant immutable array (StateArray). Future stages will hang more
+    /// lang-only behavior off this flag.
+    /// </summary>
+    public bool IsLangMode { get; }
 }
 
 /// <summary>

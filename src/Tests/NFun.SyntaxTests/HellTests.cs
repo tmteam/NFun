@@ -71,12 +71,12 @@ public class HellTests {
     public void SomeFun3() =>
         @"   swapIfNotSorted(c, i)
   	                =	if   (c[i]<c[i+1]) c
-  		                else c.set(i, 1)".AssertRuntimes();
+  		                else c.setAt(i, 1)".AssertRuntimes();
 
     [Test]
     public void SomeFun4() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
+  	                        = arr.setAt(i,ival).setAt(j,jval)
 
                           swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
@@ -111,7 +111,7 @@ public class HellTests {
     [Test]
     public void foldOfHiOrder() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
+  	                        = arr.setAt(i,ival).setAt(j,jval)
 
                           swap(arr, i, j)
                             = arr.twiceSet(i,j,arr[j], arr[i])
@@ -128,7 +128,7 @@ public class HellTests {
     [Test]
     public void BubbleSortSemiConcrete() =>
         @"twiceSet(arr,i,j,ival,jval)
-  	                = arr.set(i,ival).set(j,jval)
+  	                = arr.setAt(i,ival).setAt(j,jval)
 
                   swap(arr, i, j)
                     = arr.twiceSet(i,j,arr[j], arr[i])
@@ -179,7 +179,7 @@ public class HellTests {
 
     [Test]
     public void TestEverything() {
-        var expr = @"       twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
+        var expr = @"       twiceSet(arr,i,j,ival,jval) = arr.setAt(i,ival).setAt(j,jval)
 
                           #swap elements i,j in array arr
                           swap(arr, i, j)

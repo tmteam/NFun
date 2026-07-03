@@ -21,6 +21,10 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
                               ITypeState at   => TicNode.CreateTypeVariableNode(at),
                               StateRefTo aRef => aRef.Node,
                               ConstraintsState c => TicNode.CreateInvisibleNode(c),
+                              // Stage C — typeclass-bound generic (Enumerable<T> /
+                              // Mutable<T>) arrives as a CompCs in function
+                              // signatures. Treat it like a generic placeholder.
+                              StateCompositeConstraints cc => TicNode.CreateInvisibleNode(cc),
                               _               => throw new InvalidOperationException()
                           };
         }
@@ -201,11 +205,9 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
 
     public string StateDescription => PrintState(0);
 
-    public override string ToString() {
-        if (ArgsCount == 1)
-            return $"({GetArgType(0)}->{ReturnType})";
-        return $"(({string.Join(",", ArgNodes.Select(a => a.State))})->{ReturnType})";
-    }
+    // Delegate to the depth-guarded printer: interpolating arg/return states directly
+    // recurses forever on μ-recursive functional types (StateFun ↔ CS ToString cycle).
+    public override string ToString() => PrintState(0);
 
     public string Description => $"({string.Join(",", ArgNodes.Select(a => a.Name))})->{RetNode.Name}";
 }

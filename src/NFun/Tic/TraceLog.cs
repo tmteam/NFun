@@ -11,9 +11,9 @@ public class FunnyTraceScope : IDisposable {
 }
 
 /// <summary>
-/// All methods carry [Conditional("DEBUG")]: in Release the C# compiler elides the call
-/// AND the entire argument list at every call site, so $"..." string interpolation costs
-/// nothing in non-debug builds. In DEBUG the IsEnabled flag still gates console output.
+/// All methods are <c>[Conditional("DEBUG")]</c> — Release elides both the call and its
+/// arguments at the call site (zero cost for <c>$"..."</c> interpolation). IsEnabled gates
+/// console output in DEBUG.
 /// </summary>
 public static class TraceLog {
 

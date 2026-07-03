@@ -16,6 +16,8 @@ using NFun.Types;
 
 namespace NFun.Interpretation;
 
+using Topology;
+
 internal static class RuntimeBuilderHelper {
     public static ConcreteUserFunction BuildConcrete(
         this UserFunctionDefinitionSyntaxNode functionSyntax,
@@ -27,6 +29,7 @@ internal static class RuntimeBuilderHelper {
         DialectSettings dialect,
         int[] sharedRecursionDepth = null) {
         var vars = new VariableDictionary(functionSyntax.Args.Count);
+        var argumentSources = new VariableSource[functionSyntax.Args.Count];
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
             var variableSource = CreateVariableSourceForArgument(
@@ -36,6 +39,7 @@ internal static class RuntimeBuilderHelper {
 
             if (!vars.TryAdd(variableSource))
                 throw Errors.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
+            argumentSources[i] = variableSource;
         }
 
         var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
@@ -51,11 +55,22 @@ internal static class RuntimeBuilderHelper {
             bodyExpression,
             functionSyntax.Args.Select(a => a.Id));
 
+        // Locals = block-introduced bindings inside the body (everything in
+        // `vars` that isn't an argument). For recursive functions these need
+        // per-call save/restore so an inner frame doesn't clobber an outer
+        // frame's local slot (see BugHuntStatementsResults #1/#2).
+        var argNames = new HashSet<string>(
+            functionSyntax.Args.Select(a => a.Id), StringComparer.OrdinalIgnoreCase);
+        var localSources = vars.GetAll()
+            .Where(v => !argNames.Contains(v.Name))
+            .ToArray();
+
         var function = ConcreteUserFunction.Create(
             isRecursive: functionSyntax.IsRecursive,
             name: functionSyntax.Id,
-            variables: vars.GetAllAsArray(),
+            variables: argumentSources,
             expression: bodyExpression,
+            localSources: localSources,
             sharedRecursionDepth: sharedRecursionDepth);
         return function;
     }
@@ -105,6 +120,16 @@ internal static class RuntimeBuilderHelper {
         {
             throw Errors.TranslateTicError(e, syntaxTree, graph, functions);
         }
+        catch (NFunImpossibleException e) when (e.Message.StartsWith("Circular ancestor"))
+        {
+            // Self-referential rule literal (`f = rule f(it)`) and similar shapes
+            // hit `TicNode.AddAncestor`'s self-loop guard at build time. Surface
+            // as a typed parse error instead of leaking the internal sanity-check
+            // panic. Bug hunt round 3 #15.
+            throw new NFun.Exceptions.FunnyParseException(
+                870, "Self-referential definition is not allowed",
+                syntaxTree.Interval);
+        }
     }
 
     private static void ThrowIfSomeVariablesNotExistsInTheList(
@@ -112,12 +137,13 @@ internal static class RuntimeBuilderHelper {
         IExpressionNode bodyExpression,
         IEnumerable<string> list) {
 
-        var hasUnknownVariables = variables.GetAll().Any(u=>!list.Contains(u.Name));
+        // Skip block-local variables (Output) — they are created during block expression building
+        var hasUnknownVariables = variables.GetAll().Any(u=> !u.IsOutput && !list.Contains(u.Name));
         if (hasUnknownVariables)
         {
             var unknownVariableUsages = variables
                 .GetAll()
-                .Where(u => !list.Contains(u.Name))
+                .Where(u => !u.IsOutput && !list.Contains(u.Name))
                 .Select(bodyExpression.FindFirstUsageOrNull)
                 .Where(s=>s!=null)
                 .ToList();

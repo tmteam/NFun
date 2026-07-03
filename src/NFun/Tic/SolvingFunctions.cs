@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using NFun.Tic.Algebra;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Stages;
@@ -31,7 +32,8 @@ public static class SolvingFunctions {
     /// coinductive bisimulation). A re-entered pair is treated as "already merged" — the merge
     /// is idempotent under cycle, returning the first state.</para>
     /// </summary>
-    public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB) {
+    public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB,
+        TicNode resultOwnerNode = null) {
         // Cycle guard for true graph cycles (Pottier-Rémy '05): RefTo→root→RefTo… recursion would
         // overflow on cyclic types. Coinductive bisimulation: assume already-visited pair
         // "merges" to the first state (idempotent merge under cycle).
@@ -66,8 +68,34 @@ public static class SolvingFunctions {
         switch (stateA)
         {
             case StateArray arrayA when stateB is StateArray arrayB:
-                MergeInplace(arrayA.ElementNode, arrayB.ElementNode);
-                return arrayA;
+                return MergeCollectionsWithCycleGuard(stateA, stateB, arrayA.ElementNode, arrayB.ElementNode, arrayA);
+            // Stage 0 hierarchy: any Array-branch StateCollection (List / Array /
+            // FixedArray) fits into the legacy StateArray slot. The merge keeps
+            // the StateCollection identity (narrower-Constructor wins —
+            // `Specs/Tic/ConstructorLattice.md` §Cross-kind merge identity).
+            case StateArray arrayA2 when stateB is StateCollection collArrB
+                && (collArrB.Constructor == ConstructorKind.List
+                 || collArrB.Constructor == ConstructorKind.Array
+                 || collArrB.Constructor == ConstructorKind.FixedArray):
+                return MergeCollectionsWithCycleGuard(stateA, stateB, arrayA2.ElementNode, collArrB.ElementNode, collArrB);
+            case StateCollection collArrA when stateB is StateArray arrayB2
+                && (collArrA.Constructor == ConstructorKind.List
+                 || collArrA.Constructor == ConstructorKind.Array
+                 || collArrA.Constructor == ConstructorKind.FixedArray):
+                return MergeCollectionsWithCycleGuard(stateA, stateB, collArrA.ElementNode, arrayB2.ElementNode, collArrA);
+            // Same-kind / cross-Array-branch collection merge. Same-kind returns
+            // self. Cross-kind among the Array-branch (List ⊂ Array ⊂ FixedArray)
+            // returns the narrower identity per the lattice rule
+            // (`Specs/Tic/ConstructorLattice.md` §Cross-kind merge identity).
+            // Set is on a separate branch — cross-kind with it is rejected.
+            case StateCollection collA when stateB is StateCollection collB:
+            {
+                if (collA.Constructor == collB.Constructor)
+                    return MergeCollectionsWithCycleGuard(stateA, stateB, collA.ElementNode, collB.ElementNode, collA);
+                var narrower = NarrowerArrayBranchOrNull(collA, collB);
+                if (narrower == null) return null;
+                return MergeCollectionsWithCycleGuard(stateA, stateB, collA.ElementNode, collB.ElementNode, narrower);
+            }
             case StateFun funA when stateB is StateFun funB:
             {
                 if (funA.ArgsCount != funB.ArgsCount)
@@ -81,11 +109,41 @@ public static class SolvingFunctions {
             case StateOptional optA when stateB is StateOptional optB:
                 MergeInplace(optA.ElementNode, optB.ElementNode);
                 return optA;
-            // MutStruct and Struct are different type constructors — cannot merge
-            case StateMutableStruct when stateB is StateStruct and not StateMutableStruct:
-                return null;
-            case StateStruct and not StateMutableStruct when stateB is StateMutableStruct:
-                return null;
+            // StateOptional × CS{IsOptional}: CS represents Optional<Desc>, structurally
+            // equivalent to optA's Optional<Element>. Merge the inner types: optA.Element
+            // (carried by optA.ElementNode) with csB's effective inner state. If csB has
+            // no Descendant, the inner is "any T" — no constraint to push down. If csB has
+            // a primitive/composite Descendant, AddDescendant it to optA's element node's
+            // constraint. Bug hunt round 5 #27.
+            case StateOptional optA2 when stateB is ConstraintsState csB && csB.IsOptional:
+            {
+                if (csB.HasDescendant && optA2.ElementNode.GetNonReference().State is ConstraintsState innerCs)
+                    innerCs.AddDescendant(csB.Descendant);
+                else if (csB.HasDescendant) {
+                    var merged = GetMergedStateOrNull(optA2.ElementNode.GetNonReference().State, csB.Descendant);
+                    if (merged == null) return null;
+                    optA2.ElementNode.State = merged;
+                }
+                return optA2;
+            }
+            // StateMap deleted — Map flows as StateCollection(Map, pair-struct).
+            // Merge of two SC(Map) goes through the standard SC same-kind merge
+            // case (line ~90) which already MergeInplaces the element struct
+            // nodes pointwise via MergeStructs.
+            // Mut ≤ Frozen — asymmetric upcast (Liskov: read-only view is safe).
+            // Same algebra as `LcaStructFields` (StateExtensions.Lca.cs:181):
+            // mixed-mutability collapses to immutable Struct with covariant
+            // per-field merge. Without this, `[{a={b=1}}].map(rule it.a.b)`
+            // fires FU773 because the lambda's open-row frozen probe meets the
+            // list literal's `mut{a:mut{b:..}}` at an inner field where
+            // GetMergedStateOrNull (called recursively via MergeInplace) refused
+            // to merge. Bug hunt round 2 #6. MergeStructs always returns a
+            // non-frozen StateStruct, never StateMutableStruct, so the result
+            // type is the safe Liskov upcast.
+            case StateMutableStruct mutA when stateB is StateStruct frozenB and not StateMutableStruct:
+                return MergeStructs(mutA, frozenB);
+            case StateStruct frozenA and not StateMutableStruct when stateB is StateMutableStruct mutB:
+                return MergeStructs(frozenA, mutB);
             case StateMutableStruct mutA when stateB is StateMutableStruct mutB:
                 return MergeMutableStructs(mutA, mutB);
             case StateStruct strA when stateB is StateStruct strB:
@@ -123,10 +181,55 @@ public static class SolvingFunctions {
                     return constrainsB2.IsOptional ? StateOptional.Of(strA2) : strA2;
                 return null;
             }
+            // Bug hunt round 8 #46. Mirrors the StateStruct + CS case above for the
+            // StateCollection composite. Without this, the switch falls through to
+            // `case ConstraintsState:` below (line 186), swaps args, recurses as
+            // (StateCollection, CS) — no case matches → null → MergeInplace throws
+            // CannotMerge. Surfaces when struct-field LCA returns a concrete
+            // StateCollection verbatim (UnifyOrNull short-circuit at
+            // StateExtensions.Unify.cs:30-38) while the other branch's field stays
+            // CS{Desc=StateCollection}; Push later joins them via MergeInplace.
+            case StateCollection collA2 when stateB is ConstraintsState constrainsBColl:
+            {
+                if (constrainsBColl.HasDescendant && constrainsBColl.Descendant is StateCollection descColl)
+                {
+                    var merged = GetMergedStateOrNull(collA2, descColl);
+                    return merged != null && constrainsBColl.IsOptional
+                        ? StateOptional.Of(merged) : merged;
+                }
+                if (!constrainsBColl.HasDescendant && !constrainsBColl.IsComparable)
+                    return constrainsBColl.IsOptional ? StateOptional.Of(collA2) : collA2;
+                return null;
+            }
+            // Bug hunt round 8 #46 (StateFun extension). Mirrors the StateCollection
+            // case above for StateFun, NARROWED to fire only when CS carries a
+            // StateFun in its Descendant. The empty / Desc-less / Comparable CS
+            // paths fall through to the swap+recurse below — eager merge there
+            // regresses `list(rule …, rule …).map(…)` factory inference (multi-
+            // deposit at signature-T0 needs Lca, not pointwise MergeInplace).
+            //
+            // Sibling fix lives at ConstraintsState.AddDescendant: live StateFun
+            // descendants are stored verbatim (no Concretest widening), so the
+            // CS.Descendant reaching this cell is the actual lambda's StateFun
+            // — pointwise MergeInplace correctly fuses binder/body node identities
+            // across the two lambdas joined by struct-field LCA.
+            case StateFun funA2 when stateB is ConstraintsState constrainsBFun
+                && constrainsBFun.HasDescendant && constrainsBFun.Descendant is StateFun descFun:
+            {
+                var merged = GetMergedStateOrNull(funA2, descFun);
+                return merged != null && constrainsBFun.IsOptional
+                    ? StateOptional.Of(merged) : merged;
+            }
             case ConstraintsState constrainsA when stateB is ConstraintsState constrainsB:
-                return constrainsB.MergeOrNull(constrainsA);
+                return constrainsB.MergeOrNull(constrainsA, resultOwnerNode);
             case ConstraintsState:
                 return GetMergedStateOrNull(stateB, stateA);
+            // CompCs + CompCs: Unify (interval narrows, IsOptional/IsClearable OR).
+            // Used when two signature param nodes carrying CompCs constraints
+            // collide via MergeInplace (e.g. xs has two ancestor edges feeding
+            // CompCs from xs.clear() and xs.count()).
+            case StateCompositeConstraints compCsA when stateB is StateCompositeConstraints compCsB:
+                return compCsA.UnifyCompCs(compCsB);
             case StateRefTo refA:
             {
                 // See method-level xmldoc: mutates refA.Node.State, returns the ORIGINAL
@@ -227,6 +330,51 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
+    /// For a cross-kind StateCollection × StateCollection merge among the
+    /// Array-branch (List ⊂ Array ⊂ FixedArray), return the narrower side.
+    /// Returns null when either side is outside the Array-branch (Set is on a
+    /// separate branch — cross-branch merges are rejected). Used by
+    /// `GetMergedStateOrNull` to enforce the Stage 0 identity rule.
+    /// </summary>
+    private static StateCollection NarrowerArrayBranchOrNull(StateCollection a, StateCollection b) {
+        int ra = ArrayBranchRank(a.Constructor);
+        int rb = ArrayBranchRank(b.Constructor);
+        if (ra < 0 || rb < 0) return null;
+        return ra <= rb ? a : b;
+    }
+
+    private static int ArrayBranchRank(ConstructorKind k) => k switch {
+        ConstructorKind.List => 0,
+        ConstructorKind.Array => 1,
+        ConstructorKind.FixedArray => 2,
+        _ => -1,
+    };
+
+    /// <summary>
+    /// Merge wrapper for single-arg collection states (Array × Array,
+    /// Array × Collection(List), Collection × Collection same-kind). Adds a
+    /// visited-pair guard to the shared `_mergeVisited` HashSet so recursive
+    /// list types — e.g. `t = list&lt;t&gt;` once named-recursive collections
+    /// are exposed — terminate coinductively (Amadio-Cardelli '93). Without
+    /// this guard the element-merge from `MergeInplace` re-entered the same
+    /// state pair and stack-overflowed.
+    /// </summary>
+    private static ITicNodeState MergeCollectionsWithCycleGuard(
+        ITicNodeState stateA, ITicNodeState stateB,
+        TicNode elemA, TicNode elemB, ITicNodeState result) {
+        var visited = _mergeVisited ??= new HashSet<(ITicNodeState, ITicNodeState)>();
+        var key = (stateA, stateB);
+        if (!visited.Add(key))
+            return result; // cycle — coinductive merge to self
+        try {
+            MergeInplace(elemA, elemB);
+            return result;
+        } finally {
+            visited.Remove(key);
+        }
+    }
+
+    /// <summary>
     /// Merge two nodes. Both of them become equiualent.
     ///
     /// In complex situation, 'secondary' node becomes reference to 'main' node, if it is possible
@@ -244,7 +392,7 @@ public static class SolvingFunctions {
 
         if (secondary.GetNonReference() == main)
             return;
-        var res = GetMergedStateOrNull(main.State, secondary.State);
+        var res = GetMergedStateOrNull(main.State, secondary.State, main);
         // Implicit lift: T ≤ opt(T). When one side is composite T and the other is opt(T'),
         // the non-Optional side can be lifted. Merge the inner types.
         // Syntax nodes (concrete expressions) keep their type — the Optional side "wins".
@@ -274,6 +422,7 @@ public static class SolvingFunctions {
         if (res is ITypeState t && t.IsSolved)
         {
             secondary.State = res;
+            Stages.WorklistPullDriver.Enqueue(main);
             return;
         }
 
@@ -281,7 +430,28 @@ public static class SolvingFunctions {
             if (a != main) main.AddAncestor(a);
         secondary.ClearAncestors();
 
+        // Pottier-Rémy decision/edit split (debt #10 wave d): transfer pending
+        // compCs-defer-accept registrations from secondary to main. Without this
+        // the drain hook never fires because narrowings now land on main, while
+        // the pending list lived on secondary (now an alias). Dedup by reference;
+        // SmallList is null when no defer-accept ever touched the node.
+        if (secondary.PendingCompCsDeferredAccept != null
+            && secondary.PendingCompCsDeferredAccept.Count > 0) {
+            main.PendingCompCsDeferredAccept ??= new SmallList<TicNode>();
+            for (int i = 0; i < secondary.PendingCompCsDeferredAccept.Count; i++) {
+                var anc = secondary.PendingCompCsDeferredAccept[i];
+                bool already = false;
+                for (int j = 0; j < main.PendingCompCsDeferredAccept.Count; j++) {
+                    if (main.PendingCompCsDeferredAccept[j] == anc) { already = true; break; }
+                }
+                if (!already) main.PendingCompCsDeferredAccept.Add(anc);
+            }
+            secondary.PendingCompCsDeferredAccept = null;
+        }
+
         secondary.State = new StateRefTo(main);
+        // Worklist Pull hook (debt #10): merge re-fires Pull on the surviving node.
+        Stages.WorklistPullDriver.Enqueue(main);
     }
 
     /// <summary>
@@ -515,6 +685,18 @@ public static class SolvingFunctions {
         var res = PullConstraintsFunctions.Singleton.Invoke(ancestor, descendant);
         if (!res)
             throw TicErrors.IncompatibleTypes(ancestor, descendant);
+        // Worklist Pull: an edge CONSUMED by its Apply cell (composite×composite
+        // decomposition ends with RemoveAncestor) is coinductively discharged for
+        // the rest of the run — see WorklistPullDriver.MarkDischarged. No-op when
+        // the driver is inactive or the cell kept the edge.
+        if (WorklistPullDriver.IsActive) {
+            var ancs = descendant.Ancestors;
+            bool edgeConsumed = true;
+            for (int i = 0; i < ancs.Count; i++)
+                if (ancs[i] == ancestor) { edgeConsumed = false; break; }
+            if (edgeConsumed)
+                WorklistPullDriver.MarkDischarged(descendant, ancestor);
+        }
     }
 
     /// <summary>
@@ -813,14 +995,9 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
-    /// Meet of two F-bound struct shapes (upper-bound conjunction). Field union; for shared
-    /// fields, recursive Gcd. Self-refs in either input are rewired to point at
-    /// <paramref name="resultOwner"/> (the merging CS's owning node). Cycle-aware via bisimulation
-    /// visited-pair.
-    ///
-    /// Contractivity preserved when both inputs are contractive (every
-    /// back-edge crosses Optional/Array): we never strip a wrapper, never
-    /// introduce a new self-ref, only rewire existing ones to the new owner.
+    /// Meet of two F-bound struct shapes (upper-bound conjunction). Field union; shared fields
+    /// recursively Gcd. Self-refs rewired to <paramref name="resultOwner"/>. Cycle-aware via
+    /// bisimulation; contractivity preserved (wrappers never stripped, no new self-refs).
     /// </summary>
     public static StateStruct GcdBound(
         StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner) {
@@ -831,17 +1008,13 @@ public static class SolvingFunctions {
     private static StateStruct GcdBoundInner(
         StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner,
         Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
-        if (ReferenceEquals(a, b)) return a; // idempotent fast path
+        if (ReferenceEquals(a, b)) return a;
         if (visited.TryGetValue((a, b), out var memo)) return memo;
         var mergedName = StateStruct.MergedTypeName(a.TypeName, b.TypeName);
         if (mergedName == null && a.TypeName != null && b.TypeName != null) return null;
 
-        // F-bound width-rigidity (Cardelli-Mitchell '89 §3, TAPL §15.2). A frozen struct represents
-        // a generalized F-bound — its field set is CLOSED at the moment of generalization.
-        // Width-merge with another struct must NOT extend the bound's field set; instead, the
-        // other struct's fields are validated against the bound (subtype check) and discarded if
-        // they're width-only extras (caller has more fields than the bound requires).
-        // Algebra: meet(a-frozen, b) = a-frozen, provided fields(a) ⊆ fields(b).
+        // F-bound width-rigidity (Cardelli-Mitchell '89 §3, TAPL §15.2):
+        // meet(a-frozen, b) = a-frozen iff fields(a) ⊆ fields(b); never extend the bound.
         if (a.IsFrozen && !b.IsFrozen) return GcdFrozenAndOpen(a, b, resultOwner, otherOwner, visited);
         if (b.IsFrozen && !a.IsFrozen) return GcdFrozenAndOpen(b, a, resultOwner, otherOwner, visited);
 
@@ -854,8 +1027,6 @@ public static class SolvingFunctions {
         };
         visited[(a, b)] = result;
 
-        // Field union. For shared fields, recursive merge of value-states.
-        // For unique fields, copy (rewiring self-refs to result owner).
         foreach (var (name, valA) in a.Fields) {
             var valB = b.GetFieldOrNull(name);
             if (valB == null) {
@@ -867,7 +1038,6 @@ public static class SolvingFunctions {
             var mergedFieldState = MergeFieldStateGcd(sA, sB, resultOwner, otherOwner, visited);
             if (mergedFieldState == null) return null;
             var mergedFieldNode = TicNode.CreateInvisibleNode(mergedFieldState);
-            // Preserve IsOptionalElement marker if either source had it
             if (valA.IsOptionalElement || valB.IsOptionalElement)
                 mergedFieldNode.IsOptionalElement = true;
             result.AddField(name, mergedFieldNode);
@@ -880,13 +1050,8 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
-    /// Meet of a frozen F-bound and an open struct candidate. Cardelli-Mitchell '89 §3 F-bound
-    /// semantics: the bound's field set is CLOSED — call-site validation requires
-    /// <c>fields(candidate) ⊇ fields(frozen)</c> (width subtype, Pierce TAPL §15.2). Candidate's
-    /// extra fields are width-subtype slack, kept on the candidate but not absorbed into the
-    /// bound. Returns the frozen bound (preserving its identity as the polymorphic F-bound).
-    /// For shared fields, value-states meet recursively. If candidate is missing a required
-    /// field, the meet rejects (returns null).
+    /// Meet of frozen F-bound × open candidate. Requires fields(candidate) ⊇ fields(frozen);
+    /// candidate's extras are width-subtype slack. Cardelli-Mitchell '89 §3, TAPL §15.2.
     /// </summary>
     private static StateStruct GcdFrozenAndOpen(
         StateStruct frozen, StateStruct candidate, TicNode resultOwner, TicNode otherOwner,
@@ -907,10 +1072,9 @@ public static class SolvingFunctions {
         };
         visited[key] = result;
 
-        // Validate: candidate must have every field the frozen bound requires.
         foreach (var (name, valFrozen) in frozen.Fields) {
             var valCand = candidate.GetFieldOrNull(name);
-            if (valCand == null) return null; // missing required field
+            if (valCand == null) return null;
             var sF = valFrozen.GetNonReference().State;
             var sC = valCand.GetNonReference().State;
             var mergedFieldState = MergeFieldStateGcd(sF, sC, resultOwner, otherOwner, visited);
@@ -920,27 +1084,15 @@ public static class SolvingFunctions {
                 mergedFieldNode.IsOptionalElement = true;
             result.AddField(name, mergedFieldNode);
         }
-        // Candidate's extra fields are width-subtype slack — discarded from the
-        // bound. The candidate's full state remains on its own node; only the
-        // bound's required fields are reflected here.
         return result;
     }
 
     private static ITicNodeState MergeFieldStateGcd(
         ITicNodeState sA, ITicNodeState sB, TicNode resultOwner, TicNode otherOwner,
         Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
-        // Self-ref handling.
-        // Pierce TAPL §20.2 fold/unfold: μX. F(X) ≡ F(μX. F(X)). When merging
-        // a bound's field (carrying X = self-ref) with a concrete value, the
-        // bound's X-position is the GENERIC parameter. At call-site Pull
-        // (instantiation): X gets bound to candidate type; the concrete
-        // value is a valid inhabitant of that instantiation. Result preserves
-        // self-ref (the bound continues representing the general shape).
-        //
-        // Both self-ref: unify on result owner (canonical bound merge).
-        // One self-ref + one concrete: instantiation case — preserve self-ref
-        // (Cardelli-Mitchell '89 §3 F-bound semantics: the bound is the
-        // generic shape, concrete values are valid instances of it).
+        // Self-ref ≡ generic X-position (Pierce TAPL §20.2 fold/unfold; Cardelli-Mitchell '89 §3).
+        // Both / one-side self-ref both collapse to RefTo(resultOwner) — instantiation preserves
+        // the bound's general shape.
         bool aSelf = IsSelfRefBackToOwner(sA, otherOwner) || IsSelfRefBackToOwner(sA, resultOwner)
                    || IsBoundCarrierCs(sA);
         bool bSelf = IsSelfRefBackToOwner(sB, otherOwner) || IsSelfRefBackToOwner(sB, resultOwner)
@@ -948,7 +1100,6 @@ public static class SolvingFunctions {
         if (aSelf && bSelf) return new StateRefTo(resultOwner);
         if (aSelf || bSelf) return new StateRefTo(resultOwner);
 
-        // Composite recursion preserves wrapper structure (contractivity).
         if (sA is StateOptional optA && sB is StateOptional optB) {
             var inner = MergeFieldStateGcd(
                 optA.ElementNode.GetNonReference().State,
@@ -969,21 +1120,13 @@ public static class SolvingFunctions {
         }
         if (sA is StateStruct ssA && sB is StateStruct ssB)
             return GcdBoundInner(ssA, ssB, resultOwner, otherOwner, visited);
-        // Both are ITypeState concrete — delegate to existing Gcd.
         if (sA is ITypeState tsA && sB is ITypeState tsB)
             return Algebra.StateExtensions.Gcd(tsA, tsB);
-        // CS or other — bail conservatively.
         if (sA.Equals(sB)) return sA;
         return null;
     }
 
-    /// <summary>
-    /// True iff the state represents a recursion-variable position via CS{StructBound!=null}.
-    /// After LiftMuTypes, the F-bound's recursive position is encoded as CS carrying its own
-    /// StructBound rather than as a direct StateRefTo. For GcdBound's call-site instantiation
-    /// case, this signals "generic var, accepts any concrete inhabitant" — same role as
-    /// StateRefTo back to owner.
-    /// </summary>
+    /// <summary>True iff state is a CS{StructBound!=null} — recursion-variable position post-LiftMuTypes.</summary>
     private static bool IsBoundCarrierCs(ITicNodeState state) {
         return state is ConstraintsState cs && cs.HasStructBound;
     }
@@ -994,19 +1137,16 @@ public static class SolvingFunctions {
         var safety = 0;
         while (current is StateRefTo r && safety++ < 64) {
             if (ReferenceEquals(r.Node, owner)) return true;
-            // Check if RefTo points to a node WHOSE STATE references owner CS;
-            // for F-bound the back-edge is RefTo(owner-of-CS).
             current = r.Node.State;
         }
         return false;
     }
 
     private static TicNode RewireFieldNode(TicNode field, TicNode oldOwner, TicNode newOwner) {
-        // For uncopied fields from one input that survive into the merged
-        // result: rewire any self-RefTo from oldOwner to newOwner.
+        // Rewire any self-RefTo from oldOwner to newOwner.
         var nr = field.GetNonReference();
         var rewired = RewireState(nr.State, oldOwner, newOwner);
-        if (ReferenceEquals(rewired, nr.State)) return field; // no rewiring needed
+        if (ReferenceEquals(rewired, nr.State)) return field;
         return TicNode.CreateInvisibleNode(rewired);
     }
 
@@ -1023,18 +1163,13 @@ public static class SolvingFunctions {
                 return new StateOptional(node);
             }
             default:
-                return state; // no self-ref through this path
+                return state;
         }
     }
 
-    /// <summary>
-    /// One-side ownership transfer: when only one of the two CSs has a
-    /// StructBound, the merged CS adopts it but must rewire any self-RefTo
-    /// from the source owner node to the new owner.
-    /// </summary>
+    /// <summary>Rewire self-RefTos on <paramref name="s"/>'s field nodes from oldOwner to newOwner.</summary>
     internal static StateStruct RewireStructBoundOwnership(StateStruct s, TicNode oldOwner, TicNode newOwner) {
         if (oldOwner == null || newOwner == null || ReferenceEquals(oldOwner, newOwner)) return s;
-        // Lazy: walk fields once, rewire if any self-ref to oldOwner found.
         bool needsCopy = false;
         foreach (var (_, fieldNode) in s.Fields) {
             if (StateContainsSelfRef(fieldNode.GetNonReference().State, oldOwner)) {
@@ -1104,22 +1239,7 @@ public static class SolvingFunctions {
 
 
 
-    /// <summary>
-    /// True iff <paramref name="s"/> has any field (directly or through
-    /// Optional/Array constructor traversal) that closes the cycle back to
-    /// <paramref name="s"/> itself. The cycle closure is detected two ways:
-    ///   1. A field's value node IS — or <c>RefTo</c>s to — <paramref name="owner"/>
-    ///      (the node whose state is <paramref name="s"/>).
-    ///   2. A field's value node has <c>State == s</c> (same StateStruct
-    ///      instance shared via cycle-rescue's <c>inner.State = fieldNode.State</c>
-    ///      pattern — this is how TryRepairOptSourcedCycle wraps closing edges
-    ///      WITHOUT introducing a RefTo back to the owner).
-    /// </summary>
-    /// <summary>
-    /// Public predicate — does the struct's field graph contain a self-RefTo (μ-cycle)? Used by
-    /// RuntimeBuilder.FreezeFunctionSignatureStructs to decide whether a signature struct is
-    /// recursive (must freeze) or row-polymorphic (must NOT freeze, callers can extend it).
-    /// </summary>
+    /// <summary>True iff the struct's field graph contains a self-RefTo (μ-cycle).</summary>
     internal static bool StructIsRecursiveCycle(StateStruct s, TicNode owner) {
         return StructHasSelfRef(s, owner);
     }
@@ -1133,18 +1253,9 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
-    /// Predicate for CS-internal slot promotion (Descendant → StructBound). True iff:
-    ///   1. At least one field path from <paramref name="s"/> reaches
-    ///      <paramref name="owner"/> (or an instance of <paramref name="s"/>
-    ///      shared by reference along the path) — the cycle exists.
-    ///   2. EVERY closing field path crosses at least one Optional or Array
-    ///      constructor — the cycle is contractive (Pierce TAPL §20.2 C1
-    ///      contractivity invariant; Amadio–Cardelli '93 §3 productivity).
-    ///
-    /// A "closing path" is one that returns true from a self-ref check; a
-    /// non-closing path is irrelevant. False if either no closing path exists
-    /// (no cycle to lift) or any closing path is non-contractive (genuinely
-    /// ill-formed type — caller must keep throwing).
+    /// CS-internal slot-promotion predicate: at least one closing field path exists AND every
+    /// closing path crosses an Optional/Array constructor (C1 contractivity, Pierce TAPL §20.2).
+    /// False if no closing path exists OR any closes non-contractively (must continue to throw).
     /// </summary>
     internal static bool StructDescendantClosesContractively(StateStruct s, TicNode owner) {
         bool foundClosingPath = false;
@@ -1158,7 +1269,7 @@ public static class SolvingFunctions {
                     foundClosingPath = true;
                     continue;
                 case PathVerdict.ClosesNonContractively:
-                    return false; // any non-contractive closure ⇒ ill-formed
+                    return false;
             }
         }
         return foundClosingPath;
@@ -1187,8 +1298,7 @@ public static class SolvingFunctions {
             case StateArray arr:
                 return ClosingPathVerdict(arr.ElementNode, owner, ownerStruct, visited, crossedOptOrArr: true);
             case ConstraintsState cs when cs.HasStructBound:
-                // F-bound is itself a contractive boundary — re-entering a
-                // bounded variable does not continue the path (Pierce TAPL §20).
+                // F-bound is a contractive boundary (Pierce TAPL §20) — path ends.
                 return PathVerdict.NoClose;
             default:
                 return PathVerdict.NoClose;
@@ -1199,9 +1309,8 @@ public static class SolvingFunctions {
         var nr = node.GetNonReference();
         if (ReferenceEquals(nr, owner)) return true;
         if (!visited.Add(nr)) return false;
-        // Cycle-rescue's wrap pattern stores the same StateStruct instance on
-        // a fresh inner TicNode (inner.State = fieldNode.State where fieldNode
-        // was the cycle struct). That instance equality IS the cycle closure.
+        // Cycle-rescue wraps the cycle struct by sharing the SAME instance on the inner node —
+        // reference equality on the state IS the cycle closure.
         if (ReferenceEquals(nr.State, ownerStruct)) return true;
         switch (nr.State) {
             case StateRefTo r:
@@ -1210,38 +1319,19 @@ public static class SolvingFunctions {
                 return FieldReachesOwner(opt.ElementNode, owner, ownerStruct, visited);
             case StateArray arr:
                 return FieldReachesOwner(arr.ElementNode, owner, ownerStruct, visited);
-            // We do NOT descend into nested StateStruct fields. The lift target
-            // is the OWNING struct's direct cycle; nested struct fields with
-            // their own cycles are handled by their own elem nodes.
             default:
                 return false;
         }
     }
 
     /// <summary>
-    /// Visit every StateStruct reachable from the toposorted node set and
-    /// stamp TypeName on unnamed snapshots whose field set is a subset of a
-    /// declared named type already present in the body's graph. Implements
-    /// the post-Destruction propagation pass: cycle-rescue stamps one struct instance, but TIC
-    /// algebraic operations (Pull, Lca, Concretest, Apply) create many independent snapshots —
-    /// they all denote
-    /// the same μ-type and must agree on identity for runtime dispatch
-    /// (operator generics, variable types, named-struct casts).
-    ///
-    /// Two-pass: (1) collect every TypeName that already stamped a struct in
-    /// the graph; (2) for each unnamed struct, if its field set is a subset
-    /// of exactly one collected name's declared fields, stamp it. The "exactly
-    /// one" rule prevents over-tagging when multiple named types share a
-    /// common field prefix.
+    /// Stamp TypeName on unnamed struct snapshots whose field set is a subset of exactly one
+    /// already-stamped name in the graph. The "exactly one" rule prevents over-tagging when
+    /// multiple named types share a common field prefix.
     /// </summary>
     private static void PropagateTypeNamesAcrossSnapshots(TicNode[] nodes, Types.INamedTypeFieldRegistry registry) {
-        // Pass 1: collect every TypeName already stamped on a struct, AND
-        // detect whether the body contains any opt-sourced struct. Without
-        // an opt-sourced struct, we are NOT inside a μ-type body — every
-        // declared named type came from an explicit annotation and unnamed
-        // struct snapshots are local field-access constraints (e.g. struct{v}
-        // from `n.v`). Stamping those would over-tag transient constraints
-        // and confuse the function-arity classifier.
+        // Pass 1 collects stamped names + detects any opt-sourced struct (without one we are
+        // not inside a μ-type body — stamping transient field-access snapshots would over-tag).
         var presentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         bool anyOptSourced = false;
         var collectMark = NextMark();
@@ -1250,11 +1340,6 @@ public static class SolvingFunctions {
         if (!anyOptSourced) return;
         if (presentNames.Count == 0) return;
 
-        // Precompute one HashSet of declared field names per present name.
-        // StampByPresentNames is called once per unnamed struct in the body —
-        // sharing the index amortizes the registry lookup and string compares
-        // across all snapshots (was O(presentNames × declared × inferred)
-        // per struct, now O(inferred) per struct given O(1) HashSet lookup).
         var nameFieldIndex = BuildNameFieldIndex(presentNames, registry);
         if (nameFieldIndex.Count == 0) return;
 
@@ -1334,24 +1419,18 @@ public static class SolvingFunctions {
                 if (!entry.Value.Contains(inferred.Key)) { isSubset = false; break; }
             }
             if (!isSubset) continue;
-            if (match != null) return; // ambiguous — leave unnamed
+            if (match != null) return;
             match = entry.Key;
         }
         if (match != null) s.TypeName = match;
     }
 
-    /// <summary>
-    /// Shared monotonic counter for VisitMark values across all solving phases.
-    /// Each phase increments to get a unique mark — no collisions between phases.
-    /// Thread-safe: concurrent solver instances may call NextMark simultaneously.
-    /// </summary>
+    /// <summary>Shared monotonic VisitMark counter. Thread-safe.</summary>
     private static int _nextMark = 1000;
 
-    /// <summary>Get the next unique VisitMark value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int NextMark() => System.Threading.Interlocked.Increment(ref _nextMark);
     private static void MaterializeOptionalFlags(TicNode[] nodes) {
-        // Quick scan: skip if no node (or composite member) has IsOptional flag
         bool hasOptional = false;
         foreach (var node in nodes) {
             var s = node.GetNonReference().State;
@@ -1380,8 +1459,6 @@ public static class SolvingFunctions {
         n.VisitMark = mark;
 
         if (n.State is ConstraintsState cs && cs.IsOptional) {
-            // Pure IsOptional with no type constraints: this is standalone None
-            // or all-None if-else. Resolve to None directly.
             if (!cs.HasDescendant && !cs.HasAncestor && !cs.IsComparable)
             {
                 TraceLog.WriteLine($"  Materialize: {n.Name}: {cs} → None (pure optional, no constraints)");
@@ -1396,9 +1473,8 @@ public static class SolvingFunctions {
                 innerNode.IsOptionalElement = true;
                 n.State = new StateOptional(innerNode);
 
-                // Redirect syntax nodes (concrete values like constants) that were merged
-                // with the Optional node during Destruction. These should keep their non-Optional
-                // type (e.g., constant 1 stays I32, not opt(I32)).
+                // Concrete-value syntax nodes merged into the Optional during Destruction must
+                // keep their non-Optional type — redirect their RefTo to the inner node.
                 foreach (var other in allNodes) {
                     if (other.Type == TicNodeType.SyntaxNode
                         && other.State is StateRefTo refTo
@@ -1415,10 +1491,7 @@ public static class SolvingFunctions {
     }
 
     private static void DestructionRec(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry, int mark, bool isRecursion) {
-        // Mark-based dedup: once a node is reached within this traversal it
-        // won't be revisited (equivalent to a HashSet, allocation-free). Works
-        // uniformly for DAGs and μ-cyclic Pottier-Rémy '05 graphs — re-entry
-        // via different parent paths short-circuits at the first encounter.
+        // Per-traversal HashSet semantics via mark — zero allocation.
         if (node.VisitMark == mark) return;
         node.VisitMark = mark;
         ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, isRecursion);
@@ -1456,44 +1529,163 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
-    /// Transform constrains state to array state
+    /// <paramref name="descNode"/> nullable — memoize on <see cref="TicNode.TransformElementInner"/>
+    /// only when worklist driver active (debt #10 wave-2).
     /// </summary>
-    public static StateArray TransformToArrayOrNull(object descNodeName, ConstraintsState descendant) {
+    public static StateArray TransformToArrayOrNull(TicNode descNode, object descNodeName, ConstraintsState descendant) {
         if (descendant.NoConstrains)
         {
-            var constrains = ConstraintsState.Empty;
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, ConstraintsState.Empty);
             return new StateArray(node);
         }
         else if (descendant.HasDescendant && descendant.Descendant is StateArray arrayEDesc)
         {
             if (!arrayEDesc.IsSolved)
                 return arrayEDesc;
-            var constrains = ConstraintsState.Empty;
-            constrains.AddDescendant(arrayEDesc.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.TransformElementInner != null) {
+                node = descNode.TransformElementInner;
+            } else {
+                var constrains = ConstraintsState.Empty;
+                constrains.AddDescendant(arrayEDesc.Element);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.TransformElementInner = node;
+            }
+            return new StateArray(node);
+        }
+        // Array-branch SC fits legacy StateArray slot — reuse descendant's element identity.
+        else if (descendant.HasDescendant
+                 && descendant.Descendant is StateCollection collDesc
+                 && (collDesc.Constructor == ConstructorKind.List
+                  || collDesc.Constructor == ConstructorKind.Array
+                  || collDesc.Constructor == ConstructorKind.FixedArray))
+        {
+            if (!collDesc.IsSolved)
+                return new StateArray(collDesc.ElementNode);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.TransformElementInner != null) {
+                node = descNode.TransformElementInner;
+            } else {
+                var constrains = ConstraintsState.Empty;
+                constrains.AddDescendant(collDesc.Element);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.TransformElementInner = node;
+            }
             return new StateArray(node);
         }
         else
             return null;
     }
 
+    /// <summary>Memoize on TransformElementInner only when worklist active.</summary>
+    private static TicNode GetOrCreateTransformElement(TicNode descNode, object descNodeName, ConstraintsState cs) {
+        if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.TransformElementInner != null)
+            return descNode.TransformElementInner;
+        var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", cs);
+        if (Stages.WorklistPullDriver.IsActive && descNode != null)
+            descNode.TransformElementInner = node;
+        return node;
+    }
+
     /// <summary>
-    /// Transform constrains state to optional state
+    /// Parameterised sibling of <see cref="TransformToArrayOrNull"/> over <see cref="ConstructorKind"/>.
+    /// Map's pair-struct element built inline. Null when CS cannot become this kind.
     /// </summary>
-    public static StateOptional TransformToOptionalOrNull(object descNodeName, ConstraintsState descendant) {
+    public static StateCollection TransformToCollectionOrNull(
+        ConstructorKind kind, TicNode descNode, object descNodeName, ConstraintsState descendant) {
+        // CS{IsClearable=true} alone is shape-compatible — reject early if target kind isn't Clearable.
+        bool noShapeConstraints = !descendant.HasDescendant && !descendant.HasAncestor
+            && !descendant.IsComparable && !descendant.HasStructBound;
+        if (noShapeConstraints && descendant.IsClearable && !ConstructorLattice.IsClearable(kind))
+            return null;
+        if (descendant.NoConstrains || (noShapeConstraints && descendant.IsClearable))
+        {
+            return BuildFreshCollection(kind, descNode, descNodeName);
+        }
+        if (descendant.HasDescendant
+            && descendant.Descendant is StateCollection existing
+            && existing.Constructor == kind)
+        {
+            if (!existing.IsSolved) return existing;
+            // Fresh SC: copy element type into fresh field node(s) — break shared identity.
+            if (kind == ConstructorKind.Map
+                && existing.ElementNode.GetNonReference().State is StateStruct ss
+                && ss.GetFieldOrNull("key") is { } kExist
+                && ss.GetFieldOrNull("value") is { } vExist)
+            {
+                // Map's (k, v) pair — allocate per call (not single-element memo).
+                var kCs = ConstraintsState.Empty;
+                if (kExist.State is ITypeState kTs) kCs.AddDescendant(kTs);
+                var vCs = ConstraintsState.Empty;
+                if (vExist.State is ITypeState vTs) vCs.AddDescendant(vTs);
+                var kNode = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", kCs);
+                var vNode = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", vCs);
+                return StateCollection.OfMap(kNode, vNode);
+            }
+            var c = ConstraintsState.Empty;
+            c.AddDescendant(existing.Element);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, c);
+            return new StateCollection(kind, node);
+        }
+        // Accept subtype kinds in Array-branch (list ⊆ array ⊆ fixedArray).
+        if (descendant.HasDescendant
+            && descendant.Descendant is StateCollection existingSub
+            && ConstructorLattice.IsSubtypeOf(existingSub.Constructor, kind))
+        {
+            if (!existingSub.IsSolved) return existingSub;
+            var c = ConstraintsState.Empty;
+            c.AddDescendant(existingSub.Element);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, c);
+            return new StateCollection(kind, node);
+        }
+        // ee-mode T[] (StateArray) IS fixedArray<T> — fits any Array-branch kind.
+        if (descendant.HasDescendant
+            && descendant.Descendant is StateArray eeArr
+            && (kind == ConstructorKind.List || kind == ConstructorKind.Array
+                || kind == ConstructorKind.FixedArray))
+        {
+            // StateStruct elements may carry μ-cycles — reuse the existing ElementNode so
+            // the cycle structure survives (a fresh wrapper would trigger Recursive type).
+            if (eeArr.Element is StateStruct)
+                return new StateCollection(kind, eeArr.ElementNode);
+            var c = ConstraintsState.Empty;
+            if (eeArr.Element is ITypeState elemTs) c.AddDescendant(elemTs);
+            var node = GetOrCreateTransformElement(descNode, descNodeName, c);
+            return new StateCollection(kind, node);
+        }
+        return null;
+    }
+
+    /// <summary>Build a fresh SC: Map gets a {key, value} pair-struct, single-arg kinds get a CS-empty element node.</summary>
+    private static StateCollection BuildFreshCollection(ConstructorKind kind, TicNode descNode, object descNodeName) {
+        if (kind == ConstructorKind.Map) {
+            // Map's (k, v) pair — allocate per call.
+            var k = TicNode.CreateTypeVariableNode("k" + descNodeName + "'", ConstraintsState.Empty);
+            var v = TicNode.CreateTypeVariableNode("v" + descNodeName + "'", ConstraintsState.Empty);
+            return StateCollection.OfMap(k, v);
+        }
+        var elem = GetOrCreateTransformElement(descNode, descNodeName, ConstraintsState.Empty);
+        return new StateCollection(kind, elem);
+    }
+
+    /// <summary>
+    /// <paramref name="descNode"/> nullable — when null OR worklist driver inactive,
+    /// allocates fresh per call (streaming behavior). When non-null AND worklist active,
+    /// reuses <see cref="TicNode.WrapOptionalInner"/> cache to prevent fresh-allocation churn
+    /// on worklist re-entry (debt #10 wave-2).
+    /// </summary>
+    public static StateOptional TransformToOptionalOrNull(TicNode descNode, object descNodeName, ConstraintsState descendant) {
         if (descendant.NoConstrains)
         {
-            var constrains = ConstraintsState.Empty;
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            var node = GetOrCreateWrapOptionalInner(descNode, descNodeName, ConstraintsState.Empty);
             return new StateOptional(node);
         }
 
-        // None ≤ opt(T): absorb None into opt layer, element stays unconstrained
         if (descendant.HasDescendant && descendant.Descendant == StatePrimitive.None)
         {
-            var constrains = ConstraintsState.Empty;
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            var node = GetOrCreateWrapOptionalInner(descNode, descNodeName, ConstraintsState.Empty);
             return new StateOptional(node);
         }
 
@@ -1501,36 +1693,52 @@ public static class SolvingFunctions {
         {
             if (!optDesc.IsSolved)
                 return optDesc;
-            var constrains = ConstraintsState.Empty;
-            constrains.AddDescendant(optDesc.Element);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.WrapOptionalInner != null) {
+                node = descNode.WrapOptionalInner;
+            } else {
+                var constrains = ConstraintsState.Empty;
+                constrains.AddDescendant(optDesc.Element);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.WrapOptionalInner = node;
+            }
             return new StateOptional(node);
         }
 
-        // IsOptional flag set with actual constraints — materialize now.
-        // This ensures opt-to-opt paths are used instead of implicit lift T ≤ opt(T),
-        // which would lose the inner type constraints (e.g., widening I32 to Real).
-        // Only materialize when there are constraints to preserve (desc or anc);
-        // pure IsOptional-only is handled by MaterializeOptionalFlags later.
+        // IsOptional + constraints: materialize now so inner constraints are preserved
+        // (implicit lift T ≤ opt(T) would lose them). Pure IsOptional handled later.
         if (descendant.IsOptional && (descendant.HasDescendant || descendant.HasAncestor))
         {
-            var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
-            // Preserve Preferred from the original constraint. If none exists but
-            // we have a concrete primitive descendant, use it as Preferred — this
-            // matches non-optional SetDef behavior where Preferred comes from the literal.
-            innerCs.Preferred = descendant.Preferred
-                ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp
-                    ? dp : null);
-            var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", innerCs);
+            TicNode node;
+            if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.WrapOptionalInner != null) {
+                node = descNode.WrapOptionalInner;
+            } else {
+                var innerCs = ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable);
+                // Preserve Preferred; fall back to a concrete primitive Descendant (mirrors SetDef).
+                innerCs.Preferred = descendant.Preferred
+                    ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp
+                        ? dp : null);
+                node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", innerCs);
+                if (Stages.WorklistPullDriver.IsActive && descNode != null)
+                    descNode.WrapOptionalInner = node;
+            }
             return new StateOptional(node);
         }
 
         return null;
     }
 
-    /// <summary>
-    /// Transform constrains to fun state
-    /// </summary>
+    /// <summary>Memoize on <see cref="TicNode.WrapOptionalInner"/> only when worklist active.</summary>
+    private static TicNode GetOrCreateWrapOptionalInner(TicNode descNode, object descNodeName, ConstraintsState cs) {
+        if (Stages.WorklistPullDriver.IsActive && descNode != null && descNode.WrapOptionalInner != null)
+            return descNode.WrapOptionalInner;
+        var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", cs);
+        if (Stages.WorklistPullDriver.IsActive && descNode != null)
+            descNode.WrapOptionalInner = node;
+        return node;
+    }
+
     public static StateFun TransformToFunOrNull(object descNodeName, ConstraintsState descendant, StateFun ancestor) {
         if (descendant.NoConstrains)
         {
@@ -1538,7 +1746,7 @@ public static class SolvingFunctions {
             for (int i = 0; i < ancestor.ArgsCount; i++)
             {
                 var argNode = TicNode.CreateTypeVariableNode("a'" + descNodeName + "'" + i, ConstraintsState.Empty);
-                ancestor.ArgNodes[i].AddAncestor(argNode); // contravariant: desc arg ≥ anc arg
+                ancestor.ArgNodes[i].AddAncestor(argNode);
                 argNodes[i] = argNode;
             }
 
@@ -1560,7 +1768,6 @@ public static class SolvingFunctions {
                         anc: state as StatePrimitive,
                         isComparable: state is ConstraintsState {IsComparable:true}));
                 ancestor.ArgNodes[i].AddAncestor(argNode);
-                //argNode.AddAncestor(ancestor.ArgNodes[i]);
                 argNodes[i] = argNode;
             }
 
@@ -1575,26 +1782,10 @@ public static class SolvingFunctions {
     }
 
     /// <summary>
-    /// Pull-stage field-identity unification. For every shared field name between
-    /// two struct shapes that represent the same logical struct value, the field
-    /// nodes must denote the same TicNode — otherwise the field-access result
-    /// (e.g. <c>data[0].y</c>) is disconnected from the concrete primitive bound
-    /// carried by the snapshot side. (MR7Bug1.)
-    ///
-    /// Safe-merge predicate: snapshot's field is a solved <see cref="StatePrimitive"/>
-    /// AND ancestor's field is an empty <see cref="ConstraintsState"/>. Under those
-    /// conditions <see cref="MergeInplace"/> takes the solved-result fast path —
-    /// secondary becomes the same primitive, no ancestor-edge rewire happens, no
-    /// Optional/generic invariant is touched. Composite or partially-solved field
-    /// pairs are left to the regular Pull/Push field-pair edge mechanism (the
-    /// <see cref="Stages.PullConstraintsFunctions"/> Struct↔Struct case and
-    /// <see cref="Stages.PushConstraintsFunctions"/> TryMergeStructFields).
-    ///
-    /// Algebraic justification: this extends the NoConstrains branch of
-    /// <see cref="TransformToStructOrNull"/> (which returns <paramref name="ancStruct"/>
-    /// verbatim so all field identities are shared wholesale) to the snapshot
-    /// sub-branch, where shape comes from <paramref name="snapshotFields"/> but
-    /// field identities still must agree with <paramref name="ancStruct"/>.
+    /// Pull-stage field-identity unification: shared-name fields between two struct shapes must
+    /// denote the same TicNode. Safe-merge predicate: snapshot's field is a solved primitive AND
+    /// ancestor's field is an empty CS — MergeInplace takes the solved-result fast path, no
+    /// Optional/generic invariant touched. Other shapes deferred to regular Pull/Push edges.
     /// </summary>
     public static void UnifyStructFieldIdentities(
         System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, TicNode>> snapshotFields,
@@ -1611,20 +1802,15 @@ public static class SolvingFunctions {
         }
     }
 
-    /// <summary>
-    /// Transform constrains to struct state
-    /// </summary>
     public static StateStruct TransformToStructOrNull(ConstraintsState descendant, StateStruct ancStruct) {
         if (descendant.NoConstrains)
             return ancStruct;
 
         if (descendant.HasDescendant && descendant.Descendant is StateStruct structDesc)
         {
-            //descendant is struct.
             if (structDesc.IsSolved)
-                return structDesc; //if it is solved - return it
+                return structDesc;
 
-            // For perfomance
             bool allFieldsAreSolved = true;
 
             var newFields = new Dictionary<string, TicNode>(structDesc.MembersCount, StringComparer.OrdinalIgnoreCase);
@@ -1635,41 +1821,29 @@ public static class SolvingFunctions {
                 newFields.Add(key, nrField);
             }
 
-            return new StateStruct(newFields, isFrozen: structDesc.IsFrozen, isOpen: structDesc.IsOpen) {
-                IsOptionalSourced = structDesc.IsOptionalSourced,
-                // TransformToStructOrNull copies a struct descendant out of a ConstraintsState;
-                // the named identity must follow.
-                TypeName = structDesc.TypeName,
-            };
+            return structDesc is StateMutableStruct
+                ? new StateMutableStruct(newFields, isFrozen: false, isOpen: structDesc.IsOpen)
+                : new StateStruct(newFields, isFrozen: structDesc.IsFrozen, isOpen: structDesc.IsOpen) {
+                    IsOptionalSourced = structDesc.IsOptionalSourced,
+                    TypeName = structDesc.TypeName,
+                };
         }
 
         return null;
     }
 
     /// <summary>
-    /// Detects invalid recursive type definitions in the TIC graph.
-    /// Two kinds of invalid cycles:
-    /// 1. struct/fun → struct/fun (direct, no Optional/Array break)
-    /// 2. arr → arr → self (array self-reference without struct)
-    ///
-    /// Valid cycles (named recursive types like `type node = {next: node?}`)
-    /// go through Optional or Array from a struct field — these are skipped.
+    /// Throws on non-contractive cycles: struct/fun → struct/fun (no Optional/Array break) and
+    /// standalone arr → arr → self. Valid μ-types crossing Optional/Array from a struct field
+    /// are accepted.
     /// </summary>
     private static void ThrowIfRecursiveTypeDefinition(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry, bool isRecursion) {
-        // Track whether any struct visited during cycle traversal is opt-sourced.
-        // If so, cycles encountered should be repaired rather than thrown — they represent a
-        // contractive μ-type μX. opt(struct{…X…}).
+        // optSourcedSeen[0] = any opt-sourced struct on the cycle path ⇒ repair (μX. opt(struct{…X…})).
         var optSourcedSeen = new bool[1];
-        // Pre-scan only when the graph may have recursive structures.
-        // Otherwise the walk is guaranteed to return false (no IsOptionalSourced
-        // structs can exist without a SafeFieldAccess call — itself sets
-        // IsRecursion). Saves O(subgraph) per node × N nodes per Destruction.
         if (isRecursion && HasReachableOptSourcedStruct(node)) optSourcedSeen[0] = true;
         ThrowIfRecursiveReq(node.State, 1, fromStruct: false, optSourcedSeen);
 
-        // Local functions intentionally non-static: they capture
-        // `namedTypeRegistry` via closure so cycle repair can match cycle
-        // structs against declared named types without globals.
+        // Local fns capture namedTypeRegistry by closure (no globals).
         void ThrowIfRecursiveReq(ITicNodeState state, int mark, bool fromStruct, bool[] optSeen) {
             if (state is StateStruct s && s.IsOptionalSourced) optSeen[0] = true;
             switch (state)
@@ -1684,6 +1858,11 @@ public static class SolvingFunctions {
                         break; // Valid: struct field → array → struct (named recursive type)
                     // Standalone array chain — check for arr(arr(...self...))
                     ThrowIfNodeReq(arr.ElementNode, mark, fromStruct: false, optSeen);
+                    break;
+                case StateCollection coll:
+                    if (fromStruct)
+                        break; // Valid: struct field → collection → struct (named recursive type)
+                    ThrowIfNodeReq(coll.ElementNode, mark, fromStruct: false, optSeen);
                     break;
                 case ICompositeState composite:
                     var isStruct = state is StateStruct;
@@ -1728,6 +1907,8 @@ public static class SolvingFunctions {
                 // arr_node and back, crossing arr_node twice via the array constructor.
                 if (fromStruct && node.GetNonReference().State is StateArray)
                     return;
+                if (fromStruct && node.GetNonReference().State is StateCollection)
+                    return;
 
                 // If any struct on the cycle path is opt-sourced, OR if the cycle's struct itself
                 // is opt-sourced somewhere in its full reachable subgraph, this is a contractive
@@ -1740,14 +1921,8 @@ public static class SolvingFunctions {
                 if (isOptSourced && TryRepairOptSourcedCycle(node))
                     return;
 
-                // CS-internal slot promotion. Cycle root is a CS whose Descendant carries a
-                // struct whose field paths close back contractively (every closing path crosses
-                // Optional/Array). The struct value is unchanged; only its role within the same
-                // CS is rebound: Descendant → S. After promotion, ThrowIfRecursiveReq
-                // short-circuits at this CS (StructBound != null branch) on subsequent walks.
-                // Per Cardelli–Mitchell '89 / Pierce TAPL §20: for recursive shapes the lower
-                // bound IS the F-bound (α can only be instantiated by a supertype of the shape
-                // itself).
+                // CS-internal slot promotion: cycle root is CS{Descendant=S} that closes
+                // contractively — rebind Descendant → StructBound (Cardelli-Mitchell '89, TAPL §20).
                 if (TryPromoteCSDescendantToStructBound(node))
                     return;
 
@@ -1761,41 +1936,25 @@ public static class SolvingFunctions {
             node.VisitMark = prev;
         }
 
-        // When a struct→struct cycle is detected, attempt to restore the Optional break by
-        // wrapping the closing field's value in StateOptional. Triggered only when the cycle's
-        // struct subgraph is opt-sourced (originated through a `?.` access). Returns true if the
-        // cycle was repaired and the recursion check should proceed.
+        // Wrap closing field values in StateOptional to restore the contractive break.
+        // Triggered only for opt-sourced cycles (originated through `?.`).
         bool TryRepairOptSourcedCycle(TicNode cycleNode) {
             if (cycleNode.GetNonReference().State is not StateStruct cycleStruct)
                 return false;
-            // If TypeName is already set, a previous repair pass has stamped the
-            // struct as a named recursive type and wrapped its fields. The cycle
-            // is already broken via Optional and FunnyType conversion will use
-            // NamedStructOf — nothing more to do.
+            // TypeName already set ⇒ previous repair stamped this struct and broke the cycle.
             if (cycleStruct.TypeName != null) return true;
-            // Wrap EVERY closing edge — a struct with multiple self-referencing
-            // fields (e.g. tree{left:tree, right:tree}) needs an Optional break
-            // on each. Repairing only one edge leaves the others as struct→struct
-            // cycles, tripping the "Recursive type definition" check on the
-            // next pass.
+            // Wrap EVERY closing edge — partial repair leaves remaining struct→struct cycles.
             bool anyRepaired = false;
             foreach (var f in cycleStruct.Fields) {
                 var fieldNode = f.Value.GetNonReference();
                 if (fieldNode != cycleNode && !ReachesStructWithoutOptionalBreak(fieldNode, cycleNode))
                     continue;
-                // Already an Optional break? Count it as repaired — Optional is
-                // the contractive form for the closing edge.
                 if (fieldNode.State is StateOptional) {
                     anyRepaired = true;
                     continue;
                 }
-                // Non-mutable + named struct of the SAME identity as the cycle
-                // root means a previous repair pass already broke this edge via
-                // a named recursive type (`StateStruct.IsMutable` returns false
-                // when TypeName is set). That's a valid contractive break.
-                // Any other non-mutable state would be a non-Optional concrete
-                // struct closing a cycle — that's the original error case and
-                // we must NOT silently accept it.
+                // Same-name named struct = previous-pass break via named-type identity (valid).
+                // Any other non-mutable state is a non-Optional concrete closure — must error.
                 if (!fieldNode.IsMutable) {
                     if (fieldNode.State is StateStruct s && s.TypeName != null
                         && (cycleStruct.TypeName == null
@@ -1812,10 +1971,8 @@ public static class SolvingFunctions {
                 anyRepaired = true;
             }
             if (!anyRepaired) return false;
-            // After all closing edges are wrapped, stamp the cycle struct with
-            // a matching declared named type. Set TypeName LAST: setting it
-            // earlier flips IsMutable=false and blocks the wrap assignments
-            // above (struct→opt assignment fails the already-solved assertion).
+            // TypeName LAST — setting it earlier flips IsMutable=false and blocks the wrap
+            // assignments above (struct→opt fails the already-solved assertion).
             if (cycleStruct.TypeName == null && namedTypeRegistry != null) {
                 var match = FindUniqueMatchingNamedType(cycleStruct, namedTypeRegistry);
                 if (match != null) cycleStruct.TypeName = match;
@@ -1823,25 +1980,15 @@ public static class SolvingFunctions {
             return true;
         }
 
-        // CS-internal slot promotion. Repairs a cycle whose root is a CS-typed node by rebinding
-        // its descendant struct as the F-bound. Preconditions:
-        //   1. node.State is ConstraintsState with Descendant non-null
-        //   2. cs.Descendant is StateStruct S
-        //   3. S has a field path back to node OR to an instance of S
-        //   4. EVERY closing path crosses an Optional/Array constructor (contractivity —
-        //      non-contractive cycles are ill-formed and must continue to error).
-        // The promotion is information-preserving (struct value unchanged) and a strict
-        // refinement in the F-bound calculus.
+        // Rebind CS{Descendant=S} → CS{StructBound=S} when every closing path on S is
+        // contractive — information-preserving F-bound refinement.
         bool TryPromoteCSDescendantToStructBound(TicNode node) {
             var nr = node.GetNonReference();
             if (nr.State is not ConstraintsState cs) return false;
-            if (cs.HasStructBound) return false;          // already lifted
+            if (cs.HasStructBound) return false;
             if (!cs.HasDescendant) return false;
             if (cs.Descendant is not StateStruct s) return false;
-            // Closing-path contractivity check.
             if (!StructDescendantClosesContractively(s, nr)) return false;
-            // Promote: struct moves from Descendant role to StructBound role
-            // on the same CS. No state-class change; only slot rebind.
             cs.StructBound = s;
             cs.ClearDescendant();
             TraceLog.WriteLine($"  PromoteCSDescendantToStructBound: {nr.Name} cs.Descendant→cs.StructBound");
@@ -1871,15 +2018,8 @@ public static class SolvingFunctions {
 
 
     /// <summary>
-    /// True iff DFS from <paramref name="start"/> can reach <paramref name="target"/>
-    /// through composite member traversal WITHOUT crossing an Optional or Array
-    /// constructor. Used by Push width-propagation to detect when a struct field
-    /// merge would close a non-contractive cycle (struct → … → struct without
-    /// Optional break) — same definition as ThrowIfRecursiveTypeDefinition's
-    /// invalid-cycle predicate, but as a query instead of a throw.
-    ///
-    /// Returns false if the only path to target crosses Optional/Array — that's a
-    /// contractive (μ-valid) cycle and needs no repair.
+    /// True iff DFS from <paramref name="start"/> can reach <paramref name="target"/> through
+    /// composite members WITHOUT crossing an Optional or Array constructor (non-contractive closure).
     /// </summary>
     internal static bool ReachesStructWithoutOptionalBreak(TicNode start, TicNode target) {
         var mark = NextMark();
@@ -1903,9 +2043,8 @@ public static class SolvingFunctions {
                 case StateRefTo refTo:
                     return CheckReachesNode(refTo.Node, target, mark);
                 case StateOptional:
-                    return false; // Optional breaks the cycle (contractive)
                 case StateArray:
-                    return false; // Array breaks too (empty array is the base case)
+                    return false; // contractive break
                 case ICompositeState composite:
                     for (int i = 0; i < composite.MemberCount; i++)
                         if (CheckReachesNode(composite.GetMember(i), target, mark))
@@ -1935,13 +2074,12 @@ public static class SolvingFunctions {
         var typeVariables = new List<TicNode>();
 
         int genericNodesCount = 0;
-        const int typeVariableVisitedMark = -123;
         for (int i = toposortedNodes.Length - 1; i >= 0; i--)
         {
             var node = toposortedNodes[i];
             FinalizeRecursive(node, namedTypeRegistry, NextMark(), isRecursion);
 
-            CollectLeafTypeVariables(node, typeVariables, typeVariableVisitedMark);
+            CollectLeafTypeVariables(node, typeVariables, TicVisitMarks.TypeVariableVisited);
 
             if (!node.IsSolved)
                 genericNodesCount++;
@@ -1976,7 +2114,7 @@ public static class SolvingFunctions {
 
     private static void FinalizeRecursive(TicNode node, Types.INamedTypeFieldRegistry namedTypeRegistry, int mark, bool isRecursion) {
         if (node.VisitMark == mark)
-            return; // cycle — recursive struct
+            return;
         var prevMark = node.VisitMark;
         node.VisitMark = mark;
 
@@ -2004,7 +2142,6 @@ public static class SolvingFunctions {
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 FinalizeRecursive(composite.GetMember(mi), namedTypeRegistry, mark, isRecursion);
 
-            // Safety net: flatten any remaining nested optionals after member finalization
             node.FlattenNestedOptional();
         }
         node.VisitMark = prevMark;
@@ -2016,13 +2153,11 @@ public static class SolvingFunctions {
         IEnumerable<TicNode> inputNodes,
         bool ignorePreferred) {
 
-        const int outputTypeMark = -77;
-        // Step 1: Mark output types (return type leaves)
+        const int outputTypeMark = TicVisitMarks.OutputType;
         foreach (var outputNode in outputNodes)
             foreach (var outputType in outputNode.GetAllOutputTypes())
                 outputType.VisitMark = outputTypeMark;
 
-        // Step 2: Mark and resolve input (signature) types
         foreach (var inputNode in inputNodes)
         {
             if (inputNode.State is StateFun stateFun)
@@ -2039,20 +2174,41 @@ public static class SolvingFunctions {
             }
             else
             {
-                // Non-StateFun input (e.g., user function arg).
-                // Mark as signature to preserve as generic — but only if it has
-                // actual constraints (desc/anc) or is a composite type (array, struct).
-                // Unconstrained [..] args should resolve normally (they become Any).
+                // Non-StateFun input — mark as signature only when it has actual constraints,
+                // is composite, or has a typeclass-constraint ancestor (CompCs). Unconstrained
+                // inputs without such an edge resolve normally to Any.
                 var nr = inputNode.GetNonReference();
-                if (nr.State is ICompositeState
-                    || (nr.State is ConstraintsState ics && (ics.HasDescendant || ics.HasAncestor)))
+                bool isLeaf = nr.State is ICompositeState
+                    || (nr.State is ConstraintsState ics && (ics.HasDescendant || ics.HasAncestor));
+                if (!isLeaf)
+                {
+                    // CompCs ancestor adoption: input becomes the CompCs so call-site Pull
+                    // can flow the literal's element type through to the body's return.
+                    // CS.IsClearable is folded in (Push CompCs→CS propagation), surviving
+                    // adoption from a single ancestor.
+                    var carriedIsClearable = nr.State is ConstraintsState carryCs && carryCs.IsClearable;
+                    for (int ai = 0; ai < nr.Ancestors.Count; ai++)
+                    {
+                        var ancNr = nr.Ancestors[ai].GetNonReference();
+                        if (ancNr.State is SolvingStates.StateCompositeConstraints compCs)
+                        {
+                            if (carriedIsClearable && !compCs.IsClearable) {
+                                var lifted = compCs.WithIsClearable(true);
+                                nr.State = lifted ?? (ITicNodeState)compCs;
+                            } else {
+                                nr.State = compCs;
+                            }
+                            isLeaf = true;
+                            break;
+                        }
+                    }
+                }
+                if (isLeaf)
                     MarkSignatureLeaves(inputNode, outputTypeMark);
             }
         }
 
-        // Step 3: Resolve remaining body-internal generics with preferred.
-        // All signature nodes (output + input) were marked above and are skipped.
-        // Body-internal nodes (e.g., assertType's T) use preferred for natural resolution.
+        // Body-internal generics resolve via SolveCovariant (signature nodes skipped).
         foreach (var node in toposortedNodes)
         {
             if (node.VisitMark == outputTypeMark)
@@ -2070,6 +2226,9 @@ public static class SolvingFunctions {
         if (nr.State is ICompositeState composite)
             for (int mi = 0; mi < composite.MemberCount; mi++)
                 MarkSignatureLeaves(composite.GetMember(mi), mark);
+        // CompCs ElementNode is the typeclass's T — mark it so SolveCovariant doesn't collapse to Any.
+        else if (nr.State is SolvingStates.StateCompositeConstraints compCs)
+            MarkSignatureLeaves(compCs.ElementNode, mark);
     }
 
     #endregion
@@ -2080,13 +2239,12 @@ public static class SolvingFunctions {
             CollectLeafConstraints(argNode, result);
     }
 
-    private const int LeafCollectMark = -1569;
+    private const int LeafCollectMark = TicVisitMarks.LeafCollect;
 
     private static void CollectLeafConstraints(TicNode node, List<TicNode> result) {
         var state = node.State;
         if (state is ICompositeState composite) {
-            if (node.VisitMark == LeafCollectMark)
-                return; // Cycle — recursive named struct
+            if (node.VisitMark == LeafCollectMark) return;
             var prev = node.VisitMark;
             node.VisitMark = LeafCollectMark;
             for (int mi = 0; mi < composite.MemberCount; mi++)
@@ -2101,8 +2259,6 @@ public static class SolvingFunctions {
     }
 
 
-    // Perf note: new[] { node } allocates a 1-element array, but yield return
-    // creates a heavier state machine. Benchmarked: yield is ~2-4% slower here.
     public static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
         node.State switch {
             ICompositeState composite => composite.AllLeafTypes,
@@ -2113,7 +2269,6 @@ public static class SolvingFunctions {
     private static void CollectLeafTypeVariables(TicNode node, List<TicNode> typeVariables, int visitMark) {
         var state = node.State;
         if (state is ICompositeState composite) {
-            // Guard before recursion to prevent infinite loop on recursive structs
             if (node.VisitMark == visitMark) return;
             node.VisitMark = visitMark;
             for (int mi = 0; mi < composite.MemberCount; mi++)
@@ -2130,11 +2285,13 @@ public static class SolvingFunctions {
 
     private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
         node.State switch {
+            // Fun stays special: only the return position is an output; args are
+            // contravariant inputs.
             StateFun fun => fun.RetNode.GetAllOutputTypes(),
-            StateArray array => array.AllLeafTypes,
-            StateStruct @struct => @struct.AllLeafTypes,
-            StateOptional opt => opt.AllLeafTypes,
             StateRefTo => node.GetNonReference().GetAllOutputTypes(),
+            // Any composite (incl. lang StateCollection — previously missed, so
+            // list/set/map output elements were not protected as output generics).
+            ICompositeState composite => composite.AllLeafTypes,
             _ => new[] { node }
         };
 

@@ -98,6 +98,22 @@ public class OptionalStructFieldSpecTest {
     }
 
     // ───────────────────────────────────────────────────────────────
+    // Review N1 — `??` over an always-none field must type NON-optional so the
+    //   result participates in arithmetic. The Pull Apply(CS, None) cell used to
+    //   set IsOptional on the negative-skolem U of `??` unconditionally; TIC then
+    //   typed the coalesce Int32? and rejected the addition with FU761 (the
+    //   builder-level Optional-strip ran too late to help and is now removed).
+    // ───────────────────────────────────────────────────────────────
+    [Test]
+    public void CoalesceOverAlwaysNoneField_UsableInArithmetic() {
+        "type t = {x: int?}; a = if(true) t{x=none} else none; out = (a?.x ?? -1) + 1"
+            .CalcWithDialect(
+                optionalTypesSupport: OptionalTypesSupport.Enabled,
+                namedTypesSupport: NamedTypesSupport.Enabled)
+            .AssertResultHas("out", 0);
+    }
+
+    // ───────────────────────────────────────────────────────────────
     // MR2Bug1 — 2D array literal of struct with optional field, mixed
     //   asymmetric none/value across sub-arrays, FAILS when the outer
     //   variable carries the matching type annotation. Without the

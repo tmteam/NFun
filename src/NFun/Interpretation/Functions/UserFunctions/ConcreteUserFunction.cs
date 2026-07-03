@@ -11,15 +11,26 @@ internal class ConcreteUserFunction : FunctionWithManyArguments, IUserFunction {
         VariableSource[] variables,
         IExpressionNode expression,
         bool isRecursive,
-        int[] sharedRecursionDepth = null) {
+        VariableSource[] localSources = null,
+        int[] sharedRecursionDepth = null,
+        bool isLambda = false) {
         var argTypes = new FunnyType[variables.Length];
         for (var i = 0; i < variables.Length; i++)
             argTypes[i] = variables[i].Type;
-        if (isRecursive)
-            return new ConcreteRecursiveUserFunction(name, variables, expression, argTypes, sharedRecursionDepth);
-        else
-            return new ConcreteUserFunction(name, variables, expression, argTypes);
+        ConcreteUserFunction result = isRecursive
+            ? new ConcreteRecursiveUserFunction(
+                name, variables, expression, argTypes,
+                localSources ?? System.Array.Empty<VariableSource>(),
+                sharedRecursionDepth)
+            : new ConcreteUserFunction(name, variables, expression, argTypes);
+        result._isLambda = isLambda;
+        return result;
     }
+
+    // True for `rule`/`fun(x):` lambdas — they treat the body's last expression
+    // value as the implicit return. Named `fun` definitions return `none` when
+    // no explicit `return` fires (Statements.md §Functions).
+    internal bool _isLambda;
 
     internal ConcreteUserFunction(
         string name,
@@ -52,13 +63,23 @@ internal class ConcreteUserFunction : FunctionWithManyArguments, IUserFunction {
         var scopeContext = context.GetScopedContext(sourceClones);
 
         var newUserFunction = new ConcreteUserFunction(Name, sourceClones, Expression.Clone(scopeContext), ArgTypes);
+        newUserFunction._isLambda = _isLambda;
         //context.AddUserFunction(this, newUserFunction);
         return newUserFunction;
     }
 
     public override object Calc(object[] args) {
         SetVariables(args);
-        return Expression.Calc();
+        var result = Expression.Calc();
+        if (result is Nodes.ReturnSignal signal)
+            return signal.Value;
+        // Multi-line `fun` body that falls off the end without a `return`
+        // returns `none` per Statements.md §Functions. Lambdas (`rule`,
+        // `fun(x):` block) keep the last-expression-as-implicit-return
+        // semantics. Single-line `f(x) = expr` is not a BlockExpressionNode.
+        if (!_isLambda && Expression is Nodes.BlockExpressionNode)
+            return Types.FunnyNone.Instance;
+        return result;
     }
     
     public override string ToString()

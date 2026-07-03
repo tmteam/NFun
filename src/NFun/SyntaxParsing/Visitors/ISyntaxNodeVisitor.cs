@@ -29,4 +29,17 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(TypeDeclarationSyntaxNode node);
     T Visit(NamedTypeConstructorSyntaxNode node);
     T Visit(TryCatchSyntaxNode node);
+    T Visit(BlockSyntaxNode node);
+    T Visit(ReturnSyntaxNode node);
+    T Visit(ForSyntaxNode node);
+    T Visit(WhileSyntaxNode node);
+    T Visit(WhenSyntaxNode node);
+    T Visit(WhenArmSyntaxNode node);
+    T Visit(BreakSyntaxNode node);
+    T Visit(ContinueSyntaxNode node);
+    T Visit(PrintSyntaxNode node);
+    T Visit(TryBlockSyntaxNode node);
+    T Visit(IfBlockSyntaxNode node);
+    T Visit(FieldAssignmentSyntaxNode node);
+    T Visit(IndexedAssignmentSyntaxNode node);
 }

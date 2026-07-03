@@ -15,11 +15,15 @@ public static partial class StateExtensions {
         if (b is StateRefTo br)
             return a.UnifyOrNull(br.GetNonReference());
 
-        // Any is top of ALL types: None ≤ Any, Opt(T) ≤ Any
         if (a== Any)
             return b;
         if (b== Any)
             return a;
+
+        if (a is StateCompositeConstraints acompcs)
+            return acompcs.UnifyCompCs(b);
+        if (b is StateCompositeConstraints bcompcs)
+            return bcompcs.UnifyCompCs(a);
 
         if (a is ConstraintsState ac)
         {
@@ -33,7 +37,6 @@ public static partial class StateExtensions {
 
         if (b is ConstraintsState)
             return b.UnifyOrNull(a);
-        // Optional: Unify(Opt(A), Opt(B)) = Opt(Unify(A,B)), Unify(Opt, None) = None
         if (a is StateOptional aOpt)
         {
             if (b is StateOptional bOpt)
@@ -42,7 +45,7 @@ public static partial class StateExtensions {
                 return elem == null ? null : StateOptional.Of(elem);
             }
             if (b == None)
-                return b; // None ≤ Opt(T), intersection = None
+                return b; // None is the bottom of Opt(T)'s downward closure
             return null;
         }
         if (b is StateOptional)
@@ -50,7 +53,6 @@ public static partial class StateExtensions {
 
         if (a.GetType() != b.GetType())
             return null;
-        // Same-type but not equal: different primitives or different custom types → incompatible
         if (a is StatePrimitive)
             return null;
         if (b is StatePrimitive)
@@ -61,6 +63,9 @@ public static partial class StateExtensions {
             return aFun.UnifyOrNull(b as StateFun);
         if (a is StateStruct aStr)
             return aStr.UnifyOrNull(b as StateStruct);
+        // Single-arg invariant SC: same Constructor → element-wise unify; otherwise null.
+        if (a is StateCollection aColl && b is StateCollection bColl)
+            return aColl.UnifyOrNull(bColl);
         throw new NotSupportedException($"Unitype({a}, {b})");
     }
 
@@ -92,6 +97,12 @@ public static partial class StateExtensions {
     private static ITicNodeState UnifyOrNull(this StateArray a, StateArray b) {
         var uniElement = a.Element.UnifyOrNull(b.Element);
         return uniElement == null ? null : StateArray.Of(uniElement);
+    }
+
+    private static ITicNodeState UnifyOrNull(this StateCollection a, StateCollection b) {
+        if (a.Constructor != b.Constructor) return null;
+        var uniElement = a.Element.UnifyOrNull(b.Element);
+        return uniElement == null ? null : StateCollection.Of(a.Constructor, uniElement);
     }
 
     private static ITicNodeState UnifyOrNull(this StateFun a, StateFun b) {

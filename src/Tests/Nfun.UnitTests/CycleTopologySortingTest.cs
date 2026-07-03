@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace NFun.UnitTests;
 
+using Interpretation.Topology;
+
 [TestFixture]
 public class CycleTopologySortingTest {
     [Test]

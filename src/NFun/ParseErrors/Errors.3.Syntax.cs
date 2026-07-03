@@ -5,6 +5,7 @@ using NFun.Exceptions;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.ParseErrors;
 
@@ -145,6 +146,9 @@ internal static partial class Errors {
 
     internal static FunnyParseException RequiredArgAfterDefault(FunCallSyntaxNode fun, ISyntaxNode arg) => new(
         422, $"Required parameter cannot appear after parameters with default values in function '{fun.Id}'", arg.Interval);
+
+    internal static FunnyParseException RequiredArgAfterDefault(string functionName, ISyntaxNode arg) => new(
+        422, $"Required parameter cannot appear after parameters with default values in function '{functionName}'", arg.Interval);
 
     internal static FunnyParseException MultipleParams(FunCallSyntaxNode fun) => new(
         424, $"Function '{fun.Id}' cannot have more than one params (...) parameter", fun.Interval);
@@ -330,6 +334,16 @@ internal static partial class Errors {
 
     internal static FunnyParseException ExpressionBeforeTheDefinition(int exprStart, ISyntaxNode expression, Tok flowCurrent) => new(
         539, $"Unexpected expression `{expression.ToShortText()}` before definition. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
+
+    internal static FunnyParseException IndexedWriteRequiresLangMode(int exprStart, ISyntaxNode expression, Tok flowCurrent) => new(
+        540, $"`{expression.ToShortText()} = …` indexed write is a statement form supported only in lang-mode where arrays are mutable. Expression-mode `int[]` is immutable — use `setAt(arr, index, value)` to produce a new array instead.", exprStart, flowCurrent.Finish);
+
+    internal static FunnyParseException IndexedWriteOnImmutableArray(FunnyType targetType, Interval interval) {
+        var hint = targetType.IsText
+            ? "Text is immutable — produce a new value (e.g. `t.toUpper()`, `setAt(t.toList(), i, c)`) instead."
+            : $"`{targetType}` is an immutable array — use `list<T>` / `array<T>` for in-place mutation, or `setAt(arr, i, v)` to produce a new array.";
+        return new(541, hint, interval);
+    }
 
     internal static FunnyParseException DefinitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent) => new(
         542, $"Definition has start from new line. {Nl}Example : y:int{Nl}j = y+1", exprStart, flowCurrent.Finish);

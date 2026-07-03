@@ -9,6 +9,8 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public static StateOptional Of(ITicNodeState state) =>
         state switch {
+            // opt(opt(T)) ≡ opt(T) — idempotent at construction.
+            StateOptional already => already,
             ITypeState type => Of(type),
             StateRefTo refTo => Of(refTo.Node),
             ConstraintsState c => Of(c),
@@ -19,20 +21,18 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public static StateOptional Of(TicNode node) => new(node);
 
-    public static StateOptional Of(ITypeState type) => new(TicNode.CreateTypeVariableNode(type));
+    public static StateOptional Of(ITypeState type) =>
+        type is StateOptional already ? already : new(TicNode.CreateTypeVariableNode(type));
 
     public TicNode ElementNode { get; }
-
-    /// <summary>Sentinel for cycle detection (generic functions with if..else none create cyclic Optional).</summary>
-    private const int OptionalCycleGuard = -55001;
 
     public bool IsSolved {
         get {
             var elem = ElementNode;
-            if (elem.VisitMark == OptionalCycleGuard)
-                return false; // cycle → not resolved yet
+            if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle)
+                return false; // cycle
             var prev = elem.VisitMark;
-            elem.VisitMark = OptionalCycleGuard;
+            elem.VisitMark = Tic.TicVisitMarks.StateOptionalIsSolvedCycle;
             var result = elem.State.IsSolved;
             elem.VisitMark = prev;
             return result;
@@ -42,12 +42,10 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
 
     public ITicNodeState Element => ElementNode.State;
 
-    public override string ToString() {
-        if (ElementNode.IsSolved)
-            return $"opt({ElementNode})";
-
-        return $"opt({ElementNode.Name})";
-    }
+    // Delegate to the depth-guarded printer — μ-recursive element states would
+    // recurse forever through TicNode.ToString.
+    public override string ToString() =>
+        ElementNode.IsSolved ? PrintState(0) : $"opt({ElementNode.Name})";
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
         this.Lca(otherType) as ITypeState;
@@ -63,9 +61,9 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public override bool Equals(object obj) {
         if (obj is not StateOptional opt) return false;
         var elem = ElementNode;
-        if (elem.VisitMark == OptionalCycleGuard) return true; // cycle → treat as equal
+        if (elem.VisitMark == Tic.TicVisitMarks.StateOptionalIsSolvedCycle) return true; // coinductive cycle break
         var prev = elem.VisitMark;
-        elem.VisitMark = OptionalCycleGuard;
+        elem.VisitMark = Tic.TicVisitMarks.StateOptionalIsSolvedCycle;
         var result = opt.Element.Equals(Element);
         elem.VisitMark = prev;
         return result;
@@ -82,16 +80,14 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
-    private const int LeafMark = -56000;
-
     public IEnumerable<TicNode> AllLeafTypes
     {
         get
         {
             if (ElementNode.State is ICompositeState composite) {
-                if (ElementNode.VisitMark == LeafMark) yield break;
+                if (ElementNode.VisitMark == Tic.TicVisitMarks.StateLeaf) yield break;
                 var prev = ElementNode.VisitMark;
-                ElementNode.VisitMark = LeafMark;
+                ElementNode.VisitMark = Tic.TicVisitMarks.StateLeaf;
                 foreach (var leaf in composite.AllLeafTypes)
                     yield return leaf;
                 ElementNode.VisitMark = prev;

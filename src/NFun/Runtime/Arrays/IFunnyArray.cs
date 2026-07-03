@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using NFun.Runtime.Lists;
 
 namespace NFun.Runtime.Arrays;
 
-public interface IFunnyArray : IEnumerable<object> {
+public interface IFunnyArray : IFunnyEnumerable {
     FunnyType ElementType { get; }
-    int Count { get; }
     IFunnyArray Slice(int? startIndex, int? endIndex, int? step);
     object GetElementOrNull(int index);
     IEnumerable<T> As<T>();

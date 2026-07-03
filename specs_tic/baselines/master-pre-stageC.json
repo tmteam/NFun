@@ -1,0 +1,181 @@
+{
+  "SuiteName": "v1",
+  "Environment": {
+    "MachineName": "tmteams-MacBook-Pro",
+    "OS": "Darwin 24.1.0 Darwin Kernel Version 24.1.0: Thu Oct 10 21:06:57 PDT 2024; root:xnu-11215.41.3~3/RELEASE_ARM64_T6041",
+    "Runtime": ".NET 6.0.36",
+    "CpuCores": 14,
+    "BuildConfig": "Release",
+    "GitBranch": "mutable-collections",
+    "GitCommit": "f6e3a7e1",
+    "GitDirty": false,
+    "Timestamp": "2026-06-12T17:41:41.852287Z"
+  },
+  "Baseline": {
+    "MeanUs": 61.105925732637495,
+    "CI95Us": 0.1356906156616627,
+    "PracticalCIUs": 0.5427624626466508,
+    "IsStable": true
+  },
+  "Slots": [
+    {
+      "Tags": [
+        "Simple",
+        "Parse"
+      ],
+      "Key": "Simple|Parse",
+      "OpCount": 22,
+      "MeanUs": 1.9898148090060812,
+      "CI95Us": 0.005331360025027996,
+      "PracticalCIUs": 0.021325440100111982,
+      "AllocKb": 2.62890625,
+      "BatchSize": 119
+    },
+    {
+      "Tags": [
+        "Simple",
+        "Build"
+      ],
+      "Key": "Simple|Build",
+      "OpCount": 22,
+      "MeanUs": 7.902156010435476,
+      "CI95Us": 0.04163240548635349,
+      "PracticalCIUs": 0.16652962194541396,
+      "AllocKb": 10.199573863636363,
+      "BatchSize": 35
+    },
+    {
+      "Tags": [
+        "Simple",
+        "Run"
+      ],
+      "Key": "Simple|Run",
+      "OpCount": 22,
+      "MeanUs": 0.06883210866999834,
+      "CI95Us": 0.00013137716071826204,
+      "PracticalCIUs": 0.0005255086428730481,
+      "AllocKb": 0.08629261363636363,
+      "BatchSize": 2883
+    },
+    {
+      "Tags": [
+        "Simple",
+        "Update"
+      ],
+      "Key": "Simple|Update",
+      "OpCount": 8,
+      "MeanUs": 0.09756991880137861,
+      "CI95Us": 0.00027343481386168044,
+      "PracticalCIUs": 0.0010937392554467218,
+      "AllocKb": 0.0859375,
+      "BatchSize": 2608
+    },
+    {
+      "Tags": [
+        "Medium",
+        "Parse"
+      ],
+      "Key": "Medium|Parse",
+      "OpCount": 13,
+      "MeanUs": 6.249111221311066,
+      "CI95Us": 0.020596935880854126,
+      "PracticalCIUs": 0.0823877435234165,
+      "AllocKb": 7.592548076923077,
+      "BatchSize": 113
+    },
+    {
+      "Tags": [
+        "Medium",
+        "Build"
+      ],
+      "Key": "Medium|Build",
+      "OpCount": 13,
+      "MeanUs": 34.728781528451755,
+      "CI95Us": 0.1771841183945983,
+      "PracticalCIUs": 0.7087364735783932,
+      "AllocKb": 35.03245192307692,
+      "BatchSize": 19
+    },
+    {
+      "Tags": [
+        "Medium",
+        "Run"
+      ],
+      "Key": "Medium|Run",
+      "OpCount": 13,
+      "MeanUs": 0.6238477743670138,
+      "CI95Us": 0.0013713497191710387,
+      "PracticalCIUs": 0.005485398876684155,
+      "AllocKb": 1.0775240384615385,
+      "BatchSize": 659
+    },
+    {
+      "Tags": [
+        "Medium",
+        "Update"
+      ],
+      "Key": "Medium|Update",
+      "OpCount": 4,
+      "MeanUs": 0.470734956227916,
+      "CI95Us": 0.001218357124919815,
+      "PracticalCIUs": 0.00487342849967926,
+      "AllocKb": 1.26171875,
+      "BatchSize": 2657
+    },
+    {
+      "Tags": [
+        "Complex",
+        "Parse"
+      ],
+      "Key": "Complex|Parse",
+      "OpCount": 6,
+      "MeanUs": 17.669908855341138,
+      "CI95Us": 0.043974496566354375,
+      "PracticalCIUs": 0.1758979862654175,
+      "AllocKb": 20.24609375,
+      "BatchSize": 93
+    },
+    {
+      "Tags": [
+        "Complex",
+        "Build"
+      ],
+      "Key": "Complex|Build",
+      "OpCount": 6,
+      "MeanUs": 115.2661909229476,
+      "CI95Us": 0.7353761712043525,
+      "PracticalCIUs": 2.94150468481741,
+      "AllocKb": 114.640625,
+      "BatchSize": 14
+    },
+    {
+      "Tags": [
+        "Complex",
+        "Run"
+      ],
+      "Key": "Complex|Run",
+      "OpCount": 6,
+      "MeanUs": 3.536146270176958,
+      "CI95Us": 0.012064752356675193,
+      "PracticalCIUs": 0.04825900942670077,
+      "AllocKb": 5.1640625,
+      "BatchSize": 393
+    },
+    {
+      "Tags": [
+        "Complex",
+        "Update"
+      ],
+      "Key": "Complex|Update",
+      "OpCount": 2,
+      "MeanUs": 1.5304236972162237,
+      "CI95Us": 0.004309384531628179,
+      "PracticalCIUs": 0.017237538126512717,
+      "AllocKb": 3.84765625,
+      "BatchSize": 2701
+    }
+  ],
+  "MeasurementSeconds": 60,
+  "Rounds": 718,
+  "DroppedRounds": 66
+}

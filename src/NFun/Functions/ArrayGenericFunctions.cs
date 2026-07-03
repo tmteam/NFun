@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
+using NFun.Functions.Lang;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -9,80 +10,123 @@ using NFun.Types;
 namespace NFun.Functions;
 
 public class LastFunction : GenericFunctionBase {
-    public LastFunction() : base(new FunctionSignatureDescription(
+    public LastFunction(): base(new FunctionSignatureDescription(
         name: "last",
         outputType: FunnyType.Generic(0),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args) {
-        var arr = (IFunnyArray)args[0];
-        var ans = arr.GetElementOrNull(arr.Count - 1);
+        if (args[0] is NFun.Types.FunnyNone) throw new FunnyRuntimeException("Array is empty");
+        var ans = LastViaInterface(args[0]);
         return ans ?? throw new FunnyRuntimeException("Array is empty");
+    }
+
+    internal static object LastViaInterface(object arg) {
+        switch (arg) {
+            case IFunnyArray a: return a.GetElementOrNull(a.Count - 1);
+            case NFun.Runtime.Lists.IFunnyFixedArray f: return f.GetElementOrNull(f.Count - 1);
+            case NFun.Runtime.Lists.IFunnyMutableArray m: return m.GetElementOrNull(m.Count - 1);
+            case NFun.Runtime.Lists.IFunnyEnumerable e: {
+                object last = null; foreach (var v in e) last = v; return last;
+            }
+            default: throw new FunnyRuntimeException("Unsupported enumerable shape");
+        }
     }
 }
 
 public class FirstFunction : GenericFunctionBase {
-    public FirstFunction() : base(new FunctionSignatureDescription(
+    public FirstFunction(): base(new FunctionSignatureDescription(
         name: "first",
         outputType: FunnyType.Generic(0),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args) {
-        var arr = (IFunnyArray)args[0];
-        var ans = arr.GetElementOrNull(0);
+        if (args[0] is NFun.Types.FunnyNone) throw new FunnyRuntimeException("Array is empty");
+        var ans = FirstViaInterface(args[0]);
         return ans ?? throw new FunnyRuntimeException("Array is empty");
+    }
+
+    internal static object FirstViaInterface(object arg) {
+        switch (arg) {
+            case IFunnyArray a: return a.GetElementOrNull(0);
+            case NFun.Runtime.Lists.IFunnyFixedArray f: return f.GetElementOrNull(0);
+            case NFun.Runtime.Lists.IFunnyMutableArray m: return m.GetElementOrNull(0);
+            case NFun.Runtime.Lists.IFunnyEnumerable e: {
+                foreach (var v in e) return v; return null;
+            }
+            default: throw new FunnyRuntimeException("Unsupported enumerable shape");
+        }
     }
 }
 
 public class CountFunction : GenericFunctionWithSingleArgument {
-    public CountFunction() : base(new FunctionSignatureDescription(
+    public CountFunction(): base(new FunctionSignatureDescription(
         name: "count",
         outputType: FunnyType.Int32,
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr" })) { }
 
-    protected override object Calc(object a)
-        => ((IFunnyArray)a).Count;
+    protected override object Calc(object a) {
+        // `default` for an Enumerable-constrained generic resolves to FunnyNone (no concrete
+        // collection bound). Treat as empty: count is 0.
+        if (a is NFun.Types.FunnyNone) return 0;
+        return ((NFun.Runtime.Lists.IFunnyEnumerable)a).Count;
+    }
 }
 
+/// <summary>
+/// ee-mode `map(arr, fn)` — strict
+/// <c>(FixedArray&lt;T0&gt;, (T0)-&gt;T1) -&gt; FixedArray&lt;T1&gt;</c>.
+/// StateCollection-based input keeps strict back-prop precision through
+/// element invariance (integer literals pin through closure-in-array).
+/// ee-mode has one collection kind and no Map&lt;K,V&gt; — Enumerable would
+/// only add overhead. See <see cref="MapEnumerableFunction"/> for lang-mode.
+/// </summary>
 public class MapFunction : GenericFunctionBase {
-    public MapFunction() : base(new FunctionSignatureDescription(
+    public MapFunction(): base(new FunctionSignatureDescription(
         name: "map",
-        outputType: FunnyType.ArrayOf(FunnyType.Generic(1)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0)) },
+        outputType: FunnyType.FixedArrayOf(FunnyType.Generic(1)),
+        inputTypes: new[] { FunnyType.FixedArrayOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr", "f" })) { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
-        var res = new ConcreteMap {
+        var res = new ConcreteMap(context.Converter.TypeBehaviour.GetClrTypeFor(concreteTypesMap[0].BaseType)) {
             Name = Name,
             ArgTypes = new[] {
-                FunnyType.ArrayOf(concreteTypesMap[0]),
+                FunnyType.FixedArrayOf(concreteTypesMap[0]),
                 FunnyType.FunOf(concreteTypesMap[1], concreteTypesMap[0])
             },
-            ReturnType = FunnyType.ArrayOf(concreteTypesMap[1])
+            ReturnType = FunnyType.FixedArrayOf(concreteTypesMap[1])
         };
         return res;
     }
 
     private class ConcreteMap : FunctionWithTwoArgs {
+        private readonly Type _lambdaInputClrType;
+        public ConcreteMap(Type lambdaInputClrType) { _lambdaInputClrType = lambdaInputClrType; }
         public override object Calc(object a, object b) {
-            var arr = (IFunnyArray)a;
-            var type = ReturnType.ArrayTypeSpecification.FunnyType;
+            var src = a switch {
+                IFunnyArray ifa => ifa.Select(e => e),
+                NFun.Runtime.Lists.IFunnyEnumerable ife => ife.Select(e => e),
+                _ => throw new FunnyRuntimeException("map: unsupported collection shape"),
+            };
+            var elemType = ReturnType.FixedArrayTypeSpecification.FunnyType;
+            var coerce = MapCoerce.Get(_lambdaInputClrType);
             if (b is FunctionWithSingleArg mapFunc)
-                return FunnyArrayTools.CreateEnumerable(arr.Select(e => mapFunc.Calc(e)), type);
-
+                return new NFun.Runtime.Lists.FixedFunnyArray(elemType, src.Select(e => mapFunc.Calc(coerce(e))).ToArray());
             var map = (IConcreteFunction)b;
-
-            return FunnyArrayTools.CreateEnumerable(arr.Select(e => map.Calc(new[] { e })), type);
+            return new NFun.Runtime.Lists.FixedFunnyArray(elemType, src.Select(e => map.Calc(new[] { coerce(e) })).ToArray());
         }
     }
 }
+
+// MapEnumerableFunction moved to NFun/Functions/Lang/MapEnumerableFunction.cs.
 
 public class MultiMapSumFunction : GenericFunctionBase {
     private const string Id = "sum";
@@ -184,39 +228,39 @@ public class SliceWithStepGenericFunctionDefinition : GenericFunctionBase {
 }
 
 public class SortFunction : GenericFunctionBase {
-    public SortFunction() : base(new FunctionSignatureDescription(
+    public SortFunction(): base(new FunctionSignatureDescription(
         name: "sort",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         constrains: new[] { GenericConstrains.Comparable },
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args) {
-        var funArray = (IFunnyArray)args[0];
-
-        var arr = funArray.As<IComparable>().ToArray(funArray.Count);
+        var src = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(args[0]);
+        var arr = src.Cast<IComparable>().ToArray();
         Array.Sort(arr);
-        return FunnyArrayTools.CreateArray(arr, funArray.ElementType);
+        var elemType = ReturnType.ArrayTypeSpecification.FunnyType;
+        return FunnyArrayTools.CreateArray(arr.Cast<object>().ToArray(), elemType);
     }
 }
 
 public class SortDescendingFunction : GenericFunctionBase {
-    public SortDescendingFunction() : base(new FunctionSignatureDescription(
+    public SortDescendingFunction(): base(new FunctionSignatureDescription(
         name: "sortDescending",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         constrains: new[] { GenericConstrains.Comparable },
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args) {
-        var funArray = (IFunnyArray)args[0];
-
-        var arr = funArray.As<IComparable>().ToArray(funArray.Count);
+        var src = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(args[0]);
+        var arr = src.Cast<IComparable>().ToArray();
         Array.Sort(arr);
         Array.Reverse(arr);
-        return FunnyArrayTools.CreateArray(arr, funArray.ElementType);
+        var elemType = ReturnType.ArrayTypeSpecification.FunnyType;
+        return FunnyArrayTools.CreateArray(arr.Cast<object>().ToArray(), elemType);
     }
 }
 
@@ -255,18 +299,19 @@ public class SortMapDescendingFunction : GenericFunctionBase {
 }
 
 public class MedianFunction : GenericFunctionBase {
-    public MedianFunction() : base(new FunctionSignatureDescription(
+    public MedianFunction(): base(new FunctionSignatureDescription(
         name: "median",
         outputType: FunnyType.Generic(0),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         constrains: new[] { GenericConstrains.Comparable },
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args)
     {
-        var array = (IFunnyArray)args[0];
-        return GetMedian(array.As<IComparable>(), array.Count);
+        if (args[0] is NFun.Types.FunnyNone) throw new FunnyRuntimeException("Array is empty");
+        var array = (NFun.Runtime.Lists.IFunnyEnumerable)args[0];
+        return GetMedian(array.Cast<IComparable>(), array.Count);
     }
 
     private static IComparable GetMedian(IEnumerable<IComparable> source, int size) {
@@ -282,16 +327,17 @@ public class MedianFunction : GenericFunctionBase {
 }
 
 public class MaxElementFunction : GenericFunctionBase {
-    public MaxElementFunction() : base(new FunctionSignatureDescription(
+    public MaxElementFunction(): base(new FunctionSignatureDescription(
         name: "max",
         outputType: FunnyType.Generic(0),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         constrains: new[] { GenericConstrains.Comparable },
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args) {
-        var array = (IFunnyArray)args[0];
+        if (args[0] is NFun.Types.FunnyNone) throw new FunnyRuntimeException("Array is empty");
+        var array = (NFun.Runtime.Lists.IFunnyEnumerable)args[0];
         if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
         // IEEE 754: NaN propagates through max — return NaN on first NaN element (double or float).
         // Without early-return, IComparable's ordering of NaN (as smallest) silently discards it.
@@ -307,16 +353,17 @@ public class MaxElementFunction : GenericFunctionBase {
 }
 
 public class MinElementFunction : GenericFunctionBase {
-    public MinElementFunction() : base(new FunctionSignatureDescription(
+    public MinElementFunction(): base(new FunctionSignatureDescription(
         name: "min",
         outputType: FunnyType.Generic(0),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         constrains: new[] { GenericConstrains.Comparable },
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object[] args) {
-        var array = (IFunnyArray)args[0];
+        if (args[0] is NFun.Types.FunnyNone) throw new FunnyRuntimeException("Array is empty");
+        var array = (NFun.Runtime.Lists.IFunnyEnumerable)args[0];
         if (array.Count == 0) throw new FunnyRuntimeException("Array is empty");
         // IEEE 754: NaN propagates through min. Same reasoning as MaxElementFunction.
         object result = null;
@@ -377,8 +424,9 @@ public class GetGenericFunctionDefinition : GenericFunctionWithTwoArguments {
 }
 
 public class SetGenericFunctionDefinition : GenericFunctionBase {
+    // Renamed from `set` to `setAt` (Stage C / Set work).
     public SetGenericFunctionDefinition() : base(new FunctionSignatureDescription(
-        name: "set",
+        name: "setAt",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
         inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Int32, FunnyType.Generic(0) },
         isExtension: true,
@@ -388,9 +436,7 @@ public class SetGenericFunctionDefinition : GenericFunctionBase {
         var arr = (IFunnyArray)args[0];
 
         var index = (int)args[1];
-        if (index < 0)
-            throw new FunnyRuntimeException("Argument out of range");
-        if (index > arr.Count + 1)
+        if (index < 0 || index >= arr.Count)
             throw new FunnyRuntimeException("Argument out of range");
         var val = args[2];
 
@@ -401,16 +447,37 @@ public class SetGenericFunctionDefinition : GenericFunctionBase {
     }
 }
 
+public class ContainsGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+    // Linear-scan baseline (works on any Enumerable<T>). Set has O(1) membership
+    // via the underlying HashSet — short-circuit for that case.
+    public ContainsGenericFunctionDefinition() : base(
+        "contains",
+        FunnyType.Bool,
+        FunnyType.EnumerableOf(FunnyType.Generic(0)),
+        FunnyType.Generic(0)) { ArgProperties = FunArgProperty.FromNames("arr", "element"); }
+
+    protected override object Calc(object a, object b) {
+        if (a is NFun.Types.FunnyNone) return false;
+        if (a is NFun.Runtime.Lists.IFunnyMutableSet set) return set.Contains(b);
+        var arr = (NFun.Runtime.Lists.IFunnyEnumerable)a;
+        foreach (var element in arr)
+            if (TypeHelper.AreEqual(element, b))
+                return true;
+        return false;
+    }
+}
+
 public class FindGenericFunctionDefinition : GenericFunctionWithTwoArguments {
-    public FindGenericFunctionDefinition() : base(new FunctionSignatureDescription(
+    public FindGenericFunctionDefinition(): base(new FunctionSignatureDescription(
         name: "find",
         outputType: FunnyType.Int32,
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.Generic(0) },
         isExtension: true,
         argNames: new[] { "arr", "element" })) { }
 
     protected override object Calc(object a, object b) {
-        var arr = (IFunnyArray)a;
+        if (a is NFun.Types.FunnyNone) return -1;
+        var arr = (NFun.Runtime.Lists.IFunnyEnumerable)a;
         var factor = b;
         int i = 0;
         foreach (var element in arr)
@@ -419,40 +486,44 @@ public class FindGenericFunctionDefinition : GenericFunctionWithTwoArguments {
                 return i;
             i++;
         }
-
         return -1;
     }
 }
 
-public class ChunkGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class ChunkGenericFunctionDefinition : GenericFunctionBase {
     public ChunkGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "chunk",
         outputType: FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Generic(0))),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Int32 },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.Int32 },
         isExtension: true,
         argNames: new[] { "arr", "size" })) { }
 
-    protected override object Calc(object a, object b) {
-        var arr = (IFunnyArray)a;
-        var chunkSize = (int)b;
-        if (chunkSize <= 0)
-            throw new FunnyRuntimeException($"Chunk size is {chunkSize}. It has to be positive");
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
 
-        var elementType = arr.ElementType;
-        var result = new List<IFunnyArray>();
-
-        int i = 0;
-        while (i < arr.Count) {
-            int size = Math.Min(chunkSize, arr.Count - i);
-            var chunk = new object[size];
-            Array.Copy(arr.ClrArray, i, chunk, 0, size);
-            result.Add(new ImmutableFunnyArray(chunk, elementType));
-            i += size;
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("chunk",
+            FunnyType.ArrayOf(FunnyType.ArrayOf(elem)),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.Int32) => _elem = elem;
+        public override object Calc(object a, object b) {
+            var chunkSize = (int)b;
+            if (chunkSize <= 0)
+                throw new FunnyRuntimeException($"Chunk size is {chunkSize}. It has to be positive");
+            var src = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a).ToList();
+            var result = new List<IFunnyArray>();
+            int i = 0;
+            while (i < src.Count) {
+                int size = Math.Min(chunkSize, src.Count - i);
+                var chunk = new object[size];
+                for (int j = 0; j < size; j++) chunk[j] = src[i + j];
+                result.Add(new ImmutableFunnyArray(chunk, _elem));
+                i += size;
+            }
+            return new EnumerableFunnyArray(result, FunnyType.ArrayOf(FunnyType.ArrayOf(_elem)));
         }
-
-        return new EnumerableFunnyArray(result, FunnyType.ArrayOf(FunnyType.ArrayOf(elementType)));
     }
-
 }
 
 public class FlatGenericFunctionDefinition : GenericFunctionWithSingleArgument {
@@ -464,10 +535,16 @@ public class FlatGenericFunctionDefinition : GenericFunctionWithSingleArgument {
         argNames: new[] { "arr" })) { }
 
     protected override object Calc(object a) {
-        var arr = (IFunnyArray)a;
-        var originInputType = arr.ElementType.ArrayTypeSpecification.FunnyType;
-
-        return FunnyArrayTools.CreateEnumerable(arr.SelectMany(o => (IFunnyArray)o), originInputType);
+        // Dispatch on `IFunnyEnumerable` (the common base of both `IFunnyArray`
+        // and the lang-mode `IFunnyMutableArray` / `IFunnyList` hierarchy).
+        // The static signature `T[][] → T[]` lets lang-mode `list<list<T>>`
+        // flow in via `list<T> ≤ T[]` subtype; runtime values then need both
+        // shapes accepted. Bug hunt round 4 #22.
+        var outer = (NFun.Runtime.Lists.IFunnyEnumerable)a;
+        var inner = outer.ElementType.ArrayTypeSpecification.FunnyType;
+        return FunnyArrayTools.CreateEnumerable(
+            outer.SelectMany(o => (NFun.Runtime.Lists.IFunnyEnumerable)o),
+            inner);
     }
 }
 
@@ -514,48 +591,84 @@ public class FoldWithDefaultsGenericFunctionDefinition : GenericFunctionBase {
     }
 }
 
-public class UniteGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class UniteGenericFunctionDefinition : GenericFunctionBase {
     public UniteGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "unite",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "a", "b" })) { }
 
-    protected override object Calc(object a, object b) {
-        var arr1 = (IFunnyArray)a;
-        var arr2 = (IFunnyArray)b;
-        return FunnyArrayTools.CreateEnumerable(arr1.Union(arr2), arr1.ElementType);
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
+
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("unite",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.EnumerableOf(elem)) => _elem = elem;
+        public override object Calc(object a, object b) {
+            if (a is NFun.Types.FunnyNone && b is NFun.Types.FunnyNone)
+                return FunnyArrayTools.CreateEnumerable(System.Linq.Enumerable.Empty<object>(), _elem);
+            var arr1 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a);
+            var arr2 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(b);
+            return FunnyArrayTools.CreateEnumerable(arr1.Union(arr2), _elem);
+        }
     }
 }
 
-public class UniqueGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class UniqueGenericFunctionDefinition : GenericFunctionBase {
     public UniqueGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "unique",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "a", "b" })) { }
 
-    protected override object Calc(object a, object b) {
-        var arr1 = (IFunnyArray)a;
-        var arr2 = (IFunnyArray)b;
-        return FunnyArrayTools.CreateEnumerable(arr1.Except(arr2).Concat(arr2.Except(arr1)), arr1.ElementType);
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
+
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("unique",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.EnumerableOf(elem)) => _elem = elem;
+        public override object Calc(object a, object b) {
+            if (a is NFun.Types.FunnyNone && b is NFun.Types.FunnyNone)
+                return FunnyArrayTools.CreateEnumerable(System.Linq.Enumerable.Empty<object>(), _elem);
+            var arr1 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a).ToList();
+            var arr2 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(b).ToList();
+            return FunnyArrayTools.CreateEnumerable(arr1.Except(arr2).Concat(arr2.Except(arr1)), _elem);
+        }
     }
 }
 
-public class IntersectGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class IntersectGenericFunctionDefinition : GenericFunctionBase {
     public IntersectGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "intersect",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "a", "b" })) { }
 
-    protected override object Calc(object a, object b) {
-        var arr1 = (IFunnyArray)a;
-        var arr2 = (IFunnyArray)b;
-        return FunnyArrayTools.CreateEnumerable(arr1.Intersect(arr2), arr1.ElementType);
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
+
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("intersect",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.EnumerableOf(elem)) => _elem = elem;
+        public override object Calc(object a, object b) {
+            if (a is NFun.Types.FunnyNone || b is NFun.Types.FunnyNone)
+                return FunnyArrayTools.CreateEnumerable(System.Linq.Enumerable.Empty<object>(), _elem);
+            var arr1 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a);
+            var arr2 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(b);
+            return FunnyArrayTools.CreateEnumerable(arr1.Intersect(arr2), _elem);
+        }
     }
 }
 
@@ -590,31 +703,42 @@ public class AppendGenericFunctionDefinition : GenericFunctionWithTwoArguments {
     }
 }
 
-public class SubstractArraysGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class SubstractArraysGenericFunctionDefinition : GenericFunctionBase {
     public SubstractArraysGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "except",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "a", "b" })) { }
 
-    protected override object Calc(object a, object b) {
-        var arr1 = (IFunnyArray)a;
-        var arr2 = (IFunnyArray)b;
-        return FunnyArrayTools.CreateEnumerable(arr1.Except(arr2), arr1.ElementType);
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
+
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("except",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.EnumerableOf(elem)) => _elem = elem;
+        public override object Calc(object a, object b) {
+            var arr1 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a);
+            var arr2 = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(b);
+            return FunnyArrayTools.CreateEnumerable(arr1.Except(arr2), _elem);
+        }
     }
 }
 
 public class CountOfGenericFunctionDefinition : GenericFunctionWithTwoArguments {
-    public CountOfGenericFunctionDefinition() : base(new FunctionSignatureDescription(
+    public CountOfGenericFunctionDefinition(): base(new FunctionSignatureDescription(
         name: "count",
         outputType: FunnyType.Int32,
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr", "predicate" })) { }
 
     protected override object Calc(object a, object b) {
-        var arr = (IFunnyArray)a;
+        if (a is NFun.Types.FunnyNone) return 0;
+        var arr = (NFun.Runtime.Lists.IFunnyEnumerable)a;
         var filter = (IConcreteFunction)b;
 
         return arr.Count(arg => (bool)filter.Calc(new[] { arg }));
@@ -622,67 +746,82 @@ public class CountOfGenericFunctionDefinition : GenericFunctionWithTwoArguments 
 }
 
 public class HasAnyGenericFunctionDefinition : GenericFunctionWithSingleArgument {
-    public HasAnyGenericFunctionDefinition() : base(new FunctionSignatureDescription(
+    public HasAnyGenericFunctionDefinition(): base(new FunctionSignatureDescription(
         name: "any",
         outputType: FunnyType.Bool,
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr" })) { }
 
-    protected override object Calc(object a)
-        => ((IFunnyArray)a).Count > 0;
+    protected override object Calc(object a) {
+        if (a is NFun.Types.FunnyNone) return false;
+        return ((NFun.Runtime.Lists.IFunnyEnumerable)a).Count > 0;
+    }
 }
 
 public class AnyGenericFunctionDefinition : GenericFunctionWithTwoArguments {
-    public AnyGenericFunctionDefinition() : base(new FunctionSignatureDescription(
+    public AnyGenericFunctionDefinition(): base(new FunctionSignatureDescription(
         name: "any",
         outputType: FunnyType.Bool,
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr", "predicate" })) { }
 
     protected override object Calc(object a, object b) {
-        var arr = (IFunnyArray)a;
-
+        if (a is NFun.Types.FunnyNone) return false;
+        var arr = (NFun.Runtime.Lists.IFunnyEnumerable)a;
         if (b is FunctionWithSingleArg predicate)
             return arr.Any(e => (bool)predicate.Calc(e));
-
         var filter = (IConcreteFunction)b;
         return arr.Any(e => (bool)filter.Calc(new[] { e }));
     }
 }
 
 public class AllGenericFunctionDefinition : GenericFunctionWithTwoArguments {
-    public AllGenericFunctionDefinition() : base(new FunctionSignatureDescription(
+    public AllGenericFunctionDefinition(): base(new FunctionSignatureDescription(
         name: "all",
         outputType: FunnyType.Bool,
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr", "predicate" })) { }
 
     protected override object Calc(object a, object b) {
-        var arr = (IFunnyArray)a;
+        if (a is NFun.Types.FunnyNone) return true; // vacuously true
+        var arr = (NFun.Runtime.Lists.IFunnyEnumerable)a;
         var filter = (IConcreteFunction)b;
 
         return arr.All(e => (bool)filter.Calc(new[] { e }));
     }
 }
 
-public class FilterGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class FilterGenericFunctionDefinition : GenericFunctionBase {
     public FilterGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "filter",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0)) },
         isExtension: true,
         argNames: new[] { "arr", "predicate" })) { }
 
-    protected override object Calc(object a, object b) {
-        var arr = (IFunnyArray)a;
-        if (b is FunctionWithSingleArg predicate)
-            return FunnyArrayTools.CreateEnumerable(arr.Where(e => (bool)predicate.Calc(e)), arr.ElementType);
-        var filter = (IConcreteFunction)b;
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) {
+        var elem = concrete[0];
+        return new Impl(elem);
+    }
 
-        return FunnyArrayTools.CreateEnumerable(arr.Where(e => (bool)filter.Calc(new[] { e })), arr.ElementType);
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("filter",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.FunOf(FunnyType.Bool, elem)) => _elem = elem;
+        public override object Calc(object a, object b) {
+            if (a is NFun.Types.FunnyNone)
+                return FunnyArrayTools.CreateArray(Array.Empty<object>(), _elem);
+            var src = NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a);
+            var picked = b is FunctionWithSingleArg p
+                ? src.Where(e => (bool)p.Calc(e))
+                : src.Where(e => (bool)((IConcreteFunction)b).Calc(new[] { e }));
+            return FunnyArrayTools.CreateArray(picked.ToArray(), _elem);
+        }
     }
 }
 
@@ -726,32 +865,60 @@ public class ReverseGenericFunctionDefinition : GenericFunctionWithSingleArgumen
     }
 }
 
-public class TakeGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class TakeGenericFunctionDefinition : GenericFunctionBase {
     public TakeGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "take",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Int32 },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.Int32 },
         isExtension: true,
         argNames: new[] { "arr", "count" })) { }
 
-    protected override object Calc(object a, object b) {
-        var count = (int)b;
-        if (count < 0) throw new FunnyRuntimeException("Take count cannot be negative");
-        return ((IFunnyArray)a).Slice(null, count - 1, 1);
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
+
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("take",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.Int32) => _elem = elem;
+        public override object Calc(object a, object b) {
+            var count = (int)b;
+            if (count < 0) throw new FunnyRuntimeException("Take count cannot be negative");
+            if (a is NFun.Types.FunnyNone || count == 0)
+                return FunnyArrayTools.CreateArray(Array.Empty<object>(), _elem);
+            return FunnyArrayTools.CreateArray(
+                NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a).Take(count).ToArray(),
+                _elem);
+        }
     }
 }
 
-public class SkipGenericFunctionDefinition : GenericFunctionWithTwoArguments {
+public class SkipGenericFunctionDefinition : GenericFunctionBase {
     public SkipGenericFunctionDefinition() : base(new FunctionSignatureDescription(
         name: "skip",
         outputType: FunnyType.ArrayOf(FunnyType.Generic(0)),
-        inputTypes: new[] { FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Int32 },
+        inputTypes: new[] { FunnyType.EnumerableOf(FunnyType.Generic(0)), FunnyType.Int32 },
         isExtension: true,
         argNames: new[] { "arr", "count" })) { }
 
-    protected override object Calc(object a, object b) {
-        var count = (int)b;
-        if (count < 0) throw new FunnyRuntimeException("Skip count cannot be negative");
-        return ((IFunnyArray)a).Slice(count, null, 1);
+    public override IConcreteFunction CreateConcrete(FunnyType[] concrete, IFunctionSelectorContext _) =>
+        new Impl(concrete[0]);
+
+    private sealed class Impl : FunctionWithTwoArgs {
+        private readonly FunnyType _elem;
+        public Impl(FunnyType elem) : base("skip",
+            FunnyType.ArrayOf(elem),
+            FunnyType.EnumerableOf(elem),
+            FunnyType.Int32) => _elem = elem;
+        public override object Calc(object a, object b) {
+            var count = (int)b;
+            if (count < 0) throw new FunnyRuntimeException("Skip count cannot be negative");
+            if (a is NFun.Types.FunnyNone)
+                return FunnyArrayTools.CreateArray(Array.Empty<object>(), _elem);
+            return FunnyArrayTools.CreateArray(
+                NFun.Functions.Collections.ToXxxRuntimeIter.AsObjects(a).Skip(count).ToArray(),
+                _elem);
+        }
     }
 }

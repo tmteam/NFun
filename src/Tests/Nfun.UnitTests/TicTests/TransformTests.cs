@@ -16,7 +16,7 @@ public class TransformTests {
 
     [Test]
     public void TransformToArray_EmptyCS_ReturnsArray() {
-        var result = SolvingFunctions.TransformToArrayOrNull("test", ConstraintsState.Empty);
+        var result = SolvingFunctions.TransformToArrayOrNull(null, "test", ConstraintsState.Empty);
         Assert.IsNotNull(result);
         Assert.IsInstanceOf<ConstraintsState>(result.Element);
     }
@@ -26,7 +26,7 @@ public class TransformTests {
         var elemNode = TicNode.CreateTypeVariableNode("e", I32);
         var arrDesc = new StateArray(elemNode);
         var cs = ConstraintsState.Of(arrDesc);
-        var result = SolvingFunctions.TransformToArrayOrNull("test", cs);
+        var result = SolvingFunctions.TransformToArrayOrNull(null, "test", cs);
         Assert.IsNotNull(result);
         // Element should carry the descendant from the snapshot
         Assert.IsInstanceOf<ConstraintsState>(result.Element);
@@ -37,7 +37,7 @@ public class TransformTests {
     [Test]
     public void TransformToArray_CSWithNonArrayDesc_ReturnsNull() {
         var cs = ConstraintsState.Of(I32);
-        var result = SolvingFunctions.TransformToArrayOrNull("test", cs);
+        var result = SolvingFunctions.TransformToArrayOrNull(null, "test", cs);
         Assert.IsNull(result);
     }
 
@@ -57,7 +57,7 @@ public class TransformTests {
         // In reality, ConcretestArrayElement preserves CS[U8,P=I32]
         var cs = ConstraintsState.Of(arrDesc);
 
-        var result = SolvingFunctions.TransformToArrayOrNull("test", cs);
+        var result = SolvingFunctions.TransformToArrayOrNull(null, "test", cs);
         Assert.IsNotNull(result);
         // When arrayEDesc is NOT solved, TransformToArrayOrNull returns it directly.
         // The Preferred survives because no transformation happens.
@@ -133,7 +133,7 @@ public class TransformTests {
 
     [Test]
     public void TransformToOptional_EmptyCS_ReturnsOptional() {
-        var result = SolvingFunctions.TransformToOptionalOrNull("test", ConstraintsState.Empty);
+        var result = SolvingFunctions.TransformToOptionalOrNull(null, "test", ConstraintsState.Empty);
         Assert.IsNotNull(result);
         Assert.IsInstanceOf<ConstraintsState>(result.Element);
     }
@@ -142,7 +142,7 @@ public class TransformTests {
     public void TransformToOptional_CSWithOptionalDesc_ReturnsOptional() {
         var optDesc = StateOptional.Of(I32);
         var cs = ConstraintsState.Of(optDesc);
-        var result = SolvingFunctions.TransformToOptionalOrNull("test", cs);
+        var result = SolvingFunctions.TransformToOptionalOrNull(null, "test", cs);
         Assert.IsNotNull(result);
     }
 
@@ -151,7 +151,7 @@ public class TransformTests {
         // IsOptional=true WITHOUT descendant: TransformToOptionalOrNull returns null.
         // (NoConstrains=false because IsOptional is set, HasDescendant=false)
         var cs = ConstraintsState.Of(isOptional: true);
-        var result = SolvingFunctions.TransformToOptionalOrNull("test", cs);
+        var result = SolvingFunctions.TransformToOptionalOrNull(null, "test", cs);
         Assert.IsNull(result);
     }
 }
