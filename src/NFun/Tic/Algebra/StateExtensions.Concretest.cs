@@ -52,6 +52,26 @@ public static partial class StateExtensions {
                 inner = cs.Preferred;
             if (inner == StatePrimitive.Any)
                 return StatePrimitive.Any;
+            // Rule B (canonical Optional form): opt(τ) requires solved τ. The Optional
+            // lift of an unsolved bound stays in flag form [D..A]? — materialising
+            // opt(fresh-unsolved-copy) here creates a dead island no edge can refine.
+            // Ported from lang-mutable-collections (specs_tic CanonicalForms on the
+            // branch; closes the dead-invisible-snapshot family incl. Bug#6).
+            if (inner is ConstraintsState innerCs) {
+                var lifted = ConstraintsState.Of(
+                    innerCs.HasDescendant ? innerCs.Descendant : null,
+                    innerCs.HasAncestor ? innerCs.Ancestor : null,
+                    innerCs.IsComparable || cs.IsComparable,
+                    isOptional: true);
+                lifted.Preferred = cs.Preferred ?? innerCs.Preferred;
+                return lifted;
+            }
+            if (inner is ITypeState { IsSolved: false } unsolvedType) {
+                var lifted = ConstraintsState.Of(
+                    unsolvedType, null, cs.IsComparable, isOptional: true);
+                lifted.Preferred = cs.Preferred;
+                return lifted;
+            }
             return StateOptional.Of(inner);
         }
         return inner;

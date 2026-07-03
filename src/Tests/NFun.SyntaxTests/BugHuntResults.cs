@@ -31,8 +31,31 @@ public class BugHuntResults {
     // where the literal's Preferred can't satisfy the target field's primitive type.
     // Workaround: use a named type wrapper.
     [Test]
-    [Ignore("BugHunt#6: inline {v:float32?}[] with mixed value+none fails FU719; named-type wrapper works")]
     public void Bug6_InlineStructOptionalFloat32Field_WithNone_ShouldBuild() =>
         Assert.DoesNotThrow(() =>
             "arr:{v:float32?}[] = [{v=1.5}, {v=none}]".BuildWithFloatsAndOptional());
+
+    // ── Bug-hunt 2026-07-03 (pre-push run on b89f3183) ───────────────────────
+    // Regression pin: nested struct-arrays with an all-none inner sibling must
+    // infer without annotation ([[{v=1.5},{v=none}],[{v=none}]] → {v:Real?}[][]).
+    // Worked on origin/master; the ported Push CS{Desc=arr}×arr descent arm broke
+    // it and was removed as unnecessary for master (the rest of the Bug#6 set
+    // covers all previously-failing shapes).
+    [Test]
+    public void NestedStructArrays_AllNoneInnerSibling_Infers() {
+        var rt = "m = [[{v=1.5},{v=none}],[{v=none}]]\rout = m.count()"
+            .BuildWithFloatsAndOptional();
+        Assert.DoesNotThrow(() => rt.Run());
+    }
+
+    // Pre-existing (fails on origin/master too, as FU719; FU710 here): a struct-
+    // array literal with a numeric optional field rejects a {v=none} element when
+    // the array has 3+ elements and none is NOT first. 2-element and none-first
+    // shapes work. Boundary: [{v=none},{v=1},{v=255}] OK; [{v=1},{v=none},{v=255}]
+    // and [{v=1},{v=255},{v=none}] fail.
+    [Test]
+    [Ignore("Bug hunt 2026-07-03 #A: 3+ element struct-array literal with none after a value fails; none-first and 2-element shapes work")]
+    public void ThreeElementStructArray_NoneAfterValue_ShouldBuild() =>
+        Assert.DoesNotThrow(() =>
+            "arr:{v:byte?}[] = [{v=1},{v=none},{v=255}]".BuildWithFloatsAndOptional());
 }

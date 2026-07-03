@@ -24,7 +24,13 @@ public class PullConstraintsFunctions : IStateFunction {
     public bool Apply(
         ConstraintsState ancestor, ConstraintsState descendant, TicNode ancestorNode, TicNode descendantNode) {
         var ancestorCopy = ancestor.GetCopy();
-        ancestorCopy.AddDescendant(descendant.Descendant);
+        // Inner-of-Optional ancestors absorb the Optional factor of incoming bounds:
+        // an opt(X) bound on an IsOptionalElement node enters as X — opt(opt(X)) is
+        // non-canonical and dies in interval checks. Ported from lang-mutable-collections.
+        var descDesc = descendant.Descendant;
+        if (ancestorNode.IsOptionalElement && descDesc is StateOptional descDescOpt)
+            descDesc = descDescOpt.Element;
+        ancestorCopy.AddDescendant(descDesc);
         // Propagate Preferred bidirectionally:
         // Upward (desc→anc): integer constants push I32 to array element types.
         // Downward (anc→desc): struct field chains push I32 to generic function results.
@@ -73,8 +79,14 @@ public class PullConstraintsFunctions : IStateFunction {
                 return false;
             // Wrap ancestor in Optional, connecting element nodes for covariant propagation.
             // The inner element gets a copy of ancestor constraints WITHOUT IsOptional —
-            // the Optional wrapper consumes the IsOptional flag.
-            var innerCs = ConstraintsState.Of(ancestor.Descendant, ancestor.Ancestor, ancestor.IsComparable);
+            // the Optional wrapper consumes the IsOptional flag. The wrapper also
+            // consumes the Optional FACTOR of the bound: an opt(X) descendant on the
+            // inner would rebuild opt(opt(X)) (non-canonical) and later fail interval
+            // checks like [opt(I32)..Re]. Ported from lang-mutable-collections.
+            var innerDesc = ancestor.Descendant is StateOptional descOptBound
+                ? descOptBound.Element
+                : ancestor.Descendant;
+            var innerCs = ConstraintsState.Of(innerDesc, ancestor.Ancestor, ancestor.IsComparable);
             innerCs.Preferred = ancestor.Preferred;
             var innerNode = TicNode.CreateTypeVariableNode("e" + ancestorNode.Name + "'", innerCs);
             // F-bound migrates to inner CS on Optional wrap. The bound lives on the recursive

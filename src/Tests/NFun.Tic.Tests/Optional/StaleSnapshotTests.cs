@@ -41,6 +41,11 @@ class StaleSnapshotTests {
     // Expected: y = opt(int)[].  Each branch produces an array,
     // elements are LCA'd: LCA(int, none) = opt(int), so result is opt(int)[].
     // ---------------------------------------------------------------
+    // Bug#6 fix (Rule B canonical Optional form + the opt(P) ∨ CS(Pref) join rule)
+    // changed when IsOptional gets materialised: the flag form [D..A]? and StateOptional
+    // are semantically the same axis with different materialization timing. Runtime output
+    // via the full pipeline is exact (`a:byte?[] = [1, none]` → UInt8?[]); TIC-level shape
+    // assertions accept both forms via IsOptionalShape.
     [Test]
     public void IfElse_ArrayInt_vs_ArrayNone() {
         var graph = new GraphBuilder();
@@ -54,14 +59,19 @@ class StaleSnapshotTests {
 
         var result = graph.Solve();
 
-        // y should be an array of opt(T) where T is in [U8..Real]
         var yNode = result.GetVariableNode("y").GetNonReference();
-        Assert.IsInstanceOf<StateArray>(yNode.State,
-            "y should be an array type");
+        Assert.IsInstanceOf<StateArray>(yNode.State, "y should be an array type");
         var elemState = ((StateArray)yNode.State).ElementNode.GetNonReference().State;
-        Assert.IsInstanceOf<StateOptional>(elemState,
-            "Array element should be Optional (LCA of int and none)");
+        Assert.IsTrue(IsOptionalShape(elemState),
+            $"Array element should be Optional-shape but was {elemState.GetType().Name}: {elemState}");
     }
+
+    // Accepts either StateOptional or CS-with-IsOptional=true — both are semantically
+    // "Optional interval", with the difference being materialization timing (post-Destruction
+    // MaterializeOptionalFlags may or may not have promoted a CS to StateOptional).
+    private static bool IsOptionalShape(ITicNodeState state) =>
+        state is StateOptional
+        || (state is ConstraintsState cs && cs.IsOptional);
 
     // ---------------------------------------------------------------
     // Bug 15#3: if(true) [1,2,3] else [none] with Preferred=I32
@@ -90,14 +100,25 @@ class StaleSnapshotTests {
         Assert.IsInstanceOf<StateArray>(yNode.State, $"y should be array but was {yNode.State.GetType().Name}: {yNode.State}");
         var elemNode = ((StateArray)yNode.State).ElementNode.GetNonReference();
         var elemState = elemNode.State;
-        // With Preferred=I32, LCA(None, CS[U8..Re,P=I32]) produces opt(I32)
-        // instead of opt(U8). The Preferred hint is used to resolve the inner type.
-        Assert.IsInstanceOf<StateOptional>(elemState,
-            $"Element should be Optional but was {elemState.GetType().Name}: {elemState}");
-        var optInner = ((StateOptional)elemState).Element;
-        // Inner should be I32 (resolved from Preferred)
-        Assert.AreEqual(I32, optInner,
-            $"Optional inner should be I32 (from Preferred) but was {optInner}");
+        // With Preferred=I32, LCA(None, CS[U8..Re,P=I32]) preserves the CS-with-IsOptional
+        // interval + Preferred hint (materialised at Destruction if not narrowed by Push).
+        Assert.IsTrue(IsOptionalShape(elemState),
+            $"Element should be Optional-shape but was {elemState.GetType().Name}: {elemState}");
+        // Preferred=I32 must survive through LCA — checked via the resolved Optional inner
+        // (StateOptional wrapping either primitive or CS-with-Preferred) or the CS's Preferred
+        // hint (unmaterialised path). MaterializeOptionalFlags may wrap CS-with-IsOptional=true
+        // in StateOptional(innerCS_without_IsOptional_preserving_Preferred).
+        var preferredHint = elemState switch {
+            StateOptional opt => opt.Element switch {
+                StatePrimitive p => p,
+                ConstraintsState innerCs when innerCs.Preferred != null => innerCs.Preferred,
+                _ => null
+            },
+            ConstraintsState cs when cs.Preferred != null => cs.Preferred,
+            _ => null
+        };
+        Assert.AreEqual(I32, preferredHint,
+            $"Preferred/inner should carry I32 hint but was {preferredHint}");
     }
 
     // ---------------------------------------------------------------
@@ -226,8 +247,8 @@ class StaleSnapshotTests {
         Assert.IsInstanceOf<StateArray>(innerArrayNode.State,
             "Outer element should be an array type (inner)");
         var innerElemState = ((StateArray)innerArrayNode.State).ElementNode.GetNonReference().State;
-        Assert.IsInstanceOf<StateOptional>(innerElemState,
-            "Inner array element should be Optional (LCA of int and none)");
+        Assert.IsTrue(IsOptionalShape(innerElemState),
+            $"Inner array element should be Optional-shape but was {innerElemState.GetType().Name}: {innerElemState}");
     }
 
     // ---------------------------------------------------------------

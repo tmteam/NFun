@@ -4,6 +4,7 @@ using NFun.Tic.SolvingStates;
 namespace NFun.Tic.Stages;
 
 using System;
+using System.Collections.Generic;
 
 public class DestructionFunctions : IStateFunction {
     public static DestructionFunctions Singleton { get; } = new();
@@ -108,7 +109,15 @@ public class DestructionFunctions : IStateFunction {
 
     public bool Apply(
         ConstraintsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode) {
-        if (descendant.FitsInto(ancestor))
+        // RefTo short-circuit is legal only when the descendant COVERS the accumulated
+        // join (ancestor.Descendant): resolving `anc := ref(desc)` equates the result
+        // with ONE contributor. If the join carries an Optional axis the descendant
+        // lacks (if-else with a none-branch: join elem [U8..]?I32!, then-branch elem
+        // [U8..]I32!), the short-circuit silently drops the `?` — fall through to the
+        // recovery paths below instead. Ported from lang-mutable-collections.
+        if (descendant.FitsInto(ancestor)
+            && !(ancestor.HasDescendant
+                 && JoinCarriesOptionalBeyond(ancestor.Descendant, descendant, 0)))
         {
             if (ancestor.IsOptional) {
                 // Wrap in Optional: ancestor becomes opt(descendant)
@@ -456,5 +465,61 @@ public class DestructionFunctions : IStateFunction {
                 return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// True iff <paramref name="join"/> carries an Optional axis (opt(·) or CS with
+    /// IsOptional) at some structural position where <paramref name="target"/> does
+    /// not. Used to gate the RefTo short-circuit above: `anc := ref(target)` would
+    /// silently erase that axis. None on the target side counts as optional (it IS
+    /// the bottom of the Optional axis). Coinductive reference-identity visited-pair
+    /// walk — μ-recursive trees with branching make depth-only guards exponential.
+    /// Ported from lang-mutable-collections.
+    /// </summary>
+    private static bool JoinCarriesOptionalBeyond(ITicNodeState join, ITicNodeState target, int depth)
+        => JoinCarriesOptionalBeyond(join, target, depth, null);
+
+    private static bool JoinCarriesOptionalBeyond(
+        ITicNodeState join, ITicNodeState target, int depth,
+        HashSet<(ITicNodeState, ITicNodeState)> visited) {
+        if (depth > 100) return false;
+        if (join is StateRefTo jr) join = jr.Node.GetNonReference().State;
+        if (target is StateRefTo tr) target = tr.Node.GetNonReference().State;
+
+        visited ??= new HashSet<(ITicNodeState, ITicNodeState)>(RefPairComparer.Instance);
+        if (!visited.Add((join, target)))
+            return false; // cycle re-entered — coinductively no new axis
+
+        bool joinOpt = join is StateOptional || join is ConstraintsState { IsOptional: true };
+        bool targetOpt = target is StateOptional
+                         || target is ConstraintsState { IsOptional: true }
+                         || target == StatePrimitive.None;
+        if (joinOpt && !targetOpt)
+            return true;
+
+        // Descend pairwise through matching constructors (unwrap matched Optional).
+        if (join is StateOptional jo && target is StateOptional to2)
+            return JoinCarriesOptionalBeyond(jo.Element, to2.Element, depth + 1, visited);
+        if (join is StateArray ja && target is StateArray ta)
+            return JoinCarriesOptionalBeyond(ja.Element, ta.Element, depth + 1, visited);
+        if (join is StateStruct js && target is StateStruct ts) {
+            foreach (var jf in js.Fields) {
+                var tf = ts.GetFieldOrNull(jf.Key);
+                if (tf == null) continue;
+                if (JoinCarriesOptionalBeyond(
+                        jf.Value.GetNonReference().State, tf.GetNonReference().State, depth + 1, visited))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private sealed class RefPairComparer : IEqualityComparer<(ITicNodeState, ITicNodeState)> {
+        public static readonly RefPairComparer Instance = new();
+        public bool Equals((ITicNodeState, ITicNodeState) x, (ITicNodeState, ITicNodeState) y)
+            => ReferenceEquals(x.Item1, y.Item1) && ReferenceEquals(x.Item2, y.Item2);
+        public int GetHashCode((ITicNodeState, ITicNodeState) p)
+            => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(p.Item1) * 397
+               ^ System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(p.Item2);
     }
 }

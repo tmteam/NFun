@@ -4,44 +4,24 @@
 
 ---
 
-## 11. Eager Preferred lift in `LcaWithNone` — inline struct + narrowing-numeric optional field
+## 11. Eager Preferred lift in `LcaWithNone` — CLOSED (2026-07-03)
 
-**Где**: `src/NFun/Tic/Algebra/StateExtensions.Lca.cs` lines 61-68 (in `if (b is ConstraintsState bc2)` branch).
+**Closed by** porting the lang-mutable-collections fix set (no identity-share needed):
+- **Rule B (canonical Optional form)** in `ConcretestConstraints`: the Optional lift of an
+  unsolved bound stays in flag form `[D..A]?` (interval + Preferred preserved) instead of
+  materialising `opt(fresh-unsolved-copy)` — a dead island no edge can refine.
+- **Join rule** in the Lca bc2 branch: `opt(P) ∨ CS[D..A](Pref) = CS[P..A]?(Pref)` — replaces
+  the eager `StateOptional.Of(bc2.Preferred)` that baked the hint into a concrete primitive
+  (violating TicPreferred P3) and blocked Push from narrowing `{v:float32?}` down (FU719).
+  The `bc2.IsOptional` arm now also carries Preferred.
+- **Push**: general `None ≤ CS?` rule in `Apply(CS, StatePrimitive)`; covariant
+  `CS{Desc=arr} × arr` element descent (optional axis does not descend — implicit lift).
+- **Destruction**: RefTo short-circuit gated by descendant-covers-join
+  (`JoinCarriesOptionalBeyond`, coinductive ref-identity walk).
 
-**Симптом**: `arr:{v:float32?}[] = [{v=1.5}, {v=none}]` → FU719 parse error. Триггерится ТОЛЬКО для комбо:
-- inline anonymous struct тип-аннотация (не named type)
-- narrowing numeric optional field (`float32`/`byte`/`uint16`/`int16`/`uint32`)
-- смесь value + none в array literal
-- Preferred литерала шире таргет-филд-тип (`Re > F32`, `I32 > U8`, etc.)
-
-**Workaround**: обернуть в named type. `type S = {v:float32?}; arr:S[] = [S{v=1.5}, S{v=none}]` работает.
-
-**Root cause**: Внутри `Lca(a, b)` при `a=CS[F32..Re,P=Re]`, `b=None`:
-```csharp
-if (b is ConstraintsState bc2) {  // wait — b=None, not CS; actually a is CS
-    // Path via symmetric swap → LcaWithNone(CS) → StateOptional.Of(CS)
-    // ...
-    // OR: path via b == None → returns LcaWithNone(a) at line 71
-    // The eager-lift block fires when the CS itself is Optional and has Preferred:
-    if (bc2.Preferred != null && ... optInner.Element is StatePrimitive elemP ...
-        && elemP.CanBePessimisticConvertedTo(bc2.Preferred))
-        return StateOptional.Of(bc2.Preferred);  // ← ЭТО collapses opt(F32) → opt(Re)
-}
-```
-
-Applying `Preferred` as a type CHOICE inside LCA violates the "Preferred is metadata, not constraint" invariant (Specs/Tic/TicPreferred.md P3). Downstream Push cannot narrow `opt(Re)` to `opt(F32)` because Re is a concrete primitive that doesn't fit F32.
-
-**Почему нельзя просто убрать блок**: тот же путь используется для `[1,2,3] else [none]` где НЕТ таргет-аннотации — тут Preferred=I32 должен выиграть, иначе результат `opt(U8)[]` (Byte?[]) вместо intended `opt(I32)[]` (Int32?[]). Два случая требуют противоположных решений от одной LCA-функции.
-
-**Правильный fix (не сделан)**: target-aware LCA (Pull получает контекст ancestor и применяет его до/после LCA), либо разделить преформатирование Preferred по контексту (composite ancestor known vs unknown). Обе версии требуют структурного изменения Pull, не local edit.
-
-**Attempts (2)**:
-1. Return `CS-with-IsOptional=true` вместо `opt(Preferred_primitive)` — сохраняет interval + Preferred metadata. Разрешает bug#6, ломает 7 TIC-level тестов (expected StateOptional shape).
-2. Return `StateOptional(CS)` — тот же shape как раньше. Ломает 2 runtime тестов ([1,2,3] else [none] → Byte вместо Int32) потому что `ConcretestOptional` не читает Preferred из внутреннего CS.
-
-**Регрессионный пин**: `src/Tests/NFun.SyntaxTests/BugHuntResults.cs::Bug6_InlineStructOptionalFloat32Field_WithNone_ShouldBuild` (`[Ignore]`).
-
----
+Pinned: `Bug6_InlineStructOptionalFloat32Field_WithNone_ShouldBuild` (un-ignored),
+`UnitTests/CanonicalOptionalFormTest`, `Optional/StaleSnapshotTests` (shape assertions accept
+both `StateOptional` and CS-with-IsOptional — same axis, different materialization timing).
 
 ## 9. IsMutable decoupling cascade — two narrow workarounds (#108 Phase 1)
 

@@ -23,6 +23,11 @@ public class PushConstraintsFunctions : IStateFunction {
     public bool Apply(
         ConstraintsState ancestor, StatePrimitive descendant, TicNode ancestorNode,
         TicNode descendantNode) {
+        // None ≤ CS[D..A]? is always valid: None is the bottom of the Optional axis
+        // and does not participate in the interval. Mirrors the Destruction cell.
+        // Ported from lang-mutable-collections.
+        if (descendant == StatePrimitive.None && ancestor.IsOptional)
+            return true;
         if (!ancestor.HasAncestor)
             return true;
         return descendant.CanBePessimisticConvertedTo(ancestor.Ancestor);

@@ -52,20 +52,33 @@ public static partial class StateExtensions {
         if (b is ConstraintsState bc2) {
             var inner = bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();
             // Propagate IsOptional: LCA(T, C[.., opt=true]) = C[T.., opt=true]
-            if (bc2.IsOptional && !inner.Equals(Any))
-                return ConstraintsState.Of(inner, isOptional: true);
-            // Preserve Preferred through LCA when result is Optional wrapping
-            // a primitive narrower than Preferred. Resolves the Optional's element
-            // to Preferred so snapshots in AddDescendant carry the resolution hint.
-            // Example: LCA(opt(empty), CS[U8..Re,P=I32]) = opt(U8) → opt(I32).
+            if (bc2.IsOptional && !inner.Equals(Any)) {
+                // Canonical flag form: the IsOptional flag already carries the axis,
+                // so the stored Descendant must be opt-free — [opt(X)..]? is opt(opt(X))
+                // and dies in interval checks ([F32..Re] vs [opt(F32)..]).
+                var innerNoOpt = inner is StateOptional innerOpt2 ? innerOpt2.Element : inner;
+                var cs = ConstraintsState.Of(innerNoOpt, isOptional: true);
+                cs.Preferred = bc2.Preferred; // hints survive the join
+                return cs;
+            }
+            // opt(P) ∨ CS[D..A](Pref) = CS[P..A]?(Pref): while the CS side carries a
+            // Preferred hint, the join stays an unresolved interval (desc = P keeps the
+            // left side's contribution). The former eager `StateOptional.Of(Preferred)`
+            // here baked the hint into a concrete primitive — violating TicPreferred P3
+            // and blocking Push from narrowing the target down (`{v:float32?}` field
+            // pushes F32, but pre-baked opt(Re) can't accept it → FU719, Bug#6).
+            // Ported from lang-mutable-collections.
             if (bc2.Preferred != null
-                && inner is StateOptional optInner
-                && optInner.IsSolved
-                && optInner.Element is StatePrimitive elemP
-                && !elemP.Equals(bc2.Preferred)
-                && elemP.CanBePessimisticConvertedTo(bc2.Preferred)
-                && bc2.CanBeConvertedTo(bc2.Preferred))
-                return StateOptional.Of(bc2.Preferred);
+                && inner is StateOptional { IsSolved: true } optInner
+                && optInner.Element is StatePrimitive innerP) {
+                var lifted = ConstraintsState.Of(
+                    innerP,
+                    bc2.HasAncestor ? bc2.Ancestor : null,
+                    bc2.IsComparable,
+                    isOptional: true);
+                lifted.Preferred = bc2.Preferred;
+                return lifted;
+            }
             return inner;
         }
         if (a is ConstraintsState)
