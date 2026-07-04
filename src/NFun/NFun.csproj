@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>1.1.3</PackageVersion>
-    <Version>1.1.3</Version>
+    <PackageVersion>1.2.0</PackageVersion>
+    <Version>1.2.0</Version>
     <LangVersion>10</LangVersion>
     <Title>NFun</Title>
     <Authors>tmteam</Authors>
@@ -13,9 +13,9 @@
     <PackageIcon>Icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
     <PackageTags>expression-evaluator scripting type-inference optional-types named-types</PackageTags>
-    <PackageReleaseNotes>v1.1.3: fix integer-bitwise type inference under Real-preferred dialect (e.g. `1 &amp; 1` now resolves to Int32 instead of Int64 when IntegerPreferredType=Real). Restores 1.0.x behaviour that regressed when SimplePrimitiveSolver took over the primitive-only resolution path.</PackageReleaseNotes>
-    <AssemblyVersion>1.1.3</AssemblyVersion>
-    <FileVersion>1.1.3</FileVersion>
+    <PackageReleaseNotes>v1.2.0: IEEE 754 float family — new opt-in dialect setting FloatFamilySupport.Float32AndFloat64 adds the `float32` type (System.Single) and the `float64` alias for `real`; real literals and math built-ins (`/`, sqrt, sin, ...) become generic over [float32..real] and resolve to float32 in float32 context. Added int8 (sbyte) type support. Fixed type inference for inline struct arrays with optional narrowing numeric fields (e.g. `arr:{v:float32?}[] = [{v=1.5}, {v=none}]`). Internal function-registry rework: faster overload lookup without per-call string allocation.</PackageReleaseNotes>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <FileVersion>1.2.0</FileVersion>
     <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
