@@ -268,7 +268,10 @@ The numbers in NFun can be written in various ways. Supported
 1_000e2_0  # scientific notation with separator
 ```
 
-A real literal always has the `real` type.
+A real literal has the `real` type by default. Under the float-family dialect
+(`FloatFamilySupport.Float32AndFloat64`) a real literal is generic over `[float32..real]`
+and resolves to `float32` in float32 context (`x:float32 = 3.14` works;
+`x + 1.0` stays `float32`); with no float32 context it still resolves to `real`.
 For other numeric literals, the same symbol may have different types depending on the context:
 ```py
 i = 1      # int32 since this type is 'preferred' for integer literals

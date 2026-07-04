@@ -182,7 +182,7 @@ public class ImplicitCastTest {
         StringAssert.Contains("cannot be initialized", ex.Message);
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
     // Rules:
     //   int → f32 : widening (i32/i64 ⚠ lossy but permitted)
     //   f32 → real : widening

@@ -4,10 +4,6 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests.NamedTypes;
 
-/// <summary>
-/// Tests for type aliases: type name = any_type
-/// Not just structs — primitives, arrays, optionals, functions, nested combinations.
-/// </summary>
 public class TypeAliasTest {
 
     static object Calc(string expr) =>
@@ -16,20 +12,12 @@ public class TypeAliasTest {
             namedTypesSupport: NamedTypesSupport.Enabled)
         .Get("out");
 
-    // ═══════════════════════════════════════════════════════════
-    // PRIMITIVE ALIASES
-    // ═══════════════════════════════════════════════════════════
-
     [TestCase("type age = int; x:age = 42; out = x", 42)]
     [TestCase("type score = real; x:score = 3.14; out = x", 3.14)]
     [TestCase("type flag = bool; x:flag = true; out = x", true)]
     [TestCase("type name = text; x:name = 'hello'; out = x", "hello")]
     public void PrimitiveAlias(string expr, object expected) =>
         Assert.AreEqual(expected, Calc(expr));
-
-    // ═══════════════════════════════════════════════════════════
-    // ARRAY ALIASES
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void ArrayAlias() =>
@@ -47,10 +35,6 @@ public class TypeAliasTest {
     public void ArrayOfTextAlias() =>
         Assert.AreEqual(3, Calc("type words = text[]; x:words = ['a','b','c']; out = x.count()"));
 
-    // ═══════════════════════════════════════════════════════════
-    // OPTIONAL ALIASES
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void OptionalAlias_WithValue() =>
         Assert.AreEqual(42, Calc("type maybeInt = int?; x:maybeInt = 42; out = x ?? -1"));
@@ -63,10 +47,6 @@ public class TypeAliasTest {
     public void OptionalArrayAlias() =>
         Assert.AreEqual(3, Calc("type maybeNums = int[]?; x:maybeNums = [1,2,3]; out = x?.count() ?? 0"));
 
-    // ═══════════════════════════════════════════════════════════
-    // STRUCT ALIASES (existing syntax — should still work)
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void StructAlias() =>
         Assert.AreEqual(42, Calc("type point = {x:int, y:int}; p:point = point{x=40, y=2}; out = p.x + p.y"));
@@ -74,10 +54,6 @@ public class TypeAliasTest {
     [Test]
     public void StructAlias_InArray() =>
         Assert.AreEqual(2, Calc("type point = {x:int, y:int}; arr:point[] = [point{x=1,y=2}, point{x=3,y=4}]; out = arr.count()"));
-
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS TO ALIAS (chaining)
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void AliasToAlias() =>
@@ -91,10 +67,6 @@ public class TypeAliasTest {
     public void AliasToArrayOfAlias() =>
         Assert.AreEqual(3, Calc("type id = int; type ids = id[]; x:ids = [1,2,3]; out = x.count()"));
 
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS USED AS FIELD TYPE IN STRUCT
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void AliasAsFieldType() =>
         Assert.AreEqual(42, Calc("type age = int; type person = {a:age}; out = person{a=42}.a"));
@@ -102,10 +74,6 @@ public class TypeAliasTest {
     [Test]
     public void ArrayAliasAsFieldType() =>
         Assert.AreEqual(3, Calc("type nums = int[]; type container = {items:nums}; out = container{items=[1,2,3]}.items.count()"));
-
-    // ═══════════════════════════════════════════════════════════
-    // RECURSIVE ALIASES
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void RecursiveArrayAlias() =>
@@ -118,10 +86,6 @@ public class TypeAliasTest {
         Assert.AreEqual(2, Calc(
             "type node = {v:int, next:node? = none}; " +
             "out = node{v=1, next=node{v=2}}.next?.v ?? -1"));
-
-    // ═══════════════════════════════════════════════════════════
-    // COMPLEX COMBINATIONS
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void OptionalOfStructAlias() =>
@@ -157,10 +121,6 @@ public class TypeAliasTest {
             "type point = {x:int, y:int}; " +
             "getX(p:point):int = p.x; " +
             "out = getX(point{x=42, y=0})"));
-
-    // ═══════════════════════════════════════════════════════════
-    // DEEP NESTING
-    // ═══════════════════════════════════════════════════════════
 
     [TestCase(2)]
     [TestCase(5)]
@@ -234,14 +194,9 @@ public class TypeAliasTest {
         Assert.AreEqual(42, Calc(sb.ToString()));
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ERROR CASES
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void UndefinedTypeAlias_Throws() =>
         Assert.Throws<Exceptions.FunnyParseException>(() =>
             Calc("type a = nonexistent; x:a = 1; out = x"));
 
-    // Circular alias detection is consolidated in ImpossibleRecursiveTypeDefinitionsTest.cs.
 }

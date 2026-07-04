@@ -197,7 +197,7 @@ public class ConcreteUserFunctionsTest {
     public void UserFunction_SameNameAsBuiltin_DifferentArityOrNonRecursive_Works(string expr, int expected) =>
         expr.AssertResultHas("y", expected);
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
     // Concrete-typed user functions with float32 in signature.
 
     // f(x:float32, y:int):float32 = x + y (mixed args, int widens to f32).
@@ -294,14 +294,10 @@ public class ConcreteUserFunctionsTest {
 
     #region Regression pins for TIC workarounds
 
-    // WO2 — StateFun solved-shortcut in DeepCloneNode. Without it: "Circular ancestor 0" crash.
     [Test]
     public void UserFunctionCall_ConcreteReturn_NoCircularAncestor() =>
         "f(x) = x+1\r y = f(2)".Calc().AssertResultHas("y", 3);
 
-    // WO5 / Round 6 #75 — DestructionFunctions incompatibility guard. If-branches with
-    // structurally incompatible types (Text vs Int) must surface as a parse error, not
-    // silently coerce int → char[] via ToText.
     [TestCase("f(x) = if(x==0) 'a' else x\ry = f(0)")]
     [TestCase("f(x) = if (x==0) 'a' else x; out = f(5)")]
     [TestCase("f(x) = if (false) 'a' else x; out = f(42)")]

@@ -1,4 +1,3 @@
-using System;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.TestTools;
@@ -7,9 +6,6 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests.NamedTypes;
 
-/// <summary>
-/// Comprehensive combinations of recursive types with Optional, Array, functions, if-else, etc.
-/// </summary>
 public class RecursiveTypeCombinationsTest {
     [SetUp]
     public void Initialize() => TraceLog.IsEnabled = true;
@@ -26,10 +22,6 @@ public class RecursiveTypeCombinationsTest {
         Funny.Hardcore.WithDialect(
             optionalTypesSupport: OptionalTypesSupport.Enabled,
             namedTypesSupport: NamedTypesSupport.Enabled).Build(expr);
-
-    // ═══════════════════════════════════════════════════════════════
-    // OPTIONAL ARRAY OF SELF (t[]?)
-    // ═══════════════════════════════════════════════════════════════
 
     #region Optional array of self
 
@@ -57,10 +49,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // ARRAY OF OPTIONAL SELF (t?[])
-    // ═══════════════════════════════════════════════════════════════
-
     #region Array of optional self
 
     [Test]
@@ -80,10 +68,6 @@ public class RecursiveTypeCombinationsTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE + MAP/FILTER
-    // ═══════════════════════════════════════════════════════════════
 
     #region Recursive + higher-order functions
 
@@ -115,10 +99,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE + IF-ELSE
-    // ═══════════════════════════════════════════════════════════════
-
     #region Recursive + if-else
 
     [Test]
@@ -145,10 +125,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE + COALESCE CHAINS
-    // ═══════════════════════════════════════════════════════════════
-
     #region Recursive + coalesce
 
     [Test]
@@ -171,10 +147,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE + FORCE UNWRAP
-    // ═══════════════════════════════════════════════════════════════
-
     #region Recursive + force unwrap
 
     [Test]
@@ -195,10 +167,6 @@ public class RecursiveTypeCombinationsTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE + TYPE ANNOTATIONS on intermediate vars
-    // ═══════════════════════════════════════════════════════════════
 
     #region Recursive + annotations
 
@@ -231,10 +199,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE + DEFAULT KEYWORD
-    // ═══════════════════════════════════════════════════════════════
-
     #region Recursive + default
 
     [Test]
@@ -254,10 +218,6 @@ public class RecursiveTypeCombinationsTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // TWO INDEPENDENT RECURSIVE TYPES in one script
-    // ═══════════════════════════════════════════════════════════════
 
     #region Two independent recursive types
 
@@ -285,10 +245,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE STRUCT EQUALITY
-    // ═══════════════════════════════════════════════════════════════
-
     #region Equality
 
     [Test]
@@ -308,10 +264,6 @@ public class RecursiveTypeCombinationsTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // INDIRECT RECURSION — break at different levels
-    // ═══════════════════════════════════════════════════════════════
 
     #region Indirect break patterns
 
@@ -347,10 +299,6 @@ public class RecursiveTypeCombinationsTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE IN FUNCTION PARAMS AND RETURNS
-    // ═══════════════════════════════════════════════════════════════
 
     #region Functions with recursive types
 
@@ -412,10 +360,6 @@ public class RecursiveTypeCombinationsTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECURSIVE FN OVER RECURSIVE STRUCT + HOF PARAM
-    // ═══════════════════════════════════════════════════════════════
-
     #region Recursive fn over recursive struct + HOF
 
     [Test]
@@ -442,10 +386,6 @@ public class RecursiveTypeCombinationsTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // NON-OPTIONAL RECURSION — errors
-    // ═══════════════════════════════════════════════════════════════
 
     #region Error cases
 

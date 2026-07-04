@@ -1,7 +1,6 @@
 using System.Text;
 using NFun.Runtime;
 using NFun.TestTools;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.NamedTypes;

@@ -566,7 +566,7 @@ public class TypeInferenceTest {
         Assert.AreEqual(3_000_000_000L, result.Get("out"));
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
     // Real literals carry [F32..Real, Pref=Real] — narrow to F32 at typed target.
 
     // Real literal — no annotation → Real (Pref=Real).

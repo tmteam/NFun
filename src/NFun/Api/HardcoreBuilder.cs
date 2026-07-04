@@ -42,8 +42,12 @@ public class HardcoreBuilder {
     /// <param name="realClrType">Which clr type is used for funny type real</param>
     /// <param name="integerOverflow">overflow behaviour for integer arithmetics</param>
     /// <param name="allowUserFunctions">User functions restrictions</param>
-    /// <param name="optionalTypesSupport">Optional types (T?, none, ??, ?.) support</param>
-    /// <param name="extensionFunctionsSeparation">Extension function namespace separation</param>
+    /// <param name="optionalTypesSupport">Optional types (T?, none, ??, ?., !) support</param>
+    /// <param name="allowNewlineInStrings">Allow or deny raw line breaks inside string literals</param>
+    /// <param name="namedTypesSupport">Named struct types (`type t = {...}`, recursive types) support</param>
+    /// <param name="tryCatchSupport">try/catch/anyway expressions support</param>
+    /// <param name="extensionFunctionsSeparation">Extension function namespace separation: piped definitions (x.f() = expr) get a separate namespace from regular ones</param>
+    /// <param name="floatFamilySupport">IEEE 754 float family: with Float32AndFloat64, the `float32` type and the `float64` alias are available, and real literals / math built-ins resolve to float32 in float32 context; with AccordingToRealBehaviour floating point follows the `real` type. Float32AndFloat64 is incompatible with RealClrType.IsDecimal</param>
     public HardcoreBuilder WithDialect(
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
@@ -55,7 +59,7 @@ public class HardcoreBuilder {
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
         ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
-        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None)
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.AccordingToRealBehaviour)
         => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow, allowUserFunctions, optionalTypesSupport, allowNewlineInStrings, namedTypesSupport, tryCatchSupport, extensionFunctionsSeparation, floatFamilySupport));
 
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>

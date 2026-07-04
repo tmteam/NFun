@@ -2756,7 +2756,7 @@ public class OptionalTypeTest {
         "y = default + 1".AssertResultHas("y", 1);
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
     // Optional float32? — requires Float family + Optional dialects.
 
     // Declare optional f32 with a value.

@@ -586,7 +586,7 @@ public class ArithmeticalOperatorsTest {
             .AssertResultHas("out", 4000000001L);
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
 
     // ─── Literal narrowing: real → float32 ─────────────────────────
 

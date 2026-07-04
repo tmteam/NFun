@@ -1,4 +1,3 @@
-using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 

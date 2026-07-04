@@ -1,6 +1,3 @@
-using System;
-using NFun.Exceptions;
-using NFun.Runtime;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;

@@ -1,13 +1,9 @@
-using System.Text;
 using NFun.TestTools;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.NamedTypes;
 
-/// <summary>
-/// Edge case tests for type aliases covering all possible interactions
-/// with NFun features: operators, functions, lambdas, coercion, etc.
-/// </summary>
+
 public class TypeAliasEdgeCasesTest {
 
     static object Calc(string expr) =>
@@ -20,10 +16,6 @@ public class TypeAliasEdgeCasesTest {
         expr.CalcWithDialect(
             optionalTypesSupport: OptionalTypesSupport.Enabled,
             namedTypesSupport: NamedTypesSupport.Enabled);
-
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS IN ARITHMETIC / COMPARISON
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void IntAlias_Addition() =>
@@ -49,10 +41,6 @@ public class TypeAliasEdgeCasesTest {
     public void BoolAlias_Logic() =>
         Assert.AreEqual(false, Calc("type flag = bool; a:flag = true; b:flag = false; out = a and b"));
 
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS IN IF-ELSE
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void IntAlias_InIfElse() =>
         Assert.AreEqual(10, Calc("type n = int; x:n = 5; out = if(x > 3) 10 else 20"));
@@ -60,10 +48,6 @@ public class TypeAliasEdgeCasesTest {
     [Test]
     public void ArrayAlias_InIfElse() =>
         Assert.AreEqual(2, Calc("type nums = int[]; out = if(true) [1,2].count() else [3,4,5].count()"));
-
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS WITH ARRAY FUNCTIONS
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void ArrayAlias_Map() =>
@@ -97,10 +81,6 @@ public class TypeAliasEdgeCasesTest {
     public void ArrayAlias_All() =>
         Assert.AreEqual(false, Calc("type nums = int[]; x:nums = [1,2,3]; out = x.all(rule it > 2)"));
 
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS IN LAMBDA / RULE
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void StructAlias_InMapLambda() =>
         CalcNoThrow("type p = {x:int, y:int}; arr = [p{x=1,y=2}, p{x=3,y=4}]; out = arr.map(rule it.x)");
@@ -109,10 +89,6 @@ public class TypeAliasEdgeCasesTest {
     public void StructAlias_InFilterLambda() =>
         Assert.AreEqual(2, Calc(
             "type p = {x:int}; arr = [p{x=1}, p{x=5}, p{x=10}]; out = arr.filter(rule it.x > 3).count()"));
-
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS IN FUNCTION SIGNATURES
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void AliasAsArgType() =>
@@ -134,10 +110,6 @@ public class TypeAliasEdgeCasesTest {
     public void ArrayAliasAsArgType() =>
         Assert.AreEqual(3, Calc("type nums = int[]; len(x:nums):int = x.count(); out = len([1,2,3])"));
 
-    // ═══════════════════════════════════════════════════════════
-    // TYPE COERCION WITH ALIAS
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void IntAlias_WidensToReal() =>
         Assert.AreEqual(42.0, Calc("type n = int; x:n = 42; out:real = x"));
@@ -145,10 +117,6 @@ public class TypeAliasEdgeCasesTest {
     [Test]
     public void IntAlias_InRealExpression() =>
         Assert.AreEqual(42.5, Calc("type n = int; x:n = 42; out = x + 0.5"));
-
-    // ═══════════════════════════════════════════════════════════
-    // OPTIONAL ALIAS OPERATIONS
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void OptionalAlias_Coalesce() =>
@@ -166,10 +134,6 @@ public class TypeAliasEdgeCasesTest {
     public void OptionalStructAlias_SafeAccessNone() =>
         Assert.AreEqual(-1, Calc("type p = {v:int}; x:p? = none; out = x?.v ?? -1"));
 
-    // ═══════════════════════════════════════════════════════════
-    // MULTIPLE ALIASES
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void TwoAliasesToSameType() =>
         Assert.AreEqual(3, Calc("type a = int; type b = int; x:a = 1; y:b = 2; out = x + y"));
@@ -181,10 +145,6 @@ public class TypeAliasEdgeCasesTest {
             "a:age = 42; n:name = 'test'; f:flag = true; s:score = 1.0; " +
             "out = a"));
 
-    // ═══════════════════════════════════════════════════════════
-    // CASE INSENSITIVITY
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void TypeName_CaseInsensitive() =>
         Assert.AreEqual(42, Calc("type Age = int; x:age = 42; out = x"));
@@ -192,10 +152,6 @@ public class TypeAliasEdgeCasesTest {
     [Test]
     public void TypeName_MixedCase() =>
         Assert.AreEqual(42, Calc("type MyType = int; x:mytype = 42; out = x"));
-
-    // ═══════════════════════════════════════════════════════════
-    // STRUCT ALIAS VARIATIONS
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void EmptyStruct() =>
@@ -221,10 +177,6 @@ public class TypeAliasEdgeCasesTest {
     public void SingleFieldStruct_Bool() =>
         Assert.AreEqual(true, Calc("type t = {f:bool}; out = t{f=true}.f"));
 
-    // ═══════════════════════════════════════════════════════════
-    // ALIAS OF ALIAS OF STRUCT
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void AliasOfStruct_FieldAccess() =>
         Assert.AreEqual(42, Calc("type p = {v:int}; type q = p; x:q = p{v=42}; out = x.v"));
@@ -232,10 +184,6 @@ public class TypeAliasEdgeCasesTest {
     [Test]
     public void AliasOfStruct_Array() =>
         Assert.AreEqual(2, Calc("type p = {v:int}; type ps = p[]; x:ps = [p{v=1}, p{v=2}]; out = x.count()"));
-
-    // ═══════════════════════════════════════════════════════════
-    // STRUCT WITH ALIAS FIELD TYPES
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void StructField_AliasType() =>
@@ -259,10 +207,6 @@ public class TypeAliasEdgeCasesTest {
             "type inner = {v:int}; type outer = {i:inner}; " +
             "out = outer{i=inner{v=42}}.i.v"));
 
-    // ═══════════════════════════════════════════════════════════
-    // FORWARD REFERENCE
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void StructField_ForwardRef_OptionalType() =>
         Assert.AreEqual(42, Calc(
@@ -278,10 +222,6 @@ public class TypeAliasEdgeCasesTest {
             "v = a{x=1, b=b{y=99}}; " +
             "out = v.b?.y ?? -1"));
 
-    // ═══════════════════════════════════════════════════════════
-    // ARRAY LITERAL WITH ALIAS
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void ArrayLiteral_OfAlias() =>
         Assert.AreEqual(3, Calc("type p = {v:int}; out = [p{v=1}, p{v=2}, p{v=3}].count()"));
@@ -289,10 +229,6 @@ public class TypeAliasEdgeCasesTest {
     [Test]
     public void ArrayLiteral_MapAlias() =>
         CalcNoThrow("type p = {v:int}; out = [p{v=10}, p{v=20}].map(rule it.v)");
-
-    // ═══════════════════════════════════════════════════════════
-    // DEFAULT VALUES — ALL TYPES
-    // ═══════════════════════════════════════════════════════════
 
     [TestCase("type t = {v:int = 0}; out = t{}.v", 0)]
     [TestCase("type t = {v:int = -1}; out = t{}.v", -1)]
@@ -320,10 +256,6 @@ public class TypeAliasEdgeCasesTest {
     public void DefaultValue_Override() =>
         Assert.AreEqual(99, Calc("type t = {v:int = 0}; out = t{v=99}.v"));
 
-    // ═══════════════════════════════════════════════════════════
-    // MULTIPLE TYPE DECLARATIONS
-    // ═══════════════════════════════════════════════════════════
-
     [Test]
     public void ThreeTypes_AllUsed() =>
         Assert.AreEqual(6, Calc(
@@ -334,10 +266,6 @@ public class TypeAliasEdgeCasesTest {
     public void TypesDeclaredBetweenEquations() =>
         Assert.AreEqual(42, Calc(
             "type t = {v:int}; x = t{v=42}; out = x.v"));
-
-    // ═══════════════════════════════════════════════════════════
-    // ERROR CASES
-    // ═══════════════════════════════════════════════════════════
 
     [Test]
     public void DuplicateTypeName_Throws() =>

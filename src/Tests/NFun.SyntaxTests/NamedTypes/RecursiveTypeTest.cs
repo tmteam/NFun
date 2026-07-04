@@ -1,5 +1,3 @@
-using System;
-using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.TestTools;
 using NFun.Tic;
@@ -7,12 +5,6 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests.NamedTypes;
 
-/// <summary>
-/// Tests for recursive named types.
-/// Non-optional recursive fields are impossible (infinite size).
-/// Optional recursive fields are valid (none breaks the recursion).
-/// Array-of-self fields are valid (empty array breaks the recursion).
-/// </summary>
 public class RecursiveTypeTest {
     [SetUp]
     public void Initialize() => TraceLog.IsEnabled = true;
@@ -29,13 +21,6 @@ public class RecursiveTypeTest {
         Funny.Hardcore.WithDialect(
             optionalTypesSupport: OptionalTypesSupport.Enabled,
             namedTypesSupport: NamedTypesSupport.Enabled).Build(expr);
-
-    // Impossible recursive type definitions (non-optional direct/indirect self-refs)
-    // are covered in ImpossibleRecursiveTypeDefinitionsTest.cs.
-
-    // ═══════════════════════════════════════════════════════════════
-    // OPTIONAL DIRECT RECURSION — valid (none breaks recursion)
-    // ═══════════════════════════════════════════════════════════════
 
     #region Linked list
 
@@ -134,10 +119,6 @@ public class RecursiveTypeTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // OPTIONAL INDIRECT RECURSION — valid
-    // ═══════════════════════════════════════════════════════════════
-
     #region Indirect optional recursion
 
     [Test]
@@ -176,10 +157,6 @@ public class RecursiveTypeTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // ARRAY-OF-SELF — valid (empty array breaks recursion)
-    // ═══════════════════════════════════════════════════════════════
-
     #region Array of self
 
     [Test]
@@ -214,10 +191,6 @@ public class RecursiveTypeTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // NON-RECURSIVE references (always valid)
-    // ═══════════════════════════════════════════════════════════════
-
     #region Non-recursive
 
     [Test]
@@ -239,10 +212,6 @@ public class RecursiveTypeTest {
     }
 
     #endregion
-
-    // ═══════════════════════════════════════════════════════════════
-    // EDGE CASES
-    // ═══════════════════════════════════════════════════════════════
 
     #region Edge cases
 
@@ -292,93 +261,80 @@ public class RecursiveTypeTest {
 
     #endregion
 
-    // ═══════════════════════════════════════════════════════════════
-    // Recursive type stress tests
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
-    public void TreeArrayRecursive_StackOverflow() {
+    public void TreeArrayRecursive_StackOverflow() =>
         "type tree = {v:int, children:tree[] = []}; forest = [tree{v=1, children=[tree{v=10}]}, tree{v=2}]; out = forest[0].children[0].v"
             .CalcWithDialect(
                 optionalTypesSupport: OptionalTypesSupport.Enabled,
                 namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 10);
-    }
 
     [Test]
-    public void ArrayRecursiveOptionalAccess() {
+    public void ArrayRecursiveOptionalAccess() =>
         "type node = {v:int, next:node? = none}; arr = [node{v=1, next=node{v=10}}, node{v=2, next=node{v=20}}]; out = arr[0].next?.v ?? -1"
             .CalcWithDialect(
                 optionalTypesSupport: OptionalTypesSupport.Enabled,
                 namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 10);
-    }
 
     [Test]
-    public void RecursiveFunctionDepth4() {
+    public void RecursiveFunctionDepth4() =>
         "type node = {v:int, next:node? = none}; maxVal(n:node):int = if(n.next == none) n.v else max(n.v, maxVal(n.next!)); n = node{v=3, next=node{v=7, next=node{v=2, next=node{v=9}}}}; out = maxVal(n)"
             .CalcWithDialect(
                 optionalTypesSupport: OptionalTypesSupport.Enabled,
                 namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 9);
-    }
 
     [Test]
-    public void RecursiveFunctionDepth15() {
+    public void RecursiveFunctionDepth15() =>
         "type node = {v:int, next:node? = none}; lastVal(n:node):int = if(n.next == none) n.v else lastVal(n.next!); n = node{v=1, next=node{v=2, next=node{v=3, next=node{v=4, next=node{v=5, next=node{v=6, next=node{v=7, next=node{v=8, next=node{v=9, next=node{v=10, next=node{v=11, next=node{v=12, next=node{v=13, next=node{v=14, next=node{v=15}}}}}}}}}}}}}}}; out = lastVal(n)"
             .CalcWithDialect(
                 optionalTypesSupport: OptionalTypesSupport.Enabled,
                 namedTypesSupport: NamedTypesSupport.Enabled)
             .AssertResultHas("out", 15);
-    }
-
-    // Recursive default constructor (`type node = {..., next:node? = node{v=0}}`)
-    // and non-contractive F-bound rejection are covered in
-    // ImpossibleRecursiveTypeDefinitionsTest.cs.
 
     [Test]
-    public void TreeArrayMap_NoStackOverflow() {
+    public void TreeArrayMap_NoStackOverflow() =>
         Assert.DoesNotThrow(() =>
             "type tree = {v:int, children:tree[] = []}; forest = [tree{v=1, children=[tree{v=10}]}, tree{v=2}]; out = forest.map(rule it.children.count())"
                 .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled));
-    }
 
-    // Recursive function with DIRECT field access (t.value) on named recursive type
-    // — works with explicit annotation like RecursiveFunctionDepth4.
     [Test]
     public void RecursiveFunction_DirectFieldAccess_TreeSum_Annotated() {
-        var result = "type tree = {value: int, left: tree? = none, right: tree? = none}\r treeSum(t: tree): int = if(t.left == none) (if(t.right==none) t.value else t.value + treeSum(t.right!)) else if(t.right==none) t.value + treeSum(t.left!) else t.value + treeSum(t.left!) + treeSum(t.right!)\r y = treeSum(tree{value=1, left=tree{value=2}, right=tree{value=3}})"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+        var result =
+            "type tree = {value: int, left: tree? = none, right: tree? = none}\r treeSum(t: tree): int = if(t.left == none) (if(t.right==none) t.value else t.value + treeSum(t.right!)) else if(t.right==none) t.value + treeSum(t.left!) else t.value + treeSum(t.left!) + treeSum(t.right!)\r y = treeSum(tree{value=1, left=tree{value=2}, right=tree{value=3}})"
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                    optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 6);
     }
 
     [Test]
     public void RecursiveFunction_SafeAccessOnly_TreeSize() {
-        var result = "type tree = {value: int, left: tree?, right: tree?}\r treeSize(t) = if(t==none) 0 else 1 + treeSize(t?.left) + treeSize(t?.right)\r y = treeSize({value=1, left={value=2, left=none, right=none}, right=none})"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+        var result =
+            "type tree = {value: int, left: tree?, right: tree?}\r treeSize(t) = if(t==none) 0 else 1 + treeSize(t?.left) + treeSize(t?.right)\r y = treeSize({value=1, left={value=2, left=none, right=none}, right=none})"
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                    optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 2);
     }
 
-    // Issue #121: unannotated recursive function on named type — Push reform
-    // restores Optional break on the opt-sourced self-closing struct cycle,
-    // yielding the principal type μX. opt(struct{value:int, left:X, right:X}).
     [Test]
     public void RecursiveFunction_DirectFieldAccess_TreeSum_Unannotated() {
-        var result = "type tree = {value: int, left: tree? = none, right: tree? = none}\r treeSum(t) = if(t==none) 0 else t.value + treeSum(t?.left) + treeSum(t?.right)\r y = treeSum(tree{value=1, left=tree{value=2}, right=tree{value=3}})"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+        var result =
+            "type tree = {value: int, left: tree? = none, right: tree? = none}\r treeSum(t) = if(t==none) 0 else t.value + treeSum(t?.left) + treeSum(t?.right)\r y = treeSum(tree{value=1, left=tree{value=2}, right=tree{value=3}})"
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                    optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 6);
     }
 
     [Test]
     public void RecursiveFunction_LinkedListSum_Unannotated() {
-        var result = "type node = {v: int, next: node? = none}\r listSum(n) = if(n==none) 0 else n.v + listSum(n?.next)\r y = listSum(node{v=1, next=node{v=2, next=node{v=3}}})"
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+        var result =
+            "type node = {v: int, next: node? = none}\r listSum(n) = if(n==none) 0 else n.v + listSum(n?.next)\r y = listSum(node{v=1, next=node{v=2, next=node{v=3}}})"
+                .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                    optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 6);
     }
 
-    // Row-polymorphic regression sentinel: non-recursive structural function
-    // must NOT be tied to a specific named type. Push reform's wrap is gated on
-    // self-closing cycles only — `length(p)` forms no cycle and is untouched.
     [Test]
     public void RowPolymorphic_LengthFunction_StaysGeneric() {
         var result = "type point2d = {x: int, y: int}\r length(p) = p.x*p.x + p.y*p.y\r y = length({x=3, y=4})"
@@ -386,10 +342,6 @@ public class RecursiveTypeTest {
         result.AssertReturns("y", 25);
     }
 
-    // Regression sentinel: recursion through Array constructors works the same
-    // as through Optional. `tree.kids[]` is a contractive back-edge — the array
-    // wrapper breaks the structural cycle. Includes value construction, direct
-    // index access, and a recursive function via `map` + `sum`.
     [Test]
     public void ArrayRecursion_Works() {
         var script =
@@ -400,17 +352,13 @@ public class RecursiveTypeTest {
         result.AssertReturns("y", 4);
     }
 
-    // Output-type-annotated unannotated-arg recursive function. The `sumA(x):int`
-    // signature has annotated return but inferred arg. After body solving +
-    // propagation, x is `node?` and return is int — both concrete. RuntimeBuilder
-    // routes through the concrete path even though body solving has residual CS
-    // (operator's `==` T, `+` T) — see SignatureIsFullyConcrete.
     [Test]
     public void RecursiveFunction_OutputAnnotatedOnly_SumA() {
         var result = ("type node = {v: int, next: node? = none}\r " +
                       "sumA(x):int = if(x == none) 0 else x.v + sumA(x?.next)\r " +
                       "y = sumA(node{v=1, next=node{v=2}})")
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 3);
     }
 
@@ -430,17 +378,18 @@ public class RecursiveTypeTest {
                       "type b = {v: int, n: b? = none}\r " +
                       "sumA(x) = if(x == none) 0 else x.v + sumA(x?.n)\r " +
                       "y = sumA(a{v=1, n=a{v=2}})")
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 3);
     }
 
-    // Annotated-form sentinel: getLast with full type annotations works.
     [Test]
     public void RecursiveFunction_GetLast_Annotated() {
         var result = ("type node = {v: int, next: node? = none}\r " +
                       "getLast(n: node?): node? = if (n == none) none else (getLast(n?.next) ?? n)\r " +
                       "y = getLast(node{v=1, next=node{v=2}})!.v")
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns("y", 2);
     }
 
@@ -460,20 +409,11 @@ public class RecursiveTypeTest {
                       "listSum(n) = if(n == none) 0 else n.v + listSum(n?.next)\r " +
                       "ra = listSum(node{v=1, next=node{v=2}})\r " +
                       "rb = listSum(node2{v=1.5, next=node2{v=2.5}})")
-            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled, optionalTypesSupport: OptionalTypesSupport.Enabled);
+            .CalcWithDialect(namedTypesSupport: NamedTypesSupport.Enabled,
+                optionalTypesSupport: OptionalTypesSupport.Enabled);
         result.AssertReturns(("ra", 3), ("rb", 4.0));
     }
 
-    // ===================================================================
-    // F-bounded polymorphism roadmap sentinels.
-    // All UNANNOTATED — function should infer F-bounded generic signature
-    // like `f(T): R where T <: {field: T?, ...}`.
-    // See /Users/tmt/.claude/.../recursive-types-fbounded-roadmap.md
-    // ===================================================================
-
-    // ROADMAP sentinel: getLast on a linked list — inferred bound
-    // `getLast(T): T? where T <: {next: T?}`.
-    // Must accept ANY struct type with that shape, including extra fields.
     [Test]
     public void Roadmap_GetLast_LinkedList_Generic_TwoTypes() {
         var script =
@@ -488,9 +428,6 @@ public class RecursiveTypeTest {
         result.AssertReturns(("ra", 2), ("rb", 2.5));
     }
 
-    // ROADMAP sentinel: max-value node in a binary tree — inferred bound
-    // `maxNode(T): T? where T <: {value: N, left: T?, right: T?}, N: Comparable`.
-    // Returns the node carrying the maximum value, or none if tree is empty.
     [Test]
     public void Roadmap_MaxNode_BinaryTree_Generic() {
         var script =
@@ -505,10 +442,6 @@ public class RecursiveTypeTest {
         result.AssertReturns("y", 5);
     }
 
-    // ROADMAP sentinel: linked-list count — inferred bound
-    // `count(T): int where T <: {next: T?}`.
-    // No `.value` access — purely structural recursion via `next`.
-    // Push reform M1.4 + #68 enables this end-to-end.
     [Test]
     public void Roadmap_Count_LinkedList_Generic_TwoTypes() {
         var script =
@@ -523,10 +456,6 @@ public class RecursiveTypeTest {
         result.AssertReturns(("ra", 3), ("rb", 2));
     }
 
-    // ROADMAP sentinel: linked-list reverse-style accumulator — inferred bound
-    // `lastValue(T): N where T <: {v: N, next: T?}`.
-    // Same shape carries different value types (int, real).
-    // Push reform M2.E (NamedStruct expansion in Fit) enables this end-to-end.
     [Test]
     public void Roadmap_LastValue_Generic_TwoTypes() {
         var script =
@@ -541,10 +470,6 @@ public class RecursiveTypeTest {
         result.AssertReturns(("ri", 3), ("rr", 2.5));
     }
 
-    // ROADMAP sentinel: tree depth — inferred bound
-    // `depth(T): int where T <: {left: T?, right: T?}`.
-    // Pure structural: no value field accessed in body.
-    // Push reform M1.4 + #68 enables this end-to-end.
     [Test]
     public void Roadmap_TreeDepth_Generic_TwoTypes() {
         var script =
@@ -560,10 +485,6 @@ public class RecursiveTypeTest {
         result.AssertReturns(("r1", 3), ("r2", 2));
     }
 
-    // ROADMAP sentinel: heterogeneous use — `count` on linked list AND on
-    // a tree (different shapes both have `next`-like child).
-    // This tests that two DIFFERENT bounds can coexist, each F-bounded
-    // independently. Probably needs separate inferred bounds per call group.
     [Test]
     public void Roadmap_CountField_DifferentShapes() {
         var script =
@@ -576,12 +497,6 @@ public class RecursiveTypeTest {
         result.AssertReturns("y", 3);
     }
 
-    // ROADMAP sentinel for Theorem PT-F (principal F-bound). Body has BOTH a
-    // primitive Desc constraint (n.v + 1 forces v to be numeric) AND a
-    // structural F-bound (recursion forces n to have shape {v:N, next:T?}).
-    // The principal type is the meet on every dimension: GcdStruct on bound,
-    // LCA on Desc. This tests that the three-way SimplifyOrNull check accepts
-    // primitive-D + struct-S when D fits inside one of S's field types.
     [Test]
     public void Roadmap_PrincipalType_PrimitiveAndStructBound() {
         var script =
@@ -595,9 +510,6 @@ public class RecursiveTypeTest {
         result.AssertReturns("y", 21);
     }
 
-    // ROADMAP sentinel: mutual recursion between two functions on two named
-    // types. Each function infers its own F-bound. The bounds must be
-    // co-recursively consistent: T_a <: {bs: T_b[]}, T_b <: {a: T_a?}.
     [Test]
     public void Roadmap_MutualRecursion_TwoFunctions_TwoTypes() {
         var script =
@@ -612,14 +524,6 @@ public class RecursiveTypeTest {
         result.AssertReturns("r", 2);
     }
 
-    // ROADMAP sentinel non-contractive-bound rejection moved to
-    // ImpossibleRecursiveTypeDefinitionsTest.cs (Declared_NonContractiveFBound_FailsOnParse).
-
-    // ROADMAP sentinel: nominal carry. F-bound has no nominal info — but at
-    // call site `getLast(a:typed)` the runtime should preserve the named-type
-    // identity through the body and back to the result, so accessing
-    // `.v` on the result works even though the body's signature is purely
-    // structural.
     [Test]
     public void Roadmap_NominalCarry_GenericReturnPreservesTypeName() {
         var script =
@@ -632,14 +536,6 @@ public class RecursiveTypeTest {
         result.AssertReturns("lastVal", 2);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // Recursive function-type aliases (μX. rule(...)->X?)
-    // ════════════════════════════════════════════════════════════════════════
-    // Theoretically valid: function arrow is a constructor (contravariant in
-    // args, covariant in return) — satisfies contractivity per Cardelli-
-    // Mitchell '89. Examples: lazy streams, parser combinators, continuation
-    // chains.
-
     private static CalculationResult RunNamed(string script) =>
         script.CalcWithDialect(
             namedTypesSupport: NamedTypesSupport.Enabled,
@@ -647,14 +543,10 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_DeclareOnly_NoUse() =>
-        // Declaration alone must parse; no annotation references the type.
         Assert.DoesNotThrow(() => RunNamed("type x = rule()->x?"));
 
     [Test]
     public void RecFun_AsAnnotation_NoArgs() {
-        // type x = rule()->x? — annotate a value with the recursive type.
-        // The terminal `rule none` produces a value compatible with x
-        // (none ≤ x? for any x, so a fun returning none fits rule()->x?).
         var script =
             "type x = rule()->x?\r " +
             "f:x = rule none";
@@ -663,9 +555,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_OneArg_DeclareAndUse() {
-        // Declaring a recursive rule with one arg, and using it as a struct
-        // field annotation. Direct `f:x = rule none` would fail arity check
-        // (`rule none` is 0-arg) — but the type itself must be usable.
         var script =
             "type x = rule(int)->x?\r " +
             "type wrap = {f: x}\r " +
@@ -675,9 +564,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_StructField_LazyStream_HeadAccess() {
-        // Indirect recursion through a struct field carrying the recursive
-        // function. Already works — sentinel that direct-alias fix doesn't
-        // regress the working struct-field path.
         var script =
             "type stream = {head: int, tail: rule()->stream?}\r " +
             "s = stream{head=1, tail=rule none}\r " +
@@ -687,7 +573,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_StructField_TailReturnsNone() {
-        // tail() returns none — coalesce gives back the struct itself.
         var script =
             "type stream = {head: int, tail: rule()->stream?}\r " +
             "s = stream{head=1, tail=rule none}\r " +
@@ -697,7 +582,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_DirectAlias_CallReturnsNone() {
-        // Use the alias to type a function variable, call it, observe none.
         var script =
             "type x = rule()->x?\r " +
             "f:x = rule none\r " +
@@ -705,13 +589,8 @@ public class RecursiveTypeTest {
         RunNamed(script).AssertResultHas("y", true);
     }
 
-    // ─── Edge cases ────────────────────────────────────────────────────────────
-
     [Test]
     public void RecFun_MutualRecursion_TwoAliases() {
-        // type a = rule()->b?; type b = rule()->a? — mutual recursion.
-        // Both alias names appear in each other's body — the resolver must
-        // pre-register BOTH placeholders before resolving either body.
         var script =
             "type a = rule()->b?\r " +
             "type b = rule()->a?\r " +
@@ -722,7 +601,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_OptionalOfRecursive_AsAnnotation() {
-        // f:x? = none — the alias is recursive; the annotation wraps it in Optional.
         var script =
             "type x = rule()->x?\r " +
             "f:x? = none";
@@ -731,8 +609,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_ArrayOfRecursive_AsAnnotation() {
-        // arr:x[] — array of recursive function values. Empty array is the
-        // terminal value.
         var script =
             "type x = rule()->x?\r " +
             "arr:x[] = []";
@@ -740,23 +616,15 @@ public class RecursiveTypeTest {
     }
 
     [Test]
-    public void RecFun_NestedFunArrow_DeclareOnly() {
-        // type x = rule()->rule()->x? — nested function arrows in the recursive
-        // chain. Contractivity satisfied via Optional + two arrow constructors.
+    public void RecFun_NestedFunArrow_DeclareOnly() =>
         Assert.DoesNotThrow(() => RunNamed("type x = rule()->rule()->x?"));
-    }
 
     [Test]
-    public void RecFun_RecReturnsArrayOfSelf_DeclareOnly() {
-        // type x = rule()->x[] — recursive returns array of self (no Optional;
-        // contractive through arrow + array constructors).
+    public void RecFun_RecReturnsArrayOfSelf_DeclareOnly() =>
         Assert.DoesNotThrow(() => RunNamed("type x = rule()->x[]"));
-    }
 
     [Test]
     public void RecFun_AliasViaNonRecAlias() {
-        // type y = int; type x = rule(y)->x? — chain through a non-recursive
-        // alias mixed with the recursive one. Resolver must order correctly.
         var script =
             "type y = int\r " +
             "type x = rule(y)->x?\r " +
@@ -766,8 +634,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_AsFunctionParameter() {
-        // process(f:x) = f() — recursive function type used in a user-function
-        // signature. Calling process with a 0-arg rule returning none.
         var script =
             "type x = rule()->x?\r " +
             "process(f:x) = f()\r " +
@@ -777,8 +643,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_ForwardReference_TypeAfterVariable() {
-        // Variable annotation precedes type declaration. NFun resolves declarations
-        // before resolving annotations, so order shouldn't matter.
         var script =
             "f:x = rule none\r " +
             "type x = rule()->x?";
@@ -787,8 +651,6 @@ public class RecursiveTypeTest {
 
     [Test]
     public void RecFun_TwoIndependentSelfRecursive_NoMutualRef() {
-        // Two separate self-recursive aliases that don't reference each other.
-        // Each pre-registers itself, then resolves independently.
         var script =
             "type a = rule()->a?\r " +
             "type b = rule()->b?\r " +
@@ -798,12 +660,6 @@ public class RecursiveTypeTest {
     }
 
     [Test]
-    public void RecFun_DeclareOnly_NonContractiveAccepted() {
-        // type t = rule()->t — recursion through function arrow only, no Optional.
-        // Under classical iso-recursive types this IS contractive (arrow is a
-        // constructor per Cardelli-Mitchell '89). NFun accepts the declaration.
-        // Note: there is no useful terminal value, so the type is effectively
-        // uninhabited — but the declaration itself is well-formed.
+    public void RecFun_DeclareOnly_NonContractiveAccepted() =>
         Assert.DoesNotThrow(() => RunNamed("type t = rule()->t"));
-    }
 }

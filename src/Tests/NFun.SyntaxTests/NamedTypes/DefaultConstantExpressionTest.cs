@@ -1,4 +1,3 @@
-using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;

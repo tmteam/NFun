@@ -4,10 +4,6 @@ using NUnit.Framework;
 
 namespace NFun.SyntaxTests.NamedTypes;
 
-/// <summary>
-/// Tests that recursive type access chains work at arbitrary depth,
-/// not limited by any magic constant.
-/// </summary>
 public class RecursiveTypeDepthTest {
 
     static object Calc(string expr) =>
@@ -16,9 +12,6 @@ public class RecursiveTypeDepthTest {
             namedTypesSupport: NamedTypesSupport.Enabled)
         .Get("out");
 
-    /// <summary>
-    /// Build a linked list of given depth and access the last element via ?.next chain.
-    /// </summary>
     static string BuildLinkedListExpr(int depth) {
         var sb = new StringBuilder();
         sb.Append("type node = {v:int, next:node? = none}; ");

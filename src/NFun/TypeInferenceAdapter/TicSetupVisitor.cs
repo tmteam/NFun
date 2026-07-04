@@ -432,7 +432,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     private FunnyType ResolveType(TypeSyntax syntax) {
-        if (_dialect.FloatFamilySupport == FloatFamilySupport.None)
+        if (_dialect.FloatFamilySupport == FloatFamilySupport.AccordingToRealBehaviour)
             RejectFloatFamilyKeywordOrNull(syntax);
         return TypeSyntaxResolver.Resolve(syntax, _customTypes);
     }
@@ -444,7 +444,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 if (lower == "float32" || lower == "float64")
                     throw new Exceptions.FunnyParseException(
                         778,
-                        $"'{n.Name}' requires FloatFamilySupport.Float32AndFloat64 (currently None). " +
+                        $"'{n.Name}' requires FloatFamilySupport.Float32AndFloat64 (currently Disabled). " +
                         $"Use 'real' instead, or enable the dialect setting.",
                         n.Interval.Start, n.Interval.Finish);
                 break;

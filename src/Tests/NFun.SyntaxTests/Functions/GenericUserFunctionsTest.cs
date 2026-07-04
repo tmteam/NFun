@@ -198,7 +198,7 @@ public class GenericUserFunctionsTest {
     [TestCase("F(x:int)= 1; out = f(1); f(x:real) = 2; ")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
     // Generic user function monomorphisation to float32.
 
     // pair(a,b) = a + b — inferred to F32.

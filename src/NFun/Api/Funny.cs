@@ -116,14 +116,16 @@ public static class Funny {
     /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
     /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
     /// <param name="realClrType">Which clr type is used for funny type real</param>
-    /// <param name="integerOverflow">AllowAll or deny integer overflow operations, like +, -, *, [].sum()</param>
+    /// <param name="integerOverflow">Checked or Unchecked arithmetic operations (+, -, *, [].sum(), ...)</param>
+    /// <param name="allowUserFunctions">Allow or deny regular or recursive user functions</param>
+    /// <param name="floatFamilySupport">IEEE 754 float family: with Float32AndFloat64, the `float32` type and the `float64` alias are available, and real literals / math built-ins resolve to float32 in float32 context; with AccordingToRealBehaviour floating point follows the `real` type. Float32AndFloat64 is incompatible with RealClrType.IsDecimal</param>
     public static FunnyCalculatorBuilder WithDialect(
         IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble,
         IntegerOverflow integerOverflow = IntegerOverflow.Checked,
         AllowUserFunctions allowUserFunctions = AllowUserFunctions.AllowAll,
-        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None)
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.AccordingToRealBehaviour)
         => new FunnyCalculatorBuilder().WithDialect(
             ifExpressionSyntax,
             integerPreferredType,

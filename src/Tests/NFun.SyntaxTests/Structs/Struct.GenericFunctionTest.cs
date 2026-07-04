@@ -253,7 +253,7 @@ public class StructGenericFunctionTest {
             .Calc().AssertResultHas("out", new[] { 1.5, 2.5 });
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
 
     [Test]
     public void Float32_Generic_StructAccessor_ReturnsF32() {

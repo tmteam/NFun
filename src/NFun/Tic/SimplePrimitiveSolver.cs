@@ -894,7 +894,7 @@ internal sealed class SimplePrimitiveSolver {
                         return null;
                     var defGid = solver.GetOrCreateVarGroup(eq.Id);
                     if (eq.OutputTypeSpecified) {
-                        if (dialect.FloatFamilySupport == FloatFamilySupport.None
+                        if (dialect.FloatFamilySupport == FloatFamilySupport.AccordingToRealBehaviour
                             && IsFloatFamilyKeyword(eq.TypeSpecificationOrNull.TypeSyntax))
                             return null; // fall back to full TIC, which throws the proper parse error
                         var resolved = TypeSyntaxResolver.Resolve(eq.TypeSpecificationOrNull.TypeSyntax, customTypes);
@@ -913,7 +913,7 @@ internal sealed class SimplePrimitiveSolver {
                     // Gate: type annotation must be primitive
                     if (!IsSimpleTypeSyntax(vd.TypeSyntax))
                         return null;
-                    if (dialect.FloatFamilySupport == FloatFamilySupport.None
+                    if (dialect.FloatFamilySupport == FloatFamilySupport.AccordingToRealBehaviour
                         && IsFloatFamilyKeyword(vd.TypeSyntax))
                         return null; // fall back to full TIC
                     var resolved2 = TypeSyntaxResolver.Resolve(vd.TypeSyntax, customTypes);

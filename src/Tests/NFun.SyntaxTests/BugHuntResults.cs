@@ -1,4 +1,3 @@
-using NFun;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;

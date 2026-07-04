@@ -1,6 +1,4 @@
 using System;
-using NFun.Exceptions;
-using NFun.Tic.Errors;
 using NFun.TestTools;
 using NUnit.Framework;
 

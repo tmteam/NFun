@@ -1,38 +1,11 @@
-using NFun;
 using NFun.Exceptions;
-using NFun.Runtime;
 using NFun.TestTools;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.BuiltInFunctions;
 
-/// <summary>
-/// Coverage of the convert() conversion matrix per Specs/Functions.md (PRAGMATIC design).
-///
-/// Cells covered here are NEW vs the legacy ConvertFunctionsTest:
-///   • bool ↔ numeric (C-style: false↔0, true↔1; int→bool: 0→false, !0→true)
-///   • real → bool (0.0/-0.0/NaN → false; finite non-zero → true; ±Inf → true)
-///   • :T? rescue — soft-fallible (🪂) conversions return none with optional target
-///   • opt(T) source — `none` propagation
-///   • ip → i32 STATIC REJECT (newly disallowed; use :uint or :long)
-///   • compile-time reject for ✗ cells (struct↔primitive, bool↔char, bool↔ip, …)
-///   • array element-wise convert with rescue
-///
-/// As of the convert-redesign series (Phases A–D), the PRAGMATIC matrix is fully
-/// implemented for primitive ↔ primitive, opt source/target propagation, any→T
-/// runtime dispatch, and strict byte[] (de)serialization. The remaining
-/// [Ignore("convert-deferred: ...")] tests are deferred composite conversions
-/// (e.g. text[] → int[] element-wise) tracked as a separate work item — see
-/// Specs/Functions.md "Implementation status" section.
-/// </summary>
 [TestFixture]
 public class ConvertSpecMatrixTest {
-
-    // ═══════════════════════════════════════════════════════════════
-    // §A. bool → numeric (C-style: false→0, true→1). Currently BROKEN
-    // (MR5Bug2: raw InvalidOperationException). All ignored until fix.
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
     public void BoolToInt32_True_Returns1() =>
         "out:int = convert(true)".AssertResultHas("out", 1);
@@ -60,12 +33,6 @@ public class ConvertSpecMatrixTest {
     [Test]
     public void BoolToReal_False_Returns0() =>
         "out:real = convert(false)".AssertResultHas("out", 0.0);
-
-    // ═══════════════════════════════════════════════════════════════
-    // §B. int → bool (C-style: 0→false, non-zero→true). Already
-    // partially works on master for 0 and 1 — add multi-width and
-    // non-trivial non-zero values.
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void IntToBool_Zero_False() =>
@@ -103,11 +70,6 @@ public class ConvertSpecMatrixTest {
     public void UInt32ToBool_NonZero_True() =>
         "x:uint = 7\rout:bool = convert(x)".AssertResultHas("out", true);
 
-    // ═══════════════════════════════════════════════════════════════
-    // §C. real → bool (NEW: 0.0/±0.0/NaN → false, finite non-zero → true,
-    // ±Inf → true). Not implemented today — all ignored.
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
     public void RealToBool_PositiveZero_False() =>
         "x:real = 0.0\rout:bool = convert(x)".AssertResultHas("out", false);
@@ -125,21 +87,14 @@ public class ConvertSpecMatrixTest {
         "x:real = -3.14\rout:bool = convert(x)".AssertResultHas("out", true);
 
     [Test]
-    public void RealToBool_NaN_False() {
+    public void RealToBool_NaN_False() =>
         // NaN computed as 0.0 / 0.0
         "x:real = 0.0 / 0.0\rout:bool = convert(x)".AssertResultHas("out", false);
-    }
 
     [Test]
-    public void RealToBool_Infinity_True() {
+    public void RealToBool_Infinity_True() =>
         // +Inf computed as 1.0 / 0.0
         "x:real = 1.0 / 0.0\rout:bool = convert(x)".AssertResultHas("out", true);
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // §D. :T? rescue — soft-fallible (🪂) cells return `none` on
-    // failure instead of throwing. Not implemented today — ignored.
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void TextToIntOpt_BadInput_ReturnsNone() {
@@ -203,10 +158,10 @@ public class ConvertSpecMatrixTest {
     public void RealToInt_Truncation_BoundaryValues() {
         // Spec §1.1: truncate toward zero. Banker's round (Convert.ToInt32 default)
         // would give different results for half-integers and negative fractions.
-        "x:real =  1.5\rout:int = convert(x)".AssertResultHas("out", 1);   // truncate: 1
-        "x:real = -1.5\rout:int = convert(x)".AssertResultHas("out", -1);  // truncate: -1
-        "x:real =  3.5\rout:int = convert(x)".AssertResultHas("out", 3);   // truncate: 3 (banker's: 4)
-        "x:real = -0.7\rout:int = convert(x)".AssertResultHas("out", 0);   // truncate: 0 (banker's: -1)
+        "x:real =  1.5\rout:int = convert(x)".AssertResultHas("out", 1); // truncate: 1
+        "x:real = -1.5\rout:int = convert(x)".AssertResultHas("out", -1); // truncate: -1
+        "x:real =  3.5\rout:int = convert(x)".AssertResultHas("out", 3); // truncate: 3 (banker's: 4)
+        "x:real = -0.7\rout:int = convert(x)".AssertResultHas("out", 0); // truncate: 0 (banker's: -1)
     }
 
     [Test]
@@ -216,23 +171,13 @@ public class ConvertSpecMatrixTest {
         Assert.IsNull(rt.Get("out"));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // §E. real → int truncation (already mostly works — 1.2→1, -1.2→-1
-    // covered in legacy file). Add edge cases.
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
     public void RealToInt_ExactInteger_PreservedExactly() =>
         "out:int = convert(2.0)".AssertResultHas("out", 2);
 
     [Test]
-    public void RealToInt_Overflow_Throws() {
+    public void RealToInt_Overflow_Throws() =>
         Assert.Throws<FunnyRuntimeException>(() => "x:real = 1.0e20\rout:int = convert(x)".Calc());
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // §F. opt(T) source — `none` propagation
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void OptIntToInt_NoneSource_Throws() {
@@ -255,25 +200,23 @@ public class ConvertSpecMatrixTest {
         Assert.AreEqual(42, rt.Get("out"));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // §G. Composite — arrays element-wise
-    // ═══════════════════════════════════════════════════════════════
-
     [Test]
     public void ArrayIntToReal_LiftsElementWise() =>
         "out:real[] = convert([1,2,3])".AssertResultHas("out", new[] { 1.0, 2.0, 3.0 });
 
-    [Test][Ignore("convert-deferred: complex composite conversions — see Specs/Functions.md Implementation status")]
+    [Test]
+    [Ignore("convert-deferred: complex composite conversions — see Specs/Functions.md Implementation status")]
     public void ArrayTextToInt_AllValid_ReturnsInts() =>
         "out:int[] = convert(['1','2','3'])".AssertResultHas("out", new[] { 1, 2, 3 });
 
-    [Test][Ignore("convert-deferred: complex composite conversions — see Specs/Functions.md Implementation status")]
-    public void ArrayTextToInt_OneInvalid_Throws() {
+    [Test]
+    [Ignore("convert-deferred: complex composite conversions — see Specs/Functions.md Implementation status")]
+    public void ArrayTextToInt_OneInvalid_Throws() =>
         Assert.Throws<FunnyRuntimeException>(() =>
             "out:int[] = convert(['1','foo','3'])".Calc());
-    }
 
-    [Test][Ignore("convert-deferred: complex composite conversions — see Specs/Functions.md Implementation status")]
+    [Test]
+    [Ignore("convert-deferred: complex composite conversions — see Specs/Functions.md Implementation status")]
     public void ArrayTextToIntOpt_PartialFails_PerElementNone() {
         var rt = "out:int?[] = convert(['1','foo','3'])"
             .CalcWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
@@ -283,12 +226,6 @@ public class ConvertSpecMatrixTest {
         Assert.IsNull(arr[1]);
         Assert.AreEqual(3, arr[2]);
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // §H. ip → integer rules (NEW: i32 STATIC REJECT, others OK)
-    // Current master accepts ip→i32 and returns surprising negatives —
-    // needs to become a compile error per the new spec.
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void IpToUInt32_NaturalRepresentation_Works() =>
@@ -303,33 +240,24 @@ public class ConvertSpecMatrixTest {
         "out:uint64 = 127.3.2.1.convert()".AssertResultHas("out", (ulong)0x0102037f);
 
     [Test]
-    public void IpToInt32_StaticReject() {
+    public void IpToInt32_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:int = 127.3.2.1.convert()".Calc());
-    }
 
     [Test]
-    public void IpToByte_StaticReject() {
+    public void IpToByte_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:byte = 127.3.2.1.convert()".Calc());
-    }
 
     [Test]
-    public void IpToInt16_StaticReject() {
+    public void IpToInt16_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:int16 = 127.3.2.1.convert()".Calc());
-    }
 
     [Test]
-    public void IpToReal_StaticReject() {
+    public void IpToReal_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:real = 127.3.2.1.convert()".Calc());
-    }
 
     [Test]
-    public void IpToBool_StaticReject() {
+    public void IpToBool_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:bool = 127.3.2.1.convert()".Calc());
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // §I. integer → ip rules (NEW: only u32 is ✓; i32/u64/i64 are 🪂)
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void UInt32ToIp_Works() =>
@@ -337,10 +265,9 @@ public class ConvertSpecMatrixTest {
             .AssertResultHas("out", System.Net.IPAddress.Parse("127.3.2.1"));
 
     [Test]
-    public void Int32NegativeToIp_Throws() {
+    public void Int32NegativeToIp_Throws() =>
         Assert.Throws<FunnyRuntimeException>(() =>
             "x:int = -1\rout:ip = convert(x)".Calc());
-    }
 
     [Test]
     public void Int32NegativeToIpOpt_ReturnsNone() {
@@ -350,63 +277,45 @@ public class ConvertSpecMatrixTest {
     }
 
     [Test]
-    public void Int64TooBigToIp_Throws() {
+    public void Int64TooBigToIp_Throws() =>
         Assert.Throws<FunnyRuntimeException>(() =>
             "x:int64 = 5000000000\rout:ip = convert(x)".Calc());
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // §J. ✗ cells — compile errors for structurally impossible conversions
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
-    public void BoolToChar_StaticReject() {
+    public void BoolToChar_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:char = convert(true)".Calc());
-    }
 
     [Test]
-    public void CharToBool_StaticReject() {
+    public void CharToBool_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:bool = convert('a'[0])".Calc());
-    }
 
     [Test]
-    public void BoolToIp_StaticReject() {
-        Assert.Throws<FunnyParseException>(() => "out:ip = convert(true)".Calc());
-    }
+    public void BoolToIp_StaticReject() => Assert.Throws<FunnyParseException>(() => "out:ip = convert(true)".Calc());
 
     [Test]
-    public void RealToChar_StaticReject() {
+    public void RealToChar_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "x:real = 65.0\rout:char = convert(x)".Calc());
-    }
 
     [Test]
-    public void RealToIp_StaticReject() {
+    public void RealToIp_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "x:real = 1.0\rout:ip = convert(x)".Calc());
-    }
 
     [Test]
-    public void StructToInt_StaticReject() {
+    public void StructToInt_StaticReject() =>
         Assert.Throws<FunnyParseException>(() =>
             "x = {a=1,b=2}\rout:int = convert(x)".Calc());
-    }
 
     [Test]
-    public void IntToStruct_StaticReject() {
+    public void IntToStruct_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => "out:{x:int} = convert(5)".Calc());
-    }
 
     [Test]
-    public void OptIntToByteArray_StaticReject() {
+    public void OptIntToByteArray_StaticReject() =>
         Assert.Throws<FunnyParseException>(() => {
             var b = "x:int? = none\rout:byte[] = convert(x)"
                 .BuildWithDialect(optionalTypesSupport: OptionalTypesSupport.Enabled);
             b.Run();
         });
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // §K. any → T
-    // ═══════════════════════════════════════════════════════════════
 
     [Test]
     public void AnyToInt_RuntimeIntTag_Works() {

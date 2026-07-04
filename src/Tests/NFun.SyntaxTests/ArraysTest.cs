@@ -617,7 +617,7 @@ filtrat   = x.filter(rule it> filt) # filt - input variable
             .AssertResultHas("out", 5);
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
     // Array of float32 — construction, access, higher-order ops.
 
     [Test]

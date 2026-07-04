@@ -9,26 +9,23 @@ namespace NFun.SyntaxTests.SyntaxDialect;
 /// <summary>
 /// FloatFamilySupport dialect setting controls availability of `float32` / `float64`
 /// keywords. Default = <c>None</c> (backward compat — keywords didn't exist before).
-/// When enabled (<c>Float32AndFloat64</c>): both keywords work. `real` is always available.
+/// When enabled (<c>FloatFamily</c>): both keywords work. `real` is always available.
 /// Incompatible with <c>RealClrType.IsDecimal</c> — dialect builder throws.
 /// </summary>
 public class FloatFamilySupportBehaviour {
 
     // ─── Default mode (None) — float32/float64 rejected, real works ─────────────
 
-    [Test]
-    public void DefaultMode_Float32Keyword_ParseError() =>
-        Assert.Throws<FunnyParseException>(() => "out:float32 = 3.14".Build());
-
-    [Test]
-    public void DefaultMode_Float64Keyword_ParseError() =>
-        Assert.Throws<FunnyParseException>(() => "out:float64 = 3.14".Build());
+    [TestCase("out:float32 = 3.14")]
+    [TestCase("out:float64 = 3.14")]
+    public void DefaultMode_FloatKeyword_ParseError(string expr) =>
+        Assert.Throws<FunnyParseException>(() => expr.Build());
 
     [Test]
     public void DefaultMode_RealKeyword_Works() =>
         "out:real = 3.14".AssertReturns("out", 3.14);
 
-    // ─── Float32AndFloat64 explicit opt-in ─────────────────────────────────────
+    // ─── FloatFamily explicit opt-in ─────────────────────────────────────
 
     [Test]
     public void Enabled_Float32Keyword_BuildsFloat32Variable() {
@@ -40,13 +37,8 @@ public class FloatFamilySupportBehaviour {
     }
 
     [Test]
-    public void Enabled_Float64Keyword_BuildsRealVariable() {
-        var rt = Funny.Hardcore.WithDialect(floatFamilySupport: FloatFamilySupport.Float32AndFloat64)
-            .Build("out:float64 = 3.14");
-        rt.Run();
-        Assert.AreEqual("Real", rt["out"].Type.ToString());
-        Assert.AreEqual(3.14, rt["out"].Value);
-    }
+    public void Enabled_Float64Keyword_BuildsRealVariable() =>
+        "out:float64 = 3.14".AssertResultHasReal("out", 3.14);
 
     [Test]
     public void Enabled_RealKeyword_StillWorks() =>
@@ -55,7 +47,7 @@ public class FloatFamilySupportBehaviour {
             .Calc()
             .AssertReturns("out", 3.14);
 
-    // ─── Incompatible combo: IsDecimal + Float32AndFloat64 ─────────────────────
+    // ─── Incompatible combo: IsDecimal + FloatFamily ─────────────────────
 
     [Test]
     public void IncompatibleCombo_DecimalPlusFloatFamily_ThrowsAtBuildTime() =>
@@ -69,7 +61,7 @@ public class FloatFamilySupportBehaviour {
         // Decimal Real with no IEEE float keywords — `real` works (as Decimal), float32/float64 rejected.
         var rt = Funny.Hardcore.WithDialect(
                 realClrType: RealClrType.IsDecimal,
-                floatFamilySupport: FloatFamilySupport.None)
+                floatFamilySupport: FloatFamilySupport.AccordingToRealBehaviour)
             .Build("out:real = 3.14");
         rt.Run();
         Assert.AreEqual(3.14m, rt["out"].Value);
@@ -83,19 +75,10 @@ public class FloatFamilySupportBehaviour {
         "out:float32 = 3.14".AssertResultHasFloat32("out", 3.14f);
     }
 
-    [Test]
-    public void Enabled_RealLiteral_StaysReal_WhenUnconstrained() {
-        // Preferred=Real wins without target constraint.
-        var rt = "out = 3.14".BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Real", rt["out"].Type.ToString());
-        Assert.AreEqual(3.14, rt["out"].Value);
-    }
-
-    [Test]
-    public void Enabled_RealLiteral_StaysReal_WhenAssignedToReal() {
-        "out:real = 3.14".BuildWithFloats().Calc().AssertReturns("out", 3.14);
-    }
+    [TestCase("out = 3.14")]       // unconstrained — Preferred=Real wins without target constraint
+    [TestCase("out:real = 3.14")]  // assigned to real
+    public void Enabled_RealLiteral_StaysReal(string expr) =>
+        expr.AssertResultHasReal("out", 3.14);
 
     // ─── Widening rules ───────────────────────────────────────────────────────
 
@@ -104,12 +87,8 @@ public class FloatFamilySupportBehaviour {
         "x:int = 5\rout:float32 = x".AssertResultHasFloat32("out", 5.0f);
 
     [Test]
-    public void Enabled_Float32ToReal_ImplicitWidening() {
-        var rt = "x:float32 = 1.5\rout:real = x".BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Real", rt["out"].Type.ToString());
-        Assert.AreEqual(1.5, rt["out"].Value);
-    }
+    public void Enabled_Float32ToReal_ImplicitWidening() =>
+        "x:float32 = 1.5\rout:real = x".AssertResultHasReal("out", 1.5);
 
     [Test]
     public void Enabled_RealToFloat32_NarrowingIsParseError() =>
@@ -126,19 +105,8 @@ public class FloatFamilySupportBehaviour {
         expr.AssertResultHasFloat32("out", expected);
 
     [Test]
-    public void Enabled_MixedArithmetic_Float32PlusReal_WidensToReal() {
-        var rt = "x:float32 = 1.5\ry:real = 2.5\rout = x + y".BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Real", rt["out"].Type.ToString());
-        Assert.AreEqual(4.0, rt["out"].Value);
-    }
-
-    [Test]
-    public void Enabled_Convert_IntToFloat32() {
-        var rt = "x:int = 42\rout:float32 = convert(x)".BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual(42.0f, rt["out"].Value);
-    }
+    public void Enabled_Convert_IntToFloat32() =>
+        "x:int = 42\rout:float32 = convert(x)".AssertResultHasFloat32("out", 42.0f);
 
     [Test]
     public void Enabled_UserFunction_TypedFloat32Signature() =>
@@ -149,12 +117,8 @@ public class FloatFamilySupportBehaviour {
         "id(a) = a\rout:float32 = id(1.5)".AssertResultHasFloat32("out", 1.5f);
 
     [Test]
-    public void Enabled_Struct_FieldTypeFloat32() {
-        var rt = "v:float32 = 1.5\rp = {x = v}\rout = p.x".BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Float32", rt["out"].Type.ToString());
-        Assert.AreEqual(1.5f, rt["out"].Value);
-    }
+    public void Enabled_Struct_FieldTypeFloat32() =>
+        "v:float32 = 1.5\rp = {x = v}\rout = p.x".AssertResultHasFloat32("out", 1.5f);
 
     [Test]
     public void Enabled_ToText_Float32() =>
@@ -182,14 +146,11 @@ public class FloatFamilySupportBehaviour {
     public void Enabled_MixedArithmetic_IntWithFloat32_WidensToFloat32(string expr, float expected) =>
         expr.AssertResultHasFloat32("out", expected);
 
+    [TestCase("x:float32 = 1.5\ry:real = 2.5\rout = x + y", 4.0)]
     [TestCase("x:float32 = 5.5\ry:real = 2.5\rout = x - y", 3.0)]
     [TestCase("x:float32 = 6.0\ry:real = 4.0\rout = x / y", 1.5)]
-    public void Enabled_MixedArithmetic_Float32WithReal_WidensToReal(string expr, double expected) {
-        var rt = expr.BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Real", rt["out"].Type.ToString());
-        Assert.AreEqual(expected, rt["out"].Value);
-    }
+    public void Enabled_MixedArithmetic_Float32WithReal_WidensToReal(string expr, double expected) =>
+        expr.AssertResultHasReal("out", expected);
 
     // ─── Comparison operator sweep ────────────────────────────────────────────
 
@@ -266,12 +227,8 @@ public class FloatFamilySupportBehaviour {
         "x = 3 / 2".AssertReturns("x", 1.5);
 
     [Test]
-    public void Divergent_IntDivInt_F32F64Mode_IsReal() {
-        var rt = "x = 3 / 2".BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Real", rt["x"].Type.ToString());
-        Assert.AreEqual(1.5, rt["x"].Value);
-    }
+    public void Divergent_IntDivInt_F32F64Mode_IsReal() =>
+        "x = 3 / 2".AssertResultHasReal("x", 1.5);
 
     [Test]
     public void Divergent_IntDivInt_TypedFloat32_ResolvesToFloat32() =>
@@ -328,12 +285,8 @@ public class FloatFamilySupportBehaviour {
     // float64 preserves the same literals that float32 truncates.
     [TestCase("out:float64 = 16777217",       16777217.0)]
     [TestCase("out:float64 = 9007199254740992", 9007199254740992.0)]  // 2^53
-    public void Enabled_IntLiteral_Float64Precision(string expr, double expected) {
-        var rt = expr.BuildWithFloats();
-        rt.Run();
-        Assert.AreEqual("Real", rt["out"].Type.ToString());
-        Assert.AreEqual(expected, rt["out"].Value);
-    }
+    public void Enabled_IntLiteral_Float64Precision(string expr, double expected) =>
+        expr.AssertResultHasReal("out", expected);
 
     // Same big-int assigned to float32 vs float64 diverges — pin the observed values.
     [Test]
@@ -361,6 +314,13 @@ internal static class FloatFamilyAssertExtensions {
         var rt = expr.BuildWithFloats();
         rt.Run();
         Assert.AreEqual("Float32", rt[name].Type.ToString());
+        Assert.AreEqual(expected, rt[name].Value);
+    }
+
+    public static void AssertResultHasReal(this string expr, string name, double expected) {
+        var rt = expr.BuildWithFloats();
+        rt.Run();
+        Assert.AreEqual("Real", rt[name].Type.ToString());
         Assert.AreEqual(expected, rt[name].Value);
     }
 }

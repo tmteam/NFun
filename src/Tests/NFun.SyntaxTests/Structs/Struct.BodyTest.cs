@@ -735,7 +735,7 @@ foo = [[[fooin]]]; bar = foo;".Build();
         "y = {a=1, b=2}".Calc();
     }
 
-    #region Float32AndFloat64 dialect
+    #region FloatFamily dialect
 
     [Test]
     public void Float32_Struct_FieldConstruction_ExplicitAnnotation() {

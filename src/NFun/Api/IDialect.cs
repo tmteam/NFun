@@ -23,19 +23,19 @@ internal static class Dialects {
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
         ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
-        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.AccordingToRealBehaviour
         ) {
         // Reject incompatible combo: Decimal-backed Real + IEEE float family.
         if (realClrType == RealClrType.IsDecimal && floatFamilySupport == FloatFamilySupport.Float32AndFloat64)
             throw new System.ArgumentException(
                 "FloatFamilySupport.Float32AndFloat64 is incompatible with RealClrType.IsDecimal. " +
-                "Either set FloatFamilySupport=None to keep decimal Real, or use RealClrType.IsDouble " +
+                "Either set FloatFamilySupport.AccordingToRealBehaviour to keep decimal Real, or use RealClrType.IsDouble " +
                 "to enable IEEE float32/float64 keywords.");
 
         var converter = (realClrType, floatFamilySupport) switch {
-            (RealClrType.IsDouble,  FloatFamilySupport.None)              => FunnyConverter.RealIsDouble,
+            (RealClrType.IsDouble,  FloatFamilySupport.AccordingToRealBehaviour)              => FunnyConverter.RealIsDouble,
             (RealClrType.IsDouble,  FloatFamilySupport.Float32AndFloat64) => FunnyConverter.RealIsDoubleWithFloatFamily,
-            (RealClrType.IsDecimal, FloatFamilySupport.None)              => FunnyConverter.RealIsDecimal,
+            (RealClrType.IsDecimal, FloatFamilySupport.AccordingToRealBehaviour)              => FunnyConverter.RealIsDecimal,
             _ => throw new System.InvalidOperationException("Unreachable")
         };
 
@@ -72,7 +72,7 @@ internal sealed class DialectSettings : IFunctionSelectorContext {
         NamedTypesSupport namedTypesSupport = NamedTypesSupport.Disabled,
         TryCatchSupport tryCatchSupport = TryCatchSupport.Enabled,
         ExtensionFunctionsSeparation extensionFunctionsSeparation = ExtensionFunctionsSeparation.Disabled,
-        FloatFamilySupport floatFamilySupport = FloatFamilySupport.None) {
+        FloatFamilySupport floatFamilySupport = FloatFamilySupport.AccordingToRealBehaviour) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
@@ -203,15 +203,21 @@ public enum ExtensionFunctionsSeparation {
 }
 
 /// <summary>
-/// Availability of the IEEE 754 float family keywords (`float32`, `float64`).
-/// The `real` keyword is always available regardless of this setting.
+/// IEEE 754 float family support: the `float32` type (System.Single) and the
+/// `float64` keyword (alias for `real`). Affects both syntax and inference —
+/// with <see cref="Float32AndFloat64"/>, real literals and math built-ins
+/// (`/`, `sqrt`, `sin`, …) are generic over [float32..real] and resolve to
+/// `float32` in float32 context (`x:float32 = 3.14; y = x + 1.0` → float32).
+/// The `real` keyword itself is available either way.
 /// </summary>
 public enum FloatFamilySupport {
-    /// <summary>`float32` and `float64` keywords are parse errors.</summary>
-    None = 0,
-    /// <summary>
-    /// `float32` (System.Single) and `float64` (alias for `real`) keywords enabled.
-    /// Incompatible with <see cref="RealClrType.IsDecimal"/>.
-    /// </summary>
+    /// <summary>Floating point follows the `real` type as configured by
+    /// <see cref="RealClrType"/>: the `float32`/`float64` keywords are parse
+    /// errors, real literals and math built-ins always resolve to `real`.</summary>
+    AccordingToRealBehaviour = 0,
+    /// <summary>The `float32` type (System.Single) and the `float64` alias of `real`
+    /// are available. Incompatible with <see cref="RealClrType.IsDecimal"/>
+    /// (float64 ≡ IEEE double, not decimal) — the combination throws at dialect
+    /// construction.</summary>
     Float32AndFloat64 = 1
 }
