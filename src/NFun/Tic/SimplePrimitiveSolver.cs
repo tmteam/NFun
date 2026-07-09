@@ -43,6 +43,7 @@ internal sealed class SimplePrimitiveSolver {
     private static readonly byte[] s_lcaTable;   // [PRIM_COUNT * PRIM_COUNT], flattened
     private static readonly byte[] s_gcdTable;   // OPEN = no GCD
     private static readonly bool[] s_fitsTable;  // desc fits into anc?
+    private static readonly bool[] s_comparableTable; // ordinal → IsComparable
     private static readonly StatePrimitive[] s_ordToState;
 
     // Set to true when conflicting constraints are detected (e.g. Real ∩ Bool = ∅)
@@ -74,16 +75,18 @@ internal sealed class SimplePrimitiveSolver {
     // Ordinal → FunnyType mapping (mirrors TicTypesConverter.ToConcrete but indexed by ordinal)
     private static readonly FunnyType[] s_ordToFunnyType;
 
-    private static readonly PrimitiveTypeName[] s_allPrimitives = {
-        PrimitiveTypeName.Any, PrimitiveTypeName.Bool, PrimitiveTypeName.Char,
-        PrimitiveTypeName.Ip, PrimitiveTypeName.Real, PrimitiveTypeName.F32,
-        PrimitiveTypeName.I96,
-        PrimitiveTypeName.I64, PrimitiveTypeName.I48, PrimitiveTypeName.I32,
-        PrimitiveTypeName.I24, PrimitiveTypeName.I16, PrimitiveTypeName.I12,
-        PrimitiveTypeName.I8, PrimitiveTypeName.U64, PrimitiveTypeName.U48,
-        PrimitiveTypeName.U32, PrimitiveTypeName.U24, PrimitiveTypeName.U16,
-        PrimitiveTypeName.U12, PrimitiveTypeName.U8, PrimitiveTypeName.U4,
-        PrimitiveTypeName.None
+    // The StatePrimitive SINGLETONS — never construct new instances here: the states
+    // built from this table enter the graph, and Gcd/Fit/Convert compare by reference.
+    private static readonly StatePrimitive[] s_allPrimitives = {
+        StatePrimitive.Any, StatePrimitive.Bool, StatePrimitive.Char,
+        StatePrimitive.Ip, StatePrimitive.Real, StatePrimitive.F32,
+        StatePrimitive.I96,
+        StatePrimitive.I64, StatePrimitive.I48, StatePrimitive.I32,
+        StatePrimitive.I24, StatePrimitive.I16, StatePrimitive.I12,
+        StatePrimitive.I8, StatePrimitive.U64, StatePrimitive.U48,
+        StatePrimitive.U32, StatePrimitive.U24, StatePrimitive.U16,
+        StatePrimitive.U12, StatePrimitive.U8, StatePrimitive.U4,
+        StatePrimitive.None
     };
 
     static SimplePrimitiveSolver() {
@@ -91,13 +94,16 @@ internal sealed class SimplePrimitiveSolver {
         // and calling their authoritative LCA/GCD/Fits methods.
         s_ordToState = new StatePrimitive[PRIM_COUNT];
         for (int i = 0; i < s_allPrimitives.Length; i++) {
-            var p = new StatePrimitive(s_allPrimitives[i]);
+            var p = s_allPrimitives[i];
             s_ordToState[p.Order] = p;
         }
 
         s_lcaTable = new byte[PRIM_COUNT * PRIM_COUNT];
         s_gcdTable = new byte[PRIM_COUNT * PRIM_COUNT];
         s_fitsTable = new bool[PRIM_COUNT * PRIM_COUNT];
+        s_comparableTable = new bool[PRIM_COUNT];
+        for (int i = 0; i < PRIM_COUNT; i++)
+            s_comparableTable[i] = s_ordToState[i].IsComparable;
 
         for (int a = 0; a < PRIM_COUNT; a++) {
             for (int b = 0; b < PRIM_COUNT; b++) {
@@ -716,6 +722,17 @@ internal sealed class SimplePrimitiveSolver {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StatePrimitive ResolveGroup(int gid) {
         var r = Find(gid);
+        var resolved = ResolveRoot(r);
+        // Comparable satisfiability (TicSimplePath.md §8.1 parity): the comparable flag is a
+        // resolution predicate — the resolved type must be comparable. On violation SPS
+        // abstains (returns null → fall back to full TIC, which reports the FU783-family
+        // error), instead of silently resolving e.g. `max(true, false)` to Bool.
+        if (resolved != null && _groups[r].Comparable && !s_comparableTable[resolved.Order])
+            return null;
+        return resolved;
+    }
+
+    private StatePrimitive ResolveRoot(int r) {
         var d = _groups[r].Desc;
         var a = _groups[r].Anc;
         var p = _groups[r].Pref;

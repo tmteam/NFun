@@ -12,8 +12,14 @@ namespace NFun.Functions {
     var arithmetical  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int8" ,"Int16" ,"Int32" ,"Int64","Real" };
     var signedNumber = new[] {"Int8" ,"Int16","Int32","Int64","Real"};
     
-    WriteTwoArgFunction("DivideInt",integers,"/");
-    WriteTwoArgFunction("Remainder",numbers,"%");
+    // DivideIntFunction and RemainderFunction are HAND-MAINTAINED in
+    // GenericSwitchFunctionsGenerated.cs and no longer generated: the MIN / -1 edge
+    // (signed checked/unchecked dispatch + divisor guard on the full-width arms where the
+    // CLR div/rem instruction traps) cannot be expressed by the generic writers below.
+    // NOTE the whole template is stale wrt the .cs anyway (Float32 arms, BitInverse moved
+    // to BitwiseFunctions.cs) — do not regenerate blindly.
+    //WriteTwoArgFunction("DivideInt",integers,"/");
+    //WriteTwoArgFunction("Remainder",numbers,"%");
     WriteTwoArgFunction("Add",arithmetical,"+",      name:null, overflowIntegers: true);
     WriteTwoArgFunction("Substract",arithmetical,"-",name:null, overflowIntegers: true);
     WriteTwoArgFunction("Multiply",arithmetical,"*", name:null, overflowIntegers: true);

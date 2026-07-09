@@ -8,7 +8,7 @@ using Algebra;
 public class StateStruct : ICompositeState {
 
     public int FieldsCount => _nodes.Count;
-    public IEnumerable<KeyValuePair<string, TicNode>> Fields => _nodes;
+    public FieldMap Fields => _nodes;
 
     private readonly FieldMap _nodes;
 
@@ -204,24 +204,6 @@ public class StateStruct : ICompositeState {
         }
     }
 
-    private const int LeafMark = -56000;
-
-    public IEnumerable<TicNode> AllLeafTypes {
-        get {
-            foreach (var member in Members) {
-                if (member.State is ICompositeState composite) {
-                    if (member.VisitMark == LeafMark) continue; // cycle guard
-                    var prev = member.VisitMark;
-                    member.VisitMark = LeafMark;
-                    foreach (var leaf in composite.AllLeafTypes)
-                        yield return leaf;
-                    member.VisitMark = prev;
-                } else {
-                    yield return member;
-                }
-            }
-        }
-    }
 
     public int MembersCount => _nodes.Count;
 

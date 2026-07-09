@@ -196,7 +196,10 @@ public class GenericUserFunction : GenericFunctionBase, IUserFunction {
                 foreach (var member in str.Members)
                 {
                     var memberState = member.GetNonReference().State;
-                    if (memberState is ConstraintsState cs && ticGenerics.IndexOf(cs) >= 0)
+                    // "Is this field's state a generic of the map" — generic identity is
+                    // OBJECT identity (TicResolution.md §2): a value-equal but distinct CS
+                    // is not a generic of this function.
+                    if (memberState is ConstraintsState cs && ticGenerics.IndexOfByReference(cs) >= 0)
                         hasGenericField = true;
                     else
                         CollectGenericStructs(memberState, ticGenerics, result, visited);

@@ -115,12 +115,26 @@ public static class SolvingFunctions {
                 if (constrainsB2.HasDescendant && constrainsB2.Descendant is StateStruct descStruct)
                 {
                     var merged = MergeStructs(strA2, descStruct);
+                    // S axis (debt #12): a solved struct absorbs the CS's F-bound via the
+                    // GcdBound meet (ownerless — callers alias the merged nodes) so the
+                    // bound's required fields become explicit instead of silently dropped.
+                    if (merged != null && constrainsB2.HasStructBound)
+                        merged = GcdBound(merged, constrainsB2.StructBound, null, null);
                     // Preserve IsOptional: opt(T) merged with U = opt(merge(T,U))
                     return merged != null && constrainsB2.IsOptional
                         ? StateOptional.Of(merged) : merged;
                 }
                 if (!constrainsB2.HasDescendant && !constrainsB2.IsComparable)
-                    return constrainsB2.IsOptional ? StateOptional.Of(strA2) : strA2;
+                {
+                    var res = strA2;
+                    if (constrainsB2.HasStructBound)
+                    {
+                        // Same rule as above: struct ⊓ CS{S} = GcdBound(struct, S) or null.
+                        res = GcdBound(strA2, constrainsB2.StructBound, null, null);
+                        if (res == null) return null;
+                    }
+                    return constrainsB2.IsOptional ? StateOptional.Of(res) : res;
+                }
                 return null;
             }
             case ConstraintsState constrainsA when stateB is ConstraintsState constrainsB:
@@ -529,7 +543,13 @@ public static class SolvingFunctions {
         StatePrimitive commonPreferred = null;
         var collectMark = NextMark();
         foreach (var node in toposortedNodes)
+        {
             CollectPreferred(node, ref commonPreferred, collectMark);
+            // First-wins (`??=` in CollectPreferred): once found, further
+            // scanning cannot change the result — stop the graph walk.
+            if (commonPreferred != null)
+                break;
+        }
         if (commonPreferred == null)
             return;
         var applyMark = NextMark();
@@ -821,16 +841,32 @@ public static class SolvingFunctions {
     /// Contractivity preserved when both inputs are contractive (every
     /// back-edge crosses Optional/Array): we never strip a wrapper, never
     /// introduce a new self-ref, only rewire existing ones to the new owner.
+    ///
+    /// OWNERLESS mode (debt #12): with <paramref name="resultOwner"/> = null the union runs as
+    /// a pure value operator for the algebra layer (⊓ / ∧ transport of the S axis) — a shared
+    /// field whose either side contains a recursion-variable position keeps the self-referential
+    /// side's ORIGINAL node unchanged instead of being rewired. Ownership transfer stays
+    /// stage-owned: merge callers alias old owner nodes to the merged node
+    /// (loser := RefTo(winner)), so preserved back-edges dereference to the merged variable.
     /// </summary>
     public static StateStruct GcdBound(
-        StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner) {
+        StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner) =>
+        GcdBound(a, b, resultOwner, otherOwner, null);
+
+    // ctx: explicit coinductive context of the algebra family (see AlgebraCycleContext) —
+    // MergeFieldStateGcd re-enters Gcd, so a bound meet running inside a struct-Gcd arm
+    // must keep the assumption set alive across this hop.
+    internal static StateStruct GcdBound(
+        StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner,
+        Algebra.AlgebraCycleContext ctx) {
         var visited = new Dictionary<(StateStruct, StateStruct), StateStruct>();
-        return GcdBoundInner(a, b, resultOwner, otherOwner, visited);
+        return GcdBoundInner(a, b, resultOwner, otherOwner, visited, ctx);
     }
 
     private static StateStruct GcdBoundInner(
         StateStruct a, StateStruct b, TicNode resultOwner, TicNode otherOwner,
-        Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
+        Dictionary<(StateStruct, StateStruct), StateStruct> visited,
+        Algebra.AlgebraCycleContext ctx) {
         if (ReferenceEquals(a, b)) return a; // idempotent fast path
         if (visited.TryGetValue((a, b), out var memo)) return memo;
         var mergedName = StateStruct.MergedTypeName(a.TypeName, b.TypeName);
@@ -842,8 +878,8 @@ public static class SolvingFunctions {
         // other struct's fields are validated against the bound (subtype check) and discarded if
         // they're width-only extras (caller has more fields than the bound requires).
         // Algebra: meet(a-frozen, b) = a-frozen, provided fields(a) ⊆ fields(b).
-        if (a.IsFrozen && !b.IsFrozen) return GcdFrozenAndOpen(a, b, resultOwner, otherOwner, visited);
-        if (b.IsFrozen && !a.IsFrozen) return GcdFrozenAndOpen(b, a, resultOwner, otherOwner, visited);
+        if (a.IsFrozen && !b.IsFrozen) return GcdFrozenAndOpen(a, b, resultOwner, otherOwner, visited, ctx);
+        if (b.IsFrozen && !a.IsFrozen) return GcdFrozenAndOpen(b, a, resultOwner, otherOwner, visited, ctx);
 
         var result = new StateStruct(
             new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase),
@@ -864,7 +900,17 @@ public static class SolvingFunctions {
             }
             var sA = valA.GetNonReference().State;
             var sB = valB.GetNonReference().State;
-            var mergedFieldState = MergeFieldStateGcd(sA, sB, resultOwner, otherOwner, visited);
+            // Ownerless (algebra) mode: preserve self-referential positions' node identity —
+            // there is no owner to rewire to; the caller's node aliasing transfers ownership.
+            if (resultOwner == null) {
+                bool aRec = Algebra.StateExtensions.ContainsRecursionVariable(sA);
+                bool bRec = Algebra.StateExtensions.ContainsRecursionVariable(sB);
+                if (aRec || bRec) {
+                    result.AddField(name, aRec ? valA : valB);
+                    continue;
+                }
+            }
+            var mergedFieldState = MergeFieldStateGcd(sA, sB, resultOwner, otherOwner, visited, ctx);
             if (mergedFieldState == null) return null;
             var mergedFieldNode = TicNode.CreateInvisibleNode(mergedFieldState);
             // Preserve IsOptionalElement marker if either source had it
@@ -890,7 +936,8 @@ public static class SolvingFunctions {
     /// </summary>
     private static StateStruct GcdFrozenAndOpen(
         StateStruct frozen, StateStruct candidate, TicNode resultOwner, TicNode otherOwner,
-        Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
+        Dictionary<(StateStruct, StateStruct), StateStruct> visited,
+        Algebra.AlgebraCycleContext ctx) {
         var key = (frozen, candidate);
         if (visited.TryGetValue(key, out var memo)) return memo;
         var mergedName = StateStruct.MergedTypeName(frozen.TypeName, candidate.TypeName);
@@ -913,7 +960,16 @@ public static class SolvingFunctions {
             if (valCand == null) return null; // missing required field
             var sF = valFrozen.GetNonReference().State;
             var sC = valCand.GetNonReference().State;
-            var mergedFieldState = MergeFieldStateGcd(sF, sC, resultOwner, otherOwner, visited);
+            // Ownerless (algebra) mode: same identity-preserving rule as GcdBoundInner.
+            if (resultOwner == null) {
+                bool fRec = Algebra.StateExtensions.ContainsRecursionVariable(sF);
+                bool cRec = Algebra.StateExtensions.ContainsRecursionVariable(sC);
+                if (fRec || cRec) {
+                    result.AddField(name, fRec ? valFrozen : valCand);
+                    continue;
+                }
+            }
+            var mergedFieldState = MergeFieldStateGcd(sF, sC, resultOwner, otherOwner, visited, ctx);
             if (mergedFieldState == null) return null;
             var mergedFieldNode = TicNode.CreateInvisibleNode(mergedFieldState);
             if (valFrozen.IsOptionalElement || valCand.IsOptionalElement)
@@ -928,7 +984,8 @@ public static class SolvingFunctions {
 
     private static ITicNodeState MergeFieldStateGcd(
         ITicNodeState sA, ITicNodeState sB, TicNode resultOwner, TicNode otherOwner,
-        Dictionary<(StateStruct, StateStruct), StateStruct> visited) {
+        Dictionary<(StateStruct, StateStruct), StateStruct> visited,
+        Algebra.AlgebraCycleContext ctx) {
         // Self-ref handling.
         // Pierce TAPL §20.2 fold/unfold: μX. F(X) ≡ F(μX. F(X)). When merging
         // a bound's field (carrying X = self-ref) with a concrete value, the
@@ -945,15 +1002,20 @@ public static class SolvingFunctions {
                    || IsBoundCarrierCs(sA);
         bool bSelf = IsSelfRefBackToOwner(sB, otherOwner) || IsSelfRefBackToOwner(sB, resultOwner)
                    || IsBoundCarrierCs(sB);
-        if (aSelf && bSelf) return new StateRefTo(resultOwner);
-        if (aSelf || bSelf) return new StateRefTo(resultOwner);
+        if (aSelf || bSelf) {
+            // Ownerless (algebra) mode: keep the self-referential side by value. Unreachable via
+            // GcdBoundInner/GcdFrozenAndOpen (their ContainsRecursionVariable pre-check keeps the
+            // whole field NODE before recursing here); value fallback for future direct callers.
+            if (resultOwner == null) return aSelf ? sA : sB;
+            return new StateRefTo(resultOwner);
+        }
 
         // Composite recursion preserves wrapper structure (contractivity).
         if (sA is StateOptional optA && sB is StateOptional optB) {
             var inner = MergeFieldStateGcd(
                 optA.ElementNode.GetNonReference().State,
                 optB.ElementNode.GetNonReference().State,
-                resultOwner, otherOwner, visited);
+                resultOwner, otherOwner, visited, ctx);
             if (inner == null) return null;
             var node = TicNode.CreateInvisibleNode(inner);
             node.IsOptionalElement = true;
@@ -963,15 +1025,15 @@ public static class SolvingFunctions {
             var inner = MergeFieldStateGcd(
                 arrA.ElementNode.GetNonReference().State,
                 arrB.ElementNode.GetNonReference().State,
-                resultOwner, otherOwner, visited);
+                resultOwner, otherOwner, visited, ctx);
             if (inner is ITypeState innerType) return StateArray.Of(innerType);
             return null;
         }
         if (sA is StateStruct ssA && sB is StateStruct ssB)
-            return GcdBoundInner(ssA, ssB, resultOwner, otherOwner, visited);
+            return GcdBoundInner(ssA, ssB, resultOwner, otherOwner, visited, ctx);
         // Both are ITypeState concrete — delegate to existing Gcd.
         if (sA is ITypeState tsA && sB is ITypeState tsB)
-            return Algebra.StateExtensions.Gcd(tsA, tsB);
+            return Algebra.StateExtensions.Gcd(tsA, tsB, ctx);
         // CS or other — bail conservatively.
         if (sA.Equals(sB)) return sA;
         return null;
@@ -1459,7 +1521,7 @@ public static class SolvingFunctions {
     /// Transform constrains state to array state
     /// </summary>
     public static StateArray TransformToArrayOrNull(object descNodeName, ConstraintsState descendant) {
-        if (descendant.NoConstrains)
+        if (descendant.NoEffectiveConstrains)
         {
             var constrains = ConstraintsState.Empty;
             var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
@@ -1482,7 +1544,7 @@ public static class SolvingFunctions {
     /// Transform constrains state to optional state
     /// </summary>
     public static StateOptional TransformToOptionalOrNull(object descNodeName, ConstraintsState descendant) {
-        if (descendant.NoConstrains)
+        if (descendant.NoEffectiveConstrains)
         {
             var constrains = ConstraintsState.Empty;
             var node = TicNode.CreateTypeVariableNode("e" + descNodeName + "'", constrains);
@@ -1532,7 +1594,7 @@ public static class SolvingFunctions {
     /// Transform constrains to fun state
     /// </summary>
     public static StateFun TransformToFunOrNull(object descNodeName, ConstraintsState descendant, StateFun ancestor) {
-        if (descendant.NoConstrains)
+        if (descendant.NoEffectiveConstrains)
         {
             var argNodes = new TicNode[ancestor.ArgsCount];
             for (int i = 0; i < ancestor.ArgsCount; i++)
@@ -1615,7 +1677,7 @@ public static class SolvingFunctions {
     /// Transform constrains to struct state
     /// </summary>
     public static StateStruct TransformToStructOrNull(ConstraintsState descendant, StateStruct ancStruct) {
-        if (descendant.NoConstrains)
+        if (descendant.NoEffectiveConstrains)
             return ancStruct;
 
         if (descendant.HasDescendant && descendant.Descendant is StateStruct structDesc)
@@ -1659,214 +1721,217 @@ public static class SolvingFunctions {
         // Track whether any struct visited during cycle traversal is opt-sourced.
         // If so, cycles encountered should be repaired rather than thrown — they represent a
         // contractive μ-type μX. opt(struct{…X…}).
-        var optSourcedSeen = new bool[1];
+        bool optSourcedSeen = false;
         // Pre-scan only when the graph may have recursive structures.
         // Otherwise the walk is guaranteed to return false (no IsOptionalSourced
         // structs can exist without a SafeFieldAccess call — itself sets
         // IsRecursion). Saves O(subgraph) per node × N nodes per Destruction.
-        if (isRecursion && HasReachableOptSourcedStruct(node)) optSourcedSeen[0] = true;
-        ThrowIfRecursiveReq(node.State, 1, fromStruct: false, optSourcedSeen);
+        if (isRecursion && HasReachableOptSourcedStruct(node)) optSourcedSeen = true;
+        ThrowIfRecursiveReq(node.State, 1, fromStruct: false, namedTypeRegistry, ref optSourcedSeen);
+    }
 
-        // Local functions intentionally non-static: they capture
-        // `namedTypeRegistry` via closure so cycle repair can match cycle
-        // structs against declared named types without globals.
-        void ThrowIfRecursiveReq(ITicNodeState state, int mark, bool fromStruct, bool[] optSeen) {
-            if (state is StateStruct s && s.IsOptionalSourced) optSeen[0] = true;
-            switch (state)
-            {
-                case StateRefTo refTo:
-                    ThrowIfNodeReq(refTo.Node, mark, fromStruct, optSeen);
-                    break;
-                case StateOptional:
-                    break; // Optional always breaks recursion (none is the base case)
-                case StateArray arr:
-                    if (fromStruct)
-                        break; // Valid: struct field → array → struct (named recursive type)
-                    // Standalone array chain — check for arr(arr(...self...))
-                    ThrowIfNodeReq(arr.ElementNode, mark, fromStruct: false, optSeen);
-                    break;
-                case ICompositeState composite:
-                    var isStruct = state is StateStruct;
-                    for (int mi = 0; mi < composite.MemberCount; mi++)
-                        ThrowIfNodeReq(composite.GetMember(mi), mark, fromStruct || isStruct, optSeen);
-                    break;
-                case ConstraintsState cs:
-                    // F-bound is a contractive break. When a CS carries StructBound, the bound is
-                    // by construction contractive (LiftMuTypes precondition C1: every back-edge
-                    // crosses Optional/Array). Re-entering the bounded variable T means unfolding
-                    // to a struct that ITSELF satisfies the contractive bound, so a back-edge
-                    // closing through `RefTo(node-with-CS{StructBound})` is analogous to a
-                    // StateOptional break — terminate the walk.
-                    if (cs.HasStructBound)
-                    {
-                        if (cs.HasDescendant)
-                            ThrowIfRecursiveReq(cs.Descendant, mark, fromStruct, optSeen);
-                        if (cs.HasAncestor)
-                            ThrowIfRecursiveReq(cs.Ancestor, mark, fromStruct, optSeen);
-                        break; // do NOT recurse into S — it's the contractive boundary
-                    }
+    // The recursive walk, state arm. `namedTypeRegistry` and the `optSourcedSeen`
+    // flag travel as parameters so cycle repair can match cycle structs against
+    // declared named types without globals.
+    private static void ThrowIfRecursiveReq(ITicNodeState state, int mark, bool fromStruct,
+        Types.INamedTypeFieldRegistry namedTypeRegistry, ref bool optSourcedSeen) {
+        if (state is StateStruct s && s.IsOptionalSourced) optSourcedSeen = true;
+        switch (state)
+        {
+            case StateRefTo refTo:
+                ThrowIfNodeReq(refTo.Node, mark, fromStruct, namedTypeRegistry, ref optSourcedSeen);
+                break;
+            case StateOptional:
+                break; // Optional always breaks recursion (none is the base case)
+            case StateArray arr:
+                if (fromStruct)
+                    break; // Valid: struct field → array → struct (named recursive type)
+                // Standalone array chain — check for arr(arr(...self...))
+                ThrowIfNodeReq(arr.ElementNode, mark, fromStruct: false, namedTypeRegistry, ref optSourcedSeen);
+                break;
+            case ICompositeState composite:
+                var isStruct = state is StateStruct;
+                for (int mi = 0; mi < composite.MemberCount; mi++)
+                    ThrowIfNodeReq(composite.GetMember(mi), mark, fromStruct || isStruct, namedTypeRegistry, ref optSourcedSeen);
+                break;
+            case ConstraintsState cs:
+                // F-bound is a contractive break. When a CS carries StructBound, the bound is
+                // by construction contractive (LiftMuTypes precondition C1: every back-edge
+                // crosses Optional/Array). Re-entering the bounded variable T means unfolding
+                // to a struct that ITSELF satisfies the contractive bound, so a back-edge
+                // closing through `RefTo(node-with-CS{StructBound})` is analogous to a
+                // StateOptional break — terminate the walk.
+                if (cs.HasStructBound)
+                {
                     if (cs.HasDescendant)
-                        ThrowIfRecursiveReq(cs.Descendant, mark, fromStruct, optSeen);
+                        ThrowIfRecursiveReq(cs.Descendant, mark, fromStruct, namedTypeRegistry, ref optSourcedSeen);
                     if (cs.HasAncestor)
-                        ThrowIfRecursiveReq(cs.Ancestor, mark, fromStruct, optSeen);
-                    break;
-            }
+                        ThrowIfRecursiveReq(cs.Ancestor, mark, fromStruct, namedTypeRegistry, ref optSourcedSeen);
+                    break; // do NOT recurse into S — it's the contractive boundary
+                }
+                if (cs.HasDescendant)
+                    ThrowIfRecursiveReq(cs.Descendant, mark, fromStruct, namedTypeRegistry, ref optSourcedSeen);
+                if (cs.HasAncestor)
+                    ThrowIfRecursiveReq(cs.Ancestor, mark, fromStruct, namedTypeRegistry, ref optSourcedSeen);
+                break;
         }
+    }
 
-        void ThrowIfNodeReq(TicNode node, int mark, bool fromStruct, bool[] optSeen) {
-            if (node.State is StateStruct s && s.IsOptionalSourced) optSeen[0] = true;
-            if (node.VisitMark == mark)
-            {
-                // Contractive closing edge: if we re-entered an Array node from inside a
-                // struct field traversal (fromStruct=true), the closing back-edge of the
-                // cycle crosses an Array constructor — algebraically equivalent to the
-                // Optional break that the recursion case `case StateArray arr: if
-                // (fromStruct) break` accepts as a valid μ-type. Symmetric handling: the
-                // cycle-detection branch must accept the same shape, otherwise the
-                // VisitMark trips BEFORE the StateArray case runs. Type
-                // t = {v:int, kids:t[]} — `root.kids` traverses struct → kids field →
-                // arr_node and back, crossing arr_node twice via the array constructor.
-                if (fromStruct && node.GetNonReference().State is StateArray)
-                    return;
+    // The recursive walk, node arm: VisitMark cycle detection + repair/promotion attempts.
+    private static void ThrowIfNodeReq(TicNode node, int mark, bool fromStruct,
+        Types.INamedTypeFieldRegistry namedTypeRegistry, ref bool optSourcedSeen) {
+        if (node.State is StateStruct s && s.IsOptionalSourced) optSourcedSeen = true;
+        if (node.VisitMark == mark)
+        {
+            // Contractive closing edge: if we re-entered an Array node from inside a
+            // struct field traversal (fromStruct=true), the closing back-edge of the
+            // cycle crosses an Array constructor — algebraically equivalent to the
+            // Optional break that the recursion case `case StateArray arr: if
+            // (fromStruct) break` accepts as a valid μ-type. Symmetric handling: the
+            // cycle-detection branch must accept the same shape, otherwise the
+            // VisitMark trips BEFORE the StateArray case runs. Type
+            // t = {v:int, kids:t[]} — `root.kids` traverses struct → kids field →
+            // arr_node and back, crossing arr_node twice via the array constructor.
+            if (fromStruct && node.GetNonReference().State is StateArray)
+                return;
 
-                // If any struct on the cycle path is opt-sourced, OR if the cycle's struct itself
-                // is opt-sourced somewhere in its full reachable subgraph, this is a contractive
-                // iso-recursive type μX. opt(struct{…X…}) — repair by wrapping the back-edge in
-                // StateOptional and continue. Declared non-Optional self-recursion
-                // (`type t = {self:t}`) never sets IsOptionalSourced anywhere, so it still errors.
-                bool isOptSourced = optSeen[0]
-                    || (node.GetNonReference().State is StateStruct cs
-                        && StructSubgraphIsOptSourced(cs));
-                if (isOptSourced && TryRepairOptSourcedCycle(node))
-                    return;
+            // If any struct on the cycle path is opt-sourced, OR if the cycle's struct itself
+            // is opt-sourced somewhere in its full reachable subgraph, this is a contractive
+            // iso-recursive type μX. opt(struct{…X…}) — repair by wrapping the back-edge in
+            // StateOptional and continue. Declared non-Optional self-recursion
+            // (`type t = {self:t}`) never sets IsOptionalSourced anywhere, so it still errors.
+            bool isOptSourced = optSourcedSeen
+                || (node.GetNonReference().State is StateStruct cs
+                    && StructSubgraphIsOptSourced(cs));
+            if (isOptSourced && TryRepairOptSourcedCycle(node, namedTypeRegistry))
+                return;
 
-                // CS-internal slot promotion. Cycle root is a CS whose Descendant carries a
-                // struct whose field paths close back contractively (every closing path crosses
-                // Optional/Array). The struct value is unchanged; only its role within the same
-                // CS is rebound: Descendant → S. After promotion, ThrowIfRecursiveReq
-                // short-circuits at this CS (StructBound != null branch) on subsequent walks.
-                // Per Cardelli–Mitchell '89 / Pierce TAPL §20: for recursive shapes the lower
-                // bound IS the F-bound (α can only be instantiated by a supertype of the shape
-                // itself).
-                if (TryPromoteCSDescendantToStructBound(node))
-                    return;
+            // CS-internal slot promotion. Cycle root is a CS whose Descendant carries a
+            // struct whose field paths close back contractively (every closing path crosses
+            // Optional/Array). The struct value is unchanged; only its role within the same
+            // CS is rebound: Descendant → S. After promotion, ThrowIfRecursiveReq
+            // short-circuits at this CS (StructBound != null branch) on subsequent walks.
+            // Per Cardelli–Mitchell '89 / Pierce TAPL §20: for recursive shapes the lower
+            // bound IS the F-bound (α can only be instantiated by a supertype of the shape
+            // itself).
+            if (TryPromoteCSDescendantToStructBound(node))
+                return;
 
-                var route = new HashSet<TicNode>();
-                FindRecursionTypeRoute(node, route);
-                throw TicErrors.RecursiveTypeDefinition(route.ToArray());
-            }
-            var prev = node.VisitMark;
-            node.VisitMark = mark;
-            ThrowIfRecursiveReq(node.State, mark, fromStruct, optSeen);
-            node.VisitMark = prev;
+            var route = new HashSet<TicNode>();
+            FindRecursionTypeRoute(node, route);
+            throw TicErrors.RecursiveTypeDefinition(route.ToArray());
         }
+        var prev = node.VisitMark;
+        node.VisitMark = mark;
+        ThrowIfRecursiveReq(node.State, mark, fromStruct, namedTypeRegistry, ref optSourcedSeen);
+        node.VisitMark = prev;
+    }
 
-        // When a struct→struct cycle is detected, attempt to restore the Optional break by
-        // wrapping the closing field's value in StateOptional. Triggered only when the cycle's
-        // struct subgraph is opt-sourced (originated through a `?.` access). Returns true if the
-        // cycle was repaired and the recursion check should proceed.
-        bool TryRepairOptSourcedCycle(TicNode cycleNode) {
-            if (cycleNode.GetNonReference().State is not StateStruct cycleStruct)
-                return false;
-            // If TypeName is already set, a previous repair pass has stamped the
-            // struct as a named recursive type and wrapped its fields. The cycle
-            // is already broken via Optional and FunnyType conversion will use
-            // NamedStructOf — nothing more to do.
-            if (cycleStruct.TypeName != null) return true;
-            // Wrap EVERY closing edge — a struct with multiple self-referencing
-            // fields (e.g. tree{left:tree, right:tree}) needs an Optional break
-            // on each. Repairing only one edge leaves the others as struct→struct
-            // cycles, tripping the "Recursive type definition" check on the
-            // next pass.
-            bool anyRepaired = false;
-            foreach (var f in cycleStruct.Fields) {
-                var fieldNode = f.Value.GetNonReference();
-                if (fieldNode != cycleNode && !ReachesStructWithoutOptionalBreak(fieldNode, cycleNode))
-                    continue;
-                // Already an Optional break? Count it as repaired — Optional is
-                // the contractive form for the closing edge.
-                if (fieldNode.State is StateOptional) {
+    // When a struct→struct cycle is detected, attempt to restore the Optional break by
+    // wrapping the closing field's value in StateOptional. Triggered only when the cycle's
+    // struct subgraph is opt-sourced (originated through a `?.` access). Returns true if the
+    // cycle was repaired and the recursion check should proceed.
+    private static bool TryRepairOptSourcedCycle(TicNode cycleNode, Types.INamedTypeFieldRegistry namedTypeRegistry) {
+        if (cycleNode.GetNonReference().State is not StateStruct cycleStruct)
+            return false;
+        // If TypeName is already set, a previous repair pass has stamped the
+        // struct as a named recursive type and wrapped its fields. The cycle
+        // is already broken via Optional and FunnyType conversion will use
+        // NamedStructOf — nothing more to do.
+        if (cycleStruct.TypeName != null) return true;
+        // Wrap EVERY closing edge — a struct with multiple self-referencing
+        // fields (e.g. tree{left:tree, right:tree}) needs an Optional break
+        // on each. Repairing only one edge leaves the others as struct→struct
+        // cycles, tripping the "Recursive type definition" check on the
+        // next pass.
+        bool anyRepaired = false;
+        foreach (var f in cycleStruct.Fields) {
+            var fieldNode = f.Value.GetNonReference();
+            if (fieldNode != cycleNode && !ReachesStructWithoutOptionalBreak(fieldNode, cycleNode))
+                continue;
+            // Already an Optional break? Count it as repaired — Optional is
+            // the contractive form for the closing edge.
+            if (fieldNode.State is StateOptional) {
+                anyRepaired = true;
+                continue;
+            }
+            // Non-mutable + named struct of the SAME identity as the cycle
+            // root means a previous repair pass already broke this edge via
+            // a named recursive type (`StateStruct.IsMutable` returns false
+            // when TypeName is set). That's a valid contractive break.
+            // Any other non-mutable state would be a non-Optional concrete
+            // struct closing a cycle — that's the original error case and
+            // we must NOT silently accept it.
+            if (!fieldNode.IsMutable) {
+                if (fieldNode.State is StateStruct s && s.TypeName != null
+                    && (cycleStruct.TypeName == null
+                        || s.TypeName.Equals(cycleStruct.TypeName, StringComparison.OrdinalIgnoreCase))) {
                     anyRepaired = true;
                     continue;
                 }
-                // Non-mutable + named struct of the SAME identity as the cycle
-                // root means a previous repair pass already broke this edge via
-                // a named recursive type (`StateStruct.IsMutable` returns false
-                // when TypeName is set). That's a valid contractive break.
-                // Any other non-mutable state would be a non-Optional concrete
-                // struct closing a cycle — that's the original error case and
-                // we must NOT silently accept it.
-                if (!fieldNode.IsMutable) {
-                    if (fieldNode.State is StateStruct s && s.TypeName != null
-                        && (cycleStruct.TypeName == null
-                            || s.TypeName.Equals(cycleStruct.TypeName, StringComparison.OrdinalIgnoreCase))) {
-                        anyRepaired = true;
-                        continue;
-                    }
-                    return false;
-                }
-                var inner = TicNode.CreateTypeVariableNode(
-                    "e" + fieldNode.Name + "'", fieldNode.State);
-                inner.IsOptionalElement = true;
-                fieldNode.State = new StateOptional(inner);
-                anyRepaired = true;
+                return false;
             }
-            if (!anyRepaired) return false;
-            // After all closing edges are wrapped, stamp the cycle struct with
-            // a matching declared named type. Set TypeName LAST: setting it
-            // earlier flips IsMutable=false and blocks the wrap assignments
-            // above (struct→opt assignment fails the already-solved assertion).
-            if (cycleStruct.TypeName == null && namedTypeRegistry != null) {
-                var match = FindUniqueMatchingNamedType(cycleStruct, namedTypeRegistry);
-                if (match != null) cycleStruct.TypeName = match;
-            }
-            return true;
+            var inner = TicNode.CreateTypeVariableNode(
+                "e" + fieldNode.Name + "'", fieldNode.State);
+            inner.IsOptionalElement = true;
+            fieldNode.State = new StateOptional(inner);
+            anyRepaired = true;
         }
-
-        // CS-internal slot promotion. Repairs a cycle whose root is a CS-typed node by rebinding
-        // its descendant struct as the F-bound. Preconditions:
-        //   1. node.State is ConstraintsState with Descendant non-null
-        //   2. cs.Descendant is StateStruct S
-        //   3. S has a field path back to node OR to an instance of S
-        //   4. EVERY closing path crosses an Optional/Array constructor (contractivity —
-        //      non-contractive cycles are ill-formed and must continue to error).
-        // The promotion is information-preserving (struct value unchanged) and a strict
-        // refinement in the F-bound calculus.
-        bool TryPromoteCSDescendantToStructBound(TicNode node) {
-            var nr = node.GetNonReference();
-            if (nr.State is not ConstraintsState cs) return false;
-            if (cs.HasStructBound) return false;          // already lifted
-            if (!cs.HasDescendant) return false;
-            if (cs.Descendant is not StateStruct s) return false;
-            // Closing-path contractivity check.
-            if (!StructDescendantClosesContractively(s, nr)) return false;
-            // Promote: struct moves from Descendant role to StructBound role
-            // on the same CS. No state-class change; only slot rebind.
-            cs.StructBound = s;
-            cs.ClearDescendant();
-            TraceLog.WriteLine($"  PromoteCSDescendantToStructBound: {nr.Name} cs.Descendant→cs.StructBound");
-            return true;
+        if (!anyRepaired) return false;
+        // After all closing edges are wrapped, stamp the cycle struct with
+        // a matching declared named type. Set TypeName LAST: setting it
+        // earlier flips IsMutable=false and blocks the wrap assignments
+        // above (struct→opt assignment fails the already-solved assertion).
+        if (cycleStruct.TypeName == null && namedTypeRegistry != null) {
+            var match = FindUniqueMatchingNamedType(cycleStruct, namedTypeRegistry);
+            if (match != null) cycleStruct.TypeName = match;
         }
+        return true;
+    }
 
-        static bool FindRecursionTypeRoute(TicNode node, ISet<TicNode> nodes) {
-            if (!nodes.Add(node))
-                return true;
+    // CS-internal slot promotion. Repairs a cycle whose root is a CS-typed node by rebinding
+    // its descendant struct as the F-bound. Preconditions:
+    //   1. node.State is ConstraintsState with Descendant non-null
+    //   2. cs.Descendant is StateStruct S
+    //   3. S has a field path back to node OR to an instance of S
+    //   4. EVERY closing path crosses an Optional/Array constructor (contractivity —
+    //      non-contractive cycles are ill-formed and must continue to error).
+    // The promotion is information-preserving (struct value unchanged) and a strict
+    // refinement in the F-bound calculus.
+    private static bool TryPromoteCSDescendantToStructBound(TicNode node) {
+        var nr = node.GetNonReference();
+        if (nr.State is not ConstraintsState cs) return false;
+        if (cs.HasStructBound) return false;          // already lifted
+        if (!cs.HasDescendant) return false;
+        if (cs.Descendant is not StateStruct s) return false;
+        // Closing-path contractivity check.
+        if (!StructDescendantClosesContractively(s, nr)) return false;
+        // Promote: struct moves from Descendant role to StructBound role
+        // on the same CS. No state-class change; only slot rebind.
+        cs.StructBound = s;
+        cs.ClearDescendant();
+        TraceLog.WriteLine($"  PromoteCSDescendantToStructBound: {nr.Name} cs.Descendant→cs.StructBound");
+        return true;
+    }
 
-            if (node.State is StateRefTo r)
-                return FindRecursionTypeRoute(r.Node, nodes);
+    private static bool FindRecursionTypeRoute(TicNode node, ISet<TicNode> nodes) {
+        if (!nodes.Add(node))
+            return true;
 
-            if (node.State is ICompositeState composite)
+        if (node.State is StateRefTo r)
+            return FindRecursionTypeRoute(r.Node, nodes);
+
+        if (node.State is ICompositeState composite)
+        {
+            for (int mi = 0; mi < composite.MemberCount; mi++)
             {
-                for (int mi = 0; mi < composite.MemberCount; mi++)
-                {
-                    if (FindRecursionTypeRoute(composite.GetMember(mi), nodes))
-                        return true;
-                }
+                if (FindRecursionTypeRoute(composite.GetMember(mi), nodes))
+                    return true;
             }
-
-            nodes.Remove(node);
-            return false;
         }
+
+        nodes.Remove(node);
+        return false;
     }
 
 
@@ -2017,17 +2082,24 @@ public static class SolvingFunctions {
         bool ignorePreferred) {
 
         const int outputTypeMark = -77;
+        // Shared leaf buffer for steps 1 and 2 (cleared between uses).
+        var leafs = new List<TicNode>();
+
         // Step 1: Mark output types (return type leaves)
         foreach (var outputNode in outputNodes)
-            foreach (var outputType in outputNode.GetAllOutputTypes())
+        {
+            leafs.Clear();
+            outputNode.CollectOutputTypes(leafs);
+            foreach (var outputType in leafs)
                 outputType.VisitMark = outputTypeMark;
+        }
 
         // Step 2: Mark and resolve input (signature) types
         foreach (var inputNode in inputNodes)
         {
             if (inputNode.State is StateFun stateFun)
             {
-                var leafs = new List<TicNode>();
+                leafs.Clear();
                 stateFun.CollectNotSolvedContravariantLeafs(leafs);
                 foreach (var leafNode in leafs)
                 {
@@ -2101,15 +2173,6 @@ public static class SolvingFunctions {
     }
 
 
-    // Perf note: new[] { node } allocates a 1-element array, but yield return
-    // creates a heavier state machine. Benchmarked: yield is ~2-4% slower here.
-    public static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
-        node.State switch {
-            ICompositeState composite => composite.AllLeafTypes,
-            StateRefTo => new[] { node.GetNonReference() },
-            _ => new[] { node }
-        };
-
     private static void CollectLeafTypeVariables(TicNode node, List<TicNode> typeVariables, int visitMark) {
         var state = node.State;
         if (state is ICompositeState composite) {
@@ -2128,15 +2191,75 @@ public static class SolvingFunctions {
             typeVariables.Add(node);
     }
 
-    private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
-        node.State switch {
-            StateFun fun => fun.RetNode.GetAllOutputTypes(),
-            StateArray array => array.AllLeafTypes,
-            StateStruct @struct => @struct.AllLeafTypes,
-            StateOptional opt => opt.AllLeafTypes,
-            StateRefTo => node.GetNonReference().GetAllOutputTypes(),
-            _ => new[] { node }
-        };
+    /// <summary>
+    /// Collector counterpart of the former GetAllOutputTypes iterator: walks the
+    /// output node down to its leaf type nodes into a caller-provided list
+    /// (zero per-node allocation). Leaf-walk semantics (formerly the states'
+    /// AllLeafTypes iterators, now living only here):
+    /// - struct members are dereferenced (GetNonReference) before the leaf check;
+    /// - array/optional/fun members are checked raw (a RefTo member is a leaf);
+    /// - struct/array/optional guard cycles via VisitMark; fun members do not
+    ///   (a cycle cannot close through fun members without an intervening
+    ///   struct/array/optional).
+    /// </summary>
+    private static void CollectOutputTypes(this TicNode node, List<TicNode> result) {
+        switch (node.State)
+        {
+            case StateFun fun:
+                fun.RetNode.CollectOutputTypes(result);
+                break;
+            case StateStruct or StateArray or StateOptional:
+                CollectCompositeLeafTypes((ICompositeState)node.State, result);
+                break;
+            case StateRefTo:
+                node.GetNonReference().CollectOutputTypes(result);
+                break;
+            default:
+                result.Add(node);
+                break;
+        }
+    }
+
+    // VisitMark guard value of the leaf walk (historically shared with the states'
+    // now-removed AllLeafTypes LeafMark).
+    private const int OutputLeafMark = -56000;
+
+    private static void CollectCompositeLeafTypes(ICompositeState composite, List<TicNode> result) {
+        switch (composite)
+        {
+            case StateStruct s:
+                foreach (var field in s.Fields)
+                    CollectLeafOrDescend(field.Value.GetNonReference(), guarded: true, result);
+                break;
+            case StateFun f:
+                foreach (var arg in f.ArgNodes)
+                    CollectLeafOrDescend(arg, guarded: false, result);
+                CollectLeafOrDescend(f.RetNode, guarded: false, result);
+                break;
+            default: // StateArray / StateOptional — single element member
+                CollectLeafOrDescend(composite.GetMember(0), guarded: true, result);
+                break;
+        }
+    }
+
+    private static void CollectLeafOrDescend(TicNode member, bool guarded, List<TicNode> result) {
+        if (member.State is ICompositeState inner)
+        {
+            if (!guarded)
+            {
+                CollectCompositeLeafTypes(inner, result);
+                return;
+            }
+            if (member.VisitMark == OutputLeafMark)
+                return; // cycle — recursive named struct
+            var prev = member.VisitMark;
+            member.VisitMark = OutputLeafMark;
+            CollectCompositeLeafTypes(inner, result);
+            member.VisitMark = prev;
+        }
+        else
+            result.Add(member);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void PrintTrace(IEnumerable<TicNode> nodes) {

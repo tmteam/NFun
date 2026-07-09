@@ -1,134 +1,112 @@
 namespace NFun.UnitTests.TicTests.StateExtensions;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using TestTools;
 using Tic;
 using NFun.Tic.Algebra;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
+using static Tic.SolvingStates.StatePrimitive;
 
 public record TypeMap(StatePrimitive Left, StatePrimitive Right, StatePrimitive Lca);
 
 public static class LcaTestTools {
+    /// <summary>
+    /// Full 23-point primitive lattice: Any, Char, Bool, Ip, None and the numeric family
+    /// Real → F32 → I96 → { I64..I8 ; U64..U4 } — including the abstract mid-points
+    /// (I96/I48/I24/I12, U48/U24/U12/U4) that have no runtime representation.
+    /// </summary>
+    public static readonly StatePrimitive[] PrimitiveTypes = {
+        Any, Char, Bool, Ip,
+        Real, F32, I96, I64, I48, I32, I24, I16, I12, I8,
+        U64, U48, U32, U24, U16, U12, U8, U4,
+        None,
+    };
+
+    /// <summary>
+    /// Exhaustive expected-LCA table over the 22 lattice points EXCLUDING None
+    /// (22×22 = 484 ordered pairs). Expected values come from an independent
+    /// partial-order oracle (see <see cref="Leq"/>) by brute-force least-upper-bound
+    /// search — NOT from the production LcaMap closure formulas.
+    ///
+    /// None is excluded deliberately: at state level None joins through the Optional
+    /// axis (LCA(None, T) = opt(T) for T ∉ {Any, None}), so its pairs are not
+    /// expressible as a primitive TypeMap. They are covered exhaustively by the None
+    /// loops in LcaOptionalTest / GcdOptionalTest / NoneAlgebraTest.
+    /// </summary>
     public static readonly IList<TypeMap> PrimitiveTypesLca;
 
-    public static readonly StatePrimitive[] PrimitiveTypes;
-
     static LcaTestTools() {
-        var _primitiveTypeNames = new[] {
-            PrimitiveTypeName.Any, PrimitiveTypeName.Char, PrimitiveTypeName.Bool, PrimitiveTypeName.Ip,
-            PrimitiveTypeName.Real, PrimitiveTypeName.I96, PrimitiveTypeName.I64, PrimitiveTypeName.I48,
-            PrimitiveTypeName.I32, PrimitiveTypeName.I24, PrimitiveTypeName.I16, PrimitiveTypeName.U64,
-            PrimitiveTypeName.U32, PrimitiveTypeName.U16, PrimitiveTypeName.U8,
-        };
+        var tablePoints = PrimitiveTypes.Where(p => !p.Equals(None)).ToArray();
 
-        var primitiveTypesLca = new List<Tuple<PrimitiveTypeName, PrimitiveTypeName, PrimitiveTypeName>>();
-
-        // a:(a!=x) LCA x = any
-        singleAncestor(PrimitiveTypeName.Any);
-        singleAncestor(PrimitiveTypeName.Ip);
-        singleAncestor(PrimitiveTypeName.Char);
-        singleAncestor(PrimitiveTypeName.Bool);
-
-        var numbers = new[] {
-            PrimitiveTypeName.Real, PrimitiveTypeName.I96, PrimitiveTypeName.I64, PrimitiveTypeName.I48,
-            PrimitiveTypeName.I32, PrimitiveTypeName.I24, PrimitiveTypeName.I16, PrimitiveTypeName.U64,
-            PrimitiveTypeName.U32, PrimitiveTypeName.U16, PrimitiveTypeName.U12, PrimitiveTypeName.U8,
-        };
-
-        foreach (var type in numbers)
-            registrate(type, PrimitiveTypeName.Any, PrimitiveTypeName.Any);
-
-        // number lca u8 = number
-        foreach (var type in numbers.Where(it => it != PrimitiveTypeName.U8))
-            registrate(type, PrimitiveTypeName.U8, type);
-
-        foreach (var type in numbers.Where(it => it != PrimitiveTypeName.Real))
-            registrate(type, PrimitiveTypeName.Real, PrimitiveTypeName.Real);
-
-        var i96s = numbers.Where(it => it != PrimitiveTypeName.Real);
-        foreach (var type in i96s)
-            registrate(type, PrimitiveTypeName.I96, PrimitiveTypeName.I96);
-
-        var i64s = i96s.Where(it => it != PrimitiveTypeName.I96 && it != PrimitiveTypeName.U64);
-        foreach (var type in i64s)
-            registrate(type, PrimitiveTypeName.I64, PrimitiveTypeName.I64);
-
-        var i48s = i64s.Where(it => it != PrimitiveTypeName.I64 && it != PrimitiveTypeName.U64).ToList();
-        foreach (var type in i48s)
-            registrate(type, PrimitiveTypeName.I48, PrimitiveTypeName.I48);
-
-        var i32s = i48s.Where(it => it != PrimitiveTypeName.U32 && it != PrimitiveTypeName.I48);
-        foreach (var type in i32s)
-            registrate(type, PrimitiveTypeName.I32, PrimitiveTypeName.I32);
-
-        var i24s = i32s.Where(it => it != PrimitiveTypeName.I32 && it != PrimitiveTypeName.U32);
-        foreach (var type in i24s)
-            registrate(type, PrimitiveTypeName.I24, PrimitiveTypeName.I24);
-
-
-        registrate(PrimitiveTypeName.I64, PrimitiveTypeName.U64, PrimitiveTypeName.I96);
-        registrate(PrimitiveTypeName.I48, PrimitiveTypeName.U64, PrimitiveTypeName.I96);
-        registrate(PrimitiveTypeName.I32, PrimitiveTypeName.U64, PrimitiveTypeName.I96);
-        registrate(PrimitiveTypeName.I24, PrimitiveTypeName.U64, PrimitiveTypeName.I96);
-        registrate(PrimitiveTypeName.I16, PrimitiveTypeName.U64, PrimitiveTypeName.I96);
-
-
-        registrate(PrimitiveTypeName.I32, PrimitiveTypeName.U32, PrimitiveTypeName.I48);
-        registrate(PrimitiveTypeName.I24, PrimitiveTypeName.U32, PrimitiveTypeName.I48);
-        registrate(PrimitiveTypeName.I16, PrimitiveTypeName.U32, PrimitiveTypeName.I48);
-
-        registrate(PrimitiveTypeName.I16, PrimitiveTypeName.U16, PrimitiveTypeName.I24);
-        registrate(PrimitiveTypeName.I16, PrimitiveTypeName.U8, PrimitiveTypeName.I16);
-
-        registrate(PrimitiveTypeName.U64, PrimitiveTypeName.U32, PrimitiveTypeName.U64);
-        registrate(PrimitiveTypeName.U64, PrimitiveTypeName.U16, PrimitiveTypeName.U64);
-
-        registrate(PrimitiveTypeName.U32, PrimitiveTypeName.U16, PrimitiveTypeName.U32);
-        registrate(PrimitiveTypeName.U32, PrimitiveTypeName.U8, PrimitiveTypeName.U32);
-        registrate(PrimitiveTypeName.U16, PrimitiveTypeName.U8, PrimitiveTypeName.U16);
-
-        // a LCA b = b LCA a
-        foreach (var tripple in primitiveTypesLca.ToArray())
+        var maps = new List<TypeMap>(tablePoints.Length * tablePoints.Length);
+        foreach (var a in tablePoints)
+        foreach (var b in tablePoints)
         {
-            primitiveTypesLca.Add(
-                t(tripple.Item2, tripple.Item1,
-                    tripple.Item3));
+            var upperBounds = tablePoints.Where(c => Leq(a, c) && Leq(b, c)).ToList();
+            Assert.IsNotEmpty(upperBounds,
+                $"Lattice defect: no common upper bound for ({a}, {b})");
+            var minimal = upperBounds
+                .Where(c => upperBounds.All(other => !Leq(other, c) || other.Equals(c)))
+                .ToList();
+            Assert.AreEqual(1, minimal.Count,
+                $"Lattice defect: LUB({a}, {b}) is not unique. " +
+                $"Minimal upper bounds: {string.Join(", ", minimal)}");
+            maps.Add(new TypeMap(a, b, minimal[0]));
         }
 
-        // a LCA a = a
-        foreach (var type in _primitiveTypeNames)
-            primitiveTypesLca.Add(
-                t(type, type, type));
-
-
-        var _primitiveTypesLcaNames = primitiveTypesLca.Distinct().ToList();
-        PrimitiveTypesLca = _primitiveTypesLcaNames.Select(it =>
-                new TypeMap(new StatePrimitive(it.Item1), new StatePrimitive(it.Item2), new StatePrimitive(it.Item3)))
-            .ToList();
-        PrimitiveTypes = _primitiveTypeNames.Select(it => new StatePrimitive(it)).ToArray();
-        // Validate ourselves
-        foreach (var a in _primitiveTypeNames)
-        foreach (var b in _primitiveTypeNames)
-        {
-            var aToB = _primitiveTypesLcaNames.Where(it => it.Item1 == a && it.Item2 == b).ToList();
-            Assert.AreEqual(1, aToB.Count,
-                $"Wrong lca entities count for {a}:{b} ({aToB.Count} entities found: {aToB.Select(a => a.ToString()).ToStringSmart()})");
-        }
-
-        void singleAncestor(PrimitiveTypeName ancestor) {
-            foreach (var type in _primitiveTypeNames.Where(it => it != ancestor))
-                registrate(type, ancestor, PrimitiveTypeName.Any);
-        }
-
-        void registrate(PrimitiveTypeName a, PrimitiveTypeName b, PrimitiveTypeName lca) =>
-            primitiveTypesLca.Add(t(a, b, lca));
-
-        Tuple<PrimitiveTypeName, PrimitiveTypeName, PrimitiveTypeName> t(PrimitiveTypeName a, PrimitiveTypeName b,
-            PrimitiveTypeName lca) => new(a, b, lca);
+        PrimitiveTypesLca = maps;
     }
+
+    /// <summary>
+    /// Independent subtyping oracle `a ≤ b` — derived from the first principles of the
+    /// 23-point lattice (Specs/Tic/TicTypeSystem.md), NOT from the LcaMap closure formulas:
+    ///   * Any is the top; None ≤ Any only; Char/Bool/Ip relate only to self and Any.
+    ///   * Real is the numeric top; F32 sits below Real and above every integer;
+    ///     I96 is the integer top.
+    ///   * I_n ≤ I_k iff n ≤ k;  U_m ≤ U_j iff m ≤ j.
+    ///   * U_m ≤ I_n iff n ≥ m + 1 (a sign bit is required); I_n ≤ U_m — never.
+    ///   * U4 has nominal width 7 (the common subset of I8 and U8).
+    /// </summary>
+    public static bool Leq(StatePrimitive a, StatePrimitive b) {
+        if (a.Equals(b)) return true;
+        if (b.Equals(Any)) return true;
+        if (a.Equals(Any)) return false;
+        if (a.Equals(None) || b.Equals(None)) return false;
+        if (!a.IsNumeric || !b.IsNumeric) return false; // Char/Bool/Ip are incomparable
+        if (b.Equals(Real)) return true;
+        if (a.Equals(Real)) return false;
+        if (b.Equals(F32)) return true;  // every integer ≤ F32
+        if (a.Equals(F32)) return false;
+        if (b.Equals(I96)) return true;  // every integer ≤ I96
+        if (a.Equals(I96)) return false;
+
+        var (aSigned, aWidth) = SignAndWidth(a);
+        var (bSigned, bWidth) = SignAndWidth(b);
+        if (aSigned == bSigned) return aWidth <= bWidth;
+        if (!aSigned && bSigned) return bWidth >= aWidth + 1;
+        return false; // signed never fits into unsigned
+    }
+
+    private static (bool signed, int width) SignAndWidth(StatePrimitive p) =>
+        p.Name switch {
+            PrimitiveTypeName.I64 => (true, 64),
+            PrimitiveTypeName.I48 => (true, 48),
+            PrimitiveTypeName.I32 => (true, 32),
+            PrimitiveTypeName.I24 => (true, 24),
+            PrimitiveTypeName.I16 => (true, 16),
+            PrimitiveTypeName.I12 => (true, 12),
+            PrimitiveTypeName.I8 => (true, 8),
+            PrimitiveTypeName.U64 => (false, 64),
+            PrimitiveTypeName.U48 => (false, 48),
+            PrimitiveTypeName.U32 => (false, 32),
+            PrimitiveTypeName.U24 => (false, 24),
+            PrimitiveTypeName.U16 => (false, 16),
+            PrimitiveTypeName.U12 => (false, 12),
+            PrimitiveTypeName.U8 => (false, 8),
+            PrimitiveTypeName.U4 => (false, 7),
+            _ => throw new System.InvalidOperationException($"{p} is not a fixed-width integer")
+        };
 
     public static void AssertLca(ITicNodeState a, ITicNodeState b, ITicNodeState expected) {
 

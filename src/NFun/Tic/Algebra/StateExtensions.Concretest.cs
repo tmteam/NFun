@@ -5,76 +5,66 @@ using SolvingStates;
 
 public static partial class StateExtensions {
     /// <summary>
-    /// Returns most concrete type representable by current state.
-    /// Preferred is metadata — Concretest preserves it when the result
-    /// is a ConstraintsState (keeps Preferred for Destruction snapshots).
-    /// For concrete types (Primitive, Composite), Preferred is not applicable.
+    /// ↓A — PURE lattice projection onto the lower bound (Algebra_Concretest.md).
+    /// Recursive over the descendant (D may be any state); Rule B keeps the
+    /// Optional lift of an unsolved bound in flag form. Preferred is TRANSPORTED
+    /// where the result is a ConstraintsState (flag form), but never CHOSEN —
+    /// resolution choices live in the Solve* family. The Destruction-snapshot
+    /// variant that preserves Preferred across materialization is
+    /// <see cref="ConcretestSnapshot"/>.
     /// </summary>
     public static ITicNodeState Concretest(this ITicNodeState a) =>
         a switch {
             StatePrimitive => a,
             ConstraintsState cs => ConcretestConstraints(cs),
             StateRefTo aref => aref.Element.Concretest(),
-            StateArray arr => StateArray.Of(ConcretestArrayElement(arr.Element)),
+            // Pure covariant rule: ↓(A[]) = (↓A)[] — no Preferred-carrier special case
+            // (that arm moved to ConcretestSnapshot, debt #19).
+            StateArray arr => StateArray.Of(arr.Element.Concretest()),
             StateOptional opt => ConcretestOptional(opt),
             StateFun f => ConcretestFun(f),
             StateStruct s => s.ConcretestStruct(),
             _ => a
         };
 
-    /// <summary>
-    /// Concretest for array element: if element is CS with Preferred that differs from Desc,
-    /// preserve the CS (with Preferred) instead of collapsing to bare Primitive.
-    /// This ensures array Desc snapshots carry Preferred through Destruction.
-    /// </summary>
-    private static ITicNodeState ConcretestArrayElement(ITicNodeState element) {
-        if (element is ConstraintsState cs
-            && cs.Preferred != null
-            && cs.HasDescendant
-            && cs.Descendant is StatePrimitive desc
-            && !desc.Equals(cs.Preferred)
-            && desc.CanBePessimisticConvertedTo(cs.Preferred)) {
-            var result = ConstraintsState.Of(desc, isComparable: cs.IsComparable, isOptional: cs.IsOptional);
-            result.Preferred = cs.Preferred;
-            return result;
-        }
-        return element.Concretest();
-    }
-
     private static ITicNodeState ConcretestConstraints(ConstraintsState cs) {
         var inner = cs.HasDescendant
             ? cs.Descendant.Concretest()
             : ConstraintsState.Of(isComparable: cs.IsComparable);
         if (cs.IsOptional) {
-            // For Optional: use Preferred when narrower Desc available.
-            if (cs.Preferred != null && inner is StatePrimitive ip
-                && ip.CanBePessimisticConvertedTo(cs.Preferred))
-                inner = cs.Preferred;
             if (inner == StatePrimitive.Any)
                 return StatePrimitive.Any;
-            // Rule B (canonical Optional form): opt(τ) requires solved τ. The Optional
-            // lift of an unsolved bound stays in flag form [D..A]? — materialising
-            // opt(fresh-unsolved-copy) here creates a dead island no edge can refine.
-            // Ported from lang-mutable-collections (specs_tic CanonicalForms on the
-            // branch; closes the dead-invisible-snapshot family incl. Bug#6).
-            if (inner is ConstraintsState innerCs) {
-                var lifted = ConstraintsState.Of(
-                    innerCs.HasDescendant ? innerCs.Descendant : null,
-                    innerCs.HasAncestor ? innerCs.Ancestor : null,
-                    innerCs.IsComparable || cs.IsComparable,
-                    isOptional: true);
-                lifted.Preferred = cs.Preferred ?? innerCs.Preferred;
-                return lifted;
-            }
-            if (inner is ITypeState { IsSolved: false } unsolvedType) {
-                var lifted = ConstraintsState.Of(
-                    unsolvedType, null, cs.IsComparable, isOptional: true);
-                lifted.Preferred = cs.Preferred;
-                return lifted;
-            }
-            return StateOptional.Of(inner);
+            return LiftOptional(cs, inner);
         }
         return inner;
+    }
+
+    /// <summary>
+    /// Rule B (canonical Optional form; debt #30): opt(τ) requires solved τ — the
+    /// Optional lift of an UNSOLVED inner bound stays in flag form [D..A]?, because
+    /// materialising opt(fresh-unsolved-copy) creates a dead island no edge can refine;
+    /// a solved inner is wrapped in Opt(inner). Preferred is TRANSPORTED (kept on the
+    /// CS result), never chosen. Shared by ↓ (<see cref="Concretest"/>) and
+    /// ↓ₛ (<see cref="ConcretestSnapshot"/>) — the delegation law ↓ₛ ≡ ↓ on hint-free
+    /// states holds structurally for this arm. Caller handles inner = Any (Opt(Any) = Any).
+    /// </summary>
+    private static ITicNodeState LiftOptional(ConstraintsState cs, ITicNodeState inner) {
+        if (inner is ConstraintsState innerCs) {
+            var lifted = ConstraintsState.Of(
+                innerCs.HasDescendant ? innerCs.Descendant : null,
+                innerCs.HasAncestor ? innerCs.Ancestor : null,
+                innerCs.IsComparable || cs.IsComparable,
+                isOptional: true);
+            lifted.Preferred = cs.Preferred ?? innerCs.Preferred;
+            return lifted;
+        }
+        if (inner is ITypeState { IsSolved: false } unsolvedType) {
+            var lifted = ConstraintsState.Of(
+                unsolvedType, null, cs.IsComparable, isOptional: true);
+            lifted.Preferred = cs.Preferred;
+            return lifted;
+        }
+        return StateOptional.Of(inner);
     }
 
     private static ITicNodeState ConcretestOptional(StateOptional opt) {
@@ -91,14 +81,29 @@ public static partial class StateExtensions {
     }
 
     private static StateStruct ConcretestStruct(this StateStruct s) {
-        var nodes = new Dictionary<string, TicNode>(s.FieldsCount);
-        bool changed = false;
+        // Common case: no field needs path compression — return the original
+        // struct without allocating. The dictionary is created lazily on the
+        // FIRST changed field (copying the unchanged prefix).
+        Dictionary<string, TicNode> nodes = null;
+        int index = 0;
         foreach (var (key, fieldNode) in s.Fields) {
             var nr = fieldNode.GetNonReference();
-            if (nr != fieldNode) changed = true;
-            nodes[key] = nr;
+            if (nodes == null) {
+                if (nr != fieldNode) {
+                    nodes = new Dictionary<string, TicNode>(s.FieldsCount);
+                    int i = 0;
+                    foreach (var (prefixKey, prefixNode) in s.Fields) {
+                        if (i++ == index) break;
+                        nodes[prefixKey] = prefixNode;
+                    }
+                    nodes[key] = nr;
+                }
+            } else {
+                nodes[key] = nr;
+            }
+            index++;
         }
-        if (!changed) return s;
+        if (nodes == null) return s;
         if (s is StateMutableStruct)
             return new StateMutableStruct(nodes, s.IsFrozen, s.IsOpen);
         // Preserve TypeName/IsOptionalSourced through the path-compression copy so the named

@@ -16,7 +16,6 @@ public interface ICompositeState : ITypeState {
     public int MemberCount { get; }
     public TicNode GetMember(int index);
     public IEnumerable<TicNode> Members { get; }
-    public IEnumerable<TicNode> AllLeafTypes { get; }
 }
 
 public interface ITicNodeState {

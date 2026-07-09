@@ -82,25 +82,6 @@ public class StateOptional : ICompositeState, ITypeState, ITicNodeState {
     public TicNode GetMember(int index) => ElementNode;
     public IEnumerable<TicNode> Members => new[] { ElementNode };
 
-    private const int LeafMark = -56000;
-
-    public IEnumerable<TicNode> AllLeafTypes
-    {
-        get
-        {
-            if (ElementNode.State is ICompositeState composite) {
-                if (ElementNode.VisitMark == LeafMark) yield break;
-                var prev = ElementNode.VisitMark;
-                ElementNode.VisitMark = LeafMark;
-                foreach (var leaf in composite.AllLeafTypes)
-                    yield return leaf;
-                ElementNode.VisitMark = prev;
-            } else {
-                yield return ElementNode;
-            }
-        }
-    }
-
     public string StateDescription => PrintState(0);
 
     public string Description => "opt(" + ElementNode.Name + ")";

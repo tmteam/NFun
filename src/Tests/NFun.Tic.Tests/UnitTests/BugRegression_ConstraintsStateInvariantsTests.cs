@@ -137,6 +137,39 @@ class BugRegression_ConstraintsStateInvariantsTests {
         Assert.IsTrue(c.CanBeConvertedTo(Any));
     }
 
+    // ─── Deep composite satisfaction (debt #16) ───
+    // CanBeConvertedTo delegates to the authoritative predicate: composite descendants are
+    // checked STRUCTURALLY, not by constructor kind alone. The old shallow check accepted
+    // CS[arr(I64)..].CanBeConvertedTo(arr(U8)) because both sides were arrays.
+
+    [Test]
+    public void CanBeConvertedTo_CompositeDesc_ElementViolation_False() {
+        // [arr(I64)..] — arr(U8) does NOT satisfy: I64 ≰ U8 at element level.
+        var c = ConstraintsState.Of(StateArray.Of(I64));
+        Assert.IsFalse(c.CanBeConvertedTo(StateArray.Of(U8)));
+    }
+
+    [Test]
+    public void CanBeConvertedTo_CompositeDesc_ElementWidening_True() {
+        // [arr(U8)..] — arr(I64) satisfies: U8 ≤ I64 at element level.
+        var c = ConstraintsState.Of(StateArray.Of(U8));
+        Assert.IsTrue(c.CanBeConvertedTo(StateArray.Of(I64)));
+    }
+
+    [Test]
+    public void CanBeConvertedTo_OptionalLift_PrimitiveDesc_True() {
+        // [U8..] — opt(I32) satisfies via the implicit lift U8 ≤ opt(U8) ≤ opt(I32).
+        var c = ConstraintsState.Of(U8);
+        Assert.IsTrue(c.CanBeConvertedTo(StateOptional.Of(I32)));
+    }
+
+    [Test]
+    public void CanBeConvertedTo_OptionalLift_ElementViolation_False() {
+        // [I64..] — opt(U8) does not satisfy: the lift needs I64 ≤ U8, which fails.
+        var c = ConstraintsState.Of(I64);
+        Assert.IsFalse(c.CanBeConvertedTo(StateOptional.Of(U8)));
+    }
+
     // ─── IntervalIsNonEmpty: satisfiability check ───
 
     [Test]

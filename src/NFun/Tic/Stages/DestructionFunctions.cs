@@ -82,8 +82,29 @@ public class DestructionFunctions : IStateFunction {
         }
 
         var result = ancestor.MergeOrNull(descendant);
-        if (result == null)
+        if (result == null) {
+            // Лемма 1 (TicAlgorithm_Destruction.md, «Совместимость») claims that after
+            // Pull+Push, ∀ edge D →c A outside the optional axis ↓D ≤ ↑A holds, hence ⊓ on a
+            // constraint edge is non-empty. Debt #25 proposed panicking here in DEBUG.
+            // FINDING (2026-07-10, the assert-attempt): the panic FIRED on 6 green Syntax
+            // tests, independent of any other change — Лемма 1's precondition (полнота
+            // Pull-вкладов, теорема минимального интервала) does NOT hold on these edges.
+            // Observed counterexample classes (all non-optional CS × CS):
+            //   * [F32..Re] vs [U4..I96]I32! — `[0x1,0x3].avg()` (Floats family desc vs
+            //     integer-range desc; the F32 lower bound never reached the descendant);
+            //   * [Re..] vs [U4..I96]I32! — generic user fn `choise(0x1, 2.0, true)` and
+            //     array upcast `[[0x1],[1.0],[0x1]]`;
+            //   * [[..]..] (arr-desc) vs [U4..Re]I32! — fun-LCA scripts (FunLca3,
+            //     ObviousFails), reached through the Destruction Fun-arm.
+            // The silent-continue below is what keeps those scripts alive (both nodes stay
+            // unresolved; Finalize picks workable types), so the null-return stays and the
+            // signal is TraceLog only. Лемма 1's «Следствие (целевое)» is refuted as stated;
+            // the honest fix is at Pull/Push contribution completeness, not an assert here.
+            TraceLog.WriteLine(
+                $"  Destruction ⊓ null on constraint edge: anc {ancestorNode.Name}:{ancestor} "
+                + $"vs desc {descendantNode.Name}:{descendant} (Лемма 1 gap, debt #25)");
             return false;
+        }
 
         if (result is StatePrimitive)
         {

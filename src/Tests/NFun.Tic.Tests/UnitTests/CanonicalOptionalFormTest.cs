@@ -29,22 +29,16 @@ public class CanonicalOptionalFormTest {
     }
 
     [Test]
-    public void Concretest_OptionalCsWithPreferred_KeepsIntervalAndPreferred() {
+    public void Concretest_OptionalCsWithPreferred_MaterializesLowerBoundAndDropsHint() {
+        // Pure ↓ (debt #19 closed): the projection never CHOOSES by Preferred.
+        // ↓[U8..]?I32! = opt(↓U8) = opt(U8); the hint dies with the solved result
+        // (Preferred lives only on CS — same rule as LCA's collapse-quenches-hint).
+        // The resolution-flavored opt(Preferred) arm lives in ConcretestSnapshot —
+        // see ConcretestSnapshotTest.Snapshot_OptionalCsWithFittingPreferred.
         var cs = ConstraintsState.Of(U8, isOptional: true); // [U8..]? I32!
         cs.Preferred = I32;
         var r = cs.Concretest();
-        // Solved-primitive descendant: opt(U8) is canonical, but the Preferred hint
-        // must not be silently dropped on the way — either opt-with-hint is impossible,
-        // so flag form is required to carry it.
-        if (r is ConstraintsState rcs) {
-            Assert.IsTrue(rcs.IsOptional);
-            Assert.AreEqual(I32, rcs.Preferred, "Preferred hint must survive the snapshot");
-        }
-        else {
-            // Preferred baked per the existing IsOptional+Preferred arm: opt(I32) is
-            // acceptable only if the hint decided the value.
-            Assert.AreEqual(StateOptional.Of(I32), r);
-        }
+        Assert.AreEqual(StateOptional.Of(U8), r);
     }
 
     [Test]

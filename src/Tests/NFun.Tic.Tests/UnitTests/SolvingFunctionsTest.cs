@@ -139,6 +139,47 @@ class SolvingFunctionsTest {
         Assert.AreEqual(ConstraintsState.Of(I32, Real), merged.State);
     }
 
+    #region Push StateFun variance (debt #24)
+
+    // Function subtyping: F_d ≤ F_a ⟺ (∀i: A_a_i ≤ A_d_i) ∧ R_d ≤ R_a —
+    // args are CONTRAVARIANT, return is covariant. Same rule as FitsInto(StateFun,StateFun)
+    // and the Destruction Fun-arm (DestructionFunctions.Apply(StateFun,StateFun)).
+    // These exercise the Push operator cell directly on two solved StateFun nodes.
+
+    [Test]
+    public void PushConstraints_SolvedFuns_ContravariantArg_ValidSubtype_Accepted() {
+        // (Real→Real) ≤ (I32→Real): valid — arg contravariance needs I32 ≤ Real
+        var desc = CreateNode("desc", StateFun.Of(Real, Real));
+        var anc = CreateNode("anc", StateFun.Of(I32, Real));
+        Assert.DoesNotThrow(() => SolvingFunctions.PushConstraints(desc, anc));
+    }
+
+    [Test]
+    public void PushConstraints_SolvedFuns_ContravariantArg_InvalidSubtype_Rejected() {
+        // (I32→Real) ≤ (Real→Real): invalid — arg contravariance needs Real ≤ I32
+        var desc = CreateNode("desc", StateFun.Of(I32, Real));
+        var anc = CreateNode("anc", StateFun.Of(Real, Real));
+        Assert.Catch(() => SolvingFunctions.PushConstraints(desc, anc));
+    }
+
+    [Test]
+    public void PushConstraints_SolvedFuns_CovariantReturn_ValidSubtype_Accepted() {
+        // (Real→I32) ≤ (Real→Real): valid — return covariance needs I32 ≤ Real
+        var desc = CreateNode("desc", StateFun.Of(Real, I32));
+        var anc = CreateNode("anc", StateFun.Of(Real, Real));
+        Assert.DoesNotThrow(() => SolvingFunctions.PushConstraints(desc, anc));
+    }
+
+    [Test]
+    public void PushConstraints_SolvedFuns_CovariantReturn_InvalidSubtype_Rejected() {
+        // (Real→Real) ≤ (Real→I32): invalid — return covariance needs Real ≤ I32
+        var desc = CreateNode("desc", StateFun.Of(Real, Real));
+        var anc = CreateNode("anc", StateFun.Of(Real, I32));
+        Assert.Catch(() => SolvingFunctions.PushConstraints(desc, anc));
+    }
+
+    #endregion
+
     private static TicNode CreateNode(string name, ITicNodeState state = null)
         => TicNode.CreateNamedNode(name, state ?? ConstraintsState.Empty);
 

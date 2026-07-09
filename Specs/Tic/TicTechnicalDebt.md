@@ -4,25 +4,6 @@
 
 ---
 
-## 11. Eager Preferred lift in `LcaWithNone` — CLOSED (2026-07-03)
-
-**Closed by** porting the lang-mutable-collections fix set (no identity-share needed):
-- **Rule B (canonical Optional form)** in `ConcretestConstraints`: the Optional lift of an
-  unsolved bound stays in flag form `[D..A]?` (interval + Preferred preserved) instead of
-  materialising `opt(fresh-unsolved-copy)` — a dead island no edge can refine.
-- **Join rule** in the Lca bc2 branch: `opt(P) ∨ CS[D..A](Pref) = CS[P..A]?(Pref)` — replaces
-  the eager `StateOptional.Of(bc2.Preferred)` that baked the hint into a concrete primitive
-  (violating TicPreferred P3) and blocked Push from narrowing `{v:float32?}` down (FU719).
-  The `bc2.IsOptional` arm now also carries Preferred.
-- **Push**: general `None ≤ CS?` rule in `Apply(CS, StatePrimitive)`; covariant
-  `CS{Desc=arr} × arr` element descent (optional axis does not descend — implicit lift).
-- **Destruction**: RefTo short-circuit gated by descendant-covers-join
-  (`JoinCarriesOptionalBeyond`, coinductive ref-identity walk).
-
-Pinned: `Bug6_InlineStructOptionalFloat32Field_WithNone_ShouldBuild` (un-ignored),
-`UnitTests/CanonicalOptionalFormTest`, `Optional/StaleSnapshotTests` (shape assertions accept
-both `StateOptional` and CS-with-IsOptional — same axis, different materialization timing).
-
 ## 9. IsMutable decoupling cascade — two narrow workarounds (#108 Phase 1)
 
 **Контекст**: Phase 1 #108 поменяла `StateStruct.IsMutable => TypeName == null` на `=> !IsSolved`, чтобы привести StateStruct в соответствие с StateArray/Optional/Fun. Cascade оставил два workaround'а:
@@ -115,11 +96,172 @@ both `StateOptional` and CS-with-IsOptional — same axis, different materializa
 
 ---
 
+## Долги алгебраического слоя (ревью 2026-07-10, фаза 1)
+
+Найдены при сверке Algebra*-спек с кодом. Спеки переписаны на целевую систему
+(двухслойная архитектура: чистая алгебра + слой резолюции); ниже — расхождения
+кода с целевыми правилами. Каждая запись продублирована в секции «Отклонения»
+соответствующего Algebra*-файла.
+
+## 19. Резолюционные примеси в Concretest — ОСТАТОК (↓-часть закрыта 2026-07-09)
+
+**Закрыто**: `Opt(Preferred)`-выбор и `ConcretestArrayElement` вынесены из ↓ в
+снапшот-оператор слоя резолюции `ConcretestSnapshot` (↓ₛ,
+`StateExtensions.ConcretestSnapshot.cs`); ↓ — чистая проекция по нормативным
+правилам `Algebra_Concretest.md`. Потребители ↓ₛ: `ConstraintsState.AddDescendant`
+(оба снапшот-пути) и односторонние desc-проекции `LCA(CS,CS)` (результат хранится
+как Descendant join'а — transport-правило Preferred требует выживания вложенных
+hint'ов). Чистый ↓ остался в: bc2-arm `LCA(T, CS)` (`↓T`), fun-args ↑ (дуальность),
+`CanBeConvertedOptimisticTo` (предикат). Контракт и пины — `ConcretestSnapshotTest`
+(делегация ↓ₛ ≡ ↓ на hint-free, идемпотентность, Fit-совместимость, оба плеча);
+закон 4 уточнён: домен — hint-free на любой глубине. Sweep ассоциативности ⊓ не
+сдвинулся (322 до/после; в записи #22 фигурировало 321 — пере-замер на 66016a29
+даёт 322, расхождение зафиксировано ДО этого изменения). QuickBench — замеряется
+отдельно после приземления.
+
+**Остаток**: Sat/форм-меняющий коллапс решённого композита `[D..∅] → D` внутри ⊓
+(корень 2 долга #22 + «Preferred-survival exception» в `MergeOrNull`) — резолюционная
+примесь в ⊓; лечится выносом коллапса из ⊓ в стадийную канонизацию. Под QuickBench.
+
+## 22. Ассоциативность ⊓ ОПРОВЕРГНУТА (2026-07-09)
+
+Property-тест `AlgebraMergeUnifyLawsTest.Merge_Associative_OverCsTriples`
+([Ignore]-pinned). Из трёх корней первоначального анализа корень «ячейка `T ⊓ CS`
+недо-принимает» УСТРАНЁН единым satisfaction-предикатом FitsInto (opt-лифт; sweep-diff против
+c6cd0edc — −64 контрпримера, +0 новых; пин
+`Merge_TCsCell_OptionalLift_MidFoldCollapse_Associates`). Остаются два ВРОЖДЁННЫХ
+корня (321 контрпример на CsShapes³; пере-замер 2026-07-09 на 66016a29 даёт 322 —
+до и после ↓-части #19, т.е. split не сдвинул sweep):
+
+1. **P-ось (drop-order)**: правило «hint-LCA, затем drop-if-unfit» коммутативно,
+   но не ассоциативно. Контрпример: `a=[∅..∅], b=[U8..I64]Re!, c=[U8..Re]I32!` →
+   `(a⊓b)⊓c = [U8..I64]I32!` (Re дропнут рано, I32 выживает), но
+   `a⊓(b⊓c) = [U8..I64]` (hint-LCA(Re,I32)=Re не влез — информация I32 уничтожена).
+   Ядра интервалов совпадают — расходятся только метаданные. Закон формулируется
+   «modulo hints».
+2. **Sat-меняющий коллапс решённого композита** `[D..∅] → D` (D — solved
+   Struct/Optional): mid-fold сужает Sat с `{T ≥ D}` до `{D}`, теряя «комнату вверх»
+   над D. Контрпример: `a=[∅..∅], b=[{a:I32}..], c=[U8..]` → left = null
+   (struct ∉ Sat([U8..]) — корректно для collapsed struct), right = `[Any..]`
+   (LCA(struct, U8) = Any в CS-домене — корректно для constraint). Побочная форма —
+   потеря opt-метаданных: `(a⊓b)⊓c = {F|a:I32}` vs `a⊓(b⊓c) = opt({F|a:I32})` при
+   `c=[∅..∅]?`. Резолюционная примесь в ⊓ — духа #19; предикатом не лечится,
+   лечится выносом коллапса из ⊓ в стадийную канонизацию (вместе с #19).
+
+Верифицированный фрагмент РАСШИРЕН: hint-free non-collapsing —
+примитивные И array-descendant'ы, все cmp/opt-комбинации
+(`Merge_Associative_HintFree_NonCollapsing_OverCsTriples`, активный; заменил старый
+`Merge_Associative_PrimitiveIntervalFragment`).
+
+## 25. Лемма 1 Destruction ОПРОВЕРГНУТА как инвариант: ⊓-null на constraint-ребре достижим на зелёных скриптах (сужен 2026-07-10)
+
+Было: «`DestructionRec` игнорирует bool-возврат; null от ⊓ на constraint-ребре —
+внутренняя ошибка по Лемме 1; Fix: assert». Assert-попытка 2026-07-10 дала
+НАХОДКУ: DEBUG-panic в ячейке `DestructionFunctions.Apply(CS, CS)` (merge-null,
+вне optional-оси — ровно документированно-невозможный класс) сработал на 6
+зелёных Syntax-тестах, независимо от прочих изменений пакета. Контрпримеры
+(все non-opt CS × CS): `[F32..Re]` vs `[U4..I96]I32!` (`[0x1,0x3].avg()` —
+Floats-desc против integer-range-desc), `[Re..]` vs `[U4..I96]I32!`
+(generic-функция `choise(0x1, 2.0, b)`; апкаст `[[0x1],[1.0],[0x1]]`),
+`[[..]..]` vs `[U4..Re]I32!` (fun-LCA: FunLca3, ObviousFails — через
+Destruction Fun-arm). Т.е. предпосылка Леммы 1 (полнота Pull-вкладов, теорема
+минимального интервала) на этих рёбрах НЕ выполняется; скрипты живут именно
+благодаря silent-continue (узлы остаются нерешёнными, Finalize добирает).
+
+Сделано: сигнал переведён в TraceLog на этом пути (комментарий-находка в ячейке);
+«Следствие (целевое)» Леммы 1 в `TicAlgorithm_Destruction.md` помечено
+опровергнутым как assert-кандидат. Честный fix — не assert, а восстановление
+полноты Pull-вкладов на этих семействах (родня #5/#10); до тех пор assert
+невозможен, отличение «легитимного» null от бага не имеет решающего предиката.
+
+## 26. Открытое постусловие Apply(CS(opt), CS(¬opt)) в Destruction
+
+Правило оборачивает узел-потомок (`StateOptional(descendantNode)`), выбрасывая
+собственный интервал предка (Desc/Anc/cmp/Preferred). Контрпример неизвестен,
+но инвариант «ограничения предка поглощены интервалом потомка после Push» не
+доказан. Кандидатная формализация — в Лемме 2 TicAlgorithm_Destruction.md.
+
+## 27. Асимметрия TypeName-конфликта: Pull деградирует, Merge отвергает
+
+Pull `Apply(Struct,Struct)` при конфликте имён деградирует до анонимной
+структуры (Bug HH), `GetMergedStateOrNull` возвращает null — два разных ответа
+на «тип a против типа b». Сегодня осознанно (≤ против =), но следующее
+изменение NamedTypes должно решить это сознательно.
+
+## 28. TrySetAncestor безусловно перезаписывает Preferred
+
+`TrySetAncestor` пишет `Preferred = anc` без null-гарда — в отличие от всех
+остальных точек пропагации. Конкретный аргумент сигнатуры может затереть хинт
+литерала; кандидат-вкладчик в семейство смешанных хинтов (долг #7).
+
+## 29. Тихая потеря S при материализации CS{S, opt}
+
+При материализации IsOptional-CS в §5b StructBound не наследуется внутренним
+узлом. Форма `CS{S, opt}` сегодня не возникает, но потеря молчалива, если
+когда-нибудь возникнет. Отмечено в Destruction-спеке §5b как sharp edge.
+
+Вторая точка той же потери — Push opt-материализация
+(`PushConstraintsFunctions.Apply(ICompositeState, CS)`): в отличие от
+Pull-близнецов там нет ни S-транспорта с `RewireStructBoundOwnership`, ни
+переноса Preferred. Недостижимость для S-несущего CS проверена probe'ом по
+полной батарее (2026-07, ревью item 5); инвариант и требуемый fix записаны
+комментарием на месте. Смежная слепота Push к S в composite-ancestor-ветках
+(`case StateArray/StateFun` без S-конфликт-гарда, `TransformToStructOrNull`
+без S) — кандидат на общий рефакторинг 6x-дублированного opt-материализатора.
+
+## 32. Convert-мост `CanBeConvertedOptimisticTo(Struct,Struct) → UnifyOrNull` не несёт коиндуктивный контекст — ДОКАЗАН НЕДОСТИЖИМЫМ ИЗ СЕМЕЙСТВА
+
+При переводе алгебры на явный `AlgebraCycleContext` (инвариант №13 Algebra.md)
+все мосты взаимно-рекурсивного семейства протянуты контекстом, кроме одного:
+`StateExtensions.Convert.cs` — struct×struct-ячейка `CanBeConvertedOptimisticTo`
+вызывает `UnifyOrNull` с ctx=null (свежее assumption set).
+
+**Аргумент недостижимости** (статический, по call-graph): единственные вызовы
+`CanBeConvertedOptimisticTo` ИЗНУТРИ семейства — cmp-канонизация
+`MergeOrNull`/`SimplifyOrNull` с целью `StatePrimitive.Char`; struct-ячейка
+требует `to is StateStruct` — недостижима по типам аргументов. Остальные
+вызовы — stage-уровень (свежий вход, как любой top-level вызов).
+Runtime-тест не конструируем (недостижимость типовая); стресс-μ-тесты
+протянутых мостов: `AlgebraStructBoundLawsTest.*_Terminates`.
+
+**Fix при инвалидации аргумента** (новый вызов из семейства с не-примитивной
+целью): протянуть ctx через Convert-цепочку тем же паттерном, что Fit.
+
+## 34. Открытые вопросы резолюционного хвоста (TicResolution.md §9, O2-O6)
+
+O2: три правила для `[D..∅]` без Preferred (конвертер→Any / SPS rule 8→d /
+SolveCovariant→композитный D) — расхождение латентно (Destruction поглощает),
+нормативное правило не выбрано. O3: IsOptional дропается на границе
+(FromTicConstrains + Preferred/Ancestor-ветки конвертера) — контрпример не
+построен, proof obligation. O4: композитный Descendant молча дропается
+проекцией сигнатур. O5: struct-generic матчинг по superset имён полей,
+first-wins, значения игнорируются — вложенные наборы неразличимы.
+O6: четвёртое ad-hoc правило резолюции вне слоя — RuntimeBuilder
+(PrecomputeDefaultValues) резолвит CS как `Preferred ?? Descendant`.
+
 ## Порядок устранения
 
+
 ```
+Алгебра (остатки ревью, по возрастанию риска):
+#19 — вынос Sat-меняющего коллапса решённого композита из ⊓ в стадийную
+      канонизацию (вместе с #22; последним, под QuickBench)
+
+Верификация/страховка:
+#25 — восстановить полноту Pull-вкладов на контрпримерных семействах
+      (Floats/generic-fn/fun-LCA), затем вернуть assert (родня #5/#10)
+#26 — доказать/опровергнуть постусловие Apply(CS(opt), CS(¬opt))
+
+Дизайн-решения (при следующем заходе в область):
+#27 — TypeName-конфликт: Pull деградирует vs Merge отвергает (решить при NamedTypes)
+#28 — null-гард Preferred в TrySetAncestor (вместе с #7)
+#29 — наследование S при материализации CS{S, opt} (когда форма возникнет)
+
+Алгоритм (легаси):
 #5 (stale snapshots) — single-pass Pull refactoring, medium effort
 #10 (edge-rewire compensation) — combine with #5 — worklist Pull
 #6 (unconstrained generics) — SolveUselessGenerics fix, small effort but tricky
 #7 (PropagatePreferred) — edge-local rewrite, medium effort, not urgent
+(#8 — architectural trade-off, ждёт API-потребителя; #9 — два narrow
+workaround'а Phase 1 #108, сужать только с debugger-трассировкой.)
 ```

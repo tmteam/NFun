@@ -174,5 +174,26 @@ public class ConstraintsSimplificationTest {
         Assert.IsTrue(constrains.IsOptional);
         Assert.IsNotNull(constrains.SimplifyOrNull());
     }
+
+    // Canonical form law: opt(Any) = Any is a quotient — opt(Any) must never be stored
+    // (CanonicalForms; same collapse WrapOptional already applies in Solve*).
+    [Test]
+    public void OptionalWithAnyDescendant_CollapsesToAny() {
+        var constrains = ConstraintsState.Of(Any, isOptional: true);
+        Assert.AreEqual(Any, constrains.SimplifyOrNull());
+    }
+
+    [Test]
+    public void OptionalPointAtAny_CollapsesToAny() {
+        var constrains = ConstraintsState.Of(Any, Any, isOptional: true);
+        Assert.AreEqual(Any, constrains.SimplifyOrNull());
+    }
+
+    // Non-Any counterpart stays wrapped: the quotient applies to Any only.
+    [Test]
+    public void OptionalPointAtPrimitive_StaysOptional() {
+        var constrains = ConstraintsState.Of(I32, I32, isOptional: true);
+        Assert.AreEqual(StateOptional.Of(I32), constrains.SimplifyOrNull());
+    }
 }
 

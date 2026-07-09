@@ -6,145 +6,198 @@
 
 **Ключевое свойство**: Preferred не изменяет множество допустимых решений — только выбирает, КАКОЕ решение из интервала `[Desc..Anc]` будет выбрано при финализации.
 
-Один и тот же constraint-интервал `[U24..Re]` может иметь разный Preferred в зависимости от происхождения:
-- Целочисленный литерал `42` → `[U8..Re, P=I32]` (integer provenance)
-- Вещественный литерал (в тесте) → `[U8..Re, P=Re]` (real provenance)
+Один и тот же constraint-интервал может иметь разный Preferred в зависимости от происхождения:
+- Целочисленный литерал `42` → `[U4..Re, P=I32]` (integer provenance)
+- Вещественный литерал (в TIC-тесте) → `[U8..Re, P=Re]` (real provenance)
 - Hex-литерал `0xFF` → `[U8..I96, P=I32]` (hex provenance, ancestor I96 вместо Re)
 
-Preferred — это `StatePrimitive?` (nullable). Большинство CS-нод не имеют Preferred (null).
+Preferred — это `StatePrimitive` (nullable). Большинство CS-нод не имеют Preferred (null).
 
-**Код**: `ConstraintsState.Preferred` — публичное свойство типа `StatePrimitive`.
+**Код**: `ConstraintsState.Preferred` — публичное свойство типа `StatePrimitive` с публичным setter'ом.
 
 ---
 
 ## 2. Источники Preferred
 
-Preferred создаётся **только** при построении графа (фаза Build). Три источника:
+Preferred создаётся на ТРЁХ стадиях жизни графа: при построении (Build), во время
+broadcast'а (`PropagatePreferred` — override-правило §4.3) и во время Destruction
+(синтез в `TransformToOptionalOrNull`). Утверждение «Preferred создаётся только при
+Build» неверно для текущего кода.
 
-### 2.1. Целочисленные литералы
+### 2.1. Целочисленные литералы (Build)
 
-`TicSetupVisitor.Visit(GenericIntSyntaxNode)` (строки 1025-1107) создаёт generic constraint с Preferred из диалекта:
+`TicSetupVisitor.Visit(GenericIntSyntaxNode)` создаёт generic constraint через
+`GraphBuilder.SetGenericConst` с Preferred из диалекта.
 
-```
-SetGenericConst(id, desc, anc: Real, preferred: GetPreferredIntConstantType())
-```
-
-`GetPreferredIntConstantType()` (строки 1112-1118) возвращает:
+`TicSetupVisitor.GetPreferredIntConstantType()` возвращает:
 - `IntegerPreferredType.I32` → `StatePrimitive.I32` (default)
 - `IntegerPreferredType.I64` → `StatePrimitive.I64`
 - `IntegerPreferredType.Real` → `StatePrimitive.Real`
 
-Примеры:
-- `42` → `[U8..Re, P=I32]` (помещается в byte, может быть до Real)
-- `-5` → `[I16..Re, P=I32]` (минимум I16 для отрицательных)
-- `100000` → `[U24..Re, P=I32]` (не помещается в U16)
+**Бины десятичных литералов** (descendant по величине значения; ancestor всегда `Real`):
 
-### 2.2. Hex/bin литералы
+| Значение | Desc | Preferred |
+|---|---|---|
+| `0..127` | `U4` (низ решётки — общее подмножество I8 ∩ U8) | диалект |
+| `128..255` | `U8` | диалект |
+| `..32767` | `U12` | диалект |
+| `..65535` | `U16` | диалект |
+| `..int.MaxValue` | `U24` | диалект |
+| `..uint.MaxValue` | `U32` | **I64** (промоушен, MR4Bug1) |
+| `..long.MaxValue` | `U48` | **I64** |
+| `> long.MaxValue` | конкретный `U64` (не generic) | — |
+| `-128..-1` | `I8` | диалект |
+| `..short.MinValue` | `I16` | диалект |
+| `..int.MinValue` | `I32` | диалект |
+| `< int.MinValue` | `I64` | **I64** |
 
-`TicSetupVisitor.Visit(GenericIntSyntaxNode)` при `node.IsHexOrBin` (строки 1029-1067):
+Промоушен Preferred к `I64` для значений вне диапазона Int32 (в обе стороны) нужен,
+чтобы неограниченная резолюция выбирала Int64, а не проваливалась в Ancestor (Real):
+`out = 4294967295` должен быть `Int64`, не `Real` (MR4Bug1). Ancestor остаётся `Real`,
+чтобы generic-контексты по-прежнему принимали Real-операнды.
 
-```
-SetGenericConst(id, desc, anc: I96, preferred: ...)
-```
+Примеры: `42 → [U4..Re, P=I32]`; `-5 → [I8..Re, P=I32]`; `100000 → [U24..Re, P=I32]`.
 
-Отличие от обычных целых: ancestor = `I96` (не `Real`), потому что hex/bin литералы используются для битовых операций и не должны расширяться до вещественных. Preferred тот же (из диалекта), но для больших значений фиксируется:
-- `0x7FFFFFFF` → `[U24..I96, P=I32]`
-- Значения > I32 → `P=I64`
+### 2.2. Hex/bin литералы (Build)
 
-### 2.3. Вещественные литералы (тестовый API)
+Тот же `Visit(GenericIntSyntaxNode)` при `node.IsHexOrBin`. Отличие: ancestor —
+`I96` для положительных (hex/bin — битовые литералы, не расширяются до вещественных)
+и `I64` для отрицательных. Бины по desc те же (`U4..U48`), Preferred: `I32` до
+`int.MaxValue`, `I64` выше; значения > `long.MaxValue` — конкретный `U64`.
+Отрицательные ниже `int.MinValue` — конкретный `I64`.
 
-`GraphBuilderExtensions.SetIntConst()` (строки 46-50) — используется в TIC-тестах:
+### 2.3. GraphBuilder.SetDef — seeding от конкретного выражения (Build)
+
+`GraphBuilder.SetDef(name, rightNodeId)`: если выражение уже решено в конкретный
+примитив, а нода определения ещё CS — примитив записывается как Preferred:
 
 ```csharp
-public static void SetIntConst(this GraphBuilder b, int id, StatePrimitive desc)
-    => b.SetGenericConst(id, desc: desc, anc: StatePrimitive.Real, preferred: StatePrimitive.Real);
+if (exprNode.State is StatePrimitive primitive && defNode.State is ConstraintsState constrains)
+    constrains.Preferred = primitive;
 ```
 
-Устанавливает `P=Real`. В production-коде вещественные константы (double) устанавливаются как `SetConst(id, Real)` — конкретный тип без constraint, поэтому Preferred не нужен.
+Так `x = 1.0; y = x + 1` переносит Real-происхождение на `y` даже там, где сам
+литерал не CS.
 
-### 2.4. API: SetGenericConst
+### 2.4. Прочие Build-источники
 
-`GraphBuilderExtensions.SetGenericConst()` (строки 52-63) — общий API для создания CS-ноды с Preferred:
+- **`TicNode.TrySetAncestor`** (путь `SetCallArgument(StatePrimitive)`): при
+  добавлении примитивного ancestor'а от конкретной сигнатуры вызова CS-нода получает
+  `Preferred = anc` — параметр функции и есть намеренный тип аргумента.
+- **`TicSetupVisitor.PropagateReturnOnlyPreferred`**: у user-функций generic `T`
+  получает Preferred из `GenericConstrains.Preferred` (снятого с body-solve через
+  `GenericConstrains.FromTicConstrains`), но ТОЛЬКО когда `T` встречается лишь в
+  return-позиции либо когда фактический аргумент — литерал `none` (GH #126:
+  `s(none)` возвращал Real вместо Int). Обычные call-site generic'и Preferred из
+  сигнатуры НЕ получают (комментарий в `TicSetupVisitor.InitializeGenericType`) —
+  hint приходит естественно через `TryConvertConstToRef` (§3.2).
+- **Тестовый API**: `GraphBuilderExtensions.SetIntConst` — `[desc..Re, P=Re]`;
+  `GraphBuilderExtensions.SetGenericConst` — общая точка входа `(desc, anc, preferred)`.
+
+### 2.5. Destruction-время: синтез в TransformToOptionalOrNull
+
+`SolvingFunctions.TransformToOptionalOrNull` (вызывается из Pull и Destruction при
+материализации `CS{IsOptional}` → `opt(inner)`) не только переносит существующий
+hint, но и **синтезирует** новый из конкретного примитивного Descendant:
 
 ```csharp
-public static void SetGenericConst(this GraphBuilder b, int id,
-    StatePrimitive desc = null, StatePrimitive anc = null, StatePrimitive preferred = null)
+innerCs.Preferred = descendant.Preferred
+    ?? (descendant.HasDescendant && descendant.Descendant is StatePrimitive dp ? dp : null);
 ```
 
-Устанавливает `desc`, `anc` и `Preferred` на CS-ноде. Единственная точка входа для задания Preferred.
+Это зеркалит поведение `SetDef` (Preferred от литерала) для optional-пути. Заметим:
+синтезированный hint reference-равен Descendant'у — ровно тот класс «auto-init»
+hint'ов, который broadcast имеет право перезаписать (§4.3).
+
+### 2.6. Override при broadcast'е
+
+`SolvingFunctions.ApplyPreferred` может ПЕРЕЗАПИСАТЬ существующий Preferred (§4.3) —
+т.е. PropagatePreferred тоже мутирует ось P, а не только заполняет пустоты.
 
 ---
 
 ## 3. Правила распространения (Propagation)
 
-Preferred распространяется через 4 механизма, каждый на своей фазе.
+Preferred распространяется четырьмя механизмами, каждый на своей фазе.
 
 ### 3.1. Pull CS←CS: двунаправленное копирование
 
-**Файл**: `PullConstraintsFunctions.cs`, строки 28-34.
+**Код**: `PullConstraintsFunctions.Apply(ConstraintsState ancestor, ConstraintsState descendant)`.
 
-При Pull от descendant к ancestor (CS←CS), Preferred копируется **в обе стороны**:
+При Pull через ребро desc → anc (обе стороны CS) Preferred копируется **в обе стороны**
+(только в пустой слот):
 
 ```
-if (ancestor.Preferred == null && descendant.Preferred != null)
-    ancestor.Preferred = descendant.Preferred;   // upward: desc → anc
+if (ancestorCopy.Preferred == null && descendant.Preferred != null)
+    ancestorCopy.Preferred = descendant.Preferred;   // upward: desc → anc
 if (descendant.Preferred == null && ancestor.Preferred != null)
-    descendant.Preferred = ancestor.Preferred;    // downward: anc → desc
+    descendant.Preferred = ancestor.Preferred;       // downward: anc → desc
 ```
 
-**Upward** (desc→anc): целочисленная константа в массиве `[1,2,3]` передаёт `P=I32` элементу массива, а оттуда — array-ноде.
+**Upward** (desc→anc): целочисленная константа в `[1,2,3]` передаёт `P=I32` элементу
+массива, а оттуда — array-ноде.
 
-**Downward** (anc→desc): struct field chain `s.m.n` — Preferred от литерала передаётся обратно через цепочку полей.
+**Downward** (anc→desc): struct field chain `s.m.n` — Preferred от литерала передаётся
+обратно через цепочку полей.
 
-### 3.2. SetCallArgument: копирование при вызове функции
+### 3.2. TryConvertConstToRef: копирование при вызове функции
 
-**Файл**: `GraphBuilder.cs`, строки 196-198.
+**Код**: `GraphBuilder.TryConvertConstToRef` (медленный путь
+`GraphBuilder.SetCallArgument(StateRefTo, argId)`).
 
-При связывании аргумента функции с generic type parameter:
+Когда constraint-нода аргумента (свежая, без предков) полностью поглощается диапазоном
+generic'а и конвертируется в прямую ссылку, её Preferred переносится в generic:
 
-```
+```csharp
 if (argCs.Preferred != null && genCs.Preferred == null)
     genCs.Preferred = argCs.Preferred;
 ```
 
-Preferred от фактического аргумента копируется в generic-параметр функции. Это обеспечивает: `sum([1,2,3])` — generic `T` от `T[] → T` получает `P=I32` от элементов массива.
+Типичный случай: `x * 2` — константа `2` (свежая CS `[U4..Re, P=I32]`) как аргумент
+арифметического generic'а `[U24..Re]`: диапазон generic'а поглощается диапазоном
+константы, нода конвертируется в RefTo, hint переезжает на `T` умножения.
+Предусловия конверсии: у обеих CS заданы примитивные Descendant и Ancestor, и
+comparable-флаг аргумента не строже generic'ового.
 
-### 3.3. IntersectIntervalsOrNull: сохранение через пересечение
+### 3.3. IntersectIntervalsOrNull (⊓): коммутативный hint-LCA
 
-**Файл**: `ConstraintsState.cs`, строки 166-181.
+**Код**: `ConstraintsState.IntersectIntervalsOrNull` → `StateExtensions.PreferredHintLcaOrNull`.
 
-При пересечении двух CS-интервалов (MergeOrNull, Pull с composites):
+С закрытием долга #14 обе стороны ⊓ обрабатываются ЕДИНЫМ коммутативным правилом
+(история «receiver-wins / argument-wins» из кода ушла):
 
-```
-result.Preferred = this.Preferred ?? other.Preferred;
-if (this.Preferred != null && other.Preferred != null && !this.Preferred.Equals(other.Preferred))
-    result.Preferred = result.CanBeConvertedTo(this.Preferred) ? this.Preferred : other.Preferred;
+```csharp
+result.Preferred = PreferredHintLcaOrNull(Preferred, other.Preferred);
 if (result.Preferred != null && !result.CanBeConvertedTo(result.Preferred))
     result.Preferred = null;
 ```
 
-Правила:
-1. Если только одна сторона имеет Preferred — берётся он
-2. Если оба одинаковые — берётся общий
-3. Если оба разные — выбирается тот, что подходит к результирующему интервалу
-4. Финальная проверка: если Preferred не вписывается в результирующий интервал — сбрасывается в null
+Правила `PreferredHintLcaOrNull(P₁, P₂)`:
+1. Оба null → null.
+2. Только один задан → берётся он.
+3. Оба равны → общий.
+4. Различаются → `LCA(P₁, P₂)` на примитивной решётке: более широкий hint сохраняет
+   намерение резолюции (hint-LCA `I32` и `Real` = `Real` — int поднимается без потерь,
+   а real-литерал в одной из веток означает намерение Real).
+5. Если `LCA = Any` — hint'ы из несвязанных семейств, информация нулевая → drop (null).
 
-### 3.4. LCA: сохранение через LCA двух CS
+Пост-условие (только у ⊓): hint обязан вписываться в объединённый интервал
+(`CanBeConvertedTo`), иначе сбрасывается. Поскольку `Unify(CS,CS) ≝ MergeOrNull`
+(Unify(CS,CS) ≡ Merge), это же правило действует и в Unify.
 
-**Файл**: `StateExtensions.Lca.cs`, строки 27-34.
+### 3.4. LCA (∨): тот же коммутативный hint-LCA
 
-При вычислении LCA двух ConstraintsState:
+**Код**: `StateExtensions.Lca`, ветка CS×CS — `PreferredHintLcaOrNull(ac.Preferred, bc.Preferred)`.
 
-```
-var preferred = (ac.Preferred, bc.Preferred) switch {
-    (null, null)  => null,
-    (null, var p) => p,
-    (var p, null) => p,
-    var (pa, pb)  => pa.Equals(pb) ? pa : null
-};
-```
+С волны #14 у ∨ и ⊓ ОДНА транспортная функция для P (различие только в
+пост-условии fit-drop, которое есть лишь у ⊓ — у чистого join'а без Ancestor'а
+дропать не по чему). Кроме ячейки CS×CS, hint выживает и в смешанных ветках join'а:
 
-Правила: если оба совпадают — сохраняется; если один есть — берётся он; если различаются — теряется (null). Это консервативная стратегия: при конфликте Preferred лучше потерять hint, чем выбрать неверный.
+- `LCA(T, CS{opt})` — результат-CS наследует `bc2.Preferred` («hints survive the join»);
+- `opt(P) ∨ CS[D..A](Pref) = CS[P..A]?(Pref)` — join остаётся нерешённым интервалом
+  с сохранённым hint'ом; прежний eager `StateOptional.Of(Preferred)` запекал hint в
+  конкретный примитив (нарушение P3) и блокировал Push-сужение (FU719, Bug#6;
+  долг #11 — закрыт).
 
 ---
 
@@ -152,56 +205,75 @@ var preferred = (ac.Preferred, bc.Preferred) switch {
 
 ### 4.1. Когда выполняется
 
-Между фазами Push и Destruction. Последовательность фаз:
+**Между Pull и Push** (`GraphBuilder.SolveCore`):
+
 ```
-Build → Toposort → Pull → Push → PropagatePreferred → Destruction → Finalize
+Build → Toposort(+fused Pull | two-phase Pull) → PropagatePreferred → Push
+      → [ScCClosurePass] → Destruction → Finalize
 ```
+
+Почему именно до Push (MR2Bug4): `PushConstraintsFunctions.Apply(StatePrimitive, ConstraintsState)`
+схлопывает CS литерала `[U8..Re]I32!` в голый примитив, когда ancestor пиновал его в
+одну точку (`y:byte = 5` → литерал форсируется в `U8`). Если бы broadcast шёл ПОСЛЕ
+Push, `CollectPreferred` не нашёл бы ни одного hint'а — и `byte+byte` с отрицательными
+литералами резолвился бы в Real вместо I32. Запуск между Pull и Push захватывает hint,
+пока он ещё живёт на CS. Это корректно по P3: Preferred — metadata, на Pull/Push не
+влияет, поэтому перестановка фазы безопасна.
 
 ### 4.2. Зачем нужен
 
 Constraint-алгебра **теряет provenance** на границах composite-типов. Пример:
 
 ```
-s = { m = 42 }    # 42 → [U8..Re, P=I32]
+s = { m = 42 }     # 42 → [U4..Re, P=I32]
 x = s.m            # struct field access создаёт CS-посредник для 'm'
-y = x + 1          # '+' создаёт generic T c constraint [U8..Re], но P=null
+y = x + 1          # '+' создаёт generic T c constraint [U24..Re], но P=null
 ```
 
-Узел `y` получает интервал `[U8..Re]` через Pull/Push, но Preferred теряется при структурной декомпозиции (snapshot struct → element node). PropagatePreferred восстанавливает `P=I32` на `y`.
+Узел `y` получает интервал через Pull/Push, но Preferred теряется при структурной
+декомпозиции (snapshot struct → element node). PropagatePreferred восстанавливает
+`P=I32` на `y`.
 
 ### 4.3. Алгоритм
 
-**Файл**: `SolvingFunctions.cs`, строки 327-367.
+**Код**: `SolvingFunctions.PropagatePreferred` → `CollectPreferred` + `ApplyPreferred`.
+Оба прохода идут по toposorted-нодам с рекурсией в composite-члены (dedup через
+`VisitMark`/`NextMark`, деref через `GetNonReference`).
 
-Два прохода по toposorted-нодам:
+**Pass 1 — Collect** (`CollectPreferred`): первый найденный непустой `cs.Preferred`
+становится `commonPreferred` (`preferred ??= cs.Preferred`). Если hint'ов нет — pass
+завершается.
 
-**Pass 1 — Collect**: обход всех нод (включая рекурсию в composite-члены). Ищет первую CS-ноду с непустым Preferred. Сохраняет в `commonPreferred`.
+**Pass 2 — Apply** (`ApplyPreferred`): для каждой CS-ноды, удовлетворяющей guard'ам:
+
+1. `cs.HasDescendant` — есть нижняя граница (иначе интервал слишком абстрактен);
+2. `cs.Descendant is StatePrimitive` — для composite-descendant'ов Preferred не имеет смысла;
+3. `cs.CanBeConvertedTo(preferred)` — hint вписывается в интервал —
+
+выполняется:
 
 ```csharp
-if (nr.State is ConstraintsState cs && cs.Preferred != null)
-    preferred ??= cs.Preferred;
+if (cs.Preferred == null)
+    cs.Preferred = preferred;                     // заполнить пустой слот
+else if (!cs.Preferred.Equals(preferred)
+      && ReferenceEquals(cs.Preferred, descPrim))
+    cs.Preferred = preferred;                     // OVERRIDE auto-init hint'а
 ```
 
-Если ни одна нода не имеет Preferred — pass прерывается (нечего распространять).
-
-**Pass 2 — Apply**: обход всех нод (с рекурсией в composites). Для каждой CS-ноды без Preferred проверяет совместимость и устанавливает:
-
-```csharp
-if (nr.State is ConstraintsState cs && cs.Preferred == null
-    && cs.HasDescendant && cs.Descendant is StatePrimitive
-    && cs.CanBeConvertedTo(preferred))
-    cs.Preferred = preferred;
-```
-
-**Guard-условия для Apply**:
-1. `cs.Preferred == null` — не перезаписывать существующий Preferred
-2. `cs.HasDescendant` — должна иметь нижнюю границу (иначе интервал слишком абстрактен)
-3. `cs.Descendant is StatePrimitive` — descendant должен быть примитивом (для composites Preferred не имеет смысла)
-4. `cs.CanBeConvertedTo(preferred)` — Preferred должен лежать в интервале `[Desc..Anc]`
+**Override-правило**: существующий Preferred ПЕРЕЗАПИСЫВАЕТСЯ broadcast-значением,
+если он reference-равен Descendant'у. Reference-равенство здесь — маркер
+происхождения: hint, который является тем же объектом, что и нижняя граница, был
+проинициализирован «от бедности» (auto-init от границы constraint'а или синтез §2.5),
+а не от литерала — он не несёт информации сверх самого интервала, и литеральный
+`commonPreferred` должен доминировать. (Примитивы решётки — статические синглтоны
+`StatePrimitive.I32` и т.п., поэтому reference-равенство совпадает с
+«hint = Descendant по значению» для всех нод, созданных штатными путями.)
 
 ### 4.4. Единый глобальный Preferred
 
-Текущая реализация собирает **один** `commonPreferred` для всего графа. Это корректно при условии, что все литералы в выражении имеют один Preferred-тип (что верно для текущего дизайна: все целочисленные литералы одного диалекта дают одинаковый Preferred).
+Текущая реализация собирает **один** `commonPreferred` на весь граф. Это корректно,
+пока в графе фактически один hint (или все совпадают); при смеси hint'ов результат
+зависит от порядка toposort — долг #7, наблюдаемая поверхность — Bug Z (см. §8.1).
 
 ---
 
@@ -209,77 +281,74 @@ if (nr.State is ConstraintsState cs && cs.Preferred == null
 
 ### 5.1. SolveCovariant (ковариантная резолюция)
 
-**Файл**: `ConstraintsState.cs`, строки 258-281.
+**Код**: `ConstraintsState.SolveCovariant(bool ignorePreferred = false)`.
 
-Preferred — **первый приоритет** (перед ancestor):
+Порядок ветвей:
 
-```
-if (!ignorePreferred && Preferred != null && CanBeConvertedTo(Preferred))
-    inner = Preferred;
-else {
-    inner = ancestor ?? Any;
-    // ... comparable, composite desc cases
-}
-```
+1. **F-bound арм**: если единственный constraint — `StructBound` (нет Ancestor,
+   Descendant, Preferred, IsComparable) — материализуется сам bound (iso-recursive
+   `fold`), с opt-обёрткой при `IsOptional`. Preferred в этот арм не попадает по
+   построению (условие требует `Preferred == null`).
+2. **Preferred** — если `!ignorePreferred`, hint задан и `CanBeConvertedTo(Preferred)`
+   — выбирается hint.
+3. Иначе `ancestor = Ancestor ?? Any`, затем:
+   - `IsComparable` и ancestor несравним → нода остаётся нерешённой (возврат `this`);
+   - `Descendant is ICompositeState` → Descendant;
+   - открытый интервал `[abstract..null]` → `StatePrimitive.ConcreteAncestor`
+     абстрактного descendant'а (абстрактные типы — TIC-internal, наружу не выходят);
+   - иначе ancestor.
+4. **Постобработка** `WrapOptional`: при `IsOptional` результат оборачивается в
+   `StateOptional.Of(inner)`; `opt(Any)` схлопывается в `Any`.
 
-Порядок приоритетов:
-1. **Preferred** (если `!ignorePreferred` и подходит к интервалу)
-2. **Ancestor** (самый широкий тип в интервале)
-3. **ConcreteAncestor** (для абстрактных desc без ancestor)
-
-Параметр `ignorePreferred`: при `true` — Preferred пропускается. Используется для **function signatures** — функция `f(x) = x + 1` должна оставаться generic, а не резолвиться в I32.
+Параметр `ignorePreferred = true` пропускает шаг 2 — используется для function
+signatures (`f(x) = x + 1` должна остаться generic, а не резолвиться в I32);
+прокидывается из `GraphBuilder.Solve(ignorePrefered)` через `SolvingFunctions.Finalize`
+→ `SolveUselessGenerics`.
 
 ### 5.2. SolveContravariant (контравариантная резолюция)
 
-**Файл**: `ConstraintsState.cs`, строки 289-305.
+**Код**: `ConstraintsState.SolveContravariant()`.
 
-Preferred — **первый приоритет** (безусловно, ignorePreferred отсутствует):
+1. **F-bound арм** — тот же, что в SolveCovariant.
+2. **Preferred** — первый приоритет, безусловно (параметра ignorePreferred нет).
+3. Нет Descendant → нерешённая (возврат `this`).
+4. `IsComparable` и Descendant несравним (не comparable-примитив и не `arr(Char)`)
+   → нерешённая.
+5. Иначе Descendant.
+6. Постобработка `WrapOptional` — как в §5.1.
 
-```
-if (Preferred != null && CanBeConvertedTo(Preferred))
-    inner = Preferred;
-else if (!HasDescendant)
-    return this; // unresolved
-else
-    inner = Descendant;
-```
+### 5.3. TicTypesConverter: конвертация CS в FunnyType
 
-Порядок приоритетов:
-1. **Preferred** (если подходит к интервалу)
-2. **Descendant** (самый узкий тип в интервале)
+**Код**: `TicTypesConverter`, ветка `case ConstraintsState constrains when constrains.Preferred != null`.
 
-### 5.3. TicTypesConverter: преобразование CS в FunnyType
+Нерезолвленный CS с Preferred конвертируется напрямую в `ToConcrete(Preferred.Name)`;
+если `Descendant is StateOptional` — в `FunnyType.OptionalOf(...)`. Это fallback для
+CS, не прошедших через SolveCovariant/SolveContravariant (промежуточные ноды).
 
-**Файл**: `TicTypesConverter.cs`, строки 111-114.
+### 5.4. ConcretestSnapshot: снапшот-оператор слоя резолюции (↓-часть долга #19 — ЗАКРЫТА)
 
-Нерезолвленный CS с Preferred конвертируется напрямую:
+**Статус**: разделение выполнено — ↓ (`StateExtensions.Concretest`) теперь чистая
+проекция (Preferred только транспортируется во флаг-форме, никогда не выбирается);
+две резолюционные ветки вынесены в **`ConcretestSnapshot`** (↓ₛ,
+`StateExtensions.ConcretestSnapshot.cs`) — оператор ЭТОГО слоя (семейство Solve),
+вызываемый там, где результат материализуется в хранимое состояние графа
+(`ConstraintsState.AddDescendant`, односторонние desc-проекции LCA):
 
-```csharp
-case ConstraintsState constrains when constrains.Preferred != null:
-    if (constrains.HasDescendant && constrains.Descendant is StateOptional)
-        return FunnyType.OptionalOf(ToConcrete(constrains.Preferred.Name));
-    return ToConcrete(constrains.Preferred.Name);
-```
+1. **`SnapshotArrayElement`**: если элемент массива — CS с Preferred, примитивным
+   Descendant ≠ Preferred и `desc ≤ Preferred`, вместо коллапса в голый примитив
+   возвращается НОВЫЙ CS `[desc..∅]` с тем же Preferred (без ancestor'а). Desc-снапшоты
+   массивов проносят hint через Destruction.
+2. **`SnapshotConstraints`, Optional-ветка**: для `CS{IsOptional}` при
+   `inner ≤ Preferred` выбирается Preferred вместо inner (↓ₛ даёт `opt(Preferred)`,
+   чистый ↓ — `opt(↓D)`). Rule B действует в обоих операторах: лифт нерешённой
+   границы остаётся во флаг-форме `[D..A]?` с перенесённым Preferred.
 
-Это fallback для случаев, когда CS не был резолвлен через SolveCovariant/SolveContravariant (например, при конвертации промежуточных нод).
+Контракт ↓ₛ: на Preferred-свободных состояниях ↓ₛ ≡ ↓; идемпотентен; interval-часть
+результата Fit-удовлетворяет исходному CS. Пины: `ConcretestSnapshotTest`.
 
-### 5.4. ConcretestArrayElement: сохранение Preferred
-
-**Файл**: `StateExtensions.Concretest.cs`, строки 30-42.
-
-При вычислении Concretest для элемента массива, если CS имеет Preferred и desc != Preferred:
-
-```csharp
-if (element is ConstraintsState cs && cs.Preferred != null
-    && cs.HasDescendant && cs.Descendant is StatePrimitive desc
-    && !desc.Equals(cs.Preferred) && desc.CanBePessimisticConvertedTo(cs.Preferred)) {
-    var result = ConstraintsState.Of(desc, isComparable: cs.IsComparable, isOptional: cs.IsOptional);
-    result.Preferred = cs.Preferred;
-    return result;
-}
-```
-
-Вместо стандартного Concretest (который бы выбрал desc), создаётся новый CS с тем же desc но **без ancestor**, сохраняя Preferred. Это предотвращает потерю Preferred при конкретизации массива.
+Оставшаяся родственная примесь в ⊓ (остаток #19): `MergeOrNull` НЕ схлопывает решённый
+Optional-descendant `[opt(D)..∅] → opt(D)`, если задан Preferred («Preferred-survival
+exception») — hint должен дожить до резолюции, коллапс бы его уничтожил.
 
 ---
 
@@ -292,10 +361,13 @@ Preferred ∈ [Desc..Anc]  ∨  Preferred = null
 ```
 
 Preferred всегда лежит внутри допустимого интервала, либо отсутствует. Гарантируется:
-- При создании: `SetGenericConst` устанавливает Preferred совместимый с `[desc..anc]`
-- При пересечении: `IntersectIntervalsOrNull` проверяет `CanBeConvertedTo` (строки 179-180)
-- При PropagatePreferred: Apply проверяет `CanBeConvertedTo` (строка 365)
+- При создании: `SetGenericConst` задаёт Preferred, совместимый с `[desc..anc]`
+  (бины §2.1-2.2 по построению).
+- При пересечении: пост-условие в `IntersectIntervalsOrNull` — hint-LCA, не влезающий
+  в объединённый интервал, сбрасывается (`CanBeConvertedTo`).
+- При broadcast'е: guard `cs.CanBeConvertedTo(preferred)` в `ApplyPreferred`.
 - При резолюции: `SolveCovariant`/`SolveContravariant` проверяют `CanBeConvertedTo`
+  перед выбором hint'а — даже «протёкший» неподходящий hint не станет типом.
 
 ### P2 — Idempotence (идемпотентность)
 
@@ -303,36 +375,69 @@ Preferred всегда лежит внутри допустимого интер
 PropagatePreferred(PropagatePreferred(G)) = PropagatePreferred(G)
 ```
 
-Второй вызов PropagatePreferred не изменяет граф:
-- Collect находит тот же `commonPreferred` (Preferred не стирается)
-- Apply пропускает ноды, уже имеющие Preferred (`cs.Preferred == null` guard)
+Аргумент — с учётом override-правила §4.3:
 
-### P3 — Monotonicity (монотонность)
+- **Collect**: pass не стирает hint'ы, только добавляет/заменяет; первым в
+  toposort-порядке остаётся тот же `commonPreferred` (первый источник не перезаписывался
+  — override меняет значение на `commonPreferred`, что не меняет результат Collect).
+- **Apply**, по классам нод после первого прогона:
+  1. `Preferred == null` → был заполнен `commonPreferred` в первом прогоне; во втором
+     ветка не срабатывает.
+  2. `Preferred = commonPreferred` (заполненные и перезаписанные) — обе ветки либо
+     не срабатывают (`Equals`-guard), либо записали бы то же значение.
+  3. Собственный hint, НЕ reference-равный Descendant'у — не трогается.
+  4. Hint, reference-равный Descendant'у: перезаписан в первом прогоне на
+     `commonPreferred`. После перезаписи он либо не reference-равен Descendant'у
+     (override больше не применим), либо `commonPreferred` и есть объект-Descendant —
+     тогда повторная запись того же объекта. Фикс-поинт достигается за один прогон.
+
+### P3 — Monotonicity / ортогональность
 
 ```
-∀ node: node.Desc(before) = node.Desc(after) ∧ node.Anc(before) = node.Anc(after)
+∀ node: Sat(node)(before) = Sat(node)(after)
 ```
 
-Preferred **не сужает** интервал `[Desc..Anc]`. Установка Preferred не влияет на Pull/Push, не изменяет FitsInto, LCA, GCD. Preferred — metadata, ортогональная constraint-алгебре.
+Установка Preferred **не сужает** интервал `[Desc..Anc]` и не меняет исходы Pull/Push:
+FitsInto, LCA, GCD на ось P не смотрят. Именно P3 делает безопасным перенос
+PropagatePreferred между Pull и Push (§4.1).
+
+**Известные отклонения** (не от Sat, а от формы представления) — остаток долга #19:
+- ~~`ConcretestArrayElement` и Opt-выбор в `ConcretestConstraints`~~ — закрыто:
+  ↓ чист; hint-зависимость живёт в ↓ₛ (`ConcretestSnapshot`, §5.4) — оператор слоя
+  резолюции, для которого зависимость от P — контракт, а не отклонение.
+- `MergeOrNull`: Preferred подавляет коллапс решённого Optional-descendant'а —
+  каноническая форма результата ⊓ зависит от hint'а.
+
+Отклонение Sat-нейтрально (множество допустимых типов не меняется), но нарушает
+ортогональность оси P к оператору ⊓. Статус: остаток #19 (вынос Sat/форм-меняющего
+коллапса из ⊓ в стадийную канонизацию).
 
 ### P4 — Determinism (детерминизм)
 
-При фиксированном topological order, PropagatePreferred детерминирован: первый найденный Preferred в Collect-порядке становится `commonPreferred`. Поскольку все литералы одного диалекта дают одинаковый Preferred, результат не зависит от порядка обхода.
+При фиксированном topological order PropagatePreferred детерминирован: первый
+найденный Preferred в Collect-порядке становится `commonPreferred`. Оговорка: при
+СМЕШАННЫХ hint'ах (а они возможны — §8.1) результат детерминирован, но зависит от
+порядка toposort, т.е. от несемантических деталей выражения (долг #7).
 
 ---
 
 ## 7. Почему Preferred нельзя убрать
 
-**Эксперимент**: заменить Preferred на resolution-time defaulting (выбирать I32 для всех числовых CS при финализации).
+**Эксперимент**: заменить Preferred на resolution-time defaulting (выбирать I32 для
+всех числовых CS при финализации).
 
 **Провал**: интервал `[U24..Re]` возникает в двух различных контекстах:
 
 1. `[1,2,3].sum()` — должен резолвиться в `I32` (integer provenance)
 2. `3.14 * 2` — `2` должен резолвиться в `Real` (real context)
 
-Без Preferred оба случая неразличимы: одинаковый интервал `[U8..Re]`, но правильные ответы разные. Preferred несёт provenance, который constraint-алгебра теряет при структурной декомпозиции.
+Без Preferred оба случая неразличимы: одинаковый интервал, но правильные ответы разные.
+Preferred несёт provenance, который constraint-алгебра теряет при структурной
+декомпозиции.
 
-**Формально**: Preferred — это морфизм из пространства «литерал + контекст» в пространство «допустимый тип». Constraint-алгебра (LCA, GCD) оперирует множествами типов, теряя информацию об источнике. Preferred восстанавливает эту информацию.
+**Формально**: Preferred — это морфизм из пространства «литерал + контекст» в
+пространство «допустимый тип». Constraint-алгебра (LCA, GCD) оперирует множествами
+типов, теряя информацию об источнике. Preferred восстанавливает эту информацию.
 
 ---
 
@@ -340,18 +445,35 @@ Preferred **не сужает** интервал `[Desc..Anc]`. Установк
 
 ### 8.1. Единый глобальный Preferred
 
-PropagatePreferred собирает **одно** значение для всего графа. Если в выражении два литерала с разным Preferred (например, hex `0xFF` с `P=U16` и decimal `42` с `P=I32`), один из них будет потерян.
+PropagatePreferred собирает **одно** значение на весь граф. Смешанные hint'ы — не
+гипотетика: они возникают уже сейчас (литерал `> int.MaxValue` даёт `P=I64` рядом с
+дефолтным `P=I32`; `SetDef` сеет hint от конкретного выражения; `TrySetAncestor` —
+от сигнатуры). Какой из них выиграет — определяется порядком toposort.
 
-**Текущее состояние**: это не проблема, т.к. все целочисленные литералы одного диалекта дают одинаковый Preferred. Hex/bin литералы также используют `GetPreferredIntConstantType()`.
+**Наблюдаемая поверхность — Bug Z** (bug-hunt round 4, долг #7):
+`fn(arr:int[]?):int = arr?.reverse().sum() ?? 0; fn([10,20,30])` падал в runtime с
+`Unable to cast Int32 to UInt32` — внутри тела fn смесь hint'ов (`0` с P=I32 против
+auto-init от Arithmetical-descendant'а U24), и toposort-порядок для user-fn body
+выбирал U24. Override-правило §4.3 закрывает конкретно класс auto-init hint'ов, но
+не общую проблему конкурирующих ЛИТЕРАЛЬНЫХ hint'ов. Полный fix — edge-local
+propagation (§8.2). Реестр: `Specs/Tic/TicTechnicalDebt.md` #7.
 
 ### 8.2. Edge-local propagation
 
-Альтернатива глобальному broadcast — распространение Preferred по рёбрам графа (как Pull/Push). Каждая нода получала бы Preferred от своих прямых связей, а не от глобального значения. Это решило бы проблему 8.1.
+Альтернатива глобальному broadcast'у — распространение Preferred по рёбрам графа (как
+Pull/Push): каждая нода получает hint от прямых связей, а не от глобального значения.
+Решает §8.1 (каждый литерал пушит свой hint только в connected-компоненту влияния).
 
-**Не реализовано**: пока все литералы одного диалекта имеют одинаковый Preferred, edge-local propagation избыточен. При добавлении новых источников Preferred (typeclasses, user annotations) потребуется пересмотр.
+**Не реализовано**: пока конфликтующие hint'ы редки, а override-правило гасит самый
+частый класс (auto-init), edge-local избыточен. При добавлении новых источников
+Preferred (typeclasses, user annotations) потребуется пересмотр.
 
 ### 8.3. Preferred для composite-типов
 
-Текущий Preferred — всегда `StatePrimitive`. Нет механизма для «preferred array type» или «preferred struct type». PropagatePreferred Apply пропускает CS с composite descendant (`cs.Descendant is StatePrimitive` guard).
+Текущий Preferred — всегда `StatePrimitive`. Нет механизма «preferred array type» или
+«preferred struct type»; guard `cs.Descendant is StatePrimitive` в `ApplyPreferred`
+пропускает composite-descendant'ы.
 
-Для текущей системы типов NFun это достаточно: composite-типы не имеют ambiguity при резолюции (массив — это массив, struct — это struct). Preferred нужен только для числовых примитивов, где интервал `[U8..Re]` содержит десятки допустимых типов.
+Для текущей системы типов этого достаточно: composite-типы не имеют ambiguity при
+резолюции (массив — это массив, struct — это struct). Preferred нужен только числовым
+примитивам, где интервал `[U4..Re]` содержит десятки допустимых типов.

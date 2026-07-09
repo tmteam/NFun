@@ -103,6 +103,12 @@ y = 0.0 / 0.0   # NaN (not a number)
 NaN propagates through arithmetic: any operation with NaN produces NaN.
 `min` and `max` return NaN if any argument is NaN.
 
+Integer division participates in the dialect: `MIN // -1` is its single
+overflowing case — Checked (default) throws, Unchecked wraps to `MIN`
+(same rule as `negate(MIN)`); unsigned `//` can never overflow.
+`%` never overflows: `MIN % -1 = 0` at every width under both dialects
+(the CLR rem trap is masked by the implementation; not part of the algebra).
+
 ## Relational Operators
 The following table shows all the relational operators supported by NFun. 
 All of them returns true if condition is satisfied, and false otherwise

@@ -18,8 +18,7 @@ public class AlgebraInvariantsTest {
 
     // All concrete types we want to check invariants against
     private static IEnumerable<ITicNodeState> AllConcreteTypes() {
-        foreach (var p in PrimitiveTypes) yield return p;
-        yield return None;
+        foreach (var p in PrimitiveTypes) yield return p; // full 23-point lattice, incl. None
         yield return Array(I32);
         yield return Array(Real);
         yield return Array(Bool);
@@ -159,8 +158,10 @@ public class AlgebraInvariantsTest {
             if (p.Equals(Any)) continue;
             foreach (var c in composites)
             {
-                Assert.AreEqual(Any, p.Lca(c),
-                    $"Lca({p}, {c}) should be Any");
+                // None joins through the Optional axis: LCA(None, T) = opt(T)
+                var expected = p.Equals(None) ? Optional(c) : (ITicNodeState)Any;
+                Assert.AreEqual(expected, p.Lca(c),
+                    $"Lca({p}, {c}) should be {expected}");
             }
         }
     }

@@ -154,6 +154,14 @@ public class PushConstraintsFunctions : IStateFunction {
         // Transform to Optional first, then push the composite constraint into the element.
         // This is uniform for Array, Fun, Struct — not a special case per composite type.
         if (descendant.IsOptional && ancestor is not StateOptional) {
+            // INVARIANT (debt #29): descendant never carries a StructBound here — the form
+            // CS{S, opt} does not arise: S is minted under an explicit Optional constructor
+            // (LiftMuTypes → opt(CS{S})) or at Destruction time (CS slot promotion), both
+            // after this stage; the only mid-Push minting path (Apply(CS,CS) S-transport onto
+            // an opt-flagged CS) needs an optional value under a NON-optional F-bounded param,
+            // i.e. an ill-typed program. If the form ever arises, this materialization must
+            // transport S into the inner CS via RewireStructBoundOwnership (and transport
+            // Preferred), exactly like its Pull twins (PullConstraintsFunctions.cs).
             var innerNode = TicNode.CreateTypeVariableNode(
                 "e" + descendantNode.Name + "'",
                 ConstraintsState.Of(descendant.Descendant, descendant.Ancestor, descendant.IsComparable));
@@ -392,8 +400,15 @@ public class PushConstraintsFunctions : IStateFunction {
     }
 
     private static void PushFunTypeArgumentsConstraints(StateFun descFun, StateFun ancFun) {
+        // Variance for `descFun ≤ ancFun` (function subtyping):
+        //   args contravariant — anc.argᵢ ≤ desc.argᵢ, so push (edge-desc=anc.arg, edge-anc=desc.arg)
+        //   ret  covariant     — desc.ret ≤ anc.ret
+        // Mirrors the Destruction Fun-arm (DestructionFunctions.Apply(StateFun,StateFun)) and
+        // Pull's edge wiring (anc.argᵢ.AddAncestor(desc.argᵢ)); the previous covariant pairing
+        // (desc.argᵢ pushed under anc.argᵢ) was inverted — compensated in practice because Pull
+        // dissolves fun≤fun edges before Push reaches this cell. (debt #24)
         for (int i = 0; i < descFun.ArgsCount; i++)
-            SolvingFunctions.PushConstraints(descFun.ArgNodes[i], ancFun.ArgNodes[i]);
+            SolvingFunctions.PushConstraints(ancFun.ArgNodes[i], descFun.ArgNodes[i]);
 
         SolvingFunctions.PushConstraints(descFun.RetNode, ancFun.RetNode);
     }

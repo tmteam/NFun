@@ -19,7 +19,7 @@ If you can't state the rule — you don't understand the fix. Stop and think.
 - No flags that exist to patch one scenario (`IsOptionalElement` is a known debt — track it, don't add more)
 - No post-hoc fixups in expression builder for what TIC should have resolved
 - If a workaround is ever introduced, it MUST have a `// WORKAROUND:` comment explaining the root cause and the proper fix. Track in `Specs/Tic/TicTechnicalDebt.md`.
-- **Current workarounds**: 1 (DescendantHasOptionalLift — stale Pull snapshots). See TicTechnicalDebt.md #5.
+- **Current debt registry**: `Specs/Tic/TicTechnicalDebt.md` — algorithm-layer legacy (#5-#10) + open findings of the 2026-07 TIC review (#22, #25-#29, #32-#34). Algebra items #12-#18, #20, #30-#31, spec-drift #21 and safety items #23/#24 are closed; #19 is partially closed — the ↓-part is done (resolution arms extracted to `ConcretestSnapshot`, ↓ₛ), the ⊓ solved-composite-collapse remainder is tracked (#19/#22); #25 is narrowed — the assert attempt REFUTED Лемма 1's corollary on live scripts (⊓-null on non-optional constraint edges is reachable; TraceLog signal, real fix = Pull-contribution completeness). Closed entries are removed from the file (history lives in git).
 
 ### 3. Performance Matters
 
@@ -63,9 +63,27 @@ dotnet run --project src/ConsoleAppExample/ConsoleAppExample.csproj -p:SignAssem
 
 ## Known Technical Debt
 
-Track here. Each item must have: what's wrong, why it exists, what the clean fix is.
+Full registry: `Specs/Tic/TicTechnicalDebt.md`. Each item must have: what's wrong,
+why it exists, what the clean fix is. Headline status (2026-07 algebra review):
 
-*(No current items — all resolved.)*
+- **Two-layer target architecture** for TIC is normative (`Specs/Tic/Algebra.md`):
+  pure/total ALGEBRA (LCA, GCD, Merge, Fit, ≤c, Concretest, Abstractest, Simplify)
+  vs RESOLUTION (Solve*, `ConcretestSnapshot` ↓ₛ, Preferred policy, materialization).
+  Algebra items #12-#18 are closed; #19 is partially closed (↓ is a pure projection,
+  resolution arms live in ↓ₛ; remainder — the Sat-changing solved-composite collapse
+  inside ⊓, tracked with #22). Per-file "Отклонения" sections in Algebra*-specs record
+  the closures.
+- **Code-level defects found by the review — all fixed**: GCD non-commutativity on the
+  C fragment (#17), Fit comparable-cell unsoundness (#15), three diverging ⊓
+  implementations (#13), non-commutative Preferred tie-breaks (#14).
+- **Safety pass 2026-07-10**: #23 closed (DEBUG panic on SCC-fixpoint cap), #24 closed
+  (Push fun-args flipped to contravariant; COMPENSATED verdict refuted — the cell IS
+  reachable via if-else LCA of lambdas + call; plus `NoEffectiveConstrains`: an Any upper
+  bound is vacuous, `Sat([∅..Any]) = Sat([∅..∅])`, applied in all Transform*OrNull),
+  #20 closed (↓/↑ monotonicity: verified on T, REFUTED-pinned on C under ≤=Fit),
+  #25 narrowed (assert attempt REFUTED Лемма 1's corollary on 6 live scripts —
+  ⊓-null on non-optional constraint edges is reachable; TraceLog signal for now).
+- **Open**: algorithm-layer legacy #5-#10, #22, #25-#29 and #32-#34 (see registry).
 
 ### Accepted Design (not debt)
 

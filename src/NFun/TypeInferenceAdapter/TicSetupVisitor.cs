@@ -1919,14 +1919,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             _aliasScope.AddVariableAlias(node.ErrorVariableName, aliasName);
 
             // Create error variable: {message: text, data: any}
-            var charType = new StatePrimitive(PrimitiveTypeName.Char);
+            // Singletons only: Gcd/Fit/Convert compare primitives by reference.
             var textType = (ITicNodeState)new StateArray(
-                TicNode.CreateTypeVariableNode(charType));
-            var any = (ITicNodeState)new StatePrimitive(
-                PrimitiveTypeName.Any);
+                TicNode.CreateTypeVariableNode(StatePrimitive.Char));
             var errorType = StateStruct.Of(
                 ("message", textType),
-                ("data", any));
+                ("data", StatePrimitive.Any));
             _ticTypeGraph.SetVarType(aliasName, errorType);
 
             // Visit catch expression inside scope

@@ -66,7 +66,15 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
     public IEnumerable<ITicNodeState> Args => ArgNodes.Select(a => a.State);
 
     public int ArgsCount => ArgNodes.Length;
-    public bool IsSolved => RetNode.IsSolved && ArgNodes.All(n => n.IsSolved);
+    public bool IsSolved {
+        get {
+            if (!RetNode.IsSolved) return false;
+            for (int i = 0; i < ArgNodes.Length; i++)
+                if (!ArgNodes[i].IsSolved)
+                    return false;
+            return true;
+        }
+    }
     public bool IsMutable => !IsSolved;
 
     public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) {
@@ -177,27 +185,6 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
     public int MemberCount => ArgNodes.Length + 1;
     public TicNode GetMember(int index) => index < ArgNodes.Length ? ArgNodes[index] : RetNode;
     public IEnumerable<TicNode> Members => ArgNodes.Append(RetNode);
-
-    public IEnumerable<TicNode> AllLeafTypes
-    {
-        get
-        {
-            foreach (var member in Members)
-            {
-                if (member.State is ICompositeState composite)
-                {
-                    foreach (var leaf in composite.AllLeafTypes)
-                    {
-                        yield return leaf;
-                    }
-                }
-                else
-                {
-                    yield return member;
-                }
-            }
-        }
-    }
 
     public string StateDescription => PrintState(0);
 

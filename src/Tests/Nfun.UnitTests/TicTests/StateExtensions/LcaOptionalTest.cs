@@ -471,9 +471,10 @@ public class LcaOptionalTest {
     public void NoneAndAllPrimitives_ReturnsOptOrAny() {
         foreach (var primitive in PrimitiveTypes)
         {
-            // none <: any, so LCA(None, Any) = Any; for others LCA(None, T) = Opt(T)
-            var expected = primitive.Equals(Any)
-                ? Any
+            // none <: any, so LCA(None, Any) = Any; LCA(None, None) = None;
+            // for others LCA(None, T) = Opt(T)
+            var expected = primitive.Equals(Any) ? Any
+                : primitive.Equals(None) ? None
                 : (ITicNodeState)Optional(primitive);
             AssertLca(None, primitive, expected);
         }

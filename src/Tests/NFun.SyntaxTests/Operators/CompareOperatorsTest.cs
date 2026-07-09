@@ -372,4 +372,19 @@ public class CompareOperatorsTest {
     [TestCase("out = min(127.0.0.1, 192.168.0.1)")]
     public void MinMax_NonComparable_RejectedAtParse(string expr) =>
         Assert.Throws<NFun.Exceptions.FunnyParseException>(() => expr.Calc());
+
+    // SPS ↔ full-TIC error parity for the Comparable constraint (TicSimplePath.md §8.1).
+    // The primitive-only fast path (SimplePrimitiveSolver) used to treat the comparable
+    // flag as inert: `out = max(true, false)` resolved T=Bool in SPS and was caught only
+    // by the FU777 library backstop, while the same call next to a composite binding
+    // (which forces full TIC) failed at solve time with FU783. SPS now abstains when a
+    // comparable group resolves to a non-comparable type — both paths yield the same error.
+    [TestCase("out = max(true, false)")]                // SPS-eligible shape
+    [TestCase("z = [1]; out = max(true, false)")]       // composite forces full TIC
+    [TestCase("out = min(true, false)")]
+    [TestCase("z = [1]; out = min(true, false)")]
+    public void MinMax_NonComparable_SameErrorOnBothSolverPaths(string expr) {
+        var ex = Assert.Throws<NFun.Exceptions.FunnyParseException>(() => expr.Calc());
+        Assert.AreEqual(783, ex.ErrorCode, $"expected the full-TIC FU783, got FU{ex.ErrorCode}");
+    }
 }

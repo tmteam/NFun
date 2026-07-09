@@ -1,556 +1,617 @@
 # TIC Simple Path (SimplePrimitiveSolver)
 
-Fast-path type inference for primitive-only expressions. Replaces full TIC with monotone dataflow on a finite lattice when no composite types are present.
+Fast-path вывода типов для выражений, состоящих только из примитивов. Когда composite-типов
+нет, полный TIC вырождается в монотонный dataflow на конечной решётке — SPS
+(`SimplePrimitiveSolver`) решает его интервальной арифметикой на ординалах за O(N).
+
+Контракт: SPS либо возвращает результат, СОВПАДАЮЩИЙ с полным TIC (§8), либо
+воздерживается (`null`) — и caller проваливается в полный TIC. Воздержание всегда
+безопасно; ложный результат — никогда не допустим.
 
 ---
 
-## 1. Lattice Definition
+## 1. Решётка
 
-### 1.1 The Primitive Type Lattice L
+### 1.1 Примитивная решётка L
 
-L is a finite lattice of 19 elements with partial order ≤ (subtyping). Element ordinals are fixed:
+L — конечная решётка из **23 элементов** с частичным порядком ≤ (subtyping).
+Ординалы НЕ захардкожены в SPS — они производные от `StatePrimitive.Order`
+(`(int)Name >> 6`); `PRIM_COUNT = 23` обязан совпадать с `StatePrimitive.LatticeSize`.
 
-| Ordinal | Type | Flags |
-|---------|------|-------|
+| Order | Тип | Флаги |
+|-------|-----|-------|
 | 0 | Any | top |
 | 1 | Char | comparable |
-| 2 | Bool | - |
-| 3 | Ip | - |
+| 2 | Bool | — |
+| 3 | Ip | — |
 | 4 | Real | numeric, comparable |
-| 5 | I96 | numeric, comparable, abstract |
-| 6 | I64 | numeric, comparable |
-| 7 | I48 | numeric, comparable, abstract |
-| 8 | I32 | numeric, comparable |
-| 9 | I24 | numeric, comparable, abstract |
-| 10 | I16 | numeric, comparable |
-| 11 | U64 | numeric, comparable |
-| 12 | U48 | numeric, comparable, abstract |
-| 13 | U32 | numeric, comparable |
-| 14 | U24 | numeric, comparable, abstract |
-| 15 | U16 | numeric, comparable |
-| 16 | U12 | numeric, comparable, abstract |
-| 17 | U8 | numeric, comparable |
-| 18 | None | bottom (partial) |
+| 5 | F32 | numeric, comparable |
+| 6 | I96 | numeric, comparable, **abstract** |
+| 7 | I64 | numeric, comparable |
+| 8 | I48 | numeric, comparable, **abstract** |
+| 9 | I32 | numeric, comparable |
+| 10 | I24 | numeric, comparable, **abstract** |
+| 11 | I16 | numeric, comparable |
+| 12 | I12 | numeric, comparable, **abstract** |
+| 13 | I8 | numeric, comparable |
+| 14 | U64 | numeric, comparable |
+| 15 | U48 | numeric, comparable, **abstract** |
+| 16 | U32 | numeric, comparable |
+| 17 | U24 | numeric, comparable, **abstract** |
+| 18 | U16 | numeric, comparable |
+| 19 | U12 | numeric, comparable, **abstract** |
+| 20 | U8 | numeric, comparable |
+| 21 | U4 | numeric, comparable, **abstract**, низ числовой решётки |
+| 22 | None | частичный bottom |
 
-Abstract types (I96, I48, I24, U48, U24, U12) exist only as internal constraint bounds; they are never the type of a runtime value.
+Абстрактные типы (I96, I48, I24, I12, U48, U24, U12, U4) существуют только как
+внутренние границы constraint'ов; runtime-значение такого типа не бывает. Их
+конкретизация — `StatePrimitive.ConcreteAncestor`: I96→Real, I48→I64, I24→I32,
+I12→I16, U48→U64, U24→U32, U12→U16, U4→U8.
 
-### 1.2 Hasse Diagram
+### 1.2 Диаграмма Хассе
 
 ```
-                      Any (0)
-                   /   |   \   \
-               Real(4) Bool(2) Char(1) Ip(3)
-                 |
-               I96 (5)
-              /     \
-           I64(6)   U64(11)
-          / |         |  \
-       I48(7)\     U48(12) \
-        |    |       |      |
-      I32(8) |     U32(13)  |
-        |    |       |      |
-      I24(9) |     U24(14)  |
-        |    |       |      |
-      I16(10)|     U16(15)  |
-        \    |     /        |
-         U12(16)--          |
-            \    /          |
-            U8 (17)---------
-              |
-           None (18)
+                     Any (0)
+                /   |    |    \
+           Real(4) Bool(2) Char(1) Ip(3)
+             |
+           F32 (5)
+             |
+           I96 (6)
+          /       \
+      I64(7)      U64(14)
+        |            |
+      I48(8)      U48(15)
+        |            |
+      I32(9)      U32(16)
+        |            |
+      I24(10)     U24(17)
+        |            |
+      I16(11)     U16(18)
+        |            |
+      I12(12)     U12(19)
+        |            |
+      I8(13)      U8(20)
+          \        /
+           U4 (21)
 ```
 
-Covering relations (x -- y means x ≤ y with no z such that x < z < y):
+**Цепи**:
+- Знаковая: `U4 ≤ I8 ≤ I12 ≤ I16 ≤ I24 ≤ I32 ≤ I48 ≤ I64 ≤ I96 ≤ F32 ≤ Real ≤ Any`
+- Беззнаковая: `U4 ≤ U8 ≤ U12 ≤ U16 ≤ U24 ≤ U32 ≤ U48 ≤ U64 ≤ I96`
+- `F32` лежит между целочисленной вершиной и Real: `∀ int-тип T: T ≤ F32`,
+  `F32 ≤ Real` (`LCA(int, F32) = F32`, `GCD(int, F32) = int`).
 
-**Signed chain:** U8 ≤ I16 ≤ I24 ≤ I32 ≤ I48 ≤ I64 ≤ I96 ≤ Real ≤ Any
-**Unsigned chain:** U8 ≤ U12 ≤ U16 ≤ U32 ≤ U48 ≤ U64 ≤ I96
-**Cross links (unsigned to signed):**
-- U12 ≤ I16, U12 ≤ I24, U12 ≤ I32, U12 ≤ I48, U12 ≤ I64
-- U16 ≤ I24, U16 ≤ I32, U16 ≤ I48, U16 ≤ I64
-- U24 ≤ I32, U24 ≤ I48, U24 ≤ I64
-- U32 ≤ I48, U32 ≤ I64
-- U48 ≤ I64
-- U64 ≤ I96
-**Non-numeric:** Bool ≤ Any, Char ≤ Any, Ip ≤ Any
-**None:** None ≤ Any (only; None is NOT ≤ any other primitive)
+**Кросс-связи signed×unsigned** задаются формулой по битовой ширине
+(`StatePrimitive.FillLcaGcdMaps`), а не перечислением:
+- `LCA(U_m, I_n)` = наименьший знаковый `I_k` с `k ≥ max(n, m+1)` (плюс бит на знак);
+- `GCD(U_m, I_n)` = наибольший беззнаковый `U_j` с `j ≤ min(m, n−1)` (общее безопасное
+  подмножество).
 
-Note: None is a partial bottom -- it is below Any but incomparable with all other types.
+`U4` — низ числовой решётки с номинальной шириной **7** (диапазон 0..127 = I8 ∩ U8):
+в формуле width=7 кодирует «влезает и в I8, и в U8». Благодаря U4 литерал `100`
+подходит и для `int8 = 100`, и для `uint8 = 100` из одного бина.
 
-### 1.3 LCA (Join) and GCD (Meet)
+**Не-числовые**: `Bool ≤ Any`, `Char ≤ Any`, `Ip ≤ Any` — попарно несравнимы между
+собой и с числами. **None**: `None ≤ Any` и только (частичный bottom — несравним со
+всеми остальными).
 
-**LCA(a, b)** = least common ancestor = smallest c in L such that a ≤ c and b ≤ c.
+### 1.3 LCA (join) и GCD (meet)
 
-**GCD(a, b)** = greatest common descendant = largest c in L such that c ≤ a and c ≤ b. Returns null (denoted OPEN) when no such c exists.
+`LCA(a,b)` — наименьший общий предок; `GCD(a,b)` — наибольший общий потомок, `null`
+(в SPS — `OPEN`) если общего потомка нет.
 
-Both are implemented as precomputed `byte[19 x 19]` lookup tables, built from the lattice definition.
+Реализация: предвычисленные плоские таблицы `s_lcaTable` / `s_gcdTable`
+(`byte[23 × 23]` = 529 байт каждая). Таблицы строятся в статическом конструкторе
+SPS **брутфорсом по авторитетным методам решётки** — `GetLastCommonPrimitiveAncestor`,
+`GetFirstCommonDescendantOrNull`, `CanBePessimisticConvertedTo` для всех пар из
+`s_allPrimitives` — а не дублируют определение решётки. Расхождение SPS-таблиц с
+полной решёткой исключено по построению.
 
-**Properties:**
-- **Commutativity:** LCA(a,b) = LCA(b,a). GCD(a,b) = GCD(b,a).
-- **Associativity:** LCA(a, LCA(b,c)) = LCA(LCA(a,b), c). Same for GCD.
-- **Monotonicity:** If a ≤ a', then LCA(a,b) ≤ LCA(a',b). Same for GCD.
-- **Idempotence:** LCA(a,a) = a. GCD(a,a) = a.
-- **Top/bottom:** LCA(a, Any) = Any. GCD(a, Any) = a.
+Свойства (закреплены property-тестами `AlgebraLatticeLawsTest` на полной 23-точечной
+решётке — точность LUB/GLB против независимого оракула, монотонность, поглощение):
+коммутативность, ассоциативность, монотонность, идемпотентность, `LCA(a,Any)=Any`,
+`GCD(a,Any)=a`.
 
-**Incomparable pairs (GCD = null):** Any pair drawn from distinct non-numeric branches:
-- Bool vs Char, Bool vs Ip, Char vs Ip
-- Bool vs any numeric, Ip vs any numeric
-- Char vs any numeric
-- None vs anything except Any and None
+**Несравнимые пары (GCD = OPEN)**: любая пара из разных не-числовых ветвей
+(Bool/Char/Ip между собой и против чисел), `None` против всего, кроме Any и None.
 
-Examples: GCD(Bool, I32) = null. GCD(Char, Real) = null. LCA(Bool, I32) = Any. LCA(U16, I32) = I32. GCD(U16, I32) = U16. LCA(U32, I16) = I48. GCD(U32, I16) = U12.
+Примеры: `GCD(Bool, I32) = OPEN`; `LCA(U16, I32) = I32`; `GCD(U16, I32) = U16`;
+`LCA(U32, I16) = I48`; `GCD(U32, I16) = U12`; `LCA(I8, U8) = I12`; `GCD(I8, U8) = U4`.
 
-### 1.4 Fits Predicate
+### 1.4 Предикаты Fits и Comparable
 
-Fits(a, b) = "a ≤ b" = a can be implicitly converted to b. Equivalent to LCA(a, b) = b.
+`Fits(a, b)` = «a ≤ b» = неявная конверсия допустима ⟺ `LCA(a,b) = b`. Таблица
+`s_fitsTable` (`bool[23 × 23]`), брутфорс из `CanBePessimisticConvertedTo`.
+`Fits(None, Any) = true`; `Fits(None, x) = false` для прочих x ≠ None.
 
-Also precomputed as `bool[19 x 19]` table.
-
-Special case: Fits(None, Any) = true. Fits(None, x) = false for x != None, x != Any.
-
----
-
-## 2. Constraint Language
-
-### 2.1 Variables
-
-V = {g_0, g_1, ..., g_{n-1}} is a set of **groups**. Each AST node and each named variable is assigned to a group. Groups are managed by a union-find data structure.
-
-### 2.2 Group State
-
-Each group g carries an interval and metadata:
-
-- **desc[g]** in L u {OPEN}: lower bound (descendant constraint). OPEN = unconstrained.
-- **anc[g]** in L u {OPEN}: upper bound (ancestor constraint). OPEN = unconstrained.
-- **pref[g]** in L u {OPEN}: preferred resolution type (soft hint, not a hard constraint).
-- **comparable[g]** in {true, false}: whether g must resolve to a comparable type.
-
-The interval [desc[g]..anc[g]] represents the set {t in L : desc[g] ≤ t ≤ anc[g]}.
-
-### 2.3 Constraint Forms
-
-1. **Identity:** g_i ≡ g_j -- modeled by `Unite(i, j)`. Merges two groups into one.
-2. **Concrete:** desc[g] = anc[g] = t -- pins a group to an exact type.
-3. **Interval:** desc[g] = d, anc[g] = a, pref[g] = p -- sets bounds on a fresh group.
-4. **Subtyping edge:** g_i ≤ g_j -- directed constraint, processed during Propagate.
-5. **Generic constraint:** applies desc, anc, and comparable from a function signature's generic parameter bounds to a group.
-6. **Preferred:** pref[g] = p -- soft hint; does not affect satisfiability.
-
-### 2.4 Satisfiability
-
-A group g is **satisfiable** iff:
-- desc[g] = OPEN, or anc[g] = OPEN, or Fits(desc[g], anc[g]).
-
-A constraint system is satisfiable iff all groups are satisfiable and all subtyping edges are satisfiable after propagation.
+`s_comparableTable` (`bool[23]`) — снимок `StatePrimitive.IsComparable`
+(numeric ∪ {Char}); используется на фазе Resolve (§6.1, паритет-фикс §8.1).
 
 ---
 
-## 3. Gate (Precondition)
+## 2. Constraint-язык
 
-SPS correctness depends on the expression containing ONLY primitive types. The gate is a two-level filter:
+### 2.1 Переменные
 
-### 3.1 Level 1: AST Structure Gate (`IsSimpleBody`)
+V = {g₀, …, g_{n-1}} — множество **групп**. Каждый AST-узел и каждая именованная
+переменная приписаны к группе. Группы объединяются union-find'ом (`Find` с path
+compression, `Unite` по рангу).
 
-Determined during the AST numbering pass (`SetNodeNumberVisitor`). Sets `IsSimpleBody = false` on first non-primitive node. Zero overhead for non-simple expressions (SPS is never entered).
+### 2.2 Состояние группы
 
-**Accepted node types (exhaustive):**
-- `GenericIntSyntaxNode` -- integer literals
-- `IpAddressConstantSyntaxNode` -- IP address literals
-- `NamedIdSyntaxNode` -- variable references and constants
-- `BinOperatorSyntaxNode` -- binary operators
-- `UnaryOperatorSyntaxNode` -- unary operators
-- `FunCallSyntaxNode` -- function calls
-- `IfThenElseSyntaxNode` -- conditional expressions
-- `IfCaseSyntaxNode` -- if-else branch (child of IfThenElseSyntaxNode)
-- `ComparisonChainSyntaxNode` -- chained comparisons (a < b < c)
-- `EquationSyntaxNode` -- variable definitions (y = expr)
-- `VarDefinitionSyntaxNode` -- type-annotated variable declarations
-- `SyntaxTree` -- root node
-- `ConstantSyntaxNode` -- ONLY if output type is numeric, Bool, Real, Char, or Ip
+Каждая группа несёт интервал и метаданные (struct `Group`, ~12 байт):
 
-**Rejected (any one causes IsSimpleBody = false):**
-- `ArraySyntaxNode`, `StructInitSyntaxNode`, `AnonymFunctionSyntaxNode`, `SuperAnonymFunctionSyntaxNode`, `StructFieldAccessSyntaxNode`, `DefaultValueSyntaxNode`, `TypeDeclarationSyntaxNode`, `SafeFieldAccessSyntaxNode`, `SafeGetElementSyntaxNode`, `CoalesceSyntaxNode`, `PipeOperatorSyntaxNode`, and any other node type not in the accepted list
-- `ConstantSyntaxNode` with non-primitive output type (e.g., string literals, array constants)
+- `Desc ∈ L ∪ {OPEN}` — нижняя граница (OPEN = 0xFF — не ограничена);
+- `Anc ∈ L ∪ {OPEN}` — верхняя граница;
+- `Pref ∈ L ∪ {OPEN}` — hint резолюции (мягкий, на выполнимость не влияет);
+- `Comparable ∈ {true,false}` — группа обязана резолвиться в comparable-тип;
+- `Parent`, `Rank` — union-find.
 
-### 3.2 Level 2: Semantic Gate (in `SolveOrNull`)
+### 2.3 Формы constraint'ов
 
-Even when IsSimpleBody = true, SPS performs additional checks that cause it to return null:
+1. **Тождество**: `gᵢ ≡ gⱼ` — `Unite(i, j)`.
+2. **Конкретный тип**: `SetConcrete(g, t)` — интервал-точка `[t..t]`.
+3. **Интервал**: `SetInterval(g, d, a, p)`.
+4. **Subtyping-ребро**: `gᵢ ≤ gⱼ` — `AddEdge`, обрабатывается в Propagate.
+5. **Generic constraint**: `ApplyGenericConstraint(g, c)` — границы и comparable из
+   `GenericConstrains` сигнатуры.
+6. **Preferred**: `pref[g] = p` — hint.
 
-1. **Apriori types:** All externally-provided variable types must be primitive (numeric, Bool, Char, Ip, Any, or Empty).
-2. **Type annotations:** Variable definition type syntax must be either empty or a named primitive type. Recognition uses a case-insensitive set: {int8, int16, int, int32, int64, byte, uint8, uint16, uint, uint32, uint64, real, bool, char, ip, any}.
-3. **Function signatures:** Each function used in the expression must be one of:
-   - `PureGenericFunctionBase` with exactly 1 generic constraint (single type parameter T with bounds).
-   - `IConcreteFunction` with all argument and return types being primitive.
-4. **Top-level constructs:** `UserFunctionDefinitionSyntaxNode` and `TypeDeclarationSyntaxNode` cause immediate rejection.
-5. **Unknown node types:** The `default` branch in `WalkAndCheck` returns false for any node type not explicitly handled.
+### 2.4 Выполнимость
 
-### 3.3 Gate Exhaustiveness Argument
-
-The gate is a NECESSARY condition for SPS correctness. SPS produces incorrect results if any composite type (array, struct, optional, function) enters the constraint system, because:
-- Composite types require **variance** (covariant arrays, contravariant function args) which SPS does not model.
-- Composite types require **structural decomposition** (array element types, struct fields) which SPS does not model.
-- The union-find merge semantics (bidirectional equality) is only correct for primitive types; composite types need directional subtyping with structural recursion.
-
-Level 1 catches all composite-producing AST nodes. Level 2 catches composite types entering via function signatures or external type annotations. Together, they ensure no composite type enters the constraint system.
+Группа выполнима ⟺ `Desc = OPEN ∨ Anc = OPEN ∨ Fits(Desc, Anc)`. Нарушение
+где бы то ни было ⇒ флаг `_failed` (fail-fast, §5).
 
 ---
 
-## 4. Build Phase
+## 3. Gate (предусловие)
 
-Single fused AST pass: `WalkAndCheck` performs gate checking and constraint generation simultaneously. On first non-primitive node, returns null immediately (no wasted work).
+Корректность SPS требует, чтобы в constraint-систему не попал ни один composite-тип.
+Gate — двухуровневый фильтр плюс условие на call-site.
 
-### 4.1 Operations
+### 3.0 Call-site
 
-**NewGroup() -> g:** Allocates a fresh group with desc=OPEN, anc=OPEN, pref=OPEN, comparable=false.
+`RuntimeBuilderHelper.SolveBodyOrThrow` вызывает `SimplePrimitiveSolver.SolveOrNull`
+только при `namedTypeFieldRegistry == null && syntaxTree.IsSimpleBody`. Наличие
+объявленных именованных типов сразу отключает SPS.
 
-**GetOrCreateNodeGroup(nodeId) -> g:** Returns the group for AST node `nodeId`, creating one if needed. Each AST node maps to at most one group.
+### 3.1 Уровень 1: AST-gate (`IsSimpleBody`)
 
-**GetOrCreateVarGroup(name) -> g:** Returns the group for variable `name`, creating one if needed. Case-insensitive lookup.
+Определяется на проходе нумерации (`SetNodeNumberVisitor.CheckSimple`) — ноль
+дополнительной стоимости. Первый неподходящий узел сбрасывает `IsSimpleBody = false`.
 
-**SetConcrete(g, t):** Pins group g to exact type t.
-- Let r = Find(g) (union-find root).
-- **Validation:** If desc[r] != OPEN and NOT Fits(desc[r], t): fail. If anc[r] != OPEN and NOT Fits(t, anc[r]): fail.
-- Set desc[r] = t, anc[r] = t.
-- Note: does NOT update pref. A concrete type is its own resolution.
+**Принимаются** (исчерпывающий список из `CheckSimple`): `GenericIntSyntaxNode`,
+`IpAddressConstantSyntaxNode`, `NamedIdSyntaxNode`, `BinOperatorSyntaxNode`,
+`UnaryOperatorSyntaxNode`, `FunCallSyntaxNode`, `IfThenElseSyntaxNode`,
+`IfCaseSyntaxNode`, `ComparisonChainSyntaxNode`, `EquationSyntaxNode`,
+`VarDefinitionSyntaxNode`, `SyntaxTree`; `ConstantSyntaxNode` — только если
+`OutputType` numeric / Bool / Real / Char / Ip.
 
-**SetInterval(g, d, a, p):** Sets interval bounds on group g.
-- Let r = Find(g).
-- Set desc[r] = d, anc[r] = a.
-- If pref[r] = OPEN: set pref[r] = p.
-- **Precondition:** Called only on groups that have not had prior SetConcrete or SetInterval calls (fresh groups from literal processing). No cross-validation performed.
+**Отвергается** всё остальное (default-ветка): `ArraySyntaxNode`,
+`StructInitSyntaxNode`, `AnonymFunctionSyntaxNode`, `SuperAnonymFunctionSyntaxNode`,
+`StructFieldAccessSyntaxNode`, `DefaultValueSyntaxNode`, `TypeDeclarationSyntaxNode`
+и любой не перечисленный тип узла; текстовые/массивные константы.
 
-**Unite(a, b):** Union-find merge.
-- Let ra = Find(a), rb = Find(b). If ra = rb: no-op.
-- Merge by rank: the higher-rank root becomes the new root. On tie, increment rank.
-- **MergeInto(root, other):**
-  - desc[root] = OPEN if both OPEN; otherwise LCA(desc[root], desc[other]) treating OPEN as identity.
-  - anc[root] = OPEN if both OPEN; otherwise GCD(anc[root], anc[other]) treating OPEN as identity. If GCD returns null (incompatible ancestors): **fail**.
-  - After merge: if desc[root] != OPEN and anc[root] != OPEN and NOT Fits(desc[root], anc[root]): **fail**.
-  - comparable[root] = comparable[root] OR comparable[other].
-  - pref[root] = pref[root] if not OPEN, else pref[other].
+### 3.2 Уровень 2: семантический gate (внутри `SolveOrNull` / `WalkAndCheck`)
 
-**ApplyGenericConstraint(g, c):** Applies generic function bounds to group g.
-- Let r = Find(g).
-- If c has descendant d: desc[r] = LCA(desc[r], OrdOf(d)), treating OPEN as identity.
-- If c has ancestor a: anc[r] = GCD(anc[r], OrdOf(a)), treating OPEN as identity.
-- If c.IsComparable: comparable[r] = true.
+Даже при `IsSimpleBody = true` SPS возвращает `null`, если:
 
-**AddEdge(from, to):** Records a directed subtyping edge from -> to, processed in Propagate.
+1. **Apriori-типы**: `AllAprioriTypesArePrimitive` — все внешние типы переменных
+   numeric / Bool / Char / Ip / Any / Empty.
+2. **Аннотации типов**: `IsSimpleTypeSyntax` — синтаксис типа пуст или именованный
+   примитив. Распознавание ДЕЛЕГИРОВАНО `TypeSyntaxResolver.TryResolvePrimitiveKeyword`
+   — единый реестр ключевых слов с алиасами (`int ≡ int32`, `byte ≡ uint8`,
+   `sbyte ≡ int8`, `float64 ≡ real`, плюс `int8/int16/int64`, `uint*`, `real`,
+   `bool`, `char`, `ip`, `any`, `float32`, `text`). Оговорка: `text` проходит
+   keyword-проверку, но `ToPrimitiveOrd(Text) = OPEN` ⇒ `SetConcreteChecked`
+   выставляет `_failed` — SPS воздерживается корректно.
+3. **Float-family gate диалекта**: при
+   `FloatFamilySupport = AccordingToRealBehaviour` аннотации `float32`/`float64`
+   (`IsFloatFamilyKeyword`) заставляют SPS вернуть `null` ДО резолюции типа — чтобы
+   полный TIC выбросил штатную parse-ошибку о недоступности float-семейства в этом
+   диалекте, а не SPS молча преуспел или упал не тем кодом.
+4. **Сигнатуры функций**: `IsSimpleSignature` — либо `PureGenericFunctionBase` ровно
+   с одним constraint'ом, либо `IConcreteFunction` со всеми типами из
+   `IsPrimitiveBaseType` (Bool, Char, Ip, **Any**, Real, **Float32**, Int8..Int64,
+   UInt8..UInt64).
+5. **Top-level**: `UserFunctionDefinitionSyntaxNode` и `TypeDeclarationSyntaxNode` —
+   немедленный отказ.
+6. **Неизвестные узлы**: default-ветка `WalkAndCheck` возвращает false.
 
-### 4.2 Constraint Generation by Node Type
+### 3.3 Аргумент полноты gate'а
 
-**GenericIntSyntaxNode (integer literals):**
-
-Integer literals generate interval constraints based on value range and notation.
-
-*Hex/binary notation (`IsHexOrBin = true`):*
-- Ancestor is always I96 (not Real -- hex/bin literals are integer-only).
-- Preferred is I32 (for values up to int.MaxValue) or I64 (for larger values).
-- Descendant is the narrowest type that can hold the value.
-- Negative values: desc = I16 (>= short.MinValue), I32 (>= int.MinValue), or concrete I64.
-- Positive values: desc = U8 (≤ 255), U12 (≤ 32767), U16 (≤ 65535), U24 (≤ int.MaxValue), U32 (≤ uint.MaxValue), U48 (≤ long.MaxValue), or concrete U64.
-
-*Decimal notation (`IsHexOrBin = false`):*
-- Ancestor is always Real (decimals can promote to floating-point).
-- Preferred is the dialect's `IntegerPreferredType` (typically I32).
-- Descendant computed identically to hex/binary positive case.
-- Negative values: desc = I16 (>= short.MinValue), I32 (>= int.MinValue), or I64.
-
-Operation: `SetInterval(nodeGroup, desc, anc, pref)`.
-
-**IpAddressConstantSyntaxNode:**
-Operation: `SetConcrete(nodeGroup, Ip)`.
-
-**ConstantSyntaxNode:**
-Gate: node already validated as primitive by Level 1.
-Operation: `SetConcrete(nodeGroup, ToPrimitiveOrd(outputType))`.
-
-**NamedIdSyntaxNode (variable references and constants):**
-1. If the name is already known as a variable: `Unite(varGroup, nodeGroup)`. Mark as Variable.
-2. Else if the name matches a constant in the constant registry: `SetConcrete(nodeGroup, constantType)`. Mark as Constant.
-3. Else (new variable): `Unite(varGroup, nodeGroup)`. Mark as Variable.
-
-**BinOperatorSyntaxNode:**
-Gate: signature must pass IsSimpleSignature.
-Children walked first (recursive WalkAndCheck).
-
-- *PureGenericFunctionBase (single constraint c):*
-  - **Pow special case:** If operator is Pow AND `IsPowForcedReal(rightOperand)`: set `SetInterval(resultGroup, Real, Real, OPEN)`, then `Unite(leftGroup, resultGroup)`, `Unite(rightGroup, resultGroup)`. Record generic group.
-  - **Normal case:** `ApplyGenericConstraint(resultGroup, c)`, `Unite(leftGroup, resultGroup)`, `Unite(rightGroup, resultGroup)`. Record generic group.
-- *IConcreteFunction:* `SetConcrete(leftGroup, argType[0])`, `SetConcrete(rightGroup, argType[1])`, `SetConcrete(resultGroup, returnType)`.
-
-**UnaryOperatorSyntaxNode:**
-Gate: signature must pass IsSimpleSignature.
-Child walked first.
-
-- *PureGenericFunctionBase:* `ApplyGenericConstraint(resultGroup, c)`, `Unite(operandGroup, resultGroup)`. Record generic group.
-- *IConcreteFunction:* `SetConcrete(operandGroup, argType[0])`, `SetConcrete(resultGroup, returnType)`.
-
-**FunCallSyntaxNode:**
-Gate: signature must pass IsSimpleSignature.
-All args walked first.
-
-- *PureGenericFunctionBase:*
-  - **Pow special case (function-call form):** same as binary Pow -- force Real on all args + result.
-  - **Normal case:** `ApplyGenericConstraint(resultGroup, c)`, then `Unite(argGroup[i], resultGroup)` for each arg. Record generic group.
-- *IConcreteFunction:* `SetConcrete(argGroup[i], argType[i])` for each arg, `SetConcrete(resultGroup, returnType)`.
-
-**IfThenElseSyntaxNode:**
-All conditions and branch expressions walked first.
-- Each condition: `SetConcrete(conditionGroup, Bool)`.
-- Each branch expression: `AddEdge(branchGroup, resultGroup)`.
-- Else expression: `AddEdge(elseGroup, resultGroup)`.
-
-**ComparisonChainSyntaxNode (a < b < c, a == b != c, etc.):**
-All operands walked first.
-For each operator at position i:
-- Determine constraint: equality operators (==, !=) use `GenericConstrains.Any` (no comparable). Comparison operators (<, >, <=, >=) use `GenericConstrains.Comparable`.
-- Apply comparable flag to operand[i]'s group if needed.
-- `Unite(operandGroup[i], operandGroup[i+1])`.
-- Note: transitive chaining through union-find -- in `a < b < c`, all three operands end up in the same group.
-- Result: `SetConcrete(resultGroup, Bool)`.
-
-**EquationSyntaxNode (y = expr):**
-Gate: type annotation (if present) must be simple type syntax.
-Expression walked first.
-1. If type annotation present: resolve to primitive type, `SetConcrete(varGroup, resolvedType)`.
-2. **Preferred propagation (SetDef):** If expr group is concrete (desc = anc), propagate as preferred to var group: if pref[varRoot] = OPEN, set pref[varRoot] = desc[exprRoot].
-3. `AddEdge(exprGroup, varGroup)`.
-
-**VarDefinitionSyntaxNode:**
-Gate: type syntax must be simple.
-Resolve to primitive type, `SetConcrete(varGroup, resolvedType)`.
-
-**UserFunctionDefinitionSyntaxNode, TypeDeclarationSyntaxNode:**
-Immediate rejection (return null).
+Gate — необходимое условие корректности: composite-типы требуют вариантности и
+структурной декомпозиции, которых SPS не моделирует, а bidirectional-семантика
+`Unite` корректна только для примитивов (§7). Уровень 1 отсекает все
+composite-порождающие AST-узлы; уровень 2 — composite-типы, приходящие через
+сигнатуры, аннотации и apriori-типы. Вместе они гарантируют: в систему попадают
+только элементы L.
 
 ---
 
-## 5. Propagate Phase
+## 4. Фаза Build
 
-Fixed-point iteration over directed edges. Computes the tightest intervals consistent with all subtyping edges.
+Единый слитый AST-проход `WalkAndCheck`: gate-проверка и генерация constraint'ов
+одновременно; первый неподходящий узел — немедленный `null` без лишней работы.
+Побочный эффект: резолвленные сигнатуры кэшируются на syntax-узлах
+(`ResolvedSignature`) — полный TIC при fallback'е их переиспользует.
 
-### 5.1 Transfer Function
+### 4.1 Операции
 
-For each edge (from, to) where from and to are resolved to their union-find roots:
+**NewGroup() → g** — свежая группа: Desc=Anc=Pref=OPEN, Comparable=false.
 
-If from and to are the same root: skip (edge is within a unified group).
+**GetOrCreateNodeGroup(nodeId) / GetOrCreateVarGroup(name)** — группа AST-узла /
+переменной (имена case-insensitive).
 
-Otherwise, apply all six transfer rules:
+**SetConcrete(g, t)**: валидация против существующих границ
+(`Fits(Desc,t)`, `Fits(t,Anc)`, иначе `_failed`), затем `Desc = Anc = t`. Pref не
+трогается — конкретный тип сам себе резолюция. **SetConcreteChecked** дополнительно
+фейлит на `t = OPEN` (непримитивный `FunnyType`).
 
-**T1. Push desc (from -> to):** If desc[from] != OPEN:
-- to.desc <- LCA(to.desc, from.desc), treating OPEN as identity.
+**SetInterval(g, d, a, p)**: `Desc = d, Anc = a`; Pref — только в пустой слот.
+Предусловие: вызывается на свежих группах (литералы), кросс-валидации нет.
 
-**T2. Pull anc (to -> from):** If anc[to] != OPEN:
-- from.anc <- GCD(from.anc, anc[to]), treating OPEN as identity. If GCD = null: no change (deferred to Resolve for failure detection).
+**Unite(a, b)**: union-find merge по рангу + `MergeInto(root, other)`:
+- `Desc := LCA(Desc_root, Desc_other)` (OPEN — нейтраль);
+- `Anc := GCD(Anc_root, Anc_other)`; GCD = OPEN ⇒ **`_failed`** (несовместимые
+  верхние границы, например I96 против Bool);
+- пост-проверка `Fits(Desc, Anc)` ⇒ иначе **`_failed`**;
+- `Comparable := OR`; `Pref` — first-wins (пустой слот заполняется).
 
-**T3. Concrete desc pull (to -> from):** If to.desc != OPEN AND to.desc = to.anc (to is concrete):
-- from.desc <- LCA(from.desc, to.desc), treating OPEN as identity.
-- Rationale: if the target is pinned to type t, the source must be at least t (since from ≤ to and to = t means from ≤ t, and since from's value flows into to, from must produce a type that is ≤ t; but also t ≤ from because to being concrete means from must be at least t for the edge to be satisfiable with from's desc). This mirrors TIC's Destruction(StatePrimitive ancestor, ConstraintsState descendant).
+**ApplyGenericConstraint(g, c)**: `Desc := LCA(·, c.Descendant)`,
+`Anc := GCD(·, c.Ancestor)` (GCD-null ⇒ `_failed`), `Comparable |= c.IsComparable`.
 
-**T4. Propagate anc (from -> to):** If anc[from] != OPEN:
-- to.anc <- GCD(to.anc, anc[from]), treating OPEN as identity. If GCD = null: no change.
-- Note: This rule has no direct TIC counterpart. It collapses what would be separate Push + Destruction phases in TIC. Correct for primitives because primitive types have no variance (no structural components to recurse into).
+**AddEdge(from, to)** — направленное subtyping-ребро, обрабатывается в Propagate.
 
-**T5. Comparable (bidirectional):** If comparable[from] AND NOT comparable[to]: set comparable[to] = true. Symmetric.
+### 4.2 Генерация constraint'ов по узлам
 
-**T6. Preferred (bidirectional):** If pref[from] != OPEN AND pref[to] = OPEN: set pref[to] = pref[from]. Symmetric.
+**GenericIntSyntaxNode** — бины идентичны полному TIC
+(`TicSetupVisitor.Visit(GenericIntSyntaxNode)`, см. `TicPreferred.md` §2.1-2.2):
 
-### 5.2 Loop Invariant
+*Десятичные* (`SetupDecimal` / `SetupDecimalPositive`): ancestor Real; desc
+`U4`(≤127) / `U8` / `U12` / `U16` / `U24`(≤int.Max) / `U32` / `U48`; Pref — диалект
+(`_preferredIntOrd`), с промоушеном в **I64** для значений > int.MaxValue;
+`> long.MaxValue` — конкретный U64. Отрицательные: desc `I8` / `I16` / `I32`
+(Pref диалект) / `I64` (Pref I64 — ниже int.MinValue).
 
-For each group g across iterations:
-- desc[g] is **monotonically non-decreasing** in L (only replaced by LCA, which is ≥ both inputs).
-- anc[g] is **monotonically non-increasing** in L (only replaced by GCD, which is ≤ both inputs).
-- comparable[g] is monotonically non-decreasing (false -> true, never true -> false).
-- pref[g] is write-once (OPEN -> value, never changed after).
+*Hex/bin* (`SetupHexBin` / `SetupHexBinPositive`): ancestor `I96` (не Real —
+битовые литералы); те же desc-бины `U4..U48`, Pref I32/I64 по величине;
+отрицательные — `[I8|I16|I32 .. I64, P=I32]`, ниже int.MinValue — конкретный I64.
 
-Intervals only shrink: [desc..anc] can only narrow or remain the same.
+**IpAddressConstantSyntaxNode**: `SetConcrete(g, Ip)`.
 
-### 5.3 Termination
+**ConstantSyntaxNode**: `SetConcreteChecked(g, ToPrimitiveOrd(OutputType))` (уровень 1
+уже проверил примитивность).
 
-**Potential function:** Phi = Sum over all groups g of (rank(anc[g]) - rank(desc[g])), where rank(OPEN_anc) = 18 (maximal), rank(OPEN_desc) = 0 (minimal).
+**NamedIdSyntaxNode** (`SetupNamedId`): имя уже известно как переменная →
+`Unite(varGroup, nodeGroup)`; иначе константа из реестра → `SetConcreteChecked`;
+иначе новая переменная → `Unite`. Классификация пишется в `node.IdType`.
 
-- Each productive iteration (changed = true) strictly decreases Phi by at least 1.
-- Phi >= 0 (or the system has failed, i.e., desc > anc for some group).
-- **Upper bound:** Phi_initial <= |G| * 18 where |G| is the number of groups.
-- **Per-iteration bound:** Each iteration processes |E| edges, each capable of decreasing Phi.
-- **Maximum iterations:** bounded by |E| * h where h = lattice height (7 for the longest chain U8 -> I16 -> ... -> Real -> Any). Engineering safety cap: 20.
+**BinOperatorSyntaxNode / UnaryOperatorSyntaxNode / FunCallSyntaxNode**: gate
+`IsSimpleSignature`, дети обходятся первыми. Для `PureGenericFunctionBase` —
+`ApplyGenericConstraint(resultGroup, Constrains[0])` + `Unite` всех аргументов с
+result-группой (result-группа служит generic-группой — без аллокаций); группа
+записывается в `_callGenericGroup[orderNumber]`. Для `IConcreteFunction` —
+`SetConcreteChecked` на все аргументы и результат. Pow — спецслучай (§10).
 
-### 5.4 Note on Satisfiability
+**IfThenElseSyntaxNode**: условия — `SetConcrete(Bool)`; каждая ветвь и else —
+`AddEdge(branchGroup, resultGroup)`.
 
-Propagate does NOT check desc ≤ anc after each transfer step. Unsatisfiable intermediate states are harmless because:
-1. LCA on an unsatisfiable pair still produces a valid ordinal (the table is total on L).
-2. GCD on an incompatible pair returns OPEN (null), and the transfer rule performs no change.
-3. Resolve (Phase 3) catches all unsatisfiable intervals and returns null.
+**ComparisonChainSyntaxNode** — §9.
 
-This avoids branching in the inner loop.
+**EquationSyntaxNode**: аннотация (если есть) → `SetConcreteChecked(varGroup, тип)`
+(float-family gate §3.2 — до резолюции); **SetDef-seeding Preferred**: если
+expr-группа конкретна (`Desc = Anc ≠ OPEN`), её тип пишется в `Pref` var-группы
+(пустой слот) — зеркало `GraphBuilder.SetDef`; затем `AddEdge(exprGroup, varGroup)`.
 
----
-
-## 6. Resolve Phase
-
-After propagation reaches a fixed point, each group is resolved to a single concrete type.
-
-### 6.1 Decision Procedure
-
-For each group g, let d = desc[g], a = anc[g], p = pref[g], c = comparable[g].
-
-The first matching rule wins:
-
-| # | Condition | Result | Rationale |
-|---|-----------|--------|-----------|
-| 1 | d != OPEN, a != OPEN, d = a | d | Exact: interval is a singleton. |
-| 2 | d != OPEN, a != OPEN, NOT Fits(d, a) | **null** (fail) | Unsatisfiable interval. |
-| 3 | d != OPEN, a != OPEN, p != OPEN, Fits(d, p), Fits(p, a) | p | Preferred fits within satisfiable interval. |
-| 4 | d != OPEN, a != OPEN | a | Covariant resolution: widen to ancestor. |
-| 5 | a != OPEN, p != OPEN, Fits(p, a) | p | No desc; preferred fits under ancestor. |
-| 6 | a != OPEN | a | No desc, no fitting preferred: use ancestor. |
-| 7 | d != OPEN, p != OPEN, Fits(d, p) | p | No anc; preferred fits above desc. |
-| 8 | d != OPEN | d | No anc, no fitting preferred: use desc. |
-| 9 | c = true | Real | Comparable with no other constraint: Real is the default comparable type. |
-| 10 | (otherwise) | Any | Fully unconstrained. |
-
-### 6.2 Covariant Bias
-
-When both desc and anc are present and the interval has multiple inhabitants, resolution picks the **ancestor** (widest type), not the descendant. This matches TIC's `SolveCovariant` semantics: output variables resolve to the widest type the consumer can accept.
-
-Exception: preferred type overrides ancestor when it fits in the interval (rule 3).
-
-### 6.3 Output Construction
-
-For each AST node and each named variable, the resolved type is looked up via its group. If any group fails to resolve (rule 2), the entire result is null and the caller falls through to full TIC (which produces a proper error message).
-
-For generic function calls, the resolved type of the generic group is recorded as the generic argument, packaged as a `StateRefTo` pointing to a flyweight `TicNode` singleton.
+**VarDefinitionSyntaxNode**: аннотация → `SetConcreteChecked(varGroup, тип)`.
 
 ---
 
-## 7. Unite Lemma (Variable References)
+## 5. Фаза Propagate
 
-### 7.1 Statement
+Итерация до неподвижной точки по направленным рёбрам (`Propagate`). Модель отказа —
+**fail-fast**: любое противоречие немедленно выставляет `_failed`, и `Propagate`
+прерывается (`if (_failed) return`) — недостижимые состояния не досчитываются.
 
-**Lemma.** For primitive-only expressions without variable shadowing, `Unite(var, ref)` produces the same type assignment as TIC's `SetVarRef(var, ref)` (which creates bidirectional edges + later Destruction unification).
+### 5.1 Transfer-функция
 
-### 7.2 Proof Sketch
+Для ребра (from, to), приведённого к union-find-корням (совпали — skip):
 
-1. In TIC, a variable read `x_ref` creates a `RefTo` edge. After Pull and Push, this establishes the bidirectional constraint: x_var ≤ x_ref (from Push desc) and x_ref ≤ x_var (from Pull anc + Destruction).
-2. For primitive types without variance, bidirectional ≤ is equality: if a ≤ b and b ≤ a, then a = b.
-3. Unite(var, ref) eagerly establishes equality (same group), which is the unique fixed point of the bidirectional constraint.
-4. Therefore Unite and TIC's deferred propagation produce the same type assignment for all variable references.
+**T1. Push desc (from → to)**: `NarrowDesc(to, Desc_from)` —
+`Desc_to := LCA(Desc_to, Desc_from)`; пост-проверка `Fits(Desc_to, Anc_to)`,
+нарушение ⇒ `_failed`.
 
-### 7.3 Preconditions
+**T2. Pull anc (to → from)**: `NarrowAnc(from, Anc_to)` —
+`Anc_from := GCD(Anc_from, Anc_to)`; **GCD = OPEN ⇒ `_failed`** (несовместимые
+ancestors); пост-проверка `Fits(Desc_from, Anc_from)` ⇒ иначе `_failed`.
 
-- **No composite types:** Composite types have structural components where variance matters. Array(A) ≤ Array(B) requires A ≤ B (covariant), not A = B.
-- **No variable shadowing:** Each variable name maps to exactly one group.
-- **No mutation:** All variable uses are reads (writes go through SetDef, which uses edges, not Unite).
+**T3. Concrete desc pull (to → from)**: если to конкретна (`Desc_to = Anc_to ≠ OPEN`)
+— `NarrowDesc(from, Desc_to)`. Зеркалит Destruction полного TIC
+(конкретный ancestor уточняет constraint-descendant).
+
+**T4. Propagate anc (from → to)**: `NarrowAnc(to, Anc_from)`. Прямого аналога в TIC
+нет — правило схлопывает Push + Destruction в один шаг; корректно для примитивов
+(нет вариантности и структурных компонент).
+
+*Честная оговорка о полноте (T2/T4 + fail-fast)*: GCD верхних границ двух ветвей может
+быть пуст там, где полный TIC успешно решает выражение через LCA в точке join'а
+(if-else с несравнимыми ancestors ветвей). SPS в этом случае фейлится и воздерживается
+— результат КОРРЕКТЕН (fallback в полный TIC), но не бесплатен: ложное воздержание
+оплачивается полным прогоном TIC и держится на том, что fallback существует. Это
+задокументированная потеря полноты, а не корректности.
+
+**T5. Comparable (двунаправленно)**: флаг OR-ится в обе стороны (constraint обязан
+дойти до переменных).
+
+**T6. Preferred (двунаправленно)**: hint переливается в пустой слот в обе стороны.
+
+*Замечание о посылке эквивалентности T6*: полный TIC распространяет Preferred ОДНИМ
+глобальным broadcast'ом (`PropagatePreferred`, первый найденный hint), SPS — локально
+по рёбрам. Стратегии совпадают, только пока в выражении фактически один hint
+(или все совпадают) — что для примитивных выражений сегодняшних источников hint'ов
+верно, но эродирует с ростом числа источников (`Specs/Tic/TicTechnicalDebt.md` #7,
+единый глобальный Preferred). При расхождении стратегий первым сломается §8-инвариант
+на выражениях со смешанными hint'ами — паритетные пины §8.3 обязаны это поймать.
+
+### 5.2 Инвариант цикла
+
+- `Desc` монотонно не убывает (заменяется только LCA-ом, который ≥ обоих входов);
+- `Anc` монотонно не возрастает (только GCD);
+- `Comparable` — false → true, обратно никогда;
+- `Pref` — write-once (OPEN → значение).
+
+Интервалы только сужаются.
+
+### 5.3 Терминация
+
+**Потенциал**: Φ = Σ_g (rank(Anc_g) − rank(Desc_g)), где rank — высота элемента в L,
+rank(OPEN_anc) = **22** (максимум — |L|−1), rank(OPEN_desc) = 0.
+
+- Каждая продуктивная итерация (`changed = true`) уменьшает Φ минимум на 1
+  (либо выставляет `_failed`, что тоже терминально).
+- Φ ≥ 0; Φ_initial ≤ |G| · 22.
+- Высота решётки h = **11** (длиннейшая цепь
+  `U4→I8→I12→I16→I24→I32→I48→I64→I96→F32→Real→Any`).
+- Число итераций ограничено монотонностью; инженерного cap'а НЕТ (`do … while (changed)`)
+  — терминация чисто структурная. На практике 1-3 итерации.
+
+### 5.4 Модель отказа
+
+Fail-fast: `_failed` выставляется в `MergeInto`, `SetConcrete`, `SetConcreteChecked`,
+`ApplyGenericConstraint`, `NarrowDesc`, `NarrowAnc` — и на GCD-null, и на нарушение
+`Fits` после трансфера. `Propagate` проверяет флаг после каждого правила и прерывается.
+`SolveOrNull` после Propagate: `_failed ⇒ null` (fallback в полный TIC, который
+воспроизведёт ошибку со штатным сообщением). Прежняя модель «отложенного отказа»
+(несовместимость терпится до Resolve) больше не действует.
 
 ---
 
-## 8. Safety Invariant
+## 6. Фаза Resolve
 
-### 8.1 Statement
+После неподвижной точки каждая группа резолвится в один конкретный тип.
 
-For all expressions e accepted by the gate:
+### 6.1 Процедура решения
 
-    SPS(e) != null  implies  forall node n in e: SPS(e).type(n) = TIC(e).type(n)
+`ResolveGroup(g)` = `ResolveRoot(Find(g))` + comparable-проверка (ниже).
 
-That is, when SPS produces a result, it agrees with full TIC on every node's type.
+`ResolveRoot`: d = Desc, a = Anc, p = Pref. Первое подходящее правило:
 
-### 8.2 Proof Obligations
+| # | Условие | Результат | Обоснование |
+|---|---------|-----------|-------------|
+| 1 | d,a ≠ OPEN, d = a | d | Интервал-точка. |
+| 2 | d,a ≠ OPEN, ¬Fits(d,a) | **null** | Невыполнимый интервал (страховка — fail-fast §5.4 обычно ловит раньше). |
+| 3 | d,a ≠ OPEN, p ≠ OPEN, Fits(d,p) ∧ Fits(p,a) | p | Hint внутри интервала. |
+| 4 | d,a ≠ OPEN | `RefineAncestor(a, d)` | Ковариантная резолюция к ancestor'у с конкретизацией абстрактного. |
+| 5 | a ≠ OPEN, p ≠ OPEN, Fits(p,a) | p | Нет desc; hint под ancestor'ом. |
+| 6 | a ≠ OPEN | `RefineAncestor(a, OPEN)` | Нет desc и подходящего hint'а. |
+| 7 | p ≠ OPEN, (d = OPEN ∨ Fits(d,p)) | p | Нет anc; hint сам по себе (в т.ч. ЧИСТЫЙ hint без границ — p-return при d = OPEN). |
+| 8 | d ≠ OPEN | d | Нет anc и hint'а. |
+| 9 | Comparable | Real | Дефолтный comparable-тип. |
+| 10 | иначе | Any | Полностью неограничена. |
 
-1. **Gate completeness:** Every expression accepted by the gate is truly primitive-only. No composite type can enter the constraint system. (Argued in Section 3.3.)
+**RefineAncestor(a, d)** — конкретизация абстрактного ancestor'а, desc-обусловленная:
+`I96` (единственный абстрактный, реально доходящий сюда — из
+`GenericConstrains.Integers`, constraint `&`/`|`/`^`/`//`/`~`) резолвится в **I32,
+если `Fits(d, I32)`, иначе I64**. Прочие абстрактные (I48, I24, I12, U48, U24, U12)
+ни один встроенный оператор не объявляет как Anc — до Resolve они не доживают; при
+появлении `Integers3264`/`Integers32` у встроенных операторов метод расширить.
+Соответствует политике 2 конкретизации абстрактных на выходе полного TIC —
+см. `TicAlgorithm_Destruction.md` §6d.
 
-2. **Build equivalence:** The constraints generated by SPS Build (Section 4) are equivalent to the constraints generated by TIC's `TicSetupVisitor` restricted to L. Specifically:
-   - SPS's `Unite(var, ref)` = TIC's `SetVarRef` for primitives (Lemma, Section 7).
-   - SPS's `AddEdge(expr, var)` = TIC's `SetDef` edge.
-   - SPS's `SetConcrete` = TIC's `SetConst`.
-   - SPS's `SetInterval` = TIC's `SetIntConst` restricted to primitive bounds.
-   - SPS's `ApplyGenericConstraint + Unite` = TIC's `SetCall(PureGenericFunction)` for single-constraint generics.
-   - SPS's concrete function setup = TIC's `SetCall(ConcreteFunction)`.
+**Comparable-паритет** (`ResolveGroup`): если группа помечена Comparable, а
+резолвленный тип не comparable (`s_comparableTable[Order]`), возвращается **null** —
+SPS воздерживается, и полный TIC сообщает ошибку семейства FU783 (вместо прежнего
+молчаливого `max(true,false) → Bool`, ловившегося только библиотечным backstop'ом
+FU777). Пин: `CompareOperatorsTest.MinMax_NonComparable_SameErrorOnBothSolverPaths`.
 
-3. **Propagate fixed-point = TIC Pull+Push+Destruction for L:** On the primitive sublattice (no composite types), TIC's three-phase propagation (Pull constraints, Push constraints, Destruction) collapses to the transfer function in Section 5.1. T1 = Push desc. T2 = Pull anc. T3 = Destruction of concrete ancestor into constraint descendant. T4 = forward ancestor propagation (Push anc, which is redundant in full TIC for composites but valid for primitives).
+### 6.2 Ковариантный уклон
 
-4. **Resolve = TIC SolveCovariant for L:** The decision procedure in Section 6 produces the same result as `ConstraintsState.SolveCovariant()` restricted to primitive types.
+При обеих границах и неодноточечном интервале выбирается **ancestor** (широчайший
+тип), не descendant — семантика `SolveCovariant` полного TIC: выходные переменные
+резолвятся в самый широкий тип, приемлемый для потребителя. Исключение — Preferred
+(правило 3).
 
-### 8.3 Empirical Verification
+### 6.3 Конструирование результата (выходной контракт)
 
-37 differential tests: for each test, run both SPS and full TIC on the same expression and assert identical type assignments for all nodes and variables.
+Два независимых выхода; отказ ЛЮБОГО из них — воздержание целиком.
+
+**`BuildResults` → `TypeInferenceResults`**:
+- по `_nodeGroup` каждый AST-узел резолвится и мапится на flyweight-синглтон
+  `s_syntaxNodeSingletons[Order]` (статические `TicNode`; ноль аллокаций на вызов);
+- по `_callGenericGroup` каждая generic-группа вызова регистрируется через
+  `RememberGenericCallArguments` как одноэлементный массив `s_singleRefToArrays[Order]`
+  (`StateRefTo` на flyweight type-variable);
+- результаты оборачиваются в **`SpsTicResults`** — облегчённый `ITicResults` БЕЗ
+  словаря именованных нод: `GetVariableNodeOrNull` возвращает **null**,
+  `GetVariableNode` **бросает** (не должен вызываться при `typesApplied = true`),
+  `GetSyntaxNodeOrNull` читает массив синглтонов, generics пусты.
+
+**`ApplyTypesToSyntaxTree` / `ApplyTypesRecursive`** — SPS проставляет типы В ДЕРЕВО
+сам (в полном TIC это делает `ApplyTiResultEnterVisitor` через namedNodes):
+`OutputType` каждого узла и `VariableType` каждого `NamedIdSyntaxNode` пишутся
+напрямую из резолвленных групп (`s_ordToFunnyType[Order]`). Успех обоих шагов
+выставляет out-флаг **`typesApplied = true`** — сигнал дальнейшему пайплайну, что
+визитор применения типов не нужен. Любая нерезолвленная группа ⇒ `null` и
+`typesApplied = false`.
 
 ---
 
-## 9. Comparison Chain Specifics
+## 7. Лемма Unite (ссылки на переменные)
 
-Comparison chains (`a < b == c >= d`) are syntactic sugar for multiple pairwise comparisons.
+### 7.1 Формулировка
 
-### 9.1 Operator Classification
+**Лемма.** Для примитивных выражений без шэдоуинга переменных `Unite(var, ref)` даёт
+то же назначение типов, что TIC-путь `SetVarRef` (двунаправленные рёбра + унификация
+в Destruction).
 
-- **Equality operators (==, !=):** Use `GenericConstrains.Any` -- no descendant, no ancestor, no comparable flag. All types can be compared for equality.
-- **Comparison operators (<, >, <=, >=):** Use `GenericConstrains.Comparable` -- no descendant, no ancestor, comparable = true. Operands must resolve to a comparable type.
+### 7.2 Набросок доказательства
 
-### 9.2 Constraint Generation
+1. В TIC чтение переменной создаёт RefTo-ребро; после Pull и Push установлено
+   `x_var ≤ x_ref` и `x_ref ≤ x_var`.
+2. Для примитивов (без вариантности) двунаправленное ≤ — это равенство.
+3. `Unite` устанавливает равенство (одна группа) немедленно — единственная неподвижная
+   точка двунаправленного constraint'а.
+4. Следовательно назначения типов совпадают. ∎
 
-For a chain with operators [op_0, ..., op_{k-1}] and operands [o_0, ..., o_k]:
+### 7.3 Предусловия
+
+- **Нет composite-типов** — там вариантность: `Array(A) ≤ Array(B)` требует `A ≤ B`,
+  не `A = B`.
+- **Нет шэдоуинга** — имя ↦ ровно одна группа.
+- **Нет мутаций** — все использования суть чтения (определения идут через
+  `AddEdge`-путь SetDef, не через Unite).
+
+---
+
+## 8. Инвариант безопасности
+
+### 8.1 Формулировка
+
+Для всех выражений e, принятых gate'ом:
 
 ```
-for i in 0..k-1:
-    c = Comparable if op_i is relational, else Any
-    if c.IsComparable: set comparable on operandGroup[i]
-    Unite(operandGroup[i], operandGroup[i+1])
-SetConcrete(resultGroup, Bool)
+SPS(e) ≠ null  ⇒  ∀ узла n из e: SPS(e).type(n) = TIC(e).type(n)
 ```
 
-Because Unite is transitive through union-find, all operands in a chain end up in the same group. The comparable flag from any relational operator propagates to all operands.
+Когда SPS возвращает результат, он совпадает с полным TIC на каждом узле. Направление
+«воздержаться» свободно: SPS(e) = null всегда допустимо.
 
-### 9.3 Result
+Comparable-ось этого инварианта обеспечена резолюционным предикатом §6.1
+(comparable-группа, резолвящаяся в не-comparable тип ⇒ null): обе трассы —
+SPS-eligible и форсированный полный TIC — дают одну и ту же ошибку FU783.
 
-The chain result is always Bool (concrete). Operand type is determined by interval resolution of the unified group.
+### 8.2 Обязательства доказательства
+
+1. **Полнота gate'а** — ни один composite не попадает в систему (§3.3).
+2. **Эквивалентность Build** — constraint'ы SPS совпадают с ограничением
+   `TicSetupVisitor` на L: `Unite(var,ref)` = `SetVarRef` (лемма §7);
+   `AddEdge(expr,var)` = ребро `SetDef` (включая Preferred-seeding);
+   `SetConcrete` = `SetConst`; `SetInterval` = `SetGenericConst` с теми же бинами;
+   `ApplyGenericConstraint + Unite` = `SetCall(PureGeneric)` для 1-constraint
+   generic'ов; конкретные функции = `SetCall(ConcreteFunction)`.
+3. **Fixed point Propagate = Pull+Push+Destruction на L** — T1 = Push desc,
+   T2 = Pull anc, T3 = Destruction конкретного ancestor'а в constraint-descendant,
+   T4 = прямое распространение ancestor'а (валидно только для примитивов);
+   T6-посылка — см. оговорку §5.1.
+4. **Resolve = композиция резолюции полного TIC на L** — процедура §6 обязана
+   совпадать не с голым `SolveCovariant`, а с композицией
+   **`SolveCovariant` ∘ `TicTypesConverter`**: полный TIC сперва резолвит CS
+   (Preferred → ancestor → …), а затем конвертер конкретизирует абстрактные типы на
+   выходе. `RefineAncestor` — это второй член композиции, втянутый в Resolve
+   (`I96 → I32|I64`); правило 7 (p-return) — зеркало ветки
+   `ConstraintsState when Preferred != null` конвертера.
+
+### 8.3 Эмпирическая верификация
+
+Отдельного массива differential-тестов НЕТ (прежнее упоминание «37 differential
+tests» не соответствовало ни одному существующему файлу). Паритет фактически
+пинуется двумя механизмами:
+
+1. **Весь syntax-suite** (`NFun.SyntaxTests`): SPS включён прозрачно на call-site
+   (§3.0), поэтому каждый примитивный тест прогоняет SPS-путь, а каждый тест с
+   composite-типами — полный TIC; расхождение типов или пропущенная ошибка ломает
+   существующие ассерты.
+2. **Явные паритетные пины**:
+   `CompareOperatorsTest.MinMax_NonComparable_SameErrorOnBothSolverPaths` — пары
+   выражений одинаковой семантики, где первая форма SPS-eligible, а вторая (с
+   composite-привязкой `z = [1]`) форсирует полный TIC; ассертится идентичный код
+   ошибки на обеих трассах.
 
 ---
 
-## 10. Pow Special Case
+## 9. Особенности comparison chain
 
-### 10.1 Predicate: IsPowForcedReal
+Цепочки сравнений (`a < b == c >= d`) — сахар над попарными сравнениями
+(`SetupCompareChain`).
 
-`IsPowForcedReal(exponent)` = true iff the exponent is NOT a `GenericIntSyntaxNode` with a non-negative integer value.
+### 9.1 Классификация операторов
 
-Specifically, forced Real when:
-- Exponent is not an integer literal, OR
-- Exponent is an integer literal with a negative value (long < 0).
+- **Равенство (==, !=)**: `GenericConstrains.Any` — без границ и comparable.
+- **Порядок (<, >, <=, >=)**: `GenericConstrains.Comparable` — comparable = true.
 
-When the exponent is a non-negative integer literal, `x ** 3` is integer-preserving (repeated multiplication), so the normal PureGeneric path applies (T * T * ... * T with arithmetical constraints).
+### 9.2 Генерация constraint'ов
 
-### 10.2 Forced Real Behavior
+Для операторов [op₀..op_{k-1}] и операндов [o₀..o_k]: на каждой позиции i comparable
+(если реляционный op) ставится на группу операнда i, затем
+`Unite(group(oᵢ), group(o_{i+1}))`; в конце `SetConcrete(resultGroup, Bool)`.
+Generic-группой служит группа первого операнда пары — без аллокаций. Через
+транзитивность union-find все операнды цепочки оказываются в одной группе;
+comparable-флаг от любого реляционного оператора накрывает всех.
 
-When `IsPowForcedReal` is true:
-- `SetInterval(resultGroup, Real, Real, OPEN)` -- pins to exactly Real.
-- `Unite(leftGroup, resultGroup)`, `Unite(rightGroup, resultGroup)` -- all operands share the Real group.
-- Record generic group for result output.
+### 9.3 Результат
 
-This applies to both binary operator syntax (`x ** y`) and function call syntax (`pow(x, y)`).
-
-### 10.3 Normal Path
-
-When `IsPowForcedReal` is false: standard PureGeneric handling with the function's constraint (typically `[U24..Real]`, i.e., Arithmetical).
+Тип цепочки — всегда Bool (конкретно); тип операндов — интервальная резолюция
+объединённой группы.
 
 ---
 
-## 11. Performance Model
+## 10. Спецслучай Pow
 
-### 11.1 Complexity
+### 10.1 Предикат IsPowForcedReal
 
-- **Build:** O(N) where N = AST node count. Single pass, each node processed once. Union-find operations are effectively O(alpha(N)) ~ O(1) with path compression.
-- **Propagate:** O(E * k) where E = edge count, k = number of iterations. k <= min(20, E * h) where h = 7 (lattice height). In practice k is typically 1-3 for simple expressions.
-- **Resolve:** O(G) where G = group count. One O(1) lookup per group.
-- **Total:** O(N + E * k + G). For typical expressions, E << N and G <= N, so effectively O(N).
+`IsPowForcedReal(exp)` = true ⟺ показатель НЕ является `GenericIntSyntaxNode` с
+неотрицательным целым значением (т.е. не литерал, или отрицательный литерал).
 
-### 11.2 Memory
+### 10.2 Forced Real
 
-- **Groups array:** G * 12 bytes (Group struct: 1 + 1 + 1 + 4 + 1 + 1 bytes, padded to 12).
-- **Node-to-group mapping:** N * 4 bytes (int array).
-- **Call generic groups:** N * 4 bytes (int array, sparse).
-- **Variable-to-group dictionary:** O(V) where V = distinct variable count.
-- **Edges array:** E * 8 bytes (two ints per edge). Initial capacity 16, doubled on overflow.
+При `IsPowForcedReal`: `SetInterval(resultGroup, Real, Real, OPEN)` +
+`Unite` всех операндов с result-группой; generic-группа записывается. Действует и для
+операторной формы (`x ** y`), и для функциональной (`pow(x, y)` —
+`call.Id == CoreFunNames.Pow`).
 
-### 11.3 Cache Behavior
+### 10.3 Обычный путь
 
-- LCA table: 19 * 19 = 361 bytes. GCD table: 361 bytes. Fits table: 361 bytes. Total: ~1 KB -- fits entirely in L1 cache.
-- Group struct at 12 bytes means ~5 groups per cache line. Typical simple expressions have 5-20 groups, fitting in 1-4 cache lines.
-- Flyweight singletons for output TicNodes: 19 syntax node singletons + 19 named node singletons + 19 RefTo arrays. Allocated once statically, reused across all SPS invocations. Zero per-call allocation for output construction.
+Неотрицательный целый показатель — целосохраняющая степень (повторное умножение):
+стандартный PureGeneric-путь с constraint'ом функции (обычно Arithmetical
+`[U24..Real]`).
+
+---
+
+## 11. Модель производительности
+
+### 11.1 Сложность
+
+- **Build**: O(N) — один проход, union-find ~O(α(N)).
+- **Propagate**: O(E · k), k ограничено высотой решётки (h = 11), практически 1-3.
+- **Resolve**: O(G).
+- **Итого**: O(N + E·k + G) ≈ O(N) для типичных выражений.
+
+### 11.2 Память
+
+- Массив групп: G × 12 байт (struct `Group`: 3 байта ординалов + int Parent +
+  Rank + Comparable, с паддингом).
+- `_nodeGroup`, `_callGenericGroup`: N × 4 байта каждый (int, −1 = пусто).
+- Словарь переменных: O(V).
+- Рёбра: E × 8 байт, стартовая ёмкость 16, удвоение.
+
+### 11.3 Кэш
+
+- Таблицы: LCA 529 Б + GCD 529 Б + Fits 529 Б + comparable 23 Б ≈ 1.6 КБ — целиком
+  в L1.
+- Группа 12 байт ⇒ ~5 групп на cache line; типичное выражение — 1-4 линии.
+- Flyweight-синглтоны выхода: 23 syntax-ноды + 23 type-variable RefTo-массива +
+  23 `FunnyType` (`s_ordToFunnyType`) — статическая инициализация, ноль аллокаций
+  на вызов при конструировании результата.

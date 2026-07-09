@@ -48,16 +48,23 @@ public class LcaFunsTest {
             Fun(U64, I64 , U16),
             Any);
 
+    // None joins through the Optional axis: LCA(None, fun) = opt(fun), not Any
     [Test]
     public void PrimitiveAndFunOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Fun(EmptyConstraints, EmptyConstraints), primitive, Any);
+        {
+            var fun = Fun(EmptyConstraints, EmptyConstraints);
+            AssertLca(fun, primitive, primitive.Equals(None) ? Optional(fun) : (ITicNodeState)Any);
+        }
     }
 
     [Test]
     public void PrimitiveAndFunOfPrimitive_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Fun(new[] { Any }, Any), primitive, Any);
+        {
+            var fun = Fun(new[] { Any }, Any);
+            AssertLca(fun, primitive, primitive.Equals(None) ? Optional(fun) : (ITicNodeState)Any);
+        }
     }
 
     [Test]

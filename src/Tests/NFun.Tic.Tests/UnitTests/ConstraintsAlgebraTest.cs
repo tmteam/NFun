@@ -223,6 +223,14 @@ public class ConstraintsAlgebraTest {
     }
 
     [Test]
+    public void Merge_PointAtAny_Optional_CollapsesToAny() {
+        // Canonical form law: opt(Any) = Any is a quotient — the point collapse
+        // [Any..Any, opt] must not materialize StateOptional(Any).
+        var a = ConstraintsState.Of(Any, Any, isOptional: true);
+        Assert.AreEqual(Any, a.MergeOrNull(ConstraintsState.Empty));
+    }
+
+    [Test]
     public void Merge_IncompatibleAncestors_ReturnsNull() =>
         Assert.IsNull(ConstraintsState.Of(anc: Bool).MergeOrNull(ConstraintsState.Of(anc: I32)));
 
@@ -284,6 +292,84 @@ public class ConstraintsAlgebraTest {
         var r1 = a.IntersectIntervalsOrNull(b);
         var r2 = b.IntersectIntervalsOrNull(a);
         Assert.AreEqual(r1?.Ancestor, r2?.Ancestor);
+    }
+
+    #endregion
+
+    #region Comparable domain (debt #31)
+
+    // The comparable domain is {numeric primitives, Char, arr(Char)}. For a state with
+    // an UNSOLVED part the honest membership question is "can it still become a member"
+    // (the ≤/optimistic form) — exact `== Char` is over-strict and rejects satisfiable
+    // states. All four inline sites (MergeOrNull, SimplifyOrNull, SolveContravariant,
+    // FitsInto cmp-cell) must answer per the single rule `IsComparableDomain`;
+    // resolution (SolveContravariant) additionally requires a solved POINT.
+
+    [Test]
+    public void FitsInto_ComparableCell_ArrayWithCharBoundedUnsolvedElement_Fits() {
+        // arr([..Ch]) can still become arr(Ch) — the only comparable composite.
+        // Unsolved targets are accepted conservatively everywhere else in Fit.
+        var target = StateArray.Of(ConstraintsState.Of(anc: Char));
+        Assert.IsTrue(target.FitsInto(ConstraintsState.Of(isComparable: true)));
+    }
+
+    [Test]
+    public void FitsInto_ComparableCell_ArrayWithUnconstrainedElement_Fits() {
+        var target = StateArray.Of(ConstraintsState.Empty);
+        Assert.IsTrue(target.FitsInto(ConstraintsState.Of(isComparable: true)));
+    }
+
+    [Test]
+    public void FitsInto_ComparableCell_SolvedCharArray_Fits() =>
+        Assert.IsTrue(StateArray.Of(Char).FitsInto(ConstraintsState.Of(isComparable: true)));
+
+    [Test]
+    public void FitsInto_ComparableCell_SolvedNonCharArray_False() =>
+        Assert.IsFalse(StateArray.Of(U8).FitsInto(ConstraintsState.Of(isComparable: true)));
+
+    [Test]
+    public void FitsInto_ComparableCell_ArrayWithNonCharBoundedElement_False() {
+        // arr([Bool..]) can never become arr(Ch)
+        var target = StateArray.Of(ConstraintsState.Of(desc: Bool));
+        Assert.IsFalse(target.FitsInto(ConstraintsState.Of(isComparable: true)));
+    }
+
+    [Test]
+    public void Merge_Cmp_ArrayWithCharBoundedUnsolvedElementDescendant_Satisfiable() {
+        // Same shape as the Fit test above must answer the same at the ⊓ cmp-canonicalization
+        var cs = ConstraintsState.Of(
+            desc: StateArray.Of(ConstraintsState.Of(anc: Char)), isComparable: true);
+        Assert.IsNotNull(cs.MergeOrNull(ConstraintsState.Empty));
+    }
+
+    [Test]
+    public void Merge_Cmp_SolvedNonCharArrayDescendant_ReturnsNull() {
+        var cs = ConstraintsState.Of(desc: StateArray.Of(Bool), isComparable: true);
+        Assert.IsNull(cs.MergeOrNull(ConstraintsState.Empty));
+    }
+
+    [Test]
+    public void Simplify_Cmp_ArrayWithCharBoundedUnsolvedElementDescendant_NarrowsToText() {
+        var cs = ConstraintsState.Of(
+            desc: StateArray.Of(ConstraintsState.Of(anc: Char)), isComparable: true);
+        var result = cs.SimplifyOrNull();
+        Assert.IsInstanceOf<StateArray>(result);
+        Assert.AreEqual(Char, ((StateArray)result).Element);
+    }
+
+    [Test]
+    public void SolveContravariant_Cmp_ArrayWithUnsolvedElementDescendant_StaysUnresolved() {
+        // Resolution requires a comparable POINT (solved member of the domain);
+        // arr with an unsolved element is not a point — stay unresolved.
+        var cs = ConstraintsState.Of(
+            desc: StateArray.Of(ConstraintsState.Of(anc: Char)), isComparable: true);
+        Assert.IsInstanceOf<ConstraintsState>(cs.SolveContravariant());
+    }
+
+    [Test]
+    public void SolveContravariant_Cmp_SolvedCharArrayDescendant_ResolvesToText() {
+        var cs = ConstraintsState.Of(desc: StateArray.Of(Char), isComparable: true);
+        Assert.IsInstanceOf<StateArray>(cs.SolveContravariant());
     }
 
     #endregion

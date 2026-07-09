@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using NFun.Exceptions;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
@@ -798,6 +799,15 @@ public class GraphBuilder {
             }
             if (!changed) return;
         }
+#if DEBUG
+        // On a finite-height lattice monotone Push must converge well before the cap.
+        // Reaching the cap means some Push arm is non-monotone (oscillation) — a bug,
+        // not a data condition. Release keeps the old silent-continue for availability.
+        AssertChecks.Panic(
+            $"PushUntilFixpoint did not converge in {maxIterations} iterations on SCC of size {scc.Count}: "
+            + $"[{string.Join(", ", scc.Where(n => n != null).Select(n => n.ToString()))}]. "
+            + "Monotonicity of Push is violated (debt #23).");
+#endif
     }
 
     public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s => s != null)).ToArray();

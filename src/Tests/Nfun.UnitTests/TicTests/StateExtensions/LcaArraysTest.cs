@@ -9,22 +9,32 @@ using static SolvingStates;
 
 public class LcaArraysTest {
 
+    // None joins through the Optional axis: LCA(None, arr) = opt(arr), not Any
     [Test]
     public void PrimitiveAndArrayOfBottoms_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Array(EmptyConstraints), primitive, Any);
+        {
+            var arr = Array(EmptyConstraints);
+            AssertLca(arr, primitive, primitive.Equals(None) ? Optional(arr) : Any);
+        }
     }
 
     [Test]
     public void PrimitiveAndArrayOfComposite_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Array(Array(EmptyConstraints)), primitive, Any);
+        {
+            var arr = Array(Array(EmptyConstraints));
+            AssertLca(arr, primitive, primitive.Equals(None) ? Optional(arr) : Any);
+        }
     }
 
     [Test]
     public void PrimitiveAndArrayOfPrimitive_ReturnsAny() {
         foreach (var primitive in PrimitiveTypes)
-            AssertLca(Array(Any), primitive, Any);
+        {
+            var arr = Array(Any);
+            AssertLca(arr, primitive, primitive.Equals(None) ? Optional(arr) : Any);
+        }
     }
 
     [Test]

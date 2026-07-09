@@ -198,6 +198,71 @@ public class GenericUserFunctionsTest {
     [TestCase("F(x:int)= 1; out = f(1); f(x:real) = 2; ")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 
+    #region Generic identity — independent type params must not conflate (debt #33)
+    // Generic identity = OBJECT identity of the ConstraintsState in the map
+    // (TicResolution.md §2, invariant R1). Two independent unconstrained params
+    // have structurally equal states [∅..∅] and used to conflate first-wins.
+
+    [Test]
+    public void TwoIndependentGenerics_KeepDistinctTypes() {
+        var rt = Funny.Hardcore.Build(
+            "f(a,b) = {p = a[0], q = b[0]}\r s = f([1.0], [/'x'])\r p = s.p\r q = s.q");
+        rt.Run();
+        rt.AssertContains("p", FunnyType.Real);
+        rt.AssertContains("q", FunnyType.Char);
+        Assert.AreEqual(1.0, rt["p"].Value);
+        Assert.AreEqual('x', rt["q"].Value);
+    }
+
+    [Test]
+    public void TwoIndependentGenerics_NoSilentNumericCoercion() {
+        var rt = Funny.Hardcore.Build(
+            "f(a,b) = {p = a[0], q = b[0]}\r s = f([1.0], [2])\r p = s.p\r q = s.q");
+        rt.Run();
+        rt.AssertContains("p", FunnyType.Real);
+        rt.AssertContains("q", FunnyType.Int32);
+        Assert.AreEqual(1.0, rt["p"].Value);
+        Assert.AreEqual(2, rt["q"].Value);
+    }
+
+    [Test]
+    public void ThreeIndependentGenerics_KeepDistinctTypes() {
+        var rt = Funny.Hardcore.Build(
+            "f(a,b,c) = {p = a[0], q = b[0], r = c[0]}\r " +
+            "s = f([1.0], [/'x'], [true])\r p = s.p\r q = s.q\r r = s.r");
+        rt.Run();
+        rt.AssertContains("p", FunnyType.Real);
+        rt.AssertContains("q", FunnyType.Char);
+        rt.AssertContains("r", FunnyType.Bool);
+        Assert.AreEqual(1.0, rt["p"].Value);
+        Assert.AreEqual('x', rt["q"].Value);
+        Assert.AreEqual(true, rt["r"].Value);
+    }
+
+    [Test]
+    public void TwoIndependentGenerics_SameConcreteTypeOnBothArgs_Control() {
+        // Control: both args instantiated with the same type keep working.
+        var rt = Funny.Hardcore.Build(
+            "f(a,b) = {p = a[0], q = b[0]}\r s = f([1], [2])\r p = s.p\r q = s.q");
+        rt.Run();
+        rt.AssertContains("p", FunnyType.Int32);
+        rt.AssertContains("q", FunnyType.Int32);
+        Assert.AreEqual(1, rt["p"].Value);
+        Assert.AreEqual(2, rt["q"].Value);
+    }
+
+    [Test]
+    public void TwoIndependentGenerics_SignatureHasDistinctGenericArgs() {
+        var rt = Funny.Hardcore.Build("f(a,b) = {p = a[0], q = b[0]}\r s = f([1.0], [/'x'])");
+        var f = System.Linq.Enumerable.Single(rt.UserFunctions, u => u.Name == "f");
+        // (T0[], T1[]) → {p:T0; q:T1}: the two arg types carry DIFFERENT generic ids.
+        Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Generic(0)), f.ArgTypes[0]);
+        Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Generic(1)), f.ArgTypes[1]);
+        Assert.AreNotEqual(f.ArgTypes[0], f.ArgTypes[1]);
+    }
+
+    #endregion
+
     #region FloatFamily dialect
     // Generic user function monomorphisation to float32.
 

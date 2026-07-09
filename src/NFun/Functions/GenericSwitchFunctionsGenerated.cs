@@ -4,74 +4,117 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 namespace NFun.Functions {
 public class DivideIntFunction : PureGenericFunctionBase {
-    // GENERATED
+    // HAND-MAINTAINED (was GENERATED): the MIN / -1 edge cannot be expressed by the generic
+    // template writer — see the note in GenericSwitchFunctionsGenerated.tt.
+    // Rule (Specs/Operators.md §Integer overflow): MIN // -1 is the single overflowing case
+    // of integer division — the true quotient |MIN| is not representable. Checked dialect
+    // throws OverflowException, Unchecked wraps to MIN (same rule as negate(MIN)).
+    // Unsigned division can never overflow, so unsigned arms need no dialect dispatch.
     public DivideIntFunction() : base(CoreFunNames.DivideInt, GenericConstrains.Integers, 2) { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
-                                           BaseFunnyType.UInt8 => UInt8Function.Instance,            
-                                           BaseFunnyType.UInt16 => UInt16Function.Instance,            
-                                           BaseFunnyType.UInt32 => UInt32Function.Instance,            
-                                           BaseFunnyType.UInt64 => UInt64Function.Instance,            
-            
-                                           BaseFunnyType.Int8 => Int8Function.Instance,            
-                                           BaseFunnyType.Int16 => Int16Function.Instance,            
-                                           BaseFunnyType.Int32 => Int32Function.Instance,            
-                                           BaseFunnyType.Int64 => Int64Function.Instance,            
+                                           BaseFunnyType.UInt8 => UInt8Function.Instance,
+                                           BaseFunnyType.UInt16 => UInt16Function.Instance,
+                                           BaseFunnyType.UInt32 => UInt32Function.Instance,
+                                           BaseFunnyType.UInt64 => UInt64Function.Instance,
+
+                                           BaseFunnyType.Int8 => context.AllowIntegerOverflow? Int8Function.Instance: Int8CheckedFunction.Instance,
+                                           BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
+                                           BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
         _                   => throw new Exceptions.NFunImpossibleException("Unsupported type for this function")
     };
-      
+
         private class UInt8Function : FunctionWithTwoArgs {
              public static UInt8Function Instance = new ();
              private UInt8Function() : base(CoreFunNames.DivideInt, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
              public override object Calc(object a, object b) => (byte)((byte)a / (byte)b);
         }
-      
+
         private class UInt16Function : FunctionWithTwoArgs {
              public static UInt16Function Instance = new ();
              private UInt16Function() : base(CoreFunNames.DivideInt, FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
              public override object Calc(object a, object b) => (UInt16)((UInt16)a / (UInt16)b);
         }
-      
+
         private class UInt32Function : FunctionWithTwoArgs {
              public static UInt32Function Instance = new ();
              private UInt32Function() : base(CoreFunNames.DivideInt, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
              public override object Calc(object a, object b) => (UInt32)((UInt32)a / (UInt32)b);
         }
-      
+
         private class UInt64Function : FunctionWithTwoArgs {
              public static UInt64Function Instance = new ();
              private UInt64Function() : base(CoreFunNames.DivideInt, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
              public override object Calc(object a, object b) => (UInt64)((UInt64)a / (UInt64)b);
         }
-      
+
+        // Narrow signed arms compute in Int32; the unchecked truncating cast wraps
+        // MIN / -1 back to MIN naturally — that IS the Unchecked-dialect semantics.
         private class Int16Function : FunctionWithTwoArgs {
              public static Int16Function Instance = new ();
              private Int16Function() : base(CoreFunNames.DivideInt, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
              public override object Calc(object a, object b) => (Int16)((Int16)a / (Int16)b);
         }
-      
-      
+
+        private class Int16CheckedFunction : FunctionWithTwoArgs {
+             public static Int16CheckedFunction Instance = new ();
+             public Int16CheckedFunction() : base(CoreFunNames.DivideInt, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
+             public override object Calc(object a, object b){ checked { return (Int16)((Int16)a / (Int16)b); }}
+        }
+
         private class Int8Function : FunctionWithTwoArgs {
              public static Int8Function Instance = new ();
              private Int8Function() : base(CoreFunNames.DivideInt, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
              public override object Calc(object a, object b) => (sbyte)((sbyte)a / (sbyte)b);
         }
-      
+
+        private class Int8CheckedFunction : FunctionWithTwoArgs {
+             public static Int8CheckedFunction Instance = new ();
+             public Int8CheckedFunction() : base(CoreFunNames.DivideInt, FunnyType.Int8, FunnyType.Int8, FunnyType.Int8) { }
+             public override object Calc(object a, object b){ checked { return (sbyte)((sbyte)a / (sbyte)b); }}
+        }
+
+        // Full-width signed arms: the CLR div instruction traps on MIN / -1 even in an
+        // unchecked context, so the Unchecked-dialect wrap (MIN / -1 = MIN) needs an
+        // explicit divisor guard: x / -1 = -x, computed mod 2ⁿ.
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.DivideInt, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
-             public override object Calc(object a, object b) => (Int32)((Int32)a / (Int32)b);
+             public override object Calc(object a, object b) {
+                 var x = (Int32)a; var y = (Int32)b;
+                 return y == -1 ? unchecked(-x) : x / y;
+             }
         }
-      
+
+        private class Int32CheckedFunction : FunctionWithTwoArgs {
+             public static Int32CheckedFunction Instance = new ();
+             public Int32CheckedFunction() : base(CoreFunNames.DivideInt, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
+             public override object Calc(object a, object b){ checked { return (Int32)((Int32)a / (Int32)b); }}
+        }
+
         private class Int64Function : FunctionWithTwoArgs {
              public static Int64Function Instance = new ();
              private Int64Function() : base(CoreFunNames.DivideInt, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
-             public override object Calc(object a, object b) => (Int64)((Int64)a / (Int64)b);
+             public override object Calc(object a, object b) {
+                 var x = (Int64)a; var y = (Int64)b;
+                 return y == -1 ? unchecked(-x) : x / y;
+             }
+        }
+
+        private class Int64CheckedFunction : FunctionWithTwoArgs {
+             public static Int64CheckedFunction Instance = new ();
+             public Int64CheckedFunction() : base(CoreFunNames.DivideInt, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
+             public override object Calc(object a, object b){ checked { return (Int64)((Int64)a / (Int64)b); }}
         }
 }
 public class RemainderFunction : PureGenericFunctionBase {
-    // GENERATED
+    // HAND-MAINTAINED (was GENERATED): the MIN % -1 edge cannot be expressed by the generic
+    // template writer — see the note in GenericSwitchFunctionsGenerated.tt.
+    // Rule: MIN % -1 = 0 — the remainder is always representable, so % never overflows and
+    // needs no dialect dispatch. The CLR rem instruction traps on the full-width MIN % -1
+    // pair (ECMA-335 III.3.55), so Int32/Int64 arms mask it with a divisor guard.
     public RemainderFunction() : base(CoreFunNames.Remainder, GenericConstrains.Numbers, 2) { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
@@ -136,13 +179,21 @@ public class RemainderFunction : PureGenericFunctionBase {
         private class Int32Function : FunctionWithTwoArgs {
              public static Int32Function Instance = new ();
              private Int32Function() : base(CoreFunNames.Remainder, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
-             public override object Calc(object a, object b) => (Int32)((Int32)a % (Int32)b);
+             // x % -1 = 0 for every x — masks the CLR rem trap on MIN % -1.
+             public override object Calc(object a, object b) {
+                 var y = (Int32)b;
+                 return y == -1 ? 0 : (Int32)a % y;
+             }
         }
-      
+
         private class Int64Function : FunctionWithTwoArgs {
              public static Int64Function Instance = new ();
              private Int64Function() : base(CoreFunNames.Remainder, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
-             public override object Calc(object a, object b) => (Int64)((Int64)a % (Int64)b);
+             // x % -1 = 0 for every x — masks the CLR rem trap on MIN % -1.
+             public override object Calc(object a, object b) {
+                 var y = (Int64)b;
+                 return y == -1 ? 0L : (Int64)a % y;
+             }
         }
       
         private class DoubleFunction : FunctionWithTwoArgs {

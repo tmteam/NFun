@@ -355,7 +355,9 @@ public abstract class TicTypesConverter {
                };
 
         private int GetGenericIndexOrThrow(ConstraintsState constraints) {
-            var index = _constrainsMap.IndexOf(constraints);
+            // Generic identity = object identity (TicResolution.md §2, invariant R1):
+            // independent generics may have equal content, so structural Equals conflates.
+            var index = _constrainsMap.IndexOfByReference(constraints);
             if (index == -1)
                 throw new InvalidOperationException("Unknown constraints");
             return index;
@@ -368,8 +370,10 @@ public abstract class TicTypesConverter {
                 {
                     if (StructMatchesByFields(_structGenericMap[i].Struct, str))
                     {
-                        // The wrapper's position in the extended constrains map gives the generic index
-                        index = _constrainsMap.IndexOf(_structGenericMap[i].Wrapper);
+                        // The wrapper's position in the extended constrains map gives the generic
+                        // index. The wrapper is the exact object appended to extendedGenerics —
+                        // identity lookup (§2 contract extends to wrappers).
+                        index = _constrainsMap.IndexOfByReference(_structGenericMap[i].Wrapper);
                         return index >= 0;
                     }
                 }
@@ -421,7 +425,8 @@ public abstract class TicTypesConverter {
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstraintsState constrains:
-                        var index = _constrainsMap.IndexOf(constrains);
+                        // Generic identity = object identity (TicResolution.md §2, invariant R1).
+                        var index = _constrainsMap.IndexOfByReference(constrains);
                         if (index == -1) throw new InvalidOperationException("Unknown constrains");
                         return _argTypes[index];
                     case StateArray array:
@@ -447,7 +452,8 @@ public abstract class TicTypesConverter {
                 {
                     if (StructMatchesByFields(_structGenericMap[i].Struct, str))
                     {
-                        var wrapperIndex = _constrainsMap.IndexOf(_structGenericMap[i].Wrapper);
+                        // Wrapper is the exact object appended to extendedGenerics — identity lookup.
+                        var wrapperIndex = _constrainsMap.IndexOfByReference(_structGenericMap[i].Wrapper);
                         if (wrapperIndex >= 0)
                         {
                             concreteType = _argTypes[wrapperIndex];

@@ -58,6 +58,23 @@ internal static class Helper {
         return -1;
     }
 
+    /// <summary>
+    /// Index of the first element that is the SAME OBJECT as <paramref name="searched"/>
+    /// (ReferenceEquals), or -1. Use when list membership means object identity —
+    /// e.g. generic identity of a ConstraintsState in a constrains map
+    /// (TicResolution.md §2: two independent generics may be structurally equal).
+    /// </summary>
+    public static int IndexOfByReference<TIn>(this IEnumerable<TIn> input, TIn searched) where TIn : class {
+        int index = -1;
+        foreach (var value in input)
+        {
+            index++;
+            if (ReferenceEquals(value, searched))
+                return index;
+        }
+        return -1;
+    }
+
     public static TIn[] ToArray<TIn>(this IEnumerable<TIn> input, int size) {
         var ans = new TIn[size];
         var i = 0;

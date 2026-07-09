@@ -6,51 +6,57 @@ using SolvingStates;
 using static SolvingStates.StatePrimitive;
 
 public static partial class StateExtensions {
-    public static ITicNodeState Lca(this ITicNodeState a, ITicNodeState b) {
+    public static ITicNodeState Lca(this ITicNodeState a, ITicNodeState b) => a.Lca(b, null);
+
+    // ∨ with an explicit coinductive context (see AlgebraCycleContext): allocated lazily by
+    // the cycle-capable arms (struct fields, S-axis join) and threaded through the whole
+    // mutually-recursive family — Lca ↔ Gcd (Fun args), struct fields → Unify → Merge →
+    // interval Lca, bound joins.
+    internal static ITicNodeState Lca(this ITicNodeState a, ITicNodeState b, AlgebraCycleContext ctx) {
         if (a is StateRefTo aref)
-            return aref.Element.Lca(b);
+            return aref.Element.Lca(b, ctx);
         if (b is StateRefTo bref)
-            return a.Lca(bref.Element);
+            return a.Lca(bref.Element, ctx);
         if (a is ConstraintsState ac && b is ConstraintsState bc)
         {
             // Both are constraints — compute LCA of their concretest forms
             var descA = ac.HasDescendant ? ac.Descendant : null;
             var descB = bc.HasDescendant ? bc.Descendant : null;
+            // One-sided desc uses the SNAPSHOT projection (↓ₛ, not pure ↓): the result is
+            // stored as the joined CS's descendant, and LCA's transport rule requires
+            // hints to survive the join — pure ↓ would strip nested element Preferred
+            // that AddDescendant snapshots deliberately preserved (debt #19).
             var lcaDesc = (descA, descB) switch {
                 (null, null) => null,
-                (null, _)    => descB.Concretest(),
-                (_, null)    => descA.Concretest(),
-                _            => descA.Lca(descB)
+                (null, _)    => descB.ConcretestSnapshot(),
+                (_, null)    => descA.ConcretestSnapshot(),
+                _            => descA.Lca(descB, ctx)
             };
             var comparable = ac.IsComparable && bc.IsComparable;
             var isOptional = ac.IsOptional || bc.IsOptional;
             // Propagate Preferred hint through LCA (not algebraic, just a resolution hint).
-            // Rule: if both agree, keep; if only one has it, keep; if both differ, take their
-            // LCA — the wider one preserves the resolution intent (e.g. LCA(int-literal-P=I32,
-            // real-literal-P=Real) → P=Real: any int lifts losslessly, and the user wrote a real
-            // literal in one branch so Real is the intended resolution). Dropping to null would
-            // silently pick the interval's descendant (Float32 in this case) and lose precision.
-            var preferred = (ac.Preferred, bc.Preferred) switch {
-                (null, null)  => (StatePrimitive)null,
-                (null, var p) => p,
-                (var p, null) => p,
-                var (pa, pb)  => pa.Equals(pb)
-                    ? pa
-                    : pa.GetLastCommonPrimitiveAncestor(pb) is { } lca && !lca.Equals(Any) ? lca : null
-            };
+            var preferred = PreferredHintLcaOrNull(ac.Preferred, bc.Preferred);
+            // S axis (debt #12, Algebra_LCA.md §ConstraintsState): S = S₁ ∩ S₂ — field-name
+            // intersection with recursive LCA on common field types; a missing bound on
+            // either side absorbs to "no bound" (join keeps only common obligations).
+            var lcaBound = ac.HasStructBound && bc.HasStructBound
+                ? IntersectBoundsOrNull(ac.StructBound, bc.StructBound, ctx)
+                : null;
             if (lcaDesc == null) {
                 var result = ConstraintsState.Of(isComparable: comparable, isOptional: isOptional);
                 result.Preferred = preferred;
+                result.StructBound = lcaBound;
                 return result;
             }
-            if (!comparable && !isOptional && preferred == null && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
+            if (!comparable && !isOptional && preferred == null && lcaBound == null && lcaDesc is ITypeState { IsSolved: true } and (ICompositeState or StatePrimitive { Name: PrimitiveTypeName.Any }))
                 return lcaDesc;
             var cs = ConstraintsState.Of(lcaDesc, null, comparable, isOptional);
             cs.Preferred = preferred;
+            cs.StructBound = lcaBound;
             return cs;
         }
         if (b is ConstraintsState bc2) {
-            var inner = bc2.HasDescendant ? a.Lca(bc2.Descendant) : a.Concretest();
+            var inner = bc2.HasDescendant ? a.Lca(bc2.Descendant, ctx) : a.Concretest();
             // Propagate IsOptional: LCA(T, C[.., opt=true]) = C[T.., opt=true]
             if (bc2.IsOptional && !inner.Equals(Any)) {
                 // Canonical flag form: the IsOptional flag already carries the axis,
@@ -82,7 +88,7 @@ public static partial class StateExtensions {
             return inner;
         }
         if (a is ConstraintsState)
-            return b.Lca(a); // symmetric: hits bc2 branch above
+            return b.Lca(a, ctx); // symmetric: hits bc2 branch above
 
         // None: LCA(None, T) = Opt(T), LCA(None, None) = None, LCA(None, Opt(T)) = Opt(T)
         if (a == None)
@@ -91,20 +97,104 @@ public static partial class StateExtensions {
             return LcaWithNone(a);
         // Optional: covariant wrapper
         if (a is StateOptional aopt)
-            return LcaWithOptional(aopt, b);
+            return LcaWithOptional(aopt, b, ctx);
         if (b is StateOptional bopt)
-            return LcaWithOptional(bopt, a);
+            return LcaWithOptional(bopt, a, ctx);
 
         if (a is StatePrimitive ap)
             return b is StatePrimitive bp ? ap.GetLastCommonPrimitiveAncestor(bp) : Any;
         if (b is StatePrimitive)
             return Any;
         return a switch {
-            StateArray aarr => b is StateArray barr ? StateArray.Of(aarr.Element.Lca(barr.Element)) : Any,
-            StateFun af => b is StateFun bf ? af.Lca(bf) : Any,
-            StateStruct astruct => b is StateStruct bstruct ? astruct.Lca(bstruct) : Any,
+            StateArray aarr => b is StateArray barr ? StateArray.Of(aarr.Element.Lca(barr.Element, ctx)) : Any,
+            StateFun af => b is StateFun bf ? af.Lca(bf, ctx) : Any,
+            StateStruct astruct => b is StateStruct bstruct ? astruct.Lca(bstruct, ctx) : Any,
             _ => Any
         };
+    }
+
+    /// <summary>
+    /// Commutative transport of the Preferred resolution hint (metadata, Sat-neutral) through
+    /// binary operators (∨ and ⊓ — Algebra_Merge.md §Preferred, debt #14).
+    /// Rule: if both agree, keep; if only one is set, keep it; if both differ, take their
+    /// primitive LCA — the wider one preserves the resolution intent (e.g. hint-LCA of
+    /// int-literal P=I32 and real-literal P=Real is Real: any int lifts losslessly, and the
+    /// user wrote a real literal in one branch so Real is the intended resolution).
+    /// LCA = Any means the hints share no information (unrelated families) — drop.
+    /// </summary>
+    internal static StatePrimitive PreferredHintLcaOrNull(StatePrimitive a, StatePrimitive b) =>
+        (a, b) switch {
+            (null, null)  => null,
+            (null, var p) => p,
+            (var p, null) => p,
+            var (pa, pb)  => pa.Equals(pb)
+                ? pa
+                : pa.GetLastCommonPrimitiveAncestor(pb) is { } lca && !lca.Equals(Any) ? lca : null
+        };
+
+    /// <summary>
+    /// True iff the state is (or wraps, along the RefTo/Optional/Array spine) a
+    /// recursion-variable position — a ConstraintsState carrying its own StructBound (the
+    /// CS-encoded μ-back-edge; see SolvingFunctions.IsBoundCarrierCs). Struct layers are NOT
+    /// descended: struct×struct positions recurse per-field in their own operators.
+    /// </summary>
+    internal static bool ContainsRecursionVariable(ITicNodeState state) {
+        // Contractive spines are finite; the cap only fires on malformed cyclic spines —
+        // treat those as recursive (conservative: caller preserves identity).
+        for (int safety = 0; safety < 100; safety++) {
+            switch (state) {
+                case StateRefTo r: state = r.Node.GetNonReference().State; continue;
+                case StateOptional o: state = o.ElementNode.GetNonReference().State; continue;
+                case StateArray arr: state = arr.ElementNode.GetNonReference().State; continue;
+                case ConstraintsState cs: return cs.HasStructBound;
+                default: return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// S₁ ∩ S₂ — the join (weaker bound) of two F-bound structs (Algebra_LCA.md): keep only
+    /// fields present in BOTH by name; common field types join via LCA (covariant — every
+    /// satisfier of either bound satisfies the joined field). Recursion-variable positions are
+    /// dropped from the intersection: a pure join cannot name the joint recursion variable, and
+    /// dropping a required field only weakens the bound (sound for ∨). An empty intersection
+    /// is "no bound" — null.
+    /// Coinductive arm: μ-bounds can reach the same bound pair again through field LCA →
+    /// CS∨CS → IntersectBoundsOrNull; the re-entry answer for a JOIN is "drop the bound" —
+    /// weakening is always sound for ∨ (the result only accepts more).
+    /// </summary>
+    private static StateStruct IntersectBoundsOrNull(StateStruct a, StateStruct b, AlgebraCycleContext ctx) {
+        if (ReferenceEquals(a, b))
+            return a;
+        ctx ??= new AlgebraCycleContext();
+        if (ctx.BoundJoinPairInProgress(a, b))
+            return null; // cycle re-entered — drop the bound (sound weakening for a join)
+        ctx.EnterBoundJoinPair(a, b);
+        try {
+            var fields = new Dictionary<string, TicNode>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (name, valA) in a.Fields) {
+                var valB = b.GetFieldOrNull(name);
+                if (valB == null) continue; // join keeps only common obligations
+                if (ReferenceEquals(valA, valB)) {
+                    fields.Add(name, valA);
+                    continue;
+                }
+                var sA = valA.GetNonReference().State;
+                var sB = valB.GetNonReference().State;
+                if (ContainsRecursionVariable(sA) || ContainsRecursionVariable(sB))
+                    continue; // μ-position — drop (see xmldoc)
+                fields.Add(name, TicNode.CreateInvisibleNode(sA.Lca(sB, ctx)));
+            }
+            if (fields.Count == 0)
+                return null; // empty bound = no bound
+            return new StateStruct(fields, isFrozen: a.IsFrozen && b.IsFrozen, isOpen: a.IsOpen && b.IsOpen) {
+                TypeName = StateStruct.LcaTypeName(a.TypeName, b.TypeName),
+                IsOptionalSourced = StateStruct.MergedIsOptionalSourced(a.IsOptionalSourced, b.IsOptionalSourced),
+            };
+        } finally {
+            ctx.ExitBoundJoinPair();
+        }
     }
 
     private static ITicNodeState LcaWithNone(ITicNodeState other) {
@@ -118,54 +208,48 @@ public static partial class StateExtensions {
         return StateOptional.Of(other);
     }
 
-    private static ITicNodeState LcaWithOptional(StateOptional opt, ITicNodeState other) {
+    private static ITicNodeState LcaWithOptional(StateOptional opt, ITicNodeState other, AlgebraCycleContext ctx) {
         ITicNodeState inner;
         if (other is StateOptional otherOpt)
-            inner = opt.Element.Lca(otherOpt.Element);
+            inner = opt.Element.Lca(otherOpt.Element, ctx);
         else
-            inner = opt.Element.Lca(other);
+            inner = opt.Element.Lca(other, ctx);
         // opt(any) = any (collapses)
         if (inner.Equals(Any))
             return Any;
         return StateOptional.Of(inner);
     }
 
-    // Cycle guard for recursive struct LCA. Two layers:
+    // Coinductive arm of recursive struct LCA. Two layers:
     //   1. Named-type short-circuit: if both sides have the same TypeName, the μ-cycle
     //      reached itself through Lca/Gcd interleaving (Lca creates new struct snapshots
     //      every level, so ref-equality misses). Coinductively return one side.
     //   2. Reference-equals fallback for anonymous structs (no TypeName).
-    [ThreadStatic] private static List<(StateStruct, StateStruct)> _structLcaInProgress;
-    [ThreadStatic] private static List<string> _structLcaNamesInProgress;
-
-    private static ITicNodeState Lca(this StateStruct a, StateStruct b) {
+    private static ITicNodeState Lca(this StateStruct a, StateStruct b, AlgebraCycleContext ctx) {
         if (a.TypeName != null && a.TypeName == b.TypeName) {
-            var nameGuard = _structLcaNamesInProgress ??= new();
-            for (int i = 0; i < nameGuard.Count; i++)
-                if (nameGuard[i] == a.TypeName)
-                    return a;
-            nameGuard.Add(a.TypeName);
+            ctx ??= new AlgebraCycleContext();
+            if (ctx.LcaNameInProgress(a.TypeName))
+                return a;
+            ctx.EnterLcaName(a.TypeName);
             try {
-                return LcaStructFields(a, b);
+                return LcaStructFields(a, b, ctx);
             } finally {
-                nameGuard.RemoveAt(nameGuard.Count - 1);
+                ctx.ExitLcaName();
             }
         }
-        // Anonymous struct ref-equality guard (pre-existing).
-        var guard = _structLcaInProgress ??= new();
-        for (int i = 0; i < guard.Count; i++)
-            if (ReferenceEquals(guard[i].Item1, a) && ReferenceEquals(guard[i].Item2, b)
-                || ReferenceEquals(guard[i].Item1, b) && ReferenceEquals(guard[i].Item2, a))
-                return a;
-        guard.Add((a, b));
+        // Anonymous struct ref-equality arm (pre-existing).
+        ctx ??= new AlgebraCycleContext();
+        if (ctx.LcaPairInProgress(a, b))
+            return a;
+        ctx.EnterLcaPair(a, b);
         try {
-            return LcaStructFields(a, b);
+            return LcaStructFields(a, b, ctx);
         } finally {
-            guard.RemoveAt(guard.Count - 1);
+            ctx.ExitLcaPair();
         }
     }
 
-    private static ITicNodeState LcaStructFields(StateStruct a, StateStruct b) {
+    private static ITicNodeState LcaStructFields(StateStruct a, StateStruct b, AlgebraCycleContext ctx) {
         bool bothMutable = a is StateMutableStruct && b is StateMutableStruct;
         bool eitherMutable = a is StateMutableStruct || b is StateMutableStruct;
 
@@ -186,18 +270,18 @@ public static partial class StateExtensions {
             if (bothMutable && !unifyFailed)
             {
                 // Invariant: try Unify first
-                fieldType = aState.UnifyOrNull(bState);
+                fieldType = aState.UnifyOrNull(bState, ctx);
                 if (fieldType == null)
                 {
                     // Unify failed — downgrade entire result to immutable Struct, use LCA
                     unifyFailed = true;
-                    fieldType = aState.Lca(bState);
+                    fieldType = aState.Lca(bState, ctx);
                 }
             }
             else if (aState is ConstraintsState && bState is ConstraintsState)
-                fieldType = aState.UnifyOrNull(bState);
+                fieldType = aState.UnifyOrNull(bState, ctx);
             else
-                fieldType = aState.Lca(bState);
+                fieldType = aState.Lca(bState, ctx);
 
             if (fieldType == null) continue;
             nodes.Add(aField.Key, TicNode.CreateInvisibleNode(fieldType));
@@ -217,17 +301,17 @@ public static partial class StateExtensions {
         };
     }
 
-    private static ITicNodeState Lca(this StateFun a, StateFun b) {
+    private static ITicNodeState Lca(this StateFun a, StateFun b, AlgebraCycleContext ctx) {
         if (a.ArgsCount != b.ArgsCount)
             return Any;
-        var returnState = a.ReturnType.Lca(b.ReturnType);
+        var returnState = a.ReturnType.Lca(b.ReturnType, ctx);
         var argNodes = new TicNode[a.ArgsCount];
 
         for (var i = 0; i < a.ArgNodes.Length; i++)
         {
             var aNode = a.ArgNodes[i];
             var bNode = b.ArgNodes[i];
-            var gcd = aNode.State.Gcd(bNode.State);
+            var gcd = aNode.State.Gcd(bNode.State, ctx);
             if (gcd == null)
                 return Any;
             argNodes[i] = TicNode.CreateInvisibleNode(gcd);

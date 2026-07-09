@@ -1,8 +1,15 @@
-# Push Reform — Iso-Recursive Type Inference for Named Structs
+# Push Reform — изо-рекурсивный вывод типов для именованных структур
 
-**Issue**: [#121](https://github.com/tmteam/NFun/issues/121) — unannotated recursive functions on declared named types.
+**Issue**: [#121](https://github.com/tmteam/NFun/issues/121) — неаннотированные рекурсивные функции над объявленными именованными типами.
 
-## Motivating example
+Каждая секция помечена статусом:
+- **РЕАЛИЗОВАНО** — описывает текущий код (проверено против HEAD); нормативно.
+- **ЦЕЛЬ** — проектная рамка, до конца не доказанная/не реализованная.
+- **ИСТОРИЯ** — как было; сохранено для контекста, кода не описывает.
+
+---
+
+## Мотивирующий пример — РЕАЛИЗОВАНО
 
 ```nfun
 type node = {v: int, next: node? = none}
@@ -10,27 +17,72 @@ type node = {v: int, next: node? = none}
 listSum(n) = if(n == none) 0 else n.v + listSum(n?.next)
 ```
 
-`listSum` has no return-type annotation. Its principal type is `node? → int` — but TIC must derive that without the annotation. The body's recursive call `listSum(n?.next)` plus the field accesses `n.v` and `n?.next` create a struct→struct cycle on `n`'s parameter type. Without intervention, TIC throws *Recursive type definition*.
+`listSum` не имеет аннотации возврата. Её principal type — `node? → int`, и TIC обязан
+вывести его сам. Рекурсивный вызов `listSum(n?.next)` вместе с доступами `n.v` и
+`n?.next` создают struct→struct цикл на типе параметра `n`. Без вмешательства TIC
+бросает *Recursive type definition*.
 
-The principal type — `μX. opt(struct{v:int, next:X})` — is **iso-recursive and contractive**: every back-edge crosses an Optional constructor (`opt`), so the cycle is well-founded. Push reform restores that Optional break during solving and (when the lifted body has no uniquely-matching named type) generalizes it as an F-bounded generic.
+Principal type — `μX. opt(struct{v:int, next:X})` — **изо-рекурсивен и контрактивен**:
+каждое замыкающее ребро проходит через конструктор Optional, цикл well-founded. Push
+reform восстанавливает этот Optional-разрыв при решении и (когда лифтованное тело не
+матчится однозначно на именованный тип) обобщает его как F-bounded generic.
 
-## Algorithm
+---
 
-### Phase A — Cycle detection
+## Алгоритм
 
-`SolvingFunctions.ThrowIfRecursiveTypeDefinition` walks a node's full state subgraph and counts back-edges. A back-edge through an Optional or Array breaks the cycle (those are constructors). A back-edge between two structs without an Optional/Array break is invalid — *unless* the subgraph carries the **opt-sourced** marker.
+### Фаза A — обнаружение циклов — РЕАЛИЗОВАНО
 
-### Phase B — Opt-sourced gate
+`SolvingFunctions.ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, isRecursion)`
+вызывается из `DestructionRec` (на каждой ноде обратного toposort-прохода) и из
+`FinalizeRecursive`. Пре-скан `HasReachableOptSourcedStruct` (полный walk state-графа
+ноды) выполняется только при `isRecursion` — без `?.` / registry / рекурсивных функций
+opt-sourced структур не бывает, и не-рекурсивный код не платит за обход.
 
-A struct's `IsOptionalSourced` flag is set when the struct originated from a `?.` access (`SetSafeFieldAccess` emits `opt(struct{field:T})` and stamps the inner struct). The marker is preserved through every algebraic combination (Pull, Lca, Gcd, Unify, Concretest, MergeStructs, UnionStructFields) by the rule `MergedIsOptionalSourced(a, b) = a || b`.
+Сам обход (`ThrowIfRecursiveReq` / `ThrowIfNodeReq`) — НЕ «подсчёт back-edges», а
+walk с жёсткими точками останова:
 
-When cycle detection fires, the reform consults `HasReachableOptSourcedStruct` and `StructSubgraphIsOptSourced`. If either is true, the cycle is *contractive* (originated through `?.`) and the recursion check attempts repair instead of throwing. Declared `type t = {self:t}` never sets the marker and still errors.
+- **`case StateOptional: break`** — обход ОСТАНАВЛИВАЕТСЯ на Optional. Ничто за
+  Optional'ом не исследуется вовсе (none — база индукции; всё под конструктором
+  контрактивно по построению).
+- **`case StateArray` при `fromStruct`** — останов: `struct → arr → struct` —
+  валидная μ-форма (`type t = {kids: t[]}`). Standalone-цепочка массивов (`fromStruct
+  = false`) продолжает обход — `arr(arr(...self...))` без структуры невалиден.
+- **`case ConstraintsState` с `HasStructBound`** — F-bound сам является контрактивной
+  границей: обход спускается в Descendant/Ancestor, но НЕ в S (повторный вход в
+  bounded-переменную T аналогичен Optional-разрыву).
 
-### Phase C — Cycle repair
+Повторный вход по `VisitMark` (`ThrowIfNodeReq`) разбирается в порядке:
+1. `fromStruct` и нода — `StateArray` → принять (замыкающее ребро пересекло
+   Array-конструктор; симметрия к останову выше — иначе VisitMark сработал бы ДО
+   ветки `case StateArray`).
+2. Цикл opt-sourced (`optSeen` с пути ИЛИ `StructSubgraphIsOptSourced` самой ноды) →
+   `TryRepairOptSourcedCycle` (фаза C-struct).
+3. `TryPromoteCSDescendantToStructBound` (фаза C-cs).
+4. Иначе — `FindRecursionTypeRoute` и `TicErrors.RecursiveTypeDefinition`.
 
-Two repair paths cover the cycle topologies that arise:
+### Фаза B — opt-sourced gate — РЕАЛИЗОВАНО
 
-**(C-struct) `TryRepairOptSourcedCycle`** wraps **every** closing edge of the cycle struct in `StateOptional`:
+Маркер `StateStruct.IsOptionalSourced` ставится конструкторами `?.`-форм:
+`GraphBuilderExtensions.SetSafeFieldAccess` И `SetSafeMethodCall` (обе помечают граф
+`IsRecursion = true`). Сохраняется через merge-операции правилом
+`StateStruct.MergedIsOptionalSourced(a, b) = a || b` (MergeStructs, UnionStructFields,
+GcdBound, Unify, Gcd, Pull `Apply(Struct,Struct)`). Исключение: через `Lca`
+(`LcaStructFields`) маркер НЕ переносится — join строит структурно-наиболее-узкого
+общего предка, чья идентичность не должна наследовать односторонний маркер.
+
+Консультируются `HasReachableOptSourcedStruct` (пре-скан фазы A) и
+`StructSubgraphIsOptSourced` (сама нода цикла — на случай, когда width-propagation
+скопировала состояние без маркера). Объявленный `type t = {self:t}` маркера не
+получает нигде и по-прежнему ошибка.
+
+### Фаза C — ремонт цикла — РЕАЛИЗОВАНО
+
+Два пути ремонта под разные топологии цикла:
+
+**(C-struct) `TryRepairOptSourcedCycle`** — цикл замыкается на struct-ноде. Оборачивает
+**каждое** замыкающее ребро (поле, для которого `ReachesStructWithoutOptionalBreak`
+достигает узла цикла) в `StateOptional`:
 
 ```
 struct{v:int, next:struct{v:int, next:...}}
@@ -38,158 +90,363 @@ struct{v:int, next:struct{v:int, next:...}}
 struct{v:int, next:opt(struct{v:int, next:opt(...)})}
 ```
 
-Multi-self-field structs (e.g., `tree{left:tree, right:tree}`) need **both** edges wrapped. Wrapping only the first leaves the others as struct→struct cycles that trip the recursion check on the next pass.
+Мульти-self-field структуры (`tree{left:tree, right:tree}`) требуют обёртки ОБОИХ
+рёбер — ремонт одного оставил бы второй struct→struct цикл на следующем проходе.
+Уже-Optional ребро считается отремонтированным; немутабельное поле принимается,
+только если это именованная структура той же идентичности (прошлый проход уже разорвал
+ребро) — любой иной немутабельный state означает исходную ошибку.
 
-After all closing edges are wrapped, the cycle struct is stamped with `TypeName` from the registry via `FindUniqueMatchingNamedType` — match by field-set superset. The stamp is set **last**: setting it earlier flips `IsMutable=false` (named structs are solved) and blocks the Optional wrap assignment.
+После обёртки всех рёбер структура штампуется `TypeName` из реестра через
+`FindUniqueMatchingNamedType` (матч по field-set superset, ровно один кандидат).
+Штамп ставится **последним**: ранняя установка перевела бы структуру в
+`IsMutable = false` и заблокировала Optional-wrap присваивания.
 
-**(C-cs) `TryPromoteCSDescendantToStructBound`** handles the case where the cycle root is a `ConstraintsState` whose `Descendant` carries the cycle struct. When `StructDescendantClosesContractively` confirms every closing field path crosses an Optional or Array, the struct is rebound: it moves from the `Descendant` slot to the `StructBound` slot on the same CS. No state-class change — strict refinement in the F-bound calculus, per Cardelli–Mitchell '89 / Pierce TAPL §20 (the lower bound of a recursive shape IS the F-bound). Subsequent recursion walks short-circuit at the CS via the `StructBound != null` branch.
+**(C-cs) `TryPromoteCSDescendantToStructBound`** — корень цикла — CS-нода, чей
+`Descendant` несёт цикловую структуру. Когда `StructDescendantClosesContractively`
+подтверждает, что КАЖДЫЙ замыкающий путь полей пересекает Optional/Array (вердикты
+`ClosingPathVerdict`: `NoClose` / `ClosesContractively` / `ClosesNonContractively`,
+любой неконтрактивный — отказ), структура перепривязывается внутри той же CS:
+`cs.StructBound = s; cs.ClearDescendant()`. Очистка Descendant обязательна —
+обязательство поглощено F-bound'ом (`T <: S`); оставить Descendant значило бы
+переограничить `T = S` в точности, убив F-bounded полиморфизм. Смены класса состояния
+нет — строгое уточнение в F-bound-исчислении (Cardelli–Mitchell '89 / Pierce TAPL §20:
+нижняя граница рекурсивной формы И ЕСТЬ F-bound). Последующие обходы рекурсии
+коротко замыкаются на этой CS через ветку `HasStructBound` (фаза A).
 
-### Phase D — TypeName propagation across snapshots
+### Фаза D — распространение TypeName по снапшотам — РЕАЛИЗОВАНО
 
-`PropagateTypeNamesAcrossSnapshots` runs after Destruction. Cycle repair stamps `TypeName` on **one** struct instance — but TIC algebraic operations (Pull, Lca, Concretest, Apply) create many independent struct snapshots throughout the body's graph. They all denote the same μ-type and must agree on identity for runtime dispatch (operator generic resolution, variable types, named-struct casts).
+`PropagateTypeNamesAcrossSnapshots` выполняется внутри
+`SolvingFunctions.Destruction` после пофазового `DestructionRec`, под гейтом
+`namedTypeRegistry != null && isRecursion`. Ремонт штампует `TypeName` на ОДНОМ
+экземпляре структуры, но алгебраические операции (Pull, Lca, Concretest, Apply)
+плодят независимые снапшоты — все они обозначают один μ-тип и обязаны сойтись в
+идентичности для runtime-диспетчеризации.
 
-Two-pass:
+Два прохода:
+1. **Collect** (`CollectStampedTypeNames`) — все уже проштампованные имена
+   (`presentNames`), включая структуры в Descendant-слотах CS; попутно — есть ли в
+   теле хоть одна opt-sourced структура (`anyOptSourced`).
+2. **Пропуск целиком**, если opt-sourced структур нет (мы не в μ-теле: все имена —
+   от явных аннотаций, безымянные снапшоты — локальные field-access constraints) или
+   имён не собрано.
+3. **Stamp** (`StampUnnamedStructsByPresentNames` через предвычисленный
+   `BuildNameFieldIndex`) — безымянная структура получает имя, если её field-set —
+   подмножество объявленных полей РОВНО ОДНОГО собранного имени («exactly one»
+   предотвращает over-tagging при общем префиксе полей у нескольких типов).
 
-1. **Collect** every TypeName already stamped on a struct (`presentNames`). Detect whether the body contains any opt-sourced struct (`anyOptSourced`).
-2. **Skip the pass entirely** when no opt-sourced struct exists — without one, every declared named type came from explicit annotation and unnamed snapshots are local field-access constraints (`struct{v}` from `n.v`), not μ-type tags.
-3. **Stamp** every unnamed struct whose field-set is a *unique* subset of one collected name's declared fields. The "exactly one" rule prevents over-tagging when several named types share a common field prefix.
+### Фаза E — F-bound lifting (`LiftMuTypes`) — РЕАЛИЗОВАНО
 
-### Phase E — F-bound lifting
+Порядок внутри `Destruction`: `DestructionRec`* → `PropagateTypeNamesAcrossSnapshots`
+→ `MaterializeOptionalFlags` → **`LiftMuTypes`** (лифт видит уже материализованные
+Optional-формы).
 
-`LiftMuTypes` runs after `PropagateTypeNamesAcrossSnapshots`. It finds the canonical post-cycle-rescue shape — `StateOptional(elem)` where `elem.State is StateStruct{IsOptionalSourced=true, TypeName=null}` with a verified self-ref — and replaces the inner element's state with `ConstraintsState{StructBound = struct}`. The original struct becomes the F-bound body `Sμ`, owned by the new CS; back-edges already RefTo the elem node, so they now semantically denote "back to the bounded variable T". `Sμ.IsFrozen` is set at lift to forbid further width extension at call sites (analogous to TAPL §22.6 let-generalization closing a row variable).
+`TryLiftElement(elemNode, registry)` лифтует элемент Optional-ноды при ВСЕХ условиях
+(фактический список; проверяется в этом порядке):
 
-Existing TypeName stamps survive the lift: F-bound and TypeName coexist; runtime picks TypeName when present (nominal), falls back to F-bound (structural).
+1. `elem.State is StateStruct s`;
+2. `s.TypeName == null` — номинально запечатанные не заменяются;
+3. `s.IsOptionalSourced` — форма родом из `?.`;
+4. `StructHasSelfRef(s, elem)` — C1: структура реально самоссылочна (замыкание
+   детектится и через `RefTo` на владельца, и через шаринг того же экземпляра
+   `StateStruct` — паттерн обёртки из C-struct; `FieldReachesOwner` идёт через
+   Optional/Array/RefTo, но НЕ спускается во вложенные структуры);
+5. `StructFieldsSubsetOfAnyRegistered(s, registry)` — если реестр есть (гейт против
+   over-lifting).
 
-A second sub-pass, `TryRedirectDegenerateOptCycle`, rewrites degenerate `opt(opt(...))` chains that closed without struct content to a `StateRefTo` onto a sibling F-bound holder (Pottier-Rémy '05 §10.6 graph-as-witness; Amadio-Cardelli '93 §4.2).
+Проверки `IsMutable` в списке НЕТ. Прежняя редакция спеки требовала
+`elem.IsMutable == true`; условие ушло из кода — наиболее вероятно, при декаплинге
+#108 (Phase 1 перевела anonymous-solved структуры в `IsMutable = false`, и гейт стал
+бы блокировать легитимные лифты решённых анонимных μ-структур).
 
-## TypeName algebraic rules
+Действие лифта: `s.IsFrozen = true` (F-bound обобщён — field-set ЗАКРЫТ; width-merge
+на call-site валидирует, но не расширяет; аналог закрытия row-переменной при
+let-generalization, TAPL §22.6), затем `elem.State = ConstraintsState{StructBound=s}`.
+Back-edges внутри `Sμ` уже RefTo'ят elem-ноду — теперь это семантически «назад к
+bounded-переменной T». Штампы TypeName переживают лифт: F-bound и TypeName
+сосуществуют; runtime предпочитает TypeName (номинально), падает в F-bound
+(структурно).
 
-Two distinct rules live in `StateStruct`:
+Успешный лифт (`anyLifted`) — доказательство, что сигнатура несёт F-bounded generic:
+`Destruction` возвращает `false` даже при всех решённых top-level нодах, форсируя в
+`GraphBuilder.SolveCore` путь `Finalize` → `TicResultsWithGenerics`.
 
-| Operation | TypeName rule | Helper | Why |
+Под-проход **`TryRedirectDegenerateOptCycle`** выполняется только при `anyLifted`:
+`CollectFBoundHolders` собирает CS-держателей StructBound; для каждой Optional-ноды
+walk по спайну opt/RefTo — если спайн замыкается сам на себя без struct-контента и
+без собственного F-bound, голова opt-цикла (мутабельная, `StateOptional`)
+переписывается в `StateRefTo(первый F-bound-держатель)` (Pottier-Rémy '05 §10.6
+graph-as-witness; Amadio-Cardelli '93 §4.2).
+
+### Смежные механизмы вне Destruction — РЕАЛИЗОВАНО
+
+Механика ремонта из фаз A-C и E получила «сестринские» пути на других стадиях
+пайплайна — до и после Destruction.
+
+**1. Auto-wrap в setter'е `TicNode.State` (пятый путь ремонта).** Присваивание
+opt-sourced структуры, замыкающее неконтрактивный цикл, чинится В МОМЕНТ мутации
+графа (до всякого Destruction): если `value is StateStruct ns`,
+`StructSubgraphIsOptSourced(ns)` и `StructHasFieldReaching(ns, this)` — state
+оборачивается в `StateOptional(inner)` прямо в setter'е. Порядок гейтов —
+перф-осознанный: дешёвый opt-sourced предикат раньше дорогого поиска замыкания.
+Это же место содержит и flatten `opt(opt(T)) → opt(T)` при присваивании.
+
+**2. Сертификация `TicNode.IsContractiveCycleHead` на toposort'е.**
+`NodeToposort.Visit`: когда цикл замыкается через composite-member ребро, инициатор
+цикла помечается `IsContractiveCycleHead = true`, и toposort продолжает работу — цикл
+НЕ мержится и НЕ бросается (composite-member ребро контрактивно по построению,
+Cardelli-Mitchell '89 §3). Флаг — witness: даунстрим-проверки
+(`GraphBuilder.ReturnContainsContractiveCycle`, `HasAnyRecursiveCandidate`, runtime
+Fit, коиндуктивный Equals) трактуют такую ноду как контрактивную границу, эквивалент
+`cs.HasStructBound`.
+
+**3. `TarjanScc` + `ScCClosurePass` — Kleene-fixpoint по циклическим SCC.**
+`GraphBuilder.SolveCore` после `PushConstraints` (под гейтами `IsRecursion` и
+`HasAnyRecursiveCandidate` — O(n) проба на `IsContractiveCycleHead` /
+`CS{StructBound}` / `StructIsRecursiveCycle`) запускает `ScCClosurePass`:
+`TarjanScc.ComputeSccs` по syntax-, named- и type-нодам (рёбра — RefTo,
+composite-member, Ancestors; порядок совпадает с `NodeToposort.Visit`); для каждой
+SCC с `IsCyclicScc` и `IsContractive` — `PushUntilFixpoint(scc, maxIterations: 10)`.
+Однопроходный Push оставляет дегенеративные ref-цепочки в самоссылочных
+return-позициях ко-рекурсивных функций; итерация Push до неподвижной точки
+прогоняет F-bound по циклу до канонического регулярного дерева (монотонный dataflow
+на решётке конечной высоты — Kildall '73 / Cousot '77). Ациклические синглтоны SCC
+пропускаются — ноль оверхеда для простого кода.
+
+**4. Двухъярусная контрактивность.** Ярусы применяют РАЗНЫЕ критерии:
+- **Слабый критерий** (toposort / `TarjanScc.IsContractive`): достаточно ЛЮБОГО
+  composite-member ребра внутри цикла — включая ребро через поле структуры. Дёшев,
+  допускает кандидатов в дальнейшую обработку.
+- **Строгий критерий** (Destruction-время: `ThrowIfRecursiveReq`,
+  `ClosingPathVerdict`, `ReachesStructWithoutOptionalBreak`): разрыв засчитывается
+  ТОЛЬКО за Optional/Array. Финальный судья: struct→struct цикл без Optional/Array,
+  прошедший слабый ярус, здесь либо ремонтируется (фаза C), либо ошибка.
+
+---
+
+## Алгебраические правила TypeName — РЕАЛИЗОВАНО
+
+Два правила в `StateStruct`:
+
+| Операция | Правило TypeName | Хелпер | Почему |
 |---|---|---|---|
-| `Lca` | equal → keep, anything else → null | `LcaTypeName(a, b)` | LCA is the common ancestor — must NOT invent a name the other side never carried. |
-| Merge (Pull, Gcd, Unify, MergeStructs, UnionStructFields, Apply(Struct,Struct)) | one null → other; both equal → that name; both differ → null *(caller rejects)* | `MergedTypeName(a, b)` | Merge is the most-specific consistent identity — one side carrying a name plus the other being anonymous is no conflict. |
+| `Lca` | равны → сохранить; иначе → null | `LcaTypeName(a, b)` | Join — общий предок, не вправе выдумать имя, которого другая сторона не несла. |
+| Merge (Gcd, Unify, MergeStructs, UnionStructFields, GcdBound) | один null → другой; равны → имя; различаются → null | `MergedTypeName(a, b)` | Merge — наиболее специфичная согласованная идентичность. |
 
-`Apply(StateStruct ancestor, StateStruct descendant)` rejects with `return false` on TypeName conflict (both named, differ) — that's a real type error (`type a` ≤ `type b`), and Pull must signal incompatibility.
+Поведение при конфликте (оба именованы, имена различны) РАЗНОЕ по путям:
 
-## Identity short-circuit
+- **Pull `Apply(StateStruct, StateStruct)` и struct-ветка
+  `Apply(ICompositeState, ConstraintsState)`** — НЕ отклоняют: обе стороны
+  **даунгрейдятся до анонимных** (`TypeName = null`), полевые Pull-рёбра ниже ловят
+  настоящие несовпадения формы. Основание: именованные типы структурны
+  (`Specs/NamedTypes.md` — «transparent alias», «no runtime distinction»; Bug HH).
+- **`GetMergedStateOrNull` (struct×struct)** — nominal short-circuit
+  `StateStruct.NominalEquals`: одинаковые имена → любая сторона без спуска в поля;
+  разные → `null` (merge-отказ). Асимметрия с Pull-путём — осознанная: merge требует
+  тождества значений, Pull — лишь совместимости по ≤.
 
-`StateStruct.Equals` short-circuits on `TypeName` equality:
+---
 
-```csharp
-if (TypeName != null && other.TypeName != null
-    && TypeName.Equals(other.TypeName, StringComparison.OrdinalIgnoreCase))
-    return true;
-```
+## Identity short-circuit — РЕАЛИЗОВАНО
 
-Two named structs with the same declared TypeName are the same type by definition. The short-circuit avoids descending into the cyclic field graph (which would stack-overflow without a separate cycle guard).
+`StateStruct.Equals` останавливается на двух уровнях:
 
-## Threading model
+1. **Номинальный**: `NominalEquals` — два именованных struct'а с одним TypeName равны
+   по определению (спуска в циклический field-граф нет).
+2. **Коиндуктивный** (для анонимных циклических форм): visited-pair guard
+   (`Amadio-Cardelli '93 §4.2 бисимуляция`) — повторно вошедшая пара считается
+   равной. Прежняя редакция полагалась только на TypeName-short-circuit; лифтованные
+   анонимные F-bounds его не имеют, поэтому guard обязателен (см. также
+   `ConstraintsState.StructBoundsEqual` — отдельная циклобезопасная структурная
+   проверка равенства S-оси).
 
-`INamedTypeFieldRegistry` is threaded explicitly as a parameter through:
+---
 
-```
-GraphBuilder.SolveCore
-  → SolvingFunctions.Destruction(nodes, hasOpt, namedTypeRegistry)
-      → DestructionRecursive(node, namedTypeRegistry)
-          → ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry)
-              → TryRepairOptSourcedCycle(node)
-              → TryPromoteCSDescendantToStructBound(node)
-      → PropagateTypeNamesAcrossSnapshots(nodes, namedTypeRegistry)
-      → LiftMuTypes(nodes, namedTypeRegistry)
-  → SolvingFunctions.Finalize(..., namedTypeRegistry)
-      → FinalizeRecursive(node, namedTypeRegistry)
-          → ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry)
-```
+## Threading model — РЕАЛИЗОВАНО
 
-No globals. Concurrent solves on different graphs are isolated.
-
-## F-bounded polymorphism — algebraic shape
-
-`ConstraintsState` carries an additional optional dimension:
+`INamedTypeFieldRegistry` и флаг `IsRecursion` протаскиваются явными параметрами
+(никаких глобалов; конкурентные solve изолированы — единственное исключение,
+thread-static broadcast `StagesExtension._isRecursion`, устанавливается per-solve):
 
 ```
-RecursiveBound : RecBound?      // F-bound `T <: τ(T)`; currently τ is always StateStruct
-StructBound    : StateStruct?   // shim: RecursiveBound.Body as StateStruct
+GraphBuilder.SolveCore(ignorePrefered)
+  → Toposort (+fused Pull | PullConstraintsTwoPhase при None)
+  → SolvingFunctions.PropagatePreferred(sorted)           // ДО Push — TicPreferred.md §4.1
+  → SolvingFunctions.PushConstraints(sorted)
+  → ScCClosurePass(sorted)                                // при IsRecursion
+  → SolvingFunctions.Destruction(sorted, hasOptionalTypes, NamedTypeRegistry, IsRecursion)
+      → DestructionRec(node, namedTypeRegistry, mark, isRecursion)
+          → ThrowIfRecursiveTypeDefinition(node, namedTypeRegistry, isRecursion)
+              → TryRepairOptSourcedCycle / TryPromoteCSDescendantToStructBound
+      → PropagateTypeNamesAcrossSnapshots(sorted, namedTypeRegistry)   // registry ∧ isRecursion
+      → MaterializeOptionalFlags(sorted)                               // при hasOptionalTypes
+      → LiftMuTypes(sorted, namedTypeRegistry)                         // при isRecursion
+  → SolvingFunctions.Finalize(sorted, outputNodes, inputNodes, syntaxNodes,
+                              namedNodes, ignorePreferred, namedTypeRegistry, isRecursion)
+      → FinalizeRecursive(node, namedTypeRegistry, mark, isRecursion)
+          → ThrowIfRecursiveTypeDefinition(...)
 ```
 
-The interval becomes `[D..A, cmp, opt, struct⊆S]`. `StructBound = null` ⇒ "no structural upper bound" — semantics identical to non-recursive code. The new dimension is **independent** of `[D..A]`, exactly as `IsComparable` and `IsOptional` are independent flag-dimensions.
+На Build-стороне (`GraphBuilder.SetCall(StateFun)`) при `IsRecursion` работают
+`SignatureHasRecursiveShape` → `CreatePerSiteCloneMap` (per-call-site инстанцирование
+F-bounded сигнатур, Damas-Milner let-полиморфизм; RetNode намеренно не пре-клонируется)
+и `ReturnContainsContractiveCycle` → возврат через `StateRefTo` на RetNode функции
+(цикл остаётся внутренним для сигнатуры).
 
-### Operator rules on StructBound
+---
 
-| Op    | Rule on StructBound                                  | Justification                  |
-|-------|------------------------------------------------------|--------------------------------|
-| Lca   | `LcaStruct(S₁,S₂)`; null absorbs (drops bound)       | join — wider bound (∩ fields)  |
-| Gcd   | `GcdBound(S₁,S₂)`; null absorbs to other             | meet — richer bound (∪ fields) |
-| Unify | `UnifyStruct(S₁,S₂)`; null absorbs; same width req'd | exact width                    |
-| Fit   | `T ≤ S` iff `T:Struct`, `Fields(T)⊇Fields(S)`, pointwise covariant ≤ | width subtyping |
-| ↓     | `D` if `D≠∅` else `[..,cmp]` else `∅` (S is NOT a default lower) | upper-bound, not lower |
-| ↑     | `A` if `A≠∅` else `[..,cmp]` else `Any` (S is NOT a default upper, though structural) | F-bound is independent dimension, not collapsed into [D..A] |
+## F-bounded полиморфизм — алгебраическая форма
 
-`Lca` widens (intersection of fields) because the result must accept anything either input accepts. `Gcd` narrows (union of fields) because the result is the strongest constraint compatible with both. Symmetric to existing `StateStruct` operators in `Algebra_LCA.md` / `Algebra_GCD.md`.
+### Слот — РЕАЛИЗОВАНО
 
-`S` is exposed only via the dedicated accessor `StructBound(CS)`, used by `Fit` (`FitStructBound`) and call-site dispatch. It is NOT projected into Concretest/Abstractest. Reason: the algebraic invariant `T ∨ CS = T ∨ ↓CS` (Algebra.md §Теоремы) would be violated if `↓CS = S` for `T:primitive` — the result `T ∨ struct = Any` would silently lose the F-bound and poison subsequent LCA chains. F-bound is a third independent dimension orthogonal to `[D..A]` (peer to `IsComparable`, `IsOptional`), not a fallback projection.
+`ConstraintsState` несёт третье независимое измерение:
 
-### Ownership
+```
+StructBound : StateStruct   // F-bound `T <: τ(T)`; τ — всегда StateStruct
+HasStructBound : bool       // стабильный read-API (точка миграции #108 Phase 3)
+```
 
-`StructBound = S` is owned by exactly one `ConstraintsState` instance. `S.Fields` may contain `RefTo` back to its owner, but `S` itself is never shared between two CS objects. Merges that combine two CSs create a fresh `S` (via `GcdBound`) with self-refs redirected to the new owner.
+Интервал становится `[D..A, cmp, opt, struct⊆S]`. `StructBound = null` ⇒ «нет
+структурной верхней границы» — семантика идентична нерекурсивному коду. Измерение
+**независимо** от `[D..A]`, ровно как `IsComparable` и `IsOptional`.
 
-## Contractivity invariant
+### RecBound — ИСТОРИЯ
 
-For any `CS` with `StructBound = S`: every cycle from `S.Fields` reaching `CS` MUST cross a `StateOptional` or `StateArray` constructor, AND every occurrence of `RefTo(CS)` inside `S.Fields` MUST be at a strictly **covariant** position (i.e., NOT under a function-argument constructor).
+Промежуточная конструкция `RecursiveBound : RecBound?` (обёртка над телом bound'а, к
+которой `StructBound` был шимом) ликвидирована: `StructBound : StateStruct` — И ЕСТЬ
+слот, никакой обёртки за ним нет. Упоминание «RecBound elimination Phase 1» осталось
+только в комментарии `StateStruct.IsMutable`.
 
-**(C1) Optional/Array break** — every back-edge must traverse `StateOptional` or `StateArray`. Without this the type is non-contractive (e.g., `T <: {self:T}`). `StructDescendantClosesContractively` and `StructHasSelfRef` enforce this at lift time and slot-promotion time. Array recursion is supported on both annotated and unannotated forms: `case StateArray arr: if (fromStruct) break;` in `ThrowIfRecursiveReq` treats Array as a contractive constructor when reached from inside a struct.
+### Правила операторов на S — РЕАЛИЗОВАНО (пост-#12/#13)
 
-**(C2) Covariance restriction** — the `T` in `S.Fields` must appear only at covariant positions. Concretely: forbid `op: (T) -> R` (function-argument is contravariant — a negative occurrence of `T`). Without this, F-bounded subtype check is undecidable in worst case (Pierce, *Bounded Polymorphism is Undecidable*, POPL 1992). With covariance-only, the fragment is **Amadio–Cardelli equirecursive subtyping** (1993) — decidable in `O(n²)`.
+Нормативный дом этих правил — Algebra-спеки; здесь сводка и указатели. Транспорт S
+внутри операторов закрыт долгом #12 (законы — `AlgebraStructBoundLawsTest`).
 
-Contractivity is checked at the moment `StructBound` is first formed (during cycle-rescue lifting), not deferred. Deferring would let Pull/Push iterate on a non-contractive bound and potentially diverge (lattice height becomes unbounded if a back-edge has no Optional/Array break).
+| Оп | Правило на S | Реализация | Нормативно |
+|---|---|---|---|
+| ∨ (Lca) | `S = S₁ ∩ S₂` — пересечение по именам полей, LCA на общих; μ-позиции выпадают (sound weakening); null поглощает (bound дропается) | `StateExtensions.IntersectBoundsOrNull` | `Algebra_LCA.md` |
+| ∧ (Gcd) | `S = S₁ ∪ S₂` поверх S-free ядра; решённый struct поглощает bound тем же meet'ом (struct-≤ и есть F-bound-предикат); `Any → CS{S}`; Optional разворачивается; прочие решённые → null | `StateExtensions.Gcd` → ownerless `GcdBound` + `ApplyBoundToMeet` | `Algebra_GCD.md` |
+| ⊓ (Merge) | `S = S₁ ∪ S₂` (ownerless `GcdBound`) + three-way непустота `(D, A, S)` + S-discharge-гейт коллапса решённого композита (`FitStructBound`) | `ConstraintsState.IntersectIntervalsOrNull` / `MergeOrNull`, `StructBoundIsSatisfiable` | `Algebra_Merge.md` |
+| Unify(CS,CS) | ≡ ⊓. Фикция `UnifyStruct` с exact-match правилом на S устранена | `StateExtensions.UnifyOrNull(CS,CS)` → `MergeOrNull` | `Algebra_Unify.md` |
+| Fit | `T ≤ S` ⟺ `T:Struct`, `Fields(T) ⊇ Fields(S)`, попарно ковариантно; коиндуктивный in-progress guard. Часть ЕДИНОГО предиката `FitsInto` | `ConstraintsState.FitStructBound` (internal) | `Algebra_Fit.md` |
+| ↓ / ↑ | S НЕ проецируется (иначе ломается умбрелла-закон `T ∨ CS = T ∨ ↓CS`) | `Concretest`/`Abstractest` S не читают | `Algebra_Concretest.md` / `Algebra_Abstractest.md` |
 
-## LiftMuTypes algorithm
+Этот файл дальше описывает только F-bound-специфику, которой нет в Algebra-спеках:
+режимы владения, `RewireStructBoundOwnership`, контрактивность.
 
-Runs after Destruction has stamped TypeName on uniquely-matchable cycle roots, before Finalize.
+### Владение (ownership) — РЕАЛИЗОВАНО
 
-1. For each toposorted node, walk into `StateOptional` and other composite states (visit-mark dedup).
-2. For each `StateOptional(elem)` encountered, examine `elem.State`:
-   - Must be `StateStruct` with `TypeName == null` (otherwise it's already nominally sealed),
-   - `IsOptionalSourced == true` (originated from `?.`),
-   - `elem.IsMutable == true` (not already locked),
-   - `StructHasSelfRef(s, elem) == true` (C1: the struct actually self-references),
-   - `StructFieldsSubsetOfAnyRegistered(s, registry)` if a registry is present (gate against over-lifting).
-3. If all hold: set `s.IsFrozen = true`, build `ConstraintsState.Empty` with `StructBound = s`, replace `elem.State` with that CS.
-4. Collect every node that now holds a `StructBound`. For each remaining degenerate opt-only cycle that points at no struct content, redirect its head to a sibling F-bound holder via `StateRefTo` (`TryRedirectDegenerateOptCycle`).
+`StructBound = S` принадлежит ровно одной `ConstraintsState`. `S.Fields` может
+содержать `RefTo` назад на владельца — F-bound self-reference; сам `S` между двумя CS
+не шарится. `GcdBound(a, b, resultOwner, otherOwner)` работает в двух режимах:
 
-`SolveCore` treats a successful lift as proof that the function signature carries an F-bounded generic — even if all top-level node `IsSolved` flags are set, `Destruction` returns `false` to force the `Finalize` path that builds `TicResultsWithGenerics`.
+- **Owner mode** (стадии — Pull/Push): self-refs переписываются на нового владельца
+  (`RewireFieldNode` / `RewireState`); при односторонней передаче bound'а —
+  `RewireStructBoundOwnership(s, oldOwner, newOwner)` (ленивая проверка
+  `StateContainsSelfRef`, копия только при необходимости). Optional-wrap ancestor'а
+  мигрирует bound на inner-CS с rewire self-refs на inner-ноду
+  (`PullConstraintsFunctions.Apply(CS, ICompositeState)`).
+- **Ownerless mode** (алгебра, `resultOwner = null` — правило границы слоёв, долг
+  #12): оператор переносит S ПО ЗНАЧЕНИЮ и СОХРАНЯЕТ node identity self-referential
+  позиций (поле с recursion-переменной — `ContainsRecursionVariable` — берётся
+  узлом-как-есть, без rewire). Передача владения остаётся за стадиями: merge-вызыватели
+  алиасят проигравшего владельца (`loser := RefTo(winner)`), и старые back-edges
+  прозрачно разыменовываются в merged-переменную.
 
-## Principal-type theorem
+**Width-rigidity замороженного bound'а** (`GcdFrozenAndOpen`): field-set
+замороженного (обобщённого) F-bound'а ЗАКРЫТ — meet с кандидатом валидирует
+`fields(candidate) ⊇ fields(frozen)` (недостающее обязательное поле — отказ), общие
+поля меет-ятся рекурсивно, лишние поля кандидата — width-slack, в bound не
+поглощаются. Результат сохраняет идентичность замороженного bound'а.
 
-> **(Theorem PT-F).** For an unannotated parameter `n` whose body uses it in expressions that contribute primitive interval `[Dᵢ..Aᵢ]`, structural constraint `Sᵢ`, and flag-bits `(opt_i, cmp_i)`, the **principal type** of `n` is `[D ≤ A, opt, cmp, struct⊆S]` where:
-> - `D = ⋁ᵢ Dᵢ` (LCA of descendants, lattice join)
-> - `A = ⋀ᵢ Aᵢ` (GCD of ancestors, lattice meet)
-> - `S = GcdBound(S₁,…,Sₖ)` (field union — meet on the structural bound lattice)
-> - `opt = ⋁ᵢ optᵢ`, `cmp = ⋁ᵢ cmpᵢ`
->
-> The interval is **non-empty** iff `D ≤ A` AND no element of `D` is excluded by `S` (`D` is either struct with `Fields(D) ⊇ Fields(S)` or null/primitive-with-S=null). When non-empty, this principal type is **unique** up to lattice equality.
+`MergeFieldStateGcd` — правило self-ref позиций: оба self → `RefTo(resultOwner)`
+(канонический меет), один self + один конкретный → self-ref сохраняется
+(инстанцирование: bound — generic-форма, конкретное значение — её обитатель;
+Cardelli-Mitchell '89 §3, TAPL §20.2 fold/unfold). Позиция recursion-переменной
+после лифта распознаётся и в CS-кодировке (`IsBoundCarrierCs` —
+`CS{HasStructBound}`), не только как прямой `RefTo`.
 
-The theorem makes explicit that:
-- D and S are independent dimensions that may both be present;
-- non-emptiness is a three-way predicate on `(D, A, S)`, not just `D ≤ A`;
-- inference is complete (the principal type always exists when the body is well-typed).
+---
 
-## Test pyramid
+## Инвариант контрактивности
+
+### C1 — Optional/Array-разрыв — РЕАЛИЗОВАНО
+
+Для любой `CS{StructBound = S}`: каждый цикл из `S.Fields`, достигающий CS, ОБЯЗАН
+пересечь конструктор `StateOptional` или `StateArray`. Enforcement в момент
+формирования bound'а, не отложенно (отложенность позволила бы Pull/Push итерировать
+по неконтрактивному bound'у и разойтись — высота решётки станет неограниченной):
+
+- при slot-promotion — `StructDescendantClosesContractively` (все замыкающие пути
+  контрактивны, любой неконтрактивный — отказ);
+- при лифте — `StructHasSelfRef` (существование цикла) на уже отремонтированной
+  фазой C форме (все замыкающие рёбра уже обёрнуты в Optional);
+- Array-рекурсия поддержана на аннотированных и неаннотированных формах — останов
+  `case StateArray` при `fromStruct` в `ThrowIfRecursiveReq` (фаза A).
+
+Плюс слабый ярус на toposort/Tarjan — см. «Двухъярусная контрактивность» выше.
+
+### C2 — ковариантность позиций — РЕАЛИЗОВАНО консервативно (over-approximation)
+
+Формальное требование: `T` в `S.Fields` — только в ковариантных позициях (негативное
+вхождение `op: (T) → R` делает F-bounded subtype check неразрешимым в худшем случае —
+Pierce, *Bounded Polymorphism is Undecidable*, POPL 1992; ковариантный фрагмент —
+Amadio–Cardelli '93, разрешим за O(n²)).
+
+Фактический enforcement — НЕ анализ позиций, а отказ смотреть внутрь Fun:
+`ClosingPathVerdict` и `FieldReachesOwner` не спускаются в `StateFun` вообще
+(default-ветки). Следствия:
+
+- негативное вхождение `T` через аргумент функции невидимо для анализа замыканий ⇒
+  замыкающий путь не найден ⇒ promotion/lift отказывают ⇒ цикл уходит в ошибку —
+  требование C2 выполняется;
+- НО невидима и рекурсия через return-позицию функции (ковариантную, теоретически
+  допустимую) — она отвергается точно так же. Это честная переаппроксимация:
+  guard от неразрешимости куплен ценой полноты на Fun-опосредованных μ-типах.
+
+---
+
+## Теорема о principal type — ЦЕЛЬ (three-way непустота — РЕАЛИЗОВАНО)
+
+> **(Теорема PT-F).** Для неаннотированного параметра `n`, чьё тело даёт примитивные
+> интервалы `[Dᵢ..Aᵢ]`, структурные ограничения `Sᵢ` и флаги `(optᵢ, cmpᵢ)`,
+> **principal type** `n` есть `[D ≤ A, opt, cmp, struct⊆S]`, где
+> `D = ⋁ᵢ Dᵢ`, `A = ⋀ᵢ Aᵢ`, `S = GcdBound(S₁,…,Sₖ)` (объединение полей — meet на
+> решётке структурных bound'ов), `opt = ⋁ᵢ optᵢ`, `cmp = ⋁ᵢ cmpᵢ`.
+> Интервал непуст ⟺ `D ≤ A` И `D` не исключён `S`. При непустоте principal type
+> **единствен** с точностью до решёточного равенства.
+
+Статус по частям:
+- three-way предикат непустоты `(D, A, S)` — в коде: `StructBoundIsSatisfiable`,
+  разделяемый `SimplifyOrNull` (стадийная канонизация) и `IntersectIntervalsOrNull`
+  (ядро ⊓);
+- независимость осей D и S, S-транспорт операторами — в коде;
+- ПОЛНОТА вывода (principal type существует всегда, когда тело well-typed) — не
+  доказана и заведомо нарушается переаппроксимацией C2 (Fun-опосредованные μ-типы
+  отвергаются). Остаётся проектной рамкой.
+
+---
+
+## Пирамида тестов — РЕАЛИЗОВАНО
 
 - **TIC unit** (`src/Tests/NFun.Tic.Tests/Structs/RecursiveFunctionPrincipalTypeTest.cs`)
-  - `RecursiveSafeAccess_SingleField_ProducesMuType` — μ-type inference without registry
-  - `RecursiveSafeAccess_TwoFields_ProducesMuType` — both closing edges wrapped (regression sentinel for the "wrap EVERY edge" rule)
-  - `RowPolymorphic_NotRecursive_StaysOpenStruct` — non-recursive structural function stays open struct (no μ wrap)
-  - `NonStructRecursion_StaysGeneric` — `recurse(x) = recurse(x)` stays α → α (no struct, no Optional)
-
+  - `RecursiveSafeAccess_SingleField_ProducesMuType` — μ-вывод без реестра
+  - `RecursiveSafeAccess_TwoFields_ProducesMuType` — оба замыкающих ребра обёрнуты
+    (regression-sentinel правила «wrap EVERY edge»)
+  - `RowPolymorphic_NotRecursive_StaysOpenStruct` — нерекурсивная структурная функция
+    остаётся open struct (без μ-обёртки)
+  - `NonStructRecursion_StaysGeneric` — `recurse(x) = recurse(x)` остаётся α → α
+- **Законы S-оси** (`NFun.Tic.Tests/UnitTests/AlgebraStructBoundLawsTest`) — 32 теста:
+  законы ∨/∧/⊓ на S, identity-preservation ownerless-режима,
+  `MergeGroup_CycleWithBoundCarrier_PreservesStructBound` (репродукция латентного
+  бага потери S при cycle-merge).
 - **Syntax integration** (`src/Tests/NFun.SyntaxTests/NamedTypes/RecursiveTypeTest.cs`)
-  - `RecursiveFunction_LinkedListSum_Unannotated` — single-field linked list, full pipeline
-  - `RecursiveFunction_DirectFieldAccess_TreeSum_Unannotated` — two-field tree, full pipeline
-  - `RowPolymorphic_LengthFunction_StaysGeneric` — sentinel that the propagation pass does not over-tag
+  - `RecursiveFunction_LinkedListSum_Unannotated` — односвязный список, полный pipeline
+  - `RecursiveFunction_DirectFieldAccess_TreeSum_Unannotated` — двухполевое дерево
+  - `RowPolymorphic_LengthFunction_StaysGeneric` — sentinel против over-tagging фазы D
 
-## Theoretical references
+---
+
+## Теоретические ссылки
 
 - Cardelli, Wegner. *On Understanding Types, Data Abstraction, and Polymorphism.* CSUR 1985.
 - Canning, Cook, Hill, Olthoff, Mitchell. *F-Bounded Polymorphism for Object-Oriented Programming.* FPCA 1989.
@@ -197,4 +454,6 @@ The theorem makes explicit that:
 - Amadio, Cardelli. *Subtyping Recursive Types.* TOPLAS 1993.
 - Hosoya, Pierce. *Regular Expression Pattern Matching.* TOPLAS 2003.
 - Pottier, Rémy. *The Essence of ML Type Inference.* In ATTAPL, 2005.
-- Pierce. *Types and Programming Languages.* MIT Press 2002 (TAPL §20, §26, §28).
+- Pierce. *Types and Programming Languages.* MIT Press 2002 (TAPL §20, §22.6, §26).
+- Tarjan. *Depth-First Search and Linear Graph Algorithms.* SIAM J. Comput. 1972.
+- Kildall '73 / Cousot & Cousot '77 — монотонный dataflow / неподвижные точки (ScCClosurePass).

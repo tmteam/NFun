@@ -432,15 +432,19 @@ public class ConstraintsStateTest {
     public void CanBeConvertedTo_Empty_OptI32() =>
         Assert.IsTrue(C().CanBeConvertedTo(Optional(I32)));
 
+    // Flipped 2026-07-09 (debt #16): the primitive-desc arm of the satisfaction predicate
+    // got the same implicit lift `D ≤ opt(X) ⟺ D ≤ X` the composite arm always had
+    // (asymmetry removal): [arr(..)..] already accepted opt(arr(..)), while [I32..]
+    // rejected opt(I32). The lift I32 ≤ opt(I32) is algebraically valid (Algebra_Fit.md).
     [Test]
-    public void CanBeConvertedTo_DescI32_OptI32_Fails() =>
-        Assert.IsFalse(C(desc: I32).CanBeConvertedTo(Optional(I32)),
-            "Constraint [I32..] can't resolve to composite opt(I32)");
+    public void CanBeConvertedTo_DescI32_OptI32_LiftAccepts() =>
+        Assert.IsTrue(C(desc: I32).CanBeConvertedTo(Optional(I32)),
+            "opt(I32) satisfies [I32..] via the implicit lift I32 ≤ opt(I32)");
 
     [Test]
-    public void CanBeConvertedTo_DescI32_OptReal_Fails() =>
-        Assert.IsFalse(C(desc: I32).CanBeConvertedTo(Optional(Real)),
-            "Constraint [I32..] can't resolve to composite opt(Real)");
+    public void CanBeConvertedTo_DescI32_OptReal_LiftAccepts() =>
+        Assert.IsTrue(C(desc: I32).CanBeConvertedTo(Optional(Real)),
+            "opt(Real) satisfies [I32..] via the implicit lift I32 ≤ Real ≤ opt(Real)");
 
     [Test]
     public void CanBeConvertedTo_DescI32_OptBool_Fails() =>

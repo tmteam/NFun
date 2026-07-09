@@ -389,8 +389,9 @@ public class GcdOptionalTest {
     public void NoneAndAllPrimitives_GCD_ReturnsNullOrNone() {
         foreach (var primitive in PrimitiveTypes)
         {
-            // none <: any, so GCD(None, Any) = None; for others GCD(None, T) = null
-            ITicNodeState expected = primitive.Equals(Any) ? None : null;
+            // none <: any, so GCD(None, Any) = None; GCD(None, None) = None;
+            // for others GCD(None, T) = null
+            ITicNodeState expected = primitive.Equals(Any) || primitive.Equals(None) ? None : null;
             AssertGcd(None, primitive, expected);
         }
     }
