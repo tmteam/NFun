@@ -12,15 +12,25 @@ internal static class BaseFunctions {
     /// under <see cref="ExtensionFunctionsSeparation.Disabled"/>, pipe-aware dual-dict
     /// under <see cref="ExtensionFunctionsSeparation.Enabled"/>.
     /// </summary>
-    internal static IFunctionRegistry GetFunctions(TypeBehaviour typeBehaviour, ExtensionFunctionsSeparation separation)
-        => separation == ExtensionFunctionsSeparation.Enabled
+    internal static IFunctionRegistry GetFunctions(TypeBehaviour typeBehaviour, ExtensionFunctionsSeparation separation) {
+        // Float-family dialect gets its own registries: they additionally contain
+        // the float-family-only names (toFloat32/toFloat64). RealTypeSelect cannot
+        // discriminate here — F32F64TypeBehaviour selects the double arm.
+        if (typeBehaviour.SupportsFloatFamily)
+            return separation == ExtensionFunctionsSeparation.Enabled
+                ? (IFunctionRegistry)DualFloatFamilyFunctions
+                : SingleFloatFamilyFunctions;
+        return separation == ExtensionFunctionsSeparation.Enabled
             ? (IFunctionRegistry)typeBehaviour.RealTypeSelect(DualDoubleFunctions, DualDecimalFunctions)
             : typeBehaviour.RealTypeSelect(SingleDoubleFunctions, SingleDecimalFunctions);
+    }
 
     private static SingleDictFunctionRegistry SingleDoubleFunctions { get; }
     private static SingleDictFunctionRegistry SingleDecimalFunctions { get; }
+    private static SingleDictFunctionRegistry SingleFloatFamilyFunctions { get; }
     private static DualDictFunctionRegistry DualDoubleFunctions { get; }
     private static DualDictFunctionRegistry DualDecimalFunctions { get; }
+    private static DualDictFunctionRegistry DualFloatFamilyFunctions { get; }
     private static GenericFunctionBase[] GenericFunctions { get; }
     private static IConcreteFunction[] ConcreteFunctions { get; }
     private static IConcreteFunction[] ConcreteDoubleFunctions { get; }
@@ -128,7 +138,9 @@ internal static class BaseFunctions {
             new RoundFunction(),
             new AverageFunction(),
             new DivideFunction(),
-        };
+        }
+        // issue #135
+        .Concat(ToNumericFunctions.CreateBaseFamily()).ToArray();
 
         ConcreteFunctions = new IConcreteFunction[] {
             new NotFunction(),
@@ -162,9 +174,13 @@ internal static class BaseFunctions {
         ConcreteDecimalFunctions = System.Array.Empty<IConcreteFunction>();
         var allDoubleConcretes = ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray();
         var allDecimalConcretes = ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray();
+        // Float-family dialect (Real=double + Float32): base set + toFloat32/toFloat64.
+        var floatFamilyGenerics = GenericFunctions.Concat(ToNumericFunctions.CreateFloatFamilyExtras()).ToArray();
         SingleDoubleFunctions = new SingleDictFunctionRegistry(allDoubleConcretes, GenericFunctions);
         SingleDecimalFunctions = new SingleDictFunctionRegistry(allDecimalConcretes, GenericFunctions);
+        SingleFloatFamilyFunctions = new SingleDictFunctionRegistry(allDoubleConcretes, floatFamilyGenerics);
         DualDoubleFunctions = new DualDictFunctionRegistry(allDoubleConcretes, GenericFunctions);
         DualDecimalFunctions = new DualDictFunctionRegistry(allDecimalConcretes, GenericFunctions);
+        DualFloatFamilyFunctions = new DualDictFunctionRegistry(allDoubleConcretes, floatFamilyGenerics);
     }
 }

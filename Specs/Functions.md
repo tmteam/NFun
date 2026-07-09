@@ -172,6 +172,52 @@ goes through the type-inference path, not `convert()`. Only the explicit
 implementation gap is tracked in test cases marked
 `[Ignore("convert-deferred: complex composite conversions")]`.
 
+### Numeric narrowing family: `toXxx` / `toXxxWrap` / `toXxxClamp`
+
+Explicit numeric conversions with the failure semantics **in the name** — they do
+not depend on the `IntegerOverflow` dialect flag. This is the sanctioned way to
+narrow the result of arithmetic (which always computes in a wide type):
+`counter:byte = (counter + 1).toByte()`.
+
+| Variant | Out of target range | `real` source | `NaN` | `±Inf` |
+|---|---|---|---|---|
+| `toXxx(x:number):XXX` | runtime error | truncate toward zero, **then** range-check (`(-0.5).toByte() == 0`) | error | error |
+| `toXxxWrap(x:number):XXX` | two's-complement wrap mod 2ⁿ | truncate toward zero, then wrap; error if the truncated value has no 64-bit representation | error | error |
+| `toXxxClamp(x:number):XXX` | saturate to `[XXX.min .. XXX.max]` | clamp first, then truncate | error | `+Inf → max`, `-Inf → min` |
+
+Targets — all fixed-width integer types. Function names mirror the language's
+type-keyword aliases:
+
+| Primary | Aliases |
+|---|---|
+| `toByte` | `toUint8` |
+| `toUint16` | — |
+| `toUint` | `toUint32` |
+| `toUint64` | — |
+| `toInt8` | — |
+| `toInt16` | — |
+| `toInt` | `toInt32` |
+| `toInt64` | — |
+
+Each name exists in all three variants (`toByte`, `toByteWrap`, `toByteClamp`, …).
+
+Additionally:
+
+- `toReal(x:number):real` — total for numeric sources (precision loss possible
+  above 2⁵³); no `Wrap`/`Clamp` variants exist. Under the decimal dialect returns
+  decimal-backed `real`.
+- `toFloat32(x:number):float32` and `toFloat64(x:number):real` (alias of `toReal`)
+  exist **only** in the float-family dialect (`FloatFamilySupport.Float32AndFloat64`);
+  no `Wrap`/`Clamp` variants: `toFloat32` overflow produces `±Inf` (IEEE), while
+  `toReal`/`toFloat64` cannot overflow from any NFun source.
+
+The checked variant shares numeric semantics with `convert()` (same
+truncate-toward-zero rule); the difference is ergonomic: the target type is fixed
+by the function name instead of demanded by the assignment context, so the family
+chains inside expressions. In `convert` vocabulary terms: checked `toXxx` failures
+are **🪂**-class (runtime `Oops`), non-numeric sources are **✗** (compile-time reject).
+Identity conversions (`x:byte` → `x.toByte()`) always succeed.
+
 ## Generic Array Functions
 
 ### Appliable to any arrays (without type constrains)

@@ -39,6 +39,12 @@ public abstract class TypeBehaviour {
     public virtual bool RealLiteralIsGeneric => false;
 
     /// <summary>
+    /// True when the dialect exposes the IEEE float family (float32/float64 keywords).
+    /// Gates registration of float-family-only functions (toFloat32/toFloat64).
+    /// </summary>
+    public virtual bool SupportsFloatFamily => false;
+
+    /// <summary>
     /// Adjusts a parsed real literal to match the resolved target type.
     /// Base: identity. F32-enabled: casts double → float when target is Float32.
     /// </summary>
@@ -478,6 +484,8 @@ public class F32F64TypeBehaviour : RealIsDoubleTypeBehaviour {
         Outputs.TryGetValue(clrType, out var res) ? res : base.GetPrimitiveOutputConverterOrNull(clrType);
 
     public override bool RealLiteralIsGeneric => true;
+
+    public override bool SupportsFloatFamily => true;
 
     public override object CoerceParsedRealLiteral(object parsed, FunnyType target) =>
         target.BaseType == BaseFunnyType.Float32 && parsed is double d ? (object)(float)d : parsed;
