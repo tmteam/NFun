@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>1.2.1</PackageVersion>
-    <Version>1.2.1</Version>
+    <PackageVersion>1.2.2</PackageVersion>
+    <Version>1.2.2</Version>
     <LangVersion>10</LangVersion>
     <Title>NFun</Title>
     <Authors>tmteam</Authors>
@@ -13,9 +13,9 @@
     <PackageIcon>Icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
     <PackageTags>expression-evaluator scripting type-inference optional-types named-types</PackageTags>
-    <PackageReleaseNotes>v1.2.1: explicit numeric narrowing family — toByte/toInt16/toUint32/... plus toXxxWrap (two's-complement) and toXxxClamp (saturating) variants for all fixed-width int types; toReal; toFloat32/toFloat64 under the float-family dialect. Overflow semantics live in the function name, independent of the dialect overflow flag: `counter:byte = (counter + 1).toByte()`. Function-name aliases mirror type-keyword aliases (toByte≡toUint8, toInt≡toInt32, toUint≡toUint32).</PackageReleaseNotes>
-    <AssemblyVersion>1.2.1</AssemblyVersion>
-    <FileVersion>1.2.1</FileVersion>
+    <PackageReleaseNotes>v1.2.2: type-inference correctness release. Fixed generic-identity conflation in user functions with multiple independent type params (f(a,b)={p=a[0],q=b[0]} now infers {p:Real;q:Char} instead of {p:Any;q:Any}; also removes a silent Int32→Real coercion). Integer division `//` now respects the overflow dialect: MIN // -1 throws under Checked (default) and wraps under Unchecked at every width; `%` never overflows (MIN % -1 = 0 consistently). Fun-argument variance corrected in constraint propagation. Several type-solver soundness fixes (F-bound field checking depth, canonical optional forms) and a large internal hardening pass: ~200 new algebra-law and regression tests.</PackageReleaseNotes>
+    <AssemblyVersion>1.2.2</AssemblyVersion>
+    <FileVersion>1.2.2</FileVersion>
     <TargetFrameworks>net5.0;net6.0;net8.0</TargetFrameworks>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
